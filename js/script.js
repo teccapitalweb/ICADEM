@@ -1,104 +1,89 @@
 const menuToggle = document.querySelector('.menu-toggle');
 const nav = document.querySelector('.nav');
-const year = document.getElementById('year');
-const counters = document.querySelectorAll('[data-count]');
-const parallaxItems = document.querySelectorAll('.parallax');
-const filterButtons = document.querySelectorAll('.filter-chip');
-const courseCards = document.querySelectorAll('.course-card[data-category]');
-
-if (year) year.textContent = new Date().getFullYear();
-
 if (menuToggle && nav) {
   menuToggle.addEventListener('click', () => {
-    const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
-    menuToggle.setAttribute('aria-expanded', String(!expanded));
-    nav.classList.toggle('open');
+    const open = nav.classList.toggle('is-open');
+    menuToggle.setAttribute('aria-expanded', String(open));
   });
-
-  nav.querySelectorAll('a').forEach((link) => {
+  nav.querySelectorAll('a').forEach(link => {
     link.addEventListener('click', () => {
-      nav.classList.remove('open');
+      nav.classList.remove('is-open');
       menuToggle.setAttribute('aria-expanded', 'false');
     });
   });
 }
-
+const revealItems = document.querySelectorAll('.reveal');
 const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
+  entries.forEach(entry => {
     if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
+      entry.target.classList.add('is-visible');
       revealObserver.unobserve(entry.target);
     }
   });
-}, { threshold: 0.16 });
-
-document.querySelectorAll('.reveal, .reveal-delay').forEach((item) => revealObserver.observe(item));
-
+}, { threshold: 0.18 });
+revealItems.forEach(item => revealObserver.observe(item));
+const counters = document.querySelectorAll('[data-count]');
 const counterObserver = new IntersectionObserver((entries) => {
-  entries.forEach((entry) => {
+  entries.forEach(entry => {
     if (!entry.isIntersecting) return;
-
-    const element = entry.target;
-    const target = Number(element.dataset.count || 0);
-    const duration = 1300;
-    const startTime = performance.now();
-
-    function updateCount(now) {
-      const progress = Math.min((now - startTime) / duration, 1);
+    const el = entry.target;
+    const target = Number(el.dataset.count);
+    const suffix = target === 100 ? '%' : '+';
+    const duration = 1400;
+    const start = performance.now();
+    const animate = (now) => {
+      const progress = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      element.textContent = Math.floor(eased * target);
-      if (progress < 1) {
-        requestAnimationFrame(updateCount);
-      } else {
-        element.textContent = `${target}+`;
-      }
-    }
-
-    requestAnimationFrame(updateCount);
-    counterObserver.unobserve(element);
+      const value = Math.round(target * eased);
+      el.textContent = value + suffix;
+      if (progress < 1) requestAnimationFrame(animate);
+    };
+    requestAnimationFrame(animate);
+    counterObserver.unobserve(el);
   });
-}, { threshold: 0.45 });
-
-counters.forEach((counter) => counterObserver.observe(counter));
-
-window.addEventListener('scroll', () => {
-  const offset = window.scrollY;
-  parallaxItems.forEach((item) => {
-    const speed = Number(item.dataset.speed || 0.1);
-    item.style.transform = `translateY(${offset * speed}px)`;
-  });
-}, { passive: true });
-
-filterButtons.forEach((button) => {
+}, { threshold: 0.5 });
+counters.forEach(counter => counterObserver.observe(counter));
+document.querySelectorAll('.filter-btn').forEach(button => {
   button.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('is-active'));
+    button.classList.add('is-active');
     const filter = button.dataset.filter;
-
-    filterButtons.forEach((btn) => {
-      btn.classList.remove('active');
-      btn.setAttribute('aria-selected', 'false');
-    });
-
-    button.classList.add('active');
-    button.setAttribute('aria-selected', 'true');
-
-    courseCards.forEach((card) => {
-      const category = card.dataset.category;
-      const matches = filter === 'all' || category === filter;
-      card.classList.toggle('is-hidden', !matches);
+    document.querySelectorAll('.course-card').forEach(card => {
+      const show = filter === 'all' || card.dataset.category === filter;
+      card.classList.toggle('hidden-course', !show);
     });
   });
 });
-
-function sendToWhatsApp(event) {
+const lightbox = document.getElementById('lightbox');
+const lightboxImg = lightbox?.querySelector('img');
+const closeBtn = lightbox?.querySelector('.lightbox-close');
+document.querySelectorAll('[data-image]').forEach(item => {
+  item.addEventListener('click', () => {
+    if (!lightbox || !lightboxImg) return;
+    lightboxImg.src = item.dataset.image;
+    lightbox.showModal();
+  });
+});
+closeBtn?.addEventListener('click', () => lightbox.close());
+lightbox?.addEventListener('click', (event) => {
+  const rect = lightbox.getBoundingClientRect();
+  const clickedInDialog = rect.top <= event.clientY && event.clientY <= rect.top + rect.height && rect.left <= event.clientX && event.clientX <= rect.left + rect.width;
+  if (!clickedInDialog) lightbox.close();
+});
+const heroMedia = document.querySelector('.parallax-media img');
+window.addEventListener('scroll', () => {
+  if (!heroMedia || window.innerWidth < 900) return;
+  const offset = window.scrollY * 0.08;
+  heroMedia.style.transform = `translateY(${offset}px) scale(1.06)`;
+}, { passive: true });
+const form = document.getElementById('contact-form');
+form?.addEventListener('submit', (event) => {
   event.preventDefault();
-
-  const name = document.getElementById('name').value.trim();
-  const service = document.getElementById('service').value.trim();
-  const message = document.getElementById('message').value.trim();
-
-  const text = `Hola ICADEM, mi nombre es ${name}. Me interesa: ${service}. Mensaje: ${message}`;
-  const url = `https://wa.me/522383738143?text=${encodeURIComponent(text)}`;
-  window.open(url, '_blank', 'noopener');
-}
-
-window.sendToWhatsApp = sendToWhatsApp;
+  const nombre = document.getElementById('nombre').value.trim();
+  const medio = document.getElementById('medio').value.trim();
+  const servicio = document.getElementById('servicio').value.trim();
+  const mensaje = document.getElementById('mensaje').value.trim();
+  const text = `Hola ICADEM, quiero información.%0A%0ANombre: ${encodeURIComponent(nombre)}%0AMedio de contacto: ${encodeURIComponent(medio)}%0AServicio de interés: ${encodeURIComponent(servicio)}%0AMensaje: ${encodeURIComponent(mensaje)}`;
+  window.open(`https://wa.me/522383738143?text=${text}`, '_blank', 'noopener');
+});
+document.getElementById('year').textContent = new Date().getFullYear();
