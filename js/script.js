@@ -26,12 +26,13 @@ const observer = new IntersectionObserver((entries) => {
       observer.unobserve(entry.target);
     }
   });
-}, { threshold: 0.18 });
+}, { threshold: 0.16 });
 
 document.querySelectorAll('.reveal, .reveal-delay').forEach((item) => observer.observe(item));
 
 function sendToWhatsApp(event) {
   event.preventDefault();
+
   const name = document.getElementById('name').value.trim();
   const service = document.getElementById('service').value.trim();
   const message = document.getElementById('message').value.trim();
@@ -40,4 +41,5 @@ function sendToWhatsApp(event) {
   const url = `https://wa.me/522383738143?text=${encodeURIComponent(text)}`;
   window.open(url, '_blank', 'noopener');
 }
+
 window.sendToWhatsApp = sendToWhatsApp;
