@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel VIP — ICADEM</title>
+  <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --base:    #08090b;
+      --surface: #0f1115;
+      --card:    #13161c;
+      --card2:   #161a22;
+      --border:  rgba(255,255,255,0.07);
+      --gold:    #c8962a;
+      --gold-lt: #e8c96a;
+      --blue:    #1a3a6b;
+      --blue-lt: #2a5298;
+      --text:    #f0ede8;
+      --muted:   rgba(240,237,232,0.45);
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Space Grotesk', system-ui, sans-serif;
+    }
+    html, body { min-height: 100vh; }
+    body {
+      background: var(--base);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* NAV */
+    .nav {
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      background: rgba(8,9,11,0.92);
+      backdrop-filter: blur(12px);
+      z-index: 10;
+    }
+    .nav-logo {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--gold-lt);
+      text-decoration: none;
+    }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+    }
+    .nav-user {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .nav-avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--blue-lt));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 600; color: #fff;
+    }
+    .nav-name { font-size: 13px; font-weight: 500; }
+    .btn-logout {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 6px 14px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .btn-logout:hover { color: var(--text); border-color: var(--border-focus, rgba(255,255,255,0.2)); }
+
+    /* HERO PANEL */
+    .panel-hero {
+      border-bottom: 1px solid var(--border);
+      padding: clamp(2.5rem, 6vw, 4rem) 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .panel-hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 700px; height: 400px;
+      background: radial-gradient(ellipse, rgba(26,58,107,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .panel-hero-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 2rem;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .panel-greeting {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 0.75rem;
+    }
+    .panel-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.05;
+      margin-bottom: 0.5rem;
+    }
+    .panel-sub {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 300;
+    }
+    .membership-badge {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.25rem 1.5rem;
+      min-width: 200px;
+      text-align: right;
+    }
+    .badge-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+    .badge-plan {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--gold-lt);
+    }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #4ade80;
+      margin-top: 0.3rem;
+    }
+    .badge-status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: #4ade80;
+    }
+
+    /* CONTENT */
+    .content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 3rem 2rem 5rem;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+    }
+
+    /* BENEFITS GRID */
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 3rem;
+    }
+    .benefit-card {
+      background: var(--card);
+      padding: 1.5rem;
+      transition: background 0.2s;
+    }
+    .benefit-card:hover { background: var(--card2); }
+    .benefit-icon {
+      width: 36px; height: 36px;
+      border-radius: 2px;
+      background: rgba(26,58,107,0.3);
+      border: 1px solid rgba(42,82,152,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .benefit-icon svg { width: 18px; height: 18px; }
+    .benefit-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+      letter-spacing: 0.01em;
+    }
+    .benefit-desc {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 300;
+      line-height: 1.5;
+    }
+
+    /* QUICK ACTIONS */
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 3rem;
+    }
+    .action-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: var(--text);
+      transition: background 0.2s, border-color 0.2s, transform 0.15s;
+    }
+    .action-card:hover {
+      background: var(--card2);
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-1px);
+    }
+    .action-text .action-title {
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+    .action-text .action-sub {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 300;
+    }
+    .action-arrow {
+      font-size: 18px;
+      color: var(--muted);
+      transition: color 0.2s, transform 0.2s;
+    }
+    .action-card:hover .action-arrow { color: var(--gold); transform: translateX(3px); }
+
+    /* WHATSAPP CARD */
+    .wa-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      border-radius: 3px;
+      padding: 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .wa-text .wa-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+    .wa-text .wa-sub { font-size: 12px; color: var(--muted); font-weight: 300; }
+    .btn-wa {
+      padding: 11px 22px;
+      background: transparent;
+      border: 1px solid rgba(200,150,42,0.4);
+      border-radius: 2px;
+      font-family: var(--font-body);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold-lt);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn-wa:hover { background: rgba(200,150,42,0.08); border-color: var(--gold); }
+
+    /* LOADING */
+    .loading-overlay {
+      display: flex;
+      position: fixed; inset: 0;
+      background: var(--base);
+      z-index: 100;
+      align-items: center; justify-content: center;
+      flex-direction: column; gap: 1rem;
+    }
+    .loading-overlay.hidden { display: none; }
+    .spinner { width: 32px; height: 32px; border: 2px solid var(--border); border-top-color: var(--gold); border-radius: 50%; animation: spin 0.7s linear infinite; }
+    .loading-text { font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+
+    .anim { animation: fadeUp 0.4s ease both; }
+    .anim-2 { animation: fadeUp 0.4s ease 0.1s both; }
+    .anim-3 { animation: fadeUp 0.4s ease 0.2s both; }
+
+    @media (max-width: 600px) {
+      .panel-hero-inner { flex-direction: column; align-items: flex-start; }
+      .membership-badge { text-align: left; width: 100%; }
+      .nav-name { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOADING inicial -->
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Verificando membresía...</p>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav">
+    <a class="nav-logo" href="index.html">ICADEM</a>
+    <div class="nav-right">
+      <div class="nav-user">
+        <div class="nav-avatar" id="nav-avatar">?</div>
+        <span class="nav-name" id="nav-name">...</span>
+      </div>
+      <button class="btn-logout" id="btn-logout">Salir</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <div class="panel-hero">
+    <div class="panel-hero-inner">
+      <div>
+        <p class="panel-greeting">Panel VIP</p>
+        <h1 class="panel-title">Bienvenido,<br><span id="user-nombre">miembro</span>.</h1>
+        <p class="panel-sub">Tu membresía VIP está activa. Accede a todos tus beneficios.</p>
+      </div>
+      <div class="membership-badge">
+        <p class="badge-label">Tu plan</p>
+        <p class="badge-plan" id="badge-plan">VIP</p>
+        <div class="badge-status">
+          <span class="badge-status-dot"></span>
+          Activa
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <p class="section-label anim">Tus beneficios incluidos</p>
+    <div class="benefits-grid anim">
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2a5298" stroke-width="1.5" stroke-linecap="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <p class="benefit-title">Cursos ilimitados</p>
+        <p class="benefit-desc">Acceso completo a todo el catálogo de capacitaciones especializadas.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2a5298" stroke-width="1.5" stroke-linecap="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+        </div>
+        <p class="benefit-title">Material Premium</p>
+        <p class="benefit-desc">Descarga materiales exclusivos y guías de trabajo profesional.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2a5298" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9 12l2 2 4-4"/>
+          </svg>
+        </div>
+        <p class="benefit-title">Certificados digitales</p>
+        <p class="benefit-desc">Con validación, QR y folio por organización certificadora.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2a5298" stroke-width="1.5" stroke-linecap="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <p class="benefit-title">Asesoría personalizada</p>
+        <p class="benefit-desc">Sesión mensual de acompañamiento estratégico con especialistas.</p>
+      </div>
+      <div class="benefit-card">
+        <div class="benefit-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#2a5298" stroke-width="1.5" stroke-linecap="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <p class="benefit-title">Canal VIP WhatsApp</p>
+        <p class="benefit-desc">Grupo exclusivo de miembros con contenido prioritario.</p>
+      </div>
+    </div>
+
+    <p class="section-label anim-2">Accesos rápidos</p>
+    <div class="actions-grid anim-2">
+      <a class="action-card" href="index.html#capacitaciones">
+        <div class="action-text">
+          <p class="action-title">Ver capacitaciones</p>
+          <p class="action-sub">Explora el catálogo completo</p>
+        </div>
+        <span class="action-arrow">&#8594;</span>
+      </a>
+      <a class="action-card" href="index.html#certificacion">
+        <div class="action-text">
+          <p class="action-title">Mis certificados</p>
+          <p class="action-sub">Accede a tus constancias</p>
+        </div>
+        <span class="action-arrow">&#8594;</span>
+      </a>
+      <a class="action-card" href="index.html#contacto">
+        <div class="action-text">
+          <p class="action-title">Solicitar asesoría</p>
+          <p class="action-sub">Agenda tu sesión mensual</p>
+        </div>
+        <span class="action-arrow">&#8594;</span>
+      </a>
+    </div>
+
+    <div class="wa-card anim-3">
+      <div class="wa-text">
+        <p class="wa-title">Canal VIP en WhatsApp</p>
+        <p class="wa-sub">Únete al grupo exclusivo de miembros para recibir contenido prioritario y avisos especiales.</p>
+      </div>
+      <a class="btn-wa"
+         href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20soy%20miembro%20VIP%20y%20quiero%20unirme%20al%20canal%20exclusivo."
+         target="_blank" rel="noopener">
+        Unirme al canal
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ─── CONFIGURACIÓN FIREBASE ───────────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA",
+      authDomain:        "icadem-vip.firebaseapp.com",
+      projectId:         "icadem-vip",
+      storageBucket:     "icadem-vip.firebasestorage.app",
+      messagingSenderId: "12508983783",
+      appId:             "1:12508983783:web:b12be6f1fab9bb91fb8d42"
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        window.location.href = 'vip-auth.html';
+        return;
+      }
+
+      // Verificar si llegó desde Mercado Pago con pago exitoso
+      const params = new URLSearchParams(window.location.search);
+      const status = params.get('status') || params.get('collection_status');
+      const uid    = params.get('uid') || user.uid;
+      const plan   = params.get('plan') || localStorage.getItem('icadem_plan') || 'mensual';
+
+      if (status === 'approved' || status === 'accredited') {
+        // Activar membresía en Firestore
+        await setDoc(doc(db, 'membresias', uid), {
+          plan: plan,
+          activa: true,
+          pendiente: false,
+          precio: plan === 'anual' ? 2400 : 250,
+          activadaEn: serverTimestamp(),
+          vence: plan === 'anual'
+            ? new Date(Date.now() + 365*24*60*60*1000).toISOString()
+            : new Date(Date.now() + 30*24*60*60*1000).toISOString()
+        }, { merge: true });
+        // Limpiar URL
+        window.history.replaceState({}, '', 'vip-panel.html');
+      }
+
+      // Verificar membresía activa
+      const snap = await getDoc(doc(db, 'membresias', user.uid));
+      if (!snap.exists() || !snap.data().activa) {
+        window.location.href = 'vip-checkout.html';
+        return;
+      }
+
+      // Mostrar panel
+      const data = snap.data();
+      document.getElementById('loading').classList.add('hidden');
+
+      const nombre = (user.displayName || user.email || 'miembro').split(' ')[0];
+      const inicial = nombre[0].toUpperCase();
+      document.getElementById('nav-avatar').textContent   = inicial;
+      document.getElementById('nav-name').textContent     = user.displayName || user.email;
+      document.getElementById('user-nombre').textContent  = nombre;
+      document.getElementById('badge-plan').textContent   =
+        data.plan === 'anual' ? 'Anual' : 'Mensual';
+    });
+
+    document.getElementById('btn-logout').addEventListener('click', async () => {
+      await signOut(auth);
+      localStorage.removeItem('icadem_plan');
+      window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
