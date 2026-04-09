@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ICADEM | Instituto de Capacitación y Desarrollo Empresarial</title>
+  <meta name="description" content="ICADEM es una empresa de capacitación y consultoría empresarial. Cursos fiscales, administrativos, talleres, asesoría a emprendedores y certificados con valor curricular, QR y folio." />
+  <meta name="keywords" content="ICADEM, capacitación empresarial, consultoría empresarial, cursos fiscales, cursos administrativos, talleres, asesoría a emprendedores, certificados con valor curricular" />
+  <meta name="theme-color" content="#0b2f68" />
+  <meta property="og:title" content="ICADEM | Desarrollando talento, fortaleciendo empresas" />
+  <meta property="og:description" content="Instituto de Capacitación y Desarrollo Empresarial con enfoque corporativo, moderno e institucional." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/logo/logo-icadem.jpg" />
+  <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <a class="skip-link" href="#principal">Saltar al contenido</a>
+
+  <div class="topbar">
+    <div class="container topbar-inner">
+      <div class="topbar-badges">
+        <span>Capacitación empresarial</span>
+        <span>Consultoría online</span>
+        <span>Certificados con valor curricular</span>
+      </div>
+      <a href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios." target="_blank" rel="noopener">WhatsApp directo</a>
+    </div>
+  </div>
+
+  <header class="site-header" id="inicio">
+    <div class="container header-inner">
+      <a class="brand" href="#inicio" aria-label="Ir al inicio">
+        <img src="assets/logo/logo-icadem.jpg" alt="Logo de ICADEM">
+        <div>
+          <strong>ICADEM</strong>
+          <small>Instituto de Capacitación y Desarrollo Empresarial</small>
+        </div>
+      </a>
+
+      <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="main-nav">
+        <span></span><span></span><span></span>
+      </button>
+
+      <nav class="nav" id="main-nav" aria-label="Menú principal">
+        <a href="#nosotros">Nosotros</a>
+        <a href="#servicios">Servicios</a>
+        <a href="#capacitaciones">Capacitaciones</a>
+        <a href="#certificacion">Certificación</a>
+        <a href="#testimonios">Testimonios</a>
+        <a href="#contacto" class="nav-cta">Contacto</a>
+        <a href="#contacto" class="nav-vip" aria-label="Suscriptor VIP">
+          <span class="nav-vip-crown">♛</span>
+          <span class="nav-vip-text">Suscriptor VIP</span>
+        </a>
+      </nav>
+
+      <style>
+        .nav-vip {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 9px 20px;
+          font-family: inherit;
+          font-size: 13.5px;
+          font-weight: 700;
+          letter-spacing: 0.03em;
+          color: #0b1f4a !important;
+          background: linear-gradient(135deg, #e8c96a 0%, #f5e29b 45%, #c8962a 100%);
+          border-radius: 50px;
+          text-decoration: none;
+          white-space: nowrap;
+          transition: transform 0.18s ease, box-shadow 0.18s ease;
+          box-shadow: 0 3px 14px rgba(200,150,42,0.45);
+          position: relative;
+          overflow: hidden;
+        }
+        .nav-vip::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          border-radius: 50px;
+          background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 55%);
+          pointer-events: none;
+        }
+        .nav-vip:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 7px 22px rgba(200,150,42,0.55);
+          color: #0b1f4a !important;
+        }
+        .nav-vip:active { transform: translateY(0); }
+        .nav-vip-crown { font-size: 13px; line-height: 1; }
+        .nav-vip-text { position: relative; }
+
+        @media (max-width: 768px) {
+          .nav-vip {
+            width: fit-content;
+            margin-top: 4px;
+          }
+        }
+      </style>
+    </div>
+  </header>
+
+  <main id="principal">
+    <section class="hero">
+      <div class="hero-backdrop"></div>
+      <div class="hero-grid container">
+        <div class="hero-copy reveal">
+          <p class="eyebrow">Empresa de consultoría y capacitación con presencia institucional</p>
+          <h1>Desarrollando talento,<br> fortaleciendo empresas.</h1>
+          <p class="hero-text">
+            En ICADEM impulsamos el crecimiento de empresas, emprendedores y profesionistas con una experiencia
+            de formación moderna, consultoría estratégica y programas especializados con enfoque práctico.
+          </p>
+
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#capacitaciones">Ver capacitaciones</a>
+            <a class="btn btn-secondary" href="#contacto">Solicitar información</a>
+          </div>
+
+          <div class="hero-pills">
+            <span>Capacitación especializada</span>
+            <span>Consultoría empresarial</span>
+            <span>Presencial y online</span>
+            <span>Valor curricular</span>
+          </div>
+        </div>
+
+        <div class="hero-card reveal reveal-delay">
+          <div class="hero-card-media parallax-media">
+            <img src="assets/hero/hero-icadem.jpg" alt="Imagen institucional de ICADEM">
+          </div>
+          <div class="hero-card-content">
+            <div class="card-chip">ICADEM</div>
+            <h2>Formación y consultoría con imagen corporativa de alto nivel.</h2>
+            <p>Una presencia digital tipo consultora internacional con enfoque de academia moderna.</p>
+            <ul class="feature-list">
+              <li>Programas fiscales, administrativos y empresariales</li>
+              <li>Asesoría a emprendedores y consultoría online</li>
+              <li>Certificación con QR y folio</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="container hero-stats">
+        <article class="stat-chip reveal">
+          <strong data-count="7">0</strong>
+          <span>Líneas de servicio</span>
+        </article>
+        <article class="stat-chip reveal">
+          <strong data-count="30">0</strong>
+          <span>Temáticas formativas</span>
+        </article>
+        <article class="stat-chip reveal">
+          <strong data-count="14">0</strong>
+          <span>Evidencias institucionales</span>
+        </article>
+        <article class="stat-chip reveal">
+          <strong data-count="100">0</strong>
+          <span>Enfoque práctico y profesional</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="authority-strip">
+      <div class="container authority-grid">
+        <article class="reveal">
+          <h3>Formación especializada</h3>
+          <p>Programas orientados al fortalecimiento de competencias y actualización profesional.</p>
+        </article>
+        <article class="reveal">
+          <h3>Consultoría estratégica</h3>
+          <p>Soluciones para mejorar decisiones, procesos y crecimiento empresarial.</p>
+        </article>
+        <article class="reveal">
+          <h3>Imagen institucional</h3>
+          <p>Una identidad sólida, moderna y seria que transmite respaldo desde el primer contacto.</p>
+        </article>
+        <article class="reveal">
+          <h3>Certificación segura</h3>
+          <p>Constancias con valor curricular integradas con QR y folio para mayor formalidad.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="nosotros">
+      <div class="container split">
+        <div class="section-copy reveal">
+          <p class="section-tag">Quiénes somos</p>
+          <h2>Impulsamos el desarrollo profesional y empresarial con una propuesta moderna.</h2>
+          <p>
+            ICADEM es una empresa de consultoría y, principalmente, una capacitadora enfocada en crear experiencias de aprendizaje
+            útiles, profesionales y orientadas a resultados. Nuestra propuesta integra formación, actualización y acompañamiento
+            para empresas, emprendedores y profesionistas.
+          </p>
+          <p>
+            Combinamos una imagen institucional sólida con contenidos prácticos para que cada participante adquiera herramientas
+            aplicables en su trabajo, negocio o desarrollo profesional.
+          </p>
+        </div>
+
+        <aside class="glass-panel reveal reveal-delay">
+          <p class="section-tag">Diferenciadores</p>
+          <ul class="check-list">
+            <li>Estilo corporativo y profesional</li>
+            <li>Capacitación alineada a necesidades reales</li>
+            <li>Consultoría online con atención ejecutiva</li>
+            <li>Certificados con valor curricular, QR y folio</li>
+            <li>Experiencia visual tipo universidad moderna</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="servicios">
+      <div class="container">
+        <div class="section-heading center reveal">
+          <p class="section-tag">Servicios</p>
+          <h2>Soluciones integrales para fortalecer talento, operación y crecimiento.</h2>
+          <p>Una oferta profesional diseñada para empresas, emprendedores y personas que buscan avanzar con respaldo y actualización constante.</p>
+        </div>
+
+        <div class="services-grid">
+          <article class="service-card reveal">
+            <div class="icon-box">🏢</div>
+            <h3>Capacitación empresarial</h3>
+            <p>Programas enfocados en fortalecer competencias, liderazgo y desempeño organizacional.</p>
+          </article>
+          <article class="service-card reveal">
+            <div class="icon-box">📊</div>
+            <h3>Cursos fiscales</h3>
+            <p>Actualización práctica en obligaciones, cumplimiento y procesos relevantes ante el SAT.</p>
+          </article>
+          <article class="service-card reveal">
+            <div class="icon-box">🗂️</div>
+            <h3>Cursos administrativos</h3>
+            <p>Formación en organización, control, procesos internos y gestión profesional.</p>
+          </article>
+          <article class="service-card reveal">
+            <div class="icon-box">📈</div>
+            <h3>Consultoría empresarial</h3>
+            <p>Acompañamiento estratégico para fortalecer estructura, procesos y crecimiento.</p>
+          </article>
+          <article class="service-card reveal">
+            <div class="icon-box">💻</div>
+            <h3>Consultoría online</h3>
+            <p>Atención ágil a distancia con enfoque ejecutivo y soluciones prácticas.</p>
+          </article>
+          <article class="service-card reveal">
+            <div class="icon-box">🧠</div>
+            <h3>Talleres profesionales</h3>
+            <p>Experiencias formativas dinámicas orientadas al uso inmediato del conocimiento.</p>
+          </article>
+          <article class="service-card reveal">
+            <div class="icon-box">🚀</div>
+            <h3>Asesoría a emprendedores</h3>
+            <p>Orientación profesional para iniciar, estructurar y fortalecer proyectos de negocio.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="beneficios">
+      <div class="container">
+        <div class="section-heading reveal">
+          <p class="section-tag">¿Por qué elegir ICADEM?</p>
+          <h2>Una experiencia de capacitación diseñada para inspirar confianza y resultados.</h2>
+        </div>
+
+        <div class="benefits-grid">
+          <article class="benefit-card reveal"><span>01</span><h3>Actualización constante</h3><p>Temáticas relevantes para el entorno profesional y empresarial actual.</p></article>
+          <article class="benefit-card reveal"><span>02</span><h3>Enfoque práctico</h3><p>Contenidos útiles que ayudan a aplicar lo aprendido desde el primer momento.</p></article>
+          <article class="benefit-card reveal"><span>03</span><h3>Imagen institucional</h3><p>Presentación seria, moderna y alineada a una marca de alto nivel.</p></article>
+          <article class="benefit-card reveal"><span>04</span><h3>Modalidad flexible</h3><p>Atención en formato presencial y online para mayor alcance y comodidad.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="capacitaciones">
+      <div class="container">
+        <div class="section-heading reveal">
+          <p class="section-tag">Capacitaciones destacadas</p>
+          <h2>Presentación de cursos estilo academia premium.</h2>
+          <p>Explora algunas de las áreas que ICADEM proyecta con una estética tipo universidad moderna.</p>
+        </div>
+
+        <div class="filter-bar reveal">
+          <button class="filter-btn is-active" data-filter="all">Todas</button>
+          <button class="filter-btn" data-filter="fiscal">Fiscales</button>
+          <button class="filter-btn" data-filter="administrativo">Administrativos</button>
+          <button class="filter-btn" data-filter="empresarial">Empresariales</button>
+          <button class="filter-btn" data-filter="legal">Legales</button>
+        </div>
+
+        <div class="courses-grid">
+          <article class="course-card reveal" data-category="fiscal">
+            <img src="assets/cursos/curso-declaraciones-sat.jpg" alt="Curso de declaraciones mensuales y anuales">
+            <div class="course-body">
+              <span class="course-tag">Fiscal</span>
+              <h3>Declaraciones mensuales y anuales ante el SAT</h3>
+              <p>Actualización para personas físicas con enfoque claro, práctico y profesional.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+
+          <article class="course-card reveal" data-category="administrativo">
+            <img src="assets/cursos/curso-reclutamiento-estrategico.jpg" alt="Curso de reclutamiento estratégico">
+            <div class="course-body">
+              <span class="course-tag">Administrativo</span>
+              <h3>Reclutamiento Estratégico 5.0</h3>
+              <p>Herramientas modernas para atracción y selección de talento con visión profesional.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+
+          <article class="course-card reveal" data-category="administrativo">
+            <img src="assets/cursos/curso-auxiliar-rh.jpg" alt="Curso auxiliar de recursos humanos">
+            <div class="course-body">
+              <span class="course-tag">Administrativo</span>
+              <h3>Auxiliar de Recursos Humanos</h3>
+              <p>Formación aplicada en procesos clave para el área de talento y gestión administrativa.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+
+          <article class="course-card reveal" data-category="empresarial">
+            <img src="assets/cursos/curso-lean-manufacturing.jpg" alt="Curso Lean Manufacturing y mejora continua">
+            <div class="course-body">
+              <span class="course-tag">Empresarial</span>
+              <h3>Lean Manufacturing y Mejora Continua</h3>
+              <p>Metodologías para fortalecer eficiencia, orden y calidad dentro de la empresa.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+
+          <article class="course-card reveal" data-category="empresarial">
+            <img src="assets/cursos/curso-comercio-exterior.jpg" alt="Curso de comercio exterior">
+            <div class="course-body">
+              <span class="course-tag">Empresarial</span>
+              <h3>Comercio Exterior y Legislación Aduanera</h3>
+              <p>Actualización ejecutiva para entornos comerciales con necesidades de cumplimiento.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+
+          <article class="course-card reveal" data-category="legal">
+            <img src="assets/cursos/curso-demandas-contestaciones.jpg" alt="Curso de elaboración de demandas y contestaciones">
+            <div class="course-body">
+              <span class="course-tag">Legal</span>
+              <h3>Elaboración de Demandas y Contestaciones</h3>
+              <p>Curso práctico para fortalecer estructura argumentativa y redacción jurídica.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+
+          <article class="course-card reveal" data-category="legal">
+            <img src="assets/cursos/curso-juicio-agrario-amparo.jpg" alt="Curso de juicio agrario y amparo">
+            <div class="course-body">
+              <span class="course-tag">Legal</span>
+              <h3>Juicio Agrario y Amparo como Medio de Defensa</h3>
+              <p>Capacitación especializada con visión integral en defensa y análisis de casos.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+
+          <article class="course-card reveal" data-category="fiscal">
+            <img src="assets/cursos/curso-avisos-sat.jpg" alt="Curso de avisos ante el SAT">
+            <div class="course-body">
+              <span class="course-tag">Fiscal</span>
+              <h3>Avisos de Actividades Vulnerables ante el SAT</h3>
+              <p>Enfoque actualizado para cumplimiento y prevención documental con claridad operativa.</p>
+              <a href="#contacto">Solicitar información</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="cifras">
+      <div class="container">
+        <div class="section-heading center reveal">
+          <p class="section-tag">ICADEM en cifras</p>
+          <h2>Datos visuales que refuerzan la autoridad de la marca.</h2>
+        </div>
+
+        <div class="numbers-grid">
+          <article class="number-card reveal">
+            <strong data-count="7">0</strong>
+            <span>Líneas de servicio</span>
+          </article>
+          <article class="number-card reveal">
+            <strong data-count="8">0</strong>
+            <span>Cursos destacados en esta web</span>
+          </article>
+          <article class="number-card reveal">
+            <strong data-count="6">0</strong>
+            <span>Evidencias de graduación mostradas</span>
+          </article>
+          <article class="number-card reveal">
+            <strong data-count="3">0</strong>
+            <span>Opiniones visuales integradas</span>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt certification-section" id="certificacion">
+      <div class="container certification-grid">
+        <div class="section-copy reveal">
+          <p class="section-tag">Certificación con valor curricular</p>
+          <h2>Respaldo formal con QR y folio para mayor confianza.</h2>
+          <p>
+            En ICADEM, cada proceso formativo puede respaldarse con certificados con valor curricular, integrados con
+            código QR y folio para reforzar formalidad, trazabilidad y presentación profesional del participante.
+          </p>
+          <ul class="check-list">
+            <li>Valor curricular para fortalecer el perfil profesional</li>
+            <li>QR para validación y presentación moderna</li>
+            <li>Folio para control, respaldo y formalidad institucional</li>
+          </ul>
+        </div>
+
+        <div class="certificate-card reveal reveal-delay">
+          <div class="certificate-header">
+            <span>ICADEM</span>
+            <strong>Certificado digital</strong>
+          </div>
+          <div class="certificate-body">
+            <div class="certificate-title">Constancia de participación</div>
+            <p>Documento emitido con imagen institucional, identificación visual y elementos de validación.</p>
+            <div class="certificate-meta">
+              <span>QR incluido</span>
+              <span>Folio único</span>
+              <span>Valor curricular</span>
+            </div>
+          </div>
+          <div class="certificate-footer">
+            <div class="qr-mock" aria-hidden="true"></div>
+            <div>
+              <small>Folio de referencia</small>
+              <strong>ICADEM-VC-2026</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="evidencia">
+      <div class="container">
+        <div class="section-heading reveal">
+          <p class="section-tag">Evidencia institucional</p>
+          <h2>Experiencias reales que respaldan la presencia de ICADEM.</h2>
+        </div>
+
+        <div class="gallery-grid">
+          <button class="gallery-item reveal" data-image="assets/galeria/galeria-1.jpg"><img src="assets/galeria/galeria-1.jpg" alt="Evidencia institucional 1"></button>
+          <button class="gallery-item reveal" data-image="assets/galeria/galeria-2.jpg"><img src="assets/galeria/galeria-2.jpg" alt="Evidencia institucional 2"></button>
+          <button class="gallery-item reveal" data-image="assets/galeria/galeria-3.jpg"><img src="assets/galeria/galeria-3.jpg" alt="Evidencia institucional 3"></button>
+          <button class="gallery-item reveal" data-image="assets/galeria/galeria-4.jpg"><img src="assets/galeria/galeria-4.jpg" alt="Evidencia institucional 4"></button>
+          <button class="gallery-item reveal" data-image="assets/galeria/galeria-5.jpg"><img src="assets/galeria/galeria-5.jpg" alt="Evidencia institucional 5"></button>
+          <button class="gallery-item reveal" data-image="assets/galeria/galeria-6.jpg"><img src="assets/galeria/galeria-6.jpg" alt="Evidencia institucional 6"></button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-dark" id="testimonios">
+      <div class="container">
+        <div class="section-heading reveal">
+          <p class="section-tag">Testimonios</p>
+          <h2>La confianza de nuestros participantes también construye marca.</h2>
+        </div>
+
+        <div class="testimonials-grid">
+          <article class="testimonial-card reveal">
+            <div class="stars">★★★★★</div>
+            <p>Opiniones reales integradas para reforzar credibilidad y respaldo de la experiencia formativa.</p>
+            <button class="testimonial-thumb" data-image="assets/testimonios/testimonio-1.jpg">
+              <img src="assets/testimonios/testimonio-1.jpg" alt="Testimonio 1">
+            </button>
+          </article>
+          <article class="testimonial-card reveal">
+            <div class="stars">★★★★★</div>
+            <p>Una presentación más limpia y premium, sin perder la autenticidad del material original.</p>
+            <button class="testimonial-thumb" data-image="assets/testimonios/testimonio-2.png">
+              <img src="assets/testimonios/testimonio-2.png" alt="Testimonio 2">
+            </button>
+          </article>
+          <article class="testimonial-card reveal">
+            <div class="stars">★★★★★</div>
+            <p>La evidencia social se incorpora con estilo institucional para elevar la percepción de calidad.</p>
+            <button class="testimonial-thumb" data-image="assets/testimonios/testimonio-3.png">
+              <img src="assets/testimonios/testimonio-3.png" alt="Testimonio 3">
+            </button>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section cta-section">
+      <div class="container cta-box reveal">
+        <div>
+          <p class="section-tag">Contáctanos</p>
+          <h2>Lleva tu crecimiento profesional y empresarial al siguiente nivel con ICADEM.</h2>
+        </div>
+        <div class="cta-actions">
+          <a class="btn btn-primary" href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20quiero%20m%C3%A1s%20informaci%C3%B3n." target="_blank" rel="noopener">Hablar por WhatsApp</a>
+          <a class="btn btn-secondary" href="#contacto">Solicitar información</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section-alt" id="contacto">
+      <div class="container contact-grid">
+        <div class="section-copy reveal">
+          <p class="section-tag">Contacto</p>
+          <h2>Atención cercana con imagen ejecutiva y conversión directa.</h2>
+          <div class="contact-cards">
+            <a class="contact-card" href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20quiero%20informes." target="_blank" rel="noopener">
+              <strong>WhatsApp</strong>
+              <span>+52 238 373 8143</span>
+            </a>
+            <a class="contact-card" href="https://www.facebook.com/profile.php?id=61561475492930" target="_blank" rel="noopener">
+              <strong>Facebook</strong>
+              <span>ICADEM</span>
+            </a>
+            <a class="contact-card" href="https://www.instagram.com/icadem3/" target="_blank" rel="noopener">
+              <strong>Instagram</strong>
+              <span>@icadem3</span>
+            </a>
+          </div>
+        </div>
+
+        <form class="contact-form reveal reveal-delay" id="contact-form">
+          <div class="form-row">
+            <label for="nombre">Nombre</label>
+            <input id="nombre" name="nombre" type="text" placeholder="Tu nombre" required>
+          </div>
+          <div class="form-row">
+            <label for="medio">Teléfono o correo</label>
+            <input id="medio" name="medio" type="text" placeholder="Tu mejor medio de contacto" required>
+          </div>
+          <div class="form-row">
+            <label for="servicio">Servicio de interés</label>
+            <select id="servicio" name="servicio">
+              <option>Capacitación empresarial</option>
+              <option>Cursos fiscales</option>
+              <option>Cursos administrativos</option>
+              <option>Consultoría empresarial</option>
+              <option>Consultoría online</option>
+              <option>Talleres profesionales</option>
+              <option>Asesoría a emprendedores</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label for="mensaje">Mensaje</label>
+            <textarea id="mensaje" name="mensaje" rows="4" placeholder="Cuéntanos qué necesitas"></textarea>
+          </div>
+          <button class="btn btn-primary" type="submit">Enviar por WhatsApp</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <div class="brand footer-brand">
+          <img src="assets/logo/logo-icadem.jpg" alt="Logo de ICADEM">
+          <div>
+            <strong>ICADEM</strong>
+            <small>Instituto de Capacitación y Desarrollo Empresarial</small>
+          </div>
+        </div>
+        <p>Desarrollando talento, fortaleciendo empresas.</p>
+      </div>
+
+      <div>
+        <h3>Navegación</h3>
+        <ul>
+          <li><a href="#nosotros">Nosotros</a></li>
+          <li><a href="#servicios">Servicios</a></li>
+          <li><a href="#capacitaciones">Capacitaciones</a></li>
+          <li><a href="#certificacion">Certificación</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h3>Contacto</h3>
+        <ul>
+          <li><a href="https://wa.me/522383738143?text=Hola%20ICADEM" target="_blank" rel="noopener">WhatsApp</a></li>
+          <li><a href="https://www.facebook.com/profile.php?id=61561475492930" target="_blank" rel="noopener">Facebook</a></li>
+          <li><a href="https://www.instagram.com/icadem3/" target="_blank" rel="noopener">Instagram</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© <span id="year"></span> ICADEM. Todos los derechos reservados.</p>
+    </div>
+  </footer>
+
+  <a class="whatsapp-float" href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios." target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">
+    <span>WhatsApp</span>
+  </a>
+
+  <dialog class="lightbox" id="lightbox">
+    <button class="lightbox-close" aria-label="Cerrar vista ampliada">×</button>
+    <img src="" alt="Vista ampliada">
+  </dialog>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
