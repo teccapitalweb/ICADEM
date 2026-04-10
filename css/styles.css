@@ -5,7 +5,7 @@
   --text: #132033;
   --muted: #5d6b82;
   --primary: #0b2f68;
-  --primary-2: #2a5298;
+  --primary-2: #1a5298;
   --accent: #1a73e8;
   --accent-2: #4a90d9;
   --line: #dde4ef;
@@ -119,7 +119,7 @@ h1, h2, h3, h4 { font-weight: 800; }
   color: #fff;
   box-shadow: var(--shadow);
 }
-.btn-primary:hover { background: #0a2555; transform: translateY(-2px); box-shadow: var(--shadow-strong); }
+.btn-primary:hover { background: #0a2350; transform: translateY(-2px); box-shadow: var(--shadow-strong); }
 .btn-secondary {
   background: rgba(255,255,255,.86);
   color: var(--primary);
