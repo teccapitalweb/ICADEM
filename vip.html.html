@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Membresía VIP — ICADEM</title>
+  <meta name="description" content="Accede a la membresía VIP de ICADEM. Cursos ilimitados, certificados, asesoría personalizada y canal VIP en WhatsApp." />
+  <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --base:    #0b2554;
+      --surface: #0f2d6b;
+      --card:    #ffffff;
+      --border:  rgba(255,255,255,0.15);
+      --gold:    #c8962a;
+      --gold-lt: #e8c96a;
+      --text:    #ffffff;
+      --muted:   rgba(255,255,255,0.65);
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Space Grotesk', system-ui, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: linear-gradient(160deg,#0b2554 0%,#1a3a6b 60%,#1976d2 100%);
+      color: #ffffff;
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      border-bottom: 1px solid rgba(20,104,177,0.12);
+      padding: 12px 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(11,37,84,0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .topbar a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      opacity: 0.7;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+    .topbar a:hover { opacity: 1; }
+    .topbar-arrow { font-size: 16px; }
+    .topbar-logo {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: #ffffff;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: clamp(4rem, 10vw, 8rem) 2rem clamp(3rem, 6vw, 5rem);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(ellipse, rgba(255,255,255,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--gold-lt);
+      border: 1px solid rgba(200,150,42,0.4);
+      padding: 5px 16px;
+      border-radius: 2px;
+      margin-bottom: 1.75rem;
+    }
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      font-weight: 700;
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: #ffffff;
+      margin-bottom: 1.25rem;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--gold-lt);
+    }
+    .hero p {
+      max-width: 520px;
+      margin: 0 auto;
+      color: rgba(255,255,255,0.72);
+      font-size: 15px;
+      font-weight: 300;
+      letter-spacing: 0.01em;
+    }
+
+    /* ── LINE DIVIDER ── */
+    .line-divider {
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+      margin: 3rem auto;
+    }
+
+    /* ── CARDS GRID ── */
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5px;
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 1.5rem clamp(4rem, 8vw, 7rem);
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .plan-card {
+      background: rgba(255,255,255,0.95);
+      padding: clamp(2rem, 4vw, 3rem) clamp(1.75rem, 3.5vw, 2.5rem);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+      transition: background 0.25s;
+    }
+    .plan-card:hover { background: #ffffff; }
+
+    .plan-card.featured {
+      background: #ffffff;
+    }
+    .plan-card.featured::before {
+      content: 'MÁS POPULAR';
+      position: absolute;
+      top: 0; right: 0;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: #0b1f4a;
+      background: linear-gradient(135deg, #e8c96a, #c8962a);
+      padding: 5px 14px;
+      border-bottom-left-radius: 3px;
+    }
+
+    .plan-type {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #334155;
+      margin-bottom: 1.5rem;
+    }
+    .plan-card.featured .plan-type { color: var(--gold); }
+
+    .plan-price {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 6vw, 4.2rem);
+      font-weight: 700;
+      line-height: 1;
+      color: #0b2554;
+      margin-bottom: 0.25rem;
+      letter-spacing: -0.02em;
+    }
+    .plan-price sup {
+      font-size: 0.4em;
+      vertical-align: super;
+      color: var(--muted);
+      font-weight: 400;
+      font-family: var(--font-body);
+      letter-spacing: 0;
+    }
+    .plan-period {
+      font-size: 12px;
+      color: #334155;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.5rem;
+    }
+    .plan-savings {
+      font-size: 12px;
+      color: var(--gold);
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      margin-bottom: 2rem;
+      min-height: 18px;
+    }
+
+    .plan-divider {
+      width: 100%;
+      height: 1px;
+      background: rgba(11,37,84,0.1);
+      margin-bottom: 1.75rem;
+    }
+
+    .plan-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      margin-bottom: 2.5rem;
+      flex: 1;
+    }
+    .plan-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 13.5px;
+      color: #334155;
+      font-weight: 300;
+      line-height: 1.4;
+    }
+    .plan-features li::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      margin-top: 1px;
+      position: relative;
+    }
+    .plan-features li::after {
+      display: none;
+    }
+    .plan-card.featured .plan-features li::before {
+      background: rgba(200,150,42,0.15);
+    }
+    /* Checkmark inside circle via box shadow trick */
+    .plan-features li {
+      position: relative;
+    }
+    .check-icon {
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      border: 1px solid rgba(200,150,42,0.5);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .check-icon svg {
+      width: 8px;
+      height: 8px;
+    }
+    .plan-card.featured .check-icon {
+      border-color: var(--gold);
+      background: rgba(200,150,42,0.1);
+    }
+
+    /* ── CTA BUTTON ── */
+    .btn-plan {
+      display: block;
+      width: 100%;
+      padding: 14px 24px;
+      font-family: var(--font-body);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-align: center;
+      text-decoration: none;
+      border: 1px solid rgba(11,37,84,0.25);
+      border-radius: 2px;
+      color: #0b2554;
+      background: transparent;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, color 0.2s, transform 0.15s;
+    }
+    .btn-plan:hover {
+      background: rgba(11,37,84,0.06);
+      border-color: #0b2554;
+      transform: translateY(-1px);
+    }
+    .btn-plan:active { transform: translateY(0); }
+
+    .btn-plan-gold {
+      background: linear-gradient(135deg, #e8c96a 0%, #c8962a 100%);
+      border-color: transparent;
+      color: #0b1f4a;
+    }
+    .btn-plan-gold:hover {
+      background: linear-gradient(135deg, #f0d67a 0%, #d8a83a 100%);
+      border-color: transparent;
+      color: #0b1f4a;
+    }
+
+    /* ── FOOTER NOTE ── */
+    .footer-note {
+      text-align: center;
+      padding: 2rem 1.5rem 4rem;
+      color: #334155;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      font-weight: 300;
+    }
+    .footer-note a {
+      color: var(--gold-lt);
+      text-decoration: none;
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .hero-tag  { animation: fadeUp 0.5s ease 0.1s both; }
+    .hero h1   { animation: fadeUp 0.5s ease 0.2s both; }
+    .hero p    { animation: fadeUp 0.5s ease 0.3s both; }
+    .line-divider { animation: fadeUp 0.5s ease 0.35s both; }
+    .plan-card:nth-child(1) { animation: fadeUp 0.5s ease 0.4s both; }
+    .plan-card:nth-child(2) { animation: fadeUp 0.5s ease 0.5s both; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .plans {
+        grid-template-columns: 1fr;
+        border-radius: 4px;
+      }
+      .topbar { padding: 12px 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a href="index.html">
+      <span class="topbar-arrow">&#8592;</span>
+      Volver al sitio
+    </a>
+    <span class="topbar-logo">ICADEM</span>
+  </div>
+
+  <section class="hero">
+    <div class="hero-tag">Acceso exclusivo</div>
+    <h1>Membresía <em>VIP</em></h1>
+    <p>Acceso completo a formación especializada, certificación y acompañamiento profesional de alto nivel.</p>
+  </section>
+
+  <div class="line-divider"></div>
+
+  <div class="plans">
+
+    <!-- MENSUAL -->
+    <div class="plan-card">
+      <p class="plan-type">Mensual</p>
+      <div class="plan-price"><sup>$</sup>250</div>
+      <p class="plan-period">MXN / mes</p>
+      <p class="plan-savings">&nbsp;</p>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#c8962a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Acceso ilimitado a cursos especializados
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#c8962a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Material descargable Premium
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#c8962a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Certificado digital con validación por organización certificadora
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#c8962a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Asesoria personalizada mensual
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#c8962a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Canal VIP en WhatsApp
+        </li>
+      </ul>
+      <button class="btn-plan" onclick="elegirPlan('mensual')">
+        Adquirir mensual
+      </button>
+    </div>
+
+    <!-- ANUAL -->
+    <div class="plan-card featured">
+      <p class="plan-type">Anual</p>
+      <div class="plan-price"><sup>$</sup>2,400</div>
+      <p class="plan-period">MXN / año &mdash; equivale a $200/mes</p>
+      <p class="plan-savings">Ahorras $600 al año &mdash; 20% de descuento</p>
+      <div class="plan-divider"></div>
+      <ul class="plan-features">
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#e8c96a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Acceso ilimitado a cursos especializados
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#e8c96a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Material descargable Premium
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#e8c96a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Certificado digital con validación por organización certificadora
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#e8c96a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Asesoria personalizada mensual
+        </li>
+        <li>
+          <span class="check-icon">
+            <svg viewBox="0 0 10 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M1 4L3.5 6.5L9 1" stroke="#e8c96a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>
+          Canal VIP en WhatsApp
+        </li>
+      </ul>
+      <button class="btn-plan btn-plan-gold" onclick="elegirPlan('anual')">
+        Adquirir anual
+      </button>
+    </div>
+
+  </div>
+
+  <p class="footer-note">
+    Al adquirir la membresía serás contactado por WhatsApp para activar tu acceso.<br>
+    <a href="index.html">Regresar al sitio de ICADEM</a>
+  </p>
+
+
+<script>
+  function elegirPlan(plan) {
+    localStorage.setItem('icadem_plan', plan);
+    window.location.href = 'vip-auth.html';
+  }
+</script>
+</body>
+</html>
