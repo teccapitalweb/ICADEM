@@ -1,0 +1,1217 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel Coordinador — ICADEM</title>
+  <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --base:#f0f4fb;--surface:#ffffff;--card:#ffffff;
+      --border:rgba(11,47,104,0.12);--border2:rgba(11,47,104,0.25);
+      --blue:#0b2f68;--blue-dark:#0b2554;--blue-mid:#1a5298;
+      --text:#0b2554;--text-body:#1e293b;--text-muted:#64748b;
+      --green:#10b981;--red:#dc2626;--gold:#c8962a;
+      --font-d:'Cormorant Garamond',Georgia,serif;
+      --font-b:'Space Grotesk',system-ui,sans-serif;
+      --nav-w:240px
+    }
+    html,body{min-height:100vh}
+    body{background:var(--base);color:var(--text-body);font-family:var(--font-b);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex}
+
+    /* SIDEBAR */
+    .sidebar{width:var(--nav-w);min-height:100vh;background:#0b2f68;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:20;transition:transform .3s}
+    .sidebar-logo{padding:1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:10px}
+    .logo-mark{width:32px;height:32px;background:rgba(255,255,255,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+    .logo-text strong{display:block;font-family:var(--font-d);font-size:16px;font-weight:700;color:#fff}
+    .logo-text span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.5)}
+    .sidebar-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;gap:10px}
+    .user-avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+    .user-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .user-role{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.5)}
+    .sidebar-nav{flex:1;padding:1rem .75rem;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+    .nav-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,0.35);padding:.75rem .75rem .4rem}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.65);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent;text-decoration:none;position:relative}
+    .nav-item:hover{background:rgba(255,255,255,0.1);color:#fff}
+    .nav-item.active{background:rgba(255,255,255,0.15);color:#fff;border-color:rgba(255,255,255,0.2)}
+    .nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:#fff;border-radius:0 2px 2px 0}
+    .nav-icon{width:16px;height:16px;flex-shrink:0;opacity:.7}
+    .nav-item.active .nav-icon,.nav-item:hover .nav-icon{opacity:1}
+    .nav-badge{margin-left:auto;background:rgba(255,255,255,0.2);color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
+    .nav-badge.red{background:#dc2626}
+    .sidebar-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,0.12)}
+    .btn-logout{width:100%;padding:9px 12px;background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:6px;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.65);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+    .btn-logout:hover{color:#fff;background:rgba(255,255,255,0.1)}
+
+    /* MAIN */
+    .main{margin-left:var(--nav-w);flex:1;min-height:100vh;display:flex;flex-direction:column}
+    .topbar{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;background:#fff;box-shadow:0 1px 12px rgba(20,104,177,0.08);z-index:10}
+    .topbar-title{font-size:14px;font-weight:600;color:var(--blue-dark)}
+    .topbar-badge{display:flex;align-items:center;gap:6px;background:rgba(220,38,38,0.08);border:1px solid rgba(220,38,38,0.2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;color:#dc2626;letter-spacing:.06em;text-transform:uppercase}
+    .menu-btn{display:none;background:none;border:none;color:var(--blue);cursor:pointer;padding:4px}
+    .content{flex:1;padding:2rem;max-width:1100px;width:100%}
+    .section{display:none}
+    .section.active{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .page-header{margin-bottom:2rem}
+    .page-tag{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--blue-mid);margin-bottom:.4rem}
+    .page-title{font-family:var(--font-d);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;line-height:1.1;margin-bottom:.4rem;color:var(--blue-dark)}
+    .page-sub{font-size:13px;color:var(--text-muted);font-weight:400}
+
+    /* CARDS */
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:rgba(20,104,177,0.1);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+    .stat-card{background:#fff;padding:1.25rem 1.5rem;transition:background .2s}
+    .stat-card:hover{background:#f0f6ff}
+    .stat-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted);margin-bottom:.5rem}
+    .stat-value{font-family:var(--font-d);font-size:2rem;font-weight:700;line-height:1;color:var(--blue-dark)}
+    .stat-value.green{color:var(--green)}.stat-value.gold{color:var(--gold)}.stat-value.red{color:var(--red)}
+    .stat-sub{font-size:11px;color:var(--text-muted);margin-top:3px}
+
+    /* TABLE */
+    .table-wrap{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:1.5rem}
+    .table-header{padding:1.1rem 1.5rem;border-bottom:1px solid var(--border);background:#f4f7fc;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+    .table-header h3{font-size:13px;font-weight:700;color:var(--blue-dark)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{padding:.75rem 1.5rem;text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);background:#f4f7fc;border-bottom:1px solid var(--border)}
+    td{padding:.85rem 1.5rem;border-bottom:1px solid rgba(20,104,177,0.06);color:var(--text-body)}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:#f8fbff}
+
+    /* BADGES */
+    .badge{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:10px;display:inline-block}
+    .badge-green{background:rgba(16,185,129,.1);color:#10b981;border:1px solid rgba(16,185,129,.2)}
+    .badge-blue{background:rgba(20,104,177,.1);color:#1468b1;border:1px solid rgba(20,104,177,.2)}
+    .badge-red{background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.2)}
+    .badge-gold{background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2)}
+
+    /* FORM */
+    .form-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(20,104,177,0.06)}
+    .form-card h3{font-size:13px;font-weight:700;color:var(--blue-dark);margin-bottom:1.25rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+    .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem;margin-bottom:1rem}
+    .form-group{display:flex;flex-direction:column;gap:5px}
+    .form-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+    .form-input,.form-select,.form-textarea{background:#f4f7fc;border:1px solid var(--border);border-radius:6px;padding:9px 12px;font-family:var(--font-b);font-size:13px;color:var(--text-body);outline:none;transition:border-color .2s;width:100%}
+    .form-input:focus,.form-select:focus,.form-textarea:focus{border-color:var(--blue)}
+    .form-textarea{resize:vertical;min-height:80px}
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,var(--blue),var(--blue-mid));border:none;border-radius:6px;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;transition:opacity .15s,transform .15s;text-decoration:none}
+    .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+    .btn-danger{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:transparent;border:1px solid rgba(220,38,38,.3);border-radius:6px;font-family:var(--font-b);font-size:11px;font-weight:600;color:#dc2626;cursor:pointer;transition:all .15s}
+    .btn-danger:hover{background:rgba(220,38,38,.06)}
+    .btn-outline{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-family:var(--font-b);font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;transition:all .15s}
+    .btn-outline:hover{background:rgba(20,104,177,.06)}
+
+    /* SEARCH */
+    .search-wrap{position:relative;flex:1;max-width:280px}
+    .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4}
+    .search-input{width:100%;padding:8px 10px 8px 32px;background:#f4f7fc;border:1px solid var(--border);border-radius:6px;font-family:var(--font-b);font-size:12px;color:var(--text-body);outline:none}
+    .search-input:focus{border-color:var(--blue)}
+
+    /* LOADING */
+    .loading-overlay{display:flex;position:fixed;inset:0;background:#f4f7fc;z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
+    .loading-overlay.hidden{display:none}
+    .spinner{width:28px;height:28px;border:2px solid rgba(20,104,177,.2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite}
+    .loading-text{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:19}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    .info-box{background:#f0f6ff;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:1rem 1.25rem;display:flex;align-items:flex-start;gap:10px;margin-bottom:1.5rem}
+    .info-box p{font-size:12px;color:var(--blue);line-height:1.5}
+
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+      .sidebar-overlay.open{display:block}.main{margin-left:0}.menu-btn{display:flex}
+      .content{padding:1.25rem}
+    }
+  </style>
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>emailjs.init("WKe_bNJjUNRsEmOZl");</script>
+</head>
+<body>
+
+<!-- Verificación clave URL -->
+<script>
+  (function(){
+    const params = new URLSearchParams(window.location.search);
+    if(params.get('acceso') !== 'icadem2026'){
+      window.location.href = 'index.html';
+    }
+  })();
+</script>
+
+<!-- LOGIN ADMIN -->
+<div id="login-screen" style="display:flex;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:linear-gradient(135deg,#0b2554 0%,#1976d2 100%)">
+  <div style="background:#ffffff;border-radius:14px;padding:2.5rem 2rem;width:90%;max-width:380px;box-shadow:0 24px 60px rgba(11,47,104,0.35)">
+    <div style="text-align:center;margin-bottom:2rem">
+      <img src="assets/logo/logo-icadem.jpg" style="width:52px;height:52px;border-radius:10px;margin-bottom:1rem;object-fit:cover" onerror="this.style.display='none'">
+      <p style="font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#94a3b8;margin-bottom:.25rem">Panel Coordinador</p>
+      <p style="font-size:20px;font-weight:700;font-family:'Cormorant Garamond',serif;color:#0b2554">Acceso ICADEM</p>
+    </div>
+    <div id="login-error" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:7px;padding:.75rem 1rem;font-size:12px;color:#dc2626;margin-bottom:1rem;text-align:center"></div>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Correo electrónico</label>
+      <input id="login-email" type="email" placeholder="correo@ejemplo.com" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none;transition:border .15s" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Contraseña</label>
+      <input id="login-password" type="password" placeholder="••••••••" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none;transition:border .15s" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" onkeydown="if(event.key==='Enter')document.getElementById('login-btn').click()" />
+    </div>
+    <button id="login-btn" style="width:100%;padding:11px;background:linear-gradient(135deg,#0b2554,#1976d2);border:none;border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:700;color:#ffffff;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Iniciar sesión</button>
+  </div>
+</div>
+
+<!-- Modal Editar Novedad -->
+<div id="modal-logout" style="display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;background:rgba(11,47,104,0.45);backdrop-filter:blur(4px)">
+  <div style="background:#ffffff;border-radius:12px;padding:2rem;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(11,47,104,0.25);text-align:center">
+    <div style="width:52px;height:52px;border-radius:50%;background:rgba(25,118,210,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </div>
+    <p style="font-size:16px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">¿Cerrar sesión?</p>
+    <p style="font-size:13px;color:#64748b;margin-bottom:1.75rem;line-height:1.5">Saldrás del panel de coordinador. Podrás volver a ingresar en cualquier momento.</p>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="document.getElementById('modal-logout').style.display='none'" style="flex:1;padding:10px;border-radius:7px;border:1px solid rgba(25,118,210,0.25);background:#ffffff;font-family:var(--font-b);font-size:12px;font-weight:600;color:#475569;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#f0f6ff'" onmouseout="this.style.background='#ffffff'">Cancelar</button>
+      <button id="btn-logout-confirm" style="flex:1;padding:10px;border-radius:7px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-family:var(--font-b);font-size:12px;font-weight:600;color:#ffffff;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Sí, salir</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-editar-novedad" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(11,47,104,0.45);backdrop-filter:blur(4px)">
+  <div style="background:#ffffff;border-radius:12px;padding:2rem;width:90%;max-width:480px;box-shadow:0 20px 60px rgba(11,47,104,0.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <p style="font-size:15px;font-weight:700;color:#0b2554">Editar novedad</p>
+      <button onclick="document.getElementById('modal-editar-novedad').style.display='none'" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1">✕</button>
+    </div>
+    <input type="hidden" id="edit-nov-id">
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Título</label>
+      <input id="edit-nov-titulo" type="text" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Tipo</label>
+      <select id="edit-nov-tipo" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none">
+        <option value="nuevo-curso">Nuevo curso</option>
+        <option value="actualizacion">Actualización</option>
+        <option value="canal-vip">Canal VIP</option>
+        <option value="evento">Evento</option>
+        <option value="aviso">Aviso general</option>
+      </select>
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Descripción</label>
+      <textarea id="edit-nov-desc" rows="3" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none;resize:vertical" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'"></textarea>
+    </div>
+    <p id="edit-nov-msg" style="font-size:12px;margin-bottom:.75rem;display:none"></p>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="document.getElementById('modal-editar-novedad').style.display='none'" style="flex:1;padding:10px;border-radius:7px;border:1px solid rgba(11,47,104,0.2);background:#ffffff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#475569;cursor:pointer">Cancelar</button>
+      <button onclick="guardarEdicionNovedad()" style="flex:1;padding:10px;border-radius:7px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#ffffff;cursor:pointer">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <p class="loading-text">Verificando acceso...</p>
+</div>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">I</div>
+    <div class="logo-text"><strong>ICADEM</strong><span>Coordinador</span></div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar" id="sidebar-avatar">?</div>
+    <div>
+      <p class="user-name" id="sidebar-name">Cargando...</p>
+      <p class="user-role">Coordinador</p>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <p class="nav-label">Principal</p>
+    <div class="nav-item active" onclick="showSection('inicio')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Resumen
+    </div>
+    <p class="nav-label">Gestión</p>
+    <div class="nav-item" onclick="showSection('miembros')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Miembros
+    </div>
+    <div class="nav-item" onclick="showSection('novedades')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Novedades
+    </div>
+    <div class="nav-item" onclick="showSection('material')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Material
+    </div>
+    <div class="nav-item" onclick="showSection('videos-admin')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Videos
+    </div>
+    <div class="nav-item" onclick="showSection('certificados')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+      Certificados
+    </div>
+    <div class="nav-item" onclick="showSection('cursos-vivo')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg>
+      Cursos en Vivo <span class="nav-badge red">Nuevo</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" id="btn-logout">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="menu-btn" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="topbar-title" id="topbar-title">Resumen</span>
+    </div>
+    <div class="topbar-badge">
+      <svg width="8" height="8" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4" fill="#dc2626"/></svg>
+      Acceso coordinador
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INICIO -->
+    <div class="section active" id="sec-inicio">
+      <div class="page-header">
+        <p class="page-tag">Panel de coordinación</p>
+        <h1 class="page-title">Resumen general</h1>
+        <p class="page-sub">Vista rápida del estado actual del programa VIP de ICADEM.</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><p class="stat-label">Miembros activos</p><p class="stat-value green" id="stat-miembros">—</p><p class="stat-sub">Total con membresía activa</p></div>
+        <div class="stat-card"><p class="stat-label">Plan mensual</p><p class="stat-value" id="stat-mensual">—</p><p class="stat-sub">Suscripciones mensuales</p></div>
+        <div class="stat-card"><p class="stat-label">Plan anual</p><p class="stat-value gold" id="stat-anual">—</p><p class="stat-sub">Suscripciones anuales</p></div>
+        <div class="stat-card"><p class="stat-label">Cursos activos</p><p class="stat-value" style="color:var(--blue)">36</p><p class="stat-sub">Disponibles en el panel</p></div>
+      </div>
+
+      <div class="info-box">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="2" flex-shrink="0" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Como coordinador puedes gestionar miembros, publicar novedades, agregar cursos en vivo y subir material. <strong>No puedes</strong> modificar precios ni cancelar membresías — eso lo gestiona el administrador principal.</p>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><h3>Miembros recientes</h3><a href="#" onclick="showSection('miembros')" style="font-size:11px;color:var(--blue);font-weight:600;text-decoration:none">Ver todos →</a></div>
+        <table>
+          <thead><tr><th>Nombre / Correo</th><th>Plan</th><th>Estado</th><th>Fecha de registro</th></tr></thead>
+          <tbody id="tabla-recientes"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando miembros...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MIEMBROS -->
+    <div class="section" id="sec-miembros">
+      <div class="page-header">
+        <p class="page-tag">Gestión</p>
+        <h1 class="page-title">Miembros VIP</h1>
+        <p class="page-sub">Lista completa de miembros registrados en el programa.</p>
+      </div>
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Todos los miembros</h3>
+          <div class="search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0d47a1" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input class="search-input" type="text" placeholder="Buscar miembro..." oninput="searchMiembros(this.value)">
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>Miembro</th><th>Plan</th><th>Estado</th><th>Registro</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-miembros"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CURSOS -->
+    <!-- NOVEDADES -->
+    <div class="section" id="sec-novedades">
+      <div class="page-header">
+        <p class="page-tag">Comunicación</p>
+        <h1 class="page-title">Publicar novedad</h1>
+        <p class="page-sub">Las novedades aparecerán en el panel de todos los miembros VIP.</p>
+      </div>
+      <div class="form-card">
+        <h3>Nueva novedad o anuncio</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Título</label>
+            <input class="form-input" type="text" id="nov-titulo" placeholder="Ej: Nuevo curso disponible">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="nov-tipo">
+              <option value="nuevo-curso">Nuevo curso</option>
+              <option value="actualizacion">Actualización</option>
+              <option value="canal-vip">Canal VIP</option>
+              <option value="evento">Evento</option>
+              <option value="aviso">Aviso general</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label class="form-label">Descripción</label>
+          <textarea class="form-textarea" id="nov-desc" placeholder="Describe la novedad para los miembros..."></textarea>
+        </div>
+        <button class="btn-primary" onclick="publicarNovedad()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Publicar novedad
+        </button>
+        <p id="nov-msg" style="font-size:12px;margin-top:.75rem;display:none"></p>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><h3>Novedades publicadas</h3></div>
+        <table>
+          <thead><tr><th>Título</th><th>Tipo</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-novedades"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando novedades...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MATERIAL -->
+    <div class="section" id="sec-material">
+      <div class="page-header">
+        <p class="page-tag">Recursos</p>
+        <h1 class="page-title">Gestión de material</h1>
+        <p class="page-sub">Administra los recursos descargables disponibles para miembros.</p>
+      </div>
+      <div class="form-card">
+        <h3>Agregar nuevo material</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre del archivo</label>
+            <input class="form-input" type="text" id="mat-nombre" placeholder="Ej: Guía de deducciones fiscales 2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo</label>
+            <select class="form-select" id="mat-tipo">
+              <option>PDF</option><option>Excel</option><option>PowerPoint</option><option>Word</option><option>ZIP</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Descripción breve</label>
+            <input class="form-input" type="text" id="mat-desc" placeholder="Ej: 42 páginas · 3.2 MB">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label class="form-label">Link de descarga (Google Drive o directo)</label>
+          <input class="form-input" type="url" id="mat-link" placeholder="https://drive.google.com/file/d/...">
+        </div>
+        <button class="btn-primary" onclick="agregarMaterial()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar material
+        </button>
+        <p id="mat-msg" style="font-size:12px;margin-top:.75rem;display:none"></p>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><h3>Material publicado</h3></div>
+        <table>
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-material"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando material...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CURSOS EN VIVO -->
+    <div class="section" id="sec-cursos-vivo">
+      <div class="page-header">
+        <p class="page-tag">Sesiones del mes</p>
+        <h1 class="page-title">Cursos en Vivo</h1>
+        <p class="page-sub">Programa sesiones en vivo. Los cambios se reflejan automáticamente en el panel de los miembros.</p>
+      </div>
+
+      <div class="info-box" style="border-left:3px solid #1468b1">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Puedes publicar el link desde <strong>semanas o días antes</strong>. Si aún no tienes el link, déjalo vacío y edítalo después — los miembros verán "Link disponible próximamente".</p>
+      </div>
+
+      <div class="form-card">
+        <h3>Programar nueva sesión</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Título de la sesión</label>
+            <input class="form-input" type="text" id="live-titulo" placeholder="Ej: Masterclass: Estrategias fiscales 2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Instructor</label>
+            <input class="form-input" type="text" id="live-instructor" placeholder="Nombre del instructor o ponente">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha</label>
+            <input class="form-input" type="date" id="live-fecha">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hora (CST)</label>
+            <input class="form-input" type="time" id="live-hora">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plataforma</label>
+            <select class="form-select" id="live-plataforma">
+              <option>Zoom</option><option>Google Meet</option><option>Teams</option><option>YouTube Live</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link de acceso <span style="color:#94a3b8;font-weight:400;text-transform:none;letter-spacing:0">(opcional, puedes agregarlo después)</span></label>
+            <input class="form-input" type="url" id="live-link" placeholder="https://zoom.us/j/...">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <button class="btn-primary" onclick="agregarCursoVivo()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Publicar sesión
+          </button>
+          <p style="font-size:11px;color:#64748b">Se mostrará inmediatamente en el panel de los miembros.</p>
+        </div>
+        <p id="live-msg" style="font-size:12px;margin-top:.75rem;display:none"></p>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header">
+          <h3>Sesiones publicadas</h3>
+          <p style="font-size:11px;color:#64748b">Haz clic en una sesión para editar su link</p>
+        </div>
+        <table>
+          <thead><tr><th>Sesión</th><th>Instructor</th><th>Fecha y hora</th><th>Plataforma</th><th>Link</th><th>Estado</th></tr></thead>
+          <tbody id="tabla-vivo"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Sin sesiones programadas aún.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- VIDEOS -->
+    <div class="section" id="sec-videos-admin">
+      <div class="page-header">
+        <p class="page-tag">Contenido multimedia</p>
+        <h1 class="page-title">Publicar curso en video</h1>
+        <p class="page-sub">Agrega un nuevo curso con sus clases. Aparecerá automáticamente en la sección Videos del panel VIP.</p>
+      </div>
+      <div class="form-card">
+        <h3>Nuevo curso</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Nombre del curso</label>
+            <input class="form-input" type="text" id="vid-titulo" placeholder="Ej: Derecho laboral avanzado">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Categoría</label>
+            <select class="form-select" id="vid-categoria">
+              <option>Jurídico</option><option>Fiscal</option><option>Finanzas</option>
+              <option>Liderazgo</option><option>Marketing</option><option>Logística</option>
+              <option>Administración</option><option>Habilidades</option><option>Recursos Humanos</option>
+              <option>Inmobiliario</option><option>Comercio</option><option>Educación</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <label class="form-label">Imagen de portada <span style="font-weight:400;color:#94a3b8">(opcional — pega el link público de Google Drive o imagen)</span></label>
+          <input class="form-input" type="url" id="vid-portada" placeholder="https://drive.google.com/uc?export=view&id=...">
+          <p style="font-size:11px;color:#94a3b8;margin-top:4px">Para Google Drive: abre la imagen → compartir → "Cualquiera con el enlace" → pega ese link aquí.</p>
+          <div id="vid-portada-preview" style="display:none;margin-top:8px">
+            <img id="vid-portada-img" src="" alt="Vista previa" style="width:100%;max-width:280px;height:140px;object-fit:cover;border-radius:6px;border:1px solid rgba(20,104,177,0.2)">
+          </div>
+        </div>
+        <p style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:.75rem">Enlaces de clases (pega el link de Google Drive de cada clase)</p>
+        <div id="vid-clases-container">
+          <div class="form-group vid-clase-row" style="display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:11px;font-weight:700;color:#94a3b8;width:54px;flex-shrink:0">Clase 1</span>
+            <input class="form-input" type="url" placeholder="https://drive.google.com/file/d/..." style="flex:1">
+          </div>
+        </div>
+        <button type="button" onclick="agregarClaseInput()" style="display:inline-flex;align-items:center;gap:6px;margin-top:.5rem;padding:7px 14px;background:transparent;border:1px dashed rgba(20,104,177,0.4);border-radius:6px;font-family:var(--font-b);font-size:11px;font-weight:600;color:#1468b1;cursor:pointer" id="btn-agregar-clase">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar clase
+        </button>
+        <div style="margin-top:1.25rem">
+          <button class="btn-primary" onclick="publicarCursoVideo()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Publicar curso
+          </button>
+          <p id="vid-msg" style="font-size:12px;margin-top:.75rem;display:none"></p>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><h3>Cursos publicados</h3></div>
+        <table>
+          <thead><tr><th>Curso</th><th>Categoría</th><th>Clases</th><th>Fecha</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-videos"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando cursos...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CERTIFICADOS -->
+    <div class="section" id="sec-certificados">
+      <div class="page-header">
+        <p class="page-tag">Logros</p>
+        <h1 class="page-title">Emitir Certificado</h1>
+        <p class="page-sub">Emite el certificado al miembro — aparecerá en su panel y recibirá notificación por correo.</p>
+      </div>
+
+      <div class="info-box" style="border-left:3px solid #f59e0b">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Sube el certificado PDF a Google Drive, configúralo como <strong>"Cualquier persona con el enlace puede ver"</strong> y pega el link aquí.</p>
+      </div>
+
+      <div class="form-card">
+        <h3>Nuevo certificado</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Correo del miembro</label>
+            <input class="form-input" type="email" id="cert-correo" placeholder="correo@ejemplo.com">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Nombre del miembro</label>
+            <input class="form-input" type="text" id="cert-nombre" placeholder="Nombre completo">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Curso completado</label>
+            <input class="form-input" type="text" id="cert-curso" placeholder="Ej: Derecho fiscal">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Folio del certificado</label>
+            <input class="form-input" type="text" id="cert-folio" placeholder="Ej: ICADEM-VC-2026-001">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Fecha de emisión</label>
+            <input class="form-input" type="date" id="cert-fecha">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Link del certificado (Google Drive)</label>
+            <input class="form-input" type="url" id="cert-link" placeholder="https://drive.google.com/file/d/...">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+          <button class="btn-primary" onclick="emitirCertificado()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+            Emitir certificado
+          </button>
+          <p style="font-size:11px;color:#64748b">Se guardará en el panel del miembro y recibirá un correo automático.</p>
+        </div>
+        <p id="cert-msg" style="font-size:12px;margin-top:.75rem;display:none"></p>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><h3>Certificados emitidos</h3></div>
+        <table>
+          <thead><tr><th>Miembro</th><th>Curso</th><th>Folio</th><th>Fecha</th><th>Link</th></tr></thead>
+          <tbody id="tabla-certificados"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Sin certificados emitidos aún.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, collection, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, orderBy, limit }
+    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:"AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA",
+    authDomain:"icadem-vip.firebaseapp.com",
+    projectId:"icadem-vip",
+    storageBucket:"icadem-vip.firebasestorage.app",
+    messagingSenderId:"12508983783",
+    appId:"1:12508983783:web:b12be6f1fab9bb91fb8d42"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // Login propio del admin
+  document.getElementById('login-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('login-btn');
+    const errorDiv = document.getElementById('login-error');
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    errorDiv.style.display = 'none';
+    btn.textContent = 'Verificando...';
+    btn.disabled = true;
+    try {
+      const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+      await signInWithEmailAndPassword(auth, email, password);
+    } catch(e) {
+      errorDiv.textContent = 'Correo o contraseña incorrectos.';
+      errorDiv.style.display = 'block';
+      btn.textContent = 'Iniciar sesión';
+      btn.disabled = false;
+    }
+  });
+
+  onAuthStateChanged(auth, async user => {
+    if (!user) { return; } // Esperar login en pantalla propia
+
+    // Verificar rol coordinador
+    const snap = await getDoc(doc(db, 'usuarios', user.uid));
+    if (!snap.exists() || snap.data().rol !== 'coordinador') {
+      document.getElementById('login-error').textContent = 'Esta cuenta no tiene acceso de coordinador.';
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-btn').textContent = 'Iniciar sesión';
+      document.getElementById('login-btn').disabled = false;
+      await getAuth(app).signOut();
+      return;
+    }
+
+    // Ocultar login y mostrar panel
+    document.getElementById('login-screen').style.display = 'none';
+    const nombre = (user.displayName || user.email || 'Coordinador').split(' ')[0];
+    document.getElementById('sidebar-avatar').textContent = nombre[0].toUpperCase();
+    document.getElementById('sidebar-name').textContent = user.displayName || user.email;
+    document.getElementById('loading').classList.add('hidden');
+
+    // Cargar estadísticas de miembros
+    try {
+      const memSnap = await getDocs(collection(db, 'membresias'));
+      let activos = 0, mensual = 0, anual = 0;
+      const filas = [];
+      memSnap.forEach(d => {
+        const data = d.data();
+        if (data.activa) {
+          activos++;
+          if (data.plan === 'anual') anual++; else mensual++;
+        }
+        filas.push({ uid: d.id, ...data });
+      });
+      document.getElementById('stat-miembros').textContent = activos;
+      document.getElementById('stat-mensual').textContent = mensual;
+      document.getElementById('stat-anual').textContent = anual;
+      window._miembros = filas;
+      renderMiembros(filas.filter(m => m.activa));
+    } catch(e) { console.warn('Error cargando miembros:', e); }
+
+    // Cargar novedades
+    try {
+      const novSnap = await getDocs(query(collection(db, 'novedades'), orderBy('creadoEn', 'desc'), limit(20)));
+      window._novedades = [];
+      novSnap.forEach(d => window._novedades.push({ id: d.id, ...d.data() }));
+      renderNovedades(window._novedades);
+    } catch(e) { console.warn('Error cargando novedades:', e); }
+
+    // Cargar material
+    try {
+      const matSnap = await getDocs(collection(db, 'material'));
+      window._material = [];
+      matSnap.forEach(d => window._material.push({ id: d.id, ...d.data() }));
+      renderMaterial(window._material);
+    } catch(e) { console.warn('Error cargando material:', e); }
+
+    // Cargar cursos en vivo
+    try {
+      const vivoSnap = await getDocs(query(collection(db, 'cursos-vivo'), orderBy('fecha', 'asc')));
+      window._vivo = [];
+      vivoSnap.forEach(d => window._vivo.push({ id: d.id, ...d.data() }));
+      renderVivo(window._vivo);
+    } catch(e) { console.warn('Error cargando cursos vivo:', e); }
+  });
+
+  function renderMiembros(lista) {
+    const tbody = document.getElementById('tabla-miembros');
+    const tbodyR = document.getElementById('tabla-recientes');
+    if (!lista.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:2rem">Sin miembros registrados aún.</td></tr>';
+      tbodyR.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:2rem">Sin miembros registrados aún.</td></tr>';
+      return;
+    }
+    const rows = lista.map(m => {
+      const plan   = m.plan === 'anual' ? '<span class="badge badge-gold">Anual</span>' : '<span class="badge badge-blue">Mensual</span>';
+      const estado = m.activa ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
+      const fecha  = m.creadoEn?.toDate ? m.creadoEn.toDate().toLocaleDateString('es-MX') : '—';
+      const nombre = m.nombre || '—';
+      const correo = m.correo || '—';
+      return `<tr>
+        <td>
+          <p style="font-size:13px;font-weight:600;color:#0d47a1">${nombre}</p>
+          <p style="font-size:11px;color:#64748b">${correo}</p>
+        </td>
+        <td>${plan}</td><td>${estado}</td><td>${fecha}</td>
+        <td><button class="btn-outline" style="padding:4px 10px;font-size:10px">Ver</button></td>
+      </tr>`;
+    });
+    tbody.innerHTML = rows.join('');
+    // Tabla recientes sin botón
+    const rowsR = lista.slice(0,5).map(m => {
+      const plan   = m.plan === 'anual' ? '<span class="badge badge-gold">Anual</span>' : '<span class="badge badge-blue">Mensual</span>';
+      const estado = m.activa ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
+      const fecha  = m.creadoEn?.toDate ? m.creadoEn.toDate().toLocaleDateString('es-MX') : '—';
+      const nombre = m.nombre || '—';
+      const correo = m.correo || '—';
+      return `<tr>
+        <td>
+          <p style="font-size:13px;font-weight:600;color:#0d47a1">${nombre}</p>
+          <p style="font-size:11px;color:#64748b">${correo}</p>
+        </td>
+        <td>${plan}</td><td>${estado}</td><td>${fecha}</td>
+      </tr>`;
+    });
+    tbodyR.innerHTML = rowsR.join('');
+  }
+
+  function renderNovedades(lista) {
+    const tbody = document.getElementById('tabla-novedades');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:2rem">Sin novedades publicadas.</td></tr>'; return; }
+    tbody.innerHTML = lista.map(n => {
+      const fecha = n.creadoEn?.toDate ? n.creadoEn.toDate().toLocaleDateString('es-MX') : '—';
+      return `<tr>
+        <td style="font-weight:600;color:#0d47a1">${n.titulo}</td>
+        <td><span class="badge badge-blue">${n.tipo || '—'}</span></td>
+        <td>${fecha}</td>
+        <td style="display:flex;gap:6px">
+          <button class="btn-outline" style="padding:4px 10px;font-size:10px" onclick="abrirEditorNovedad('${n.id}')">Editar</button>
+          <button class="btn-danger" style="padding:4px 10px;font-size:10px" onclick="eliminarNovedad('${n.id}')">Eliminar</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.abrirEditorNovedad = (id) => {
+    const n = window._novedades.find(x => x.id === id);
+    if (!n) return;
+    document.getElementById('edit-nov-id').value = id;
+    document.getElementById('edit-nov-titulo').value = n.titulo || '';
+    document.getElementById('edit-nov-tipo').value = n.tipo || 'actualizacion';
+    document.getElementById('edit-nov-desc').value = n.descripcion || '';
+    document.getElementById('edit-nov-msg').style.display = 'none';
+    document.getElementById('modal-editar-novedad').style.display = 'flex';
+  };
+
+  window.guardarEdicionNovedad = async () => {
+    const id = document.getElementById('edit-nov-id').value;
+    const titulo = document.getElementById('edit-nov-titulo').value.trim();
+    const tipo = document.getElementById('edit-nov-tipo').value;
+    const descripcion = document.getElementById('edit-nov-desc').value.trim();
+    const msg = document.getElementById('edit-nov-msg');
+    if (!titulo) { msg.textContent = '⚠ El título es obligatorio.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+    try {
+      await updateDoc(doc(db, 'novedades', id), { titulo, tipo, descripcion });
+      const idx = window._novedades.findIndex(x => x.id === id);
+      if (idx !== -1) { window._novedades[idx] = { ...window._novedades[idx], titulo, tipo, descripcion }; }
+      renderNovedades(window._novedades);
+      document.getElementById('modal-editar-novedad').style.display = 'none';
+    } catch(e) {
+      msg.textContent = '✕ Error al guardar. Intenta de nuevo.'; msg.style.color = '#dc2626'; msg.style.display = 'block';
+    }
+  };
+
+  window.eliminarNovedad = async (id) => {
+    if (!confirm('¿Eliminar esta novedad? Se quitará del panel de los miembros.')) return;
+    try {
+      await deleteDoc(doc(db, 'novedades', id));
+      window._novedades = window._novedades.filter(x => x.id !== id);
+      renderNovedades(window._novedades);
+    } catch(e) { alert('Error al eliminar.'); }
+  };
+
+  function renderMaterial(lista) {
+    const tbody = document.getElementById('tabla-material');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:2rem">Sin material publicado.</td></tr>'; return; }
+    tbody.innerHTML = lista.map(m => `<tr><td style="font-weight:600;color:#0d47a1">${m.nombre}</td><td><span class="badge badge-blue">${m.tipo}</span></td><td style="color:#64748b">${m.descripcion || '—'}</td><td><button class="btn-danger" style="padding:4px 10px;font-size:10px">Eliminar</button></td></tr>`).join('');
+  }
+
+  function renderVivo(lista) {
+    const tbody = document.getElementById('tabla-vivo');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:2rem">Sin sesiones programadas aún.</td></tr>'; return; }
+    tbody.innerHTML = lista.map(v => {
+      const esPasada = new Date(v.fecha) < new Date();
+      const estado = esPasada ? '<span class="badge badge-green">Realizada</span>' : '<span class="badge badge-gold">Próxima</span>';
+      const linkHtml = v.link
+        ? `<a href="${v.link}" target="_blank" style="font-size:11px;color:#1468b1;font-weight:600;text-decoration:none">Ver link ↗</a>`
+        : `<span style="font-size:11px;color:#94a3b8">Sin link aún</span>`;
+      return `<tr>
+        <td style="font-weight:600;color:#0d47a1;max-width:200px">${v.titulo}</td>
+        <td style="color:#475569">${v.instructor || '—'}</td>
+        <td style="color:#475569;white-space:nowrap">${v.fecha}${v.hora ? ' · ' + v.hora : ''}</td>
+        <td><span class="badge badge-blue">${v.plataforma || '—'}</span></td>
+        <td>${linkHtml}</td>
+        <td>${estado}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.searchMiembros = (q) => {
+    if (!window._miembros) return;
+    const qL = q.toLowerCase();
+    renderMiembros(window._miembros.filter(m => m.activa && (
+      (m.nombre || '').toLowerCase().includes(qL) ||
+      (m.correo || '').toLowerCase().includes(qL) ||
+      m.uid.toLowerCase().includes(qL)
+    )));
+  };
+
+  // Cargar cursos de video
+  try {
+    const vidSnap = await getDocs(query(collection(db, 'cursos-nuevos'), orderBy('creadoEn', 'desc')));
+    window._videoCursos = [];
+    vidSnap.forEach(d => window._videoCursos.push({ id: d.id, ...d.data() }));
+    renderVideos(window._videoCursos);
+  } catch(e) { console.warn('Error cargando cursos video:', e); }
+
+  window.publicarNovedad = async () => {
+    const titulo = document.getElementById('nov-titulo').value.trim();
+    const tipo   = document.getElementById('nov-tipo').value;
+    const desc   = document.getElementById('nov-desc').value.trim();
+    const msg    = document.getElementById('nov-msg');
+    if (!titulo || !desc) { msg.textContent = '⚠ Completa todos los campos.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+    try {
+      await addDoc(collection(db, 'novedades'), { titulo, tipo, descripcion: desc, creadoEn: serverTimestamp() });
+      msg.textContent = '✓ Novedad publicada correctamente.'; msg.style.color = '#10b981'; msg.style.display = 'block';
+      document.getElementById('nov-titulo').value = '';
+      document.getElementById('nov-desc').value = '';
+    } catch(e) { msg.textContent = 'Error al publicar. Intenta de nuevo.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; }
+  };
+
+  // ── VIDEOS ──────────────────────────────────────────
+  let claseCount = 1;
+
+  window.agregarClaseInput = () => {
+    if (claseCount >= 5) return;
+    claseCount++;
+    const container = document.getElementById('vid-clases-container');
+    const row = document.createElement('div');
+    row.className = 'form-group vid-clase-row';
+    row.style = 'display:flex;align-items:center;gap:.5rem;margin-top:.5rem';
+    row.innerHTML = `<span style="font-size:11px;font-weight:700;color:#94a3b8;width:54px;flex-shrink:0">Clase ${claseCount}</span>
+      <input class="form-input" type="url" placeholder="https://drive.google.com/file/d/..." style="flex:1">`;
+    container.appendChild(row);
+    if (claseCount >= 5) document.getElementById('btn-agregar-clase').style.display = 'none';
+  };
+
+  // Preview de imagen al pegar URL
+  document.getElementById('vid-portada').addEventListener('input', function() {
+    const val = this.value.trim();
+    const preview = document.getElementById('vid-portada-preview');
+    const img = document.getElementById('vid-portada-img');
+    if (!val) { preview.style.display = 'none'; return; }
+    let src = val;
+    const matchDrive = val.match(/\/d\/([^/]+)/);
+    if (matchDrive) src = 'https://drive.google.com/uc?export=view&id=' + matchDrive[1];
+    img.src = src;
+    img.onerror = () => { preview.style.display = 'none'; };
+    img.onload  = () => { preview.style.display = 'block'; };
+  });
+
+  window.publicarCursoVideo = async () => {
+    const titulo = document.getElementById('vid-titulo').value.trim();
+    const categoria = document.getElementById('vid-categoria').value;
+    const msg = document.getElementById('vid-msg');
+    if (!titulo) { msg.textContent = '⚠ Escribe el nombre del curso.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+    const inputs = document.querySelectorAll('#vid-clases-container input');
+    const videos = [];
+    inputs.forEach((inp, i) => {
+      const link = inp.value.trim();
+      if (link) videos.push({ titulo: `Clase ${i + 1}`, link });
+    });
+    if (!videos.length) { msg.textContent = '⚠ Agrega al menos un enlace de clase.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+    try {
+      const portadaRaw = document.getElementById('vid-portada').value.trim();
+      // Convertir link de Google Drive compartido a link de imagen directa
+      let portada = '';
+      if (portadaRaw) {
+        const matchDrive = portadaRaw.match(/\/d\/([^/]+)/);
+        if (matchDrive) {
+          portada = 'https://drive.google.com/uc?export=view&id=' + matchDrive[1];
+        } else {
+          portada = portadaRaw;
+        }
+      }
+      const ref = await addDoc(collection(db, 'cursos-nuevos'), { titulo, categoria, videos, portada, creadoEn: serverTimestamp() });
+      const nuevo = { id: ref.id, titulo, categoria, videos, creadoEn: { toDate: () => new Date() } };
+      window._videoCursos = [nuevo, ...(window._videoCursos || [])];
+      renderVideos(window._videoCursos);
+      document.getElementById('vid-titulo').value = '';
+      document.getElementById('vid-portada').value = '';
+      document.getElementById('vid-portada-preview').style.display = 'none';
+      document.getElementById('vid-clases-container').innerHTML = `<div class="form-group vid-clase-row" style="display:flex;align-items:center;gap:.5rem"><span style="font-size:11px;font-weight:700;color:#94a3b8;width:54px;flex-shrink:0">Clase 1</span><input class="form-input" type="url" placeholder="https://drive.google.com/file/d/..." style="flex:1"></div>`;
+      claseCount = 1;
+      document.getElementById('btn-agregar-clase').style.display = 'inline-flex';
+      msg.textContent = '✓ Curso publicado correctamente.'; msg.style.color = '#10b981'; msg.style.display = 'block';
+      setTimeout(() => msg.style.display = 'none', 3000);
+    } catch(e) { msg.textContent = '✕ Error al publicar. Intenta de nuevo.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; }
+  };
+
+  function renderVideos(lista) {
+    const tbody = document.getElementById('tabla-videos');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:2rem">Sin cursos publicados aún.</td></tr>'; return; }
+    tbody.innerHTML = lista.map(c => {
+      const fecha = c.creadoEn?.toDate ? c.creadoEn.toDate().toLocaleDateString('es-MX') : '—';
+      return `<tr>
+        <td style="font-weight:600;color:#0d47a1">${c.titulo}</td>
+        <td><span class="badge badge-blue">${c.categoria || '—'}</span></td>
+        <td style="color:#475569">${c.videos?.length || 0} clase${c.videos?.length !== 1 ? 's' : ''}</td>
+        <td style="color:#64748b">${fecha}</td>
+        <td><button class="btn-danger" style="padding:4px 10px;font-size:10px" onclick="eliminarCursoVideo('${c.id}')">Eliminar</button></td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.eliminarCursoVideo = async (id) => {
+    if (!confirm('¿Eliminar este curso? Se quitará del panel de los miembros.')) return;
+    try {
+      await deleteDoc(doc(db, 'cursos-nuevos', id));
+      window._videoCursos = window._videoCursos.filter(x => x.id !== id);
+      renderVideos(window._videoCursos);
+    } catch(e) { alert('Error al eliminar.'); }
+  };
+
+  window.agregarMaterial = async () => {
+    const nombre = document.getElementById('mat-nombre').value.trim();
+    const tipo   = document.getElementById('mat-tipo').value;
+    const desc   = document.getElementById('mat-desc').value.trim();
+    const link   = document.getElementById('mat-link').value.trim();
+    const msg    = document.getElementById('mat-msg');
+    if (!nombre || !link) { msg.textContent = '⚠ Nombre y link son requeridos.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
+    try {
+      await addDoc(collection(db, 'material'), { nombre, tipo, descripcion: desc, link, creadoEn: serverTimestamp() });
+      msg.textContent = '✓ Material agregado correctamente.'; msg.style.color = '#10b981'; msg.style.display = 'block';
+      document.getElementById('mat-nombre').value = '';
+      document.getElementById('mat-link').value = '';
+      document.getElementById('mat-desc').value = '';
+    } catch(e) { msg.textContent = 'Error al agregar. Intenta de nuevo.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; }
+  };
+
+
+  window.agregarCursoVivo = async () => {
+    const titulo     = document.getElementById('live-titulo').value.trim();
+    const instructor = document.getElementById('live-instructor').value.trim();
+    const fecha      = document.getElementById('live-fecha').value;
+    const hora       = document.getElementById('live-hora').value;
+    const plataforma = document.getElementById('live-plataforma').value;
+    const link       = document.getElementById('live-link').value.trim();
+    const msg        = document.getElementById('live-msg');
+
+    if (!titulo || !fecha) {
+      msg.textContent = '⚠ Título y fecha son requeridos.';
+      msg.style.color = '#dc2626'; msg.style.display = 'block'; return;
+    }
+
+    const btnPublicar = document.querySelector('[onclick="agregarCursoVivo()"]');
+    btnPublicar.disabled = true;
+    btnPublicar.textContent = 'Publicando...';
+    msg.style.display = 'none';
+
+    try {
+      // 1. Guardar en Firestore
+      await addDoc(collection(db, 'cursos-vivo'), {
+        titulo, instructor, fecha, hora, plataforma, link, creadoEn: serverTimestamp()
+      });
+
+      // 2. Obtener todos los miembros activos para enviarles correo
+      const memSnap = await getDocs(collection(db, 'membresias'));
+      const miembros = [];
+      memSnap.forEach(d => {
+        const data = d.data();
+        if (data.activa && data.correo) miembros.push(data);
+      });
+
+      // 3. Enviar correo a cada miembro
+      let enviados = 0;
+      const fechaFmt = fecha ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' }) : '';
+
+      for (const miembro of miembros) {
+        try {
+          await emailjs.send('service_ek26zlp', '7im272p', {
+            correo_miembro:  miembro.correo,
+            nombre_miembro:  miembro.nombre || 'Miembro VIP',
+            titulo:          titulo,
+            instructor:      instructor || 'ICADEM',
+            fecha:           fechaFmt,
+            hora:            hora || 'Por confirmar',
+            plataforma:      plataforma,
+            link:            link || 'Próximamente disponible en tu panel VIP'
+          });
+          enviados++;
+        } catch(emailErr) {
+          console.warn('Error enviando a', miembro.correo, emailErr);
+        }
+      }
+
+      // 4. Mensaje de éxito
+      msg.textContent = `✓ Webinar publicado y notificaciones enviadas a ${enviados} miembro${enviados !== 1 ? 's' : ''}.`;
+      msg.style.color = '#10b981';
+      msg.style.display = 'block';
+
+      // Limpiar formulario
+      document.getElementById('live-titulo').value = '';
+      document.getElementById('live-instructor').value = '';
+      document.getElementById('live-fecha').value = '';
+      document.getElementById('live-hora').value = '';
+      document.getElementById('live-link').value = '';
+
+      // Recargar tabla
+      try {
+        const vivoSnap = await getDocs(query(collection(db, 'cursos-vivo'), orderBy('fecha', 'asc')));
+        window._vivo = [];
+        vivoSnap.forEach(d => window._vivo.push({ id: d.id, ...d.data() }));
+        renderVivo(window._vivo);
+      } catch(e) {}
+
+    } catch(e) {
+      msg.textContent = 'Error al publicar. Intenta de nuevo.';
+      msg.style.color = '#dc2626';
+      msg.style.display = 'block';
+    } finally {
+      btnPublicar.disabled = false;
+      btnPublicar.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> Publicar sesión';
+    }
+  };
+
+  // Cargar certificados emitidos
+  try {
+    const certSnap = await getDocs(query(collection(db, 'certificados'), orderBy('creadoEn', 'desc'), limit(50)));
+    window._certificados = [];
+    certSnap.forEach(d => window._certificados.push({ id: d.id, ...d.data() }));
+    renderCertificados(window._certificados);
+  } catch(e) { console.warn('Error cargando certificados:', e); }
+
+  function renderCertificados(lista) {
+    const tbody = document.getElementById('tabla-certificados');
+    if (!lista || !lista.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:2rem">Sin certificados emitidos aún.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = lista.map(c => {
+      const fecha = c.fechaEmision || '—';
+      const linkHtml = c.link
+        ? `<a href="${c.link}" target="_blank" style="font-size:11px;color:#1468b1;font-weight:600;text-decoration:none">Ver PDF ↗</a>`
+        : '<span style="font-size:11px;color:#94a3b8">—</span>';
+      return `<tr>
+        <td>
+          <p style="font-size:13px;font-weight:600;color:#0d47a1">${c.nombreMiembro || '—'}</p>
+          <p style="font-size:11px;color:#64748b">${c.correoMiembro || '—'}</p>
+        </td>
+        <td style="color:#475569">${c.tituloCurso || '—'}</td>
+        <td><span class="badge badge-gold">${c.folio || '—'}</span></td>
+        <td style="color:#475569">${fecha}</td>
+        <td>${linkHtml}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  window.emitirCertificado = async () => {
+    const correo = document.getElementById('cert-correo').value.trim();
+    const nombre = document.getElementById('cert-nombre').value.trim();
+    const curso  = document.getElementById('cert-curso').value.trim();
+    const folio  = document.getElementById('cert-folio').value.trim();
+    const fecha  = document.getElementById('cert-fecha').value;
+    const link   = document.getElementById('cert-link').value.trim();
+    const msg    = document.getElementById('cert-msg');
+
+    if (!correo || !nombre || !curso || !folio) {
+      msg.textContent = '⚠ Correo, nombre, curso y folio son requeridos.';
+      msg.style.color = '#dc2626'; msg.style.display = 'block'; return;
+    }
+
+    const btn = document.querySelector('[onclick="emitirCertificado()"]');
+    btn.disabled = true;
+    btn.textContent = 'Emitiendo...';
+    msg.style.display = 'none';
+
+    const fechaFmt = fecha
+      ? new Date(fecha + 'T12:00:00').toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' })
+      : new Date().toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+
+    try {
+      // 1. Guardar en Firestore colección certificados
+      await addDoc(collection(db, 'certificados'), {
+        correoMiembro: correo,
+        nombreMiembro: nombre,
+        tituloCurso:   curso,
+        folio:         folio,
+        fechaEmision:  fechaFmt,
+        link:          link,
+        creadoEn:      serverTimestamp()
+      });
+
+      // 2. Buscar el UID del miembro por correo y guardar en su subcolección
+      const memSnap = await getDocs(collection(db, 'membresias'));
+      for (const d of memSnap.docs) {
+        const data = d.data();
+        if (data.correo === correo) {
+          await addDoc(collection(db, 'membresias', d.id, 'certificados'), {
+            tituloCurso:  curso,
+            folio:        folio,
+            fechaEmision: fechaFmt,
+            link:         link,
+            creadoEn:     serverTimestamp()
+          });
+          break;
+        }
+      }
+
+      // 3. Enviar correo al miembro
+      await emailjs.send('service_ek26zlp', 'vaol3of', {
+        correo_miembro:   correo,
+        nombre_miembro:   nombre,
+        titulo_curso:     curso,
+        folio:            folio,
+        fecha_emision:    fechaFmt,
+        link_certificado: link || 'Disponible en tu panel VIP'
+      });
+
+      msg.textContent = '✓ Certificado emitido y correo enviado a ' + correo;
+      msg.style.color = '#10b981'; msg.style.display = 'block';
+
+      // Limpiar formulario
+      ['cert-correo','cert-nombre','cert-curso','cert-folio','cert-fecha','cert-link'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+
+      // Recargar tabla
+      const certSnap2 = await getDocs(query(collection(db, 'certificados'), orderBy('creadoEn', 'desc'), limit(50)));
+      window._certificados = [];
+      certSnap2.forEach(d => window._certificados.push({ id: d.id, ...d.data() }));
+      renderCertificados(window._certificados);
+
+    } catch(e) {
+      console.error(e);
+      msg.textContent = 'Error al emitir. Verifica los datos e intenta de nuevo.';
+      msg.style.color = '#dc2626'; msg.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg> Emitir certificado';
+    }
+  };
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    document.getElementById('modal-logout').style.display = 'flex';
+  });
+  document.getElementById('btn-logout-confirm').addEventListener('click', async () => {
+    await signOut(auth);
+    window.location.href = 'index.html';
+  });
+</script>
+
+<script>
+  const titles = {inicio:'Resumen',miembros:'Miembros VIP',novedades:'Publicar Novedad',material:'Gestión de Material','videos-admin':'Videos / Cursos','cursos-vivo':'Cursos en Vivo',certificados:'Emitir Certificado'};
+  window.showSection = id => {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('sec-'+id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => { if(n.getAttribute('onclick') === `showSection('${id}')`) n.classList.add('active'); });
+    document.getElementById('topbar-title').textContent = titles[id] || id;
+    if(window.innerWidth<=768){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');}
+  };
+  window.toggleSidebar = () => {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('open');
+  };
+</script>
+</body>
+</html>
