@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Migración de Cursos — ICADEM Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Space Grotesk', sans-serif; background: #f0f4f8; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    .card { background: #fff; border-radius: 16px; padding: 2.5rem; max-width: 600px; width: 100%; box-shadow: 0 8px 32px rgba(11,47,104,0.1); }
+    h1 { font-size: 1.5rem; color: #0b2f68; margin-bottom: .5rem; }
+    .sub { font-size: 13px; color: #64748b; margin-bottom: 2rem; line-height: 1.6; }
+    .warning { background: #fef3c7; border: 1px solid #fbbf24; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; font-size: 13px; color: #92400e; }
+    .btn { width: 100%; padding: 14px; border-radius: 10px; border: none; background: linear-gradient(135deg, #0b2554, #1976d2); color: #fff; font-family: 'Space Grotesk', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; transition: opacity .2s; margin-bottom: 1rem; }
+    .btn:hover { opacity: .9; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+    .btn-danger { background: linear-gradient(135deg, #b91c1c, #dc2626); }
+    .log { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 1rem; height: 300px; overflow-y: auto; font-size: 12px; font-family: monospace; color: #334155; }
+    .log-item { padding: 3px 0; border-bottom: 1px solid #f1f5f9; }
+    .log-ok { color: #059669; }
+    .log-err { color: #dc2626; }
+    .log-info { color: #1468b1; }
+    .progress { height: 8px; background: #e2e8f0; border-radius: 4px; margin-bottom: 1.5rem; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #0b2554, #1976d2); border-radius: 4px; width: 0%; transition: width .3s ease; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+    .stat { text-align: center; background: #f8faff; border-radius: 10px; padding: .75rem; }
+    .stat-n { font-size: 1.5rem; font-weight: 700; color: #0b2f68; }
+    .stat-l { font-size: 11px; color: #64748b; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🔄 Migración de Cursos a Firestore</h1>
+  <p class="sub">Esta herramienta sube los <strong>36 cursos hardcodeados</strong> del panel VIP a Firestore para que puedan ser editados desde el panel admin. Solo necesitas ejecutarla <strong>una vez</strong>.</p>
+
+  <div class="warning">
+    ⚠️ <strong>Importante:</strong> Esta operación agrega los cursos a Firestore. Si ya existen cursos con el mismo nombre, se agregarán duplicados. Ejecuta solo una vez.
+  </div>
+
+  <div class="stats">
+    <div class="stat"><p class="stat-n" id="stat-total">36</p><p class="stat-l">Total cursos</p></div>
+    <div class="stat"><p class="stat-n" id="stat-ok" style="color:#059669">0</p><p class="stat-l">Migrados</p></div>
+    <div class="stat"><p class="stat-n" id="stat-err" style="color:#dc2626">0</p><p class="stat-l">Errores</p></div>
+  </div>
+
+  <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+
+  <button class="btn" id="btn-migrar" onclick="iniciarMigracion()">🚀 Iniciar migración</button>
+
+  <div class="log" id="log">
+    <div class="log-item log-info">Listo para migrar. Haz clic en "Iniciar migración".</div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, addDoc, collection, serverTimestamp, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:            "AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA",
+    authDomain:        "icadem-vip.firebaseapp.com",
+    projectId:         "icadem-vip",
+    storageBucket:     "icadem-vip.firebasestorage.app",
+    messagingSenderId: "12508983783",
+    appId:             "1:12508983783:web:b12be6f1fab9bb91fb8d42"
+  };
+
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db   = getFirestore(app);
+
+  // ── Cursos hardcodeados a migrar ─────────────────────────────
+  const CURSOS_A_MIGRAR = [
+    { titulo: "Inmobiliario: Más allá de las ventas", categoria: "Inmobiliario", videos: ["1hNpCTskqVhDIqs_i2dU4c5KvPInNDAWA","1cuuDs4jewxhtrB35z90BP3QXhx_pCIUi","1HEpapxgtaTYmIH0wyWQ98CWVd1xOAok0"] },
+    { titulo: "Amparo en materia penal", categoria: "Jurídico", videos: ["1KnVniFjLVBwBHBaGuL1YYV1I4YYpsBNk","1qDDL4CChB83-1265J9KWX9hFFFkwg24c","1MHLAbpHyoPLq5KbD5L2FcOoGzl7ivGGc","1NDJriAqpgXRTGrDfECAERTQGgFsqLaNU","1-h314smbHPhddSQC504xV4ezf5SYkg0I"] },
+    { titulo: "Aplicación práctica de tratados internacionales de México", categoria: "Jurídico", videos: ["1Y91V639IVYdhLGnx0F6HvWREF1pv33FZ","10MgtcsJ7beYGBefHvGAtUydUr3ymVCPS","1l7eKFmIQf1AmCXifX7QZWewc3Nw_Omlk","1h3QuRnzTK_MbyIaBqyF4Xteeg2AEyMPL"] },
+    { titulo: "Campañas efectivas en Meta Ads con IA", categoria: "Marketing", videos: ["14wTygK6GMLI-0u8rBmOpwzXrgh5VORyg","10AU6RyDOXR5XQ9PALcVacNn7Yt6LT8Py","1KwvpUe7AcI1nGytV0M2JMDRV0syFNYoy","1D9BvfR2a5LWyOOdyjSEDN5OEMtEV5wbB","1d-9x1j_zgcmKwa_D3POhIfYzoHMEMQnH"] },
+    { titulo: "Argumentación jurídica en audiencias previas al juicio", categoria: "Jurídico", videos: ["1b7q2cBYVg25B8ImESM01RExL1ApF2kmr","1PBXDSLvJDeLE9xD1_5xNBUNHU9rjZ8-3","1F3EkB91UsyGQCTeYxhAL2-KUUcUYmZCj","1BwySo1y-jc0m752_RMy87W8rtJvnFj4D","1lKxCMXk0VDy26QiDKIrd1FS-sBQDfHaC"] },
+    { titulo: "Clasificación y regulación arancelaria", categoria: "Comercio", videos: ["1eta04cRQVfT8ZIIj6VIfVxKxS0Bvagaz","1fbUg0oDXytxi4RsbHzWTZi21Dvs6Olln","1NivL6li4N4__lPY1XOCS5KaQzAqad00q","1hN9pO76hU4PEMP8CK0v6QiWpGcSTc0wn"] },
+    { titulo: "Claves de la argumentación jurídica", categoria: "Jurídico", videos: ["1SuEZyksP_sy3S5Fn7Vhpk1kI3jWUH2aN","133S-2DxHOzJ12wIzy98cxxianabBCpyR","1YweZ1o4N395s6hX6qN15lSVN92UPaHWQ","1d95i4JMmKixBBK_USF-7W3G9_8TslnuK","1EMkJ9zqAxjCVZNWbmMsn56lBvWAU-Xyq"] },
+    { titulo: "Competencias digitales docentes", categoria: "Educación", videos: ["1dXFxjC2GHks8gqQeIz-1bqE9xl8FiudH","1Ozl9xdtpTFJtBSs78OBc18uREaSlC516","1s7mkwKfJaJ48zKyXXfwDRH4bqLAQiV9S"] },
+    { titulo: "Conducción de audiencia y litigación", categoria: "Jurídico", videos: ["1asWJZm33Lc9ZqUHkJwNxgFZGfy5DujnM","1itxlxKoXBmlyx88QsnIpqcyTm-y1m0bC","1g5fwAzCdCVbFAOu0Ebzz9-MnhQbNYvGG"] },
+    { titulo: "Contratos mercantiles", categoria: "Jurídico", videos: ["1rVPGovUuNMROWKCeUik8K7ARX8szA2y2","1Li134dG2ET0U8JzzS2yG09S_XGv_eh7e","1JO2FbSKSq4322l4sZ45Du5vUDnF4QChu","1xmUuhailmqtdDtmYmwl8NdQB3MJUpNBf","18XdqytVWytQM6aAkaFPXxzjEsvJpEaQ5"] },
+    { titulo: "Derecho fiscal", categoria: "Fiscal", videos: ["18u47S8xGQaUUL1fmdpduohE92Xosgym6","1rwz3_1-Iz8gw86NyEFKhY3QQ7RL0KDgM","1Y1tQZJHJyPyLWsY9iSP2L-m0uLeF4Wzw","1cMew_Gf1rVl2_ImjEiAJ5XEh2G5cd4Cu"] },
+    { titulo: "Derecho civil — contrato inmobiliario", categoria: "Jurídico", videos: ["1ylxtme4-Tw68KttAGlIHeQJou3F3p9TN","1VDOo72g4EOmh9BImdargimIAV2XJxbjk","1oLjW71I1-bahOH583-_PpAJ6PkzPllIU"] },
+    { titulo: "Derecho notarial y registral", categoria: "Jurídico", videos: ["1mP6jhO7VUW0MYFMzrrsJMp8nkuGfNdrH","1-RSFF60LBnnFl2OGc7SGr8PoadNaureI","1Z312DgajxrkxuHO2er5zWpDzSikjSWi5","1AAbCKmxwNyP2eURq4LeaWaEpnd_LDuRD","1_6ObbCG_VTJbFqPJsi0kMuy2_89FVW_3"] },
+    { titulo: "Divorcio juicio oral", categoria: "Jurídico", videos: ["1eZRVfFPc3lWnD1k2_StgOik_UMRxUEWu","1GrXSKnJJPxCQ8hZL2aKOtc8pbgZtnmT-","1fCDysP21rfkiLsTi8Dz2G_xaZA8YsvrY","1vVaPhnWS5CBdtGM8iQpFKgWcwMU4sf4T","18ukDRKEXYNVer3YNOlQuksCTxDLt2KTU"] },
+    { titulo: "Divorcio: pensión alimentaria", categoria: "Jurídico", videos: ["1AqMreTWoLeS5cs3APY9GQ8TX_hbkNlvi","1HH-u7LcEaUOZJIMYs_ZNZrhAniu2t3h2","10q49gzSRb2f50pndXBy2EsDRVP9JpMd5","1h7LJYxi4EqZzFAH5E7dJ8jxyhRotrNTa"] },
+    { titulo: "Elaboración de demandas y contestaciones", categoria: "Jurídico", videos: ["1U07DSeQU7IqUAOZ-PgDWFpsw4dzaL91N","18l1Lbu7hD1_cDFOg9TBT_eSkGZvvm4Ha","16xg4ZDXcX_35ZZc3f0u-wns9Vt9G0x1S","1C0Rv0yGal3cDIv88PyV2HrqHrq0FSNRg"] },
+    { titulo: "Excel Pro Admin: control y optimización", categoria: "Administración", videos: ["1cbGJ7GgtROUfONfl1KGiyBwhBLO5S3FX","1xdGz20O9r2_S7Bu4rVyCKt7lnnWwfQhj","1OTaQZS5erkZdjTRAG5g8M6yijEzwUQmU"] },
+    { titulo: "Finanzas", categoria: "Finanzas", videos: ["1C5NQKas1IwDfPRPmZwcq3lqG6JUX3i7o","1i9py9RshgluTAkqe0nqxqMGSuzcahCDP","1qZXcPWSG4n3bOHL3HAbhd0B30ax0iqLX","1ml5tY2WD95oF9TtWefVvS5mFPo5n3JDU"] },
+    { titulo: "Fraude inmobiliario", categoria: "Inmobiliario", videos: ["1sFIrvpAu8a3cVJ-bEQmLv9h0lwsdL2-c","1T4WTWEp2SAbYGiv-uiJXf6OC3TqVoi2N"] },
+    { titulo: "Gestión de almacenes e inventario", categoria: "Logística", videos: ["1VGWahv4lLlBkyxS_zYWjCqvp6k80p3kw","1gTCyhrW1xOJyQwGRbn2IEOH-j-zE_QpE","1pyCQlUrKggc6kn7dSAqQv0IGa_eE2rnp","1stc0ZIMnc7qi_U8nTOHZz4YEaWSHRzGV","1aEhbqijCizkVDi0V-FKSkKVkaKuKgXmt"] },
+    { titulo: "Gestión logística, operaciones y almacenes", categoria: "Logística", videos: ["1VlVodywTE4i5bjAyO6tAJukWMhAeV8MK","10hM1n5bnMVKTF8raiiKKwPV_XOTKbikB","1-JmHGm5uoocYhRjqW9ssT27F0ija6qxw","1t5nmLoE6IcShKpvpq5-0BHPJlc7l1MbO","162E5f6u9F8OMTbaTj1XnDwm1Av0Kujxo"] },
+    { titulo: "Inteligencia emocional y manejo de estrés", categoria: "Habilidades", videos: ["1r_jEbStxb5togjBaR_NNDADAWJvObbqr","1gOJEEoARyPO1OYdupewDxUcHmS3W5Wag","1SV4ENBNh3boOH6OZ_5LjYvFmVTGUsE6h","1IrC4CveWgfGUH5bkcNRhNsuOrzisVVRH","1pL28KlBjztYWUjnGw4WaXe4fh6H2xCfu"] },
+    { titulo: "Inteligencia financiera", categoria: "Finanzas", videos: ["14HboYMLOOTKgUfE4jbUIbNQVVapOTl9C","1vzxrS20Hr09UsNKRtH0v74pQ4Y7NWOrD","1YRwyGCKbSkZRhbFoJgCwb0ydgkFwO-p3","1ZcRw9fFaQ3mapr8Q8UH_xQC3j5CoqS5w","1ml0iKEq9i1m_laPDAgAQXzr8B2ClZg9O"] },
+    { titulo: "Inversiones y mercados financieros", categoria: "Finanzas", videos: ["1wWeNuKD9nvfzkaptCphnnAH1xjPz0uDK","1udNoQ3BFmEI3FBq1HmWYzsFe8lNBJa1X","1bliDGDia696SZG6sfomvm13JAAPRsghN"] },
+    { titulo: "Liderazgo con impacto: cómo influir y lograr metas", categoria: "Liderazgo", videos: ["1_myeWyCVPwr22xv-DAVleVD5zf2bvy-4","114FCtF2Xsf_7489X9mnC3_h0SjcQx5t2","11n6lzOL4mBFt93aFESOiCW1AE_9F0WOe"] },
+    { titulo: "Liderazgo estratégico y gestión de alto impacto", categoria: "Liderazgo", videos: ["16fWvQGS2d2xC737080IJB4TWDSSX2tDW","1AM5Nwgl0OM1SCjtVkjog9u2WsrfT9Ci6","1AfeRmlSBu9Y5yT2LUuE21XZTGQe1xP7q","1hzInoy22ctxHwVNezfBGiZbIv9NNtDho","1kyDGpT6hw1Oi92AyHHDFOY1XELt1JzX6"] },
+    { titulo: "Liderazgo para mandos medios", categoria: "Liderazgo", videos: ["1KihFcMica_Ix9IN_att1P0QEO353lCOx","1Pu1GkjpEzIeFyTJ9zrC0wCjWIF14fZAG","1y6RjFXEBxMBtAMJfYtvAgq-i9EKlLl5-","1zevjnoo46_SsrNderDotw9VUZv1xeH8d","11anEMJYG2ZQKWi14k58GYqvYOpFoyQeX"] },
+    { titulo: "Liderazgo y gerencia de equipo", categoria: "Liderazgo", videos: ["1J3enKTcipL_SZJ_Ocfn9qeEqf8YNsoJ9","1eL89sTD_FKv9uElqBItnt6SytRGEA8D8","1ckxFtdwuRE8kKfPSc9aq5IqQq_mQdMS7","1K6UAHg8wuQGVfTuOyQxc4EoOQvyli4HM"] },
+    { titulo: "Mecanismos de defensa ante actos de gobierno y multas", categoria: "Jurídico", videos: ["1mRBTou-3ormuKkwJIDdIkirOuKreXWBK","18_6QFOhGqo9YVBT3qtnmAUiOpZ97M_-r","1-bOodbo62q7s2iNbQtI3j068_laEwL31","1kQzEHaUMyD5BFOcxOO1hXJ-DOpU2nOP5"] },
+    { titulo: "Planificación y optimización de rutas de distribución", categoria: "Logística", videos: ["15gQ1eqWH7KNxfdX-9g_wOwBCXnQ5ygpf","1mFG1wHawWebPbzzK-gn5LsyN25t_wQe9","1hsd1LE8pCK8bAkCmX4kWhkrp0WQb2MWH","1gUjnfbuCxfIEzd_-oVHSxgi3H8Y6I2sY","1aooVW4cNgPLZpczIeXQJrZI2ojvzQqBR"] },
+    { titulo: "Redacción efectiva de demandas civiles", categoria: "Jurídico", videos: ["1rAEbh_8bSrKLBs5c97Ny1q5TCHGVAGf6","143WS526uc-SWwmJMELjqPw7q9LnEoK4x","1tBj6WBU9-hgeUqOPeAEtukPdpsN3ICHd"] },
+    { titulo: "SAT e impuestos para negocios locales", categoria: "Fiscal", videos: ["1SoeEEc5_JZJrURag6g3gp6U8Q1NYPnv5","16dCeW-i0TuYi-YfnXWO3Opb4NKMd_zfN","1BO2p88ECO8wd_a1slw3fw_Sh8XF4n_0f","1O1JdYJgaZb49iw_nrhebeKdRm6v2W_nZ"] },
+    { titulo: "Selección de talento 4.0: nuevas técnicas y tendencias", categoria: "Recursos Humanos", videos: ["1utiVPkA8pnnfYJVFP3LjkljqRKL3TkBB","1Mi8aLAI3y9t-IgVYdkDhGdO66og2WRat","1W_Ju9-8TpuOZ2__v4U2J0QEyZvi2c5g_","1KflU5R7JpKYpJEvmF5dgfDw7lps8XWgm","1hG02qneHyr2bUkMNn9415mKDLFyyXVo1"] },
+    { titulo: "Taller de redacción", categoria: "Habilidades", videos: ["1yzY4CuAxNEhmwh1Vw4-Hm1XpBofXfwk1","1lAVF8xxipxnv2OYKVx2rrGQ-JqPtDWFV","1yo0aLl0doBPbKvY9d7YNcr8G2u--hm6g","16HuHNjmYpvyhk-PqYhlw4FN0xmB8vZ_q","1SgoTmP3On0cCW2VRn_U92-T54cXbZyJP"] },
+    { titulo: "Técnicas de gestión de inventarios", categoria: "Logística", videos: ["19cnhTq0s7yXhjsbk7a1aXwg3G3ByqVbC","1DNwGhaIGKkHAoygT8UoXngvlYjImU1RR","1nAn1DxF0FhsNrOqO6ij96kGrDhrCOM57","1g66ivk7Xavsd1JVNFvicFRbW1HlbrgeZ","1kKMO2zjP9vofUxvWyLeXww2QUW_6quJT"] },
+    { titulo: "Ventas digitales y por redes sociales", categoria: "Marketing", videos: ["10ZJykcNFn6hi3E6fEpZDP_XTo1H4WpW_","1Nt0zm2xHFTjZ0kybpy_8hbXk7zshAnOl"] }
+  ];
+
+  function log(msg, tipo = '') {
+    const div = document.getElementById('log');
+    const item = document.createElement('div');
+    item.className = 'log-item ' + (tipo === 'ok' ? 'log-ok' : tipo === 'err' ? 'log-err' : 'log-info');
+    item.textContent = msg;
+    div.appendChild(item);
+    div.scrollTop = div.scrollHeight;
+  }
+
+  window.iniciarMigracion = async function() {
+    const btn = document.getElementById('btn-migrar');
+    btn.disabled = true;
+    btn.textContent = 'Migrando...';
+
+    // Necesitamos estar autenticados como admin
+    const email    = prompt('Ingresa tu correo de admin ICADEM:');
+    const password = prompt('Ingresa tu contraseña:');
+    if (!email || !password) { btn.disabled = false; btn.textContent = '🚀 Iniciar migración'; return; }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      log('✅ Autenticado correctamente', 'ok');
+    } catch(e) {
+      log('❌ Error de autenticación: ' + e.message, 'err');
+      btn.disabled = false;
+      btn.textContent = '🚀 Iniciar migración';
+      return;
+    }
+
+    let ok = 0, err = 0;
+    const total = CURSOS_A_MIGRAR.length;
+
+    for (let i = 0; i < total; i++) {
+      const curso = CURSOS_A_MIGRAR[i];
+      try {
+        // Convertir IDs de Google Drive a links completos
+        const videos = curso.videos.map((id, idx) => ({
+          titulo: `Clase ${idx + 1}`,
+          link: `https://drive.google.com/file/d/${id}/view`
+        }));
+
+        await addDoc(collection(db, 'cursos-nuevos'), {
+          titulo:    curso.titulo,
+          categoria: curso.categoria,
+          videos:    videos,
+          portada:   'https://i.ibb.co/BVJQqb0X/ICADEM.jpg',
+          temario:   '',
+          creadoEn:  serverTimestamp()
+        });
+
+        ok++;
+        log(`✅ [${i+1}/${total}] ${curso.titulo}`, 'ok');
+      } catch(e) {
+        err++;
+        log(`❌ [${i+1}/${total}] ${curso.titulo}: ${e.message}`, 'err');
+      }
+
+      // Actualizar UI
+      document.getElementById('stat-ok').textContent  = ok;
+      document.getElementById('stat-err').textContent = err;
+      document.getElementById('progress-fill').style.width = ((i+1)/total*100) + '%';
+
+      // Pequeña pausa para no saturar Firestore
+      await new Promise(r => setTimeout(r, 150));
+    }
+
+    log(`\n🎉 Migración completada: ${ok} exitosos, ${err} errores`, ok === total ? 'ok' : 'info');
+    btn.textContent = ok === total ? '✅ Migración completada' : '⚠️ Completado con errores';
+
+    if (ok === total) {
+      setTimeout(() => {
+        log('Redirigiendo al panel admin...', 'info');
+        window.location.href = 'vip-admin.html?acceso=icadem2026';
+      }, 2000);
+    }
+  };
+</script>
+</body>
+</html>
