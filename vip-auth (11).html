@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acceso VIP — ICADEM</title>
+  <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --base:    #0b2554;
+      --surface: #0f2d6b;
+      --card:    #0f2d6b;
+      --border:  rgba(255,255,255,0.12);
+      --border-focus: rgba(255,255,255,0.35);
+      --gold:    #c8962a;
+      --gold-lt: #e8c96a;
+      --blue:    #1a3a6b;
+      --blue-lt: #2a5298;
+      --text:    #f0ede8;
+      --muted:   rgba(240,237,232,0.55);
+      --error:   #e05555;
+      --font-display: 'Cormorant Garamond', Georgia, serif;
+      --font-body:    'Space Grotesk', system-ui, sans-serif;
+    }
+    html, body { min-height: 100vh; }
+    body {
+      background: linear-gradient(160deg,#0b2554 0%,#1a3a6b 60%,#1976d2 100%);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.6;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      border-bottom: 1px solid var(--border);
+      padding: 14px 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .topbar a {
+      color: var(--text);
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      opacity: 0.6;
+      transition: opacity 0.2s;
+    }
+    .topbar a:hover { opacity: 1; }
+    .topbar-logo {
+      font-family: var(--font-display);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--gold-lt);
+    }
+
+    /* STEPS */
+    .steps {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 2rem 1rem 0;
+      flex-shrink: 0;
+    }
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+    .step-circle {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0;
+    }
+    .step.active .step-circle {
+      border-color: var(--gold);
+      color: var(--gold);
+      background: rgba(200,150,42,0.08);
+    }
+    .step.done .step-circle {
+      border-color: rgba(200,150,42,0.4);
+      background: rgba(200,150,42,0.08);
+      color: var(--gold);
+    }
+    .step-label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .step.active .step-label { color: var(--gold); }
+    .step-line {
+      width: 60px;
+      height: 1px;
+      background: var(--border);
+      margin-bottom: 18px;
+      margin: 0 8px 18px;
+    }
+
+    /* MAIN */
+    .main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem 3rem;
+    }
+
+    .auth-box {
+      width: 100%;
+      max-width: 420px;
+      animation: fadeUp 0.4s ease both;
+    }
+
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(200,150,42,0.08);
+      border: 1px solid rgba(200,150,42,0.2);
+      border-radius: 2px;
+      padding: 6px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.75rem;
+    }
+    .plan-badge-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .auth-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 5vw, 2.8rem);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 0.5rem;
+      letter-spacing: -0.01em;
+    }
+    .auth-subtitle {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 300;
+      margin-bottom: 2.5rem;
+      letter-spacing: 0.01em;
+    }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 2rem;
+    }
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .tab.active {
+      color: var(--gold-lt);
+      border-bottom-color: var(--gold);
+    }
+
+    /* FORM */
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .form-input {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      padding: 12px 16px;
+      font-family: var(--font-body);
+      font-size: 14px;
+      font-weight: 300;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.2s;
+      width: 100%;
+    }
+    .form-input::placeholder { color: rgba(240,237,232,0.2); }
+    .form-input:focus { border-color: var(--border-focus); }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #1a5298, #1976d2);
+      border: none;
+      border-radius: 2px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #fff;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-submit:active { transform: translateY(0); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .divider-or {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 1.5rem 0;
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+    }
+    .divider-or::before, .divider-or::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .btn-google {
+      width: 100%;
+      padding: 13px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-family: var(--font-body);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-google:hover {
+      border-color: var(--border-focus);
+      background: rgba(255,255,255,0.03);
+    }
+    .google-icon {
+      width: 16px; height: 16px;
+    }
+
+    .error-msg {
+      background: rgba(224,85,85,0.1);
+      border: 1px solid rgba(224,85,85,0.3);
+      border-radius: 2px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--error);
+      margin-bottom: 1rem;
+      display: none;
+    }
+    .error-msg.visible { display: block; }
+
+    /* LOADING OVERLAY */
+    .loading-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(8,9,11,0.85);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .loading-overlay.visible { display: flex; }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 2px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .loading-text {
+      font-size: 12px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .form-panel { display: none; }
+    .form-panel.active { display: block; }
+  
+    /* ── Botón Ya pagué ── */
+    .ya-pague-wrap {
+      margin-top: 1.5rem;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding-top: 1.25rem;
+    }
+    .btn-ya-pague {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1.5px solid rgba(200,150,42,0.35);
+      background: rgba(200,150,42,0.06);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #e8c96a;
+      cursor: pointer;
+      transition: all .2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-ya-pague:hover {
+      background: rgba(200,150,42,0.12);
+      border-color: rgba(200,150,42,0.6);
+      transform: translateY(-1px);
+    }
+    .btn-ya-pague:active { transform: translateY(0); }
+
+    /* ── Modal verificación de pago ── */
+    #modal-pago-verificar {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      background: rgba(7,26,62,0.75);
+      backdrop-filter: blur(8px);
+      padding: 1rem;
+    }
+    .pago-modal-box {
+      background: linear-gradient(160deg, #0b2554 0%, #0f2d6b 100%);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      padding: 2.25rem 2rem;
+      width: 100%;
+      max-width: 400px;
+      text-align: center;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5);
+      animation: pagoModalIn .4s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes pagoModalIn {
+      from { opacity:0; transform: scale(0.92) translateY(20px); }
+      to   { opacity:1; transform: scale(1) translateY(0); }
+    }
+    .pago-estado-icono {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      margin: 0 auto 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+    }
+    .icono-verificando {
+      background: rgba(200,150,42,0.15);
+      border: 1.5px solid rgba(200,150,42,0.3);
+      animation: girar 1.5s linear infinite;
+    }
+    .icono-activo {
+      background: rgba(52,211,153,0.15);
+      border: 1.5px solid rgba(52,211,153,0.3);
+    }
+    .icono-espera {
+      background: rgba(148,163,184,0.1);
+      border: 1.5px solid rgba(148,163,184,0.2);
+    }
+    @keyframes girar {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+    .pago-titulo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: .5rem;
+    }
+    .pago-sub {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      line-height: 1.65;
+      margin-bottom: 1.5rem;
+    }
+    .pago-progreso {
+      height: 3px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 2px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .pago-progreso-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #c8962a, #e8c96a);
+      border-radius: 2px;
+      width: 0%;
+      transition: width .5s ease;
+    }
+    .btn-pago-panel {
+      display: none;
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #c8962a, #e8c96a);
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      color: #0b1f4a;
+      cursor: pointer;
+      margin-bottom: .75rem;
+      transition: transform .18s, box-shadow .18s;
+      box-shadow: 0 6px 20px rgba(200,150,42,0.4);
+    }
+    .btn-pago-panel:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(200,150,42,0.5); }
+    .btn-pago-panel:active { transform: translateY(0); }
+    .btn-pago-cerrar {
+      width: 100%;
+      padding: 11px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: transparent;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      cursor: pointer;
+      transition: all .18s;
+    }
+    .btn-pago-cerrar:hover { background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7); }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a href="vip.html">&#8592; Planes VIP</a>
+    <span class="topbar-logo">ICADEM</span>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step done">
+      <div class="step-circle">&#10003;</div>
+      <span class="step-label">Plan</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step active">
+      <div class="step-circle">2</div>
+      <span class="step-label">Acceso</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+      <div class="step-circle">3</div>
+      <span class="step-label">Pago</span>
+    </div>
+    <div class="step-line"></div>
+    <div class="step">
+      <div class="step-circle">4</div>
+      <span class="step-label">Panel</span>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="auth-box">
+      <div class="plan-badge" id="plan-badge">
+        <span class="plan-badge-dot"></span>
+        <span id="plan-badge-text">Cargando plan...</span>
+      </div>
+
+      <h1 class="auth-title">Accede a tu<br>cuenta ICADEM</h1>
+      <p class="auth-subtitle">Inicia sesión o crea una cuenta para continuar con tu membresía.</p>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('login')">Iniciar sesión</div>
+        <div class="tab" onclick="switchTab('registro')">Registrarse</div>
+      </div>
+
+      <div id="error-msg" class="error-msg"></div>
+
+      <!-- LOGIN -->
+      <div class="form-panel active" id="panel-login">
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <input class="form-input" type="email" id="login-email" placeholder="tu@correo.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input class="form-input" type="password" id="login-pass" placeholder="••••••••" />
+        </div>
+        <div style="text-align:right;margin-top:-8px;margin-bottom:4px">
+          <a href="#" onclick="document.getElementById('modal-reset').style.display='flex';return false;" style="font-size:12px;color:#c8962a;text-decoration:none;font-weight:600">¿Olvidaste tu contraseña?</a>
+        </div>
+        <button class="btn-submit" id="btn-login" onclick="loginEmail()">Iniciar sesión</button>
+
+        <div class="divider-or">O</div>
+
+        <button class="btn-google" onclick="loginGoogle()">
+          <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continuar con Google
+        </button>
+
+        <!-- Botón Ya pagué -->
+        <div class="ya-pague-wrap">
+          <button class="btn-ya-pague" onclick="abrirVerificacionPago()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            ¿Ya realizaste tu pago? Acceder al panel
+          </button>
+        </div>
+      </div>
+
+      <!-- REGISTRO -->
+      <div class="form-panel" id="panel-registro">
+        <div class="form-group">
+          <label class="form-label">Nombre completo</label>
+          <input class="form-input" type="text" id="reg-nombre" placeholder="Tu nombre" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Correo electrónico</label>
+          <input class="form-input" type="email" id="reg-email" placeholder="tu@correo.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contraseña</label>
+          <input class="form-input" type="password" id="reg-pass" placeholder="Mínimo 6 caracteres" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmar contraseña</label>
+          <input class="form-input" type="password" id="reg-pass-confirm" placeholder="Repite tu contraseña" />
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:1.25rem">
+          <input type="checkbox" id="chk-terminos" style="margin-top:3px;width:16px;height:16px;flex-shrink:0;accent-color:#c8962a;cursor:pointer" />
+          <label for="chk-terminos" style="font-size:12px;color:rgba(255,255,255,0.65);line-height:1.6;cursor:pointer">
+            He leído y acepto los <a href="#" onclick="document.getElementById('modal-terminos').style.display='flex';return false;" style="color:#c8962a;text-decoration:underline;font-weight:600">Términos y Condiciones</a> y el tratamiento de mis datos personales conforme al aviso de privacidad de ICADEM.
+          </label>
+        </div>
+        <button class="btn-submit" id="btn-registro" onclick="registrar()">Crear cuenta</button>
+
+        <div class="divider-or">O</div>
+
+        <button class="btn-google" onclick="loginGoogle()">
+          <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Continuar con Google
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-overlay" id="loading">
+    <div class="spinner"></div>
+    <p class="loading-text">Verificando acceso...</p>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+             signInWithPopup, GoogleAuthProvider, onAuthStateChanged, updateProfile,
+             sendPasswordResetEmail }
+      from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    // ─── CONFIGURACIÓN FIREBASE ───────────────────────────────────────────────
+    // Reemplaza estos valores con los de tu proyecto Firebase
+    const firebaseConfig = {
+      apiKey:            "AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA",
+      authDomain:        "icadem-vip.firebaseapp.com",
+      projectId:         "icadem-vip",
+      storageBucket:     "icadem-vip.firebasestorage.app",
+      messagingSenderId: "12508983783",
+      appId:             "1:12508983783:web:b12be6f1fab9bb91fb8d42"
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const app      = initializeApp(firebaseConfig);
+    const auth     = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    function showLoading(txt) {
+      document.getElementById('loading').classList.add('visible');
+      document.querySelector('.loading-text').textContent = txt || 'Verificando acceso...';
+    }
+    function hideLoading() {
+      document.getElementById('loading').classList.remove('visible');
+    }
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.classList.add('visible');
+    }
+    function clearError() {
+      document.getElementById('error-msg').classList.remove('visible');
+    }
+
+    // Si ya está autenticado, ir directo al checkout
+    // Flag para evitar redirecciones múltiples por refresh de token
+    let _authAutoRedirecting = false;
+    onAuthStateChanged(auth, async user => {
+      // Evitar múltiples ejecuciones simultáneas durante refresh de token
+      if (_authAutoRedirecting) return;
+      if (user) {
+        _authAutoRedirecting = true;
+        // Verificar si ya tiene membresía activa → ir directo al panel
+        try {
+          const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+          const db   = getFirestore();
+          const snap = await getDoc(doc(db, 'membresias', user.uid));
+          if (snap.exists() && snap.data().activa) {
+            window.location.href = 'vip-panel.html';
+            return;
+          }
+        } catch(e) {}
+        // Sin membresía activa → ir a checkout (flujo normal)
+        window.location.href = 'vip-checkout.html';
+      }
+    });
+
+    // Exponer funciones al scope global
+    window.loginEmail = async function() {
+      clearError();
+      const email = document.getElementById('login-email').value.trim();
+      const pass  = document.getElementById('login-pass').value;
+      if (!email || !pass) { showError('Completa todos los campos.'); return; }
+      showLoading('Iniciando sesión...');
+      try {
+        await signInWithEmailAndPassword(auth, email, pass);
+        window.location.href = 'vip-checkout.html';
+      } catch(e) {
+        hideLoading();
+        const msgs = {
+          'auth/user-not-found':  'No existe una cuenta con ese correo.',
+          'auth/wrong-password':  'Contraseña incorrecta.',
+          'auth/invalid-email':   'Correo no válido.',
+          'auth/too-many-requests': 'Demasiados intentos. Intenta más tarde.',
+        };
+        showError(msgs[e.code] || 'Error al iniciar sesión. Intenta de nuevo.');
+      }
+    };
+
+    window.registrar = async function() {
+      clearError();
+      const nombre   = document.getElementById('reg-nombre').value.trim();
+      const email    = document.getElementById('reg-email').value.trim();
+      const pass     = document.getElementById('reg-pass').value;
+      const passConf = document.getElementById('reg-pass-confirm').value;
+      const terminos = document.getElementById('chk-terminos').checked;
+      if (!nombre || !email || !pass || !passConf) { showError('Completa todos los campos.'); return; }
+      if (pass.length < 6) { showError('La contraseña debe tener al menos 6 caracteres.'); return; }
+      if (pass !== passConf) { showError('Las contraseñas no coinciden.'); return; }
+      if (!terminos) { showError('Debes aceptar los Términos y Condiciones para continuar.'); return; }
+      showLoading('Creando cuenta...');
+      try {
+        const cred = await createUserWithEmailAndPassword(auth, email, pass);
+        await updateProfile(cred.user, { displayName: nombre });
+        // Guardar nombre y email en Firestore para que el admin los vea
+        const { getFirestore, doc, setDoc, serverTimestamp } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const dbAuth = getFirestore();
+        await setDoc(doc(dbAuth, 'membresias', cred.user.uid), {
+          nombre: nombre,
+          email: email
+        }, { merge: true });
+        window.location.href = 'vip-checkout.html';
+      } catch(e) {
+        hideLoading();
+        const msgs = {
+          'auth/email-already-in-use': 'Ya existe una cuenta con ese correo.',
+          'auth/invalid-email':        'Correo no válido.',
+          'auth/weak-password':        'La contraseña es muy débil.',
+        };
+        showError(msgs[e.code] || 'Error al crear la cuenta. Intenta de nuevo.');
+      }
+    };
+
+    window.recuperarPassword = async function() {
+      const email = document.getElementById('reset-email').value.trim();
+      if (!email) { document.getElementById('reset-error').textContent = 'Ingresa tu correo electrónico.'; return; }
+      const btnReset = document.getElementById('btn-reset-send');
+      btnReset.disabled = true;
+      btnReset.textContent = 'Enviando...';
+      document.getElementById('reset-error').textContent = '';
+      try {
+        await sendPasswordResetEmail(auth, email);
+        document.getElementById('reset-form-content').style.display = 'none';
+        document.getElementById('reset-success').style.display = 'block';
+      } catch(e) {
+        btnReset.disabled = false;
+        btnReset.textContent = 'Enviar instrucciones';
+        const msgs = {
+          'auth/user-not-found':  'No existe una cuenta con ese correo.',
+          'auth/invalid-email':   'El correo no es válido.',
+        };
+        document.getElementById('reset-error').textContent = msgs[e.code] || 'Ocurrió un error. Intenta de nuevo.';
+      }
+    };
+
+    window.loginGoogle = async function() {
+      clearError();
+      showLoading('Conectando con Google...');
+      try {
+        await signInWithPopup(auth, provider);
+        window.location.href = 'vip-checkout.html';
+      } catch(e) {
+        hideLoading();
+        if (e.code !== 'auth/popup-closed-by-user') {
+          showError('Error con Google. Intenta de nuevo.');
+        }
+      }
+    };
+
+    // Mostrar plan seleccionado
+    const plan = localStorage.getItem('icadem_plan') || 'mensual';
+    document.getElementById('plan-badge-text').textContent =
+      plan === 'anual' ? 'Plan Anual — $2,400 MXN' : 'Plan Mensual — $250 MXN';
+
+    // ── VERIFICACIÓN DE PAGO ──────────────────────────────
+    let _verificandoPago = false;
+    let _intervaloVerif  = null;
+    let _intentosVerif   = 0;
+    const MAX_VERIF      = 12; // 60 segundos
+
+    window.abrirVerificacionPago = async function() {
+      // Primero verificar que el usuario esté autenticado
+      const user = auth.currentUser;
+      if (!user) {
+        showError('Primero inicia sesión con tu correo y contraseña para verificar tu pago.');
+        return;
+      }
+      // Abrir modal
+      const modal = document.getElementById('modal-pago-verificar');
+      modal.style.display = 'flex';
+      _verificandoPago = true;
+      _intentosVerif = 0;
+      // Resetear estado
+      document.getElementById('pago-icono').className = 'pago-estado-icono icono-verificando';
+      document.getElementById('pago-icono').textContent = '⟳';
+      document.getElementById('pago-titulo').textContent = 'Verificando tu membresía...';
+      document.getElementById('pago-sub').textContent = 'Estamos consultando el estado de tu pago. Esto solo toma unos segundos.';
+      document.getElementById('pago-progreso-fill').style.width = '0%';
+      document.getElementById('btn-pago-panel').style.display = 'none';
+      document.getElementById('btn-pago-cerrar').textContent = 'Cancelar';
+
+      // Verificar inmediatamente
+      await verificarPagoFirebase(user);
+
+      // Si no está activo aún, verificar cada 5 segundos
+      if (_verificandoPago) {
+        _intervaloVerif = setInterval(async () => {
+          _intentosVerif++;
+          const pct = Math.min((_intentosVerif / MAX_VERIF) * 90, 90);
+          document.getElementById('pago-progreso-fill').style.width = pct + '%';
+          await verificarPagoFirebase(user);
+          if (_intentosVerif >= MAX_VERIF) {
+            clearInterval(_intervaloVerif);
+            mostrarEsperaPago();
+          }
+        }, 5000);
+      }
+    };
+
+    async function verificarPagoFirebase(user) {
+      try {
+        const { getFirestore, doc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const db   = getFirestore();
+        const snap = await getDoc(doc(db, 'membresias', user.uid));
+        if (snap.exists() && snap.data().activa) {
+          // ¡Pago confirmado!
+          clearInterval(_intervaloVerif);
+          _verificandoPago = false;
+          document.getElementById('pago-icono').className = 'pago-estado-icono icono-activo';
+          document.getElementById('pago-icono').textContent = '✓';
+          document.getElementById('pago-titulo').textContent = '¡Membresía activa!';
+          document.getElementById('pago-sub').textContent = 'Tu pago fue confirmado. Ya puedes acceder a todo el contenido VIP.';
+          document.getElementById('pago-progreso-fill').style.width = '100%';
+          document.getElementById('btn-pago-panel').style.display = 'block';
+          document.getElementById('btn-pago-cerrar').textContent = 'Cerrar';
+          return true;
+        }
+      } catch(e) {}
+      return false;
+    }
+
+    function mostrarEsperaPago() {
+      _verificandoPago = false;
+      document.getElementById('pago-icono').className = 'pago-estado-icono icono-espera';
+      document.getElementById('pago-icono').textContent = '⏳';
+      document.getElementById('pago-titulo').textContent = 'Pago en proceso';
+      document.getElementById('pago-sub').textContent = 'Tu pago puede tardar unos minutos más en confirmarse. Si ya pagaste, intenta de nuevo en 2-3 minutos o escríbenos a icademconsultoria2024@gmail.com';
+      document.getElementById('btn-pago-cerrar').textContent = 'Cerrar';
+    }
+
+    window.cerrarVerificacionPago = function() {
+      clearInterval(_intervaloVerif);
+      _verificandoPago = false;
+      _intentosVerif = 0;
+      document.getElementById('modal-pago-verificar').style.display = 'none';
+    };
+    // ── FIN VERIFICACIÓN DE PAGO ──────────────────────────
+
+    window.switchTab = function(tab) {
+      document.querySelectorAll('.tab').forEach((t,i) => {
+        t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'registro' && i === 1));
+      });
+      document.getElementById('panel-login').classList.toggle('active', tab === 'login');
+      document.getElementById('panel-registro').classList.toggle('active', tab === 'registro');
+      document.getElementById('error-msg').classList.remove('visible');
+    };
+
+
+  </script>
+
+<!-- MODAL VERIFICACIÓN DE PAGO -->
+<div id="modal-pago-verificar" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(7,26,62,0.75);backdrop-filter:blur(8px);padding:1rem">
+  <div class="pago-modal-box">
+    <div class="pago-estado-icono icono-verificando" id="pago-icono">⟳</div>
+    <p class="pago-titulo" id="pago-titulo">Verificando tu pago...</p>
+    <p class="pago-sub" id="pago-sub">Estamos consultando el estado de tu membresía. Esto solo toma unos segundos.</p>
+    <div class="pago-progreso">
+      <div class="pago-progreso-fill" id="pago-progreso-fill"></div>
+    </div>
+    <button class="btn-pago-panel" id="btn-pago-panel" onclick="window.location.href='vip-panel.html'">
+      ✦ Entrar a mi Panel VIP
+    </button>
+    <button class="btn-pago-cerrar" id="btn-pago-cerrar" onclick="cerrarVerificacionPago()">
+      Cerrar
+    </button>
+  </div>
+</div>
+
+<!-- MODAL RECUPERAR CONTRASEÑA -->
+<div id="modal-reset" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(11,47,104,0.6);backdrop-filter:blur(6px);padding:1rem">
+  <div style="background:#ffffff;border-radius:14px;width:90%;max-width:420px;box-shadow:0 24px 64px rgba(11,47,104,0.3)">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;border-radius:50%;background:rgba(11,47,104,0.08);display:flex;align-items:center;justify-content:center">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0b2f68" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <p style="font-size:15px;font-weight:700;color:#0b2f68;margin:0">Recuperar contraseña</p>
+      </div>
+      <button onclick="document.getElementById('modal-reset').style.display='none';document.getElementById('reset-form-content').style.display='block';document.getElementById('reset-success').style.display='none';document.getElementById('reset-email').value='';document.getElementById('reset-error').textContent='';document.getElementById('btn-reset-send').disabled=false;document.getElementById('btn-reset-send').textContent='Enviar instrucciones';" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;padding:4px">✕</button>
+    </div>
+    <!-- Contenido -->
+    <div style="padding:1.5rem">
+      <!-- Formulario -->
+      <div id="reset-form-content">
+        <p style="font-size:13px;color:#64748b;line-height:1.6;margin-bottom:1.25rem">Ingresa tu correo y te enviaremos las instrucciones para restablecer tu contraseña.</p>
+        <label style="font-size:11px;font-weight:700;letter-spacing:.06em;color:#0b2f68;text-transform:uppercase;display:block;margin-bottom:6px">Correo electrónico</label>
+        <input id="reset-email" type="email" placeholder="tu@correo.com" style="width:100%;padding:11px 14px;border-radius:8px;border:1.5px solid #cbd5e1;font-size:14px;color:#1e293b;outline:none;box-sizing:border-box;font-family:inherit;transition:border-color .2s" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='#cbd5e1'" />
+        <p id="reset-error" style="font-size:12px;color:#dc2626;margin-top:8px;min-height:16px"></p>
+        <div style="display:flex;gap:.75rem;margin-top:.5rem">
+          <button onclick="document.getElementById('modal-reset').style.display='none'" style="flex:1;padding:11px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;font-family:inherit">Cancelar</button>
+          <button id="btn-reset-send" onclick="recuperarPassword()" style="flex:1;padding:11px;border-radius:8px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-size:13px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Enviar instrucciones</button>
+        </div>
+      </div>
+      <!-- Éxito -->
+      <div id="reset-success" style="display:none;text-align:center;padding:.5rem 0">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgba(16,185,129,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <p style="font-size:15px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">¡Correo enviado!</p>
+        <p style="font-size:13px;color:#64748b;line-height:1.6;margin-bottom:1.5rem">Revisa tu bandeja de entrada y sigue las instrucciones para restablecer tu contraseña. También revisa la carpeta de spam.</p>
+        <button onclick="document.getElementById('modal-reset').style.display='none';document.getElementById('reset-form-content').style.display='block';document.getElementById('reset-success').style.display='none';document.getElementById('reset-email').value='';document.getElementById('btn-reset-send').disabled=false;document.getElementById('btn-reset-send').textContent='Enviar instrucciones';" style="width:100%;padding:11px;border-radius:8px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-size:13px;font-weight:600;color:#fff;cursor:pointer;font-family:inherit">Entendido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TÉRMINOS Y CONDICIONES -->
+<div id="modal-terminos" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(11,47,104,0.6);backdrop-filter:blur(6px);padding:1rem">
+  <div style="background:#ffffff;border-radius:14px;width:90%;max-width:540px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 24px 64px rgba(11,47,104,0.3)">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1.25rem 1.5rem;border-bottom:1px solid #e2e8f0">
+      <p style="font-size:16px;font-weight:700;color:#0b2f68;margin:0">Términos y Condiciones</p>
+      <button onclick="document.getElementById('modal-terminos').style.display='none'" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1;padding:4px">✕</button>
+    </div>
+    <!-- Contenido -->
+    <div style="overflow-y:auto;padding:1.5rem;flex:1">
+      <p style="font-size:12px;color:#64748b;margin-bottom:1.25rem">Última actualización: Abril 2026</p>
+
+      <p style="font-size:14px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">1. Aceptación</p>
+      <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:1.25rem">Al crear una cuenta en ICADEM VIP aceptas estos términos y condiciones. Si no estás de acuerdo, no podrás hacer uso del servicio.</p>
+
+      <p style="font-size:14px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">2. Membresía y acceso</p>
+      <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:1.25rem">La membresía VIP es personal e intransferible. El acceso se activa tras la confirmación del pago y permanece vigente durante el período contratado (mensual o anual).</p>
+
+      <p style="font-size:14px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">3. Cancelación</p>
+      <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:1.25rem">Puedes cancelar tu membresía en cualquier momento desde tu panel. Al cancelar, tu acceso se desactivará de inmediato. Tus datos y progreso serán conservados para que puedas retomar si decides regresar.</p>
+
+      <p style="font-size:14px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">4. Datos personales</p>
+      <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:1.25rem">ICADEM recopila tu nombre, correo electrónico y datos de uso con el fin de brindarte el servicio. No compartimos tu información con terceros sin tu consentimiento, excepto cuando la ley lo requiera.</p>
+
+      <p style="font-size:14px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">5. Contenido</p>
+      <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:1.25rem">Todo el contenido disponible en la plataforma (videos, materiales, clases en vivo) es propiedad de ICADEM y está protegido por derechos de autor. Queda prohibida su reproducción o distribución sin autorización expresa.</p>
+
+      <p style="font-size:14px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">6. Modificaciones</p>
+      <p style="font-size:13px;color:#475569;line-height:1.7;margin-bottom:0">ICADEM se reserva el derecho de modificar estos términos en cualquier momento. Los cambios serán notificados a través de la plataforma.</p>
+    </div>
+    <!-- Footer -->
+    <div style="padding:1.25rem 1.5rem;border-top:1px solid #e2e8f0;display:flex;gap:.75rem">
+      <button onclick="document.getElementById('modal-terminos').style.display='none'" style="flex:1;padding:11px;border-radius:8px;border:1px solid #cbd5e1;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer">Cerrar</button>
+      <button onclick="document.getElementById('chk-terminos').checked=true;document.getElementById('modal-terminos').style.display='none'" style="flex:1;padding:11px;border-radius:8px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-size:13px;font-weight:600;color:#fff;cursor:pointer">Aceptar y continuar</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
