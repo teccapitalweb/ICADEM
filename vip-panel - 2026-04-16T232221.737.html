@@ -1,0 +1,2327 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel VIP — ICADEM</title>
+  <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --base:#f0f4fb;--surface:#ffffff;--card:#ffffff;--card2:#e8f0fe;
+      --border:rgba(11,47,104,0.12);--border2:rgba(11,47,104,0.25);
+      --blue:#0b2f68;--blue-dark:#0b2554;--blue-mid:#1a5298;--blue-lt:#1a73e8;
+      --blue-sidebar:#0b2f68;--blue-glow:rgba(11,47,104,0.1);
+      --gold:#c8962a;--gold-lt:#e8c96a;
+      --text:#0b2554;--text-body:#1e293b;--text-muted:#64748b;--text-white:#ffffff;
+      --green:#10b981;
+      --font-d:'Cormorant Garamond',Georgia,serif;--font-b:'Space Grotesk',system-ui,sans-serif;
+      --nav-w:240px
+    }
+    html,body{min-height:100vh}
+    body{background:#f4f7fc;color:var(--text-body);font-family:var(--font-b);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex}
+    .sidebar{width:var(--nav-w);min-height:100vh;background:#0b2f68;border-right:none;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:20;transition:transform 0.3s ease}
+    .sidebar-logo{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:10px}
+    .logo-mark{width:32px;height:32px;background:rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+    .logo-text strong{display:block;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:.06em;color:#ffffff}
+    .logo-text span{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.6)}
+    .sidebar-user{padding:1rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:10px}
+    .user-avatar{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+    .user-info{flex:1;min-width:0}
+    .user-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#ffffff}
+    .user-plan{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.65)}
+    .sidebar-nav{flex:1;padding:1rem .75rem;display:flex;flex-direction:column;gap:2px;overflow-y:auto}
+    .nav-section-label{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,0.4);padding:.75rem .75rem .4rem}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:6px;cursor:pointer;color:rgba(255,255,255,0.7);font-size:13px;font-weight:500;transition:all .15s;border:1px solid transparent;text-decoration:none;position:relative}
+    .nav-item:hover{background:rgba(255,255,255,0.12);color:#ffffff}
+    .nav-item.active{background:rgba(255,255,255,0.18);color:#ffffff;border-color:rgba(255,255,255,0.25)}
+    .nav-item.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:16px;background:#ffffff;border-radius:0 2px 2px 0}
+    .nav-icon{width:16px;height:16px;flex-shrink:0;opacity:.7}
+    .nav-item.active .nav-icon{opacity:1}
+    .nav-badge{margin-left:auto;background:rgba(255,255,255,0.25);color:#ffffff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px}
+    .nav-badge.gold{background:#f59e0b;color:#fff}
+    .nav-badge.green{background:#10b981;color:#fff;min-width:18px;text-align:center}
+    .item-nuevo{position:relative}
+    .item-nuevo::after{display:none}
+    @keyframes bordeNuevo{0%{border-color:#10b981;box-shadow:0 0 0 3px rgba(16,185,129,0.12);opacity:1}70%{border-color:#10b981;opacity:1}100%{border-color:transparent !important;box-shadow:none !important;opacity:0;pointer-events:none}}
+    .sidebar-footer{padding:1rem .75rem;border-top:1px solid rgba(255,255,255,0.15)}
+    .btn-logout{width:100%;padding:9px 12px;background:transparent;border:1px solid rgba(255,255,255,0.25);border-radius:6px;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.7);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+    .btn-logout:hover{color:#ffffff;background:rgba(255,255,255,0.12)}
+    .main{margin-left:var(--nav-w);flex:1;min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1}
+    .topbar{height:56px;border-bottom:1px solid rgba(25,118,210,0.12);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;position:sticky;top:0;background:#ffffff;box-shadow:0 1px 12px rgba(20,104,177,0.1);z-index:10}
+    .topbar-title{font-size:14px;font-weight:600;color:#0d47a1}
+    .topbar-right{display:flex;align-items:center;gap:12px}
+    .topbar-plan{display:flex;align-items:center;gap:6px;background:rgba(11,47,104,0.08);border:1px solid rgba(11,47,104,0.2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#0b2f68}
+    .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease infinite}
+    .menu-btn{display:none;background:none;border:none;color:#1468b1;cursor:pointer;padding:4px}
+    .content{flex:1;padding:2rem;width:100%}
+    .section{display:none}
+    .section.active{display:block;animation:fadeIn .3s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+    .page-header{margin-bottom:2rem}
+    .page-tag{font-size:10px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:#1976d2;margin-bottom:.4rem}
+    .page-title{font-family:var(--font-d);font-size:clamp(1.6rem,3vw,2.2rem);font-weight:700;line-height:1.1;margin-bottom:.4rem;color:#0d47a1}
+    .page-sub{font-size:13px;color:#64748b;font-weight:400}
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;background:rgba(25,118,210,0.2);border:1px solid rgba(255,255,255,0.2);border-radius:8px;overflow:hidden;margin-bottom:2rem}
+    .stat-card{background:#ffffff;border:1px solid rgba(25,118,210,0.15);padding:1.25rem 1.5rem;transition:all .2s;border-radius:0}
+    .stat-card:hover{background:#f0f6ff;transform:translateY(-2px);box-shadow:0 4px 20px rgba(13,71,161,0.15)}
+    .stat-label{font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#1565c0;margin-bottom:.5rem}
+    .stat-value{font-family:var(--font-d);font-size:2rem;font-weight:700;line-height:1;color:#0d47a1}
+    .stat-value.blue{color:#1a5298}.stat-value.gold{color:#c8962a}.stat-value.green{color:#10b981}
+    .stat-sub{font-size:11px;color:#64748b;margin-top:3px}
+    .section-label{font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#64748b;margin-bottom:1rem}
+    .courses-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;margin-bottom:2rem}
+    .course-card{background:#ffffff;border:1px solid rgba(25,118,210,0.12);border-radius:8px;overflow:hidden;transition:transform .2s,border-color .2s,box-shadow .2s}
+    .course-card:hover{transform:translateY(-3px);border-color:rgba(122,179,240,.4);box-shadow:0 12px 40px rgba(42,82,152,.35)}
+    .course-thumb-placeholder{width:100%;height:140px;background:linear-gradient(135deg,#1565c0 0%,#1e88e5 100%);display:flex;align-items:center;justify-content:center;position:relative}
+    .course-thumb-placeholder::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 50%,rgba(42,82,152,.5) 0%,transparent 70%)}
+    .course-thumb-icon{width:40px;height:40px;opacity:.4;position:relative}
+    .course-category{position:absolute;top:10px;left:10px;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.12);color:#fff;padding:3px 8px;border-radius:2px}
+    .course-body{padding:1.1rem 1.25rem}
+    .course-title{font-size:13px;font-weight:600;line-height:1.4;margin-bottom:.4rem;color:#0d47a1}
+    .course-desc{font-size:11px;color:#64748b;font-weight:400;margin-bottom:1rem;line-height:1.5}
+    .course-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:.85rem}
+    .course-duration{font-size:10px;color:#64748b;letter-spacing:.04em}
+    .course-level{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:2px}
+    .level-basico{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.2)}
+    .level-intermedio{background:rgba(200,150,42,.1);color:var(--gold);border:1px solid rgba(200,150,42,.2)}
+    .level-avanzado{background:rgba(74,127,212,.1);color:var(--blue-lt);border:1px solid rgba(74,127,212,.2)}
+    .btn-course{width:100%;padding:9px;background:transparent;border:1px solid rgba(20,104,177,0.25);border-radius:4px;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#1468b1;cursor:pointer;transition:all .15s;text-decoration:none;display:block;text-align:center}
+    .btn-course:hover{background:rgba(20,104,177,0.06);border-color:#1468b1}
+    .material-list{display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem}
+    .material-item{background:#ffffff;border:1px solid rgba(25,118,210,0.1);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s;box-shadow:0 3px 12px rgba(20,104,177,0.07);text-decoration:none;color:var(--text);display:flex;flex-direction:column}
+    .material-item:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(20,104,177,0.15);border-color:rgba(20,104,177,0.2)}
+    .material-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .material-icon.pdf{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.25)}
+    .material-icon.doc{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.25)}
+    .material-icon.zip{background:rgba(200,150,42,.15);border:1px solid rgba(200,150,42,.25)}
+    .material-info{flex:1;min-width:0}
+    .material-name{font-size:13px;font-weight:600;margin-bottom:2px;color:#0d47a1}
+    .material-meta{font-size:11px;color:#64748b}
+    .material-action{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1468b1;flex-shrink:0}
+    .cert-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;margin-bottom:2rem}
+    .cert-card{background:#ffffff;border:1px solid rgba(25,118,210,0.15);border-radius:8px;padding:1.5rem;position:relative;overflow:hidden}
+    .cert-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#1468b1,#42a5f5)}
+    .cert-title{font-family:var(--font-d);font-size:1.1rem;font-weight:700;margin-bottom:.3rem;margin-top:1rem;color:#0d47a1}
+    .cert-date{font-size:11px;color:#64748b;margin-bottom:1rem}
+    .cert-folio{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#f59e0b;margin-bottom:1rem}
+    .btn-cert{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#1468b1;background:none;border:none;cursor:pointer;padding:0}
+    .asesoria-card{background:#ffffff;border:1px solid rgba(20,104,177,0.15);border-left:3px solid var(--blue-lt);border-radius:8px;padding:1.5rem;margin-bottom:1rem}
+    .asesoria-card h3{font-size:14px;font-weight:600;margin-bottom:.3rem;color:#0d47a1}
+    .asesoria-card p{font-size:12px;color:#475569;font-weight:400;margin-bottom:1rem}
+    .comunidad-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;margin-bottom:2rem}
+    .comunidad-card{border-radius:18px;padding:0;transition:transform .25s,box-shadow .25s;text-decoration:none;color:var(--text);display:flex;flex-direction:column;overflow:hidden;position:relative;box-shadow:0 6px 20px rgba(0,0,0,0.12)}
+    .comunidad-card:hover{transform:translateY(-5px);box-shadow:0 14px 36px rgba(0,0,0,0.18)}
+    .comunidad-card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.2);margin-bottom:.25rem}
+    .comunidad-card h3{font-size:17px;font-weight:700;color:#ffffff;line-height:1.3}
+    .comunidad-card p{font-size:13px;color:rgba(255,255,255,0.75);font-weight:400;flex:1;line-height:1.6}
+    .comunidad-link{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+    .novedad-list{display:flex;flex-direction:column;gap:1rem;margin-bottom:2rem}
+    .novedad-item{border-radius:16px;padding:1.5rem 1.75rem;display:flex;align-items:flex-start;gap:1.25rem;transition:all .25s;box-shadow:0 6px 20px rgba(0,0,0,0.15);cursor:default;position:relative;overflow:hidden;height:160px}
+    .novedad-item:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.2)}
+    .novedad-dot{display:none}
+    .novedad-content{flex:1;min-width:0}
+    .novedad-tag{font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-bottom:.4rem;display:inline-flex;align-items:center;gap:5px}
+    .novedad-title{font-size:16px;font-weight:700;margin-bottom:.4rem;line-height:1.4}
+    .novedad-desc{font-size:13px;font-weight:400;line-height:1.65;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3}
+    .novedad-date{font-size:10px;margin-top:.6rem;display:flex;align-items:center;gap:4px;opacity:.7}
+    .wa-banner{background:#ffffff;border:1px solid rgba(25,118,210,0.15);border-left:4px solid var(--gold);border-radius:16px;padding:1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;box-shadow:0 3px 12px rgba(20,104,177,0.07)}
+    .wa-banner-text h3{font-size:14px;font-weight:700;margin-bottom:5px;color:#0d47a1}
+    .wa-banner-text p{font-size:13px;color:#475569;font-weight:400}
+    .btn-wa{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.25);border-radius:6px;font-family:var(--font-b);font-size:12px;font-weight:600;letter-spacing:.06em;color:#25d366;text-decoration:none;transition:all .15s;white-space:nowrap}
+    .btn-wa:hover{background:rgba(37,211,102,.14);border-color:rgba(37,211,102,.4)}
+    .wa-icon{width:18px;height:18px}
+    .video-list{display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem}
+    .video-item{background:#ffffff;border:1px solid rgba(25,118,210,0.12);border-radius:6px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;transition:all .15s;text-decoration:none;color:var(--text)}
+    .video-item:hover{border-color:rgba(25,118,210,0.3);background:#f0f6ff}
+    .video-thumb{width:80px;height:52px;border-radius:4px;background:linear-gradient(135deg,#1565c0,#1e88e5);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .play-btn{width:24px;height:24px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center}
+    .video-info{flex:1;min-width:0}
+    .video-title{font-size:13px;font-weight:600;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#0d47a1}
+    .video-meta{font-size:11px;color:#64748b}
+    .video-badge{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:2px;background:rgba(20,104,177,0.08);color:#1468b1;border:1px solid rgba(20,104,177,0.2);flex-shrink:0}
+    .btn-primary{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:linear-gradient(135deg,#1468b1,#1976d2);border:none;border-radius:4px;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#fff;cursor:pointer;text-decoration:none;transition:opacity .15s,transform .15s}
+    .btn-primary:hover{opacity:.9;transform:translateY(-1px)}
+    .btn-outline{display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:transparent;border:1px solid rgba(20,104,177,0.3);border-radius:4px;font-family:var(--font-b);font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#1468b1;cursor:pointer;text-decoration:none;transition:all .15s}
+    .btn-outline:hover{border-color:#1468b1;background:rgba(20,104,177,0.06);color:#0d47a1}
+    .loading-overlay{display:flex;position:fixed;inset:0;background:#f4f7fc;z-index:100;align-items:center;justify-content:center;flex-direction:column;gap:1rem}
+    .loading-overlay.hidden{display:none}
+    .spinner{width:28px;height:28px;border:2px solid rgba(20,104,177,0.2);border-top-color:#1468b1;border-radius:50%;animation:spin .7s linear infinite}
+    .loading-text{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#1468b1}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:19}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:768px){
+      .sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}
+      .sidebar-overlay.open{display:block}.main{margin-left:0}.menu-btn{display:flex}
+      .content{padding:1.25rem}.courses-grid{grid-template-columns:1fr}
+    }
+
+    /* ── MODAL VISOR PDF ── */
+    .pdf-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(5,15,40,0.95);
+      backdrop-filter: blur(6px);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .pdf-overlay.visible { display: flex; }
+
+    .pdf-modal {
+      background: #0b2554;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 0;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      animation: modalIn 0.3s ease both;
+    }
+
+    @media (min-width: 768px) {
+      .pdf-overlay { padding: 1.5rem; }
+      .pdf-modal {
+        border-radius: 10px;
+        max-width: 95vw;
+        height: 95vh;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .pdf-overlay { padding: 2rem; }
+      .pdf-modal {
+        max-width: 1100px;
+        height: 95vh;
+      }
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.97); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+    .pdf-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      flex-shrink: 0;
+    }
+    .pdf-modal-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #ffffff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 600px;
+    }
+    .pdf-modal-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+    .pdf-btn-dl {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: rgba(200,150,42,0.15);
+      border: 1px solid rgba(200,150,42,0.4);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: #e8c96a;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .pdf-btn-dl:hover { background: rgba(200,150,42,0.25); }
+    .pdf-close {
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.5);
+      font-size: 22px;
+      cursor: pointer;
+      line-height: 1;
+      transition: color .2s;
+      padding: 2px 6px;
+    }
+    .pdf-close:hover { color: #ffffff; }
+    .pdf-frame {
+      flex: 1;
+      width: 100%;
+      border: none;
+      background: #f0f0f0;
+    }
+
+  </style>
+</head>
+<body>
+
+<div style="position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden">
+  <div style="position:absolute;inset:0;background:linear-gradient(135deg,#f4f7fc 0%,#e8f0fe 50%,#f0f6ff 100%)"></div>
+  <div style="position:absolute;top:-200px;right:-200px;width:600px;height:600px;background:radial-gradient(circle,rgba(20,104,177,0.08) 0%,transparent 70%);border-radius:50%"></div>
+  <div style="position:absolute;bottom:-100px;left:-100px;width:400px;height:400px;background:radial-gradient(circle,rgba(25,118,210,0.06) 0%,transparent 70%);border-radius:50%"></div>
+  <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.04" xmlns="http://www.w3.org/2000/svg"><defs><pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1468b1" stroke-width="0.5"/></pattern></defs><rect width="100%" height="100%" fill="url(#grid)"/></svg>
+</div>
+<!-- Modal Cerrar Sesión -->
+<div id="modal-logout" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(11,47,104,0.45);backdrop-filter:blur(4px)">
+  <div style="background:#ffffff;border-radius:12px;padding:2rem;width:90%;max-width:360px;box-shadow:0 20px 60px rgba(11,47,104,0.25);text-align:center">
+    <div style="width:52px;height:52px;border-radius:50%;background:rgba(25,118,210,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+    </div>
+    <p style="font-size:16px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">¿Cerrar sesión?</p>
+    <p style="font-size:13px;color:#64748b;margin-bottom:1.75rem;line-height:1.5">Tu progreso está guardado. Podrás volver a ingresar en cualquier momento.</p>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="document.getElementById('modal-logout').style.display='none'" style="flex:1;padding:10px;border-radius:7px;border:1px solid rgba(25,118,210,0.25);background:#ffffff;font-family:var(--font-b);font-size:12px;font-weight:600;color:#475569;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#f0f6ff'" onmouseout="this.style.background='#ffffff'">Cancelar</button>
+      <button id="btn-logout-confirm" style="flex:1;padding:10px;border-radius:7px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-family:var(--font-b);font-size:12px;font-weight:600;color:#ffffff;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Sí, salir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CANCELACIÓN DE SUSCRIPCIÓN -->
+<div id="modal-cancel-sub" style="display:none;position:fixed;inset:0;z-index:200;align-items:center;justify-content:center;background:rgba(11,47,104,0.45);backdrop-filter:blur(4px)">
+  <div style="background:#ffffff;border-radius:14px;padding:2rem;width:90%;max-width:400px;box-shadow:0 20px 60px rgba(11,47,104,0.25);text-align:center">
+    <div style="width:56px;height:56px;border-radius:50%;background:rgba(220,38,38,0.08);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+    </div>
+    <p style="font-size:17px;font-weight:700;color:#0b2f68;margin-bottom:.5rem">¿Cancelar tu membresía VIP?</p>
+    <p style="font-size:13px;color:#64748b;margin-bottom:.75rem;line-height:1.6">Esta acción desactivará tu acceso inmediatamente.</p>
+    <div style="background:rgba(16,185,129,0.07);border:1px solid rgba(16,185,129,0.2);border-radius:9px;padding:.75rem 1rem;margin-bottom:1.75rem">
+      <p style="font-size:12px;color:#047857;margin:0;line-height:1.55">✓ <strong>Tus datos están seguros</strong> — si decides volver en el futuro, podrás retomar exactamente donde lo dejaste.</p>
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="cerrarModalCancelacion()" style="flex:1;padding:11px;border-radius:8px;border:1px solid rgba(25,118,210,0.25);background:#ffffff;font-family:var(--font-b);font-size:13px;font-weight:600;color:#475569;cursor:pointer;transition:all .15s" onmouseover="this.style.background='#f0f6ff'" onmouseout="this.style.background='#ffffff'">Mantener membresía</button>
+      <button id="btn-confirmar-cancelacion" onclick="confirmarCancelacion()" style="flex:1;padding:11px;border-radius:8px;border:none;background:linear-gradient(135deg,#b91c1c,#dc2626);font-family:var(--font-b);font-size:13px;font-weight:600;color:#ffffff;cursor:pointer;transition:opacity .15s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Sí, cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <p class="loading-text">Cargando panel VIP...</p>
+</div>
+
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark" style="background:none;padding:0;overflow:hidden"><img src="https://i.ibb.co/BVJQqb0X/ICADEM.jpg" alt="ICADEM" style="width:32px;height:32px;object-fit:cover;border-radius:6px"></div>
+    <div class="logo-text"><strong>ICADEM</strong><span>Panel VIP</span></div>
+  </div>
+  <div class="sidebar-user" onclick="showSection('perfil')" style="cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">
+    <div class="user-avatar" id="sidebar-avatar">?</div>
+    <div class="user-info">
+      <p class="user-name" id="sidebar-name">Cargando...</p>
+      <p class="user-plan" id="sidebar-plan">VIP</p>
+    </div>
+    <svg style="margin-left:auto;opacity:.5;flex-shrink:0" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+  </div>
+  <nav class="sidebar-nav">
+    <p class="nav-section-label">Principal</p>
+    <div class="nav-item active" onclick="showSection('inicio')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      Inicio
+    </div>
+    <div class="nav-item" onclick="showSection('novedades')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Novedades <span class="nav-badge green" id="badge-novedades" style="display:none"></span>
+    </div>
+    <p class="nav-section-label">Contenido</p>
+    <div class="nav-item" onclick="showSection('cursos')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      Clases en Vivo <span class="nav-badge green" id="badge-cursos" style="display:none"></span>
+    </div>
+    <div class="nav-item" onclick="showSection('videos')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+      Videoteca <span class="nav-badge green" id="badge-videos" style="display:none"></span>
+    </div>
+    <div class="nav-item" onclick="showSection('material')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      Material <span class="nav-badge green" id="badge-material" style="display:none"></span>
+    </div>
+
+
+    <div class="nav-item" onclick="showSection('comunidad')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Comunidad
+    </div>
+    <p class="nav-section-label">Mi cuenta</p>
+    <div class="nav-item" onclick="showSection('suscripcion')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      Mi Suscripción
+    </div>
+    <div class="nav-item" onclick="showSection('configuracion')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Configuración
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout" id="btn-logout">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      Cerrar sesión
+    </button>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="menu-btn" onclick="toggleSidebar()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <span class="topbar-title" id="topbar-title">Inicio</span>
+    </div>
+    <div class="topbar-right">
+      <div class="topbar-plan"><span class="status-dot"></span><span id="topbar-plan">VIP Mensual</span></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- INICIO -->
+    <div class="section active" id="sec-inicio">
+      <div class="page-header">
+        <p class="page-tag">Panel VIP</p>
+        <h1 class="page-title">Bienvenido, <span id="user-nombre">miembro</span>.</h1>
+        <p class="page-sub">Accede a todo tu contenido exclusivo desde aquí.</p>
+      </div>
+
+      <!-- BANNER WA -->
+      <div style="background:linear-gradient(135deg,#0b2554 0%,#1a3a6b 100%);border-radius:16px;padding:1.5rem 1.75rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;box-shadow:0 6px 24px rgba(11,37,84,0.2);position:relative;overflow:hidden">
+        <div style="position:absolute;top:-20px;right:120px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.04)"></div>
+        <div style="position:absolute;bottom:-30px;right:-10px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.03)"></div>
+        <div style="display:flex;align-items:center;gap:1rem;position:relative;z-index:1">
+          <div style="width:44px;height:44px;background:rgba(200,150,42,0.25);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏆</div>
+          <div>
+            <p style="font-size:14px;font-weight:700;color:#ffffff;margin-bottom:3px">¿Quieres conocer los cursos nuevos y actualizados de ICADEM?</p>
+            <p style="font-size:12px;color:rgba(255,255,255,0.6)">Por ser miembro VIP recibe el <strong style="color:#f59e0b">20% de descuento</strong></p>
+          </div>
+        </div>
+        <a class="btn-wa" href="https://wa.me/522383738143?text=Quiero%20obtener%20el%2020%25%20de%20descuento%20por%20ser%20miembro%20VIP%20%F0%9F%8F%86" target="_blank" rel="noopener" style="position:relative;z-index:1">
+          <svg class="wa-icon" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Escribir al WhatsApp
+        </a>
+      </div>
+
+      <!-- ACCESOS RÁPIDOS -->
+      <p class="section-label" style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin-bottom:1rem">Accesos rápidos</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem">
+
+        <div onclick="showSection('videos')" style="background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);border-radius:16px;padding:1.75rem;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;gap:.85rem;box-shadow:0 6px 24px rgba(11,37,84,0.25);position:relative;overflow:hidden" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 14px 40px rgba(11,37,84,0.35)'" onmouseout="this.style.transform='';this.style.boxShadow='0 6px 24px rgba(11,37,84,0.25)'">
+          <div style="position:absolute;top:-30px;right:-20px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+          <div style="position:absolute;bottom:-25px;left:20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.04)"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1">
+            <div style="width:52px;height:52px;background:rgba(255,255,255,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px">🎬</div>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);padding:4px 12px;border-radius:20px">VIP</span>
+          </div>
+          <div style="position:relative;z-index:1">
+            <p style="font-size:20px;font-weight:700;color:#ffffff;margin-bottom:4px">Videoteca</p>
+            <p style="font-size:12px;color:rgba(255,255,255,0.6);margin-bottom:.5rem">Cursos grabados · Clases exclusivas</p>
+            <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.1);border-radius:8px;padding:5px 12px;border:1px solid rgba(255,255,255,0.15)">
+              <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.9);letter-spacing:.06em">Acceder →</span>
+            </div>
+          </div>
+        </div>
+
+        <div onclick="showSection('material')" style="background:#ffffff;border:1px solid rgba(20,104,177,0.12);border-radius:16px;padding:1.75rem;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;gap:.85rem;box-shadow:0 4px 16px rgba(20,104,177,0.08);position:relative;overflow:hidden" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 14px 40px rgba(20,104,177,0.15)';this.style.borderColor='rgba(20,104,177,0.3)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 16px rgba(20,104,177,0.08)';this.style.borderColor='rgba(20,104,177,0.12)'">
+          <div style="position:absolute;top:-30px;right:-20px;width:130px;height:130px;border-radius:50%;background:rgba(20,104,177,0.05)"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="width:52px;height:52px;background:rgba(20,104,177,0.08);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px">📚</div>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(20,104,177,0.08);color:#1468b1;padding:4px 12px;border-radius:20px;border:1px solid rgba(20,104,177,0.15)">VIP</span>
+          </div>
+          <div>
+            <p style="font-size:20px;font-weight:700;color:#0d47a1;margin-bottom:4px">Material Premium</p>
+            <p style="font-size:12px;color:#64748b;margin-bottom:.5rem">Guías · Plantillas · Documentos</p>
+            <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(20,104,177,0.06);border-radius:8px;padding:5px 12px;border:1px solid rgba(20,104,177,0.15)">
+              <span style="font-size:11px;font-weight:700;color:#1468b1;letter-spacing:.06em">Acceder →</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TU MEMBRESÍA -->
+      <p class="section-label" style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;margin-bottom:1rem">Tu membresía</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:2rem">
+
+        <!-- COUNTDOWN - Color naranja/dorado para destacar -->
+        <div style="background:linear-gradient(135deg,#92400e 0%,#d97706 60%,#f59e0b 100%);border-radius:16px;padding:1.75rem;box-shadow:0 6px 28px rgba(217,119,6,0.4);display:flex;flex-direction:column;gap:.85rem;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-25px;right:-25px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.08)"></div>
+          <div style="position:absolute;bottom:-20px;left:10px;width:80px;height:80px;border-radius:50%;background:rgba(0,0,0,0.06)"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1">
+            <div style="width:52px;height:52px;background:rgba(255,255,255,0.2);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px">🎙️</div>
+            <span id="webinar-badge" style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(0,0,0,0.2);color:#fff;padding:4px 10px;border-radius:20px">Próximo webinar</span>
+          </div>
+          <div style="position:relative;z-index:1">
+            <p style="font-size:12px;font-weight:600;color:rgba(255,255,255,0.75);margin-bottom:3px">Próximo webinar VIP</p>
+            <p id="webinar-titulo-home" style="font-size:15px;font-weight:700;color:#ffffff;margin-bottom:10px;line-height:1.3">Cargando...</p>
+            <div id="countdown-home" style="display:flex;gap:.6rem;flex-wrap:wrap">
+              <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:6px 10px;text-align:center;min-width:44px">
+                <div id="cd-dias" style="font-size:22px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;line-height:1">--</div>
+                <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.6)">días</div>
+              </div>
+              <div style="font-size:22px;color:rgba(255,255,255,0.4);align-self:center">:</div>
+              <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:6px 10px;text-align:center;min-width:44px">
+                <div id="cd-horas" style="font-size:22px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;line-height:1">--</div>
+                <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.6)">hrs</div>
+              </div>
+              <div style="font-size:22px;color:rgba(255,255,255,0.4);align-self:center">:</div>
+              <div style="background:rgba(0,0,0,0.2);border-radius:10px;padding:6px 10px;text-align:center;min-width:44px">
+                <div id="cd-min" style="font-size:22px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;line-height:1">--</div>
+                <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.6)">min</div>
+              </div>
+              <div style="font-size:22px;color:rgba(255,255,255,0.4);align-self:center">:</div>
+              <div style="background:rgba(255,255,255,0.25);border-radius:10px;padding:6px 10px;text-align:center;min-width:44px">
+                <div id="cd-seg" style="font-size:22px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;line-height:1">--</div>
+                <div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.7)">seg</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CANAL WHATSAPP -->
+        <div style="background:linear-gradient(135deg,#064e3b 0%,#065f46 50%,#047857 100%);border-radius:16px;padding:1.75rem;box-shadow:0 6px 24px rgba(6,78,59,0.35);display:flex;flex-direction:column;gap:.85rem;position:relative;overflow:hidden">
+          <div style="position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;position:relative;z-index:1">
+            <div style="width:52px;height:52px;background:rgba(255,255,255,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:26px">💬</div>
+            <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);padding:4px 10px;border-radius:20px">Exclusivo VIP</span>
+          </div>
+          <div style="position:relative;z-index:1">
+            <p style="font-size:20px;font-weight:700;color:#ffffff;margin-bottom:4px">Canal VIP WhatsApp</p>
+            <p style="font-size:12px;color:rgba(255,255,255,0.65);margin-bottom:1rem">Contenido exclusivo y novedades antes que nadie.</p>
+            <a href="https://whatsapp.com/channel/0029VbBz1u58kyyIK258Rw2g" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.3);border-radius:10px;padding:9px 18px;font-size:12px;font-weight:700;color:#ffffff;text-decoration:none;letter-spacing:.04em;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="#ffffff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Unirse al canal
+            </a>
+          </div>
+        </div>
+
+      </div>    </div>
+
+    <!-- NOVEDADES -->
+    <div class="section" id="sec-novedades">
+      <div class="page-header"><p class="page-tag">Actualizaciones</p><h1 class="page-title">Novedades</h1><p class="page-sub">Anuncios, nuevos cursos y actualizaciones del programa VIP.</p></div>
+      <div id="novedades-container"></div>
+    </div>
+
+    <!-- CURSOS -->
+    <div class="section" id="sec-cursos">
+      <div class="page-header">
+        <p class="page-tag">Cada 15 días</p>
+        <h1 class="page-title">Clases en Vivo</h1>
+        <p class="page-sub">Clases en vivo programadas por ICADEM cada 15 días. Accede con tu link exclusivo el día y hora indicados.</p>
+      </div>
+
+      <!-- Estado de carga -->
+      <div id="cursos-loading" style="text-align:center;padding:3rem;color:#64748b">
+        <div style="width:24px;height:24px;border:2px solid rgba(20,104,177,0.2);border-top-color:#1468b1;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 1rem"></div>
+        <p style="font-size:13px">Cargando sesiones...</p>
+      </div>
+
+      <!-- Sin sesiones -->
+      <div id="cursos-empty" style="display:none;background:#ffffff;border:1px solid rgba(20,104,177,0.12);border-radius:10px;padding:3rem;text-align:center;box-shadow:0 2px 8px rgba(20,104,177,0.06)">
+        <div style="width:56px;height:56px;background:rgba(20,104,177,0.08);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="1.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <p style="font-size:14px;font-weight:700;color:#0d47a1;margin-bottom:.4rem">Sin sesiones programadas aún</p>
+        <p style="font-size:12px;color:#64748b">El equipo de ICADEM publicará próximamente las sesiones del mes.</p>
+        <a href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20soy%20miembro%20VIP%20y%20quiero%20saber%20cu%C3%A1ndo%20ser%C3%A1%20el%20pr%C3%B3ximo%20curso." target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;margin-top:1.25rem;padding:9px 18px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.25);border-radius:6px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#16a34a;text-decoration:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#16a34a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Preguntar al equipo
+        </a>
+      </div>
+
+      <!-- Lista de sesiones -->
+      <div id="cursos-lista" style="display:none;flex-direction:column;gap:1rem"></div>
+    </div>
+
+    <!-- VIDEOS -->
+    <div class="section" id="sec-videos">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;margin-bottom:2rem;flex-wrap:wrap">
+        <div class="page-header" style="margin-bottom:0">
+          <p class="page-tag">Biblioteca multimedia</p>
+          <h1 class="page-title">Videoteca</h1>
+          <p class="page-sub">Selecciona un curso y reproduce sus clases directamente aquí.</p>
+        </div>
+        <!-- Toggle de vista -->
+        <div style="display:flex;align-items:center;gap:6px;background:#ffffff;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:4px">
+          <button id="btn-vista-lista" onclick="setVista('lista')" title="Vista lista" style="width:34px;height:34px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;transition:all .15s">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+          <button id="btn-vista-grid" onclick="setVista('grid')" title="Vista cuadrícula" style="width:34px;height:34px;border:none;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#1468b1;transition:all .15s">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+        </div>
+      </div>
+      <div id="video-course-list"></div>
+    </div>
+
+    <!-- MATERIAL -->
+    <div class="section" id="sec-material">
+      <div class="page-header"><p class="page-tag">Material Premium</p><h1 class="page-title">Recursos descargables</h1><p class="page-sub">Guías, plantillas y documentos exclusivos para miembros VIP.</p></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem">
+        <div id="material-dinamico" style="display:contents"></div>
+        <div class="material-item" onclick="abrirPDF('Preguntas Frecuentes', '1oRkgvlafD0xsQ6p6OsX_13XEOn6NLSIT')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Preguntas Frecuentes</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Procesal Laboral', '1iXns6bVBNXFVDCWu-opZHYy2wIwVFaVD')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#064e3b 0%,#047857 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Procesal Laboral</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Manual Derecho Procesal Laboral — CEEAD/STPS', '1qygPIvdCY3sxxVeol0F7uptZK99Q4cHK')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#1e1b4b 0%,#4338ca 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Manual Derecho Procesal Laboral — CEEAD/STPS</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('La Forma de las Actas de Asambleas', '1kYX6zY7EV1A06hV8AwkOlkBGMymzxY7y')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#92400e 0%,#d97706 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">La Forma de las Actas de Asambleas</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Obligaciones de Quienes Realizan Actividades Vulnerables', '1zQ3XnDFuPmSlc56AOlOizsxMT8OrydMC')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#1a237e 0%,#1976d2 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Obligaciones de Quienes Realizan Actividades Vulnerables</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('LFPIORPI', '1yObWn1ZBve_6Vn6ciKADWciyf2s4TvDY')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#064e3b 0%,#10b981 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">LFPIORPI</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Cómo Hacer Actividades Vulnerables — Aviso', '1byUq1cHv5T1WSqNZm0cxWcAsR_YjPOeW')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Cómo Hacer Actividades Vulnerables — Aviso</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Ebook Compliance Laboral', '1fWdOzaY9spplzQAFACZSifFD-ujgnsTc')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#4c1d95 0%,#7c3aed 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Ebook Compliance Laboral</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Formato de Identificación del Cliente — Persona Moral', '1RixRG5dATkYwiPrgk6O0rUiTkdE6kVnb')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#1e1b4b 0%,#4338ca 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Formato de Identificación del Cliente — Persona Moral</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Derecho Corporativo Práctico 2026', '1FWU3gEQJe5N-GmZf1kKAbEKJE3Yg-skd')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#92400e 0%,#d97706 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Derecho Corporativo Práctico 2026</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Calendario ICADEM', '17XXMyt7gKwPN3B5-U6lbEESDPUqmWAnl')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#064e3b 0%,#047857 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Calendario ICADEM</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Cuaderno de Derecho del Trabajo — Tomo 1', '1d5EJVpXrad_VWos2J-PigXLw3AkWJ0Vk')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Cuaderno de Derecho del Trabajo — Tomo 1</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Cuaderno de Derecho del Trabajo — Tomo 2', '1gl1xtlCgoGe8h-E9vmAkJuu3o5nl-xkG')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#7c0a02 0%,#b91c1c 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Cuaderno de Derecho del Trabajo — Tomo 2</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        <div class="material-item" onclick="abrirPDF('Manual de Conciliación Laboral', '1BUS3vHHGz-ROozBvxcjjJC13IUcomNlQ')" style="cursor:pointer;">
+          <div style="height:110px;background:linear-gradient(135deg,#1a237e 0%,#1976d2 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">PDF</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">Manual de Conciliación Laboral</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>
+        </div>
+        </div>
+    </div>
+
+        <!-- ASESORIA -->
+    <div class="section" id="sec-asesoria">
+      <div class="page-header"><p class="page-tag">Beneficio exclusivo</p><h1 class="page-title">Asesoría personalizada</h1><p class="page-sub">Tu sesión mensual de acompañamiento estratégico con especialistas de ICADEM.</p></div>
+      <div class="asesoria-card"><h3>Sesión mensual incluida en tu membresía</h3><p>Como miembro VIP tienes derecho a una sesión de asesoría personalizada al mes. Agenda tu cita directamente por WhatsApp.</p><a class="btn-primary" href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20soy%20miembro%20VIP%20y%20quiero%20agendar%20mi%20asesor%C3%ADa%20mensual." target="_blank" rel="noopener">Agendar asesoría por WhatsApp</a></div>
+      <div class="asesoria-card" style="border-left-color:var(--gold)"><h3>¿Qué puedes consultar?</h3><p>Dudas fiscales, administrativas, estrategia de negocio, nómina, constitución de empresa y más. Nuestros especialistas te orientan en tu área de interés.</p><a class="btn-outline" href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20tengo%20una%20consulta%20como%20miembro%20VIP." target="_blank" rel="noopener">Enviar consulta rápida</a></div>
+    </div>
+
+    <!-- COMUNIDAD -->
+    <div class="section" id="sec-comunidad">
+      <div class="page-header"><p class="page-tag">Red VIP</p><h1 class="page-title">Comunidad</h1><p class="page-sub">Conecta con otros miembros y mantente al día con ICADEM.</p></div>
+      <div class="comunidad-grid">
+
+        <!-- Facebook -->
+        <a class="comunidad-card" href="https://www.facebook.com/profile.php?id=61561475492930" target="_blank" rel="noopener">
+          <div style="background:linear-gradient(135deg,#1877f2 0%,#42a5f5 100%);padding:1.75rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;flex:1">
+            <div style="position:absolute;top:-25px;right:-25px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08)"></div>
+            <div class="comunidad-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="#ffffff"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
+            <div>
+              <h3>Facebook ICADEM</h3>
+              <p>Síguenos para noticias, eventos y actualizaciones del instituto.</p>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);padding:7px 16px;border-radius:8px;width:fit-content">Seguir página →</span>
+          </div>
+        </a>
+
+        <!-- Instagram -->
+        <a class="comunidad-card" href="https://www.instagram.com/icadem3/" target="_blank" rel="noopener">
+          <div style="background:linear-gradient(135deg,#f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);padding:1.75rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;flex:1">
+            <div style="position:absolute;top:-25px;right:-25px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08)"></div>
+            <div class="comunidad-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="1.8"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="#ffffff" stroke="none"/></svg></div>
+            <div>
+              <h3>Instagram @icadem3</h3>
+              <p>Contenido visual, tips y casos de éxito de nuestra comunidad.</p>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);padding:7px 16px;border-radius:8px;width:fit-content">Ver perfil →</span>
+          </div>
+        </a>
+
+        <!-- WhatsApp -->
+        <a class="comunidad-card" href="https://whatsapp.com/channel/0029VbBz1u58kyyIK258Rw2g" target="_blank" rel="noopener">
+          <div style="background:linear-gradient(135deg,#064e3b 0%,#059669 60%,#10b981 100%);padding:1.75rem;display:flex;flex-direction:column;gap:1rem;position:relative;overflow:hidden;flex:1">
+            <div style="position:absolute;top:-25px;right:-25px;width:110px;height:110px;border-radius:50%;background:rgba(255,255,255,0.08)"></div>
+            <div class="comunidad-card-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="#ffffff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg></div>
+            <div>
+              <h3>Canal de Capacitaciones ICADEM 🧑‍💻</h3>
+              <p>Recibe asesoría, tips de capacitación y contenido exclusivo directamente en WhatsApp.</p>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.9);background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);padding:7px 16px;border-radius:8px;width:fit-content">Unirse al canal →</span>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+
+    <!-- CURSOS EN VIVO -->
+    <div class="section" id="sec-cursos-vivo">
+      <div class="page-header">
+        <p class="page-tag">Sesiones exclusivas</p>
+        <h1 class="page-title">Cursos en Vivo</h1>
+        <p class="page-sub">Sesiones mensuales en tiempo real con especialistas de ICADEM.</p>
+      </div>
+      <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style="font-size:12px;color:#92400e;font-weight:500">Próximamente — Las sesiones en vivo se habilitarán mensualmente. Te notificaremos por WhatsApp.</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:2rem">
+        <div style="background:#ffffff;border:1px solid rgba(20,104,177,0.12);border-radius:8px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;box-shadow:0 2px 8px rgba(20,104,177,0.06)">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px #f59e0b;flex-shrink:0"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <p style="font-size:13px;font-weight:700;color:#0d47a1">Estrategias fiscales avanzadas 2026</p>
+              <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:#fff3cd;color:#92400e;border:1px solid #ffc107;padding:2px 8px;border-radius:10px">Próximamente</span>
+            </div>
+            <p style="font-size:11px;color:#64748b">Con el Mtro. en Impuestos — Mayo 2026 · 18:00 hrs (CST)</p>
+          </div>
+          <button style="padding:8px 16px;background:transparent;border:1px solid rgba(20,104,177,0.25);border-radius:6px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#1468b1;cursor:pointer">Recordarme</button>
+        </div>
+        <div style="background:#ffffff;border:1px solid rgba(20,104,177,0.12);border-radius:8px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;box-shadow:0 2px 8px rgba(20,104,177,0.06)">
+          <div style="width:10px;height:10px;border-radius:50%;background:#f59e0b;box-shadow:0 0 6px #f59e0b;flex-shrink:0"></div>
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <p style="font-size:13px;font-weight:700;color:#0d47a1">Taller: Constitución de empresa paso a paso</p>
+              <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:#fff3cd;color:#92400e;border:1px solid #ffc107;padding:2px 8px;border-radius:10px">Próximamente</span>
+            </div>
+            <p style="font-size:11px;color:#64748b">Con especialista en derecho empresarial — Junio 2026 · 17:00 hrs (CST)</p>
+          </div>
+          <button style="padding:8px 16px;background:transparent;border:1px solid rgba(20,104,177,0.25);border-radius:6px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#1468b1;cursor:pointer">Recordarme</button>
+        </div>
+        <div style="background:#f8f9fa;border:1px solid rgba(20,104,177,0.08);border-radius:8px;padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem">
+          <div style="width:10px;height:10px;border-radius:50%;background:#94a3b8;flex-shrink:0"></div>
+          <div style="flex:1">
+            <p style="font-size:13px;font-weight:700;color:#64748b;margin-bottom:3px">Masterclass: Liderazgo y gestión de equipos</p>
+            <p style="font-size:11px;color:#94a3b8">Fecha por confirmar · Julio 2026</p>
+          </div>
+          <span style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">Por confirmar</span>
+        </div>
+      </div>
+      <div style="background:#ffffff;border:1px solid rgba(20,104,177,0.12);border-radius:8px;padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-left:3px solid #1468b1">
+        <div>
+          <p style="font-size:13px;font-weight:600;color:#0d47a1;margin-bottom:3px">¿Quieres proponer un tema para el próximo curso en vivo?</p>
+          <p style="font-size:12px;color:#64748b">Escríbenos y tu sugerencia podría ser el próximo tema mensual.</p>
+        </div>
+        <a href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20soy%20miembro%20VIP%20y%20quiero%20sugerir%20un%20tema%20para%20el%20curso%20en%20vivo." target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:9px 18px;background:rgba(37,211,102,.08);border:1px solid rgba(37,211,102,.25);border-radius:6px;font-family:'Space Grotesk',sans-serif;font-size:11px;font-weight:600;color:#16a34a;text-decoration:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="#16a34a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Sugerir tema
+        </a>
+      </div>
+    </div>
+
+    <!-- MI PERFIL -->
+    <div class="section" id="sec-perfil">
+      <div class="page-header">
+        <p class="page-tag">Mi cuenta</p>
+        <h1 class="page-title">Mi Perfil</h1>
+        <p class="page-sub">Tu información personal y datos de membresía.</p>
+      </div>
+
+      <!-- HERO AVATAR -->
+      <div style="background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);border-radius:16px;padding:2rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;box-shadow:0 6px 24px rgba(11,37,84,0.25);position:relative;overflow:hidden">
+        <div style="position:absolute;top:-30px;right:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+        <div style="position:absolute;bottom:-40px;left:40%;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.04)"></div>
+        <div id="perfil-avatar-big" style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;flex-shrink:0;border:3px solid rgba(255,255,255,0.3);position:relative;z-index:1">?</div>
+        <div style="position:relative;z-index:1">
+          <p id="perfil-nombre" style="font-size:20px;font-weight:700;color:#ffffff;margin-bottom:3px">Cargando...</p>
+          <p id="perfil-email" style="font-size:13px;color:rgba(255,255,255,0.65);margin-bottom:6px">—</p>
+          <span id="perfil-plan" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;background:rgba(255,255,255,0.15);color:#fff;padding:3px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.2)">VIP Mensual</span>
+        </div>
+      </div>
+
+      <!-- GRID DATOS + MEMBRESIA -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.25rem">
+
+        <!-- Datos personales -->
+        <div style="background:#ffffff;border:1px solid rgba(20,104,177,0.1);border-radius:16px;padding:1.5rem;box-shadow:0 3px 12px rgba(20,104,177,0.07)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem">
+            <div style="width:32px;height:32px;background:rgba(20,104,177,0.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">👤</div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1468b1">Datos personales</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:.85rem">
+            <div>
+              <p style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px">Empresa / Organización</p>
+              <input id="perfil-empresa" type="text" placeholder="Tu empresa u organización" style="font-size:13px;color:#1e293b;background:#f8fafc;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:10px 13px;width:100%;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s" onfocus="this.style.borderColor='#1468b1'" onblur="this.style.borderColor='rgba(20,104,177,0.15)'" />
+            </div>
+            <div>
+              <p style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px">Cargo / Puesto</p>
+              <input id="perfil-cargo" type="text" placeholder="Tu cargo o puesto" style="font-size:13px;color:#1e293b;background:#f8fafc;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:10px 13px;width:100%;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s" onfocus="this.style.borderColor='#1468b1'" onblur="this.style.borderColor='rgba(20,104,177,0.15)'" />
+            </div>
+            <button id="btn-guardar-perfil" onclick="guardarPerfil()" style="padding:10px 20px;background:linear-gradient(135deg,#0b2554,#1565c0);border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#ffffff;cursor:pointer;transition:opacity .2s;align-self:flex-start" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+              💾 Guardar cambios
+            </button>
+            <p id="perfil-msg" style="font-size:12px;color:#10b981;display:none;margin-top:2px">✓ Perfil actualizado</p>
+          </div>
+        </div>
+
+        <!-- Estado de membresía -->
+        <div style="background:#ffffff;border:1px solid rgba(20,104,177,0.1);border-radius:16px;padding:1.5rem;box-shadow:0 3px 12px rgba(20,104,177,0.07)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem">
+            <div style="width:32px;height:32px;background:rgba(20,104,177,0.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🏅</div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1468b1">Estado de membresía</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:0">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid rgba(20,104,177,0.07)">
+              <span style="font-size:12px;color:#64748b">Plan activo</span>
+              <span id="perfil-plan-badge" style="font-size:11px;font-weight:700;background:linear-gradient(135deg,#0b2554,#1565c0);color:#fff;padding:3px 12px;border-radius:20px">VIP Mensual</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid rgba(20,104,177,0.07)">
+              <span style="font-size:12px;color:#64748b">Estado</span>
+              <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#10b981">
+                <span style="width:7px;height:7px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981"></span>Activa
+              </span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:.75rem 0;border-bottom:1px solid rgba(20,104,177,0.07)">
+              <span style="font-size:12px;color:#64748b">Cursos completados</span>
+              <span style="font-size:12px;font-weight:700;color:#0d47a1">0 / 6</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CAMBIAR CONTRASEÑA -->
+      <div style="background:#ffffff;border:1px solid rgba(20,104,177,0.1);border-radius:16px;padding:1.5rem;box-shadow:0 3px 12px rgba(20,104,177,0.07);margin-bottom:1.25rem">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:1.25rem">
+          <div style="width:32px;height:32px;background:rgba(20,104,177,0.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🔒</div>
+          <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#1468b1">Seguridad</p>
+        </div>
+        <p style="font-size:13px;font-weight:600;color:#0d47a1;margin-bottom:4px">Cambiar contraseña</p>
+        <p style="font-size:12px;color:#94a3b8;margin-bottom:1.25rem">Ingresa tu contraseña actual y luego elige una nueva.</p>
+        <div style="display:flex;flex-direction:column;gap:.85rem;max-width:420px">
+          <div>
+            <p style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px">Contraseña actual</p>
+            <input id="pass-actual" type="password" placeholder="••••••••" style="font-size:13px;color:#1e293b;background:#f8fafc;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:10px 13px;width:100%;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s" onfocus="this.style.borderColor='#1468b1'" onblur="this.style.borderColor='rgba(20,104,177,0.15)'" />
+          </div>
+          <div>
+            <p style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px">Nueva contraseña</p>
+            <input id="pass-nueva" type="password" placeholder="••••••••" style="font-size:13px;color:#1e293b;background:#f8fafc;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:10px 13px;width:100%;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s" onfocus="this.style.borderColor='#1468b1'" onblur="this.style.borderColor='rgba(20,104,177,0.15)'" />
+          </div>
+          <div>
+            <p style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px">Confirmar nueva contraseña</p>
+            <input id="pass-confirmar" type="password" placeholder="••••••••" style="font-size:13px;color:#1e293b;background:#f8fafc;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:10px 13px;width:100%;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s" onfocus="this.style.borderColor='#1468b1'" onblur="this.style.borderColor='rgba(20,104,177,0.15)'" />
+          </div>
+          <button id="btn-cambiar-pass" onclick="cambiarContrasena()" style="padding:10px 20px;background:linear-gradient(135deg,#0b2554,#1565c0);border:none;border-radius:8px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;color:#ffffff;cursor:pointer;transition:opacity .2s;align-self:flex-start" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            Actualizar contraseña
+          </button>
+        </div>
+        <p id="pass-msg" style="font-size:12px;margin-top:.85rem;display:none"></p>
+      </div>
+
+      <!-- NOTA INFORMATIVA -->
+      <div style="background:#f0f6ff;border:1px solid rgba(20,104,177,0.15);border-radius:10px;padding:1rem 1.25rem;display:flex;align-items:center;gap:10px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p style="font-size:12px;color:#1468b1">Tu nombre y correo provienen de tu cuenta. Puedes actualizar tu empresa y cargo directamente aquí.</p>
+      </div>
+    </div>
+
+    <!-- MI SUSCRIPCIÓN -->
+    <div class="section" id="sec-suscripcion">
+      <div class="page-header">
+        <p class="page-tag">Mi cuenta</p>
+        <h1 class="page-title">Mi Suscripción</h1>
+        <p class="page-sub">Monitorea tu membresía y detalles de pago.</p>
+      </div>
+      <div style="background:linear-gradient(135deg,#1468b1,#1976d2);border-radius:12px;padding:1.75rem 2rem;margin-bottom:1.5rem;box-shadow:0 8px 24px rgba(20,104,177,0.3)">
+        <p style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:.5rem">Plan activo</p>
+        <p id="sus-plan" style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:700;color:#ffffff;margin-bottom:.25rem">VIP Mensual</p>
+        <p id="sus-precio" style="font-size:2.5rem;font-weight:700;font-family:'Cormorant Garamond',serif;color:#ffffff;line-height:1;margin-bottom:.75rem">$250 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / mes</span></p>
+        <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,0.2);color:#ffffff;padding:4px 12px;border-radius:20px">
+          <span style="width:6px;height:6px;border-radius:50%;background:#4ade80"></span>Activa
+        </span>
+        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid rgba(255,255,255,0.15)">
+          <p style="font-size:11px;color:rgba(255,255,255,0.6);margin-bottom:.6rem">¿Quieres cambiar tu plan?</p>
+          <a id="btn-cambiar-plan" href="#" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.35);border-radius:7px;padding:8px 16px;font-family:var(--font-b);font-size:11px;font-weight:700;letter-spacing:.06em;color:#ffffff;text-decoration:none;transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span id="btn-cambiar-plan-label">Cambiar a VIP Anual</span>
+          </a>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1px;background:rgba(20,104,177,0.1);border:1px solid rgba(20,104,177,0.12);border-radius:8px;overflow:hidden;margin-bottom:1.5rem">
+        <div style="background:#ffffff;padding:1.25rem 1.5rem">
+          <p style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:.4rem">Fecha de inicio</p>
+          <p id="sus-inicio" style="font-size:14px;font-weight:700;color:#0d47a1">Abril 2026</p>
+        </div>
+        <div style="background:#ffffff;padding:1.25rem 1.5rem">
+          <p style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:.4rem">Próximo cobro</p>
+          <p style="font-size:14px;font-weight:700;color:#0d47a1">Mayo 2026</p>
+        </div>
+        <div style="background:#ffffff;padding:1.25rem 1.5rem">
+          <p style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:.4rem">Método de pago</p>
+          <p style="font-size:14px;font-weight:700;color:#0d47a1">Shopify / Tarjeta</p>
+        </div>
+        <div style="background:#ffffff;padding:1.25rem 1.5rem">
+          <p style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#94a3b8;margin-bottom:.4rem">Estado</p>
+          <p style="font-size:14px;font-weight:700;color:#10b981">✓ Activa</p>
+        </div>
+      </div>
+      <div style="background:#ffffff;border:1px solid rgba(20,104,177,0.12);border-radius:10px;overflow:hidden;margin-bottom:1.5rem">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid rgba(20,104,177,0.08)">
+          <p style="font-size:12px;font-weight:700;color:#0d47a1;letter-spacing:.04em">Historial de pagos</p>
+        </div>
+        <table style="width:100%;font-size:12px;border-collapse:collapse">
+          <thead><tr style="background:#f4f7fc"><th style="padding:.75rem 1.5rem;text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">Fecha</th><th style="padding:.75rem 1.5rem;text-align:left;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">Concepto</th><th style="padding:.75rem 1.5rem;text-align:right;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">Monto</th><th style="padding:.75rem 1.5rem;text-align:right;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8">Estado</th></tr></thead>
+          <tbody>
+            <tr style="border-top:1px solid rgba(20,104,177,0.06)"><td style="padding:.75rem 1.5rem;color:#1e293b">Abril 2026</td><td style="padding:.75rem 1.5rem;color:#1e293b">Membresía VIP Mensual</td><td style="padding:.75rem 1.5rem;text-align:right;color:#0d47a1;font-weight:700">$250 MXN</td><td style="padding:.75rem 1.5rem;text-align:right"><span style="font-size:10px;font-weight:700;color:#10b981;background:rgba(16,185,129,.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(16,185,129,.2)">Pagado</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CONFIGURACIÓN -->
+    <div class="section" id="sec-configuracion">
+      <div class="page-header">
+        <p class="page-tag">Ajustes</p>
+        <h1 class="page-title">Configuración</h1>
+        <p class="page-sub">Personaliza tu experiencia en el panel VIP de ICADEM.</p>
+      </div>
+
+      <!-- NOTIFICACIONES -->
+      <div style="background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);border-radius:16px;overflow:hidden;margin-bottom:1.25rem;box-shadow:0 6px 24px rgba(11,37,84,0.25);position:relative">
+        <div style="position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+        <div style="padding:1.25rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;flex-wrap:wrap;position:relative;z-index:1">
+          <div style="display:flex;align-items:center;gap:1rem">
+            <div style="width:48px;height:48px;background:rgba(255,255,255,0.15);border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🔔</div>
+            <div>
+              <p style="font-size:15px;font-weight:700;color:#ffffff;margin-bottom:3px">Recibir notificaciones</p>
+              <p style="font-size:12px;color:rgba(255,255,255,0.65)">Avisos de nuevos cursos, material y promociones VIP</p>
+            </div>
+          </div>
+          <div id="notif-switch" onclick="toggleNotif()" style="width:56px;height:30px;background:rgba(255,255,255,0.2);border-radius:15px;position:relative;cursor:pointer;transition:background .25s;flex-shrink:0;border:2px solid rgba(255,255,255,0.3)">
+            <div id="notif-thumb" style="position:absolute;left:2px;top:2px;width:22px;height:22px;background:#fff;border-radius:50%;transition:transform .25s;box-shadow:0 2px 6px rgba(0,0,0,0.2)"></div>
+          </div>
+        </div>
+        <p id="notif-msg" style="font-size:11px;color:rgba(255,255,255,0.8);padding:0 1.5rem .85rem;display:none;position:relative;z-index:1">✓ Preferencia guardada</p>
+      </div>
+
+      <script>
+        (function(){
+          const sw = document.getElementById('notif-switch');
+          const th = document.getElementById('notif-thumb');
+          const msg = document.getElementById('notif-msg');
+          let active = localStorage.getItem('icadem_notif') === '1';
+          function render() {
+            sw.style.background = active ? 'rgba(16,185,129,0.5)' : 'rgba(255,255,255,0.2)';
+            th.style.transform = active ? 'translateX(26px)' : 'translateX(0)';
+          }
+          render();
+          window.toggleNotif = function() {
+            active = !active;
+            localStorage.setItem('icadem_notif', active ? '1' : '0');
+            render();
+            msg.style.display = 'block';
+            setTimeout(() => { msg.style.display = 'none'; }, 2000);
+          };
+        })();
+      </script>
+
+      <!-- ZONA DE PELIGRO -->
+      <div style="background:#ffffff;border:1px solid rgba(239,68,68,0.15);border-radius:16px;overflow:hidden;box-shadow:0 3px 12px rgba(239,68,68,0.07);position:relative">
+        <div style="background:linear-gradient(135deg,#7c0a02 0%,#dc2626 100%);padding:1rem 1.5rem;display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px">⚠️</div>
+          <div>
+            <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.75)">Zona de peligro</p>
+            <p style="font-size:12px;color:rgba(255,255,255,0.6)">Acciones irreversibles — procede con cuidado</p>
+          </div>
+        </div>
+        <div style="padding:1.5rem">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1.5rem;flex-wrap:wrap">
+            <div style="flex:1;min-width:200px">
+              <p style="font-size:14px;font-weight:700;color:#0d47a1;margin-bottom:6px">Solicitar cancelación de suscripción</p>
+              <p style="font-size:12px;color:#64748b;line-height:1.65">Al confirmar, tu acceso se desactivará de inmediato. <strong style="color:#0d47a1">No perderás tus datos</strong> — si decides regresar en el futuro podrás retomar exactamente donde lo dejaste.</p>
+            </div>
+            <button id="btn-solicitar-cancelacion" onclick="solicitarCancelacion()" style="flex-shrink:0;display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:transparent;border:1.5px solid #dc2626;border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#dc2626;cursor:pointer;transition:all .2s;white-space:nowrap" onmouseover="this.style.background='rgba(220,38,38,0.06)'" onmouseout="this.style.background='transparent'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+              Solicitar cancelación
+            </button>
+          </div>
+          <div id="cancel-msg" style="display:none;margin-top:1rem;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;padding:.85rem 1rem">
+            <p style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:2px">✓ Membresía cancelada</p>
+            <p style="font-size:12px;color:#047857">Tu acceso ha sido desactivado. Tus datos están seguros — puedes volver cuando quieras. Redirigiendo...</p>
+          </div>
+
+          <script>
+            // Abrir modal de confirmación de cancelación
+            window.solicitarCancelacion = function() {
+              document.getElementById('modal-cancel-sub').style.display = 'flex';
+            };
+
+            window.cerrarModalCancelacion = function() {
+              document.getElementById('modal-cancel-sub').style.display = 'none';
+            };
+
+            // Cancelación inteligente: cancela en Shopify + guarda fecha de vencimiento
+            window.confirmarCancelacion = async function() {
+              const btn = document.getElementById('btn-confirmar-cancelacion');
+              btn.disabled = true;
+              btn.textContent = 'Cancelando...';
+              btn.style.opacity = '.6';
+              try {
+                const user = window._authUser;
+                const token = await user.getIdToken();
+
+                // Llamar al servidor Railway para cancelar en Shopify y calcular vencimiento
+                const resp = await fetch('https://icadem-webhook-production.up.railway.app/cancelar-suscripcion', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                  body: JSON.stringify({ uid: user.uid })
+                });
+
+                if (!resp.ok) throw new Error('Error del servidor');
+                const result = await resp.json();
+
+                // Cerrar modal y mostrar mensaje con fecha de vencimiento
+                document.getElementById('modal-cancel-sub').style.display = 'none';
+                const msgEl = document.getElementById('cancel-msg');
+                const fechaVence = result.fechaVencimiento ? new Date(result.fechaVencimiento).toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' }) : '';
+                msgEl.innerHTML = `<p style="font-size:13px;font-weight:600;color:#065f46;margin-bottom:4px">✓ Suscripción cancelada correctamente</p><p style="font-size:12px;color:#047857">Ya no se realizarán cobros. ${fechaVence ? `Conservas tu acceso VIP hasta el <strong>${fechaVence}</strong>.` : ''} Tus datos están seguros.</p>`;
+                msgEl.style.display = 'block';
+                document.getElementById('btn-solicitar-cancelacion').style.display = 'none';
+
+                // Recargar página para mostrar banner de aviso
+                setTimeout(() => window.location.reload(), 3000);
+
+              } catch(e) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.textContent = 'Sí, cancelar';
+                alert('Ocurrió un error al cancelar. Intenta de nuevo.');
+              }
+            };
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, getDocs, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey:"AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA",
+    authDomain:"icadem-vip.firebaseapp.com",
+    projectId:"icadem-vip",
+    storageBucket:"icadem-vip.firebasestorage.app",
+    messagingSenderId:"12508983783",
+    appId:"1:12508983783:web:b12be6f1fab9bb91fb8d42"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  window.auth = auth;
+  window.db   = db;
+
+  let _authHandled = false;
+  let _yaRedirigio = false;
+  let _usuarioConfirmado = false;
+
+  // IMPORTANTE: el primer evento de onAuthStateChanged puede venir con user=null
+  // si Firebase aún no terminó de restaurar la sesión. Además, cuando el usuario
+  // viene del popup de Shopify, Firebase puede tardar hasta 10-15 segundos en
+  // restaurar la sesión. Por eso verificamos progresivamente cada 2 segundos hasta
+  // un máximo de 15 segundos antes de considerar que realmente no hay sesión.
+  onAuthStateChanged(auth, async user => {
+    // Evitar múltiples ejecuciones simultáneas
+    if (_authHandled) return;
+
+    if (!user) {
+      // Si ya teníamos usuario confirmado, esto es un refresh de token temporal: ignorar.
+      if (_usuarioConfirmado) {
+        console.log('[Auth] Refresh de token detectado (user=null temporal). Ignorando.');
+        return;
+      }
+      // Primera vez sin usuario: verificar progresivamente hasta 15 segundos
+      console.log('[Auth] user=null - verificando cada 2s hasta 15s máximo...');
+      let intentos = 0;
+      const maxIntentos = 7; // 7 intentos × 2s = 14s total
+      const intervalo = setInterval(() => {
+        intentos++;
+        // Si en algún momento Firebase restauró la sesión, cancelar el interval
+        if (auth.currentUser || _usuarioConfirmado) {
+          console.log('[Auth] Firebase restauró la sesión ✅');
+          clearInterval(intervalo);
+          return;
+        }
+        // Si llegamos al máximo de intentos SIN sesión, redirigir
+        if (intentos >= maxIntentos && !_yaRedirigio && !_authHandled) {
+          clearInterval(intervalo);
+          console.log('[Auth] Sin sesión después de 15s. Redirigiendo a login.');
+          _yaRedirigio = true;
+          window.location.href = 'vip-auth.html';
+        }
+      }, 2000);
+      return;
+    }
+
+    // ¡Usuario confirmado! Marcar flag y NO volver a ejecutar toda la lógica.
+    if (_usuarioConfirmado) return;
+    _usuarioConfirmado = true;
+
+    // Verificar membresía con reintentos — Firestore a veces tarda
+    let snap = null;
+    for (let intento = 1; intento <= 3; intento++) {
+      try {
+        snap = await getDoc(doc(db, 'membresias', user.uid));
+        break; // Éxito, salir del loop
+      } catch(e) {
+        if (intento === 3) {
+          // Después de 3 intentos fallidos, esperar y reintentar una vez más
+          await new Promise(r => setTimeout(r, 2000));
+          try { snap = await getDoc(doc(db, 'membresias', user.uid)); } catch(e2) {}
+        } else {
+          await new Promise(r => setTimeout(r, 500 * intento));
+        }
+      }
+    }
+
+    // Solo redirigir si definitivamente no tiene membresía activa
+    if (!snap || !snap.exists()) {
+      window.location.href = 'vip-checkout.html'; return;
+    }
+    const snapData = snap.data();
+    // Si está cancelado_pendiente, verificar si ya venció
+    if (snapData.estado === 'cancelado_pendiente' && snapData.fechaVencimiento) {
+      const ahora = new Date();
+      const vence = snapData.fechaVencimiento.toDate ? snapData.fechaVencimiento.toDate() : new Date(snapData.fechaVencimiento);
+      if (ahora > vence) {
+        // Ya venció — bloquear acceso
+        const { setDoc: sd, doc: dd, serverTimestamp: sts } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        await sd(dd(db, 'membresias', user.uid), { activa: false, estado: 'expirado' }, { merge: true });
+        window.location.href = 'vip-checkout.html'; return;
+      }
+      // Aún no vence — dejar pasar, mostrar banner de aviso
+    } else if (!snapData.activa) {
+      window.location.href = 'vip-checkout.html'; return;
+    }
+
+    _authHandled = true;
+    const data = snapData; // ya leído arriba con verificación de vencimiento
+
+    // Mostrar banner si está en período de cancelación pendiente
+    if (data.estado === 'cancelado_pendiente' && data.fechaVencimiento) {
+      const vence = data.fechaVencimiento.toDate ? data.fechaVencimiento.toDate() : new Date(data.fechaVencimiento);
+      const diasRestantes = Math.ceil((vence - new Date()) / (1000 * 60 * 60 * 24));
+      const fechaFormato = vence.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+      const banner = document.createElement('div');
+      banner.id = 'banner-cancelacion';
+      banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:500;background:linear-gradient(90deg,#92400e,#b45309);padding:10px 20px;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,0.2)';
+      banner.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fef3c7" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><p style="font-size:13px;font-weight:600;color:#fef3c7;margin:0">Tu membresía está cancelada. Tienes acceso hasta el <strong>${fechaFormato}</strong> (${diasRestantes} día${diasRestantes !== 1 ? 's' : ''} restante${diasRestantes !== 1 ? 's' : ''}). <a href="#" onclick="showSection('suscripcion');document.getElementById('banner-cancelacion').style.display='none';return false;" style="color:#fde68a;text-decoration:underline;margin-left:6px">Reactivar membresía</a></p>`;
+      document.body.prepend(banner);
+      // Empujar el contenido hacia abajo
+      const sidebar = document.getElementById('sidebar');
+      const main = document.querySelector('.main-content') || document.querySelector('main');
+      if (sidebar) sidebar.style.top = '40px';
+      if (main) main.style.paddingTop = '40px';
+    }
+
+    // Auto-guardar nombre y email si aún no están en Firestore
+    if (!data.email || !data.nombre) {
+      setDoc(doc(db, 'membresias', user.uid), {
+        email:  user.email  || '',
+        nombre: user.displayName || ''
+      }, { merge: true }).catch(() => {});
+    }
+
+    // Usar nombre de Firestore si displayName está vacío
+    const nombreReal = user.displayName || data.nombre || '';
+    const nombre = (nombreReal || user.email || 'miembro').split(' ')[0];
+    const inicial = nombre[0].toUpperCase();
+    const planLabel = data.plan === 'anual' ? 'VIP Anual' : 'VIP Mensual';
+    document.getElementById('sidebar-avatar').textContent = inicial;
+    document.getElementById('sidebar-name').textContent = nombreReal || user.email;
+    document.getElementById('sidebar-plan').textContent = planLabel;
+    document.getElementById('user-nombre').textContent = nombre;
+
+    document.getElementById('topbar-plan').textContent = planLabel;
+    document.getElementById('loading').classList.add('hidden');
+    // Guardar UID globalmente para uso en showSection
+    window._currentUid = user.uid;
+      window._authUser = user;
+    // Cargar visitas previas del usuario para comparar badges
+    // 1) localStorage: siempre confiable en el mismo dispositivo
+    const lsKey = 'icadem_visitas_' + user.uid;
+    try {
+      const lsData = localStorage.getItem(lsKey);
+      window._visitas = lsData ? JSON.parse(lsData) : {};
+    } catch(e) { window._visitas = {}; }
+    // 2) Firestore: sincronizar datos de otros dispositivos (opcional)
+    try {
+      const visitasSnap = await getDoc(doc(db, 'visitas', user.uid));
+      if (visitasSnap.exists()) {
+        const fsData = visitasSnap.data();
+        const merged = { ...window._visitas };
+        for (const key in fsData) {
+          merged[key] = Math.max(merged[key] ?? 0, fsData[key] ?? 0);
+        }
+        window._visitas = merged;
+        localStorage.setItem(lsKey, JSON.stringify(merged));
+      }
+    } catch(e) { /* Si Firestore falla, se usa solo localStorage */ }
+    // Cargar contenido
+    cargarCursos();
+    // Countdown home: leer primer webinar próximo de Firestore
+    (async function iniciarCountdownHome() {
+      try {
+        const { getDocs, collection, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const snap = await getDocs(query(collection(db, 'cursos-vivo'), orderBy('fecha', 'asc')));
+        const ahora = new Date();
+        let proxima = null;
+        snap.forEach(d => {
+          const s = d.data();
+          const f = new Date(s.fecha + (s.hora ? 'T' + s.hora : ''));
+          if (f > ahora && !proxima) proxima = { fecha: f, titulo: s.titulo };
+        });
+        if (!proxima) {
+          document.getElementById('webinar-titulo-home').textContent = 'Próximamente';
+          document.getElementById('countdown-home').style.display = 'none';
+          document.getElementById('webinar-badge').textContent = 'Sin webinar programado';
+          return;
+        }
+        document.getElementById('webinar-titulo-home').textContent = proxima.titulo || 'Webinar VIP';
+        const tickHome = () => {
+          const diff = proxima.fecha - new Date();
+          if (diff <= 0) {
+            document.getElementById('cd-dias').textContent = '00';
+            document.getElementById('cd-horas').textContent = '00';
+            document.getElementById('cd-min').textContent = '00';
+            document.getElementById('cd-seg').textContent = '00';
+            document.getElementById('webinar-badge').textContent = '🔴 En vivo ahora';
+            return;
+          }
+          document.getElementById('cd-dias').textContent  = String(Math.floor(diff/86400000)).padStart(2,'0');
+          document.getElementById('cd-horas').textContent = String(Math.floor((diff%86400000)/3600000)).padStart(2,'0');
+          document.getElementById('cd-min').textContent   = String(Math.floor((diff%3600000)/60000)).padStart(2,'0');
+          document.getElementById('cd-seg').textContent   = String(Math.floor((diff%60000)/1000)).padStart(2,'0');
+          setTimeout(tickHome, 1000);
+        };
+        tickHome();
+      } catch(e) {
+        document.getElementById('webinar-titulo-home').textContent = 'Próximamente';
+      }
+    })();
+    cargarCursosNuevos();
+    cargarNovedades();
+    cargarBadgeMaterial();
+    // Limpiar clase item-nuevo tras animación (4s)
+    setTimeout(() => {
+      document.querySelectorAll('.item-nuevo').forEach(el => el.classList.remove('item-nuevo'));
+    }, 4200);
+    // Populate perfil section
+    const perfilAvatar = document.getElementById('perfil-avatar-big');
+    const perfilNombre = document.getElementById('perfil-nombre');
+    const perfilEmail = document.getElementById('perfil-email');
+    const perfilPlan = document.getElementById('perfil-plan');
+    const susPlan = document.getElementById('sus-plan');
+    const susPrecio = document.getElementById('sus-precio');
+    if (perfilAvatar) perfilAvatar.textContent = inicial;
+    if (perfilNombre) perfilNombre.textContent = user.displayName || data.nombre || user.email || 'Sin nombre';
+    if (perfilEmail) perfilEmail.textContent = user.email || '';
+    if (perfilPlan) perfilPlan.textContent = planLabel;
+    if (susPlan) susPlan.textContent = planLabel;
+    if (susPrecio) susPrecio.innerHTML = data.plan === 'anual' ? '$2,400 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / año</span>' : '$250 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / mes</span>';
+
+    // Botón cambiar plan
+    const btnCambiar = document.getElementById('btn-cambiar-plan');
+    const btnCambiarLabel = document.getElementById('btn-cambiar-plan-label');
+    if (btnCambiar && btnCambiarLabel) {
+      if (data.plan === 'anual') {
+        btnCambiarLabel.textContent = 'Cambiar a VIP Mensual';
+        btnCambiar.href = 'https://pfueck-wm.myshopify.com/cart/45321698607158:1';
+      } else {
+        btnCambiarLabel.textContent = 'Cambiar a VIP Anual';
+        btnCambiar.href = 'https://pfueck-wm.myshopify.com/cart/45321741598774:1';
+      }
+    }
+
+    // Cargar empresa y cargo desde Firestore
+    try {
+      const perfilSnap = await getDoc(doc(db, 'perfiles', user.uid));
+      if (perfilSnap.exists()) {
+        const pd = perfilSnap.data();
+        if (pd.empresa) document.getElementById('perfil-empresa').value = pd.empresa;
+        if (pd.cargo)   document.getElementById('perfil-cargo').value   = pd.cargo;
+      }
+    } catch(e) { console.warn('No se pudo cargar perfil:', e); }
+
+    // Guardar perfil
+    window._currentUser = user;
+    window.expandirNovedad = function(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const isExpanded = el.dataset.expanded === '1';
+      if (isExpanded) {
+        el.style.height = '160px';
+        el.dataset.expanded = '0';
+      } else {
+        el.style.height = 'auto';
+        el.style.minHeight = '160px';
+        el.dataset.expanded = '1';
+      }
+    };
+
+    window.cambiarContrasena = async function() {
+      const btn       = document.getElementById('btn-cambiar-pass');
+      const msg       = document.getElementById('pass-msg');
+      if (!btn || !msg) return;
+
+      // Feedback inmediato para confirmar que el clic se registró
+      btn.disabled = true;
+      btn.textContent = 'Verificando...';
+      msg.style.display = 'none';
+
+      try {
+        const actual    = document.getElementById('pass-actual').value.trim();
+        const nueva     = document.getElementById('pass-nueva').value;
+        const confirmar = document.getElementById('pass-confirmar').value;
+
+        // Validaciones con feedback visible
+        if (!actual || !nueva || !confirmar) {
+          msg.textContent = '✕ Por favor completa todos los campos.';
+          msg.style.color = '#dc2626'; msg.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Actualizar contraseña'; return;
+        }
+        if (nueva.length < 6) {
+          msg.textContent = '✕ La nueva contraseña debe tener al menos 6 caracteres.';
+          msg.style.color = '#dc2626'; msg.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Actualizar contraseña'; return;
+        }
+        if (nueva !== confirmar) {
+          msg.textContent = '✕ Las contraseñas nuevas no coinciden.';
+          msg.style.color = '#dc2626'; msg.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Actualizar contraseña'; return;
+        }
+
+        // Obtener usuario — window._authUser o auth.currentUser
+        const user = window._authUser || auth.currentUser;
+        if (!user) {
+          msg.textContent = '✕ Sesión no encontrada. Por favor recarga la página.';
+          msg.style.color = '#dc2626'; msg.style.display = 'block';
+          btn.disabled = false; btn.textContent = 'Actualizar contraseña'; return;
+        }
+
+        btn.textContent = 'Actualizando...';
+
+        // Re-autenticar con contraseña actual antes de cambiarla
+        const credential = EmailAuthProvider.credential(user.email, actual);
+        await reauthenticateWithCredential(user, credential);
+
+        // Cambiar contraseña
+        await updatePassword(user, nueva);
+
+        // Éxito: limpiar campos y mostrar mensaje
+        document.getElementById('pass-actual').value    = '';
+        document.getElementById('pass-nueva').value     = '';
+        document.getElementById('pass-confirmar').value = '';
+        msg.textContent = '✓ Contraseña actualizada correctamente.';
+        msg.style.color = '#10b981';
+        msg.style.display = 'block';
+        btn.textContent = 'Actualizar contraseña';
+        btn.disabled = false;
+
+      } catch(e) {
+        let errMsg = '✕ Error al actualizar. Intenta de nuevo.';
+        if (e.code === 'auth/wrong-password' || e.code === 'auth/invalid-credential')
+          errMsg = '✕ La contraseña actual es incorrecta.';
+        else if (e.code === 'auth/weak-password')
+          errMsg = '✕ La nueva contraseña es muy débil (mínimo 6 caracteres).';
+        else if (e.code === 'auth/too-many-requests')
+          errMsg = '✕ Demasiados intentos. Espera unos minutos e intenta de nuevo.';
+        else if (e.code === 'auth/requires-recent-login')
+          errMsg = '✕ Sesión expirada. Cierra sesión, vuelve a entrar e intenta de nuevo.';
+        msg.textContent = errMsg;
+        msg.style.color = '#dc2626';
+        msg.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Actualizar contraseña';
+      }
+    };
+
+    window.guardarPerfil = async function() {
+      const btn = document.getElementById('btn-guardar-perfil');
+      const msg = document.getElementById('perfil-msg');
+      const empresa = document.getElementById('perfil-empresa').value.trim();
+      const cargo   = document.getElementById('perfil-cargo').value.trim();
+      btn.textContent = 'Guardando...';
+      btn.disabled = true;
+      try {
+        await setDoc(doc(db, 'perfiles', window._currentUser.uid), {
+          empresa, cargo,
+          nombre: window._currentUser.displayName || '',
+          correo: window._currentUser.email || '',
+          actualizadoEn: new Date().toISOString()
+        }, { merge: true });
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; }, 3000);
+      } catch(e) {
+        msg.textContent = '✗ Error al guardar. Intenta de nuevo.';
+        msg.style.color = '#dc2626';
+        msg.style.display = 'block';
+        setTimeout(() => { msg.style.display = 'none'; msg.style.color = '#10b981'; msg.textContent = '✓ Perfil actualizado'; }, 3000);
+      } finally {
+        btn.textContent = 'Guardar cambios';
+        btn.disabled = false;
+      }
+    };
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    document.getElementById('modal-logout').style.display = 'flex';
+  });
+  document.getElementById('btn-logout-confirm').addEventListener('click', async () => {
+    await signOut(auth);
+    localStorage.removeItem('icadem_plan');
+    window.location.href = 'index.html';
+  });
+
+  // Cargar certificados del miembro
+  function actualizarBadge(id, count) {
+    const badge = document.getElementById('badge-' + id);
+    if (!badge) return;
+    // Sin contenido → ocultar siempre
+    if (count <= 0) { badge.style.display = 'none'; return; }
+    // Comparar conteo actual vs conteo que el usuario ya vio
+    const visto = window._visitas?.[id] ?? -1;
+    if (visto >= count) {
+      badge.style.display = 'none';
+    } else {
+      badge.textContent = count;
+      badge.style.display = 'inline-block';
+    }
+  }
+
+  async function cargarBadgeMaterial() {
+    try {
+      const snap = await getDocs(query(collection(db, 'material'), orderBy('creadoEn', 'desc')));
+      actualizarBadge('material', snap.size);
+      const container = document.getElementById('material-dinamico');
+      if (!container || snap.empty) return;
+      snap.forEach(d => {
+        const m = d.data();
+        const el = document.createElement('div');
+        el.className = 'material-item item-nuevo';
+        el.style.cursor = 'pointer';
+        el.innerHTML = `
+          <div style="height:110px;background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+            <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1">
+              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">${m.tipo || 'PDF'}</span>
+          </div>
+          <div style="padding:.85rem 1rem 1rem">
+            <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">${m.nombre || 'Material VIP'}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+              <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+            </div>
+          </div>`;
+        if (m.link) el.onclick = () => window.open(m.link, '_blank');
+        container.appendChild(el);
+      });
+    } catch(e) { console.warn('Error cargando badge material:', e); }
+  }
+
+  async function cargarCursosNuevos() {
+    try {
+      const snap = await getDocs(query(collection(db, 'cursos-nuevos'), orderBy('creadoEn', 'desc')));
+      window._cursosNuevos = [];
+      snap.forEach(d => window._cursosNuevos.push({ id: d.id, ...d.data() }));
+      actualizarBadge('videos', window._cursosNuevos.length);
+      buildVideoteca();
+    } catch(e) { console.warn('Error cargando cursos nuevos:', e); }
+  }
+
+  async function cargarNovedades() {
+    const container = document.getElementById('novedades-container');
+    if (!container) return;
+    try {
+      const snap = await getDocs(query(collection(db, 'novedades'), orderBy('creadoEn', 'desc')));
+      actualizarBadge('novedades', snap.size);
+      if (snap.empty) {
+        container.innerHTML = `
+          <div style="background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);border-radius:16px;padding:3rem 2rem;text-align:center;box-shadow:0 6px 24px rgba(11,37,84,0.25);position:relative;overflow:hidden">
+            <div style="position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+            <div style="font-size:48px;margin-bottom:1rem">🔔</div>
+            <p style="font-size:16px;font-weight:700;color:#ffffff;margin-bottom:.5rem">Sin novedades por ahora</p>
+            <p style="font-size:13px;color:rgba(255,255,255,0.6);max-width:300px;margin:0 auto;line-height:1.6">Aquí aparecerán los anuncios, nuevos cursos y actualizaciones del programa VIP en cuanto estén disponibles.</p>
+          </div>`;
+        return;
+      }
+      const colorMap  = { 'nuevo-curso':'#c8962a', 'actualizacion':'#1468b1', 'canal-vip':'#10b981', 'evento':'#7b1fa2', 'aviso':'#e65100' };
+      const bgMap     = { 'nuevo-curso':'rgba(200,150,42,0.08)', 'actualizacion':'rgba(20,104,177,0.08)', 'canal-vip':'rgba(16,185,129,0.08)', 'evento':'rgba(123,31,162,0.08)', 'aviso':'rgba(230,81,0,0.08)' };
+      const labelMap  = { 'nuevo-curso':'Nuevo curso', 'actualizacion':'Actualización', 'canal-vip':'Canal VIP', 'evento':'Evento', 'aviso':'Aviso' };
+      const emojiMap  = { 'nuevo-curso':'🎓', 'actualizacion':'🔄', 'canal-vip':'💬', 'evento':'📅', 'aviso':'📢' };
+      let html = '<div class="novedad-list">';
+      snap.forEach(d => {
+        const n = d.data();
+        const tipo  = n.tipo || 'aviso';
+        const color = colorMap[tipo]  || '#1468b1';
+        const bg    = bgMap[tipo]     || 'rgba(20,104,177,0.08)';
+        const label = labelMap[tipo]  || tipo;
+        const emoji = emojiMap[tipo]  || '📢';
+        const fecha = n.creadoEn?.toDate ? n.creadoEn.toDate().toLocaleDateString('es-MX', {month:'long', year:'numeric'}) : '';
+        const gradMap = {'nuevo-curso':'linear-gradient(135deg,#f59e0b 0%,#ef4444 100%)','actualizacion':'linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%)','canal-vip':'linear-gradient(135deg,#0ea5e9 0%,#06b6d4 100%)','evento':'linear-gradient(135deg,#ec4899 0%,#f43f5e 100%)','aviso':'linear-gradient(135deg,#10b981 0%,#059669 100%)'};
+        const grad = gradMap[tipo] || gradMap['aviso'];
+        const itemId = 'nov-' + (Math.random().toString(36).slice(2,7));
+        html += `<div class="novedad-item item-nuevo" id="${itemId}" style="background:${grad}" onclick="expandirNovedad('${itemId}')" title="Clic para ver completo">
+          <div style="position:absolute;top:-25px;right:-25px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+          <div style="width:56px;height:56px;border-radius:14px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;position:relative;z-index:1">${emoji}</div>
+          <div class="novedad-content" style="position:relative;z-index:1">
+            <span class="novedad-tag" style="color:rgba(255,255,255,0.9);background:rgba(0,0,0,0.2);padding:3px 10px;border-radius:20px">${label}</span>
+            <p class="novedad-title" style="color:#ffffff">${n.titulo || ''}</p>
+            <p class="novedad-desc" style="color:rgba(255,255,255,0.75)">${n.descripcion || ''}</p>
+            <p class="novedad-date" style="color:rgba(255,255,255,0.6)">📅 ${fecha}</p>
+          </div>
+          ${n.descripcion && n.descripcion.length > 180 ? `<div style="position:absolute;bottom:0;right:0;padding:.6rem 1rem;background:rgba(0,0,0,0.25);border-radius:0 0 16px 0"><span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.8);letter-spacing:.06em">Ver más →</span></div>` : ''}
+        </div>`;
+      });
+      html += '</div>';
+      container.innerHTML = html;
+    } catch(e) {
+      console.warn('Error cargando novedades:', e);
+    }
+  }
+
+
+  async function cargarCursos() {
+    try {
+      const { getDocs, collection, query, orderBy } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const snap = await getDocs(query(collection(db, 'cursos-vivo'), orderBy('fecha', 'asc')));
+      const sesiones = [];
+      snap.forEach(d => sesiones.push({ id: d.id, ...d.data() }));
+      // Solo contar sesiones próximas (no pasadas)
+      const proximas = sesiones.filter(s => new Date(s.fecha) >= new Date());
+      actualizarBadge('cursos', proximas.length);
+
+      document.getElementById('cursos-loading').style.display = 'none';
+
+      if (!sesiones.length) {
+        document.getElementById('cursos-empty').style.display = 'block';
+        return;
+      }
+
+      const lista = document.getElementById('cursos-lista');
+      lista.style.display = 'flex';
+
+      sesiones.forEach(s => {
+        const ahora    = new Date();
+        const fechaSes = new Date(s.fecha + (s.hora ? 'T' + s.hora : ''));
+        const esPasada = fechaSes < ahora;
+        const esHoy    = fechaSes.toDateString() === ahora.toDateString();
+
+        // Formatear fecha
+        const fechaFmt = fechaSes.toLocaleDateString('es-MX', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+        const horaFmt  = s.hora ? fechaSes.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' }) + ' hrs (CST)' : '';
+
+        // Badge de estado
+        let badgeHtml;
+        if (esPasada) {
+          badgeHtml = '<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(100,116,139,.1);color:#64748b;border:1px solid rgba(100,116,139,.2);padding:3px 10px;border-radius:10px">Finalizada</span>';
+        } else if (esHoy) {
+          badgeHtml = '<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.2);padding:3px 10px;border-radius:10px;animation:pulse 1.5s ease infinite">● Hoy</span>';
+        } else {
+          badgeHtml = '<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(245,158,11,.1);color:#f59e0b;border:1px solid rgba(245,158,11,.2);padding:3px 10px;border-radius:10px">Próximamente</span>';
+        }
+
+        // Botón de acceso
+        const btnHtml = s.link && !esPasada
+          ? `<a href="${s.link}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:8px;padding:10px 22px;background:rgba(255,255,255,0.2);border:1px solid rgba(255,255,255,0.35);border-radius:10px;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:700;letter-spacing:.06em;color:#fff;text-decoration:none;transition:all .2s" onmouseover="this.style.background='rgba(255,255,255,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.2)'">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Unirse a la sesión
+            </a>`
+          : esPasada ? '<span style="font-size:12px;color:rgba(255,255,255,0.45)">Sesión finalizada</span>'
+          : '<span style="font-size:12px;color:rgba(255,255,255,0.5)">🔗 Link disponible próximamente</span>';
+
+        const card = document.createElement('div');
+        // Countdown para sesiones próximas
+        const countdownId = 'cd-sesion-' + s.id;
+        // Gradiente según estado
+        const cardGrad = esPasada
+          ? 'background:linear-gradient(135deg,#1e293b 0%,#334155 100%)'
+          : esHoy
+            ? 'background:linear-gradient(135deg,#7c0202 0%,#dc2626 60%,#f59e0b 100%)'
+            : 'background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%)';
+        card.style.cssText = `border-radius:16px;overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,0.18);transition:all .25s;${esPasada ? 'opacity:.7' : ''}`;
+        card.onmouseover = () => { if (!esPasada) { card.style.transform='translateY(-3px)'; card.style.boxShadow='0 12px 36px rgba(0,0,0,0.25)'; } };
+        card.onmouseout  = () => { card.style.transform=''; card.style.boxShadow='0 6px 24px rgba(0,0,0,0.18)'; };
+        card.innerHTML = `
+          <div style="${cardGrad};padding:1.5rem 1.75rem;position:relative;overflow:hidden">
+            <div style="position:absolute;top:-30px;right:-30px;width:130px;height:130px;border-radius:50%;background:rgba(255,255,255,0.05)"></div>
+            <div style="position:absolute;bottom:-20px;left:30%;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.04)"></div>
+            <!-- Header -->
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;position:relative;z-index:1">
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem;flex-wrap:wrap">
+                  <div style="width:44px;height:44px;background:rgba(255,255,255,0.15);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">${esHoy ? '🔴' : esPasada ? '✅' : '🎓'}</div>
+                  <div>
+                    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;font-weight:700;color:#ffffff;margin-bottom:2px">${s.titulo}</h3>
+                    ${s.instructor ? `<p style="font-size:12px;color:rgba(255,255,255,0.65)">Con <strong style="color:rgba(255,255,255,0.9)">${s.instructor}</strong></p>` : ''}
+                  </div>
+                  <span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(0,0,0,0.25);color:rgba(255,255,255,0.85);padding:3px 10px;border-radius:20px;flex-shrink:0">${esPasada ? 'Finalizada' : esHoy ? '● En vivo hoy' : 'Próximamente'}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+                  <div style="display:flex;align-items:center;gap:6px">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <span style="font-size:12px;color:rgba(255,255,255,0.7);text-transform:capitalize">${fechaFmt}</span>
+                  </div>
+                  ${horaFmt ? `<div style="display:flex;align-items:center;gap:6px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span style="font-size:12px;color:rgba(255,255,255,0.7)">${horaFmt}</span></div>` : ''}
+                  ${s.plataforma ? `<span style="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:rgba(255,255,255,0.15);color:rgba(255,255,255,0.9);padding:2px 10px;border-radius:20px">${s.plataforma}</span>` : ''}
+                </div>
+              </div>
+            </div>
+            <!-- Countdown para sesiones próximas -->
+            ${!esPasada && !esHoy ? `
+            <div style="background:rgba(0,0,0,0.2);border-radius:12px;padding:.85rem 1.1rem;margin-bottom:1rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;position:relative;z-index:1">
+              <span style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.55)">⏱️ Inicia en</span>
+              <div style="display:flex;gap:.5rem;align-items:center" id="${countdownId}">
+                <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;text-align:center"><div class="cd-num" style="font-size:20px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;line-height:1">--</div><div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.5)">días</div></div>
+                <span style="font-size:18px;color:rgba(255,255,255,0.3)">:</span>
+                <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;text-align:center"><div class="cd-num" style="font-size:20px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;line-height:1">--</div><div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.5)">hrs</div></div>
+                <span style="font-size:18px;color:rgba(255,255,255,0.3)">:</span>
+                <div style="background:rgba(255,255,255,0.12);border-radius:8px;padding:5px 10px;text-align:center"><div class="cd-num" style="font-size:20px;font-weight:700;color:#fff;font-family:'Cormorant Garamond',serif;line-height:1">--</div><div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.5)">min</div></div>
+                <span style="font-size:18px;color:rgba(255,255,255,0.3)">:</span>
+                <div style="background:rgba(255,255,255,0.25);border-radius:8px;padding:5px 10px;text-align:center"><div class="cd-num" style="font-size:20px;font-weight:700;color:#6ee7b7;font-family:'Cormorant Garamond',serif;line-height:1">--</div><div style="font-size:8px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.6)">seg</div></div>
+              </div>
+            </div>` : ''}
+            <!-- Botón acción -->
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;position:relative;z-index:1">
+              ${btnHtml}
+              <p style="font-size:11px;color:rgba(255,255,255,0.4)">Exclusivo para miembros VIP</p>
+            </div>
+          </div>`;
+        lista.appendChild(card);
+        // Iniciar countdown si la sesión es próxima
+        if (!esPasada && !esHoy) {
+          (function startCD(id, fecha) {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const nums = el.querySelectorAll('.cd-num');
+            const tick = () => {
+              const diff = fecha - new Date();
+              if (diff <= 0) { nums[0].textContent = '00'; nums[1].textContent = '00'; nums[2].textContent = '00'; nums[3].textContent = '00'; return; }
+              const d = Math.floor(diff / 86400000);
+              const h = Math.floor((diff % 86400000) / 3600000);
+              const m = Math.floor((diff % 3600000) / 60000);
+              const s = Math.floor((diff % 60000) / 1000);
+              nums[0].textContent = String(d).padStart(2,'0');
+              nums[1].textContent = String(h).padStart(2,'0');
+              nums[2].textContent = String(m).padStart(2,'0');
+              nums[3].textContent = String(s).padStart(2,'0');
+              setTimeout(tick, 1000);
+            };
+            tick();
+          })(countdownId, fechaSes);
+        }
+      });
+    } catch(e) {
+      console.warn('Error cargando cursos:', e);
+      document.getElementById('cursos-loading').style.display = 'none';
+      document.getElementById('cursos-empty').style.display = 'block';
+    }
+  }
+</script>
+
+<script>
+  const sectionTitles = {inicio:'Inicio',novedades:'Novedades',cursos:'Clases en Vivo',videos:'Videoteca',material:'Material Premium',comunidad:'Comunidad','cursos-vivo':'Cursos en Vivo',perfil:'Mi Perfil',suscripcion:'Mi Suscripción',soporte:'Soporte',configuracion:'Configuración'};
+  window.showSection = function(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+    document.querySelectorAll('.nav-item').forEach(n => { if(n.getAttribute('onclick') === "showSection('"+id+"')") n.classList.add('active'); });
+    document.getElementById('topbar-title').textContent = sectionTitles[id] || id;
+    if(window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
+    // Ocultar badge y guardar conteo visto en Firestore
+    const badgeMap = {novedades:'badge-novedades', cursos:'badge-cursos', videos:'badge-videos', material:'badge-material'};
+    if (badgeMap[id] && window._currentUid) {
+      const badge = document.getElementById(badgeMap[id]);
+      const currentCount = badge ? parseInt(badge.textContent) || 0 : 0;
+      if (badge) badge.style.display = 'none';
+      // Guardar conteo visto — al re-entrar si el conteo no cambió, no aparece el badge
+      if (currentCount > 0 || (window._visitas?.[id] ?? -1) >= 0) {
+        const countToSave = currentCount > 0 ? currentCount : (window._visitas?.[id] ?? 0);
+        // Guardar en memoria
+        if (!window._visitas) window._visitas = {};
+        window._visitas[id] = countToSave;
+        // Guardar en localStorage (confiable, mismo dispositivo)
+        try {
+          const lsKey = 'icadem_visitas_' + window._currentUid;
+          const lsData = localStorage.getItem(lsKey);
+          const lsObj = lsData ? JSON.parse(lsData) : {};
+          lsObj[id] = countToSave;
+          localStorage.setItem(lsKey, JSON.stringify(lsObj));
+        } catch(e) {}
+        // Intentar guardar en Firestore también (para multi-dispositivo)
+        setDoc(doc(db, 'visitas', window._currentUid), {
+          [id]: countToSave
+        }, { merge: true }).catch(e => console.warn('Firestore visitas:', e));
+      }
+    }
+  };
+  window.toggleSidebar = function() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('sidebar-overlay').classList.toggle('open');
+  };
+</script>
+
+<!-- MODAL REPRODUCTOR -->
+<style>
+#course-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:200; align-items:center; justify-content:center; padding:0; }
+@media(min-width:768px){ #course-modal{ padding:1.5rem; } }
+#course-modal-box {
+  background:#f8fafc;
+  border-radius:0;
+  width:100%; height:100vh;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
+@media(min-width:768px){
+  #course-modal-box{ border-radius:16px; max-width:98vw; height:95vh; }
+}
+@media(min-width:1200px){
+  #course-modal-box{ max-width:1280px; }
+}
+#course-modal-body {
+  display:flex; flex:1; overflow:hidden; min-height:0;
+  flex-direction:column;
+}
+@media(min-width:768px){
+  #course-modal-body{ flex-direction:row; }
+}
+/* LISTA lateral */
+#modal-lista {
+  width:100%; height:100%;
+  overflow-y:auto;
+  background:#ffffff;
+  display:flex;
+  flex-direction:column;
+  flex-shrink:0;
+  border-right:1px solid rgba(20,104,177,0.1);
+}
+@media(min-width:768px){
+  #modal-lista{ width:300px; min-width:300px; height:auto; }
+}
+#modal-video-area {
+  flex:1; display:none; flex-direction:column; background:#0a0a0a; min-height:0;
+}
+@media(min-width:768px){
+  #modal-video-area{ display:flex !important; }
+  #btn-volver-lista{ display:none !important; }
+}
+.modal-back-btn {
+  display:flex; align-items:center; gap:8px;
+  padding:12px 16px;
+  background:#f8fafc;
+  border:none; border-bottom:1px solid rgba(20,104,177,0.1);
+  color:#0d47a1; font-size:13px; font-weight:600;
+  cursor:pointer; width:100%; text-align:left; flex-shrink:0;
+}
+.modal-back-btn:hover{ background:#e8f0fe; }
+.clase-item { padding:.75rem 1rem; border-bottom:1px solid rgba(20,104,177,0.07); display:flex; align-items:center; gap:12px; cursor:pointer; transition:background .15s; }
+.clase-item:hover { background:#f0f6ff; }
+.clase-item.active { background:#e8f0fe; }
+.clase-num { width:30px; height:30px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
+</style>
+
+<div id="course-modal">
+  <div id="course-modal-box">
+    <!-- Header azul marino -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid rgba(20,104,177,0.15);background:linear-gradient(135deg,#0b2554,#1565c0);flex-shrink:0">
+      <div style="min-width:0;display:flex;align-items:center;gap:12px">
+        <div style="width:38px;height:38px;background:rgba(255,255,255,0.15);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🎬</div>
+        <div style="min-width:0">
+          <p style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:2px" id="modal-cat">Categoría</p>
+          <p style="font-size:15px;font-weight:700;color:#ffffff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="modal-titulo">Título del curso</p>
+        </div>
+      </div>
+      <button onclick="closeModal()" style="width:38px;height:38px;min-width:38px;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.25);border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#ffffff;font-size:20px;font-weight:700;flex-shrink:0;margin-left:1rem;line-height:1;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,0.25)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'">✕</button>
+    </div>
+    <!-- Body -->
+    <div id="course-modal-body">
+      <!-- Lista de clases -->
+      <div id="modal-lista"></div>
+      <!-- Video -->
+      <div id="modal-video-area">
+        <button class="modal-back-btn" onclick="mostrarLista()" id="btn-volver-lista">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          Ver todas las clases
+        </button>
+        <iframe id="modal-iframe" src="" allowfullscreen style="flex:1;width:100%;height:100%;border:none;display:none"></iframe>
+        <div id="modal-placeholder" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);gap:.75rem;padding:2rem">
+          <div style="width:72px;height:72px;background:rgba(255,255,255,0.06);border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          </div>
+          <p style="font-size:13px;font-weight:500">Selecciona una clase para reproducir</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Filtros de cursos
+function filterCat(cat) {
+  document.querySelectorAll('[id^="cat-"]').forEach(b => {
+    b.style.background = 'transparent';
+    b.style.color = '#1468b1';
+    b.style.border = '1px solid rgba(20,104,177,0.2)';
+  });
+  const btn = document.getElementById('cat-' + cat);
+  if (btn) { btn.style.background = '#1468b1'; btn.style.color = '#fff'; btn.style.border = '1px solid #1468b1'; }
+  document.querySelectorAll('#courses-grid .course-card').forEach(card => {
+    card.style.display = (cat === 'Todos' || card.dataset.cat === cat) ? '' : 'none';
+  });
+};
+
+function searchCursos(q) {
+  const qL = q.toLowerCase();
+  document.querySelectorAll('#courses-grid .course-card').forEach(card => {
+    const title = card.querySelector('.course-title').textContent.toLowerCase();
+    card.style.display = title.includes(qL) ? '' : 'none';
+  });
+};
+
+// Abrir modal con clases del curso
+function openCourse(id) {
+  // Quitar resaltado del elemento al abrirlo
+  document.querySelectorAll('#video-course-list .item-nuevo').forEach(el => {
+    if (el.onclick && el.onclick.toString().includes(id)) el.classList.remove('item-nuevo');
+  });
+  let curso;
+  if (id.startsWith('fs-')) {
+    const fsId = id.replace('fs-', '');
+    curso = (window._cursosNuevos || []).find(c => c.id === fsId);
+    if (curso) {
+      curso = {
+        titulo: curso.titulo,
+        categoria: curso.categoria || 'General',
+        temario: curso.temario || '',
+        videos: (curso.videos || []).map((v, i) => {
+          const match = v.link ? v.link.match(/\/d\/([^/]+)/) : null;
+          return { titulo: v.titulo || `Clase ${i+1}`, id: match ? match[1] : '' };
+        })
+      };
+    }
+  }
+  if (!curso) return;
+  document.getElementById('modal-titulo').textContent = curso.titulo;
+  document.getElementById('modal-cat').textContent = curso.categoria;
+  document.getElementById('modal-iframe').src = '';
+  document.getElementById('modal-iframe').style.display = 'none';
+  document.getElementById('modal-placeholder').style.display = 'flex';
+
+  // Guardar referencia global al curso abierto
+  window._cursoActual = { id, curso };
+
+  // Leer progreso guardado
+  const progresoKey = 'icadem_prog_' + (window._currentUid || 'u');
+  let progreso = {};
+  try { progreso = JSON.parse(localStorage.getItem(progresoKey) || '{}'); } catch(e) {}
+  const vistas = progreso[id] || [];
+
+  // Mostrar temario si existe
+  const lista = document.getElementById('modal-lista');
+  lista.innerHTML = '';
+
+  if (curso.temario) {
+    const temarioEl = document.createElement('div');
+    temarioEl.style.cssText = 'flex-shrink:0';
+    temarioEl.innerHTML = `
+      <button onclick="toggleTemario(this)" style="width:100%;background:linear-gradient(135deg,#0b2554,#1565c0);border:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;padding:.85rem 1rem;font-family:inherit;border-bottom:1px solid rgba(20,104,177,0.15)">
+        <div style="display:flex;align-items:center;gap:8px">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,0.9)">Temario del curso</span>
+        </div>
+        <svg id="temario-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2" style="transition:transform .2s"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div id="temario-content" style="display:none;padding:1rem;font-size:12px;color:#475569;white-space:pre-line;line-height:1.8;background:#f8fafc;border-bottom:1px solid rgba(20,104,177,0.08)">${curso.temario}</div>`;
+    lista.appendChild(temarioEl);
+  }
+
+  // Encabezado "Clases del curso"
+  const headerClases = document.createElement('div');
+  headerClases.style.cssText = 'padding:.75rem 1rem;background:#f8fafc;border-bottom:1px solid rgba(20,104,177,0.1);display:flex;align-items:center;gap:8px;flex-shrink:0';
+  headerClases.innerHTML = `
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+    <span style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1468b1">Clases del curso</span>
+    <span style="margin-left:auto;font-size:10px;font-weight:600;color:#94a3b8">${curso.videos.length} clases</span>`;
+  lista.appendChild(headerClases);
+
+  curso.videos.forEach((v, i) => {
+    const visto   = vistas.includes(i);
+    const bloqueado = i > 0 && !vistas.includes(i - 1);
+    const item = document.createElement('div');
+    item.id = 'clase-' + i;
+    item.dataset.bloqueado = bloqueado ? '1' : '0';
+    item.style.cssText = `padding:.75rem 1rem;border-bottom:1px solid rgba(20,104,177,0.07);display:flex;align-items:center;gap:12px;transition:background .15s;${bloqueado ? 'opacity:.45;cursor:not-allowed' : 'cursor:pointer'}`;
+
+    const numHtml = visto
+      ? `<div style="width:32px;height:32px;border-radius:50%;background:#10b981;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+         </div>`
+      : bloqueado
+        ? `<div style="width:32px;height:32px;border-radius:50%;background:#f1f5f9;border:1.5px solid #e2e8f0;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+           </div>`
+        : `<div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#0b2554,#1565c0);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+             <span style="font-size:12px;font-weight:700;color:#fff">${i+1}</span>
+           </div>`;
+
+    item.innerHTML = `${numHtml}
+      <div style="flex:1;min-width:0">
+        <p style="font-size:13px;font-weight:600;color:${bloqueado ? '#94a3b8' : '#0d47a1'};margin-bottom:2px">Clase ${i+1}</p>
+        <p style="font-size:11px;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${v.titulo}</p>
+      </div>
+      ${visto ? '<span style="font-size:9px;font-weight:700;letter-spacing:.06em;color:#10b981;text-transform:uppercase;background:rgba(16,185,129,0.1);padding:2px 8px;border-radius:20px;flex-shrink:0">✓ Vista</span>' : ''}
+      ${!bloqueado && !visto ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1468b1" stroke-width="2" style="flex-shrink:0"><polygon points="5 3 19 12 5 21 5 3"/></svg>' : ''}`;
+
+    if (!bloqueado) {
+      item.onmouseover = () => { if (item.dataset.active !== '1') item.style.background = '#f0f6ff'; };
+      item.onmouseout = () => { if (item.dataset.active !== '1') item.style.background = ''; };
+      item.onclick = () => playVideo(v.id, i, item, lista);
+    } else {
+      item.title = 'Completa la clase anterior para desbloquear';
+    }
+    lista.appendChild(item);
+  });
+
+  const modal = document.getElementById('course-modal');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+};
+
+function playVideo(fileId, idx, item, lista) {
+  lista.querySelectorAll('div[id^="clase-"]').forEach(el => {
+    el.style.background = '';
+    el.dataset.active = '0';
+  });
+  item.style.background = 'linear-gradient(135deg,rgba(11,37,84,0.06),rgba(21,101,192,0.1))';
+  item.style.borderLeft = '3px solid #1565c0';
+  item.dataset.active = '1';
+  window._claseActualIdx = idx;
+  const iframe = document.getElementById('modal-iframe');
+  const placeholder = document.getElementById('modal-placeholder');
+  iframe.src = 'https://drive.google.com/file/d/' + fileId + '/preview';
+  iframe.style.display = 'block';
+  placeholder.style.display = 'none';
+
+  // Botón "Marcar como visto"
+  const progresoKey = 'icadem_prog_' + (window._currentUid || 'u');
+  let progreso = {};
+  try { progreso = JSON.parse(localStorage.getItem(progresoKey) || '{}'); } catch(e) {}
+  const cursoId = window._cursoActual?.id || '';
+  const vistas = progreso[cursoId] || [];
+  const yaVisto = vistas.includes(idx);
+
+  // Barra inferior: botón Marcar como visto
+  let barraAccion = document.getElementById('barra-accion-video');
+  if (!barraAccion) {
+    barraAccion = document.createElement('div');
+    barraAccion.id = 'barra-accion-video';
+    barraAccion.style.cssText = 'padding:.85rem 1.5rem;background:#ffffff;border-top:1px solid rgba(20,104,177,0.1);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:1rem;flex-wrap:wrap';
+    document.getElementById('modal-video-area').appendChild(barraAccion);
+  }
+
+  let btnVisto = document.getElementById('btn-marcar-visto');
+  if (!btnVisto) {
+    btnVisto = document.createElement('button');
+    btnVisto.id = 'btn-marcar-visto';
+    btnVisto.style.cssText = 'flex:1;max-width:340px;padding:10px 20px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:700;letter-spacing:.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s';
+    barraAccion.innerHTML = '';
+    barraAccion.appendChild(btnVisto);
+    // Info lado derecho
+    const infoSpan = document.createElement('span');
+    infoSpan.style.cssText = 'font-size:11px;color:#94a3b8;flex-shrink:0';
+    infoSpan.textContent = 'Exclusivo para miembros VIP';
+    barraAccion.appendChild(infoSpan);
+  }
+
+  if (yaVisto) {
+    btnVisto.style.background = 'rgba(16,185,129,0.1)';
+    btnVisto.style.color = '#10b981';
+    btnVisto.style.border = '1.5px solid rgba(16,185,129,0.3)';
+    btnVisto.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Clase completada';
+    btnVisto.onclick = null;
+  } else {
+    btnVisto.style.background = 'linear-gradient(135deg,#0b2554,#1565c0)';
+    btnVisto.style.color = '#fff';
+    btnVisto.style.border = 'none';
+    btnVisto.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Marcar clase como completada';
+    btnVisto.onclick = () => marcarClaseVista(idx, cursoId);
+  }
+
+  // En móvil/tablet: ocultar lista y mostrar video
+  if (window.innerWidth < 768) {
+    document.getElementById('modal-lista').style.display = 'none';
+    document.getElementById('modal-video-area').style.display = 'flex';
+    document.getElementById('btn-volver-lista').style.display = 'flex';
+  }
+};
+
+function marcarClaseVista(idx, cursoId) {
+  const progresoKey = 'icadem_prog_' + (window._currentUid || 'u');
+  let progreso = {};
+  try { progreso = JSON.parse(localStorage.getItem(progresoKey) || '{}'); } catch(e) {}
+  const vistas = progreso[cursoId] || [];
+  if (!vistas.includes(idx)) vistas.push(idx);
+  progreso[cursoId] = vistas;
+  localStorage.setItem(progresoKey, JSON.stringify(progreso));
+
+  // También guardar en Firestore
+  if (window._currentUid) {
+    try {
+      setDoc(doc(db, 'progreso', window._currentUid), { [cursoId]: vistas }, { merge: true }).catch(()=>{});
+    } catch(e) {}
+  }
+
+  // Reabrir el curso para reflejar el progreso actualizado
+  const cursoRef = window._cursoActual;
+  if (cursoRef) openCourse(cursoRef.id);
+};
+
+function toggleTemario(btn) {
+  const content = document.getElementById('temario-content');
+  const arrow   = document.getElementById('temario-arrow');
+  if (!content) return;
+  const open = content.style.display === 'block';
+  content.style.display = open ? 'none' : 'block';
+  if (arrow) arrow.style.transform = open ? '' : 'rotate(180deg)';
+};
+
+function mostrarLista() {
+  if (window.innerWidth < 768) {
+    document.getElementById('modal-lista').style.display = 'flex';
+    document.getElementById('modal-video-area').style.display = 'none';
+  }
+};
+
+function closeModal() {
+  const modal = document.getElementById('course-modal');
+  modal.style.display = 'none';
+  document.getElementById('modal-iframe').src = '';
+  document.body.style.overflow = '';
+};
+
+document.getElementById('course-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// Populate videoteca section
+// Colores por categoría para thumbnails
+const CAT_COLORS = {
+  'Jurídico':'#1a3a6b','Fiscal':'#0d47a1','Finanzas':'#1565c0',
+  'Liderazgo':'#1976d2','Marketing':'#7b1fa2','Logística':'#00695c',
+  'Administración':'#e65100','Habilidades':'#2e7d32','Recursos Humanos':'#c62828',
+  'Inmobiliario':'#4527a0','Comercio':'#00838f','Educación':'#558b2f'
+};
+
+let vistaActual = 'grid';
+
+window.setVista = function(vista) {
+  vistaActual = vista;
+  // Toggle button styles
+  const btnLista = document.getElementById('btn-vista-lista');
+  const btnGrid  = document.getElementById('btn-vista-grid');
+  if (!btnLista) return;
+  if (vista === 'lista') {
+    btnLista.style.background = '#1468b1';
+    btnLista.querySelector('svg').style.stroke = 'white';
+    btnGrid.style.background = 'transparent';
+    btnGrid.querySelector('svg').style.stroke = '#1468b1';
+  } else {
+    btnGrid.style.background = '#1468b1';
+    btnGrid.querySelector('svg').style.stroke = 'white';
+    btnLista.style.background = 'transparent';
+    btnLista.querySelector('svg').style.stroke = '#1468b1';
+  }
+  buildVideoteca();
+};
+
+function buildVideoteca() {
+  const container = document.getElementById('video-course-list');
+  if (!container) return;
+  container.innerHTML = '';
+
+  // Solo cursos de Firestore (ya no hardcodeados)
+  const todosCursos = (window._cursosNuevos || []).map(c => {
+    const key = 'fs-' + c.id;
+    const videos = (c.videos || []).map((v, i) => {
+      const match = v.link ? v.link.match(/\/d\/([^/]+)/) : null;
+      return { titulo: v.titulo || `Clase ${i+1}`, id: match ? match[1] : '', link: v.link };
+    });
+    return [key, { titulo: c.titulo, categoria: c.categoria || 'General', videos, portada: c.portada || '', temario: c.temario || '' }];
+  });
+
+  if (vistaActual === 'lista') {
+    // VISTA LISTA
+    container.style.cssText = 'display:flex;flex-direction:column;gap:.75rem';
+    todosCursos.forEach(([id, curso]) => {
+      const color = CAT_COLORS[curso.categoria] || '#1468b1';
+      const esNuevo = id.startsWith('fs-');
+      const el = document.createElement('div');
+      el.style.cssText = 'background:#ffffff;border:1px solid rgba(20,104,177,0.1);border-radius:12px;display:flex;align-items:stretch;overflow:hidden;cursor:pointer;transition:all .25s;box-shadow:0 2px 10px rgba(20,104,177,0.06);position:relative';
+      if (esNuevo) el.classList.add('item-nuevo');
+      const emojiL = {'Jurídico':'⚖️','Fiscal':'🧾','Finanzas':'💰','Liderazgo':'🚀','Marketing':'📣','Logística':'📦','Administración':'🗂️','Habilidades':'💡','Recursos Humanos':'👥','Inmobiliario':'🏠','Comercio':'🌐','Educación':'📚','General':'📖'}[curso.categoria] || '📖';
+      el.innerHTML = `
+        <div style="width:90px;min-width:90px;background:#f0f6ff;border-right:1px solid rgba(20,104,177,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;position:relative">
+          <img src="${curso.portada || 'https://i.ibb.co/BVJQqb0X/ICADEM.jpg'}" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.src='https://i.ibb.co/BVJQqb0X/ICADEM.jpg'">
+        </div>
+        <div style="flex:1;padding:.9rem 1.1rem;display:flex;align-items:center;justify-content:space-between;gap:1rem">
+          <div>
+            <span style="font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:${color}18;color:${color};border:1px solid ${color}30;padding:2px 8px;border-radius:20px;display:inline-block;margin-bottom:5px">${curso.categoria}</span>
+            <p style="font-size:13px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:3px">${curso.titulo}</p>
+            <p style="font-size:11px;color:#94a3b8">${curso.videos.length} clase${curso.videos.length !== 1 ? 's' : ''}</p>
+          </div>
+          <span style="font-size:11px;font-weight:700;color:#1468b1;white-space:nowrap;flex-shrink:0">▶ Ver</span>
+        </div>`;
+      el.onmouseover = () => { el.style.borderColor = 'rgba(20,104,177,0.3)'; el.style.transform = 'translateY(-2px)'; el.style.boxShadow = '0 8px 24px rgba(20,104,177,0.14)'; };
+      el.onmouseout  = () => { el.style.borderColor = 'rgba(20,104,177,0.1)'; el.style.transform = ''; el.style.boxShadow = '0 2px 10px rgba(20,104,177,0.06)'; };
+      el.onclick = () => openCourse(id);
+      container.appendChild(el);
+    });
+
+  } else {
+    // VISTA CUADRÍCULA
+    const EMOJIS_CAT = {'Jurídico':'⚖️','Fiscal':'🧾','Finanzas':'💰','Liderazgo':'🚀','Marketing':'📣','Logística':'📦','Administración':'🗂️','Habilidades':'💡','Recursos Humanos':'👥','Inmobiliario':'🏠','Comercio':'🌐','Educación':'📚','General':'📖'};
+    container.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem';
+    todosCursos.forEach(([id, curso]) => {
+      const color = CAT_COLORS[curso.categoria] || '#1468b1';
+      const emoji = EMOJIS_CAT[curso.categoria] || '📖';
+      const esNuevo = id.startsWith('fs-');
+      const el = document.createElement('div');
+      el.style.cssText = 'background:#ffffff;border:1px solid rgba(20,104,177,0.1);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .25s;box-shadow:0 3px 12px rgba(20,104,177,0.07);position:relative';
+      if (esNuevo) el.classList.add('item-nuevo');
+      el.innerHTML = `
+        <div style="height:150px;background:#f0f6ff;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-bottom:1px solid rgba(20,104,177,0.08)">
+          <img src="${curso.portada || 'https://i.ibb.co/BVJQqb0X/ICADEM.jpg'}" alt="${curso.titulo}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" onerror="this.src='https://i.ibb.co/BVJQqb0X/ICADEM.jpg'">
+          <span style="position:absolute;top:10px;left:10px;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;background:${color};color:#fff;padding:3px 10px;border-radius:20px;z-index:2">${curso.categoria}</span>
+          <span style="position:absolute;bottom:10px;right:10px;font-size:10px;font-weight:600;color:#64748b;background:rgba(255,255,255,0.9);padding:2px 8px;border-radius:20px;z-index:2">${curso.videos.length} clase${curso.videos.length !== 1 ? 's' : ''}</span>
+        </div>
+        <div style="padding:1rem 1.1rem 1.1rem">
+          <p style="font-size:13px;font-weight:700;color:#0d47a1;line-height:1.45;margin-bottom:.75rem">${curso.titulo}</p>
+          <span style="font-size:11px;font-weight:600;color:#1468b1">▶ Ver curso</span>
+        </div>`;
+      el.onmouseover = () => { el.style.transform = 'translateY(-4px)'; el.style.boxShadow = '0 12px 32px rgba(20,104,177,0.18)'; el.style.borderColor = 'rgba(20,104,177,0.2)'; };
+      el.onmouseout  = () => { el.style.transform = ''; el.style.boxShadow = '0 3px 12px rgba(20,104,177,0.07)'; el.style.borderColor = 'rgba(20,104,177,0.1)'; };
+      el.onclick = () => openCourse(id);
+      container.appendChild(el);
+    });
+  }
+};
+buildVideoteca();
+</script>
+
+
+  <!-- MODAL VISOR PDF -->
+  <div class="pdf-overlay" id="pdf-overlay">
+    <div class="pdf-modal">
+      <div class="pdf-modal-header">
+        <span class="pdf-modal-title" id="pdf-titulo">Documento</span>
+        <div class="pdf-modal-actions">
+          <a class="pdf-btn-dl" id="pdf-dl-btn" href="#" target="_blank" download>
+            ⬇ Descargar
+          </a>
+          <button class="pdf-close" onclick="cerrarPDF()">&#x2715;</button>
+        </div>
+      </div>
+      <iframe class="pdf-frame" id="pdf-frame" src="" allowfullscreen></iframe>
+    </div>
+  </div>
+
+  <script>
+    window.abrirPDF = function(titulo, driveId) {
+      const previewUrl = 'https://drive.google.com/file/d/' + driveId + '/preview';
+      const dlUrl = 'https://drive.google.com/uc?export=download&id=' + driveId;
+      document.getElementById('pdf-titulo').textContent = titulo;
+      document.getElementById('pdf-frame').src = previewUrl;
+      document.getElementById('pdf-dl-btn').href = dlUrl;
+      document.getElementById('pdf-overlay').classList.add('visible');
+      document.body.style.overflow = 'hidden';
+    };
+    window.cerrarPDF = function() {
+      document.getElementById('pdf-overlay').classList.remove('visible');
+      document.getElementById('pdf-frame').src = '';
+      document.body.style.overflow = '';
+    };
+    document.getElementById('pdf-overlay').addEventListener('click', function(e) {
+      if (e.target === this) cerrarPDF();
+    });
+  </script>
+
+</body>
+</html>
