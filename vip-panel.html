@@ -1284,7 +1284,7 @@
 
             <div class="cf-field">
               <label class="cf-label">Nombre del cálculo (opcional)</label>
-              <input type="text" class="cf-input" id="isr-nombre" placeholder="Ej. Nómina Q1 abril Britney">
+              <input type="text" class="cf-input" id="isr-nombre" placeholder="Ej. Nómina Q1 abril">
               <p class="cf-help">Útil para identificarlo en tu historial</p>
             </div>
 
@@ -1361,7 +1361,7 @@
 
             <div class="cf-field">
               <label class="cf-label">Nombre del cálculo (opcional)</label>
-              <input type="text" class="cf-input" id="pm-nombre" placeholder="Ej. ISR anual 2026 ACME SA">
+              <input type="text" class="cf-input" id="pm-nombre" placeholder="Ej. ISR anual 2026">
             </div>
 
             <button class="cf-btn-calc" id="btn-isr-pm-calc">
@@ -1416,7 +1416,7 @@
 
               <div class="cf-field">
                 <label class="cf-label">Nombre del empleado (opcional)</label>
-                <input type="text" class="cf-input" id="ag-nombre" placeholder="Ej. Juan Pérez">
+                <input type="text" class="cf-input" id="ag-nombre" placeholder="Ej. Nombre del empleado">
               </div>
 
               <button class="cf-btn-calc" id="btn-aguinaldo-calc">
@@ -1463,7 +1463,7 @@
 
               <div class="cf-field">
                 <label class="cf-label">Nombre del empleado (opcional)</label>
-                <input type="text" class="cf-input" id="pv-nombre" placeholder="Ej. Juan Pérez">
+                <input type="text" class="cf-input" id="pv-nombre" placeholder="Ej. Nombre del empleado">
               </div>
 
               <button class="cf-btn-calc" id="btn-prima-calc">
@@ -1539,7 +1539,7 @@
 
               <div class="cf-field">
                 <label class="cf-label">Nombre del empleado (opcional)</label>
-                <input type="text" class="cf-input" id="ptu-nombre" placeholder="Ej. Juan Pérez">
+                <input type="text" class="cf-input" id="ptu-nombre" placeholder="Ej. Nombre del empleado">
               </div>
 
               <button class="cf-btn-calc" id="btn-ptu-calc">
@@ -1625,7 +1625,7 @@
 
             <div class="cf-field">
               <label class="cf-label">Nombre del empleado (opcional)</label>
-              <input type="text" class="cf-input" id="fin-nombre" placeholder="Ej. Juan Pérez">
+              <input type="text" class="cf-input" id="fin-nombre" placeholder="Ej. Nombre del empleado">
             </div>
 
             <button class="cf-btn-calc" id="btn-finiquito-calc">
@@ -1671,7 +1671,7 @@
 
             <div class="cf-field">
               <label class="cf-label">Concepto / Proveedor (opcional)</label>
-              <input type="text" class="cf-input" id="ret-nombre" placeholder="Ej. Honorarios contador abril 2026">
+              <input type="text" class="cf-input" id="ret-nombre" placeholder="Ej. Honorarios abril 2026">
             </div>
 
             <button class="cf-btn-calc" id="btn-ret-iva-calc">
@@ -4757,7 +4757,8 @@ buildVideoteca();
 <!-- Cargar librerías para PDF y Excel -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- xlsx-js-style: fork con soporte de estilos (colores, fonts, bordes) -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 
 <script>
 (function(){
@@ -5146,38 +5147,295 @@ buildVideoteca();
   }
 
   // ═══════════════════════════════════════════════════════════
-  // GENERAR EXCEL (XLSX) editable
+  // GENERAR EXCEL (XLSX) — formato profesional
   // ═══════════════════════════════════════════════════════════
   function generarXLS(data) {
     const ahora = new Date();
-    const ws_data = [
-      ['ICADEM - Calculadora Fiscal SAT 2026'],
-      ['Generado:', ahora.toLocaleString('es-MX')],
-      ['Tipo:', data.tipoLabel],
-      ['Cálculo:', data.titulo],
-      data.subtitulo ? ['Detalle:', data.subtitulo] : [],
-      [],
-      ['Concepto', 'Monto']
-    ];
+    const fechaFmt = ahora.toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+    const horaFmt = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
 
+    // Construir las filas (array of arrays)
+    const rows = [];
+    rows.push(['ICADEM', '', '', '']);                                    // 0 - logo
+    rows.push(['CALCULADORA FISCAL SAT 2026', '', '', '']);               // 1 - subtítulo
+    rows.push(['Panel VIP · icademx.com', '', '', '']);                   // 2
+    rows.push(['', '', '', '']);                                          // 3 - separador
+    rows.push(['Generado el:', fechaFmt + ' · ' + horaFmt, '', '']);      // 4
+    rows.push(['Tipo de cálculo:', data.tipoLabel, '', '']);              // 5
+    rows.push(['Nombre / Referencia:', data.titulo, '', '']);             // 6
+    if (data.subtitulo) rows.push(['Detalle:', data.subtitulo, '', '']);  // 7
+    rows.push(['', '', '', '']);                                          // separador
+    rows.push(['CONCEPTO', 'MONTO (MXN)', '', '']);                       // header
+
+    const headerRowIdx = rows.length - 1;
+
+    // Filas de cálculo
+    const totalRowIdxs = [];
+    const negRowIdxs = [];
     data.filas.forEach(f => {
-      ws_data.push([f.etiqueta, typeof f.valor === 'number' ? f.valor : f.valor]);
+      const isNum = typeof f.valor === 'number';
+      rows.push([f.etiqueta, isNum ? f.valor : f.valor, '', '']);
+      if (f.total) totalRowIdxs.push(rows.length - 1);
+      if (f.negativo) negRowIdxs.push(rows.length - 1);
     });
 
-    if (data.fundamento) {
-      ws_data.push([]);
-      ws_data.push(['Fundamento legal:', data.fundamento]);
-    }
-    ws_data.push([]);
-    ws_data.push(['Disclaimer:', 'Cálculo orientativo. Validar con contador profesional.']);
+    rows.push(['', '', '', '']);
 
+    // Fundamento legal
+    let fundamentoRowIdx = -1;
+    if (data.fundamento) {
+      rows.push(['FUNDAMENTO LEGAL', '', '', '']);
+      fundamentoRowIdx = rows.length - 1;
+      rows.push([data.fundamento, '', '', '']);
+      rows.push(['', '', '', '']);
+    }
+
+    // Disclaimer
+    rows.push(['AVISO LEGAL', '', '', '']);
+    const disclaimerHdrIdx = rows.length - 1;
+    rows.push([
+      'Esta calculadora es una herramienta de apoyo basada en disposiciones SAT/LFT vigentes en 2026. Los resultados son orientativos. Para cálculos definitivos y decisiones legales/fiscales, consulta a tu contador o asesor profesional. ICADEM no se hace responsable por errores derivados del uso de esta herramienta.',
+      '', '', ''
+    ]);
+    rows.push(['', '', '', '']);
+    rows.push(['Generado por ICADEM Panel VIP · icademx.com', '', '', '']);
+
+    // Crear hoja
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // === ANCHOS DE COLUMNA ===
+    ws['!cols'] = [
+      { wch: 50 },   // A — Concepto
+      { wch: 22 },   // B — Monto
+      { wch: 3 },    // C — gap
+      { wch: 3 }     // D — gap
+    ];
+
+    // === ALTURAS DE FILAS ===
+    ws['!rows'] = rows.map((row, idx) => {
+      if (idx === 0) return { hpt: 32 };  // logo grande
+      if (idx === 1) return { hpt: 22 };  // subtítulo
+      if (idx === 2) return { hpt: 16 };
+      if (idx === headerRowIdx) return { hpt: 24 };
+      if (totalRowIdxs.includes(idx)) return { hpt: 24 };
+      return { hpt: 18 };
+    });
+
+    // === MERGES ===
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },   // ICADEM
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },   // subtítulo
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },   // domain
+    ];
+    if (fundamentoRowIdx >= 0) {
+      ws['!merges'].push({ s: { r: fundamentoRowIdx, c: 0 }, e: { r: fundamentoRowIdx, c: 1 } });
+      ws['!merges'].push({ s: { r: fundamentoRowIdx + 1, c: 0 }, e: { r: fundamentoRowIdx + 1, c: 1 } });
+    }
+    ws['!merges'].push({ s: { r: disclaimerHdrIdx, c: 0 }, e: { r: disclaimerHdrIdx, c: 1 } });
+    ws['!merges'].push({ s: { r: disclaimerHdrIdx + 1, c: 0 }, e: { r: disclaimerHdrIdx + 1, c: 1 } });
+    ws['!merges'].push({ s: { r: rows.length - 1, c: 0 }, e: { r: rows.length - 1, c: 1 } });
+
+    // === ESTILOS (XLSX vanilla soporta cell.s) ===
+    // Helper: aplicar estilo a celda
+    function setCell(ref, value, style) {
+      if (!ws[ref]) ws[ref] = { t: typeof value === 'number' ? 'n' : 's', v: value };
+      ws[ref].s = style;
+    }
+
+    // 1. Logo "ICADEM" (fila 0)
+    setCell('A1', 'ICADEM', {
+      font: { name: 'Arial', sz: 22, bold: true, color: { rgb: 'FFFFFF' } },
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        top: { style: 'medium', color: { rgb: 'F5D77A' } }
+      }
+    });
+    setCell('B1', '', {
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } },
+      border: {
+        top: { style: 'medium', color: { rgb: 'F5D77A' } }
+      }
+    });
+
+    // 2. Subtítulo
+    setCell('A2', 'CALCULADORA FISCAL SAT 2026', {
+      font: { name: 'Arial', sz: 11, bold: true, color: { rgb: 'F5D77A' } },
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 }
+    });
+    setCell('B2', '', {
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } }
+    });
+
+    // 3. Domain
+    setCell('A3', 'Panel VIP · icademx.com', {
+      font: { name: 'Arial', sz: 9, italic: true, color: { rgb: 'FFFFFF' } },
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        bottom: { style: 'medium', color: { rgb: 'F5D77A' } }
+      }
+    });
+    setCell('B3', '', {
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } },
+      border: {
+        bottom: { style: 'medium', color: { rgb: 'F5D77A' } }
+      }
+    });
+
+    // 4-7. Metadatos (label + value)
+    [4, 5, 6, 7].forEach(rowNum => {
+      const refA = 'A' + (rowNum + 1);
+      const refB = 'B' + (rowNum + 1);
+      if (ws[refA]) {
+        ws[refA].s = {
+          font: { name: 'Arial', sz: 10, bold: true, color: { rgb: '475569' } },
+          alignment: { horizontal: 'left', vertical: 'center' }
+        };
+      }
+      if (ws[refB]) {
+        ws[refB].s = {
+          font: { name: 'Arial', sz: 10, color: { rgb: '0B1F4A' }, bold: true },
+          alignment: { horizontal: 'left', vertical: 'center' }
+        };
+      }
+    });
+
+    // 9. Header de tabla (CONCEPTO / MONTO)
+    const headerRowExcel = headerRowIdx + 1;
+    setCell('A' + headerRowExcel, 'CONCEPTO', {
+      font: { name: 'Arial', sz: 11, bold: true, color: { rgb: 'F5D77A' } },
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        top:    { style: 'medium', color: { rgb: 'F5D77A' } },
+        bottom: { style: 'medium', color: { rgb: 'F5D77A' } },
+        left:   { style: 'thin',   color: { rgb: '0B1F4A' } }
+      }
+    });
+    setCell('B' + headerRowExcel, 'MONTO (MXN)', {
+      font: { name: 'Arial', sz: 11, bold: true, color: { rgb: 'F5D77A' } },
+      fill: { patternType: 'solid', fgColor: { rgb: '0B1F4A' } },
+      alignment: { horizontal: 'right', vertical: 'center', indent: 1 },
+      border: {
+        top:    { style: 'medium', color: { rgb: 'F5D77A' } },
+        bottom: { style: 'medium', color: { rgb: 'F5D77A' } },
+        right:  { style: 'thin',   color: { rgb: '0B1F4A' } }
+      }
+    });
+
+    // Filas de cálculo (alternar zebra striping)
+    data.filas.forEach((f, i) => {
+      const r = headerRowExcel + 1 + i;
+      const refA = 'A' + r;
+      const refB = 'B' + r;
+      const isTotal = f.total;
+      const isNeg = f.negativo;
+      const zebra = (i % 2 === 0) ? 'F8FAFC' : 'FFFFFF';
+
+      // Etiqueta (col A)
+      setCell(refA, f.etiqueta, {
+        font: {
+          name: 'Arial',
+          sz: isTotal ? 11 : 10,
+          bold: isTotal,
+          color: { rgb: isTotal ? '0B1F4A' : '1E293B' }
+        },
+        fill: { patternType: 'solid', fgColor: { rgb: isTotal ? 'F5D77A' : zebra } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 1, wrapText: true },
+        border: {
+          top:    { style: 'thin', color: { rgb: 'CBD5E1' } },
+          bottom: { style: 'thin', color: { rgb: 'CBD5E1' } },
+          left:   { style: 'thin', color: { rgb: 'CBD5E1' } }
+        }
+      });
+
+      // Monto (col B)
+      const cellB = ws[refB];
+      if (cellB) {
+        if (typeof f.valor === 'number') {
+          cellB.t = 'n';
+          cellB.z = '"$"#,##0.00;[Red]"$"-#,##0.00';
+        }
+        cellB.s = {
+          font: {
+            name: 'Arial',
+            sz: isTotal ? 12 : 10,
+            bold: isTotal,
+            color: { rgb: isTotal ? '0B1F4A' : (isNeg ? 'DC2626' : '0B1F4A') }
+          },
+          fill: { patternType: 'solid', fgColor: { rgb: isTotal ? 'F5D77A' : zebra } },
+          alignment: { horizontal: 'right', vertical: 'center', indent: 1 },
+          border: {
+            top:    { style: 'thin', color: { rgb: 'CBD5E1' } },
+            bottom: { style: 'thin', color: { rgb: 'CBD5E1' } },
+            right:  { style: 'thin', color: { rgb: 'CBD5E1' } }
+          }
+        };
+      }
+    });
+
+    // Fundamento legal
+    if (fundamentoRowIdx >= 0) {
+      const r1 = fundamentoRowIdx + 1;
+      const r2 = fundamentoRowIdx + 2;
+      setCell('A' + r1, 'FUNDAMENTO LEGAL', {
+        font: { name: 'Arial', sz: 10, bold: true, color: { rgb: 'F5D77A' } },
+        fill: { patternType: 'solid', fgColor: { rgb: '1E3A5F' } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 1 }
+      });
+      setCell('A' + r2, data.fundamento, {
+        font: { name: 'Arial', sz: 9, color: { rgb: '475569' }, italic: true },
+        alignment: { horizontal: 'left', vertical: 'top', wrapText: true, indent: 1 },
+        fill: { patternType: 'solid', fgColor: { rgb: 'F0F6FF' } }
+      });
+      // Altura ajustada para fundamento (texto largo)
+      ws['!rows'][r2 - 1] = { hpt: 50 };
+    }
+
+    // Disclaimer
+    const dHdr = disclaimerHdrIdx + 1;
+    const dBody = dHdr + 1;
+    setCell('A' + dHdr, 'AVISO LEGAL', {
+      font: { name: 'Arial', sz: 10, bold: true, color: { rgb: '92400E' } },
+      fill: { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 }
+    });
+    const disclaimerText = ws['A' + dBody] ? ws['A' + dBody].v : '';
+    setCell('A' + dBody, disclaimerText, {
+      font: { name: 'Arial', sz: 9, color: { rgb: '78350F' } },
+      fill: { patternType: 'solid', fgColor: { rgb: 'FEF3C7' } },
+      alignment: { horizontal: 'left', vertical: 'top', wrapText: true, indent: 1 }
+    });
+    ws['!rows'][dBody - 1] = { hpt: 70 };
+
+    // Footer marca
+    const lastRow = rows.length;
+    setCell('A' + lastRow, 'Generado por ICADEM Panel VIP · icademx.com', {
+      font: { name: 'Arial', sz: 9, italic: true, color: { rgb: '94A3B8' } },
+      alignment: { horizontal: 'center', vertical: 'center' }
+    });
+
+    // === RANGE ===
+    const lastCol = 'B';
+    const range = 'A1:' + lastCol + lastRow;
+    ws['!ref'] = range;
+
+    // === Crear workbook y descargar ===
     const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(ws_data);
-    ws['!cols'] = [{ wch: 45 }, { wch: 25 }];
-    XLSX.utils.book_append_sheet(wb, ws, 'Cálculo');
+    XLSX.utils.book_append_sheet(wb, ws, 'Cálculo Fiscal');
+
+    // Propiedades del archivo
+    wb.Props = {
+      Title: data.titulo,
+      Subject: 'Cálculo Fiscal SAT 2026',
+      Author: 'ICADEM Panel VIP',
+      CreatedDate: ahora
+    };
 
     const filename = (data.titulo + '_' + ahora.toISOString().slice(0, 10)).replace(/[^a-zA-Z0-9_-]/g, '_') + '.xlsx';
-    XLSX.writeFile(wb, filename);
+    XLSX.writeFile(wb, filename, { cellStyles: true });
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -5629,9 +5887,9 @@ buildVideoteca();
         break;
       case 'fletes':
         retIsr = 0;
-        retIva = iva * 0.04 / 0.16; // 4% sobre el valor (ajuste de fracción)
+        // Art. 1-A LIVA: 4% IVA sobre el valor del flete (subtotal)
         retIva = subtotal * 0.04;
-        fundamento = 'Art. 1-A LIVA fracción II inciso c) (4% IVA autotransporte de carga).';
+        fundamento = 'Art. 1-A LIVA fracción II inciso c). Retención del 4% del IVA sobre el valor del flete (autotransporte terrestre de bienes).';
         tipoLabel = '💸 Retención · Fletes';
         break;
       case 'servicios':
@@ -8870,7 +9128,7 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   color: rgba(125,216,224,0.85);
   pointer-events: none;
 }
-.cf-input-prefix .cf-input { padding-left: 28px; }
+.cf-input-prefix .cf-input { padding-left: 36px; }
 
 /* Radio group (pills) */
 .cf-radio-group {
