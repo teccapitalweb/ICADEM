@@ -2086,14 +2086,326 @@
       <div class="page-header">
         <p class="page-tag">Herramienta · Finanzas</p>
         <h1 class="page-title">Simulador Préstamo &amp; TIR</h1>
-        <p class="page-sub">Tabla de amortización, comparador de tasas, CAT real, TIR y VPN para evaluar inversiones.</p>
+        <p class="page-sub">Tabla de amortización con 3 métodos, comparador de créditos, CAT real, TIR y VPN para evaluar inversiones.</p>
       </div>
-      <div class="tool-soon">
-        <div class="tool-soon-icon">💰</div>
-        <p class="tool-soon-eyebrow">Próximamente</p>
-        <h2 class="tool-soon-title">Simulador de Préstamos &amp; TIR</h2>
-        <p class="tool-soon-desc">En construcción. Pronto podrás simular créditos empresariales, ver la tabla de amortización completa, comparar tasas entre bancos/SOFOM/gobierno, calcular CAT real, TIR y VPN.</p>
+
+      <!-- DISCLAIMER LEGAL -->
+      <div class="cf-disclaimer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fef3c7" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <p class="cf-disclaimer-title">Aviso legal</p>
+          <p class="cf-disclaimer-text">Esta calculadora es una herramienta de apoyo para evaluar créditos e inversiones. Los resultados son <strong>orientativos</strong> y no constituyen oferta de crédito ni asesoría financiera. Las tasas, comisiones y CAT reales pueden variar según la institución y las condiciones del cliente. Para decisiones definitivas consulta con tu asesor financiero o la institución bancaria. ICADEM no se hace responsable por errores derivados del uso de esta herramienta.</p>
+        </div>
       </div>
+
+      <!-- TABS -->
+      <div class="cf-tabs">
+        <button class="cf-tab is-active" data-pttab="amortizacion">📊 Tabla de Amortización</button>
+        <button class="cf-tab" data-pttab="comparador">💳 Comparador de Créditos</button>
+        <button class="cf-tab" data-pttab="cat">🎯 CAT Real</button>
+        <button class="cf-tab" data-pttab="tir">📈 TIR &amp; VPN</button>
+        <button class="cf-tab" data-pttab="historial">📅 Historial <span id="pt-hist-count" class="cf-hist-badge"></span></button>
+      </div>
+
+      <!-- ════════════ TAB 1: TABLA DE AMORTIZACIÓN ════════════ -->
+      <div class="cf-panel is-active" data-ptpanel="amortizacion">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">📊 Datos del crédito</h3>
+            <p class="cf-card-sub">Calcula el desglose mes a mes de cualquier crédito.</p>
+
+            <div class="cf-field">
+              <label class="cf-label">Monto del crédito (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pt-am-monto" placeholder="0.00" step="100" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Tasa de interés ANUAL (%)</label>
+              <input type="number" class="cf-input" id="pt-am-tasa" placeholder="0.00" step="0.01" min="0" max="100">
+              <p class="cf-help">Ej. 18.5 para 18.5% anual. NO el CAT, sino la tasa nominal.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Plazo</label>
+              <div class="cf-row-inline">
+                <input type="number" class="cf-input" id="pt-am-plazo-num" value="36" step="1" min="1">
+                <select class="cf-input" id="pt-am-plazo-unidad">
+                  <option value="meses">Meses</option>
+                  <option value="anios">Años</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Frecuencia de pago</label>
+              <select class="cf-input" id="pt-am-frecuencia">
+                <option value="12">Mensual (12 pagos/año)</option>
+                <option value="24">Quincenal (24 pagos/año)</option>
+                <option value="52">Semanal (52 pagos/año)</option>
+              </select>
+            </div>
+
+            <div class="cf-card-divider"><span>Método de amortización</span></div>
+
+            <div class="cf-field">
+              <label class="cf-label">Selecciona el método</label>
+              <div class="cf-method-grid">
+                <label class="cf-method-card is-active">
+                  <input type="radio" name="ptMetodo" value="frances" checked>
+                  <div class="cf-method-icon">📐</div>
+                  <div class="cf-method-name">Francés</div>
+                  <div class="cf-method-desc">Pagos fijos. El más común en bancos. Cada mes pagas lo mismo, varía la proporción capital/interés.</div>
+                </label>
+                <label class="cf-method-card">
+                  <input type="radio" name="ptMetodo" value="aleman">
+                  <div class="cf-method-icon">📉</div>
+                  <div class="cf-method-name">Alemán</div>
+                  <div class="cf-method-desc">Pagos decrecientes. Capital fijo, intereses sobre saldo. Pagas más al inicio.</div>
+                </label>
+                <label class="cf-method-card">
+                  <input type="radio" name="ptMetodo" value="bullet">
+                  <div class="cf-method-icon">💥</div>
+                  <div class="cf-method-name">Bullet</div>
+                  <div class="cf-method-desc">Solo intereses cada periodo. Capital total al final. Para créditos puente.</div>
+                </label>
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre/Referencia <span class="cf-optional">(opcional)</span></label>
+              <input type="text" class="cf-input" id="pt-am-nombre" placeholder="Ej. Crédito BBVA empresarial">
+            </div>
+
+            <button class="cf-btn-calc" id="btn-pt-am-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular Amortización
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="pt-am-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon">📊</div>
+              <p class="cf-result-empty-text">Llena los datos y selecciona el método para ver el desglose completo, gráfica y tabla mes a mes</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gráfica + tabla detallada (debajo del grid) -->
+        <div id="pt-am-extras" style="display:none">
+          <div class="cf-card pt-grafica-card">
+            <h3 class="cf-card-title">📉 Evolución del crédito</h3>
+            <p class="cf-card-sub">Visualización de saldo decreciente, capital amortizado e intereses pagados.</p>
+            <div class="pt-grafica-wrap">
+              <canvas id="pt-grafica-canvas"></canvas>
+            </div>
+            <div class="pt-grafica-leyenda">
+              <span class="pt-leg pt-leg-saldo">Saldo</span>
+              <span class="pt-leg pt-leg-capital">Capital pagado</span>
+              <span class="pt-leg pt-leg-intereses">Intereses pagados</span>
+            </div>
+          </div>
+
+          <div class="cf-card pt-tabla-card">
+            <div class="pt-tabla-header">
+              <div>
+                <h3 class="cf-card-title">📋 Tabla de amortización completa</h3>
+                <p class="cf-card-sub">Detalle mes a mes. Para uso completo, descarga el Excel.</p>
+              </div>
+              <div class="pt-tabla-controls">
+                <button class="cf-btn-secondary" id="btn-pt-tabla-toggle">
+                  <span id="pt-tabla-toggle-text">Ver completa</span>
+                </button>
+              </div>
+            </div>
+            <div class="pt-tabla-wrap" id="pt-tabla-wrap">
+              <table class="pt-tabla" id="pt-tabla"></table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 2: COMPARADOR ════════════ -->
+      <div class="cf-panel" data-ptpanel="comparador">
+        <div class="pt-comp-container">
+          <div class="cf-multi-header-bar">
+            <div>
+              <h3 class="cf-card-title" style="margin:0">💳 Comparador de Créditos</h3>
+              <p class="cf-card-sub" style="margin-top:4px">Compara hasta 4 opciones lado a lado y descubre la mejor.</p>
+            </div>
+            <button class="cf-btn-secondary" id="btn-pt-comp-add">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar opción
+            </button>
+          </div>
+
+          <div class="pt-comp-grid" id="pt-comp-grid"></div>
+
+          <div class="cf-multi-actions">
+            <button class="cf-btn-calc" id="btn-pt-comp-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Comparar Créditos
+            </button>
+          </div>
+
+          <div id="pt-comp-result"></div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 3: CAT ════════════ -->
+      <div class="cf-panel" data-ptpanel="cat">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">🎯 CAT (Costo Anual Total)</h3>
+            <p class="cf-card-sub">Calcula el CAT real considerando intereses + comisiones + seguros + IVA. Es la medida estandarizada que pide CONDUSEF.</p>
+
+            <div class="cf-field">
+              <label class="cf-label">Monto del crédito (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pt-cat-monto" placeholder="0.00" step="100" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Tasa de interés ANUAL (%)</label>
+              <input type="number" class="cf-input" id="pt-cat-tasa" placeholder="0.00" step="0.01" min="0" max="100">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Plazo (meses)</label>
+              <input type="number" class="cf-input" id="pt-cat-plazo" value="36" step="1" min="1">
+            </div>
+
+            <div class="cf-card-divider"><span>Costos adicionales</span></div>
+
+            <div class="cf-field">
+              <label class="cf-label">Comisión por apertura (MXN o %)</label>
+              <div class="cf-row-inline">
+                <input type="number" class="cf-input" id="pt-cat-comision" placeholder="0.00" step="0.01" min="0">
+                <select class="cf-input" id="pt-cat-comision-tipo" style="max-width:90px">
+                  <option value="monto">$</option>
+                  <option value="pct">%</option>
+                </select>
+              </div>
+              <p class="cf-help">Comisión inicial por gestión del crédito</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Seguro de vida/desempleo MENSUAL (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pt-cat-seguro" placeholder="0.00" step="0.01" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Otras comisiones recurrentes mensuales (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pt-cat-otros" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Manejo de cuenta, GPS (créditos auto), etc.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">¿Aplica IVA sobre intereses?</label>
+              <div class="cf-radio-group">
+                <label class="cf-radio is-active"><input type="radio" name="ptCatIva" value="no" checked> No (créditos a personas físicas)</label>
+                <label class="cf-radio"><input type="radio" name="ptCatIva" value="si"> Sí (créditos empresariales/PM)</label>
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre/Referencia <span class="cf-optional">(opcional)</span></label>
+              <input type="text" class="cf-input" id="pt-cat-nombre" placeholder="Ej. CAT crédito Banamex">
+            </div>
+
+            <button class="cf-btn-calc" id="btn-pt-cat-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular CAT
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="pt-cat-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon">🎯</div>
+              <p class="cf-result-empty-text">El CAT te dice el costo TOTAL real del crédito en términos anuales. Ideal para comparar entre bancos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 4: TIR & VPN ════════════ -->
+      <div class="cf-panel" data-ptpanel="tir">
+        <div class="pt-tir-container">
+          <div class="cf-multi-header-bar">
+            <div>
+              <h3 class="cf-card-title" style="margin:0">📈 TIR &amp; VPN — Evalúa inversiones</h3>
+              <p class="cf-card-sub" style="margin-top:4px">Determina si una inversión vale la pena: VPN positivo = sí conviene · TIR > tu costo de capital = sí conviene</p>
+            </div>
+          </div>
+
+          <div class="pt-tir-config">
+            <div class="cf-field">
+              <label class="cf-label">Inversión inicial (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pt-tir-inversion" placeholder="0.00" step="100" min="0">
+              </div>
+              <p class="cf-help">Capital que vas a poner inicialmente (Año 0)</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Tasa de descuento ANUAL (%) — costo de capital</label>
+              <input type="number" class="cf-input" id="pt-tir-tasa-desc" value="12" step="0.5" min="0" max="100">
+              <p class="cf-help">Lo que te costaría obtener el capital. CETES + spread, costo de oportunidad, etc.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre del proyecto <span class="cf-optional">(opcional)</span></label>
+              <input type="text" class="cf-input" id="pt-tir-nombre" placeholder="Ej. Apertura sucursal Tehuacán">
+            </div>
+          </div>
+
+          <div class="pt-tir-flujos-header">
+            <h4 style="font-family:'Plus Jakarta Sans', sans-serif;font-size:14px;font-weight:700;color:#fff;margin:0">Flujos esperados (ingresos netos por año)</h4>
+            <button class="cf-btn-secondary" id="btn-pt-tir-add">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar año
+            </button>
+          </div>
+
+          <div class="pt-tir-flujos" id="pt-tir-flujos"></div>
+
+          <div class="cf-multi-actions">
+            <button class="cf-btn-calc" id="btn-pt-tir-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular VPN y TIR
+            </button>
+          </div>
+
+          <div id="pt-tir-result"></div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 5: HISTORIAL ════════════ -->
+      <div class="cf-panel" data-ptpanel="historial">
+        <div class="cf-historial-header">
+          <div>
+            <p class="cf-historial-eyebrow">⏰ Tu historial de cálculos</p>
+            <p class="cf-historial-info">Los cálculos se conservan automáticamente <strong>7 días</strong>. Para conservarlos permanentemente, descarga el PDF o Excel.</p>
+          </div>
+          <button class="cf-btn-clear" id="btn-pt-clear-historial" title="Borrar todo el historial">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Limpiar todo
+          </button>
+        </div>
+        <div id="pt-historial-list"></div>
+      </div>
+
     </div>
 
     <!-- ============================================================
@@ -8241,6 +8553,1573 @@ buildVideoteca();
 </script>
 
 <!-- ============================================================
+     🛠️ TOOL #4: SIMULADOR PRÉSTAMO & TIR
+     - 4 calculadoras: Amortización, Comparador, CAT, TIR/VPN
+     - 3 métodos: Francés, Alemán, Bullet
+     - Chart.js para gráfica visual
+     - Historial 7 días + PDF + Excel
+     ============================================================ -->
+<!-- Cargar Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+
+<script>
+(function(){
+  'use strict';
+
+  // ═══════════════════════════════════════════════════════════
+  // FUNCIONES BASE
+  // ═══════════════════════════════════════════════════════════
+  const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtPct = (n) => (Number(n) || 0).toFixed(2) + '%';
+
+  // ═══════════════════════════════════════════════════════════
+  // HISTORIAL (separado de Calc Fiscal y Nómina)
+  // ═══════════════════════════════════════════════════════════
+  const PT_HIST_KEY = 'icadem_pt_historial_v1';
+  const HIST_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function ptLoadHist() {
+    try {
+      const raw = localStorage.getItem(PT_HIST_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      const now = Date.now();
+      const vivos = arr.filter(item => (now - item.fecha) < HIST_TTL_MS);
+      if (vivos.length !== arr.length) ptSaveHist(vivos);
+      return vivos;
+    } catch (e) { return []; }
+  }
+  function ptSaveHist(arr) {
+    try { localStorage.setItem(PT_HIST_KEY, JSON.stringify(arr)); } catch (e) {}
+  }
+  function ptPushHist(item) {
+    const arr = ptLoadHist();
+    item.id = 'pt_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    item.fecha = Date.now();
+    arr.unshift(item);
+    if (arr.length > 50) arr.length = 50;
+    ptSaveHist(arr);
+    ptActualizarBadge();
+    ptRenderHistorial();
+  }
+  function ptDeleteHistItem(id) {
+    const arr = ptLoadHist().filter(i => i.id !== id);
+    ptSaveHist(arr);
+    ptActualizarBadge();
+    ptRenderHistorial();
+  }
+  function ptClearHistAll() {
+    if (confirm('¿Borrar todo el historial? Esta acción no se puede deshacer.')) {
+      ptSaveHist([]);
+      ptActualizarBadge();
+      ptRenderHistorial();
+    }
+  }
+  function ptActualizarBadge() {
+    const badge = document.getElementById('pt-hist-count');
+    if (!badge) return;
+    const arr = ptLoadHist();
+    if (arr.length === 0) { badge.style.display = 'none'; return; }
+    badge.textContent = arr.length;
+    badge.style.display = 'inline-flex';
+  }
+  function ptDiasRestantes(fecha) {
+    const ms = HIST_TTL_MS - (Date.now() - fecha);
+    return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDERIZAR RESULTADO
+  // ═══════════════════════════════════════════════════════════
+  function ptRenderResultado(cardEl, data) {
+    const filas = data.filas.map(f => {
+      const isTotal = f.total;
+      const isNeg = f.negativo;
+      const isSubtotal = f.subtotal;
+      return `
+        <div class="cf-result-row ${isTotal ? 'is-total' : ''} ${isNeg ? 'is-neg' : ''} ${isSubtotal ? 'is-subtotal' : ''}">
+          <span class="cf-result-label">${f.etiqueta}</span>
+          <span class="cf-result-value">${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</span>
+        </div>
+      `;
+    }).join('');
+
+    window['_ptLastResult_' + cardEl.id] = data;
+
+    cardEl.innerHTML = `
+      <div class="cf-result-header">
+        <div>
+          <p class="cf-result-eyebrow">${data.tipoLabel}</p>
+          <h3 class="cf-result-title">${data.titulo}</h3>
+          ${data.subtitulo ? `<p class="cf-result-sub">${data.subtitulo}</p>` : ''}
+        </div>
+      </div>
+      <div class="cf-result-body">${filas}</div>
+      ${data.recomendacion ? `<div class="pt-recomendacion ${data.recomendacionClase || ''}">${data.recomendacion}</div>` : ''}
+      ${data.fundamento ? `<p class="cf-result-fundamento">📚 <strong>Nota:</strong> ${data.fundamento}</p>` : ''}
+      <div class="cf-result-actions">
+        <button class="cf-action cf-action-save" onclick="ptSaveAction('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+          Guardar (7 días)
+        </button>
+        <button class="cf-action cf-action-pdf" onclick="ptDownloadPDF('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+          Descargar PDF
+        </button>
+        <button class="cf-action cf-action-xls" onclick="ptDownloadXLS('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          Descargar Excel
+        </button>
+      </div>
+    `;
+  }
+
+  // Acciones públicas
+  window.ptSaveAction = function(cardId) {
+    const data = window['_ptLastResult_' + cardId];
+    if (!data) return;
+    ptPushHist(data);
+    const btn = event.target.closest('button');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg> Guardado · expira en 7d';
+    btn.classList.add('is-saved');
+    setTimeout(() => { btn.innerHTML = original; btn.classList.remove('is-saved'); }, 2500);
+  };
+  window.ptDownloadPDF = function(cardId) {
+    const data = window['_ptLastResult_' + cardId];
+    if (!data || !window.jspdf) return;
+    if (data.tipo === 'amortizacion') {
+      generarAmortizacionPDF(data);
+    } else if (typeof window._cfGenerarPDF === 'function') {
+      window._cfGenerarPDF(data);
+    }
+  };
+  window.ptDownloadXLS = function(cardId) {
+    const data = window['_ptLastResult_' + cardId];
+    if (!data || !window.XLSX) return;
+    if (data.tipo === 'amortizacion') {
+      generarAmortizacionXLS(data);
+    } else if (typeof window._cfGenerarXLS === 'function') {
+      window._cfGenerarXLS(data);
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #1: TABLA DE AMORTIZACIÓN (3 métodos)
+  // ═══════════════════════════════════════════════════════════
+  let chartInstance = null;
+
+  function calcularAmortizacionFrances(monto, tasaMensual, n) {
+    // Pago fijo = M * [r(1+r)^n] / [(1+r)^n - 1]
+    const factor = Math.pow(1 + tasaMensual, n);
+    const pago = tasaMensual === 0 ? monto / n : monto * (tasaMensual * factor) / (factor - 1);
+    const tabla = [];
+    let saldo = monto;
+    for (let i = 1; i <= n; i++) {
+      const interes = saldo * tasaMensual;
+      const capital = pago - interes;
+      saldo = saldo - capital;
+      if (i === n) saldo = 0; // ajuste por redondeo
+      tabla.push({ periodo: i, pago: pago, interes: interes, capital: capital, saldo: Math.max(0, saldo) });
+    }
+    return { tabla, pagoBase: pago, esPagoFijo: true };
+  }
+
+  function calcularAmortizacionAleman(monto, tasaMensual, n) {
+    // Capital fijo = monto / n. Intereses sobre saldo decreciente.
+    const capitalFijo = monto / n;
+    const tabla = [];
+    let saldo = monto;
+    for (let i = 1; i <= n; i++) {
+      const interes = saldo * tasaMensual;
+      const pago = capitalFijo + interes;
+      saldo = saldo - capitalFijo;
+      if (i === n) saldo = 0;
+      tabla.push({ periodo: i, pago: pago, interes: interes, capital: capitalFijo, saldo: Math.max(0, saldo) });
+    }
+    return { tabla, pagoBase: tabla[0].pago, esPagoFijo: false };
+  }
+
+  function calcularAmortizacionBullet(monto, tasaMensual, n) {
+    // Solo intereses cada periodo, capital total al final
+    const tabla = [];
+    for (let i = 1; i <= n; i++) {
+      const interes = monto * tasaMensual;
+      const capital = i === n ? monto : 0;
+      const pago = interes + capital;
+      const saldo = i === n ? 0 : monto;
+      tabla.push({ periodo: i, pago: pago, interes: interes, capital: capital, saldo: saldo });
+    }
+    return { tabla, pagoBase: tabla[0].pago, esPagoFijo: false };
+  }
+
+  function calcAmortizacion() {
+    const monto = parseFloat(document.getElementById('pt-am-monto').value) || 0;
+    const tasaAnual = parseFloat(document.getElementById('pt-am-tasa').value) || 0;
+    const plazoNum = parseInt(document.getElementById('pt-am-plazo-num').value) || 0;
+    const plazoUnidad = document.getElementById('pt-am-plazo-unidad').value;
+    const frecuencia = parseInt(document.getElementById('pt-am-frecuencia').value);
+    const metodo = document.querySelector('input[name="ptMetodo"]:checked').value;
+    const nombre = document.getElementById('pt-am-nombre').value.trim() || 'Crédito';
+
+    if (monto <= 0 || tasaAnual <= 0 || plazoNum <= 0) {
+      alert('Completa monto, tasa y plazo (todos mayores a cero)');
+      return;
+    }
+
+    // Convertir plazo a número de pagos según frecuencia
+    const meses = plazoUnidad === 'anios' ? plazoNum * 12 : plazoNum;
+    const n = Math.round((meses / 12) * frecuencia);
+    const tasaPeriodo = (tasaAnual / 100) / frecuencia;
+
+    let resultado;
+    let metodoLabel = '';
+    if (metodo === 'frances') {
+      resultado = calcularAmortizacionFrances(monto, tasaPeriodo, n);
+      metodoLabel = 'Sistema Francés (pagos fijos)';
+    } else if (metodo === 'aleman') {
+      resultado = calcularAmortizacionAleman(monto, tasaPeriodo, n);
+      metodoLabel = 'Sistema Alemán (pagos decrecientes)';
+    } else {
+      resultado = calcularAmortizacionBullet(monto, tasaPeriodo, n);
+      metodoLabel = 'Sistema Bullet (solo intereses + capital al final)';
+    }
+
+    const { tabla, pagoBase, esPagoFijo } = resultado;
+    const totalPagado = tabla.reduce((s, r) => s + r.pago, 0);
+    const totalIntereses = tabla.reduce((s, r) => s + r.interes, 0);
+    const tasaEfectivaAnual = (Math.pow(1 + tasaPeriodo, frecuencia) - 1) * 100;
+
+    const frecLabel = frecuencia === 12 ? 'mensual' : (frecuencia === 24 ? 'quincenal' : 'semanal');
+
+    const filas = [
+      { etiqueta: 'Monto del crédito', valor: monto },
+      { etiqueta: 'Tasa nominal anual', valor: fmtPct(tasaAnual) },
+      { etiqueta: 'Tasa efectiva anual', valor: fmtPct(tasaEfectivaAnual) },
+      { etiqueta: 'Plazo total', valor: n + ' pagos ' + frecLabel + 's' },
+      { etiqueta: 'Método de amortización', valor: metodoLabel },
+      { etiqueta: esPagoFijo ? 'Pago ' + frecLabel + ' (FIJO)' : 'Pago ' + frecLabel + ' inicial', valor: pagoBase, total: true },
+      ...(esPagoFijo ? [] : [{ etiqueta: 'Pago ' + frecLabel + ' final', valor: tabla[tabla.length-1].pago }]),
+      { etiqueta: 'Total pagado al final', valor: totalPagado, total: true },
+      { etiqueta: 'Total intereses pagados', valor: totalIntereses, negativo: true },
+      { etiqueta: 'Sobrecosto vs monto', valor: fmtPct((totalIntereses / monto) * 100) }
+    ];
+
+    ptRenderResultado(document.getElementById('pt-am-result-card'), {
+      tipo: 'amortizacion',
+      tipoLabel: '📊 Tabla de Amortización',
+      titulo: nombre,
+      subtitulo: metodoLabel,
+      filas: filas,
+      meta: {
+        monto, tasaAnual, plazoNum, plazoUnidad, frecuencia, metodo, metodoLabel, n, frecLabel,
+        pagoBase, totalPagado, totalIntereses, tasaEfectivaAnual
+      },
+      tabla: tabla,
+      fundamento: 'Cálculo basado en fórmulas estándar de amortización financiera. Tasa efectiva anual considera capitalización ' + frecLabel + '.'
+    });
+
+    // Mostrar gráfica + tabla
+    document.getElementById('pt-am-extras').style.display = 'block';
+    renderGraficaAmortizacion(tabla, monto, frecLabel);
+    renderTablaAmortizacion(tabla, frecLabel);
+  }
+
+  function renderGraficaAmortizacion(tabla, monto, frecLabel) {
+    const canvas = document.getElementById('pt-grafica-canvas');
+    if (!canvas || typeof Chart === 'undefined') return;
+    if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+
+    // Para gráficas con muchos puntos, agrupar para legibilidad
+    const labels = tabla.map(r => r.periodo);
+    const saldos = tabla.map(r => r.saldo);
+    let capitalAcum = 0, interesAcum = 0;
+    const capitalAcumArr = [];
+    const interesAcumArr = [];
+    tabla.forEach(r => {
+      capitalAcum += r.capital;
+      interesAcum += r.interes;
+      capitalAcumArr.push(capitalAcum);
+      interesAcumArr.push(interesAcum);
+    });
+
+    const ctx = canvas.getContext('2d');
+    chartInstance = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Saldo del crédito',
+            data: saldos,
+            borderColor: '#7dd8e0',
+            backgroundColor: 'rgba(125,216,224,0.18)',
+            borderWidth: 2.5,
+            tension: 0.25,
+            fill: true,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#7dd8e0',
+            pointHoverBorderWidth: 2
+          },
+          {
+            label: 'Capital pagado (acumulado)',
+            data: capitalAcumArr,
+            borderColor: '#f5d77a',
+            backgroundColor: 'rgba(245,215,122,0.06)',
+            borderWidth: 2,
+            tension: 0.25,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#f5d77a',
+            pointHoverBorderWidth: 2
+          },
+          {
+            label: 'Intereses pagados (acumulado)',
+            data: interesAcumArr,
+            borderColor: '#fca5a5',
+            backgroundColor: 'rgba(252,165,165,0.05)',
+            borderWidth: 2,
+            tension: 0.25,
+            fill: false,
+            pointRadius: 0,
+            pointHoverRadius: 5,
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: '#fca5a5',
+            pointHoverBorderWidth: 2,
+            borderDash: [5, 4]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(2,5,15,0.95)',
+            titleColor: '#fef3c7',
+            titleFont: { weight: 'bold', size: 12 },
+            bodyColor: '#cbd5e1',
+            bodyFont: { size: 11.5 },
+            borderColor: 'rgba(125,216,224,0.4)',
+            borderWidth: 1,
+            padding: 12,
+            cornerRadius: 8,
+            displayColors: true,
+            callbacks: {
+              title: (items) => 'Periodo ' + items[0].label,
+              label: (ctx) => '  ' + ctx.dataset.label + ': ' + fmt(ctx.parsed.y)
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Periodo (' + frecLabel + ')', color: 'rgba(167,196,199,0.7)', font: { size: 11 } },
+            grid: { color: 'rgba(125,216,224,0.06)', drawBorder: false },
+            ticks: { color: 'rgba(167,196,199,0.6)', font: { size: 10 }, maxTicksLimit: 12 }
+          },
+          y: {
+            title: { display: true, text: 'Monto (MXN)', color: 'rgba(167,196,199,0.7)', font: { size: 11 } },
+            grid: { color: 'rgba(125,216,224,0.06)', drawBorder: false },
+            ticks: {
+              color: 'rgba(167,196,199,0.6)',
+              font: { size: 10 },
+              callback: (v) => '$' + (v/1000).toLocaleString('es-MX', { maximumFractionDigits: 0 }) + 'k'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  let tablaCompleta = false;
+  function renderTablaAmortizacion(tabla, frecLabel) {
+    const t = document.getElementById('pt-tabla');
+    if (!t) return;
+
+    const filas = tablaCompleta || tabla.length <= 24
+      ? tabla
+      : [...tabla.slice(0, 12), { separador: true }, ...tabla.slice(-12)];
+
+    let html = `
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Pago</th>
+          <th>Interés</th>
+          <th>Capital</th>
+          <th>Saldo</th>
+        </tr>
+      </thead>
+      <tbody>
+    `;
+    filas.forEach(r => {
+      if (r.separador) {
+        html += `<tr class="pt-tabla-sep"><td colspan="5">···  ${tabla.length - 24} periodos intermedios ocultos · click "Ver completa" para mostrarlos  ···</td></tr>`;
+      } else {
+        html += `
+          <tr>
+            <td class="pt-tabla-num">${r.periodo}</td>
+            <td>${fmt(r.pago)}</td>
+            <td class="pt-tabla-interes">${fmt(r.interes)}</td>
+            <td class="pt-tabla-capital">${fmt(r.capital)}</td>
+            <td class="pt-tabla-saldo">${fmt(r.saldo)}</td>
+          </tr>
+        `;
+      }
+    });
+    html += '</tbody>';
+    t.innerHTML = html;
+
+    const toggleText = document.getElementById('pt-tabla-toggle-text');
+    if (toggleText) toggleText.textContent = tablaCompleta ? 'Ver resumida' : 'Ver completa (' + tabla.length + ' filas)';
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // GENERADOR PDF DE AMORTIZACIÓN (resumen ejecutivo)
+  // ═══════════════════════════════════════════════════════════
+  function generarAmortizacionPDF(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
+    const ahora = new Date();
+    const fechaLarga = ahora.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+    const horaFmt = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+    const folio = 'PT-' + ahora.getFullYear() + '-' + String(Date.now()).slice(-7);
+
+    function cleanText(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+        .replace(/[\u{2600}-\u{27BF}]/gu, '')
+        .replace(/[★⚠️📊📋💼🏢🎁🏖️💎📤💸📅🧮💰🎯📚🔥⏰💳📦📈📣🎤📜⚖️🎓🌐📐📉💥]/g, '')
+        .trim();
+    }
+
+    // Header
+    doc.setFillColor(11, 31, 74);
+    doc.rect(0, 0, pageW, 38, 'F');
+    doc.setFillColor(15, 47, 104);
+    doc.rect(0, 0, pageW, 8, 'F');
+    doc.setFillColor(245, 215, 122);
+    doc.rect(0, 38, pageW, 0.8, 'F');
+
+    doc.setFillColor(245, 215, 122);
+    doc.roundedRect(15, 13, 4, 14, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('ICADEM', 22, 22);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(245, 215, 122);
+    doc.text('PANEL VIP  |  SIMULADOR DE CRÉDITO', 22, 28);
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('icademx.com', pageW - 15, 14, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(200, 215, 245);
+    doc.text(fechaLarga + ' · ' + horaFmt + ' hrs', pageW - 15, 20, { align: 'right' });
+    doc.setTextColor(245, 215, 122);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Folio: ' + folio, pageW - 15, 26, { align: 'right' });
+
+    // Título
+    let y = 50;
+    doc.setTextColor(11, 31, 74);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text(cleanText(data.titulo), 15, y);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text(cleanText(data.subtitulo).toUpperCase(), 15, y);
+    y += 10;
+
+    // Card resumen pago
+    const m = data.meta;
+    const pagoLabel = m.metodo === 'frances' ? 'PAGO FIJO ' + m.frecLabel.toUpperCase() : 'PAGO ' + m.frecLabel.toUpperCase() + ' INICIAL';
+
+    doc.setFillColor(248, 213, 110);
+    doc.roundedRect(15.5, y + 0.5, pageW - 31, 22, 3, 3, 'F');
+    doc.setFillColor(254, 243, 199);
+    doc.roundedRect(15, y, pageW - 30, 22, 3, 3, 'F');
+    doc.setDrawColor(200, 150, 42);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(15, y, pageW - 30, 22, 3, 3, 'S');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(146, 64, 14);
+    doc.text(pagoLabel, 22, y + 8);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(120, 53, 15);
+    doc.text('Importe a pagar cada periodo', 22, y + 13);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.setTextColor(11, 31, 74);
+    doc.text(fmt(m.pagoBase), pageW - 22, y + 14, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(146, 64, 14);
+    doc.text('PESOS MEXICANOS', pageW - 22, y + 19, { align: 'right' });
+    y += 30;
+
+    // Sección: Resumen del crédito
+    doc.setFillColor(11, 31, 74);
+    doc.rect(15, y, 4, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(11, 31, 74);
+    doc.text('RESUMEN DEL CRÉDITO', 22, y + 4.5);
+    y += 9;
+
+    const filasPDF = data.filas.map(f => [
+      cleanText(f.etiqueta),
+      typeof f.valor === 'number' ? fmt(f.valor) : cleanText(String(f.valor))
+    ]);
+    doc.autoTable({
+      startY: y,
+      head: [['CONCEPTO', 'MONTO']],
+      body: filasPDF,
+      theme: 'plain',
+      headStyles: {
+        fillColor: [11, 31, 74], textColor: [245, 215, 122], fontSize: 9, fontStyle: 'bold',
+        cellPadding: { top: 4, right: 5, bottom: 4, left: 5 }, lineWidth: 0
+      },
+      bodyStyles: {
+        fontSize: 9.5, textColor: [30, 41, 59],
+        cellPadding: { top: 3.5, right: 5, bottom: 3.5, left: 5 },
+        lineColor: [226, 232, 240], lineWidth: 0.1
+      },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      columnStyles: { 0: { cellWidth: 115 }, 1: { halign: 'right', cellWidth: 65, fontStyle: 'bold', font: 'courier' } },
+      didParseCell: function(d) {
+        if (d.section === 'body') {
+          const fila = data.filas[d.row.index];
+          if (fila && fila.total) {
+            d.cell.styles.fillColor = [254, 243, 199];
+            d.cell.styles.textColor = [11, 31, 74];
+            d.cell.styles.fontStyle = 'bold';
+            d.cell.styles.fontSize = 10.5;
+          }
+          if (fila && fila.negativo) {
+            d.cell.styles.textColor = [185, 28, 28];
+          }
+        }
+      },
+      margin: { left: 15, right: 15 }
+    });
+    y = doc.lastAutoTable.finalY + 8;
+
+    // Primeras 12 + últimas 12 filas de la tabla
+    if (data.tabla && data.tabla.length > 0) {
+      if (y + 80 > pageH - 50) { doc.addPage(); y = 20; }
+
+      doc.setFillColor(11, 31, 74);
+      doc.rect(15, y, 4, 6, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(11, 31, 74);
+      doc.text('PRIMEROS Y ÚLTIMOS PAGOS', 22, y + 4.5);
+      y += 9;
+
+      const tablaPdfFilas = [];
+      const t = data.tabla;
+      const mostrar = t.length <= 24 ? t : [...t.slice(0, 6), { separador: true }, ...t.slice(-6)];
+      mostrar.forEach(r => {
+        if (r.separador) {
+          tablaPdfFilas.push([{ content: '·  ' + (t.length - 12) + ' periodos intermedios ·  Detalle completo en Excel  ·', colSpan: 5, styles: { halign: 'center', fillColor: [248, 250, 252], fontStyle: 'italic', textColor: [100, 116, 139] } }]);
+        } else {
+          tablaPdfFilas.push([
+            r.periodo.toString(),
+            fmt(r.pago),
+            fmt(r.interes),
+            fmt(r.capital),
+            fmt(r.saldo)
+          ]);
+        }
+      });
+
+      doc.autoTable({
+        startY: y,
+        head: [['#', 'PAGO', 'INTERÉS', 'CAPITAL', 'SALDO']],
+        body: tablaPdfFilas,
+        theme: 'plain',
+        headStyles: {
+          fillColor: [11, 31, 74], textColor: [245, 215, 122], fontSize: 8, fontStyle: 'bold',
+          cellPadding: { top: 3, right: 4, bottom: 3, left: 4 }, halign: 'right'
+        },
+        bodyStyles: {
+          fontSize: 8, textColor: [30, 41, 59], font: 'courier',
+          cellPadding: { top: 2.5, right: 4, bottom: 2.5, left: 4 },
+          lineColor: [226, 232, 240], lineWidth: 0.1, halign: 'right'
+        },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        columnStyles: { 0: { cellWidth: 12, halign: 'center', fontStyle: 'bold' } },
+        margin: { left: 15, right: 15 }
+      });
+      y = doc.lastAutoTable.finalY + 8;
+
+      // Nota Excel
+      doc.setFillColor(241, 245, 250);
+      doc.roundedRect(15, y, pageW - 30, 9, 1.5, 1.5, 'F');
+      doc.setFillColor(11, 31, 74);
+      doc.rect(15, y, 1.5, 9, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(11, 31, 74);
+      doc.text('TIP', 21, y + 4);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(51, 65, 85);
+      doc.text('Para ver el desglose mes a mes con todos los ' + t.length + ' periodos, descarga el archivo Excel.', 31, y + 4);
+      y += 12;
+    }
+
+    // Footer
+    const footerY = pageH - 28;
+    doc.setFillColor(254, 243, 199);
+    doc.roundedRect(15, footerY, pageW - 30, 18, 2, 2, 'F');
+    doc.setFillColor(245, 158, 11);
+    doc.rect(15, footerY, 1.5, 18, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(146, 64, 14);
+    doc.text('AVISO LEGAL', 21, footerY + 4.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(120, 53, 15);
+    const disc = 'Esta simulación es orientativa y no constituye oferta de credito ni asesoria financiera. Las tasas, comisiones y CAT reales pueden variar segun la institucion y condiciones del cliente. Para decisiones definitivas consulta a tu asesor financiero o institucion bancaria. ICADEM no se hace responsable.';
+    const discLines = doc.splitTextToSize(disc, pageW - 42);
+    doc.text(discLines, 21, footerY + 8.5);
+
+    doc.setFontSize(6.5);
+    doc.setTextColor(150, 158, 175);
+    doc.text('Generado por ICADEM Panel VIP', 15, pageH - 6);
+    doc.text('Folio: ' + folio, pageW / 2, pageH - 6, { align: 'center' });
+    const totalPaginas = doc.internal.getNumberOfPages();
+    doc.text('Página 1 de ' + totalPaginas, pageW - 15, pageH - 6, { align: 'right' });
+
+    const fileTitle = cleanText(data.titulo || 'amortizacion').replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+    doc.save('ICADEM_Credito_' + fileTitle + '_' + ahora.toISOString().slice(0, 10) + '.pdf');
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // GENERADOR EXCEL DE AMORTIZACIÓN (con tabla COMPLETA)
+  // ═══════════════════════════════════════════════════════════
+  function generarAmortizacionXLS(data) {
+    const ahora = new Date();
+    const fechaLarga = ahora.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+    const horaFmt = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+    const folio = 'PT-' + ahora.getFullYear() + '-' + String(Date.now()).slice(-7);
+    const m = data.meta;
+
+    function cleanText(s) {
+      if (!s) return '';
+      return String(s).replace(/[\u{1F300}-\u{1F9FF}]/gu, '').replace(/[\u{2600}-\u{27BF}]/gu, '').replace(/[📊📋💼🏢🎁🏖️💎📤💸📅🧮💰🎯📚📐📉💥]/g, '').trim();
+    }
+
+    const C = {
+      azulOscuro: '0B1F4A', azulMedio: '15315E', dorado: 'F5D77A', doradoLight: 'FEF3C7',
+      doradoDark: 'C8962A', blanco: 'FFFFFF', grisFondo: 'F8FAFC', grisLinea: 'E2E8F0',
+      grisTexto: '64748B', negroTexto: '0F172A', rojo: 'B91C1C', verde: '15803D',
+      ambarBg: 'FEF3C7', ambarText: '92400E'
+    };
+
+    const rows = [];
+    rows.push(['ICADEM', '', '', '', '']);
+    rows.push(['SIMULADOR DE CRÉDITO  |  TABLA DE AMORTIZACIÓN', '', '', '', '']);
+    rows.push(['Panel VIP  |  icademx.com', '', '', '', '']);
+    rows.push(['', '', '', '', '']);
+
+    rows.push(['DATOS DEL CRÉDITO', '', '', '', '']);
+    rows.push(['Folio:', folio, '', '', '']);
+    rows.push(['Fecha:', fechaLarga + ' · ' + horaFmt, '', '', '']);
+    rows.push(['Crédito:', cleanText(data.titulo), '', '', '']);
+    rows.push(['Método:', m.metodoLabel, '', '', '']);
+    rows.push(['Monto:', m.monto, '', '', '']);
+    rows.push(['Tasa nominal anual:', (m.tasaAnual / 100), '', '', '']);
+    rows.push(['Tasa efectiva anual:', (m.tasaEfectivaAnual / 100), '', '', '']);
+    rows.push(['Plazo:', m.n + ' pagos ' + m.frecLabel, '', '', '']);
+    rows.push(['', '', '', '', '']);
+
+    rows.push(['RESUMEN', '', '', '', '']);
+    rows.push([m.metodo === 'frances' ? 'Pago fijo ' + m.frecLabel : 'Pago ' + m.frecLabel + ' inicial', m.pagoBase, '', '', '']);
+    rows.push(['Total pagado al final:', m.totalPagado, '', '', '']);
+    rows.push(['Total intereses:', m.totalIntereses, '', '', '']);
+    rows.push(['', '', '', '', '']);
+
+    rows.push(['TABLA DE AMORTIZACIÓN COMPLETA', '', '', '', '']);
+    rows.push(['#', 'PAGO', 'INTERÉS', 'CAPITAL', 'SALDO']);
+    const tableHdrIdx = rows.length - 1;
+
+    const tableStartIdx = rows.length;
+    data.tabla.forEach(r => {
+      rows.push([r.periodo, r.pago, r.interes, r.capital, r.saldo]);
+    });
+
+    rows.push(['', '', '', '', '']);
+
+    // Disclaimer
+    rows.push(['AVISO LEGAL', '', '', '', '']);
+    const avisoIdx = rows.length - 1;
+    rows.push(['Esta simulación es orientativa y no constituye oferta de crédito ni asesoría financiera. Para decisiones definitivas consulta a tu asesor financiero. ICADEM no se hace responsable.', '', '', '', '']);
+    rows.push(['', '', '', '', '']);
+    rows.push(['Generado por ICADEM Panel VIP · icademx.com', '', '', '', '']);
+
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [{ wch: 8 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 18 }];
+
+    ws['!rows'] = rows.map((r, idx) => {
+      if (idx === 0) return { hpt: 38 };
+      if (idx === 1) return { hpt: 18 };
+      if (idx === 2) return { hpt: 14 };
+      if (idx === 4 || idx === 14 || idx === 19) return { hpt: 22 };
+      if (idx === tableHdrIdx) return { hpt: 22 };
+      return { hpt: 18 };
+    });
+
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 4 } },
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 4 } },
+      { s: { r: 14, c: 0 }, e: { r: 14, c: 4 } },
+      { s: { r: 19, c: 0 }, e: { r: 19, c: 4 } },
+      { s: { r: avisoIdx, c: 0 }, e: { r: avisoIdx, c: 4 } },
+      { s: { r: avisoIdx + 1, c: 0 }, e: { r: avisoIdx + 1, c: 4 } },
+      { s: { r: rows.length - 1, c: 0 }, e: { r: rows.length - 1, c: 4 } }
+    ];
+
+    function setCell(ref, value, style) {
+      if (!ws[ref]) ws[ref] = { t: typeof value === 'number' ? 'n' : 's', v: value };
+      ws[ref].s = style;
+    }
+
+    // Header
+    setCell('A1', 'ICADEM', {
+      font: { name: 'Calibri', sz: 26, bold: true, color: { rgb: C.blanco } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 }
+    });
+    ['B1','C1','D1','E1'].forEach(r => setCell(r, '', { fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } } }));
+    setCell('A2', 'SIMULADOR DE CRÉDITO  |  TABLA DE AMORTIZACIÓN', {
+      font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: C.dorado } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 }
+    });
+    ['B2','C2','D2','E2'].forEach(r => setCell(r, '', { fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } } }));
+    setCell('A3', 'Panel VIP  |  icademx.com', {
+      font: { name: 'Calibri', sz: 9, italic: true, color: { rgb: 'B0C5E5' } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+      border: { bottom: { style: 'medium', color: { rgb: C.dorado } } }
+    });
+    ['B3','C3','D3','E3'].forEach(r => setCell(r, '', {
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      border: { bottom: { style: 'medium', color: { rgb: C.dorado } } }
+    }));
+
+    // DATOS DEL CRÉDITO header
+    setCell('A5', 'DATOS DEL CRÉDITO', {
+      font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: C.azulOscuro } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.grisFondo } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        left: { style: 'thick', color: { rgb: C.azulOscuro } },
+        bottom: { style: 'thin', color: { rgb: C.grisLinea } }
+      }
+    });
+    // Filas 6-13 metadatos
+    for (let r = 6; r <= 13; r++) {
+      const cellA = ws['A' + r];
+      const cellB = ws['B' + r];
+      if (cellA) cellA.s = {
+        font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.grisTexto } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+        border: { left: { style: 'thick', color: { rgb: C.azulOscuro } } }
+      };
+      if (cellB) {
+        cellB.s = {
+          font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.azulOscuro } },
+          alignment: { horizontal: 'left', vertical: 'center', indent: 1 }
+        };
+        // Formatos especiales
+        if (r === 10) cellB.z = '"$"#,##0.00';
+        if (r === 11 || r === 12) { cellB.z = '0.00%'; }
+      }
+    }
+
+    // RESUMEN
+    setCell('A15', 'RESUMEN', {
+      font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: C.ambarText } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.doradoLight } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        left: { style: 'thick', color: { rgb: C.doradoDark } },
+        top: { style: 'medium', color: { rgb: C.doradoDark } },
+        bottom: { style: 'thin', color: { rgb: C.doradoDark } }
+      }
+    });
+    for (let r = 16; r <= 18; r++) {
+      const cellA = ws['A' + r];
+      const cellB = ws['B' + r];
+      const isPago = r === 16;
+      if (cellA) cellA.s = {
+        font: { name: 'Calibri', sz: isPago ? 11 : 10, bold: true, color: { rgb: C.azulOscuro } },
+        fill: { patternType: 'solid', fgColor: { rgb: isPago ? C.dorado : C.doradoLight } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+        border: {
+          left: { style: 'thick', color: { rgb: C.doradoDark } },
+          bottom: r === 18 ? { style: 'medium', color: { rgb: C.doradoDark } } : undefined
+        }
+      };
+      if (cellB) {
+        cellB.t = 'n'; cellB.z = '"$"#,##0.00';
+        cellB.s = {
+          font: { name: 'Calibri', sz: isPago ? 14 : 10.5, bold: true, color: { rgb: r === 17 || r === 18 ? C.rojo : C.azulOscuro } },
+          fill: { patternType: 'solid', fgColor: { rgb: isPago ? C.dorado : C.doradoLight } },
+          alignment: { horizontal: 'right', vertical: 'center', indent: 2 },
+          border: {
+            bottom: r === 18 ? { style: 'medium', color: { rgb: C.doradoDark } } : undefined
+          }
+        };
+      }
+    }
+
+    // Header de tabla
+    setCell('A20', 'TABLA DE AMORTIZACIÓN COMPLETA', {
+      font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: C.azulOscuro } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.grisFondo } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        left: { style: 'thick', color: { rgb: C.azulOscuro } },
+        bottom: { style: 'thin', color: { rgb: C.grisLinea } }
+      }
+    });
+
+    // Header columnas tabla
+    const tableHdrR = tableHdrIdx + 1;
+    ['#', 'PAGO', 'INTERÉS', 'CAPITAL', 'SALDO'].forEach((label, i) => {
+      const ref = ['A','B','C','D','E'][i] + tableHdrR;
+      setCell(ref, label, {
+        font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.dorado } },
+        fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+        alignment: { horizontal: i === 0 ? 'center' : 'right', vertical: 'center', indent: i === 0 ? 0 : 2 },
+        border: {
+          top: { style: 'medium', color: { rgb: C.azulOscuro } },
+          bottom: { style: 'thin', color: { rgb: C.dorado } }
+        }
+      });
+    });
+
+    // Filas tabla
+    data.tabla.forEach((r, i) => {
+      const xlRow = tableHdrR + 1 + i;
+      const zebra = (i % 2 === 0) ? C.grisFondo : C.blanco;
+      const isUltima = i === data.tabla.length - 1;
+
+      setCell('A' + xlRow, r.periodo, {
+        font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.azulMedio } },
+        fill: { patternType: 'solid', fgColor: { rgb: zebra } },
+        alignment: { horizontal: 'center', vertical: 'center' },
+        border: { bottom: { style: 'thin', color: { rgb: C.grisLinea } } }
+      });
+      ['B','C','D','E'].forEach((col, idx) => {
+        const value = [r.pago, r.interes, r.capital, r.saldo][idx];
+        const cell = ws[col + xlRow];
+        if (cell) {
+          cell.t = 'n';
+          cell.z = '"$"#,##0.00';
+          const isInteres = idx === 1;
+          cell.s = {
+            font: {
+              name: 'Calibri', sz: 10,
+              bold: isUltima,
+              color: { rgb: isInteres ? C.rojo : (idx === 2 ? C.verde : C.azulMedio) }
+            },
+            fill: { patternType: 'solid', fgColor: { rgb: zebra } },
+            alignment: { horizontal: 'right', vertical: 'center', indent: 2 },
+            border: { bottom: { style: isUltima ? 'medium' : 'thin', color: { rgb: isUltima ? C.doradoDark : C.grisLinea } } }
+          };
+        }
+      });
+    });
+
+    // Aviso legal
+    setCell('A' + (avisoIdx + 1), 'AVISO LEGAL', {
+      font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.ambarText } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.ambarBg } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+      border: { left: { style: 'thick', color: { rgb: 'D97706' } } }
+    });
+    setCell('A' + (avisoIdx + 2), ws['A' + (avisoIdx + 2)] ? ws['A' + (avisoIdx + 2)].v : '', {
+      font: { name: 'Calibri', sz: 9.5, color: { rgb: '78350F' } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.ambarBg } },
+      alignment: { horizontal: 'left', vertical: 'top', wrapText: true, indent: 2 },
+      border: { left: { style: 'thick', color: { rgb: 'D97706' } }, bottom: { style: 'medium', color: { rgb: 'D97706' } } }
+    });
+    ws['!rows'][avisoIdx + 1] = { hpt: 50 };
+
+    // Footer
+    setCell('A' + rows.length, 'Generado por ICADEM Panel VIP · icademx.com', {
+      font: { name: 'Calibri', sz: 9, italic: true, color: { rgb: C.grisTexto } },
+      alignment: { horizontal: 'center', vertical: 'center' }
+    });
+
+    ws['!ref'] = 'A1:E' + rows.length;
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Amortización');
+    wb.Props = {
+      Title: cleanText(data.titulo), Subject: 'Amortización', Author: 'ICADEM Panel VIP',
+      Company: 'ICADEM', CreatedDate: ahora
+    };
+
+    const fileTitle = cleanText(data.titulo || 'amortizacion').replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+    XLSX.writeFile(wb, 'ICADEM_Amortizacion_' + fileTitle + '_' + ahora.toISOString().slice(0, 10) + '.xlsx', { cellStyles: true });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #2: COMPARADOR DE CRÉDITOS
+  // ═══════════════════════════════════════════════════════════
+  let compNextId = 1;
+  function compAddOption(option) {
+    const grid = document.getElementById('pt-comp-grid');
+    if (!grid || grid.children.length >= 4) {
+      if (grid && grid.children.length >= 4) alert('Máximo 4 opciones para comparar');
+      return;
+    }
+    const id = compNextId++;
+    const div = document.createElement('div');
+    div.className = 'pt-comp-card';
+    div.dataset.id = id;
+    div.innerHTML = `
+      <div class="pt-comp-card-head">
+        <span class="pt-comp-card-num">Opción ${grid.children.length + 1}</span>
+        <button type="button" class="cf-btn-icon pt-comp-del" title="Eliminar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">Nombre / Banco</label>
+        <input type="text" class="cf-input pt-comp-nombre" placeholder="Ej. BBVA Crédito Pyme" value="${option ? option.nombre : ''}">
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">Monto (MXN)</label>
+        <div class="cf-input-prefix">
+          <span class="cf-prefix">$</span>
+          <input type="number" class="cf-input pt-comp-monto" placeholder="0.00" step="100" min="0" value="${option ? option.monto : ''}">
+        </div>
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">Tasa anual (%)</label>
+        <input type="number" class="cf-input pt-comp-tasa" placeholder="0.00" step="0.01" min="0" value="${option ? option.tasa : ''}">
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">Plazo (meses)</label>
+        <input type="number" class="cf-input pt-comp-plazo" placeholder="36" step="1" min="1" value="${option ? option.plazo : 36}">
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">Comisión apertura (MXN)</label>
+        <div class="cf-input-prefix">
+          <span class="cf-prefix">$</span>
+          <input type="number" class="cf-input pt-comp-comision" placeholder="0.00" step="0.01" min="0" value="${option ? option.comision : 0}">
+        </div>
+      </div>
+      <div class="cf-field">
+        <label class="cf-label">Seguro mensual (MXN)</label>
+        <div class="cf-input-prefix">
+          <span class="cf-prefix">$</span>
+          <input type="number" class="cf-input pt-comp-seguro" placeholder="0.00" step="0.01" min="0" value="${option ? option.seguro : 0}">
+        </div>
+      </div>
+    `;
+    grid.appendChild(div);
+    div.querySelector('.pt-comp-del').addEventListener('click', () => {
+      div.remove();
+      grid.querySelectorAll('.pt-comp-card-num').forEach((el, i) => { el.textContent = 'Opción ' + (i + 1); });
+    });
+    if (typeof injectarSpinnersPT === 'function') injectarSpinnersPT();
+  }
+
+  function calcCAT(monto, tasaAnual, n, comision, seguroMensual, conIVA) {
+    // CAT calculado iterativamente: tasa que iguala el flujo neto
+    const tasaMensual = tasaAnual / 100 / 12;
+    const factor = Math.pow(1 + tasaMensual, n);
+    const pagoBase = tasaMensual === 0 ? monto / n : monto * (tasaMensual * factor) / (factor - 1);
+    const pagoConSeguro = pagoBase + seguroMensual;
+    const ivaFactor = conIVA ? 1.16 : 1;
+
+    // Flujo: el cliente recibe (monto - comision)
+    const recibido = monto - comision;
+    // Pagos mensuales: pagoConSeguro * ivaFactor
+
+    // Encontrar tasa i tal que: recibido = pagoConSeguro*ivaFactor * [(1-(1+i)^-n)/i]
+    // Bisección
+    let lo = 0, hi = 5; // tasa mensual entre 0 y 500%
+    let cat = 0;
+    const pagoEfectivo = pagoConSeguro * ivaFactor;
+    for (let iter = 0; iter < 100; iter++) {
+      const mid = (lo + hi) / 2;
+      const valor = mid === 0
+        ? pagoEfectivo * n
+        : pagoEfectivo * (1 - Math.pow(1 + mid, -n)) / mid;
+      if (valor > recibido) lo = mid;
+      else hi = mid;
+      if (Math.abs(hi - lo) < 1e-8) break;
+      cat = (lo + hi) / 2;
+    }
+    // CAT efectivo anual
+    const catAnual = (Math.pow(1 + cat, 12) - 1) * 100;
+    return { pagoBase, pagoConSeguro, pagoEfectivo, catAnual, totalPagado: pagoEfectivo * n + comision };
+  }
+
+  function calcComp() {
+    const grid = document.getElementById('pt-comp-grid');
+    if (!grid || grid.children.length === 0) {
+      alert('Agrega al menos una opción de crédito');
+      return;
+    }
+
+    const opciones = [];
+    grid.querySelectorAll('.pt-comp-card').forEach((card, i) => {
+      const nombre = card.querySelector('.pt-comp-nombre').value || ('Opción ' + (i + 1));
+      const monto = parseFloat(card.querySelector('.pt-comp-monto').value) || 0;
+      const tasa = parseFloat(card.querySelector('.pt-comp-tasa').value) || 0;
+      const plazo = parseInt(card.querySelector('.pt-comp-plazo').value) || 0;
+      const comision = parseFloat(card.querySelector('.pt-comp-comision').value) || 0;
+      const seguro = parseFloat(card.querySelector('.pt-comp-seguro').value) || 0;
+
+      if (monto > 0 && tasa > 0 && plazo > 0) {
+        const cat = calcCAT(monto, tasa, plazo, comision, seguro, false);
+        opciones.push({ nombre, monto, tasa, plazo, comision, seguro, ...cat });
+      }
+    });
+
+    if (opciones.length === 0) {
+      alert('Ninguna opción tiene datos válidos. Llena monto, tasa y plazo en al menos una.');
+      return;
+    }
+
+    // Mejor opción: menor CAT
+    const mejorIdx = opciones.reduce((bestIdx, o, i, arr) => o.catAnual < arr[bestIdx].catAnual ? i : bestIdx, 0);
+
+    const cont = document.getElementById('pt-comp-result');
+    cont.innerHTML = `
+      <div class="cf-card cf-card-result" id="pt-comp-result-card" style="margin-top:1.25rem">
+        <div class="cf-result-header">
+          <div>
+            <p class="cf-result-eyebrow">💳 Comparación de Créditos</p>
+            <h3 class="cf-result-title">${opciones.length} opciones comparadas</h3>
+          </div>
+        </div>
+        <div class="pt-comp-result-table">
+          <table class="cf-multi-table">
+            <thead>
+              <tr>
+                <th>Opción</th>
+                <th style="text-align:right">Pago mensual</th>
+                <th style="text-align:right">Total pagado</th>
+                <th style="text-align:right">CAT</th>
+                <th>Recomendación</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${opciones.map((o, i) => `
+                <tr ${i === mejorIdx ? 'class="pt-comp-best"' : ''}>
+                  <td><strong>${o.nombre}</strong><br><span style="font-size:11px;color:rgba(167,196,199,0.7)">Tasa ${fmtPct(o.tasa)} · ${o.plazo} meses</span></td>
+                  <td style="text-align:right;font-family:monospace;font-weight:bold">${fmt(o.pagoEfectivo)}</td>
+                  <td style="text-align:right;font-family:monospace">${fmt(o.totalPagado)}</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:bold;color:${i === mejorIdx ? '#86efac' : '#fca5a5'}">${fmtPct(o.catAnual)}</td>
+                  <td>${i === mejorIdx ? '<span class="pt-best-badge">⭐ MEJOR OPCIÓN</span>' : '—'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="pt-recomendacion is-good">
+          <strong>🏆 Recomendación:</strong> La opción <strong>"${opciones[mejorIdx].nombre}"</strong> tiene el CAT más bajo
+          (${fmtPct(opciones[mejorIdx].catAnual)}). Te ahorras
+          <strong>${fmt(opciones.reduce((s, o, i) => i === mejorIdx ? s : s + (o.totalPagado - opciones[mejorIdx].totalPagado), 0) / (opciones.length - 1 || 1))}</strong>
+          en promedio comparado con las demás opciones.
+        </div>
+        <p class="cf-result-fundamento">📚 <strong>Sobre el CAT:</strong> El Costo Anual Total incluye intereses + comisiones + seguros. Es la medida estandarizada por CONDUSEF para comparar créditos en igualdad de condiciones. <strong>A menor CAT, mejor crédito.</strong></p>
+      </div>
+    `;
+
+    // Datos para descarga
+    const dataComp = {
+      tipo: 'comparador',
+      tipoLabel: '💳 Comparador de Créditos',
+      titulo: 'Comparación de ' + opciones.length + ' opciones',
+      subtitulo: 'Mejor opción: ' + opciones[mejorIdx].nombre,
+      filas: opciones.flatMap((o, i) => [
+        { etiqueta: '— ' + o.nombre + ' (Tasa ' + fmtPct(o.tasa) + ')', valor: '' },
+        { etiqueta: '   Pago mensual', valor: o.pagoEfectivo },
+        { etiqueta: '   Total pagado', valor: o.totalPagado },
+        { etiqueta: '   CAT', valor: fmtPct(o.catAnual) + (i === mejorIdx ? '  ⭐ MEJOR' : '') }
+      ]),
+      fundamento: 'Comparación basada en CAT (Costo Anual Total) según CONDUSEF. La mejor opción es "' + opciones[mejorIdx].nombre + '" con CAT de ' + fmtPct(opciones[mejorIdx].catAnual) + '.'
+    };
+    window['_ptLastResult_pt-comp-result-card'] = dataComp;
+
+    document.getElementById('pt-comp-result-card').insertAdjacentHTML('beforeend', `
+      <div class="cf-result-actions">
+        <button class="cf-action cf-action-save" onclick="ptSaveAction('pt-comp-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+          Guardar (7 días)
+        </button>
+        <button class="cf-action cf-action-pdf" onclick="ptDownloadPDF('pt-comp-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+          Descargar PDF
+        </button>
+        <button class="cf-action cf-action-xls" onclick="ptDownloadXLS('pt-comp-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          Descargar Excel
+        </button>
+      </div>
+    `);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #3: CAT INDIVIDUAL
+  // ═══════════════════════════════════════════════════════════
+  function calcCATIndividual() {
+    const monto = parseFloat(document.getElementById('pt-cat-monto').value) || 0;
+    const tasa = parseFloat(document.getElementById('pt-cat-tasa').value) || 0;
+    const plazo = parseInt(document.getElementById('pt-cat-plazo').value) || 0;
+    const comisionVal = parseFloat(document.getElementById('pt-cat-comision').value) || 0;
+    const comisionTipo = document.getElementById('pt-cat-comision-tipo').value;
+    const seguro = parseFloat(document.getElementById('pt-cat-seguro').value) || 0;
+    const otros = parseFloat(document.getElementById('pt-cat-otros').value) || 0;
+    const conIVA = document.querySelector('input[name="ptCatIva"]:checked').value === 'si';
+    const nombre = document.getElementById('pt-cat-nombre').value.trim() || 'CAT crédito';
+
+    if (monto <= 0 || tasa <= 0 || plazo <= 0) {
+      alert('Completa monto, tasa y plazo (todos mayores a cero)');
+      return;
+    }
+
+    const comisionMonto = comisionTipo === 'pct' ? monto * (comisionVal / 100) : comisionVal;
+    const seguroMensual = seguro + otros;
+    const cat = calcCAT(monto, tasa, plazo, comisionMonto, seguroMensual, conIVA);
+
+    // Calcular sin extras (solo intereses) para comparación
+    const tasaMensual = tasa / 100 / 12;
+    const factorSimple = Math.pow(1 + tasaMensual, plazo);
+    const pagoSimple = tasaMensual === 0 ? monto / plazo : monto * (tasaMensual * factorSimple) / (factorSimple - 1);
+    const totalSinExtras = pagoSimple * plazo;
+    const sobrecostoExtras = cat.totalPagado - totalSinExtras;
+
+    const filas = [
+      { etiqueta: 'Monto del crédito', valor: monto },
+      { etiqueta: 'Tasa nominal anual', valor: fmtPct(tasa) },
+      { etiqueta: 'Plazo', valor: plazo + ' meses' },
+      { etiqueta: 'Comisión apertura', valor: comisionMonto, negativo: true },
+      ...(seguro > 0 ? [{ etiqueta: 'Seguro mensual × ' + plazo, valor: seguro * plazo, negativo: true }] : []),
+      ...(otros > 0 ? [{ etiqueta: 'Otras comisiones × ' + plazo, valor: otros * plazo, negativo: true }] : []),
+      ...(conIVA ? [{ etiqueta: '✓ IVA 16% aplicado a intereses', valor: '' }] : []),
+      { etiqueta: 'Pago mensual base (solo capital + intereses)', valor: cat.pagoBase },
+      { etiqueta: 'Pago mensual TOTAL (con seguros e IVA)', valor: cat.pagoEfectivo, total: true },
+      { etiqueta: 'TOTAL pagado al final', valor: cat.totalPagado, total: true },
+      { etiqueta: 'Total sin extras (solo intereses)', valor: totalSinExtras },
+      { etiqueta: 'Sobrecosto por extras', valor: sobrecostoExtras, negativo: true },
+      { etiqueta: 'CAT REAL (Costo Anual Total)', valor: fmtPct(cat.catAnual), total: true }
+    ];
+
+    let recomendacion = '', clase = '';
+    if (cat.catAnual < 30) {
+      recomendacion = '<strong>✅ CAT competitivo.</strong> Está dentro del promedio de mercado para créditos PyME en México.';
+      clase = 'is-good';
+    } else if (cat.catAnual < 60) {
+      recomendacion = '<strong>⚠️ CAT moderado.</strong> Compara con otras opciones antes de aceptar.';
+      clase = 'is-warning';
+    } else {
+      recomendacion = '<strong>🚨 CAT alto.</strong> Busca alternativas — este crédito es caro respecto al mercado.';
+      clase = 'is-bad';
+    }
+
+    ptRenderResultado(document.getElementById('pt-cat-result-card'), {
+      tipo: 'cat',
+      tipoLabel: '🎯 CAT Real',
+      titulo: nombre,
+      subtitulo: 'Análisis de costo total del crédito',
+      filas: filas,
+      recomendacion: recomendacion,
+      recomendacionClase: clase,
+      fundamento: 'CAT (Costo Anual Total) calculado según metodología CONDUSEF. Considera intereses + comisiones + seguros' + (conIVA ? ' + IVA' : '') + '. A menor CAT, mejor crédito. CAT < 30% es competitivo en México.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #4: TIR & VPN
+  // ═══════════════════════════════════════════════════════════
+  let tirNextYear = 1;
+  function tirAddRow(option) {
+    const cont = document.getElementById('pt-tir-flujos');
+    if (!cont) return;
+    const year = option ? option.year : (cont.children.length + 1);
+    const div = document.createElement('div');
+    div.className = 'pt-tir-flujo-row';
+    div.innerHTML = `
+      <div class="pt-tir-year">Año ${year}</div>
+      <div class="cf-input-prefix" style="flex:1">
+        <span class="cf-prefix">$</span>
+        <input type="number" class="cf-input pt-tir-flujo-input" placeholder="0.00" step="100" value="${option ? option.flujo : ''}">
+      </div>
+      <button type="button" class="cf-btn-icon pt-tir-del" title="Eliminar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    `;
+    cont.appendChild(div);
+    div.querySelector('.pt-tir-del').addEventListener('click', () => {
+      div.remove();
+      cont.querySelectorAll('.pt-tir-year').forEach((el, i) => { el.textContent = 'Año ' + (i + 1); });
+    });
+    if (typeof injectarSpinnersPT === 'function') injectarSpinnersPT();
+  }
+
+  function calcVPN(flujos, tasa) {
+    return flujos.reduce((vpn, f, i) => vpn + f / Math.pow(1 + tasa, i), 0);
+  }
+  function calcTIR(flujos) {
+    // Bisección para encontrar TIR
+    let lo = -0.99, hi = 10;
+    for (let i = 0; i < 200; i++) {
+      const mid = (lo + hi) / 2;
+      const vpn = calcVPN(flujos, mid);
+      if (Math.abs(vpn) < 0.01) return mid;
+      if (vpn > 0) lo = mid; else hi = mid;
+    }
+    return (lo + hi) / 2;
+  }
+  function calcPayback(inversion, flujos) {
+    let acum = 0;
+    for (let i = 0; i < flujos.length; i++) {
+      acum += flujos[i];
+      if (acum >= inversion) {
+        const restoNecesario = inversion - (acum - flujos[i]);
+        const meses = (restoNecesario / flujos[i]) * 12;
+        return (i - 1) + (meses / 12);
+      }
+    }
+    return null; // no recupera
+  }
+
+  function calcTIRTool() {
+    const inversion = parseFloat(document.getElementById('pt-tir-inversion').value) || 0;
+    const tasaDesc = (parseFloat(document.getElementById('pt-tir-tasa-desc').value) || 0) / 100;
+    const nombre = document.getElementById('pt-tir-nombre').value.trim() || 'Proyecto';
+
+    const flujosInputs = document.querySelectorAll('.pt-tir-flujo-input');
+    const flujosFuturos = [];
+    flujosInputs.forEach(i => flujosFuturos.push(parseFloat(i.value) || 0));
+
+    if (inversion <= 0) { alert('Ingresa la inversión inicial'); return; }
+    if (flujosFuturos.length === 0 || flujosFuturos.every(f => f === 0)) {
+      alert('Agrega al menos un flujo positivo esperado');
+      return;
+    }
+
+    // Flujos completos: [-inversion, flujo1, flujo2, ...]
+    const flujosCompletos = [-inversion, ...flujosFuturos];
+
+    const vpn = calcVPN(flujosCompletos, tasaDesc);
+    const tir = calcTIR(flujosCompletos);
+    const payback = calcPayback(inversion, flujosFuturos);
+    const totalFlujos = flujosFuturos.reduce((s, f) => s + f, 0);
+
+    const conviene = vpn > 0;
+    const tirSupera = tir > tasaDesc;
+
+    let recomendacion = '', clase = '';
+    if (conviene && tirSupera) {
+      recomendacion = '<strong>✅ EL PROYECTO CONVIENE.</strong> VPN positivo y TIR (' + (tir * 100).toFixed(2) + '%) supera tu costo de capital (' + (tasaDesc * 100).toFixed(2) + '%). Adelante.';
+      clase = 'is-good';
+    } else if (conviene && !tirSupera) {
+      recomendacion = '<strong>⚠️ MARGINAL.</strong> VPN positivo pero TIR muy cercana al costo de capital. Evalúa riesgo cuidadosamente.';
+      clase = 'is-warning';
+    } else {
+      recomendacion = '<strong>🚨 NO CONVIENE.</strong> VPN negativo o TIR menor al costo de capital. Esta inversión destruye valor.';
+      clase = 'is-bad';
+    }
+
+    const filas = [
+      { etiqueta: 'Inversión inicial', valor: inversion, negativo: true },
+      { etiqueta: 'Total flujos esperados', valor: totalFlujos },
+      { etiqueta: 'Periodos evaluados', valor: flujosFuturos.length + ' años' },
+      { etiqueta: 'Tasa de descuento (costo de capital)', valor: fmtPct(tasaDesc * 100) },
+      { etiqueta: 'VPN — Valor Presente Neto', valor: vpn, total: true, negativo: vpn < 0 },
+      { etiqueta: 'TIR — Tasa Interna de Retorno', valor: fmtPct(tir * 100), total: true },
+      { etiqueta: 'Payback (recuperación)', valor: payback === null ? 'No recupera en el periodo' : payback.toFixed(2) + ' años' }
+    ];
+
+    const cont = document.getElementById('pt-tir-result');
+    cont.innerHTML = `
+      <div class="cf-card cf-card-result" id="pt-tir-result-card" style="margin-top:1.25rem">
+        <div class="cf-result-header">
+          <div>
+            <p class="cf-result-eyebrow">📈 ANÁLISIS DE INVERSIÓN</p>
+            <h3 class="cf-result-title">${nombre}</h3>
+            <p class="cf-result-sub">${flujosFuturos.length} años · Inversión inicial ${fmt(inversion)}</p>
+          </div>
+        </div>
+        <div class="cf-result-body">
+          ${filas.map(f => `
+            <div class="cf-result-row ${f.total ? 'is-total' : ''} ${f.negativo ? 'is-neg' : ''}">
+              <span class="cf-result-label">${f.etiqueta}</span>
+              <span class="cf-result-value">${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="pt-recomendacion ${clase}">${recomendacion}</div>
+        <p class="cf-result-fundamento">📚 <strong>Cómo leerlo:</strong> VPN > 0 = el proyecto genera valor. TIR > tasa de descuento = el rendimiento supera tu costo de capital. Si ambos se cumplen, la inversión conviene.</p>
+      </div>
+    `;
+
+    const dataTir = {
+      tipo: 'tir',
+      tipoLabel: '📈 TIR & VPN',
+      titulo: nombre,
+      subtitulo: flujosFuturos.length + ' años · Inversión ' + fmt(inversion),
+      filas: filas,
+      recomendacion: recomendacion,
+      recomendacionClase: clase,
+      fundamento: 'VPN calculado descontando flujos futuros al ' + fmtPct(tasaDesc * 100) + ' anual. TIR es la tasa que iguala VPN a cero.'
+    };
+    window['_ptLastResult_pt-tir-result-card'] = dataTir;
+
+    document.getElementById('pt-tir-result-card').insertAdjacentHTML('beforeend', `
+      <div class="cf-result-actions">
+        <button class="cf-action cf-action-save" onclick="ptSaveAction('pt-tir-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+          Guardar (7 días)
+        </button>
+        <button class="cf-action cf-action-pdf" onclick="ptDownloadPDF('pt-tir-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+          Descargar PDF
+        </button>
+        <button class="cf-action cf-action-xls" onclick="ptDownloadXLS('pt-tir-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          Descargar Excel
+        </button>
+      </div>
+    `);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDERIZAR HISTORIAL
+  // ═══════════════════════════════════════════════════════════
+  function ptRenderHistorial() {
+    const cont = document.getElementById('pt-historial-list');
+    if (!cont) return;
+    const arr = ptLoadHist();
+    if (arr.length === 0) {
+      cont.innerHTML = `
+        <div class="cf-hist-empty">
+          <div style="font-size:48px;margin-bottom:1rem">📅</div>
+          <p style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px">Tu historial está vacío</p>
+          <p style="font-size:12.5px;color:rgba(167,196,199,0.7)">Cuando guardes un cálculo aparecerá aquí. Se mantiene 7 días automáticamente.</p>
+        </div>
+      `;
+      return;
+    }
+
+    cont.innerHTML = arr.map(item => {
+      const dias = ptDiasRestantes(item.fecha);
+      const fecha = new Date(item.fecha);
+      const expirando = dias <= 2;
+      const previewFilas = item.filas.filter(f => f.total).slice(0, 2).map(f =>
+        `<span><strong>${f.etiqueta}:</strong> ${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</span>`
+      ).join(' · ');
+
+      return `
+        <article class="cf-hist-card ${expirando ? 'cf-hist-card-expiring' : ''}">
+          <div class="cf-hist-card-head">
+            <div class="cf-hist-card-info">
+              <span class="cf-hist-card-tipo">${item.tipoLabel}</span>
+              <h4 class="cf-hist-card-titulo">${item.titulo}</h4>
+              ${item.subtitulo ? `<p class="cf-hist-card-sub">${item.subtitulo}</p>` : ''}
+            </div>
+            <div class="cf-hist-card-meta">
+              <span class="cf-hist-card-fecha">${fecha.toLocaleDateString('es-MX', { day:'numeric', month:'short' })} · ${fecha.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}</span>
+              <span class="cf-hist-card-ttl ${expirando ? 'is-expiring' : ''}">⏰ Expira en ${dias} día${dias !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          ${previewFilas ? `<div class="cf-hist-card-preview">${previewFilas}</div>` : ''}
+          <div class="cf-hist-card-actions">
+            <button class="cf-action cf-action-pdf-sm" onclick="ptHistDownloadPDF('${item.id}')">PDF</button>
+            <button class="cf-action cf-action-xls-sm" onclick="ptHistDownloadXLS('${item.id}')">Excel</button>
+            <button class="cf-action cf-action-del-sm" onclick="ptHistDelete('${item.id}')">Borrar</button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+  window.ptHistDownloadPDF = function(id) {
+    const item = ptLoadHist().find(i => i.id === id);
+    if (!item) return;
+    if (item.tipo === 'amortizacion') generarAmortizacionPDF(item);
+    else if (typeof window._cfGenerarPDF === 'function') window._cfGenerarPDF(item);
+  };
+  window.ptHistDownloadXLS = function(id) {
+    const item = ptLoadHist().find(i => i.id === id);
+    if (!item) return;
+    if (item.tipo === 'amortizacion') generarAmortizacionXLS(item);
+    else if (typeof window._cfGenerarXLS === 'function') window._cfGenerarXLS(item);
+  };
+  window.ptHistDelete = function(id) {
+    if (confirm('¿Borrar este cálculo del historial?')) ptDeleteHistItem(id);
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // EVENTOS
+  // ═══════════════════════════════════════════════════════════
+  document.querySelectorAll('.cf-tab[data-pttab]').forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.pttab;
+      document.querySelectorAll('.cf-tab[data-pttab]').forEach(b => b.classList.remove('is-active'));
+      t.classList.add('is-active');
+      document.querySelectorAll('.cf-panel[data-ptpanel]').forEach(p => p.classList.remove('is-active'));
+      const panel = document.querySelector('.cf-panel[data-ptpanel="' + target + '"]');
+      if (panel) panel.classList.add('is-active');
+      if (target === 'historial') ptRenderHistorial();
+    });
+  });
+
+  // Métodos card click → activar radio
+  document.querySelectorAll('.cf-method-card').forEach(card => {
+    card.addEventListener('click', () => {
+      document.querySelectorAll('.cf-method-card').forEach(c => c.classList.remove('is-active'));
+      card.classList.add('is-active');
+      const radio = card.querySelector('input[type="radio"]');
+      if (radio) radio.checked = true;
+    });
+  });
+
+  // Toggle tabla
+  const btnTablaToggle = document.getElementById('btn-pt-tabla-toggle');
+  if (btnTablaToggle) {
+    btnTablaToggle.addEventListener('click', () => {
+      tablaCompleta = !tablaCompleta;
+      const lastResult = window['_ptLastResult_pt-am-result-card'];
+      if (lastResult && lastResult.tabla) {
+        renderTablaAmortizacion(lastResult.tabla, lastResult.meta.frecLabel);
+      }
+    });
+  }
+
+  // Bind botones
+  const bindings = [
+    ['btn-pt-am-calc', calcAmortizacion],
+    ['btn-pt-comp-add', () => compAddOption()],
+    ['btn-pt-comp-calc', calcComp],
+    ['btn-pt-cat-calc', calcCATIndividual],
+    ['btn-pt-tir-add', () => tirAddRow()],
+    ['btn-pt-tir-calc', calcTIRTool]
+  ];
+  bindings.forEach(([id, fn]) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', fn);
+  });
+
+  const btnClearPT = document.getElementById('btn-pt-clear-historial');
+  if (btnClearPT) btnClearPT.addEventListener('click', ptClearHistAll);
+
+  // Spinners
+  function injectarSpinnersPT() {
+    const calc = document.getElementById('sec-calc-credito');
+    if (!calc) return;
+    const inputs = calc.querySelectorAll('input.cf-input[type="number"]');
+    inputs.forEach(input => {
+      if (input.dataset.cfSpinned === '1') return;
+      input.dataset.cfSpinned = '1';
+
+      let wrapper = input.parentElement;
+      if (wrapper && wrapper.classList.contains('cf-input-prefix')) {
+        wrapper.classList.add('cf-spin');
+      } else {
+        wrapper = document.createElement('div');
+        wrapper.className = 'cf-spin';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+      }
+
+      const controls = document.createElement('div');
+      controls.className = 'cf-spin-controls';
+      controls.innerHTML = `
+        <button type="button" class="cf-spin-btn cf-spin-up" tabindex="-1" aria-label="Aumentar">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 5,1 9,5"/></svg>
+        </button>
+        <button type="button" class="cf-spin-btn cf-spin-down" tabindex="-1" aria-label="Disminuir">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,1 5,5 9,1"/></svg>
+        </button>
+      `;
+      wrapper.appendChild(controls);
+
+      const stepAttr = input.getAttribute('step');
+      const step = stepAttr ? parseFloat(stepAttr) : 1;
+      const min = input.getAttribute('min') !== null ? parseFloat(input.getAttribute('min')) : -Infinity;
+      const max = input.getAttribute('max') !== null ? parseFloat(input.getAttribute('max')) : Infinity;
+
+      const stepUp = () => {
+        const c = parseFloat(input.value) || 0;
+        const next = Math.min(max, c + step);
+        const dec = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(dec);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      const stepDown = () => {
+        const c = parseFloat(input.value) || 0;
+        const next = Math.max(min, c - step);
+        const dec = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(dec);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+
+      let ht = null, hi = null;
+      function startHold(fn) { fn(); ht = setTimeout(() => { hi = setInterval(fn, 60); }, 400); }
+      function stopHold() { clearTimeout(ht); clearInterval(hi); ht = null; hi = null; }
+
+      const upBtn = controls.querySelector('.cf-spin-up');
+      const downBtn = controls.querySelector('.cf-spin-down');
+      upBtn.addEventListener('mousedown', () => startHold(stepUp));
+      upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepUp); }, { passive: false });
+      upBtn.addEventListener('mouseup', stopHold);
+      upBtn.addEventListener('mouseleave', stopHold);
+      upBtn.addEventListener('touchend', stopHold);
+      downBtn.addEventListener('mousedown', () => startHold(stepDown));
+      downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepDown); }, { passive: false });
+      downBtn.addEventListener('mouseup', stopHold);
+      downBtn.addEventListener('mouseleave', stopHold);
+      downBtn.addEventListener('touchend', stopHold);
+    });
+  }
+
+  // Init
+  ptActualizarBadge();
+  // Iniciar comparador con 2 opciones
+  compAddOption(); compAddOption();
+  // Iniciar TIR con 5 años
+  for (let i = 0; i < 5; i++) tirAddRow();
+  injectarSpinnersPT();
+})();
+</script>
+
+<!-- ============================================================
      EFECTOS DINÁMICOS FUTURISTAS — constelaciones + meteoritos
      - Canvas constelaciones de fondo
      - Burst de estrellas al cambiar de sección
@@ -12054,6 +13933,437 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   .cf-multi-table thead th { padding: 8px 6px; font-size: 9.5px; }
 }
 
+/* ════════════════════════════════════════════════════════════
+   🛠️ PRÉSTAMO & TIR — Estilos específicos
+   ════════════════════════════════════════════════════════════ */
+
+/* ═══ Inputs en línea (plazo + unidad, comisión + tipo) ═══ */
+.cf-row-inline {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.cf-row-inline > .cf-input,
+.cf-row-inline > .cf-spin {
+  flex: 1;
+}
+.cf-row-inline > select.cf-input {
+  flex: 0 0 auto;
+  min-width: 110px;
+}
+
+/* ═══ Cards de selector de método (Francés/Alemán/Bullet) ═══ */
+.cf-method-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 6px;
+}
+.cf-method-card {
+  position: relative;
+  display: block;
+  padding: 16px 14px 14px;
+  background: linear-gradient(180deg, rgba(15,23,42,0.6), rgba(15,23,42,0.35));
+  border: 1.5px solid rgba(125,216,224,0.18);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+.cf-method-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(245,215,122,0.0), rgba(245,215,122,0.08));
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.cf-method-card:hover {
+  border-color: rgba(125,216,224,0.45);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 0 0 1px rgba(125,216,224,0.1);
+}
+.cf-method-card:hover::before { opacity: 1; }
+
+.cf-method-card.is-active {
+  border-color: rgba(245,215,122,0.65);
+  background: linear-gradient(180deg, rgba(245,215,122,0.12), rgba(15,23,42,0.5));
+  box-shadow: 0 0 0 2px rgba(245,215,122,0.25), 0 8px 28px rgba(245,215,122,0.18), inset 0 1px 0 rgba(245,215,122,0.18);
+}
+.cf-method-card.is-active::before {
+  opacity: 1;
+  background: linear-gradient(135deg, rgba(245,215,122,0.16), rgba(125,216,224,0.06));
+}
+.cf-method-card.is-active::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  background: #f5d77a;
+  color: #0b1f4a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 2px 8px rgba(245,215,122,0.4);
+}
+
+.cf-method-card input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.cf-method-icon {
+  font-size: 28px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.cf-method-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  letter-spacing: 0.01em;
+}
+.cf-method-card.is-active .cf-method-name { color: #fef3c7; }
+.cf-method-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: rgba(167,196,199,0.75);
+}
+
+/* ═══ Card de gráfica ═══ */
+.pt-grafica-card {
+  margin-top: 1.5rem;
+  background:
+    linear-gradient(180deg, rgba(45,90,94,0.45), rgba(20,41,45,0.7)),
+    radial-gradient(circle at 0% 0%, rgba(245,215,122,0.08), transparent 50%),
+    radial-gradient(circle at 100% 100%, rgba(125,216,224,0.08), transparent 50%);
+}
+.pt-grafica-wrap {
+  position: relative;
+  height: 320px;
+  margin-top: 1rem;
+  padding: 8px;
+  background: rgba(2,5,15,0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(125,216,224,0.12);
+}
+.pt-grafica-leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 1rem;
+}
+.pt-leg {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(209,230,232,0.85);
+}
+.pt-leg::before {
+  content: '';
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+}
+.pt-leg-saldo::before     { background: #7dd8e0; box-shadow: 0 0 8px rgba(125,216,224,0.5); }
+.pt-leg-capital::before   { background: #f5d77a; box-shadow: 0 0 8px rgba(245,215,122,0.5); }
+.pt-leg-intereses::before { background: #fca5a5; box-shadow: 0 0 8px rgba(252,165,165,0.4); border: 1px dashed #fca5a5; height: 0; }
+
+/* ═══ Card de tabla amortización ═══ */
+.pt-tabla-card {
+  margin-top: 1.25rem;
+}
+.pt-tabla-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 1rem;
+}
+.pt-tabla-controls {
+  display: flex;
+  gap: 8px;
+}
+.pt-tabla-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(125,216,224,0.18);
+  background: rgba(2,5,15,0.4);
+  max-height: 480px;
+  overflow-y: auto;
+}
+.pt-tabla {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 540px;
+}
+.pt-tabla thead {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(180deg, #0b1f4a, #0a1838);
+  z-index: 2;
+}
+.pt-tabla thead th {
+  padding: 12px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f5d77a;
+  text-align: right;
+  border-bottom: 1.5px solid rgba(245,215,122,0.4);
+}
+.pt-tabla thead th:first-child { text-align: center; }
+.pt-tabla tbody tr {
+  border-bottom: 1px solid rgba(125,216,224,0.08);
+  transition: background 0.15s;
+}
+.pt-tabla tbody tr:nth-child(odd) { background: rgba(125,216,224,0.025); }
+.pt-tabla tbody tr:hover { background: rgba(245,215,122,0.06); }
+.pt-tabla tbody td {
+  padding: 9px 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: rgba(209,230,232,0.95);
+  text-align: right;
+}
+.pt-tabla .pt-tabla-num {
+  font-weight: 700;
+  color: rgba(125,216,224,0.85);
+  text-align: center;
+  background: rgba(11,31,74,0.4);
+}
+.pt-tabla .pt-tabla-interes { color: #fca5a5; }
+.pt-tabla .pt-tabla-capital { color: #86efac; }
+.pt-tabla .pt-tabla-saldo { color: #fef3c7; font-weight: 600; }
+.pt-tabla .pt-tabla-sep td {
+  text-align: center;
+  background: rgba(11,31,74,0.5);
+  font-style: italic;
+  color: rgba(167,196,199,0.6);
+  padding: 10px;
+  font-size: 11.5px;
+  border-top: 1px dashed rgba(245,215,122,0.3);
+  border-bottom: 1px dashed rgba(245,215,122,0.3);
+}
+
+/* ═══ Comparador de créditos ═══ */
+.pt-comp-container {
+  background:
+    linear-gradient(180deg, rgba(45,90,94,0.4), rgba(20,41,45,0.65)),
+    radial-gradient(circle at 100% 0%, rgba(125,216,224,0.1), transparent 60%);
+  border: 1px solid rgba(93,164,171,0.25);
+  border-radius: 18px;
+  padding: 1.5rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(125,216,224,0.15);
+}
+.pt-comp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+.pt-comp-card {
+  position: relative;
+  padding: 1rem;
+  background: linear-gradient(180deg, rgba(15,23,42,0.7), rgba(15,23,42,0.45));
+  border: 1px solid rgba(125,216,224,0.2);
+  border-radius: 14px;
+  transition: all 0.2s;
+}
+.pt-comp-card:hover {
+  border-color: rgba(125,216,224,0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+.pt-comp-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(125,216,224,0.12);
+}
+.pt-comp-card-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f5d77a;
+  padding: 4px 10px;
+  background: rgba(245,215,122,0.1);
+  border: 1px solid rgba(245,215,122,0.3);
+  border-radius: 6px;
+}
+
+.pt-comp-result-table {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(125,216,224,0.18);
+  background: rgba(2,5,15,0.4);
+  margin-top: 1rem;
+}
+.pt-comp-best {
+  background: linear-gradient(90deg, rgba(245,215,122,0.18), rgba(245,215,122,0.04)) !important;
+  border-left: 3px solid #f5d77a;
+}
+.pt-comp-best:hover {
+  background: linear-gradient(90deg, rgba(245,215,122,0.25), rgba(245,215,122,0.08)) !important;
+}
+.pt-best-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: linear-gradient(135deg, #f5d77a, #c8962a);
+  color: #0b1f4a;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(245,215,122,0.4);
+  white-space: nowrap;
+}
+
+/* ═══ TIR & VPN ═══ */
+.pt-tir-container {
+  background:
+    linear-gradient(180deg, rgba(45,90,94,0.4), rgba(20,41,45,0.65)),
+    radial-gradient(circle at 0% 100%, rgba(245,215,122,0.08), transparent 60%);
+  border: 1px solid rgba(93,164,171,0.25);
+  border-radius: 18px;
+  padding: 1.5rem;
+  backdrop-filter: blur(14px);
+}
+.pt-tir-config {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(15,23,42,0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(147,197,253,0.12);
+}
+.pt-tir-flujos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+.pt-tir-flujos {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: rgba(2,5,15,0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(125,216,224,0.12);
+}
+.pt-tir-flujo-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pt-tir-year {
+  flex: 0 0 auto;
+  min-width: 70px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(11,31,74,0.6), rgba(15,47,104,0.4));
+  border: 1px solid rgba(125,216,224,0.25);
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fef3c7;
+  text-align: center;
+  letter-spacing: 0.04em;
+}
+
+/* ═══ Card de recomendación (verde / amarillo / rojo) ═══ */
+.pt-recomendacion {
+  margin-top: 1.25rem;
+  padding: 14px 18px;
+  border-radius: 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  line-height: 1.55;
+  border: 1px solid;
+  border-left-width: 3px;
+}
+.pt-recomendacion.is-good {
+  background: linear-gradient(180deg, rgba(34,197,94,0.14), rgba(21,128,61,0.06));
+  border-color: rgba(134,239,172,0.4);
+  border-left-color: #86efac;
+  color: rgba(187,247,208,0.95);
+}
+.pt-recomendacion.is-good strong { color: #86efac; }
+.pt-recomendacion.is-warning {
+  background: linear-gradient(180deg, rgba(245,158,11,0.14), rgba(180,83,9,0.06));
+  border-color: rgba(252,211,77,0.4);
+  border-left-color: #fcd34d;
+  color: rgba(254,243,199,0.95);
+}
+.pt-recomendacion.is-warning strong { color: #fcd34d; }
+.pt-recomendacion.is-bad {
+  background: linear-gradient(180deg, rgba(220,38,38,0.14), rgba(127,29,29,0.06));
+  border-color: rgba(252,165,165,0.4);
+  border-left-color: #fca5a5;
+  color: rgba(254,202,202,0.95);
+}
+.pt-recomendacion.is-bad strong { color: #fca5a5; }
+
+/* ═══ Subtotal en TIR (negativo o positivo) ═══ */
+.cf-result-row.is-subtotal:not(.is-neg) .cf-result-label {
+  color: #86efac;
+}
+.cf-result-row.is-subtotal:not(.is-neg) .cf-result-value {
+  color: #86efac;
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 700px) {
+  .cf-method-grid {
+    grid-template-columns: 1fr;
+  }
+  .pt-tir-config {
+    grid-template-columns: 1fr;
+  }
+  .pt-comp-grid {
+    grid-template-columns: 1fr;
+  }
+  .pt-grafica-wrap {
+    height: 260px;
+  }
+  .pt-tir-flujo-row {
+    flex-wrap: nowrap;
+  }
+  .pt-tir-year {
+    min-width: 60px;
+    padding: 7px 8px;
+    font-size: 11px;
+  }
+}
+
 /* Responsive calculadora */
 @media (max-width: 600px) {
   /* CRÍTICO iOS: inputs con font-size < 16px causan zoom automático en Safari.
@@ -12074,7 +14384,8 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 
   /* CRÍTICO: evitar que la sección se estire por flex-wrap nowrap de tabs */
   #sec-calc-fiscal,
-  #sec-calc-nomina {
+  #sec-calc-nomina,
+  #sec-calc-credito {
     overflow-x: hidden;
     max-width: 100%;
   }
