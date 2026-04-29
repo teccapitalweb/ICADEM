@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>Panel VIP — ICADEM</title>
   <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12056,6 +12056,22 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 
 /* Responsive calculadora */
 @media (max-width: 600px) {
+  /* CRÍTICO iOS: inputs con font-size < 16px causan zoom automático en Safari.
+     Fix: forzar 16px en mobile para TODOS los inputs editables. */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="search"],
+  input[type="url"],
+  input[type="date"],
+  textarea,
+  select,
+  .cf-input {
+    font-size: 16px !important;
+  }
+
   /* CRÍTICO: evitar que la sección se estire por flex-wrap nowrap de tabs */
   #sec-calc-fiscal,
   #sec-calc-nomina {
