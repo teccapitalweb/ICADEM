@@ -1711,16 +1711,372 @@
          ============================================================ -->
     <div class="section" id="sec-calc-nomina">
       <div class="page-header">
-        <p class="page-tag">Herramienta · RH</p>
-        <h1 class="page-title">Calculadora Nómina IMSS</h1>
-        <p class="page-sub">Cuotas IMSS patronales y obrero, INFONAVIT, finiquito completo, generador de recibo.</p>
+        <p class="page-tag">Herramienta · RH y Nóminas</p>
+        <h1 class="page-title">Calculadora Nómina IMSS 2026</h1>
+        <p class="page-sub">Recibo de nómina, cuotas patronales y obreras, SDI, ISN por estado y comparador multi-empleado.</p>
       </div>
-      <div class="tool-soon">
-        <div class="tool-soon-icon">📊</div>
-        <p class="tool-soon-eyebrow">Próximamente</p>
-        <h2 class="tool-soon-title">Calculadora Nómina IMSS</h2>
-        <p class="tool-soon-desc">En construcción. Pronto podrás calcular cuotas IMSS patronales y obrero, retenciones INFONAVIT, finiquito completo (vacaciones + aguinaldo + prima) y generar recibos CFDI tipo nómina.</p>
+
+      <!-- DISCLAIMER LEGAL -->
+      <div class="cf-disclaimer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fef3c7" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <p class="cf-disclaimer-title">Aviso legal</p>
+          <p class="cf-disclaimer-text">Esta calculadora es una herramienta de apoyo basada en disposiciones IMSS, INFONAVIT, LFT y SAT vigentes en 2026. Los resultados son <strong>orientativos</strong>. Para nóminas oficiales, recibos CFDI timbrados y decisiones legales/fiscales, consulta a tu contador o asesor profesional. Los recibos descargables son <strong>documentos informativos</strong>, NO sustituyen al CFDI timbrado oficial requerido por el SAT.</p>
+        </div>
       </div>
+
+      <!-- TABS -->
+      <div class="cf-tabs">
+        <button class="cf-tab is-active" data-nmtab="recibo">💼 Recibo Nómina</button>
+        <button class="cf-tab" data-nmtab="patronal">🏢 Cuotas Patronales</button>
+        <button class="cf-tab" data-nmtab="sdi">📐 SDI</button>
+        <button class="cf-tab" data-nmtab="multi">📋 Comparador Multi-Empleado</button>
+        <button class="cf-tab" data-nmtab="historial">📅 Historial <span id="nm-hist-count" class="cf-hist-badge"></span></button>
+      </div>
+
+      <!-- ════════════ TAB 1: RECIBO COMPLETO ════════════ -->
+      <div class="cf-panel is-active" data-nmpanel="recibo">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">📋 Datos del empleado y periodo</h3>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre del empleado</label>
+              <input type="text" class="cf-input" id="nm-rec-nombre" placeholder="Ej. Nombre del empleado">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">RFC del empleado <span class="cf-optional">(para recibo)</span></label>
+              <input type="text" class="cf-input" id="nm-rec-rfc" placeholder="XAXX010101000" maxlength="13" style="text-transform:uppercase">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">NSS - Número de Seguridad Social <span class="cf-optional">(para recibo)</span></label>
+              <input type="text" class="cf-input" id="nm-rec-nss" placeholder="12345678901" maxlength="11">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Puesto / Departamento <span class="cf-optional">(opcional)</span></label>
+              <input type="text" class="cf-input" id="nm-rec-puesto" placeholder="Ej. Ejecutivo de ventas">
+            </div>
+
+            <div class="cf-card-divider"><span>Salario y periodo</span></div>
+
+            <div class="cf-field">
+              <label class="cf-label">Salario diario nominal (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-rec-salario-diario" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Salario por día sin prestaciones extra</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Periodicidad de pago</label>
+              <select class="cf-input" id="nm-rec-periodo">
+                <option value="mensual">Mensual (30 días)</option>
+                <option value="quincenal">Quincenal (15 días)</option>
+                <option value="semanal">Semanal (7 días)</option>
+              </select>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Días trabajados en el periodo</label>
+              <input type="number" class="cf-input" id="nm-rec-dias-trab" placeholder="30" step="1" min="0" max="31">
+              <p class="cf-help">Si trabajó periodo completo, déjalo igual al estándar (30/15/7)</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Antigüedad (años)</label>
+              <input type="number" class="cf-input" id="nm-rec-antiguedad" placeholder="1" step="0.5" min="0">
+              <p class="cf-help">Para calcular factor de integración (LFT)</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Días de aguinaldo otorgados</label>
+              <input type="number" class="cf-input" id="nm-rec-dias-aguinaldo" value="15" step="1" min="15">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">% prima vacacional</label>
+              <input type="number" class="cf-input" id="nm-rec-prima-vac" value="25" step="1" min="25">
+            </div>
+
+            <div class="cf-card-divider"><span>Percepciones extra (opcional)</span></div>
+
+            <div class="cf-field">
+              <label class="cf-label">Vales de despensa <span class="cf-optional">(mensual)</span></label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-rec-vales" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Hasta 1 UMA diaria mensual = exento. Resto integra al SBC.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Bono de productividad <span class="cf-optional">(mensual)</span></label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-rec-bono" placeholder="0.00" step="0.01" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Crédito INFONAVIT <span class="cf-optional">(% sobre SBC)</span></label>
+              <input type="number" class="cf-input" id="nm-rec-infonavit-pct" value="0" step="0.1" min="0" max="50">
+              <p class="cf-help">% retenido por crédito INFONAVIT del empleado. 0 si no tiene.</p>
+            </div>
+
+            <button class="cf-btn-calc" id="btn-nm-recibo-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular Recibo de Nómina
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="nm-recibo-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon">💼</div>
+              <p class="cf-result-empty-text">Calcula el recibo completo: percepciones, deducciones IMSS/INFONAVIT/ISR y neto a pagar</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 2: CUOTAS PATRONALES ════════════ -->
+      <div class="cf-panel" data-nmpanel="patronal">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">🏢 Cuotas patronales (lo que paga el patrón)</h3>
+            <p class="cf-card-sub">Calcula todas las cuotas que el patrón paga por cada empleado: IMSS (5 ramas), INFONAVIT y RCV.</p>
+
+            <div class="cf-field">
+              <label class="cf-label">Salario Base de Cotización (SBC)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-pat-sbc" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">SBC diario integrado. Tope: 25 UMAs ($2,828.50)</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Días del periodo</label>
+              <select class="cf-input" id="nm-pat-dias">
+                <option value="30">30 días (mensual)</option>
+                <option value="15">15 días (quincenal)</option>
+                <option value="7">7 días (semanal)</option>
+                <option value="bimestral">62 días (bimestral RCV/INFONAVIT)</option>
+              </select>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Clase de riesgo de trabajo</label>
+              <select class="cf-input" id="nm-pat-clase">
+                <option value="I">Clase I — 0.54355% (oficinas, comercio)</option>
+                <option value="II">Clase II — 1.13065% (manufactura ligera)</option>
+                <option value="III">Clase III — 2.59840% (manufactura media)</option>
+                <option value="IV">Clase IV — 4.65325% (construcción, transporte)</option>
+                <option value="V">Clase V — 7.58875% (minería, química)</option>
+                <option value="custom">Personalizado (prima propia)</option>
+              </select>
+            </div>
+
+            <div class="cf-field" id="nm-pat-prima-custom-field" style="display:none">
+              <label class="cf-label">Prima de Riesgo de Trabajo personalizada (%)</label>
+              <input type="number" class="cf-input" id="nm-pat-prima-custom" placeholder="0.5" step="0.0001" min="0">
+              <p class="cf-help">Prima determinada por la STPS según tu siniestralidad</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Estado (para Impuesto Sobre Nómina)</label>
+              <select class="cf-input" id="nm-pat-estado">
+                <option value="0">Sin ISN / No aplica</option>
+                <!-- Las opciones se cargan dinámicamente desde JS -->
+              </select>
+              <p class="cf-help">El ISN varía por estado. Selecciona el tuyo.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre/Referencia <span class="cf-optional">(opcional)</span></label>
+              <input type="text" class="cf-input" id="nm-pat-nombre" placeholder="Ej. Cuotas patronales abril">
+            </div>
+
+            <button class="cf-btn-calc" id="btn-nm-patronal-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular Cuotas Patronales
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="nm-patronal-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon">🏢</div>
+              <p class="cf-result-empty-text">Desglose de las 5 ramas IMSS patronales, RCV, INFONAVIT e ISN</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 3: SDI ════════════ -->
+      <div class="cf-panel" data-nmpanel="sdi">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">📐 Salario Diario Integrado (SDI)</h3>
+            <p class="cf-card-sub">Calcula el SDI según LFT y Ley del Seguro Social. Es la base para cuotas IMSS, INFONAVIT y finiquitos.</p>
+
+            <div class="cf-field">
+              <label class="cf-label">Salario diario nominal (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-sdi-salario" placeholder="0.00" step="0.01" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Antigüedad (años cumplidos)</label>
+              <input type="number" class="cf-input" id="nm-sdi-antiguedad" value="1" step="1" min="0">
+              <p class="cf-help">A mayor antigüedad, más vacaciones → mayor factor de integración</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Días de aguinaldo</label>
+              <input type="number" class="cf-input" id="nm-sdi-aguinaldo" value="15" step="1" min="15">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">% prima vacacional</label>
+              <input type="number" class="cf-input" id="nm-sdi-prima-vac" value="25" step="1" min="25">
+            </div>
+
+            <div class="cf-card-divider"><span>Prestaciones adicionales</span></div>
+
+            <div class="cf-field">
+              <label class="cf-label">Vales de despensa <span class="cf-optional">(mensual)</span></label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-sdi-vales" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Excedente sobre 1 UMA diaria integra al SBC</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Fondo de ahorro <span class="cf-optional">(mensual)</span></label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-sdi-fondo" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Hasta 13% sobre salario = exento. Resto integra.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Otras prestaciones gravables <span class="cf-optional">(mensual)</span></label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="nm-sdi-otras" placeholder="0.00" step="0.01" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre/Referencia <span class="cf-optional">(opcional)</span></label>
+              <input type="text" class="cf-input" id="nm-sdi-nombre" placeholder="Ej. SDI empleado abril">
+            </div>
+
+            <button class="cf-btn-calc" id="btn-nm-sdi-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular SDI
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="nm-sdi-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon">📐</div>
+              <p class="cf-result-empty-text">Cálculo del Salario Diario Integrado conforme a Art. 27 LSS</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 4: MULTI-EMPLEADO ════════════ -->
+      <div class="cf-panel" data-nmpanel="multi">
+        <div class="cf-multi-container">
+          <div class="cf-multi-header-bar">
+            <div>
+              <h3 class="cf-card-title" style="margin:0">📋 Comparador Multi-Empleado</h3>
+              <p class="cf-card-sub" style="margin-top:4px">Calcula nómina de hasta 20 empleados de golpe. Total mensual al final.</p>
+            </div>
+            <button class="cf-btn-secondary" id="btn-nm-multi-add">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Agregar empleado
+            </button>
+          </div>
+
+          <div class="cf-multi-config">
+            <div class="cf-field">
+              <label class="cf-label">Estado (ISN)</label>
+              <select class="cf-input" id="nm-multi-estado">
+                <option value="0">Sin ISN / No aplica</option>
+              </select>
+            </div>
+            <div class="cf-field">
+              <label class="cf-label">Clase de riesgo</label>
+              <select class="cf-input" id="nm-multi-clase">
+                <option value="I">Clase I (0.54355%)</option>
+                <option value="II">Clase II (1.13065%)</option>
+                <option value="III">Clase III (2.59840%)</option>
+                <option value="IV">Clase IV (4.65325%)</option>
+                <option value="V">Clase V (7.58875%)</option>
+              </select>
+            </div>
+            <div class="cf-field">
+              <label class="cf-label">Periodo</label>
+              <select class="cf-input" id="nm-multi-periodo">
+                <option value="30">Mensual (30 días)</option>
+                <option value="15">Quincenal (15 días)</option>
+                <option value="7">Semanal (7 días)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="cf-multi-table-wrap">
+            <table class="cf-multi-table" id="nm-multi-table">
+              <thead>
+                <tr>
+                  <th style="width:32px">#</th>
+                  <th>Nombre</th>
+                  <th>Salario diario</th>
+                  <th>Antigüedad</th>
+                  <th>Días trabajados</th>
+                  <th style="width:32px"></th>
+                </tr>
+              </thead>
+              <tbody id="nm-multi-tbody"></tbody>
+            </table>
+          </div>
+
+          <div class="cf-multi-actions">
+            <button class="cf-btn-calc" id="btn-nm-multi-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular Nómina Total
+            </button>
+          </div>
+
+          <div id="nm-multi-result"></div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 5: HISTORIAL ════════════ -->
+      <div class="cf-panel" data-nmpanel="historial">
+        <div class="cf-historial-header">
+          <div>
+            <p class="cf-historial-eyebrow">⏰ Tu historial de Nómina</p>
+            <p class="cf-historial-info">Los cálculos se conservan automáticamente <strong>7 días</strong>. Para conservarlos permanentemente, descarga el PDF o Excel desde el cálculo.</p>
+          </div>
+          <button class="cf-btn-clear" id="btn-nm-clear-historial" title="Borrar todo el historial">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Limpiar todo
+          </button>
+        </div>
+        <div id="nm-historial-list"></div>
+      </div>
+
     </div>
 
     <!-- ============================================================
@@ -6518,6 +6874,1369 @@ buildVideoteca();
   // Init
   actualizarBadgeHistorial();
   injectarSpinners();
+
+  // Exponer generadores PDF/Excel globalmente para que otras herramientas los reusen
+  window._cfGenerarPDF = generarPDF;
+  window._cfGenerarXLS = generarXLS;
+})();
+</script>
+
+<!-- ============================================================
+     🛠️ TOOL #3: CALCULADORA NÓMINA IMSS 2026
+     - 4 calculadoras: Recibo, Cuotas Patronales, SDI, Multi-empleado
+     - Tablas IMSS, INFONAVIT, ISN por estado actualizadas 2026
+     - Historial 7 días + PDF + Excel
+     ============================================================ -->
+<script>
+(function(){
+  'use strict';
+
+  // ═══════════════════════════════════════════════════════════
+  // TABLAS OFICIALES NÓMINA 2026
+  // ═══════════════════════════════════════════════════════════
+  const UMA_2026 = 113.14;
+  const SMG_2026 = 278.80;
+  const TOPE_SBC = 25 * UMA_2026; // $2,828.50
+
+  // === Cuotas IMSS OBRERO (% sobre SBC) ===
+  // Vigentes 2026 (no cambian salvo reforma legislativa)
+  const IMSS_OBRERO = {
+    enfermedadMaternidad_excedente:  0.0040,  // 0.40% sobre excedente de 3 UMAs
+    enfermedadMaternidad_dineroSAR:  0.0025,  // 0.25%
+    enfermedadMaternidad_gastosMed:  0.00375, // 0.375%
+    invalidezVida:                   0.00625, // 0.625%
+    cesantiaVejez:                   0.01125  // 1.125%
+  };
+
+  // === Cuotas IMSS PATRONAL (% sobre SBC) ===
+  // Reforma pensiones IMSS: cuota CV patronal aumenta gradualmente 2023-2030
+  // 2026: 4.241% (luego sube hasta 11.875% en 2030)
+  const IMSS_PATRONAL_2026 = {
+    enfermedadMaternidad_cuotaFija:    0.2040, // 20.40% sobre 1 UMA
+    enfermedadMaternidad_excedente:    0.0110, // 1.10% sobre excedente de 3 UMAs
+    enfermedadMaternidad_dineroSAR:    0.0070, // 0.70%
+    enfermedadMaternidad_gastosMed:    0.01050, // 1.05%
+    invalidezVida:                     0.01750, // 1.75%
+    cesantiaVejez_2026:                0.04241, // 4.241% (gradual hasta 2030)
+    guarderias:                        0.01000  // 1.00%
+    // RT (Riesgo de Trabajo) varía por clase, se calcula aparte
+  };
+
+  // === Tabla de Riesgo de Trabajo (Prima media por clase, IMSS 2026) ===
+  const RIESGO_TRABAJO = {
+    'I':   0.0054355, // 0.54355%
+    'II':  0.0113065, // 1.13065%
+    'III': 0.0259840, // 2.59840%
+    'IV':  0.0465325, // 4.65325%
+    'V':   0.0758875  // 7.58875%
+  };
+
+  // === INFONAVIT patronal ===
+  const INFONAVIT_PATRONAL = 0.05; // 5% sobre SBC
+
+  // === Retiro patronal (RCV) ===
+  const RETIRO_PATRONAL = 0.02; // 2% sobre SBC (aportación al SAR)
+
+  // === Impuesto Sobre Nóminas por estado 2026 ===
+  // Fuentes: Códigos fiscales estatales 2026
+  const ISN_ESTADOS_2026 = [
+    { codigo: 'AGS', nombre: 'Aguascalientes',     tasa: 0.020 },
+    { codigo: 'BC',  nombre: 'Baja California',    tasa: 0.018 },
+    { codigo: 'BCS', nombre: 'Baja California Sur',tasa: 0.025 },
+    { codigo: 'CAM', nombre: 'Campeche',           tasa: 0.030 },
+    { codigo: 'CHP', nombre: 'Chiapas',            tasa: 0.020 },
+    { codigo: 'CHH', nombre: 'Chihuahua',          tasa: 0.030 },
+    { codigo: 'CMX', nombre: 'Ciudad de México',   tasa: 0.030 },
+    { codigo: 'COA', nombre: 'Coahuila',           tasa: 0.030 },
+    { codigo: 'COL', nombre: 'Colima',             tasa: 0.020 },
+    { codigo: 'DUR', nombre: 'Durango',            tasa: 0.020 },
+    { codigo: 'GUA', nombre: 'Guanajuato',         tasa: 0.030 },
+    { codigo: 'GRO', nombre: 'Guerrero',           tasa: 0.020 },
+    { codigo: 'HID', nombre: 'Hidalgo',            tasa: 0.030 },
+    { codigo: 'JAL', nombre: 'Jalisco',            tasa: 0.020 },
+    { codigo: 'MEX', nombre: 'Estado de México',   tasa: 0.030 },
+    { codigo: 'MIC', nombre: 'Michoacán',          tasa: 0.030 },
+    { codigo: 'MOR', nombre: 'Morelos',            tasa: 0.020 },
+    { codigo: 'NAY', nombre: 'Nayarit',            tasa: 0.030 },
+    { codigo: 'NL',  nombre: 'Nuevo León',         tasa: 0.030 },
+    { codigo: 'OAX', nombre: 'Oaxaca',             tasa: 0.030 },
+    { codigo: 'PUE', nombre: 'Puebla',             tasa: 0.030 },
+    { codigo: 'QUE', nombre: 'Querétaro',          tasa: 0.026 },
+    { codigo: 'QR',  nombre: 'Quintana Roo',       tasa: 0.030 },
+    { codigo: 'SLP', nombre: 'San Luis Potosí',    tasa: 0.025 },
+    { codigo: 'SIN', nombre: 'Sinaloa',            tasa: 0.030 },
+    { codigo: 'SON', nombre: 'Sonora',             tasa: 0.020 },
+    { codigo: 'TAB', nombre: 'Tabasco',            tasa: 0.025 },
+    { codigo: 'TAM', nombre: 'Tamaulipas',         tasa: 0.030 },
+    { codigo: 'TLX', nombre: 'Tlaxcala',           tasa: 0.030 },
+    { codigo: 'VER', nombre: 'Veracruz',           tasa: 0.030 },
+    { codigo: 'YUC', nombre: 'Yucatán',            tasa: 0.030 },
+    { codigo: 'ZAC', nombre: 'Zacatecas',          tasa: 0.025 }
+  ];
+
+  // === Cargar opciones de estados ===
+  function cargarEstados() {
+    const selects = ['nm-pat-estado', 'nm-multi-estado'];
+    selects.forEach(id => {
+      const sel = document.getElementById(id);
+      if (!sel) return;
+      ISN_ESTADOS_2026.forEach(e => {
+        const opt = document.createElement('option');
+        opt.value = e.codigo;
+        opt.textContent = e.nombre + ' (' + (e.tasa * 100).toFixed(1) + '%)';
+        sel.appendChild(opt);
+      });
+    });
+  }
+  cargarEstados();
+
+  // ═══════════════════════════════════════════════════════════
+  // FUNCIONES BASE
+  // ═══════════════════════════════════════════════════════════
+  const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtPct = (n) => (Number(n) * 100 || 0).toFixed(2) + '%';
+
+  // Reusa la tabla ISR del script anterior (ya está cargada)
+  // Reusa aplicarTablaISR y aplicarSubsidio del script anterior
+
+  // === Días de vacaciones LFT 2026 (Reforma 2023) ===
+  function diasVacacionesLFT(anios) {
+    if (anios < 1) return Math.floor(12 * anios);
+    if (anios <= 5) {
+      const tabla = [12, 14, 16, 18, 20];
+      return tabla[Math.floor(anios) - 1];
+    }
+    if (anios <= 10) return 22;
+    if (anios <= 15) return 24;
+    if (anios <= 20) return 26;
+    if (anios <= 25) return 28;
+    if (anios <= 30) return 30;
+    return 32;
+  }
+
+  // === Factor de integración (Art. 27 LSS) ===
+  function factorIntegracion(anios, diasAguinaldo, primaVacPct) {
+    const diasVac = diasVacacionesLFT(anios);
+    const f = 1 + (diasAguinaldo / 365) + ((diasVac * primaVacPct / 100) / 365);
+    return f;
+  }
+
+  // === Calcular SBC (con tope 25 UMAs) ===
+  function calcularSBC(salarioDiario, anios, diasAguinaldo, primaVacPct, prestacionesGravables) {
+    const f = factorIntegracion(anios, diasAguinaldo, primaVacPct);
+    const prestDiario = (prestacionesGravables || 0) / 30; // a base diaria
+    let sbc = (salarioDiario * f) + prestDiario;
+    sbc = Math.min(sbc, TOPE_SBC); // Tope
+    sbc = Math.max(sbc, SMG_2026); // Mínimo SMG
+    return sbc;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALCULAR CUOTAS IMSS OBRERO (lo que se le retiene al empleado)
+  // ═══════════════════════════════════════════════════════════
+  function cuotasIMSSObrero(sbc, dias) {
+    const tresUMAs = 3 * UMA_2026;
+    const excedente = Math.max(0, sbc - tresUMAs);
+
+    return {
+      enfermedadMaternidad_excedente: excedente * IMSS_OBRERO.enfermedadMaternidad_excedente * dias,
+      enfermedadMaternidad_dinero:    sbc * IMSS_OBRERO.enfermedadMaternidad_dineroSAR * dias,
+      enfermedadMaternidad_gastosMed: sbc * IMSS_OBRERO.enfermedadMaternidad_gastosMed * dias,
+      invalidezVida:                  sbc * IMSS_OBRERO.invalidezVida * dias,
+      cesantiaVejez:                  sbc * IMSS_OBRERO.cesantiaVejez * dias,
+      get total() {
+        return this.enfermedadMaternidad_excedente
+             + this.enfermedadMaternidad_dinero
+             + this.enfermedadMaternidad_gastosMed
+             + this.invalidezVida
+             + this.cesantiaVejez;
+      }
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALCULAR CUOTAS IMSS PATRONAL (lo que paga el patrón)
+  // ═══════════════════════════════════════════════════════════
+  function cuotasIMSSPatronal(sbc, dias, claseRiesgo, primaCustom) {
+    const tresUMAs = 3 * UMA_2026;
+    const excedente = Math.max(0, sbc - tresUMAs);
+    const primaRT = primaCustom !== null && primaCustom !== undefined
+      ? primaCustom
+      : RIESGO_TRABAJO[claseRiesgo] || 0.005;
+
+    return {
+      enfermedadMaternidad_cuotaFija: UMA_2026 * IMSS_PATRONAL_2026.enfermedadMaternidad_cuotaFija * dias,
+      enfermedadMaternidad_excedente: excedente * IMSS_PATRONAL_2026.enfermedadMaternidad_excedente * dias,
+      enfermedadMaternidad_dinero:    sbc * IMSS_PATRONAL_2026.enfermedadMaternidad_dineroSAR * dias,
+      enfermedadMaternidad_gastosMed: sbc * IMSS_PATRONAL_2026.enfermedadMaternidad_gastosMed * dias,
+      riesgoTrabajo:                  sbc * primaRT * dias,
+      invalidezVida:                  sbc * IMSS_PATRONAL_2026.invalidezVida * dias,
+      cesantiaVejez:                  sbc * IMSS_PATRONAL_2026.cesantiaVejez_2026 * dias,
+      guarderias:                     sbc * IMSS_PATRONAL_2026.guarderias * dias,
+      retiro:                         sbc * RETIRO_PATRONAL * dias,
+      infonavit:                      sbc * INFONAVIT_PATRONAL * dias,
+      get totalIMSS() {
+        return this.enfermedadMaternidad_cuotaFija
+             + this.enfermedadMaternidad_excedente
+             + this.enfermedadMaternidad_dinero
+             + this.enfermedadMaternidad_gastosMed
+             + this.riesgoTrabajo
+             + this.invalidezVida
+             + this.cesantiaVejez
+             + this.guarderias;
+      },
+      get totalRCV() {
+        return this.retiro + this.cesantiaVejez;
+      },
+      get total() {
+        return this.totalIMSS + this.retiro + this.infonavit;
+      }
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDERIZAR RESULTADO (reusa la función `renderResultado` de Calc Fiscal)
+  // PERO necesitamos una versión propia con prefix 'nm-' para historial separado
+  // ═══════════════════════════════════════════════════════════
+  const NM_HIST_KEY = 'icadem_nm_historial_v1';
+  const HIST_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function nmLoadHist() {
+    try {
+      const raw = localStorage.getItem(NM_HIST_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      const now = Date.now();
+      const vivos = arr.filter(item => (now - item.fecha) < HIST_TTL_MS);
+      if (vivos.length !== arr.length) nmSaveHist(vivos);
+      return vivos;
+    } catch (e) { return []; }
+  }
+  function nmSaveHist(arr) {
+    try { localStorage.setItem(NM_HIST_KEY, JSON.stringify(arr)); } catch (e) {}
+  }
+  function nmPushHist(item) {
+    const arr = nmLoadHist();
+    item.id = 'nm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    item.fecha = Date.now();
+    arr.unshift(item);
+    if (arr.length > 50) arr.length = 50;
+    nmSaveHist(arr);
+    nmActualizarBadge();
+    nmRenderHistorial();
+  }
+  function nmDeleteHistItem(id) {
+    const arr = nmLoadHist().filter(i => i.id !== id);
+    nmSaveHist(arr);
+    nmActualizarBadge();
+    nmRenderHistorial();
+  }
+  function nmClearHistAll() {
+    if (confirm('¿Borrar todo el historial de nómina? Esta acción no se puede deshacer.')) {
+      nmSaveHist([]);
+      nmActualizarBadge();
+      nmRenderHistorial();
+    }
+  }
+  function nmActualizarBadge() {
+    const badge = document.getElementById('nm-hist-count');
+    if (!badge) return;
+    const arr = nmLoadHist();
+    if (arr.length === 0) { badge.style.display = 'none'; return; }
+    badge.textContent = arr.length;
+    badge.style.display = 'inline-flex';
+  }
+  function nmDiasRestantes(fecha) {
+    const ms = HIST_TTL_MS - (Date.now() - fecha);
+    return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+  }
+
+  // === Renderizar resultado en card (genérico) ===
+  function nmRenderResultado(cardEl, data) {
+    const filas = data.filas.map(f => {
+      const isTotal = f.total;
+      const isNeg = f.negativo;
+      const isSubtotal = f.subtotal;
+      return `
+        <div class="cf-result-row ${isTotal ? 'is-total' : ''} ${isNeg ? 'is-neg' : ''} ${isSubtotal ? 'is-subtotal' : ''}">
+          <span class="cf-result-label">${f.etiqueta}</span>
+          <span class="cf-result-value">${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</span>
+        </div>
+      `;
+    }).join('');
+
+    window['_nmLastResult_' + cardEl.id] = data;
+
+    const avisoCFDI = data.tipo === 'recibo'
+      ? `<div class="nm-cfdi-warning">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span><strong>Recibo informativo:</strong> Este documento NO sustituye al CFDI timbrado oficial requerido por SAT. Para timbrado, consulta a tu PAC.</span>
+        </div>`
+      : '';
+
+    cardEl.innerHTML = `
+      <div class="cf-result-header">
+        <div>
+          <p class="cf-result-eyebrow">${data.tipoLabel}</p>
+          <h3 class="cf-result-title">${data.titulo}</h3>
+          ${data.subtitulo ? `<p class="cf-result-sub">${data.subtitulo}</p>` : ''}
+        </div>
+      </div>
+      <div class="cf-result-body">${filas}</div>
+      ${avisoCFDI}
+      ${data.fundamento ? `<p class="cf-result-fundamento">📚 <strong>Fundamento legal:</strong> ${data.fundamento}</p>` : ''}
+      <div class="cf-result-actions">
+        <button class="cf-action cf-action-save" onclick="nmSaveAction('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar (7 días)
+        </button>
+        <button class="cf-action cf-action-pdf" onclick="nmDownloadPDF('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Descargar PDF
+        </button>
+        <button class="cf-action cf-action-xls" onclick="nmDownloadXLS('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+          Descargar Excel
+        </button>
+        <button class="cf-action cf-action-print" onclick="nmPrintRecibo('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+          Imprimir
+        </button>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ACCIONES PÚBLICAS (usan las funciones de Calc Fiscal globales)
+  // ═══════════════════════════════════════════════════════════
+  window.nmSaveAction = function(cardId) {
+    const data = window['_nmLastResult_' + cardId];
+    if (!data) return;
+    nmPushHist(data);
+    const btn = event.target.closest('button');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg> Guardado · expira en 7d';
+    btn.classList.add('is-saved');
+    setTimeout(() => { btn.innerHTML = original; btn.classList.remove('is-saved'); }, 2500);
+  };
+  window.nmDownloadPDF = function(cardId) {
+    const data = window['_nmLastResult_' + cardId];
+    if (!data || !window.jspdf) return;
+    // Reusa generador PDF de Calc Fiscal (ya tiene el motor)
+    if (data.tipo === 'recibo') {
+      generarReciboPDF(data);
+    } else {
+      // Reusa el generador genérico
+      window.cfDownloadPDF_externo(data);
+    }
+  };
+  window.nmDownloadXLS = function(cardId) {
+    const data = window['_nmLastResult_' + cardId];
+    if (!data || !window.XLSX) return;
+    window.cfDownloadXLS_externo(data);
+  };
+  window.nmPrintRecibo = function(cardId) {
+    const data = window['_nmLastResult_' + cardId];
+    if (!data) return;
+    abrirVentanaImprimir(data);
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // GENERADOR PDF "RECIBO TIPO CFDI"
+  // ═══════════════════════════════════════════════════════════
+  function generarReciboPDF(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.width;
+    const pageH = doc.internal.pageSize.height;
+    const ahora = new Date();
+    const fechaLarga = ahora.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+    const horaFmt = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+    const folio = 'NM-' + ahora.getFullYear() + '-' + String(Date.now()).slice(-7);
+
+    function cleanText(s) {
+      if (!s) return '';
+      return String(s)
+        .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+        .replace(/[\u{2600}-\u{27BF}]/gu, '')
+        .replace(/[★⚠️📊📋💼🏢🎁🏖️💎📤💸📅🧮💰🎯📚🔥⏰💳📦📈📣🎤📜⚖️🎓🌐📐]/g, '')
+        .trim();
+    }
+
+    // Header
+    doc.setFillColor(11, 31, 74);
+    doc.rect(0, 0, pageW, 38, 'F');
+    doc.setFillColor(15, 47, 104);
+    doc.rect(0, 0, pageW, 8, 'F');
+    doc.setFillColor(245, 215, 122);
+    doc.rect(0, 38, pageW, 0.8, 'F');
+
+    doc.setFillColor(245, 215, 122);
+    doc.roundedRect(15, 13, 4, 14, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('ICADEM', 22, 22);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(245, 215, 122);
+    doc.text('PANEL VIP  |  RECIBO DE NÓMINA INFORMATIVO', 22, 28);
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('icademx.com', pageW - 15, 14, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(200, 215, 245);
+    doc.text(fechaLarga + ' · ' + horaFmt + ' hrs', pageW - 15, 20, { align: 'right' });
+    doc.setTextColor(245, 215, 122);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Folio: ' + folio, pageW - 15, 26, { align: 'right' });
+
+    // Aviso CFDI prominente
+    let y = 44;
+    doc.setFillColor(254, 226, 226);
+    doc.roundedRect(15, y, pageW - 30, 10, 1.5, 1.5, 'F');
+    doc.setFillColor(220, 38, 38);
+    doc.rect(15, y, 1.5, 10, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(127, 29, 29);
+    doc.text('DOCUMENTO INFORMATIVO', 21, y + 4);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.text('Este recibo NO es un CFDI timbrado oficial. Para fines fiscales SAT, consulta a tu contador o PAC.', 21, y + 8);
+    y += 16;
+
+    // Datos del empleado (card)
+    doc.setFillColor(248, 250, 252);
+    doc.roundedRect(15, y, pageW - 30, 28, 2, 2, 'F');
+    doc.setFillColor(11, 31, 74);
+    doc.rect(15, y, 1.5, 28, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(11, 31, 74);
+    doc.text('DATOS DEL EMPLEADO', 21, y + 5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(51, 65, 85);
+    const meta = data.meta || {};
+    doc.text('Nombre: ' + cleanText(meta.nombre || data.titulo), 21, y + 11);
+    doc.text('RFC: ' + (meta.rfc || 'N/A'), 21, y + 16);
+    doc.text('NSS: ' + (meta.nss || 'N/A'), 21, y + 21);
+    doc.text('Puesto: ' + (meta.puesto || 'N/A'), 21, y + 26);
+    if (meta.periodo) doc.text('Periodo: ' + meta.periodo, pageW / 2 + 5, y + 11);
+    if (meta.dias) doc.text('Días trabajados: ' + meta.dias, pageW / 2 + 5, y + 16);
+    if (meta.salarioDiario !== undefined) doc.text('Salario diario: ' + fmt(meta.salarioDiario), pageW / 2 + 5, y + 21);
+    if (meta.sbc !== undefined) doc.text('SBC: ' + fmt(meta.sbc), pageW / 2 + 5, y + 26);
+    y += 34;
+
+    // Tabla percepciones / deducciones
+    const filasPerc = data.filas.filter(f => f.seccion === 'percepciones');
+    const filasDed = data.filas.filter(f => f.seccion === 'deducciones');
+    const filasFinal = data.filas.filter(f => f.seccion === 'final');
+
+    if (filasPerc.length > 0) {
+      doc.setFillColor(11, 31, 74);
+      doc.rect(15, y, 4, 6, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(11, 31, 74);
+      doc.text('PERCEPCIONES', 22, y + 4.5);
+      y += 8;
+
+      doc.autoTable({
+        startY: y,
+        head: [['CONCEPTO', 'IMPORTE']],
+        body: filasPerc.map(f => [cleanText(f.etiqueta), typeof f.valor === 'number' ? fmt(f.valor) : f.valor]),
+        theme: 'plain',
+        headStyles: {
+          fillColor: [21, 128, 61], textColor: [255, 255, 255], fontSize: 9,
+          fontStyle: 'bold', cellPadding: { top: 3, right: 5, bottom: 3, left: 5 }
+        },
+        bodyStyles: { fontSize: 9, textColor: [30, 41, 59], cellPadding: { top: 2.5, right: 5, bottom: 2.5, left: 5 } },
+        alternateRowStyles: { fillColor: [240, 253, 244] },
+        columnStyles: { 0: { cellWidth: 130 }, 1: { halign: 'right', cellWidth: 50, fontStyle: 'bold', font: 'courier' } },
+        margin: { left: 15, right: 15 }
+      });
+      y = doc.lastAutoTable.finalY + 6;
+    }
+
+    if (filasDed.length > 0) {
+      doc.setFillColor(11, 31, 74);
+      doc.rect(15, y, 4, 6, 'F');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(11, 31, 74);
+      doc.text('DEDUCCIONES', 22, y + 4.5);
+      y += 8;
+
+      doc.autoTable({
+        startY: y,
+        head: [['CONCEPTO', 'IMPORTE']],
+        body: filasDed.map(f => [cleanText(f.etiqueta), typeof f.valor === 'number' ? fmt(f.valor) : f.valor]),
+        theme: 'plain',
+        headStyles: {
+          fillColor: [185, 28, 28], textColor: [255, 255, 255], fontSize: 9,
+          fontStyle: 'bold', cellPadding: { top: 3, right: 5, bottom: 3, left: 5 }
+        },
+        bodyStyles: { fontSize: 9, textColor: [30, 41, 59], cellPadding: { top: 2.5, right: 5, bottom: 2.5, left: 5 } },
+        alternateRowStyles: { fillColor: [254, 242, 242] },
+        columnStyles: { 0: { cellWidth: 130 }, 1: { halign: 'right', cellWidth: 50, fontStyle: 'bold', font: 'courier' } },
+        margin: { left: 15, right: 15 }
+      });
+      y = doc.lastAutoTable.finalY + 6;
+    }
+
+    // NETO A PAGAR (card grande dorada)
+    const filaNeto = filasFinal.find(f => f.total) || data.filas.find(f => f.total);
+    if (filaNeto) {
+      if (y + 26 > pageH - 40) { doc.addPage(); y = 20; }
+      doc.setFillColor(248, 213, 110);
+      doc.roundedRect(15.5, y + 0.5, pageW - 31, 22, 3, 3, 'F');
+      doc.setFillColor(254, 243, 199);
+      doc.roundedRect(15, y, pageW - 30, 22, 3, 3, 'F');
+      doc.setDrawColor(200, 150, 42);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(15, y, pageW - 30, 22, 3, 3, 'S');
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(146, 64, 14);
+      doc.text(cleanText(filaNeto.etiqueta).toUpperCase(), 22, y + 8);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(120, 53, 15);
+      doc.text('Importe a depositar al empleado', 22, y + 13);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(11, 31, 74);
+      doc.text(fmt(filaNeto.valor), pageW - 22, y + 14, { align: 'right' });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(146, 64, 14);
+      doc.text('PESOS MEXICANOS', pageW - 22, y + 19, { align: 'right' });
+      y += 28;
+    }
+
+    // Firmas
+    if (y + 30 < pageH - 40) {
+      const firmaY = y + 6;
+      doc.setDrawColor(180, 195, 220);
+      doc.setLineWidth(0.3);
+      doc.line(25, firmaY + 12, 90, firmaY + 12);
+      doc.line(120, firmaY + 12, 185, firmaY + 12);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(11, 31, 74);
+      doc.text('FIRMA EMPLEADO', 57.5, firmaY + 16, { align: 'center' });
+      doc.text('FIRMA PATRÓN / RH', 152.5, firmaY + 16, { align: 'center' });
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(120, 130, 150);
+      doc.text('Recibí conforme', 57.5, firmaY + 19.5, { align: 'center' });
+      doc.text('Autorizó pago', 152.5, firmaY + 19.5, { align: 'center' });
+    }
+
+    // Footer
+    const footerY = pageH - 28;
+    doc.setFillColor(254, 243, 199);
+    doc.roundedRect(15, footerY, pageW - 30, 18, 2, 2, 'F');
+    doc.setFillColor(245, 158, 11);
+    doc.rect(15, footerY, 1.5, 18, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(146, 64, 14);
+    doc.text('AVISO LEGAL', 21, footerY + 4.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(120, 53, 15);
+    const disc = 'Este es un recibo INFORMATIVO, NO sustituye al CFDI timbrado oficial requerido por SAT. Los cálculos están basados en disposiciones IMSS/INFONAVIT/LFT/SAT 2026 y son orientativos. Para nóminas oficiales y timbrado fiscal, consulta a tu contador o PAC autorizado. ICADEM no se hace responsable por errores derivados del uso de esta herramienta.';
+    const discLines = doc.splitTextToSize(disc, pageW - 42);
+    doc.text(discLines, 21, footerY + 8.5);
+
+    doc.setFontSize(6.5);
+    doc.setTextColor(150, 158, 175);
+    doc.text('Generado por ICADEM Panel VIP', 15, pageH - 6);
+    doc.text('Folio: ' + folio, pageW / 2, pageH - 6, { align: 'center' });
+    doc.text('Página 1 de 1', pageW - 15, pageH - 6, { align: 'right' });
+
+    const fileTitle = cleanText(data.titulo || 'recibo').replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+    doc.save('ICADEM_Recibo_' + fileTitle + '_' + ahora.toISOString().slice(0, 10) + '.pdf');
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // VENTANA DE IMPRESIÓN
+  // ═══════════════════════════════════════════════════════════
+  function abrirVentanaImprimir(data) {
+    const ahora = new Date();
+    const filasPerc = data.filas.filter(f => f.seccion === 'percepciones');
+    const filasDed = data.filas.filter(f => f.seccion === 'deducciones');
+    const filaNeto = data.filas.find(f => f.total);
+    const meta = data.meta || {};
+
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>${data.titulo} - ICADEM</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; padding: 20px; background: white; color: #1e293b; }
+  .header { background: #0b1f4a; color: white; padding: 18px 24px; border-bottom: 3px solid #f5d77a; }
+  .header h1 { font-size: 22px; font-weight: bold; }
+  .header .sub { font-size: 9px; color: #f5d77a; margin-top: 4px; letter-spacing: 0.1em; }
+  .header .right { text-align: right; font-size: 9px; }
+  .header-grid { display: flex; justify-content: space-between; align-items: center; }
+  .warning { background: #fee2e2; border-left: 3px solid #dc2626; padding: 8px 14px; margin: 12px 0; font-size: 10px; color: #7f1d1d; }
+  .warning strong { display: block; margin-bottom: 2px; }
+  .empleado { background: #f8fafc; border-left: 3px solid #0b1f4a; padding: 12px 16px; margin: 14px 0; font-size: 10px; }
+  .empleado h3 { font-size: 11px; color: #0b1f4a; margin-bottom: 6px; }
+  .empleado-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 16px; }
+  .seccion-titulo { font-size: 12px; font-weight: bold; color: #0b1f4a; padding: 8px 0 4px; border-left: 4px solid #0b1f4a; padding-left: 10px; margin-top: 14px; }
+  table { width: 100%; border-collapse: collapse; margin: 6px 0; font-size: 10px; }
+  th { background: #0b1f4a; color: #f5d77a; padding: 6px 10px; text-align: left; font-size: 10px; }
+  th:last-child { text-align: right; }
+  td { padding: 5px 10px; border-bottom: 1px solid #e2e8f0; }
+  td:last-child { text-align: right; font-family: 'Courier New', monospace; font-weight: bold; }
+  tr:nth-child(even) { background: #f8fafc; }
+  .perc th { background: #15803d; color: white; }
+  .ded th { background: #b91c1c; color: white; }
+  .neto { background: #fef3c7; border: 2px solid #c8962a; padding: 14px 20px; margin: 14px 0; display: flex; justify-content: space-between; align-items: center; }
+  .neto-label { font-size: 11px; font-weight: bold; color: #92400e; }
+  .neto-monto { font-size: 24px; font-weight: bold; color: #0b1f4a; font-family: 'Courier New', monospace; }
+  .firmas { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 30px; padding: 0 20px; }
+  .firma { text-align: center; padding-top: 20px; border-top: 1px solid #94a3b8; font-size: 9px; }
+  .firma strong { color: #0b1f4a; }
+  .footer { background: #fef3c7; border-left: 3px solid #f59e0b; padding: 10px 14px; margin-top: 20px; font-size: 8px; color: #78350f; }
+  .pie { text-align: center; font-size: 8px; color: #94a3b8; margin-top: 10px; }
+  @media print { body { padding: 0; } .no-print { display: none; } }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="header-grid">
+      <div>
+        <h1>ICADEM</h1>
+        <div class="sub">PANEL VIP · RECIBO DE NÓMINA INFORMATIVO</div>
+      </div>
+      <div class="right">
+        <strong>icademx.com</strong><br>
+        ${ahora.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' })}<br>
+        ${ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })} hrs
+      </div>
+    </div>
+  </div>
+
+  <div class="warning">
+    <strong>DOCUMENTO INFORMATIVO</strong>
+    Este recibo NO es un CFDI timbrado oficial. Para fines fiscales SAT, consulta a tu contador o PAC.
+  </div>
+
+  <div class="empleado">
+    <h3>DATOS DEL EMPLEADO</h3>
+    <div class="empleado-grid">
+      <div><strong>Nombre:</strong> ${meta.nombre || data.titulo}</div>
+      <div><strong>Periodo:</strong> ${meta.periodo || 'N/A'}</div>
+      <div><strong>RFC:</strong> ${meta.rfc || 'N/A'}</div>
+      <div><strong>Días trabajados:</strong> ${meta.dias || 'N/A'}</div>
+      <div><strong>NSS:</strong> ${meta.nss || 'N/A'}</div>
+      <div><strong>Salario diario:</strong> ${meta.salarioDiario !== undefined ? fmt(meta.salarioDiario) : 'N/A'}</div>
+      <div><strong>Puesto:</strong> ${meta.puesto || 'N/A'}</div>
+      <div><strong>SBC:</strong> ${meta.sbc !== undefined ? fmt(meta.sbc) : 'N/A'}</div>
+    </div>
+  </div>
+
+  ${filasPerc.length > 0 ? `
+    <div class="seccion-titulo">PERCEPCIONES</div>
+    <table class="perc">
+      <thead><tr><th>Concepto</th><th>Importe</th></tr></thead>
+      <tbody>
+        ${filasPerc.map(f => `<tr><td>${f.etiqueta}</td><td>${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  ` : ''}
+
+  ${filasDed.length > 0 ? `
+    <div class="seccion-titulo">DEDUCCIONES</div>
+    <table class="ded">
+      <thead><tr><th>Concepto</th><th>Importe</th></tr></thead>
+      <tbody>
+        ${filasDed.map(f => `<tr><td>${f.etiqueta}</td><td>${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</td></tr>`).join('')}
+      </tbody>
+    </table>
+  ` : ''}
+
+  ${filaNeto ? `
+    <div class="neto">
+      <div class="neto-label">${filaNeto.etiqueta.toUpperCase()}</div>
+      <div class="neto-monto">${fmt(filaNeto.valor)}</div>
+    </div>
+  ` : ''}
+
+  <div class="firmas">
+    <div class="firma"><strong>FIRMA EMPLEADO</strong><br><span style="color:#94a3b8">Recibí conforme</span></div>
+    <div class="firma"><strong>FIRMA PATRÓN / RH</strong><br><span style="color:#94a3b8">Autorizó pago</span></div>
+  </div>
+
+  <div class="footer">
+    <strong>AVISO LEGAL:</strong> Este es un recibo INFORMATIVO, NO sustituye al CFDI timbrado oficial requerido por SAT. Los cálculos están basados en disposiciones IMSS/INFONAVIT/LFT/SAT 2026 y son orientativos. Para nóminas oficiales y timbrado fiscal, consulta a tu contador o PAC autorizado. ICADEM no se hace responsable por errores derivados del uso de esta herramienta.
+  </div>
+
+  <div class="pie">Generado por ICADEM Panel VIP · icademx.com</div>
+
+  <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); }</script>
+</body>
+</html>`;
+    const win = window.open('', '_blank');
+    win.document.write(html);
+    win.document.close();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // EXPORTAR FUNCIONES DEL CALC FISCAL PARA REUSARLAS
+  // (asumimos que están disponibles dentro del closure de Calc Fiscal)
+  // Reusamos cfDownloadPDF y cfDownloadXLS via window
+  // ═══════════════════════════════════════════════════════════
+  window.cfDownloadPDF_externo = function(data) {
+    // Adaptamos data para reusar generador de Calc Fiscal
+    if (typeof window._cfGenerarPDF === 'function') {
+      window._cfGenerarPDF(data);
+    } else {
+      // Fallback: usar función propia simple
+      generarReciboPDF(data);
+    }
+  };
+  window.cfDownloadXLS_externo = function(data) {
+    if (typeof window._cfGenerarXLS === 'function') {
+      window._cfGenerarXLS(data);
+    } else {
+      alert('Generador Excel no disponible. Recarga la página.');
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #1: RECIBO DE NÓMINA COMPLETO
+  // ═══════════════════════════════════════════════════════════
+  function calcRecibo() {
+    const nombre = document.getElementById('nm-rec-nombre').value.trim() || 'Empleado';
+    const rfc = document.getElementById('nm-rec-rfc').value.trim().toUpperCase() || 'N/A';
+    const nss = document.getElementById('nm-rec-nss').value.trim() || 'N/A';
+    const puesto = document.getElementById('nm-rec-puesto').value.trim() || 'N/A';
+    const salarioDiario = parseFloat(document.getElementById('nm-rec-salario-diario').value) || 0;
+    const periodo = document.getElementById('nm-rec-periodo').value;
+    const diasTrab = parseInt(document.getElementById('nm-rec-dias-trab').value) || 0;
+    const antiguedad = parseFloat(document.getElementById('nm-rec-antiguedad').value) || 1;
+    const diasAguinaldo = parseInt(document.getElementById('nm-rec-dias-aguinaldo').value) || 15;
+    const primaVacPct = parseFloat(document.getElementById('nm-rec-prima-vac').value) || 25;
+    const vales = parseFloat(document.getElementById('nm-rec-vales').value) || 0;
+    const bono = parseFloat(document.getElementById('nm-rec-bono').value) || 0;
+    const infonavitPct = parseFloat(document.getElementById('nm-rec-infonavit-pct').value) || 0;
+
+    if (salarioDiario <= 0 || diasTrab <= 0) {
+      alert('Ingresa salario diario y días trabajados');
+      return;
+    }
+
+    // Calcular SBC (con vales gravables como prestación)
+    const valesUMADiaria = UMA_2026; // 1 UMA diaria mensual = exenta
+    const valesGravables = Math.max(0, vales - (valesUMADiaria * 30));
+    const sbc = calcularSBC(salarioDiario, antiguedad, diasAguinaldo, primaVacPct, valesGravables + bono);
+
+    // Percepciones
+    const sueldoBruto = salarioDiario * diasTrab;
+    const totalPercepciones = sueldoBruto + (vales * (diasTrab / 30)) + (bono * (diasTrab / 30));
+
+    // Cuotas IMSS obrero
+    const cuotasObrero = cuotasIMSSObrero(sbc, diasTrab);
+
+    // Crédito INFONAVIT (lo que retiene al empleado)
+    const infonavitEmpleado = (infonavitPct / 100) * sbc * diasTrab;
+
+    // ISR
+    const factor = periodo === 'mensual' ? 1 : (periodo === 'quincenal' ? 2 : 52/12);
+    const baseMensualISR = sueldoBruto * factor;
+    const isrMensual = aplicarTablaISR(baseMensualISR, TABLA_ISR_MENSUAL_2026);
+    const subsidio = aplicarSubsidio(baseMensualISR);
+    const isrFinalMensual = Math.max(0, isrMensual - subsidio);
+    const isrPeriodo = isrFinalMensual / factor;
+
+    // Total deducciones
+    const totalDeducciones = cuotasObrero.total + infonavitEmpleado + isrPeriodo;
+
+    // Neto
+    const neto = totalPercepciones - totalDeducciones;
+
+    const filas = [
+      { etiqueta: 'Sueldo bruto (' + diasTrab + ' días × ' + fmt(salarioDiario) + ')', valor: sueldoBruto, seccion: 'percepciones' },
+      ...(vales > 0 ? [{ etiqueta: 'Vales de despensa', valor: vales * (diasTrab / 30), seccion: 'percepciones' }] : []),
+      ...(bono > 0 ? [{ etiqueta: 'Bono de productividad', valor: bono * (diasTrab / 30), seccion: 'percepciones' }] : []),
+      { etiqueta: 'TOTAL PERCEPCIONES', valor: totalPercepciones, total: true, seccion: 'percepciones' },
+
+      { etiqueta: 'IMSS - Enf. y maternidad (excedente)', valor: cuotasObrero.enfermedadMaternidad_excedente, negativo: true, seccion: 'deducciones' },
+      { etiqueta: 'IMSS - Prest. dinero', valor: cuotasObrero.enfermedadMaternidad_dinero, negativo: true, seccion: 'deducciones' },
+      { etiqueta: 'IMSS - Gastos médicos pensionados', valor: cuotasObrero.enfermedadMaternidad_gastosMed, negativo: true, seccion: 'deducciones' },
+      { etiqueta: 'IMSS - Invalidez y vida', valor: cuotasObrero.invalidezVida, negativo: true, seccion: 'deducciones' },
+      { etiqueta: 'IMSS - Cesantía y vejez', valor: cuotasObrero.cesantiaVejez, negativo: true, seccion: 'deducciones' },
+      ...(infonavitEmpleado > 0 ? [{ etiqueta: 'Crédito INFONAVIT (' + infonavitPct + '%)', valor: infonavitEmpleado, negativo: true, seccion: 'deducciones' }] : []),
+      { etiqueta: 'ISR del periodo', valor: isrPeriodo, negativo: true, seccion: 'deducciones' },
+      { etiqueta: 'TOTAL DEDUCCIONES', valor: totalDeducciones, subtotal: true, seccion: 'deducciones' },
+
+      { etiqueta: 'NETO A PAGAR', valor: neto, total: true, seccion: 'final' }
+    ];
+
+    nmRenderResultado(document.getElementById('nm-recibo-result-card'), {
+      tipo: 'recibo',
+      tipoLabel: '💼 Recibo de Nómina',
+      titulo: nombre,
+      subtitulo: periodo + ' · ' + diasTrab + ' días trabajados · SBC: ' + fmt(sbc),
+      meta: {
+        nombre: nombre,
+        rfc: rfc,
+        nss: nss,
+        puesto: puesto,
+        periodo: periodo,
+        dias: diasTrab,
+        salarioDiario: salarioDiario,
+        sbc: sbc
+      },
+      filas: filas,
+      fundamento: 'Art. 27, 28, 29, 36 LSS (Cuotas IMSS). Art. 29 LINFONAVIT (5% patronal). Art. 96 LISR (Tabla mensual). UMA 2026: ' + fmt(UMA_2026) + '. Tope SBC: 25 UMAs = ' + fmt(TOPE_SBC) + '.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #2: CUOTAS PATRONALES
+  // ═══════════════════════════════════════════════════════════
+  function calcPatronal() {
+    const sbc = parseFloat(document.getElementById('nm-pat-sbc').value) || 0;
+    const diasSel = document.getElementById('nm-pat-dias').value;
+    const dias = diasSel === 'bimestral' ? 62 : parseInt(diasSel);
+    const clase = document.getElementById('nm-pat-clase').value;
+    const primaCustom = clase === 'custom'
+      ? (parseFloat(document.getElementById('nm-pat-prima-custom').value) || 0) / 100
+      : null;
+    const estado = document.getElementById('nm-pat-estado').value;
+    const nombre = document.getElementById('nm-pat-nombre').value.trim() || 'Cuotas patronales';
+
+    if (sbc <= 0) { alert('Ingresa el SBC'); return; }
+    if (sbc > TOPE_SBC) {
+      if (!confirm('El SBC excede el tope de 25 UMAs (' + fmt(TOPE_SBC) + '). Se aplicará el tope. ¿Continuar?')) return;
+    }
+    const sbcAplicar = Math.min(sbc, TOPE_SBC);
+
+    const cuotas = cuotasIMSSPatronal(sbcAplicar, dias, clase, primaCustom);
+
+    // ISN
+    let isnTasa = 0, isnEstado = 'No aplica';
+    if (estado !== '0') {
+      const e = ISN_ESTADOS_2026.find(es => es.codigo === estado);
+      if (e) { isnTasa = e.tasa; isnEstado = e.nombre; }
+    }
+    // ISN se calcula sobre la nómina (sueldo + prestaciones), aproximamos sobre sbc * dias
+    const baseISN = sbcAplicar * dias;
+    const isn = baseISN * isnTasa;
+
+    const totalGeneral = cuotas.total + isn;
+
+    const filas = [
+      { etiqueta: 'SBC aplicable (con tope 25 UMAs)', valor: sbcAplicar },
+      { etiqueta: 'Días del periodo', valor: dias.toString() },
+      { etiqueta: 'Clase de riesgo', valor: clase + (primaCustom !== null ? ' (custom)' : '') },
+
+      { etiqueta: '— Enf. y Mat. (cuota fija sobre 1 UMA)', valor: cuotas.enfermedadMaternidad_cuotaFija },
+      { etiqueta: '— Enf. y Mat. (excedente sobre 3 UMAs)', valor: cuotas.enfermedadMaternidad_excedente },
+      { etiqueta: '— Enf. y Mat. (prestaciones dinero)', valor: cuotas.enfermedadMaternidad_dinero },
+      { etiqueta: '— Enf. y Mat. (gastos médicos pensionados)', valor: cuotas.enfermedadMaternidad_gastosMed },
+      { etiqueta: '— Riesgo de Trabajo (' + (primaCustom !== null ? fmtPct(primaCustom) : fmtPct(RIESGO_TRABAJO[clase])) + ')', valor: cuotas.riesgoTrabajo },
+      { etiqueta: '— Invalidez y Vida', valor: cuotas.invalidezVida },
+      { etiqueta: '— Cesantía y Vejez (4.241% en 2026)', valor: cuotas.cesantiaVejez },
+      { etiqueta: '— Guarderías y Prest. Sociales', valor: cuotas.guarderias },
+      { etiqueta: 'TOTAL IMSS PATRONAL', valor: cuotas.totalIMSS, subtotal: true },
+
+      { etiqueta: 'Retiro patronal RCV (2%)', valor: cuotas.retiro },
+      { etiqueta: 'INFONAVIT patronal (5%)', valor: cuotas.infonavit },
+      { etiqueta: 'TOTAL IMSS + INFONAVIT + RCV', valor: cuotas.total, subtotal: true },
+
+      ...(isn > 0 ? [
+        { etiqueta: 'ISN (' + isnEstado + ' · ' + fmtPct(isnTasa) + ')', valor: isn },
+        { etiqueta: 'TOTAL CON IMPUESTOS ESTATALES', valor: totalGeneral, total: true }
+      ] : [
+        { etiqueta: 'TOTAL A ENTERAR (PATRÓN)', valor: cuotas.total, total: true }
+      ])
+    ];
+
+    nmRenderResultado(document.getElementById('nm-patronal-result-card'), {
+      tipo: 'patronal',
+      tipoLabel: '🏢 Cuotas Patronales',
+      titulo: nombre,
+      subtitulo: 'Periodo: ' + dias + ' días · SBC: ' + fmt(sbcAplicar) + (isn > 0 ? ' · Estado: ' + isnEstado : ''),
+      filas: filas,
+      fundamento: 'Art. 25, 71, 106, 107, 147, 168 LSS (Cuotas IMSS patronal). Art. 29 LINFONAVIT (5% patronal). Reforma RCV 2020 — incremento gradual hasta 11.875% en 2030. ISN según código fiscal estatal. UMA 2026: ' + fmt(UMA_2026) + '.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #3: SDI
+  // ═══════════════════════════════════════════════════════════
+  function calcSDI() {
+    const salarioDiario = parseFloat(document.getElementById('nm-sdi-salario').value) || 0;
+    const antiguedad = parseFloat(document.getElementById('nm-sdi-antiguedad').value) || 1;
+    const diasAguinaldo = parseInt(document.getElementById('nm-sdi-aguinaldo').value) || 15;
+    const primaVacPct = parseFloat(document.getElementById('nm-sdi-prima-vac').value) || 25;
+    const vales = parseFloat(document.getElementById('nm-sdi-vales').value) || 0;
+    const fondo = parseFloat(document.getElementById('nm-sdi-fondo').value) || 0;
+    const otras = parseFloat(document.getElementById('nm-sdi-otras').value) || 0;
+    const nombre = document.getElementById('nm-sdi-nombre').value.trim() || 'SDI';
+
+    if (salarioDiario <= 0) { alert('Ingresa el salario diario'); return; }
+
+    const diasVac = diasVacacionesLFT(antiguedad);
+    const factor = factorIntegracion(antiguedad, diasAguinaldo, primaVacPct);
+
+    // Vales: exento hasta 1 UMA diaria mensual = 30 UMAs
+    const valesExento = Math.min(vales, UMA_2026 * 30);
+    const valesGravable = Math.max(0, vales - valesExento);
+
+    // Fondo de ahorro: exento hasta 13% del salario mensual
+    const salarioMensual = salarioDiario * 30;
+    const fondoExento = Math.min(fondo, salarioMensual * 0.13);
+    const fondoGravable = Math.max(0, fondo - fondoExento);
+
+    // Total prestaciones gravables (a base diaria)
+    const prestGravablesDiario = (valesGravable + fondoGravable + otras) / 30;
+
+    const sbcSinTope = (salarioDiario * factor) + prestGravablesDiario;
+    const sbcConTope = Math.min(sbcSinTope, TOPE_SBC);
+    const aplicaTope = sbcSinTope > TOPE_SBC;
+
+    const filas = [
+      { etiqueta: 'Salario diario nominal', valor: salarioDiario },
+      { etiqueta: 'Antigüedad', valor: antiguedad + ' año(s)' },
+      { etiqueta: 'Días de vacaciones (LFT)', valor: diasVac.toString() },
+      { etiqueta: 'Días de aguinaldo', valor: diasAguinaldo.toString() },
+      { etiqueta: 'Factor de integración', valor: factor.toFixed(6) },
+      { etiqueta: 'Salario diario × factor', valor: salarioDiario * factor },
+
+      ...(valesGravable > 0 ? [
+        { etiqueta: 'Vales (exento: ' + fmt(valesExento) + ')', valor: valesExento, negativo: true },
+        { etiqueta: 'Vales gravable (a base diaria)', valor: valesGravable / 30 }
+      ] : []),
+      ...(fondoGravable > 0 ? [
+        { etiqueta: 'Fondo ahorro (exento 13%: ' + fmt(fondoExento) + ')', valor: fondoExento, negativo: true },
+        { etiqueta: 'Fondo gravable (a base diaria)', valor: fondoGravable / 30 }
+      ] : []),
+      ...(otras > 0 ? [
+        { etiqueta: 'Otras prestaciones (a base diaria)', valor: otras / 30 }
+      ] : []),
+
+      { etiqueta: 'SBC sin tope', valor: sbcSinTope },
+      ...(aplicaTope ? [{ etiqueta: '⚠️ APLICA TOPE: 25 UMAs = ' + fmt(TOPE_SBC), valor: '' }] : []),
+      { etiqueta: 'SALARIO BASE DE COTIZACIÓN (SBC)', valor: sbcConTope, total: true }
+    ];
+
+    nmRenderResultado(document.getElementById('nm-sdi-result-card'), {
+      tipo: 'sdi',
+      tipoLabel: '📐 Salario Diario Integrado',
+      titulo: nombre,
+      subtitulo: antiguedad + ' año(s) · Factor: ' + factor.toFixed(4),
+      filas: filas,
+      fundamento: 'Art. 27 LSS (Integración del salario). Art. 32 LSS (Tope 25 UMAs). Art. 76 LFT (Vacaciones reformado 2023). Art. 87 LFT (Aguinaldo). Art. 80 LFT (Prima vacacional). UMA 2026: ' + fmt(UMA_2026) + '.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #4: MULTI-EMPLEADO
+  // ═══════════════════════════════════════════════════════════
+  let nmMultiEmpleados = [];
+  let nmMultiNextId = 1;
+
+  function nmMultiAddRow(emp) {
+    const tbody = document.getElementById('nm-multi-tbody');
+    if (!tbody) return;
+    const id = emp ? emp.id : nmMultiNextId++;
+    const tr = document.createElement('tr');
+    tr.dataset.id = id;
+    tr.innerHTML = `
+      <td class="nm-multi-num">${tbody.children.length + 1}</td>
+      <td><input type="text" class="cf-input nm-multi-nombre" placeholder="Empleado ${tbody.children.length + 1}" value="${emp ? emp.nombre : ''}"></td>
+      <td>
+        <div class="cf-input-prefix">
+          <span class="cf-prefix">$</span>
+          <input type="number" class="cf-input nm-multi-salario" placeholder="0.00" step="0.01" min="0" value="${emp ? emp.salario : ''}">
+        </div>
+      </td>
+      <td><input type="number" class="cf-input nm-multi-antiguedad" value="${emp ? emp.antiguedad : 1}" step="1" min="0"></td>
+      <td><input type="number" class="cf-input nm-multi-dias" value="${emp ? emp.dias : 30}" step="1" min="0"></td>
+      <td><button type="button" class="cf-btn-icon nm-multi-del" title="Eliminar">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button></td>
+    `;
+    tbody.appendChild(tr);
+    tr.querySelector('.nm-multi-del').addEventListener('click', () => {
+      tr.remove();
+      // Renumerar
+      tbody.querySelectorAll('tr').forEach((row, i) => {
+        row.querySelector('.nm-multi-num').textContent = i + 1;
+      });
+    });
+    if (typeof injectarSpinnersNM === 'function') injectarSpinnersNM();
+  }
+
+  function calcMulti() {
+    const tbody = document.getElementById('nm-multi-tbody');
+    if (!tbody || tbody.children.length === 0) {
+      alert('Agrega al menos un empleado');
+      return;
+    }
+    const estado = document.getElementById('nm-multi-estado').value;
+    const clase = document.getElementById('nm-multi-clase').value;
+    const dias = parseInt(document.getElementById('nm-multi-periodo').value);
+
+    let isnTasa = 0, isnEstadoNombre = 'No aplica';
+    if (estado !== '0') {
+      const e = ISN_ESTADOS_2026.find(es => es.codigo === estado);
+      if (e) { isnTasa = e.tasa; isnEstadoNombre = e.nombre; }
+    }
+
+    let totalSueldos = 0, totalIMSSObrero = 0, totalIMSSPatronal = 0;
+    let totalRCV = 0, totalINFONAVIT = 0, totalISN = 0;
+    let totalISR = 0, totalNeto = 0;
+    const rows = [];
+
+    tbody.querySelectorAll('tr').forEach((tr, i) => {
+      const nombre = tr.querySelector('.nm-multi-nombre').value || ('Empleado ' + (i + 1));
+      const salario = parseFloat(tr.querySelector('.nm-multi-salario').value) || 0;
+      const antiguedad = parseFloat(tr.querySelector('.nm-multi-antiguedad').value) || 1;
+      const diasTrab = parseInt(tr.querySelector('.nm-multi-dias').value) || dias;
+
+      if (salario <= 0) return;
+
+      const sbc = calcularSBC(salario, antiguedad, 15, 25, 0);
+      const sueldoBruto = salario * diasTrab;
+      const cuotasObrero = cuotasIMSSObrero(sbc, diasTrab);
+      const cuotasPat = cuotasIMSSPatronal(sbc, diasTrab, clase, null);
+
+      // ISR aproximado
+      const factor = dias === 30 ? 1 : (dias === 15 ? 2 : 52/12);
+      const baseMensISR = sueldoBruto * factor;
+      const isrM = aplicarTablaISR(baseMensISR, TABLA_ISR_MENSUAL_2026);
+      const subs = aplicarSubsidio(baseMensISR);
+      const isrFinal = Math.max(0, isrM - subs);
+      const isr = isrFinal / factor;
+
+      const totalDed = cuotasObrero.total + isr;
+      const neto = sueldoBruto - totalDed;
+      const isnEmp = sbc * diasTrab * isnTasa;
+
+      rows.push({ nombre, salario, sbc, sueldoBruto, cuotasObreroTotal: cuotasObrero.total, isr, neto, cuotasPatTotal: cuotasPat.total, isn: isnEmp });
+
+      totalSueldos += sueldoBruto;
+      totalIMSSObrero += cuotasObrero.total;
+      totalIMSSPatronal += cuotasPat.totalIMSS;
+      totalRCV += cuotasPat.retiro;
+      totalINFONAVIT += cuotasPat.infonavit;
+      totalISR += isr;
+      totalISN += isnEmp;
+      totalNeto += neto;
+    });
+
+    if (rows.length === 0) { alert('Ningún empleado tiene salario válido'); return; }
+
+    const costoTotalPatron = totalSueldos + totalIMSSPatronal + totalRCV + totalINFONAVIT + totalISN;
+
+    // Renderizar resultado en HTML custom
+    const cont = document.getElementById('nm-multi-result');
+    cont.innerHTML = `
+      <div class="cf-card cf-card-result" id="nm-multi-result-card" style="margin-top:1.25rem">
+        <div class="cf-result-header">
+          <div>
+            <p class="cf-result-eyebrow">📋 NÓMINA MULTI-EMPLEADO</p>
+            <h3 class="cf-result-title">${rows.length} empleados · ${dias} días</h3>
+            <p class="cf-result-sub">Estado: ${isnEstadoNombre} · Clase: ${clase}</p>
+          </div>
+        </div>
+        <div class="nm-multi-result-table">
+          <table class="cf-multi-table">
+            <thead>
+              <tr>
+                <th>Empleado</th>
+                <th style="text-align:right">Salario</th>
+                <th style="text-align:right">SBC</th>
+                <th style="text-align:right">Bruto</th>
+                <th style="text-align:right">IMSS Obr.</th>
+                <th style="text-align:right">ISR</th>
+                <th style="text-align:right">Neto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map(r => `
+                <tr>
+                  <td>${r.nombre}</td>
+                  <td style="text-align:right;font-family:monospace">${fmt(r.salario)}</td>
+                  <td style="text-align:right;font-family:monospace">${fmt(r.sbc)}</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:bold">${fmt(r.sueldoBruto)}</td>
+                  <td style="text-align:right;font-family:monospace;color:#fca5a5">${fmt(r.cuotasObreroTotal)}</td>
+                  <td style="text-align:right;font-family:monospace;color:#fca5a5">${fmt(r.isr)}</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:bold;color:#7dd8e0">${fmt(r.neto)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="cf-result-body" style="margin-top:1rem">
+          <div class="cf-result-row"><span class="cf-result-label">Total sueldos brutos</span><span class="cf-result-value">${fmt(totalSueldos)}</span></div>
+          <div class="cf-result-row"><span class="cf-result-label">Total IMSS obrero (retenido)</span><span class="cf-result-value" style="color:#fca5a5">${fmt(totalIMSSObrero)}</span></div>
+          <div class="cf-result-row"><span class="cf-result-label">Total ISR (retenido)</span><span class="cf-result-value" style="color:#fca5a5">${fmt(totalISR)}</span></div>
+          <div class="cf-result-row is-total"><span class="cf-result-label">TOTAL NETO A PAGAR EMPLEADOS</span><span class="cf-result-value">${fmt(totalNeto)}</span></div>
+          <div class="cf-result-row" style="margin-top:0.75rem"><span class="cf-result-label">Total IMSS patronal</span><span class="cf-result-value">${fmt(totalIMSSPatronal)}</span></div>
+          <div class="cf-result-row"><span class="cf-result-label">Total RCV (Retiro 2%)</span><span class="cf-result-value">${fmt(totalRCV)}</span></div>
+          <div class="cf-result-row"><span class="cf-result-label">Total INFONAVIT (5%)</span><span class="cf-result-value">${fmt(totalINFONAVIT)}</span></div>
+          ${totalISN > 0 ? `<div class="cf-result-row"><span class="cf-result-label">Total ISN (${isnEstadoNombre})</span><span class="cf-result-value">${fmt(totalISN)}</span></div>` : ''}
+          <div class="cf-result-row is-total"><span class="cf-result-label">COSTO TOTAL PATRÓN</span><span class="cf-result-value">${fmt(costoTotalPatron)}</span></div>
+        </div>
+        <p class="cf-result-fundamento">📚 <strong>Resumen financiero:</strong> Los empleados reciben un total de ${fmt(totalNeto)} netos. Tu empresa paga en total ${fmt(costoTotalPatron)} (sueldos + cuotas patronales + impuestos).</p>
+      </div>
+    `;
+
+    // Guardar para descarga
+    const dataMulti = {
+      tipo: 'multi',
+      tipoLabel: '📋 Nómina Multi-Empleado',
+      titulo: rows.length + ' empleados',
+      subtitulo: 'Periodo: ' + dias + ' días · ' + isnEstadoNombre,
+      filas: [
+        { etiqueta: 'Empleados calculados', valor: rows.length.toString() },
+        { etiqueta: 'Total sueldos brutos', valor: totalSueldos },
+        { etiqueta: 'Total IMSS obrero', valor: totalIMSSObrero, negativo: true },
+        { etiqueta: 'Total ISR retenido', valor: totalISR, negativo: true },
+        { etiqueta: 'TOTAL NETO A EMPLEADOS', valor: totalNeto, total: true },
+        { etiqueta: 'Total IMSS patronal', valor: totalIMSSPatronal },
+        { etiqueta: 'Total RCV (2%)', valor: totalRCV },
+        { etiqueta: 'Total INFONAVIT (5%)', valor: totalINFONAVIT },
+        ...(totalISN > 0 ? [{ etiqueta: 'Total ISN', valor: totalISN }] : []),
+        { etiqueta: 'COSTO TOTAL PATRÓN', valor: costoTotalPatron, total: true }
+      ],
+      fundamento: 'Cálculo agregado de ' + rows.length + ' empleados con base en LSS, LFT, LISR y código fiscal estatal 2026.'
+    };
+    window['_nmLastResult_nm-multi-result-card'] = dataMulti;
+
+    // Reagregar botones de acción
+    const card = document.getElementById('nm-multi-result-card');
+    const actionsHTML = `
+      <div class="cf-result-actions">
+        <button class="cf-action cf-action-save" onclick="nmSaveAction('nm-multi-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/></svg>
+          Guardar (7 días)
+        </button>
+        <button class="cf-action cf-action-pdf" onclick="nmDownloadPDF('nm-multi-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+          Descargar PDF
+        </button>
+        <button class="cf-action cf-action-xls" onclick="nmDownloadXLS('nm-multi-result-card')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+          Descargar Excel
+        </button>
+      </div>
+    `;
+    card.insertAdjacentHTML('beforeend', actionsHTML);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDERIZAR HISTORIAL
+  // ═══════════════════════════════════════════════════════════
+  function nmRenderHistorial() {
+    const cont = document.getElementById('nm-historial-list');
+    if (!cont) return;
+    const arr = nmLoadHist();
+    if (arr.length === 0) {
+      cont.innerHTML = `
+        <div class="cf-hist-empty">
+          <div style="font-size:48px;margin-bottom:1rem">📅</div>
+          <p style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px">Tu historial de nómina está vacío</p>
+          <p style="font-size:12.5px;color:rgba(167,196,199,0.7)">Cuando guardes un cálculo aparecerá aquí. Se mantiene 7 días automáticamente.</p>
+        </div>
+      `;
+      return;
+    }
+
+    cont.innerHTML = arr.map(item => {
+      const dias = nmDiasRestantes(item.fecha);
+      const fecha = new Date(item.fecha);
+      const expirando = dias <= 2;
+
+      const previewFilas = item.filas.filter(f => f.total).slice(0, 2).map(f =>
+        `<span><strong>${f.etiqueta}:</strong> ${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</span>`
+      ).join(' · ');
+
+      return `
+        <article class="cf-hist-card ${expirando ? 'cf-hist-card-expiring' : ''}">
+          <div class="cf-hist-card-head">
+            <div class="cf-hist-card-info">
+              <span class="cf-hist-card-tipo">${item.tipoLabel}</span>
+              <h4 class="cf-hist-card-titulo">${item.titulo}</h4>
+              ${item.subtitulo ? `<p class="cf-hist-card-sub">${item.subtitulo}</p>` : ''}
+            </div>
+            <div class="cf-hist-card-meta">
+              <span class="cf-hist-card-fecha">${fecha.toLocaleDateString('es-MX', { day:'numeric', month:'short' })} · ${fecha.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}</span>
+              <span class="cf-hist-card-ttl ${expirando ? 'is-expiring' : ''}">⏰ Expira en ${dias} día${dias !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          ${previewFilas ? `<div class="cf-hist-card-preview">${previewFilas}</div>` : ''}
+          <div class="cf-hist-card-actions">
+            <button class="cf-action cf-action-pdf-sm" onclick="nmHistDownloadPDF('${item.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              PDF
+            </button>
+            <button class="cf-action cf-action-xls-sm" onclick="nmHistDownloadXLS('${item.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+              Excel
+            </button>
+            <button class="cf-action cf-action-del-sm" onclick="nmHistDelete('${item.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/></svg>
+              Borrar
+            </button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+  window.nmHistDownloadPDF = function(id) {
+    const item = nmLoadHist().find(i => i.id === id);
+    if (item && item.tipo === 'recibo') generarReciboPDF(item);
+    else if (item) window.cfDownloadPDF_externo(item);
+  };
+  window.nmHistDownloadXLS = function(id) {
+    const item = nmLoadHist().find(i => i.id === id);
+    if (item) window.cfDownloadXLS_externo(item);
+  };
+  window.nmHistDelete = function(id) {
+    if (confirm('¿Borrar este cálculo del historial?')) nmDeleteHistItem(id);
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // EVENTOS
+  // ═══════════════════════════════════════════════════════════
+  document.querySelectorAll('.cf-tab[data-nmtab]').forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.nmtab;
+      document.querySelectorAll('.cf-tab[data-nmtab]').forEach(b => b.classList.remove('is-active'));
+      t.classList.add('is-active');
+      document.querySelectorAll('.cf-panel[data-nmpanel]').forEach(p => p.classList.remove('is-active'));
+      const panel = document.querySelector('.cf-panel[data-nmpanel="' + target + '"]');
+      if (panel) panel.classList.add('is-active');
+      if (target === 'historial') nmRenderHistorial();
+    });
+  });
+
+  // Mostrar campo prima custom
+  const claseSel = document.getElementById('nm-pat-clase');
+  if (claseSel) {
+    claseSel.addEventListener('change', () => {
+      const customField = document.getElementById('nm-pat-prima-custom-field');
+      customField.style.display = claseSel.value === 'custom' ? '' : 'none';
+    });
+  }
+
+  // Bind botones
+  const bindings = [
+    ['btn-nm-recibo-calc', calcRecibo],
+    ['btn-nm-patronal-calc', calcPatronal],
+    ['btn-nm-sdi-calc', calcSDI],
+    ['btn-nm-multi-calc', calcMulti],
+    ['btn-nm-multi-add', () => nmMultiAddRow()]
+  ];
+  bindings.forEach(([id, fn]) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', fn);
+  });
+
+  const btnClearNM = document.getElementById('btn-nm-clear-historial');
+  if (btnClearNM) btnClearNM.addEventListener('click', nmClearHistAll);
+
+  // Inyectar spinners en inputs nuevos
+  function injectarSpinnersNM() {
+    const calc = document.getElementById('sec-calc-nomina');
+    if (!calc) return;
+    const inputs = calc.querySelectorAll('input.cf-input[type="number"]');
+    inputs.forEach(input => {
+      if (input.dataset.cfSpinned === '1') return;
+      input.dataset.cfSpinned = '1';
+
+      let wrapper = input.parentElement;
+      if (wrapper && wrapper.classList.contains('cf-input-prefix')) {
+        wrapper.classList.add('cf-spin');
+      } else {
+        wrapper = document.createElement('div');
+        wrapper.className = 'cf-spin';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+      }
+
+      const controls = document.createElement('div');
+      controls.className = 'cf-spin-controls';
+      controls.innerHTML = `
+        <button type="button" class="cf-spin-btn cf-spin-up" tabindex="-1" aria-label="Aumentar">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 5,1 9,5"/></svg>
+        </button>
+        <button type="button" class="cf-spin-btn cf-spin-down" tabindex="-1" aria-label="Disminuir">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,1 5,5 9,1"/></svg>
+        </button>
+      `;
+      wrapper.appendChild(controls);
+
+      const stepAttr = input.getAttribute('step');
+      const step = stepAttr ? parseFloat(stepAttr) : 1;
+      const min = input.getAttribute('min') !== null ? parseFloat(input.getAttribute('min')) : -Infinity;
+      const max = input.getAttribute('max') !== null ? parseFloat(input.getAttribute('max')) : Infinity;
+
+      const stepUp = () => {
+        const current = parseFloat(input.value) || 0;
+        const next = Math.min(max, current + step);
+        const decimals = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(decimals);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      const stepDown = () => {
+        const current = parseFloat(input.value) || 0;
+        const next = Math.max(min, current - step);
+        const decimals = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(decimals);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+
+      let holdTimer = null, holdInterval = null;
+      function startHold(fn) {
+        fn();
+        holdTimer = setTimeout(() => { holdInterval = setInterval(fn, 60); }, 400);
+      }
+      function stopHold() {
+        clearTimeout(holdTimer); clearInterval(holdInterval);
+        holdTimer = null; holdInterval = null;
+      }
+
+      const upBtn = controls.querySelector('.cf-spin-up');
+      const downBtn = controls.querySelector('.cf-spin-down');
+      upBtn.addEventListener('mousedown', () => startHold(stepUp));
+      upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepUp); }, { passive: false });
+      upBtn.addEventListener('mouseup', stopHold);
+      upBtn.addEventListener('mouseleave', stopHold);
+      upBtn.addEventListener('touchend', stopHold);
+      downBtn.addEventListener('mousedown', () => startHold(stepDown));
+      downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepDown); }, { passive: false });
+      downBtn.addEventListener('mouseup', stopHold);
+      downBtn.addEventListener('mouseleave', stopHold);
+      downBtn.addEventListener('touchend', stopHold);
+    });
+  }
+
+  // Init
+  nmActualizarBadge();
+  nmMultiAddRow();
+  nmMultiAddRow();
+  nmMultiAddRow(); // 3 filas iniciales
+  injectarSpinnersNM();
 })();
 </script>
 
@@ -10104,6 +11823,235 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   background: rgba(220,38,38,0.12);
   border-color: rgba(248,113,113,0.4);
   color: #fca5a5;
+}
+
+/* ════════════════════════════════════════════════════════════
+   🛠️ NÓMINA IMSS — Estilos específicos
+   ════════════════════════════════════════════════════════════ */
+
+/* Aviso CFDI prominente en resultado */
+.nm-cfdi-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 1rem;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(220,38,38,0.12), rgba(127,29,29,0.05));
+  border: 1px solid rgba(248,113,113,0.35);
+  border-left: 3px solid rgba(220,38,38,0.8);
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: rgba(254,202,202,0.95);
+}
+.nm-cfdi-warning svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: #fca5a5;
+}
+.nm-cfdi-warning strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* Subtotal styling (ej. TOTAL DEDUCCIONES) */
+.cf-result-row.is-subtotal {
+  background: linear-gradient(90deg, rgba(220,38,38,0.12), rgba(220,38,38,0.03));
+  border-top: 1px solid rgba(248,113,113,0.25);
+  border-bottom: 1px solid rgba(248,113,113,0.25);
+  margin: 4px -1.5rem;
+  padding: 8px 1.5rem;
+}
+.cf-result-row.is-subtotal .cf-result-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  color: #fca5a5;
+  font-size: 12.5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cf-result-row.is-subtotal .cf-result-value {
+  color: #fca5a5;
+  font-weight: 700;
+}
+
+/* Acción Imprimir */
+.cf-action-print:hover {
+  background: rgba(125,216,224,0.12);
+  border-color: rgba(125,216,224,0.5);
+  color: #7dd8e0;
+}
+
+/* ═══════ Multi-empleado ═══════ */
+.cf-multi-container {
+  background:
+    linear-gradient(180deg, rgba(45,90,94,0.4), rgba(20,41,45,0.65)),
+    radial-gradient(circle at 100% 0%, rgba(125,216,224,0.1), transparent 60%);
+  border: 1px solid rgba(93,164,171,0.25);
+  border-radius: 18px;
+  padding: 1.5rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(125,216,224,0.15);
+}
+
+.cf-multi-header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(125,216,224,0.18);
+}
+
+.cf-multi-config {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+  padding: 1rem;
+  background: rgba(15,23,42,0.4);
+  border-radius: 12px;
+  border: 1px solid rgba(147,197,253,0.12);
+}
+
+.cf-multi-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid rgba(125,216,224,0.18);
+  background: rgba(15,23,42,0.4);
+  margin-bottom: 1rem;
+}
+
+.cf-multi-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 700px;
+}
+.cf-multi-table thead {
+  background: linear-gradient(180deg, rgba(11,31,74,0.85), rgba(11,31,74,0.65));
+}
+.cf-multi-table thead th {
+  padding: 11px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #f5d77a;
+  text-align: left;
+  border-bottom: 1px solid rgba(245,215,122,0.3);
+}
+.cf-multi-table tbody tr {
+  border-bottom: 1px solid rgba(125,216,224,0.08);
+  transition: background 0.15s;
+}
+.cf-multi-table tbody tr:hover {
+  background: rgba(125,216,224,0.04);
+}
+.cf-multi-table tbody td {
+  padding: 7px 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  color: rgba(209,230,232,0.9);
+  vertical-align: middle;
+}
+.cf-multi-table .nm-multi-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(125,216,224,0.7);
+  text-align: center;
+  font-weight: 700;
+}
+.cf-multi-table .cf-input {
+  padding: 7px 10px !important;
+  font-size: 12px !important;
+  margin: 0 !important;
+}
+.cf-multi-table .cf-input-prefix .cf-input {
+  padding-left: 24px !important;
+  padding-right: 24px !important;
+}
+.cf-multi-table .cf-spin-controls {
+  right: 2px;
+}
+.cf-multi-table .cf-spin-btn {
+  width: 18px;
+  height: 11px;
+}
+
+.cf-btn-icon {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(248,113,113,0.25);
+  border-radius: 8px;
+  color: rgba(252,165,165,0.85);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cf-btn-icon:hover {
+  background: rgba(220,38,38,0.2);
+  border-color: rgba(248,113,113,0.55);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.cf-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  background: linear-gradient(135deg, rgba(125,216,224,0.18), rgba(93,164,171,0.05));
+  border: 1px solid rgba(125,216,224,0.4);
+  border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #7dd8e0;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.04em;
+}
+.cf-btn-secondary:hover {
+  background: linear-gradient(135deg, rgba(125,216,224,0.35), rgba(93,164,171,0.15));
+  border-color: rgba(125,216,224,0.7);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(125,216,224,0.25);
+}
+
+.cf-multi-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 1rem;
+}
+
+.nm-multi-result-table {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid rgba(125,216,224,0.18);
+  background: rgba(2,5,15,0.4);
+  margin-top: 1rem;
+}
+.nm-multi-result-table .cf-multi-table thead th {
+  padding: 9px 10px;
+  font-size: 10px;
+}
+.nm-multi-result-table .cf-multi-table tbody td {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+
+@media (max-width: 700px) {
+  .cf-multi-config { grid-template-columns: 1fr; }
+  .cf-multi-table { font-size: 11px; }
+  .cf-multi-table thead th { padding: 8px 6px; font-size: 9.5px; }
 }
 
 /* Responsive calculadora */
