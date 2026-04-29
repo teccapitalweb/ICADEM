@@ -6062,8 +6062,106 @@ buildVideoteca();
   const btnClear = document.getElementById('btn-cf-clear-historial');
   if (btnClear) btnClear.addEventListener('click', clearHistAll);
 
+  // ═══════════════════════════════════════════════════════════
+  // INYECTAR SPINNERS CUSTOM A TODOS LOS INPUTS NUMBER
+  // ═══════════════════════════════════════════════════════════
+  function injectarSpinners() {
+    const calculadora = document.getElementById('sec-calc-fiscal');
+    if (!calculadora) return;
+
+    const inputs = calculadora.querySelectorAll('input.cf-input[type="number"]');
+    inputs.forEach(input => {
+      // Saltar si ya tiene spinner
+      if (input.dataset.cfSpinned === '1') return;
+      input.dataset.cfSpinned = '1';
+
+      // Si está dentro de cf-input-prefix, agregar la clase cf-spin al wrapper
+      let wrapper = input.parentElement;
+      if (wrapper && wrapper.classList.contains('cf-input-prefix')) {
+        wrapper.classList.add('cf-spin');
+      } else {
+        // Crear un wrapper cf-spin alrededor
+        wrapper = document.createElement('div');
+        wrapper.className = 'cf-spin';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+      }
+
+      // Crear los controles up/down
+      const controls = document.createElement('div');
+      controls.className = 'cf-spin-controls';
+      controls.innerHTML = `
+        <button type="button" class="cf-spin-btn cf-spin-up" tabindex="-1" aria-label="Aumentar">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 5,1 9,5"/></svg>
+        </button>
+        <button type="button" class="cf-spin-btn cf-spin-down" tabindex="-1" aria-label="Disminuir">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,1 5,5 9,1"/></svg>
+        </button>
+      `;
+      wrapper.appendChild(controls);
+
+      // Determinar el step automáticamente
+      const stepAttr = input.getAttribute('step');
+      const step = stepAttr ? parseFloat(stepAttr) : 1;
+      const min = input.getAttribute('min') !== null ? parseFloat(input.getAttribute('min')) : -Infinity;
+      const max = input.getAttribute('max') !== null ? parseFloat(input.getAttribute('max')) : Infinity;
+
+      // Funciones step
+      const stepUp = () => {
+        const current = parseFloat(input.value) || 0;
+        const next = Math.min(max, current + step);
+        // Mantener decimales según step
+        const decimals = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(decimals);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      const stepDown = () => {
+        const current = parseFloat(input.value) || 0;
+        const next = Math.max(min, current - step);
+        const decimals = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(decimals);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+
+      // Bind con click + hold (para repetir mientras presionas)
+      let holdTimer = null, holdInterval = null;
+      function startHold(fn) {
+        fn(); // ejecutar inmediato
+        holdTimer = setTimeout(() => {
+          holdInterval = setInterval(fn, 60); // cada 60ms mientras se mantiene
+        }, 400); // delay inicial
+      }
+      function stopHold() {
+        clearTimeout(holdTimer);
+        clearInterval(holdInterval);
+        holdTimer = null;
+        holdInterval = null;
+      }
+
+      const upBtn = controls.querySelector('.cf-spin-up');
+      const downBtn = controls.querySelector('.cf-spin-down');
+
+      upBtn.addEventListener('mousedown', () => startHold(stepUp));
+      upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepUp); }, { passive: false });
+      upBtn.addEventListener('mouseup', stopHold);
+      upBtn.addEventListener('mouseleave', stopHold);
+      upBtn.addEventListener('touchend', stopHold);
+      upBtn.addEventListener('touchcancel', stopHold);
+
+      downBtn.addEventListener('mousedown', () => startHold(stepDown));
+      downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepDown); }, { passive: false });
+      downBtn.addEventListener('mouseup', stopHold);
+      downBtn.addEventListener('mouseleave', stopHold);
+      downBtn.addEventListener('touchend', stopHold);
+      downBtn.addEventListener('touchcancel', stopHold);
+    });
+  }
+
   // Init
   actualizarBadgeHistorial();
+  injectarSpinners();
 })();
 </script>
 
@@ -9133,9 +9231,81 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 }
 .cf-input-prefix .cf-input {
   padding-left: 32px !important;
-  text-align: right;
+  padding-right: 44px !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* ════ Spinners (flechas up/down) custom para inputs number ════ */
+/* Ocultar flechas nativas de Chrome/Safari/Edge */
+.cf-input[type="number"]::-webkit-outer-spin-button,
+.cf-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+/* Ocultar flechas nativas de Firefox */
+.cf-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Spinners custom */
+.cf-spin {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.cf-spin > .cf-input {
+  padding-right: 40px !important;
+}
+.cf-spin-controls {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  z-index: 2;
+}
+.cf-spin-btn {
+  width: 26px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(125,216,224,0.18), rgba(93,164,171,0.06));
+  border: 1px solid rgba(125,216,224,0.3);
+  border-radius: 6px;
+  color: rgba(125,216,224,0.85);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.15s ease;
+  padding: 0;
+  outline: none;
+}
+.cf-spin-btn:hover {
+  background: linear-gradient(135deg, rgba(125,216,224,0.4), rgba(93,164,171,0.18));
+  border-color: rgba(125,216,224,0.6);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(125,216,224,0.35);
+  transform: scale(1.05);
+}
+.cf-spin-btn:active {
+  transform: scale(0.92);
+  background: linear-gradient(135deg, rgba(245,215,122,0.35), rgba(200,150,42,0.18));
+  border-color: rgba(245,215,122,0.55);
+  color: #fef3c7;
+}
+.cf-spin-btn svg { display: block; }
+
+/* Cuando es prefix + spinner, ajustar paddings */
+.cf-input-prefix.cf-spin > .cf-input {
+  padding-left: 32px !important;
+  padding-right: 40px !important;
 }
 
 /* Radio group (pills) */
