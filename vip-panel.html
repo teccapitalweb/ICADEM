@@ -12056,27 +12056,33 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 
 /* Responsive calculadora */
 @media (max-width: 600px) {
-  /* Tabs en mobile: scroll horizontal en una sola línea */
+  /* CRÍTICO: evitar que la sección se estire por flex-wrap nowrap de tabs */
+  #sec-calc-fiscal,
+  #sec-calc-nomina {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  /* Tabs en mobile: scroll horizontal SIN afectar al padre */
   .cf-tabs {
     flex-wrap: nowrap !important;
     overflow-x: auto;
     overflow-y: hidden;
     gap: 0.35rem;
     padding: 5px;
-    scroll-snap-type: x mandatory;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;       /* Firefox */
-    -ms-overflow-style: none;    /* IE */
-    /* Indicador visual de scroll: gradiente fade en los bordes */
-    mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
-    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Confinar el ancho al padre, NO crecer con el contenido */
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
-  .cf-tabs::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+  .cf-tabs::-webkit-scrollbar { display: none; }
   .cf-tab {
-    flex: 0 0 auto !important;       /* No comprimir, no expandir */
+    flex: 0 0 auto !important;
     padding: 9px 16px;
     font-size: 11.5px;
-    scroll-snap-align: start;
     white-space: nowrap;
   }
 
@@ -12089,11 +12095,26 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
     scrollbar-width: none;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
   }
   .cf-subtabs::-webkit-scrollbar { display: none; }
   .cf-subtab {
     flex: 0 0 auto !important;
     white-space: nowrap;
+  }
+
+  /* Asegurar que el banner del disclaimer NO se desborde */
+  .cf-disclaimer {
+    max-width: 100%;
+    overflow: hidden;
+  }
+  .cf-disclaimer > div {
+    min-width: 0;
+    flex: 1;
+  }
+  .cf-disclaimer-text {
+    word-break: break-word;
+    overflow-wrap: break-word;
   }
 
   .cf-card { padding: 1.1rem; }
