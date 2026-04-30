@@ -14092,6 +14092,11 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 /* ═══ Card de tabla amortización ═══ */
 .pt-tabla-card {
   margin-top: 1.25rem;
+  /* Anular cualquier transform aplicado por los efectos 3D - rompería el sticky */
+  transform: none !important;
+  /* CRÍTICO: backdrop-filter rompe el position: sticky del thead.
+     Lo anulamos solo en esta card para que el header se quede arriba al hacer scroll */
+  backdrop-filter: none !important;
 }
 .pt-tabla-header {
   display: flex;
@@ -14107,11 +14112,15 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 }
 .pt-tabla-wrap {
   overflow-x: auto;
+  overflow-y: auto;
   border-radius: 12px;
   border: 1px solid rgba(125,216,224,0.18);
   background: rgba(2,5,15,0.4);
   max-height: 480px;
-  overflow-y: auto;
+  /* Crear un nuevo stacking context limpio para el sticky */
+  isolation: isolate;
+  /* Asegurar que no hay transform que rompa sticky */
+  transform: none;
 }
 .pt-tabla {
   width: 100%;
@@ -14138,6 +14147,10 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   box-shadow: 0 4px 8px rgba(0,0,0,0.55);
 }
 .pt-tabla thead th:first-child { text-align: center; }
+.pt-tabla tbody {
+  position: relative;
+  z-index: 1;
+}
 .pt-tabla tbody tr {
   transition: background 0.15s;
 }
