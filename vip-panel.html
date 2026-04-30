@@ -4678,7 +4678,7 @@
 
     // ───────── FOMO en modo invitado: herramientas y comunidad ─────────
     // Si es invitado y entra a una herramienta de pago → overlay paywall sobre la sección
-    const SECCIONES_CON_PAYWALL = ['plantillas','calc-fiscal','calc-nomina','calc-credito','docs-legales','directorio'];
+    const SECCIONES_CON_PAYWALL = ['cursos','plantillas','calc-fiscal','calc-nomina','calc-credito','docs-legales','directorio'];
     if (document.body.classList.contains('is-guest') && SECCIONES_CON_PAYWALL.includes(id)) {
       // Quitar overlay previo si existe
       document.querySelectorAll('.guest-section-overlay').forEach(el => el.remove());
