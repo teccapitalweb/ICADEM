@@ -14138,12 +14138,18 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: #f5d77a;
+  color: #f5d77a !important;
   text-align: right;
-  background: #0b1f4a;  /* azul sólido, sin gradient */
-  border-bottom: 1.5px solid rgba(245,215,122,0.4);
+  background: #0b1f4a !important;  /* azul sólido — !important vence regla global */
+  background-color: #0b1f4a !important;
+  border-bottom: 1.5px solid rgba(245,215,122,0.4) !important;
   /* Sombra debajo para diferenciarlo cuando se queda fijo */
   box-shadow: 0 4px 8px rgba(0,0,0,0.55);
+}
+/* También cubrir el thead/tr por si la regla global afecta */
+.pt-tabla thead,
+.pt-tabla thead tr {
+  background: #0b1f4a !important;
 }
 .pt-tabla thead th:first-child { text-align: center; }
 .pt-tabla tbody {
