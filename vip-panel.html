@@ -3270,7 +3270,7 @@
     // 9) Configuración - vista limitada
     reemplazarConfiguracionInvitado();
 
-    // === LISTENER: intercepta clicks en wraps y material-item en modo invitado ===
+    // === LISTENER 1: intercepta clicks en wraps de cards FOMO (videoteca, material) ===
     document.addEventListener('click', function(e) {
       if (!document.body.classList.contains('is-guest')) return;
       const lockWrap = e.target.closest('.guest-lock-wrap, .guest-fomo-wrap, .guest-gancho-wrap, .material-item');
@@ -3282,6 +3282,47 @@
         return false;
       }
     }, true);
+
+    // === LISTENER 2: FOMO interactivo en herramientas ===
+    // El invitado puede ver TODA la herramienta funcional (escribir, mover sliders),
+    // pero al darle al botón de acción (Calcular, Generar, Abrir plantilla, Filtrar)
+    // → paywall. Esta es la conversión más fuerte: ya está enganchado llenando datos.
+    //
+    // Secciones afectadas: Plantillas, Calc Fiscal, Calc Nómina, Calc Crédito,
+    //                       Docs Legales, Directorio.
+    //
+    // Selectores que disparan paywall:
+    // - .cf-btn-calc      → botones "Calcular" de las 3 calculadoras
+    // - .cf-btn-secondary → botones "Agregar empleado", "Toggle tabla", etc.
+    // - .cf-btn-clear     → botón limpiar historial (también requiere paywall)
+    // - .cf-action        → acciones del historial (re-calcular, eliminar)
+    // - .tpl-card-cta     → links "Abrir plantilla" / "Descargar"
+    // - .tpl-filter       → filtros de categoría (registran "intención" sobre herramienta paga)
+    // - botones dentro de #sec-docs-legales y #sec-directorio
+    document.addEventListener('click', function(e) {
+      if (!document.body.classList.contains('is-guest')) return;
+
+      // Verificar si el click es dentro de una sección de herramienta
+      const HERRAMIENTAS = ['sec-plantillas','sec-calc-fiscal','sec-calc-nomina','sec-calc-credito','sec-docs-legales','sec-directorio'];
+      const seccion = e.target.closest('.section');
+      if (!seccion || !HERRAMIENTAS.includes(seccion.id)) return;
+
+      // Selectores de botones/links que disparan paywall
+      const accion = e.target.closest(
+        '.cf-btn-calc, .cf-btn-secondary, .cf-btn-clear, .cf-action, ' +
+        '.tpl-card-cta, .tpl-card, .tpl-filter, ' +
+        'button:not(.cf-subtab):not(.cf-tab):not(.cf-radio):not(.is-tab):not(.is-tour-skip):not(.is-tour-next):not(.is-close), ' +
+        'a[href]:not([href^="#"]):not([href="javascript:void(0)"])'
+      );
+      if (accion) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        window.mostrarPaywall();
+        return false;
+      }
+    }, true);
+
 
     console.log('[Auth] Modo INVITADO activado.');
   }
@@ -4676,10 +4717,13 @@
     document.getElementById('topbar-title').textContent = sectionTitles[id] || id;
     if(window.innerWidth <= 768) { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebar-overlay').classList.remove('open'); }
 
-    // ───────── FOMO en modo invitado: herramientas y comunidad ─────────
-    // Si es invitado y entra a una herramienta de pago → overlay paywall sobre la sección
-    const SECCIONES_CON_PAYWALL = ['cursos','plantillas','calc-fiscal','calc-nomina','calc-credito','docs-legales','directorio'];
-    if (document.body.classList.contains('is-guest') && SECCIONES_CON_PAYWALL.includes(id)) {
+    // ───────── FOMO en modo invitado ─────────
+    // Solo Clases en Vivo tiene overlay completo (porque su contenido viene de
+    // Firestore con auth y daría spinner infinito). El resto de herramientas se
+    // ven funcionales — el invitado puede llenar inputs, mover sliders, escribir...
+    // pero al darle al botón de acción (calcular, generar, abrir plantilla) → paywall.
+    const SECCIONES_CON_OVERLAY = ['cursos'];
+    if (document.body.classList.contains('is-guest') && SECCIONES_CON_OVERLAY.includes(id)) {
       // Quitar overlay previo si existe
       document.querySelectorAll('.guest-section-overlay').forEach(el => el.remove());
       // Pintar overlay sobre la sección actual (el contenido se ve detrás, blureado)
@@ -4692,14 +4736,14 @@
           <div class="guest-section-overlay-card">
             <div class="guest-section-overlay-icon">🔒</div>
             <h2 class="guest-section-overlay-title">Función exclusiva <em>VIP</em></h2>
-            <p class="guest-section-overlay-desc">Esta herramienta es exclusiva para miembros VIP. Vuélvete miembro y desbloquea acceso ilimitado a todas las calculadoras, plantillas, comunidad y más.</p>
+            <p class="guest-section-overlay-desc">Las clases en vivo son exclusivas para miembros VIP. Vuélvete miembro y accede a todas las sesiones quincenales con expertos.</p>
             <button class="guest-section-overlay-btn" onclick="window.mostrarPaywall(); return false;">Volverme miembro VIP →</button>
           </div>
         `;
         sec.appendChild(overlay);
       }
     } else {
-      // Si NO es sección de paywall, limpiar overlays y blur
+      // Si NO es sección de overlay, limpiar overlays y blur
       document.querySelectorAll('.guest-section-overlay').forEach(el => el.remove());
       document.querySelectorAll('.guest-section-blocked').forEach(el => el.classList.remove('guest-section-blocked'));
     }
