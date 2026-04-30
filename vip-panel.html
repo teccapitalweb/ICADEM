@@ -13939,23 +13939,24 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 
 /* ═══ Inputs en línea (plazo + unidad, comisión + tipo) ═══ */
 .cf-row-inline {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 130px;
   gap: 8px;
   align-items: stretch;
 }
 .cf-row-inline > .cf-input,
 .cf-row-inline > .cf-spin,
 .cf-row-inline > .cf-input-prefix {
-  flex: 1 1 0;
   min-width: 0;
+  width: 100%;
 }
 .cf-row-inline > .cf-spin > .cf-input,
 .cf-row-inline > .cf-input-prefix > .cf-input {
   width: 100%;
 }
-.cf-row-inline > select.cf-input {
-  flex: 0 0 auto;
-  min-width: 110px;
+/* Si el segundo elemento NO es select, ajustar a 1fr 1fr */
+.cf-row-inline:not(:has(select)) {
+  grid-template-columns: 1fr 1fr;
 }
 
 /* ═══ Cards de selector de método (Francés/Alemán/Bullet) ═══ */
