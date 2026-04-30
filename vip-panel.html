@@ -13944,8 +13944,14 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   align-items: stretch;
 }
 .cf-row-inline > .cf-input,
-.cf-row-inline > .cf-spin {
-  flex: 1;
+.cf-row-inline > .cf-spin,
+.cf-row-inline > .cf-input-prefix {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.cf-row-inline > .cf-spin > .cf-input,
+.cf-row-inline > .cf-input-prefix > .cf-input {
+  width: 100%;
 }
 .cf-row-inline > select.cf-input {
   flex: 0 0 auto;
@@ -14108,16 +14114,14 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 }
 .pt-tabla {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   min-width: 540px;
 }
-.pt-tabla thead {
+.pt-tabla thead th {
   position: sticky;
   top: 0;
-  background: linear-gradient(180deg, #0b1f4a, #0a1838);
-  z-index: 2;
-}
-.pt-tabla thead th {
+  z-index: 5;
   padding: 12px 14px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10.5px;
@@ -14126,21 +14130,24 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   text-transform: uppercase;
   color: #f5d77a;
   text-align: right;
+  background: linear-gradient(180deg, #0b1f4a, #0a1838);
   border-bottom: 1.5px solid rgba(245,215,122,0.4);
+  /* Sombra debajo para diferenciarlo cuando se queda fijo */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.45);
 }
 .pt-tabla thead th:first-child { text-align: center; }
 .pt-tabla tbody tr {
-  border-bottom: 1px solid rgba(125,216,224,0.08);
   transition: background 0.15s;
 }
-.pt-tabla tbody tr:nth-child(odd) { background: rgba(125,216,224,0.025); }
-.pt-tabla tbody tr:hover { background: rgba(245,215,122,0.06); }
+.pt-tabla tbody tr:nth-child(odd) td { background: rgba(125,216,224,0.025); }
+.pt-tabla tbody tr:hover td { background: rgba(245,215,122,0.06); }
 .pt-tabla tbody td {
   padding: 9px 14px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   color: rgba(209,230,232,0.95);
   text-align: right;
+  border-bottom: 1px solid rgba(125,216,224,0.08);
 }
 .pt-tabla .pt-tabla-num {
   font-weight: 700;
