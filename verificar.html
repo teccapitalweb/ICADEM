@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificar Certificado | ICADEM</title>
+<meta name="description" content="Verifica la autenticidad de un certificado oficial emitido por ICADEM.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: linear-gradient(135deg, #0a1629 0%, #0d2547 50%, #0a1f3d 100%);
+    color: #e8eef7;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+  }
+
+  /* ─── Header ─── */
+  .vrf-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .vrf-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: rgba(245, 215, 122, 0.08);
+    border: 1px solid rgba(245, 215, 122, 0.2);
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f5d77a;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+  }
+  .vrf-logo svg {
+    width: 16px; height: 16px;
+  }
+  .vrf-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+  }
+  .vrf-title em {
+    color: #f5d77a;
+    font-style: italic;
+  }
+  .vrf-subtitle {
+    font-size: 14px;
+    color: #93b4ed;
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ─── Card principal ─── */
+  .vrf-card {
+    width: 100%;
+    max-width: 640px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 2rem;
+    backdrop-filter: blur(10px);
+  }
+
+  /* ─── Loading state ─── */
+  .vrf-loading {
+    text-align: center;
+    padding: 3rem 1rem;
+  }
+  .vrf-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(245, 215, 122, 0.2);
+    border-top-color: #f5d77a;
+    border-radius: 50%;
+    margin: 0 auto 1.5rem;
+    animation: vrfSpin 1s linear infinite;
+  }
+  @keyframes vrfSpin {
+    to { transform: rotate(360deg); }
+  }
+  .vrf-loading-text {
+    color: #93b4ed;
+    font-size: 14px;
+  }
+
+  /* ─── Estado VÁLIDO ─── */
+  .vrf-valid-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px;
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+  }
+  .vrf-valid-badge svg {
+    width: 20px;
+    height: 20px;
+    color: #22c55e;
+  }
+  .vrf-valid-badge span {
+    color: #22c55e;
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* ─── Estado INVÁLIDO ─── */
+  .vrf-invalid {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .vrf-invalid-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 1.25rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 2px solid rgba(239, 68, 68, 0.3);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .vrf-invalid-icon svg {
+    width: 36px;
+    height: 36px;
+    color: #ef4444;
+  }
+  .vrf-invalid-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .vrf-invalid-msg {
+    color: #93b4ed;
+    font-size: 14px;
+    line-height: 1.7;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+
+  /* ─── Datos del certificado ─── */
+  .vrf-cert-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(24px, 4vw, 34px);
+    font-weight: 700;
+    color: #fff;
+    text-align: center;
+    margin-bottom: 0.25rem;
+    letter-spacing: 0.04em;
+  }
+  .vrf-cert-label {
+    font-size: 11px;
+    color: #93b4ed;
+    text-align: center;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+  }
+  .vrf-cert-curso {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(245, 215, 122, 0.04);
+    border-left: 3px solid #f5d77a;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+  }
+  .vrf-cert-curso-label {
+    font-size: 11px;
+    color: #93b4ed;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .vrf-cert-curso-titulo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    color: #f5d77a;
+    font-style: italic;
+    font-weight: 600;
+  }
+
+  .vrf-cert-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+  }
+  .vrf-cert-item {
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+  }
+  .vrf-cert-item-label {
+    font-size: 10.5px;
+    color: #93b4ed;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .vrf-cert-item-value {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 500;
+  }
+  .vrf-cert-item-value.mono {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+  }
+
+  .vrf-cert-firmas {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    text-align: center;
+  }
+  .vrf-cert-firmas-title {
+    font-size: 11px;
+    color: #93b4ed;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+  .vrf-cert-firmas p {
+    font-size: 13px;
+    color: #d4dffa;
+    margin: 4px 0;
+  }
+  .vrf-cert-firmas strong {
+    color: #fff;
+  }
+
+  /* ─── Footer ─── */
+  .vrf-footer {
+    margin-top: 2.5rem;
+    text-align: center;
+    color: #5d7396;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .vrf-footer a {
+    color: #93b4ed;
+    text-decoration: none;
+    margin: 0 8px;
+  }
+  .vrf-footer a:hover {
+    color: #f5d77a;
+  }
+
+  /* ─── Búsqueda manual (si no hay folio en URL) ─── */
+  .vrf-search {
+    text-align: center;
+    padding: 2rem 1rem;
+  }
+  .vrf-search-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 24px;
+    color: #fff;
+    margin-bottom: 0.5rem;
+  }
+  .vrf-search-desc {
+    color: #93b4ed;
+    font-size: 14px;
+    margin-bottom: 1.5rem;
+  }
+  .vrf-search-input {
+    width: 100%;
+    max-width: 380px;
+    padding: 14px 18px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 10px;
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13.5px;
+    text-align: center;
+    margin-bottom: 1rem;
+    transition: all 0.15s;
+  }
+  .vrf-search-input:focus {
+    outline: none;
+    border-color: #f5d77a;
+    background: rgba(245, 215, 122, 0.04);
+  }
+  .vrf-search-btn {
+    padding: 12px 28px;
+    background: linear-gradient(135deg, #f5d77a, #c8962a);
+    border: none;
+    border-radius: 10px;
+    color: #0b1f4a;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .vrf-search-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(245, 215, 122, 0.3);
+  }
+
+  @media (max-width: 480px) {
+    .vrf-cert-grid { grid-template-columns: 1fr; }
+    .vrf-card { padding: 1.5rem 1.25rem; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="vrf-header">
+    <div class="vrf-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.5 0 4.77 1.02 6.4 2.66"/></svg>
+      <span>Verificación oficial</span>
+    </div>
+    <h1 class="vrf-title">Verifica un <em>certificado</em> ICADEM</h1>
+    <p class="vrf-subtitle">Confirma la autenticidad de un certificado emitido por el Instituto de Capacitación y Desarrollo Empresarial.</p>
+  </div>
+
+  <div class="vrf-card" id="vrf-card">
+    <!-- Loading inicial -->
+    <div class="vrf-loading" id="vrf-loading">
+      <div class="vrf-spinner"></div>
+      <p class="vrf-loading-text">Verificando autenticidad…</p>
+    </div>
+  </div>
+
+  <div class="vrf-footer">
+    <p>Sistema de verificación oficial · ICADEM · IPCI Latinoamericano</p>
+    <p style="margin-top:6px">
+      <a href="https://icademx.com">Inicio</a>·
+      <a href="https://icademx.com/vip-panel.html">Panel VIP</a>
+    </p>
+  </div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA",
+  authDomain: "icadem-vip.firebaseapp.com",
+  projectId: "icadem-vip",
+  storageBucket: "icadem-vip.firebasestorage.app",
+  messagingSenderId: "12508983783",
+  appId: "1:12508983783:web:b12be6f1fab9bb91fb8d42"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const card = document.getElementById('vrf-card');
+
+// Helpers
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str || '');
+  return div.innerHTML;
+}
+
+function formatearFecha(fecha) {
+  if (!fecha) return '—';
+  let d;
+  if (fecha.toDate) d = fecha.toDate();
+  else if (fecha.seconds) d = new Date(fecha.seconds * 1000);
+  else d = new Date(fecha);
+  if (isNaN(d.getTime())) return '—';
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+// Mostrar certificado válido
+function mostrarValido(cert) {
+  const nombre = escapeHtml((cert.nombreAlumno || 'Alumno ICADEM').toUpperCase());
+  const curso  = escapeHtml(cert.curso || 'Curso ICADEM');
+  const folio  = escapeHtml(cert.folio || '—');
+  const fecha  = formatearFecha(cert.fecha);
+  const horas  = cert.horas || 0;
+  const area   = escapeHtml(cert.area || 'General');
+
+  card.innerHTML = `
+    <div class="vrf-valid-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.5 0 4.77 1.02 6.4 2.66"/></svg>
+      <span>Certificado válido</span>
+    </div>
+
+    <p class="vrf-cert-label">Otorgado a</p>
+    <h2 class="vrf-cert-name">${nombre}</h2>
+
+    <div class="vrf-cert-curso">
+      <p class="vrf-cert-curso-label">Programa académico</p>
+      <p class="vrf-cert-curso-titulo">${curso}</p>
+    </div>
+
+    <div class="vrf-cert-grid">
+      <div class="vrf-cert-item">
+        <p class="vrf-cert-item-label">Folio</p>
+        <p class="vrf-cert-item-value mono">${folio}</p>
+      </div>
+      <div class="vrf-cert-item">
+        <p class="vrf-cert-item-label">Fecha de emisión</p>
+        <p class="vrf-cert-item-value">${fecha}</p>
+      </div>
+      <div class="vrf-cert-item">
+        <p class="vrf-cert-item-label">Carga académica</p>
+        <p class="vrf-cert-item-value">${horas} horas</p>
+      </div>
+      <div class="vrf-cert-item">
+        <p class="vrf-cert-item-label">Área</p>
+        <p class="vrf-cert-item-value">${area}</p>
+      </div>
+    </div>
+
+    <div class="vrf-cert-firmas">
+      <p class="vrf-cert-firmas-title">Emitido por</p>
+      <p><strong>Lic. Arlet Guzmán</strong> · Coordinación General · ICADEM</p>
+      <p><strong>Coordinación de Certificación</strong> · IPCI Latinoamericano</p>
+    </div>
+  `;
+}
+
+// Mostrar certificado inválido
+function mostrarInvalido(folio, mensaje) {
+  card.innerHTML = `
+    <div class="vrf-invalid">
+      <div class="vrf-invalid-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <h2 class="vrf-invalid-title">Certificado no encontrado</h2>
+      <p class="vrf-invalid-msg">
+        ${mensaje || 'El folio <strong style="font-family:JetBrains Mono,monospace;color:#f5d77a">' + escapeHtml(folio) + '</strong> no corresponde a un certificado oficial emitido por ICADEM.'}
+      </p>
+      <p style="margin-top:1.5rem;font-size:12px;color:#5d7396;line-height:1.7">
+        Si crees que esto es un error, escríbenos a<br>
+        <a href="mailto:contacto@icademx.com" style="color:#93b4ed">contacto@icademx.com</a>
+      </p>
+    </div>
+  `;
+}
+
+// Mostrar búsqueda manual
+function mostrarBuscador() {
+  card.innerHTML = `
+    <div class="vrf-search">
+      <h2 class="vrf-search-title">Ingresa el folio del certificado</h2>
+      <p class="vrf-search-desc">Ejemplo: <code style="font-family:JetBrains Mono,monospace;color:#f5d77a">ICADEM-260504-LM57</code></p>
+      <input type="text" id="vrf-input" class="vrf-search-input" placeholder="ICADEM-XXXXXX-XXXX" autocapitalize="characters">
+      <br>
+      <button class="vrf-search-btn" onclick="window.vrfBuscar()">Verificar →</button>
+    </div>
+  `;
+  setTimeout(() => {
+    const input = document.getElementById('vrf-input');
+    if (input) {
+      input.focus();
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') window.vrfBuscar();
+      });
+    }
+  }, 50);
+}
+
+window.vrfBuscar = function() {
+  const folio = (document.getElementById('vrf-input').value || '').trim().toUpperCase();
+  if (!folio) return;
+  // Redirigir con el folio en la URL
+  window.location.href = '?folio=' + encodeURIComponent(folio);
+};
+
+// Leer folio de la URL y consultar
+async function verificar() {
+  const params = new URLSearchParams(window.location.search);
+  const folio  = (params.get('folio') || '').trim();
+
+  if (!folio) {
+    mostrarBuscador();
+    return;
+  }
+
+  try {
+    // Consultar la colección certificados/{folio}
+    const certRef = doc(db, 'certificados', folio);
+    const snap = await getDoc(certRef);
+
+    if (!snap.exists()) {
+      mostrarInvalido(folio);
+      return;
+    }
+
+    const data = snap.data();
+    mostrarValido(data);
+  } catch(e) {
+    console.error('[Verificar] Error:', e);
+    mostrarInvalido(folio, 'Hubo un problema al verificar el certificado. Intenta de nuevo más tarde.');
+  }
+}
+
+verificar();
+</script>
+
+</body>
+</html>

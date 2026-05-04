@@ -19650,7 +19650,7 @@ window._icademLogros = {
     _userData.certificados.push(cert);
     _userData.cursosCompletados = (_userData.cursosCompletados || 0) + 1;
 
-    // Guardar en Firestore
+    // Guardar en Firestore (membresía privada del usuario)
     try {
       const db = getFirestore();
       await setDoc(doc(db, 'membresias', user.uid), {
@@ -19659,6 +19659,23 @@ window._icademLogros = {
         actualizadoEn: serverTimestamp()
       }, { merge: true });
       console.log('[Cert] Certificado emitido:', folio);
+
+      // 🌐 También guardar en colección PÚBLICA de certificados (para verificación por QR)
+      // La página verificar.html consulta esta colección por folio
+      await setDoc(doc(db, 'certificados', folio), {
+        folio: folio,
+        cursoId: cert.cursoId,
+        curso: cert.curso,
+        area: cert.area,
+        horas: cert.horas,
+        fecha: cert.fecha,
+        nombreAlumno: cert.nombreAlumno,
+        emitidoPor: 'ICADEM',
+        instituto: 'IPCI Latinoamericano',
+        uid: user.uid,
+        emitidoEn: serverTimestamp()
+      });
+      console.log('[Cert] Cert público creado en /certificados/' + folio);
     } catch(e) {
       console.warn('[Cert] Error guardando:', e);
     }
