@@ -14217,8 +14217,14 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
 .tpl-search > svg {
   position: absolute;
   left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px !important;
+  height: 16px !important;
+  flex-shrink: 0;
   color: rgba(168,184,209,0.6);
   pointer-events: none;
+  z-index: 2;
 }
 .tpl-search input {
   width: 100%;
@@ -14230,6 +14236,8 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   font-family: 'Inter', sans-serif;
   font-size: 13px;
   transition: border-color 0.15s, background 0.15s;
+  box-sizing: border-box;
+  text-indent: 0;
 }
 .tpl-search input::placeholder { color: rgba(168,184,209,0.5); }
 .tpl-search input:focus {
