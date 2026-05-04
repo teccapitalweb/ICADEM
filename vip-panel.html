@@ -7,7 +7,7 @@
   <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -10414,16 +10414,27 @@ buildVideoteca();
 </script>
 
 <!-- ============================================================
-     EFECTOS DINÁMICOS FUTURISTAS — constelaciones + meteoritos
-     - Canvas constelaciones de fondo
-     - Burst de estrellas al cambiar de sección
-     - Meteoritos diagonales
-     - Cursor glow follow
-     - Tilt 3D en cards
+     EFECTOS DINÁMICOS — constelaciones DESACTIVADAS (estética anti-IA)
+     - Tilt 3D en cards: SE MANTIENE
+     - Cursor glow: SE MANTIENE
+     - Constelaciones/meteoritos: DESACTIVADOS (se veían a IA)
      ============================================================ -->
 <script>
 (function(){
   'use strict';
+
+  // === 1) Canvas constelaciones DESACTIVADO ===
+  // Las constelaciones brillantes de fondo se reconocen como tic de IA.
+  // Las reemplazamos por un grid sutil de líneas (puro CSS, ver fx-anti-ia-override abajo).
+  // El resto del script sigue ejecutándose normalmente para tilt + cursor glow.
+  const FX_DISABLE_STARS = true;
+  if (FX_DISABLE_STARS) {
+    // No-op: salimos antes de crear el canvas. Mantener todo lo demás funcional.
+    // Continuamos con resto de efectos definiendo stubs vacíos para evitar errores.
+    window.fxStarBurst = function() {};
+    window.fxMeteor    = function() {};
+    return;
+  }
 
   // === 1) Canvas constelaciones de fondo ===
   const canvas = document.createElement('canvas');
@@ -16147,6 +16158,400 @@ document.addEventListener('keydown', e => {
 <!-- ═══════════════════════════════════════════════════════════════════
      FIN DEL ICADEM STRIPE MODULE
      ═══════════════════════════════════════════════════════════════════ -->
+
+
+<!-- ════════════════════════════════════════════════════════════════════════════════
+     OVERRIDE ANTI-IA — Estética Linear/Vercel-style
+     Aplica al final del body para máxima especificidad.
+     Cambia: fuentes, radios, gradientes, glows, fondo decorativo.
+     NO cambia: estructura HTML, lógica JS, IDs, clases originales.
+     ════════════════════════════════════════════════════════════════════════════════ -->
+<style id="fx-anti-ia-override">
+
+/* ════════════════════════════════════════════════════════════
+   1) TIPOGRAFÍA — Inter Tight (display) + JetBrains Mono (code)
+   Reemplaza Cormorant cursivo (que se ve a IA) por Inter Tight
+   con tracking negativo (estilo Linear/Vercel).
+   ════════════════════════════════════════════════════════════ */
+body, body *,
+.section, .section *,
+.card, .card *,
+.page-title, .page-tag, .page-sub,
+h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, label, td, th {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Headings: Inter Tight con tracking negativo (estilo Vercel/Linear) */
+h1, h2, h3, .page-title,
+.fx-card-title, .ic-card-title,
+.is-h1, .is-onb-title, .is-tour-title,
+[id$="-title"], [class*="-title"] {
+  font-family: 'Inter Tight', 'Inter', sans-serif !important;
+  letter-spacing: -0.02em !important;
+  font-weight: 600 !important;
+  font-style: normal !important;
+}
+
+/* Display gigante (Mi Perfil, Videoteca, etc): peso 600 sin cursivas */
+.page-title {
+  font-weight: 600 !important;
+  letter-spacing: -0.025em !important;
+  font-style: normal !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: #fafafa !important;
+  color: #fafafa !important;
+}
+
+/* Eliminar el "em italic" cursivo que se ve a IA en títulos */
+.is-h1 em, .page-title em, h1 em, h2 em, h3 em,
+.is-onb-title em, .is-tour-title em,
+.guest-section-overlay-title em {
+  font-style: normal !important;
+  font-weight: 600 !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  color: #f5d77a !important;
+}
+
+/* Monoespaciada para detalles técnicos (badges, IDs, plan) */
+.page-tag, .nav-section-label, .badge,
+.is-step-circle, .is-plan-tag,
+.cf-tab-label, [class*="-tag"], [class*="badge"] {
+  font-family: 'JetBrains Mono', ui-monospace, monospace !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  font-weight: 500 !important;
+}
+
+/* Body más compacto */
+body, p, td, span, .section p, .ic-card-desc {
+  font-feature-settings: "ss01", "cv01", "cv02" !important;
+  font-variation-settings: "wght" 400 !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   2) FONDO ANTI-IA — Grid sutil en lugar de constelaciones
+   ════════════════════════════════════════════════════════════ */
+
+/* Eliminar el canvas de constelaciones si quedó */
+#fx-stars-canvas, [id*="stars-canvas"] {
+  display: none !important;
+}
+
+/* Eliminar pseudo-elementos decorativos del body que estaban con
+   gradientes radiales tipo "aurora" (también se ven a IA) */
+body::before, body::after {
+  content: none !important;
+  background: none !important;
+}
+
+/* Fondo principal: negro azulado MUY oscuro + grid de líneas finas */
+body {
+  background: #08090b !important;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px) !important;
+  background-size: 28px 28px !important;
+  background-attachment: fixed !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   3) RADIOS — Reducidos de 14-20px a 6-10px (más precisos)
+   ════════════════════════════════════════════════════════════ */
+
+/* Cards principales: 10px máximo */
+.section .ic-card,
+.section .fx-card,
+.section [class*="-card"]:not(.fx-mini-card):not(.is-plan):not(.is-card),
+[style*="border-radius:14px"],
+[style*="border-radius:16px"],
+[style*="border-radius:18px"],
+[style*="border-radius:20px"] {
+  border-radius: 10px !important;
+}
+
+/* Botones: 6-8px */
+button, .btn, a.btn, [class*="btn-"], .ic-btn-cta, .cf-btn-calc,
+.tpl-card-cta, .is-btn-primary, .is-plan-cta,
+input[type="submit"], input[type="button"] {
+  border-radius: 6px !important;
+}
+
+/* Inputs y selects */
+input:not([type="checkbox"]):not([type="radio"]),
+select, textarea, .cf-input {
+  border-radius: 6px !important;
+}
+
+/* Badges/pills sí mantienen redondez completa */
+.badge, .nav-badge, .page-tag, [class*="-tag"], [class*="-pill"],
+.is-step-circle, .ic-status-pill {
+  border-radius: 999px !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   4) GRADIENTES → Sólidos (donde se veía a IA)
+   ════════════════════════════════════════════════════════════ */
+
+/* Botones primarios: gradient azul-azul → azul sólido sutil */
+.btn-primary, .ic-btn-cta, .cf-btn-calc, .is-btn-primary, .is-plan:not(.is-recommended) .is-plan-cta {
+  background: #3b82f6 !important;
+  background-image: none !important;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.06) inset, 0 0 0 1px rgba(59,130,246,0.4) !important;
+  border: none !important;
+  color: #ffffff !important;
+  transition: background 0.15s ease !important;
+}
+
+.btn-primary:hover, .ic-btn-cta:hover, .cf-btn-calc:hover, .is-btn-primary:hover {
+  background: #2563eb !important;
+  transform: none !important;
+}
+
+/* Botón "Suscriptor VIP" / "Volverme miembro" — gold sólido (no gradient) */
+.is-recommended .is-plan-cta,
+.guest-section-overlay-btn,
+.btn-guest-login,
+[class*="vip-cta"], [class*="vip-btn"],
+a[href*="suscriptor"], button[class*="suscriptor"] {
+  background: #d4a72c !important;
+  background-image: none !important;
+  color: #0a0b0d !important;
+  box-shadow: 0 0 0 1px rgba(212,167,44,0.5) !important;
+  text-shadow: none !important;
+  transition: background 0.15s ease !important;
+}
+
+.is-recommended .is-plan-cta:hover,
+.guest-section-overlay-btn:hover {
+  background: #b88a1f !important;
+  transform: none !important;
+}
+
+/* Headers de cards con gradient (verde, púrpura, rojo, azul, dorado) →
+   misma card pero con borde de acento de color, fondo sólido */
+[style*="background:linear-gradient(135deg,#0b2554 0%,#1565c0"],
+[style*="background:linear-gradient(135deg,#0b2554"] {
+  background: #0d1117 !important;
+  border-top: 2px solid #3b82f6 !important;
+}
+[style*="background:linear-gradient(135deg,#064e3b"] {
+  background: #0d1117 !important;
+  border-top: 2px solid #10b981 !important;
+}
+[style*="background:linear-gradient(135deg,#1e1b4b"] {
+  background: #0d1117 !important;
+  border-top: 2px solid #818cf8 !important;
+}
+[style*="background:linear-gradient(135deg,#92400e"] {
+  background: #0d1117 !important;
+  border-top: 2px solid #f59e0b !important;
+}
+
+/* Avatar: sin gradient circular tipo "stamp" */
+#perfil-avatar-big, [id*="avatar-big"] {
+  background: #18181b !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 500 !important;
+  font-size: 16px !important;
+  color: #d4a72c !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   5) CARDS — Fondo sólido, borde fino, sin glow
+   ════════════════════════════════════════════════════════════ */
+
+.ic-card, .fx-card, .section [class*="-card"]:not(.tpl-card):not(.material-item):not(.is-plan) {
+  background: #0d1117 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+}
+
+.ic-card:hover, .fx-card:hover {
+  border-color: rgba(255,255,255,0.12) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Sidebar ítems */
+.nav-item {
+  border-radius: 6px !important;
+  transition: background 0.12s ease !important;
+}
+
+.nav-item.active {
+  background: rgba(59,130,246,0.08) !important;
+  border-left: 2px solid #3b82f6 !important;
+  border-radius: 0 6px 6px 0 !important;
+  padding-left: calc(16px - 2px) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   6) HEADERS / BANNERS — Aplanar gradientes verde-azul que se ven a IA
+   ════════════════════════════════════════════════════════════ */
+
+/* El banner "Cargando..." y headers verdes/azules con gradient */
+[style*="background:linear-gradient(135deg,#0b2554"][style*="padding"],
+[style*="background:linear-gradient(160deg,#0b2554"],
+[id*="hero-perfil"], [id*="banner-bienvenida"],
+.section [style*="linear-gradient(135deg,#1468b1"][style*="padding"] {
+  background: #0d1117 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+}
+
+/* Topbar: fondo sólido con glass mínimo */
+.topbar, [class*="topbar"] {
+  background: rgba(8,9,11,0.85) !important;
+  backdrop-filter: blur(16px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(140%) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   7) ICONOS CON GRADIENT CIRCULAR → Cuadrados monocromáticos
+   ════════════════════════════════════════════════════════════ */
+
+/* Iconos circulares pequeños con gradients (los más "IA") */
+[style*="background:linear-gradient(135deg,#a78bfa"],
+[style*="background:linear-gradient(135deg,#f472b6"],
+[style*="background:linear-gradient(135deg,#ec4899"],
+[style*="background:linear-gradient(135deg,#8b5cf6"],
+[style*="background:linear-gradient(135deg,#f59e0b,#dc2626"] {
+  background: #18181b !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   8) TEXTO — Off-white en lugar de blanco puro
+   ════════════════════════════════════════════════════════════ */
+
+body, .section p, .section span:not([class*="badge"]):not([class*="tag"]),
+.ic-card p, .ic-card span:not([class*="badge"]) {
+  color: #d4d4d8 !important;
+}
+
+/* Texto principal */
+h1, h2, h3, h4, .page-title,
+.ic-card-title, .fx-card-title {
+  color: #fafafa !important;
+}
+
+/* Texto muted más sutil */
+.page-sub, .ic-card-desc, .nav-section-label,
+[class*="muted"], [class*="-sub"] {
+  color: #71717a !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   9) ELEMENTOS DECORATIVOS — Quitar glows excesivos
+   ════════════════════════════════════════════════════════════ */
+
+/* Sombras doradas exageradas */
+[style*="box-shadow:0 4px 18px rgba(245,215,122"],
+[style*="box-shadow:0 6px 20px rgba(245,215,122"],
+[style*="box-shadow:0 8px 24px rgba(245,215,122"] {
+  box-shadow: none !important;
+}
+
+/* Animaciones que decían "respira como IA" */
+@keyframes fx-pulse-gold,
+@keyframes fx-glow-pulse,
+@keyframes gold-shine {
+  /* desactivadas */
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   10) MODAL STRIPE — Aplanar el modal también (era muy gradient)
+   ════════════════════════════════════════════════════════════ */
+
+.is-card {
+  background: #0d1117 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.6) !important;
+  border-radius: 12px !important;
+}
+
+.is-plan {
+  background: #111114 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 10px !important;
+}
+
+.is-plan.is-recommended {
+  background: #111114 !important;
+  background-image: none !important;
+  border: 1.5px solid #d4a72c !important;
+  box-shadow: none !important;
+}
+
+.is-plan-badge {
+  background: #d4a72c !important;
+  background-image: none !important;
+  color: #0a0b0d !important;
+  box-shadow: none !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  letter-spacing: 0.06em !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   11) GRID DECORATIVO en hero del panel — opcional
+   Una rejilla muy sutil tipo Linear bg
+   ════════════════════════════════════════════════════════════ */
+
+.section.active::before {
+  content: '' !important;
+  position: fixed !important;
+  inset: 0 !important;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(59,130,246,0.06), transparent) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   12) SCROLLBAR — Estilo Linear (delgado, sin colores)
+   ════════════════════════════════════════════════════════════ */
+
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.08);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
+
+
+/* ════════════════════════════════════════════════════════════
+   13) RESPONSIVE — Asegurar que todo siga funcionando móvil
+   ════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  body { background-size: 20px 20px !important; }
+}
+
+</style>
 
 </body>
 </html>
