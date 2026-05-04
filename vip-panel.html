@@ -19339,8 +19339,60 @@ async function verificarCertificadosPendientes() {
     if (nuevosEmitidos > 0) {
       console.log(`[Cert] Emitidos ${nuevosEmitidos} certificados retroactivos`);
     }
+
+    // 🌐 SINCRONIZACIÓN PÚBLICA: para todos los certs que el usuario ya tiene,
+    // asegurar que existan en la colección pública /certificados/{folio}.
+    // Esto cubre certs emitidos antes de que existiera la colección pública.
+    await sincronizarCertsPublicos();
   } catch(e) {
     console.warn('[Cert] Error en chequeo retroactivo:', e);
+  }
+}
+
+// Sincroniza certs privados → colección pública
+async function sincronizarCertsPublicos() {
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+    if (!_userData.certificados || _userData.certificados.length === 0) return;
+
+    const db = getFirestore();
+    let sincronizados = 0;
+
+    for (const cert of _userData.certificados) {
+      if (!cert.folio) continue;
+      try {
+        const certRef = doc(db, 'certificados', cert.folio);
+        const snap = await getDoc(certRef);
+        if (snap.exists()) continue; // ya existe, no duplicar
+
+        // No existe → crear el espejo público
+        await setDoc(certRef, {
+          folio: cert.folio,
+          cursoId: cert.cursoId || '',
+          curso: cert.curso || 'Curso ICADEM',
+          area: cert.area || 'General',
+          horas: cert.horas || 0,
+          fecha: cert.fecha || new Date().toISOString(),
+          nombreAlumno: cert.nombreAlumno || user.displayName || 'Alumno ICADEM',
+          emitidoPor: 'ICADEM',
+          instituto: 'IPCI Latinoamericano',
+          uid: user.uid,
+          emitidoEn: serverTimestamp()
+        });
+        sincronizados++;
+        console.log('[Cert-Sync] Espejo público creado para folio:', cert.folio);
+      } catch(e) {
+        console.warn('[Cert-Sync] Error con folio', cert.folio, ':', e.message);
+      }
+    }
+
+    if (sincronizados > 0) {
+      console.log(`[Cert-Sync] ${sincronizados} certificado(s) sincronizado(s) a la colección pública`);
+    }
+  } catch(e) {
+    console.warn('[Cert-Sync] Error en sincronización:', e);
   }
 }
 
