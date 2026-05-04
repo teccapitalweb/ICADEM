@@ -2817,6 +2817,13 @@
           </div>
           <div style="display:flex;flex-direction:column;gap:.85rem">
             <div>
+              <p style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px">
+                Nombre completo
+                <span style="font-size:10px;font-weight:500;color:#64748b;text-transform:none;letter-spacing:0;margin-left:4px">(aparecerá en tus certificados)</span>
+              </p>
+              <input id="perfil-nombre-input" type="text" placeholder="Ej: Juan Pérez García" style="font-size:13px;color:#1e293b;background:#f8fafc;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:10px 13px;width:100%;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s" onfocus="this.style.borderColor='#1468b1'" onblur="this.style.borderColor='rgba(20,104,177,0.15)'" />
+            </div>
+            <div>
               <p style="font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:5px">Empresa / Organización</p>
               <input id="perfil-empresa" type="text" placeholder="Tu empresa u organización" style="font-size:13px;color:#1e293b;background:#f8fafc;border:1px solid rgba(20,104,177,0.15);border-radius:8px;padding:10px 13px;width:100%;outline:none;font-family:'Space Grotesk',sans-serif;transition:border-color .2s" onfocus="this.style.borderColor='#1468b1'" onblur="this.style.borderColor='rgba(20,104,177,0.15)'" />
             </div>
@@ -3054,6 +3061,54 @@
           <p class="cert-info-title">Validación oficial con QR</p>
           <p class="cert-info-desc">Cada certificado tiene un folio único IPCI y un código QR que terceros pueden escanear para validar la autenticidad del documento. Compatible con LinkedIn, currículum y procesos de contratación.</p>
         </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         👋 MODAL: Splash de bienvenida (confirmar nombre cert)
+         ============================================================ -->
+    <div id="splash-bienvenida" class="splash-bienvenida" style="display:none">
+      <div class="splash-bienvenida-overlay"></div>
+      <div class="splash-bienvenida-content">
+
+        <div class="splash-bienvenida-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M22 11l-3 3-2-2"/>
+          </svg>
+        </div>
+
+        <p class="splash-bienvenida-eyebrow">Bienvenido a ICADEM</p>
+        <h2 class="splash-bienvenida-title">¿Con qué <em>nombre</em> quieres tus certificados?</h2>
+        <p class="splash-bienvenida-desc">
+          Cada vez que completes un curso recibirás un certificado oficial con folio único.
+          Tu nombre aparecerá tal como lo escribas aquí. Puedes corregirlo después en <strong>Mi Perfil</strong>.
+        </p>
+
+        <div class="splash-bienvenida-form">
+          <label class="splash-bienvenida-label">Nombre completo</label>
+          <input
+            type="text"
+            id="splash-bienvenida-input"
+            class="splash-bienvenida-input"
+            placeholder="Ej: Juan Pérez García"
+            autocomplete="name"
+            maxlength="60"
+          >
+          <p class="splash-bienvenida-hint">Aparecerá en MAYÚSCULAS en tu certificado oficial.</p>
+          <p id="splash-bienvenida-preview" class="splash-bienvenida-preview" style="display:none">
+            <span class="splash-bienvenida-preview-label">Vista previa:</span>
+            <span id="splash-bienvenida-preview-text">—</span>
+          </p>
+        </div>
+
+        <button class="splash-bienvenida-btn" onclick="window.confirmarNombreBienvenida()">
+          Confirmar y continuar →
+        </button>
+        <button class="splash-bienvenida-btn-skip" onclick="window.cerrarSplashBienvenida()">
+          Lo configuro después
+        </button>
       </div>
     </div>
 
@@ -3354,7 +3409,7 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getAuth, onAuthStateChanged, signOut, EmailAuthProvider, reauthenticateWithCredential, updatePassword, setPersistence, browserLocalPersistence, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
   import { getFirestore, doc, getDoc, setDoc, updateDoc, getDocs, collection, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -4057,15 +4112,40 @@
       }
     }
 
-    // Cargar empresa y cargo desde Firestore
+    // Cargar empresa, cargo y nombre desde Firestore
+    let necesitaSplashNombre = false;
     try {
       const perfilSnap = await getDoc(doc(db, 'perfiles', user.uid));
       if (perfilSnap.exists()) {
         const pd = perfilSnap.data();
         if (pd.empresa) document.getElementById('perfil-empresa').value = pd.empresa;
         if (pd.cargo)   document.getElementById('perfil-cargo').value   = pd.cargo;
+
+        // Cargar nombre: prioridad → nombreCertificado (editado por user) → displayName Auth
+        const nombreFinal = pd.nombreCertificado || user.displayName || '';
+        const inputNombre = document.getElementById('perfil-nombre-input');
+        if (inputNombre) inputNombre.value = nombreFinal;
+
+        // Si el usuario aún NO ha confirmado su nombre para certificados → mostrar splash
+        if (!pd.nombreConfirmado) {
+          necesitaSplashNombre = true;
+        }
+      } else {
+        // No tiene perfil → primer login VIP → mostrar splash
+        const inputNombre = document.getElementById('perfil-nombre-input');
+        if (inputNombre) inputNombre.value = user.displayName || '';
+        necesitaSplashNombre = true;
       }
     } catch(e) { console.warn('No se pudo cargar perfil:', e); }
+
+    // 🎬 Mostrar splash de bienvenida para confirmar nombre (solo primera vez)
+    if (necesitaSplashNombre && user.email) {
+      setTimeout(() => {
+        if (typeof window.mostrarSplashBienvenida === 'function') {
+          window.mostrarSplashBienvenida(user);
+        }
+      }, 1200);
+    }
 
     // Guardar perfil
     window._currentUser = user;
@@ -4165,15 +4245,51 @@
       const msg = document.getElementById('perfil-msg');
       const empresa = document.getElementById('perfil-empresa').value.trim();
       const cargo   = document.getElementById('perfil-cargo').value.trim();
+      const nombreInput = document.getElementById('perfil-nombre-input');
+      const nombre  = nombreInput ? nombreInput.value.trim() : '';
+
+      // Validación: el nombre es obligatorio (irá en certificados)
+      if (!nombre || nombre.length < 3) {
+        msg.textContent = '✗ Por favor ingresa tu nombre completo (mínimo 3 letras)';
+        msg.style.color = '#dc2626';
+        msg.style.display = 'block';
+        if (nombreInput) nombreInput.focus();
+        setTimeout(() => { msg.style.display = 'none'; msg.style.color = '#10b981'; msg.textContent = '✓ Perfil actualizado'; }, 4000);
+        return;
+      }
+
       btn.textContent = 'Guardando...';
       btn.disabled = true;
       try {
+        // 1. Guardar en Firestore (perfiles)
         await setDoc(doc(db, 'perfiles', window._currentUser.uid), {
-          empresa, cargo,
-          nombre: window._currentUser.displayName || '',
+          empresa,
+          cargo,
+          nombre: nombre,                  // nombre legacy
+          nombreCertificado: nombre,       // nombre que va en certs
+          nombreConfirmado: true,          // ya pasó por aquí, no más splash
           correo: window._currentUser.email || '',
           actualizadoEn: new Date().toISOString()
         }, { merge: true });
+
+        // 2. Actualizar Firebase Auth displayName (para futuros certs)
+        try {
+          if (nombre && nombre !== window._currentUser.displayName) {
+            await updateProfile(window._currentUser, { displayName: nombre });
+          }
+        } catch(e) { console.warn('[Perfil] No se pudo actualizar displayName Auth:', e); }
+
+        // 3. 🔄 Resincronizar nombre en certificados ya emitidos
+        if (typeof window.actualizarNombreEnCertificados === 'function') {
+          window.actualizarNombreEnCertificados(nombre).catch(e =>
+            console.warn('[Perfil] Error resincronizando certs:', e)
+          );
+        }
+
+        // Actualizar UI con el nombre nuevo
+        const nombreEls = document.querySelectorAll('#perfil-nombre, #topbar-user-name');
+        nombreEls.forEach(el => { if (el) el.textContent = nombre; });
+
         msg.style.display = 'block';
         setTimeout(() => { msg.style.display = 'none'; }, 3000);
       } catch(e) {
@@ -19078,6 +19194,208 @@ body.is-guest #perfil-avatar-big {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   👋 SPLASH BIENVENIDA — Confirmar nombre para certificados
+   ═══════════════════════════════════════════════════════════════ */
+.splash-bienvenida {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: splashFadeIn 0.4s ease-out;
+}
+
+.splash-bienvenida-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(11, 47, 104, 0.88) 0%, rgba(2, 5, 15, 0.95) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.splash-bienvenida-content {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  background: linear-gradient(160deg, #0d2547 0%, #0a1f3d 100%);
+  border: 1px solid rgba(245, 215, 122, 0.18);
+  border-radius: 20px;
+  padding: 2.25rem 2rem;
+  text-align: center;
+  color: #fff;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(245, 215, 122, 0.08);
+  animation: splashSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.splash-bienvenida-icon {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 1.25rem;
+  background: linear-gradient(135deg, #f5d77a 0%, #c8962a 100%);
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0b1f4a;
+  box-shadow: 0 8px 24px rgba(245, 215, 122, 0.3);
+}
+
+.splash-bienvenida-eyebrow {
+  font-size: 11.5px;
+  color: #f5d77a;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+}
+
+.splash-bienvenida-title {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: clamp(24px, 4.5vw, 32px);
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  letter-spacing: 0.01em !important;
+  font-style: normal !important;
+  text-transform: none !important;
+  line-height: 1.25;
+}
+.splash-bienvenida-title em {
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  font-style: italic !important;
+}
+
+.splash-bienvenida-desc {
+  font-size: 13.5px;
+  color: #d4dffa;
+  line-height: 1.7;
+  margin: 0 0 1.5rem;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.splash-bienvenida-desc strong {
+  color: #f5d77a;
+  font-weight: 600;
+}
+
+.splash-bienvenida-form {
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+.splash-bienvenida-label {
+  display: block;
+  font-size: 11px;
+  color: #93b4ed;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.splash-bienvenida-input {
+  width: 100%;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+.splash-bienvenida-input:focus {
+  border-color: #f5d77a;
+  background: rgba(245, 215, 122, 0.05);
+  box-shadow: 0 0 0 3px rgba(245, 215, 122, 0.1);
+}
+.splash-bienvenida-input::placeholder {
+  color: #5d7396;
+}
+.splash-bienvenida-hint {
+  font-size: 11.5px;
+  color: #93b4ed;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+.splash-bienvenida-preview {
+  background: rgba(245, 215, 122, 0.05);
+  border: 1px solid rgba(245, 215, 122, 0.15);
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 12px;
+  text-align: center;
+}
+.splash-bienvenida-preview-label {
+  display: block;
+  font-size: 10px;
+  color: #93b4ed;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+#splash-bienvenida-preview-text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #f5d77a;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.splash-bienvenida-btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #f5d77a 0%, #c8962a 100%);
+  border: none;
+  border-radius: 10px;
+  color: #0b1f4a;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px rgba(245, 215, 122, 0.25);
+}
+.splash-bienvenida-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(245, 215, 122, 0.35);
+}
+.splash-bienvenida-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+.splash-bienvenida-btn-skip {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: none;
+  color: #93b4ed;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.splash-bienvenida-btn-skip:hover {
+  color: #d4dffa;
+}
+
+@media (max-width: 480px) {
+  .splash-bienvenida-content { padding: 1.75rem 1.25rem; }
+  #splash-bienvenida-preview-text { font-size: 18px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
    🛡️ EXCEPCIONES PARA EL CERTIFICADO
    Restaurar legibilidad pisando los overrides anti-IA del panel.
    El certificado debe verse elegante (Cormorant + verde oscuro),
@@ -19191,7 +19509,7 @@ body.is-guest #perfil-avatar-big {
        xp, logrosDesbloqueados, racha, cursosCompletados, certificados
      ═══════════════════════════════════════════════════════════════ -->
 <script type="module">
-import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, updateProfile } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ═══════════════════════════════════════════════════════════════
@@ -19728,6 +20046,158 @@ window.verificarCertificado = function() {
 // ═══════════════════════════════════════════════════════════════
 // 🎊 SPLASH SCREEN — Curso completado (con confeti épico)
 // ═══════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════
+// 👋 SPLASH BIENVENIDA — Confirmar nombre para certificados
+// ═══════════════════════════════════════════════════════════════
+window.mostrarSplashBienvenida = function(user) {
+  const splash = document.getElementById('splash-bienvenida');
+  if (!splash) return;
+  const input  = document.getElementById('splash-bienvenida-input');
+  const preview = document.getElementById('splash-bienvenida-preview');
+  const previewText = document.getElementById('splash-bienvenida-preview-text');
+
+  // Pre-llenar con el nombre actual
+  if (input) input.value = (user && user.displayName) || '';
+
+  // Vista previa en vivo
+  function actualizarPreview() {
+    if (!input || !preview || !previewText) return;
+    const val = input.value.trim();
+    if (val.length >= 2) {
+      previewText.textContent = val.toUpperCase();
+      preview.style.display = 'block';
+    } else {
+      preview.style.display = 'none';
+    }
+  }
+  if (input) {
+    input.addEventListener('input', actualizarPreview);
+    actualizarPreview();
+  }
+
+  // Mostrar modal
+  splash.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => { if (input) input.focus(); }, 200);
+
+  // Submit con Enter
+  if (input) {
+    input.onkeydown = function(e) {
+      if (e.key === 'Enter') window.confirmarNombreBienvenida();
+    };
+  }
+};
+
+window.confirmarNombreBienvenida = async function() {
+  const input = document.getElementById('splash-bienvenida-input');
+  if (!input) return;
+  const nombre = input.value.trim();
+
+  if (!nombre || nombre.length < 3) {
+    input.style.borderColor = '#ef4444';
+    input.style.background = 'rgba(239, 68, 68, 0.05)';
+    setTimeout(() => {
+      input.style.borderColor = '';
+      input.style.background = '';
+    }, 1500);
+    input.focus();
+    return;
+  }
+
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    // 1. Actualizar Firebase Auth displayName
+    try {
+      if (typeof updateProfile === 'function') {
+        await updateProfile(user, { displayName: nombre });
+      }
+    } catch(e) { console.warn('[Bienvenida] No se actualizó Auth:', e); }
+
+    // 2. Guardar en Firestore /perfiles/{uid}
+    const db = getFirestore();
+    await setDoc(doc(db, 'perfiles', user.uid), {
+      nombre: nombre,
+      nombreCertificado: nombre,
+      nombreConfirmado: true,
+      correo: user.email || '',
+      actualizadoEn: new Date().toISOString()
+    }, { merge: true });
+
+    // 3. Reflejar en input de Mi Perfil
+    const inputPerfil = document.getElementById('perfil-nombre-input');
+    if (inputPerfil) inputPerfil.value = nombre;
+
+    // 4. Reflejar en topbar/sidebar
+    const nombreEls = document.querySelectorAll('#perfil-nombre, #topbar-user-name, [data-user-name]');
+    nombreEls.forEach(el => { if (el) el.textContent = nombre; });
+
+    // 5. Cerrar splash
+    window.cerrarSplashBienvenida();
+
+    console.log('[Bienvenida] Nombre confirmado:', nombre);
+  } catch(e) {
+    console.error('[Bienvenida] Error guardando:', e);
+    alert('No se pudo guardar el nombre. Intenta de nuevo.');
+  }
+};
+
+window.cerrarSplashBienvenida = function() {
+  const splash = document.getElementById('splash-bienvenida');
+  if (!splash) return;
+  splash.style.display = 'none';
+  document.body.style.overflow = '';
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 🔄 ACTUALIZAR NOMBRE EN CERTIFICADOS (cuando user cambia el nombre)
+// ═══════════════════════════════════════════════════════════════
+window.actualizarNombreEnCertificados = async function(nombreNuevo) {
+  if (!nombreNuevo) return;
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+    const db = getFirestore();
+
+    // 1. Actualizar el array de certs en /membresias/{uid}
+    if (window._icademLogros && window._icademLogros.data && window._icademLogros.data.certificados) {
+      const certs = window._icademLogros.data.certificados.map(c => ({
+        ...c,
+        nombreAlumno: nombreNuevo
+      }));
+      window._icademLogros.data.certificados = certs;
+
+      await setDoc(doc(db, 'membresias', user.uid), {
+        certificados: certs
+      }, { merge: true });
+
+      // 2. Actualizar cada cert público en /certificados/{folio}
+      let actualizados = 0;
+      for (const cert of certs) {
+        if (!cert.folio) continue;
+        try {
+          await setDoc(doc(db, 'certificados', cert.folio), {
+            nombreAlumno: nombreNuevo
+          }, { merge: true });
+          actualizados++;
+        } catch(e) {
+          console.warn('[Cert-Sync] No se pudo actualizar', cert.folio, e.message);
+        }
+      }
+
+      console.log(`[Cert-Sync] Nombre actualizado en ${actualizados} certificado(s)`);
+
+      // Re-renderizar la vista
+      if (typeof renderCertificados === 'function') renderCertificados();
+    }
+  } catch(e) {
+    console.warn('[Cert-Sync] Error actualizando nombre:', e);
+  }
+};
+
 window.mostrarSplashCertificado = function(cursoData, certEmitido) {
   const splash = document.getElementById('splash-cert');
   if (!splash) return;
