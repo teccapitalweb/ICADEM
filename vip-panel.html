@@ -21011,6 +21011,10 @@ window._icademLogros = {
       modal.style.animation = '';
     }, 250);
   }
+  // Export to global scope for use in onclick handlers
+  window.openTemplateModal = openTemplateModal;
+  window.closeTemplateModal = closeTemplateModal;
+
 
   // Close on overlay click
   document.getElementById('tpl-modal-overlay').addEventListener('click', function(e) {
