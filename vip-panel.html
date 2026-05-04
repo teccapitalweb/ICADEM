@@ -16839,7 +16839,21 @@ function abrirModal(opciones) {
     if (subtitulo) subtitulo.textContent = 'Inicia sesión o crea una cuenta para continuar con tu membresía.';
   }
 
-  // Si el usuario YA está autenticado y elige plan → saltar a pago
+  // 🛡️ FIX: Si NO hay plan preseleccionado explícito, RESETEAR la selección anterior.
+  // Esto evita que un plan "pegado" de una sesión previa brinque al usuario al pago
+  // sin que haya elegido en esta sesión. El usuario SIEMPRE debe ver/elegir el plan.
+  if (!planPre) {
+    _planSeleccionado = null;
+    // Limpiar cualquier checkout previo que estuviera renderizado
+    if (_embeddedCheckout) {
+      try { _embeddedCheckout.destroy(); } catch(e) {}
+      _embeddedCheckout = null;
+    }
+    const mount = document.getElementById('is-stripe-mount');
+    if (mount) mount.innerHTML = '<div class="is-loading"><div class="is-spinner"></div>Cargando pago seguro de Stripe…</div>';
+  }
+
+  // Si el usuario YA está autenticado y elige plan EXPLÍCITAMENTE → saltar a pago
   const auth = getAuth();
   if (planPre && auth.currentUser) {
     _planSeleccionado = planPre;
@@ -16856,7 +16870,7 @@ function abrirModal(opciones) {
     return;
   }
 
-  // Default: ir a vistaInicial
+  // Default: ir a vistaInicial (normalmente 'planes' — el usuario debe elegir)
   setVista(vistaInicial);
 
   // Si la vista inicial es 'cuenta' (botón "iniciar sesión") y hay usuario, cerrar
@@ -16872,6 +16886,8 @@ function cerrarModal() {
     try { _embeddedCheckout.destroy(); } catch(e) {}
     _embeddedCheckout = null;
   }
+  // Limpiar plan seleccionado para que la próxima apertura empiece limpia
+  _planSeleccionado = null;
   document.getElementById('is-stripe-mount').innerHTML = '<div class="is-loading"><div class="is-spinner"></div>Cargando pago seguro de Stripe…</div>';
 }
 
@@ -16904,6 +16920,8 @@ modal.querySelectorAll('.is-plan-cta, .is-plan').forEach(el => {
 
 // Botón volver desde cuenta
 document.getElementById('is-back-cuenta').addEventListener('click', () => {
+  // Al volver a Planes, limpiar la selección previa para que el user re-elija
+  _planSeleccionado = null;
   setVista('planes');
 });
 
@@ -16914,6 +16932,8 @@ document.getElementById('is-back-pago').addEventListener('click', () => {
     _embeddedCheckout = null;
   }
   document.getElementById('is-stripe-mount').innerHTML = '<div class="is-loading"><div class="is-spinner"></div>Cargando pago seguro de Stripe…</div>';
+  // Al volver a Planes, limpiar la selección previa
+  _planSeleccionado = null;
   // Si hay usuario, volver a planes; si no, a cuenta
   const auth = getAuth();
   setVista(auth.currentUser ? 'planes' : 'cuenta');
