@@ -3313,9 +3313,36 @@
   window.mostrarPaywall = function(motivoOmodo) {
     // Si recibe 'login' como argumento, abrir directamente en vista de login
     const arrancarEnLogin = motivoOmodo === 'login';
-    if (window.icademStripe && window.icademStripe.abrir) {
-      window.icademStripe.abrir({ vistaInicial: arrancarEnLogin ? 'cuenta' : 'planes' });
+    const vistaInicial = arrancarEnLogin ? 'cuenta' : 'planes';
+
+    // Helper para abrir el modal cuando icademStripe esté listo
+    function intentarAbrir() {
+      if (window.icademStripe && window.icademStripe.abrir) {
+        window.icademStripe.abrir({ vistaInicial: vistaInicial, soloLogin: arrancarEnLogin });
+        return true;
+      }
+      return false;
     }
+
+    // Intento inmediato
+    if (intentarAbrir()) return;
+
+    // Si no está listo, esperar un poco (el módulo type="module" carga async)
+    console.warn('[Paywall] icademStripe no disponible aún, reintentando...');
+    let intentos = 0;
+    const maxIntentos = 20; // 2 segundos máximo
+    const interval = setInterval(() => {
+      intentos++;
+      if (intentarAbrir()) {
+        clearInterval(interval);
+        return;
+      }
+      if (intentos >= maxIntentos) {
+        clearInterval(interval);
+        console.error('[Paywall] No se pudo cargar el módulo Stripe después de 2s');
+        alert('No se pudo abrir el formulario de inicio de sesión.\n\nPosibles causas:\n• Tu navegador bloqueó scripts externos\n• Problema de conexión a internet\n• Bloqueador de anuncios activo\n\nPor favor recarga la página (Ctrl+R) e intenta de nuevo.');
+      }
+    }, 100);
   };
 
   // Disparador especial: abrir en vista de planes con un plan preseleccionado
@@ -16575,9 +16602,29 @@ function abrirModal(opciones) {
   opciones = opciones || {};
   const vistaInicial = opciones.vistaInicial || 'planes';
   const planPre = opciones.planPreseleccionado;
+  const soloLogin = opciones.soloLogin === true;
 
   modal.classList.add('is-open');
   document.body.style.overflow = 'hidden';
+
+  // Modo "solo login": ocultar botón "Cambiar de plan" y los pasos del checkout,
+  // cambiar título a algo más amigable (no implica que está comprando)
+  const backBtn   = document.getElementById('is-back-cuenta');
+  const subtitulo = document.getElementById('is-cuenta-sub');
+  const stepsBar  = document.querySelector('.is-steps');
+  const titulo    = modal.querySelector('#is-view-cuenta .is-h1');
+
+  if (soloLogin) {
+    if (backBtn)   backBtn.style.display = 'none';
+    if (stepsBar)  stepsBar.style.display = 'none';
+    if (titulo)    titulo.innerHTML = 'Bienvenido de <em>vuelta</em>';
+    if (subtitulo) subtitulo.textContent = 'Inicia sesión con tu cuenta ICADEM o crea una nueva.';
+  } else {
+    if (backBtn)   backBtn.style.display = '';
+    if (stepsBar)  stepsBar.style.display = '';
+    if (titulo)    titulo.innerHTML = 'Accede a tu <em>cuenta ICADEM</em>';
+    if (subtitulo) subtitulo.textContent = 'Inicia sesión o crea una cuenta para continuar con tu membresía.';
+  }
 
   // Si el usuario YA está autenticado y elige plan → saltar a pago
   const auth = getAuth();
