@@ -18776,6 +18776,111 @@ body.is-guest #perfil-avatar-big {
   .cert-share-menu { grid-template-columns: 1fr; min-width: 220px; }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   🛡️ EXCEPCIONES PARA EL CERTIFICADO
+   Restaurar legibilidad pisando los overrides anti-IA del panel.
+   El certificado debe verse elegante (Cormorant + verde oscuro),
+   NO con la paleta off-white del panel.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Tipografía elegante restaurada para títulos del cert */
+.cert-doc .cert-doc-title,
+.cert-doc .cert-doc-nombre,
+.cert-doc .cert-doc-curso,
+.cert-doc h1.cert-doc-title,
+.cert-doc h2.cert-doc-nombre,
+.cert-doc h3.cert-doc-curso {
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif !important;
+  -webkit-text-fill-color: #0d4737 !important;
+  color: #0d4737 !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Cada título mantiene sus propiedades específicas */
+.cert-doc .cert-doc-title {
+  font-size: 38px !important;
+  font-weight: 600 !important;
+  font-style: normal !important;
+  text-transform: uppercase !important;
+}
+
+.cert-doc .cert-doc-nombre {
+  font-size: 44px !important;
+  font-weight: 700 !important;
+  font-style: normal !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.06em !important;
+}
+
+.cert-doc .cert-doc-curso {
+  font-size: 24px !important;
+  font-weight: 600 !important;
+  font-style: italic !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Em dentro del cert: NO usar dorado claro, mantener verde oscuro */
+.cert-doc em,
+.cert-doc h1 em,
+.cert-doc h2 em,
+.cert-doc h3 em {
+  -webkit-text-fill-color: #0d4737 !important;
+  color: #0d4737 !important;
+  background: none !important;
+}
+
+/* Texto auxiliar del cert: gris elegante legible */
+.cert-doc .cert-doc-otorga,
+.cert-doc .cert-doc-subtitulo {
+  font-family: 'Inter', sans-serif !important;
+  color: #5a6b7e !important;
+  -webkit-text-fill-color: #5a6b7e !important;
+}
+
+.cert-doc .cert-doc-fecha {
+  color: #5a6b7e !important;
+  -webkit-text-fill-color: #5a6b7e !important;
+}
+
+.cert-doc .cert-doc-meta,
+.cert-doc .cert-doc-meta * {
+  color: #0d4737 !important;
+  -webkit-text-fill-color: #0d4737 !important;
+}
+
+.cert-doc .cert-doc-firma-name,
+.cert-doc .cert-doc-firma-role {
+  color: #0d4737 !important;
+  -webkit-text-fill-color: #0d4737 !important;
+}
+
+.cert-doc .cert-doc-footer,
+.cert-doc .cert-doc-footer strong {
+  color: #5a6b7e !important;
+  -webkit-text-fill-color: #5a6b7e !important;
+}
+
+.cert-doc .cert-doc-footer strong {
+  color: #0d4737 !important;
+  -webkit-text-fill-color: #0d4737 !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+.cert-doc .cert-doc-qr-label {
+  color: #5a6b7e !important;
+  -webkit-text-fill-color: #5a6b7e !important;
+}
+
+/* El header ICADEM dentro del cert */
+.cert-doc .cert-doc-header,
+.cert-doc .cert-doc-header * {
+  color: #0d4737 !important;
+  -webkit-text-fill-color: #0d4737 !important;
+}
+
 </style>
 
 
