@@ -6477,6 +6477,7 @@ buildVideoteca();
     { id: 'balance-general', titulo: 'Balance General Simplificado', desc: 'Activos, pasivos y capital. Snapshot financiero de tu empresa.', cat: 'finanzas', icono: '⚖️', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
     { id: 'encuesta-satisfaccion', titulo: 'Encuesta de Satisfacción de Clientes', desc: 'NPS y CSAT con análisis automático de resultados.', cat: 'ventas', icono: '⭐', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' }
   ];
+  window.PLANTILLAS = PLANTILLAS;
   const grid = document.getElementById('plantillas-grid');
   const empty = document.getElementById('tpl-empty');
   const filterBtns = document.querySelectorAll('.tpl-filter');
