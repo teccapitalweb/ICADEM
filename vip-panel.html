@@ -3081,6 +3081,18 @@
     const planTopbar = document.getElementById('topbar-plan');
     if (planTopbar) planTopbar.textContent = 'Modo invitado';
 
+    // Limpiar badges "VIP Mensual" en hero de Mi Perfil (es engañoso para invitados)
+    const perfilPlanInicial = document.getElementById('perfil-plan');
+    if (perfilPlanInicial) perfilPlanInicial.textContent = 'Modo invitado';
+    const perfilPlanBadge = document.getElementById('perfil-plan-badge');
+    if (perfilPlanBadge) perfilPlanBadge.textContent = 'Modo invitado';
+
+    // En el hero de Mi Perfil, cambiar "Cargando..." por algo coherente con invitado
+    const perfilNombreInicial = document.getElementById('perfil-nombre');
+    if (perfilNombreInicial) perfilNombreInicial.textContent = 'Invitado';
+    const perfilEmailInicial = document.getElementById('perfil-email');
+    if (perfilEmailInicial) perfilEmailInicial.textContent = 'Inicia sesión o vuélvete VIP';
+
     // Reemplazar el botón de logout con dos botones (iniciar sesión + salir)
     const sidebarFooter = document.querySelector('.sidebar-footer');
     if (sidebarFooter) {
@@ -16549,6 +16561,255 @@ h1, h2, h3, h4, .page-title,
 
 @media (max-width: 768px) {
   body { background-size: 20px 20px !important; }
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   14) MI PERFIL — Aplanar el hero verde-azul y todas las cards
+   Las cards de Datos Personales, Estado de Membresía, Seguridad,
+   Historial de Pagos heredaban gradientes que se ven a IA.
+   ════════════════════════════════════════════════════════════ */
+
+/* Hero del perfil (banner azul-cyan con orbes decorativos) */
+#sec-perfil > div:first-of-type,
+#sec-perfil [style*="linear-gradient(135deg,#0b2554"][style*="padding:2rem"] {
+  background: #0d1117 !important;
+  background-image: none !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+}
+
+/* Eliminar los orbes decorativos del hero (esos círculos blancos translúcidos) */
+#sec-perfil [style*="position:absolute"][style*="border-radius:50%"][style*="rgba(255,255,255,0.0"] {
+  display: none !important;
+}
+
+/* Todas las cards blancas de Mi Perfil → fondo oscuro consistente */
+#sec-perfil [style*="background:#ffffff"],
+#sec-perfil [style*="background: #ffffff"],
+#sec-perfil [style*="background:#fff"]:not([style*="rgba"]),
+#sec-suscripcion [style*="background:#ffffff"],
+#sec-suscripcion [style*="background: #ffffff"] {
+  background: #0d1117 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+  border-radius: 10px !important;
+}
+
+/* Los iconos circulares pequeños de cada card (Datos Personales, Membresía, Seguridad)
+   tenían fondo translucido azul. Aplanarlos a cuadrados monocromáticos. */
+#sec-perfil [style*="rgba(20,104,177,0.08)"],
+#sec-perfil [style*="rgba(11,31,74,0.08)"],
+#sec-suscripcion [style*="rgba(20,104,177,0.08)"] {
+  background: #18181b !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 6px !important;
+}
+
+/* Labels en uppercase de las cards (DATOS PERSONALES, ESTADO DE MEMBRESÍA, etc.) */
+#sec-perfil [style*="color:#1468b1"],
+#sec-suscripcion [style*="color:#1468b1"] {
+  color: #d4a72c !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em !important;
+}
+
+/* Texto de "Plan activo", "Estado", "Cursos completados" */
+#sec-perfil [style*="color:#1e293b"],
+#sec-perfil [style*="color: #1e293b"],
+#sec-perfil [style*="color:#475569"],
+#sec-suscripcion [style*="color:#1e293b"],
+#sec-suscripcion [style*="color:#475569"] {
+  color: #d4d4d8 !important;
+}
+
+#sec-perfil [style*="color:#0d47a1"],
+#sec-perfil [style*="color: #0d47a1"],
+#sec-perfil [style*="color:#0b2554"],
+#sec-suscripcion [style*="color:#0d47a1"] {
+  color: #fafafa !important;
+}
+
+/* Inputs en Mi Perfil (Empresa, Cargo, Contraseña) */
+#sec-perfil input,
+#sec-suscripcion input {
+  background: #18181b !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: #fafafa !important;
+  border-radius: 6px !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+#sec-perfil input::placeholder,
+#sec-suscripcion input::placeholder {
+  color: #52525b !important;
+}
+
+#sec-perfil input:focus,
+#sec-suscripcion input:focus {
+  border-color: rgba(212,167,44,0.4) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(212,167,44,0.08) !important;
+}
+
+/* Badge "VIP Mensual" en header (esquina superior derecha del topbar) */
+#topbar-plan, #perfil-plan-badge {
+  background: rgba(212,167,44,0.1) !important;
+  background-image: none !important;
+  border: 1px solid rgba(212,167,44,0.3) !important;
+  color: #d4a72c !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  letter-spacing: 0.04em !important;
+  font-weight: 500 !important;
+  font-size: 10px !important;
+  padding: 3px 9px !important;
+  border-radius: 999px !important;
+}
+
+/* Tabla de historial de pagos */
+#sec-suscripcion table {
+  background: #0d1117 !important;
+}
+
+#sec-suscripcion table tr {
+  border-color: rgba(255,255,255,0.05) !important;
+}
+
+#sec-suscripcion table td {
+  color: #d4d4d8 !important;
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.05) !important;
+}
+
+/* "Pagado" badge verde */
+#sec-suscripcion [style*="color:#10b981"][style*="background:rgba(16,185,129"] {
+  background: rgba(16,185,129,0.1) !important;
+  color: #10b981 !important;
+  border: 1px solid rgba(16,185,129,0.25) !important;
+  font-family: 'JetBrains Mono', monospace !important;
+}
+
+
+/* ════════════════════════════════════════════════════════════
+   15) MODO INVITADO — Hero de "Mi Perfil" sin "VIP Mensual"
+   En modo invitado, ocultar el badge "VIP Mensual" del hero
+   (porque el invitado NO es VIP, es engañoso).
+   En su lugar, mostrar "MODO INVITADO" como pill sobria.
+   ════════════════════════════════════════════════════════════ */
+
+body.is-guest #perfil-plan,
+body.is-guest #perfil-plan-badge {
+  background: rgba(212,167,44,0.06) !important;
+  background-image: none !important;
+  border: 1px solid rgba(212,167,44,0.25) !important;
+  color: #d4a72c !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 9px !important;
+  letter-spacing: 0.08em !important;
+  font-weight: 500 !important;
+  padding: 4px 10px !important;
+  border-radius: 999px !important;
+  text-transform: uppercase !important;
+}
+
+/* Ocultar email "—" cuando no hay info real */
+body.is-guest #perfil-email {
+  color: #71717a !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+}
+
+/* Avatar del invitado: cuadrado monocromático en lugar del círculo grande blanco */
+body.is-guest #perfil-avatar-big {
+  background: #18181b !important;
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  color: #71717a !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 32px !important;
+  font-weight: 400 !important;
+  border-radius: 8px !important;
+  width: 64px !important;
+  height: 64px !important;
+}
+
+/* ════════════════════════════════════════════════════════════
+   16) VIDEOTECA / MATERIAL — Verde teal → Azul marino (#0c1e4a)
+   Las cards de cursos y archivos PDF estaban en verde turquesa
+   (rgb 45,90,94 → 31,67,71 → 20,41,45). Cambio a azul marino
+   profundo como pidió el cliente.
+   ════════════════════════════════════════════════════════════ */
+
+/* Variables dusty teal: redefinirlas como azul marino */
+:root {
+  --dt-1:     #1a3a6b !important;   /* azul marino medio */
+  --dt-2:     #122b54 !important;   /* azul marino oscuro */
+  --dt-3:     #0c1e4a !important;   /* azul marino profundo (el que pidió Jorge) */
+  --dt-light: #6b8fc4 !important;   /* azul claro (acentos) */
+  --dt-glow:  #93b4ed !important;   /* azul claro brillante */
+  --dt-soft:  #a8b8d1 !important;   /* azul grisáceo (textos) */
+  --dt-text:  #d1d9eb !important;   /* azul muy claro (textos secundarios) */
+}
+
+/* Cards de cursos en Videoteca — sobrescribir el gradient inline verde */
+[style*="background:linear-gradient(135deg,#2d5a5e 0%,#1f4347 50%,#14292d 100%)"],
+[style*="background: linear-gradient(135deg,#2d5a5e 0%,#1f4347 50%,#14292d 100%)"],
+[style*="background:linear-gradient(135deg,#2d5a5e"],
+[style*="linear-gradient(135deg, #2d5a5e 0%, #1f4347 50%, #14292d 100%)"] {
+  background: linear-gradient(135deg, #1a3a6b 0%, #122b54 50%, #0c1e4a 100%) !important;
+  border-color: rgba(107,143,196,0.25) !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(107,143,196,0.18) !important;
+}
+
+/* Hover de cards de cursos */
+[style*="background:linear-gradient(135deg,#3a6b6f"] {
+  background: linear-gradient(135deg, #284a7a 0%, #1a3a6b 50%, #122b54 100%) !important;
+}
+
+/* Barra de acción inferior verde */
+[style*="background:linear-gradient(135deg,#1a3a3e,#14292d)"] {
+  background: linear-gradient(135deg, #122b54, #0c1e4a) !important;
+  border-top-color: rgba(107,143,196,0.25) !important;
+}
+
+/* Vista lista de cursos */
+[style*="linear-gradient(180deg,#1f4347"] {
+  background: linear-gradient(180deg, #122b54 0%, #0c1e4a 100%) !important;
+}
+
+/* Cards "noticias" con la misma paleta teal */
+.noticia-card[style*="#2d5a5e"],
+.noticia-card[style*="#1f4347"],
+.noticia-card[style*="#14292d"] {
+  background: linear-gradient(135deg, #1a3a6b 0%, #122b54 50%, #0c1e4a 100%) !important;
+  border-color: rgba(107,143,196,0.25) !important;
+}
+
+/* Textos sobre el azul nuevo: ajustar para que sigan siendo legibles */
+.section [style*="color:#a7c4c7"],
+.section [style*="color:#d1e6e8"],
+.section [style*="color:#5da4ab"],
+.section [style*="color:#7dd8e0"] {
+  color: #a8b8d1 !important;
+}
+
+/* Ítems de lista en sección Material — usar mismo azul marino */
+.material-item {
+  background: linear-gradient(135deg, #1a3a6b 0%, #122b54 50%, #0c1e4a 100%) !important;
+  border-color: rgba(107,143,196,0.2) !important;
+}
+
+.material-item:hover {
+  background: linear-gradient(135deg, #284a7a 0%, #1a3a6b 50%, #122b54 100%) !important;
+  border-color: rgba(107,143,196,0.4) !important;
+}
+
+/* Bordes y estilos del CSS global de variables dusty teal */
+.fx-mini-card,
+[class*="dusty-teal"], [class*="dt-"],
+.section [style*="border-color: rgba(93,164,171"] {
+  border-color: rgba(107,143,196,0.25) !important;
 }
 
 </style>
