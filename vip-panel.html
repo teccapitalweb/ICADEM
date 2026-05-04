@@ -892,6 +892,16 @@
       Directorio VIP
     </div>
 
+    <p class="nav-section-label">Tu progreso</p>
+    <div class="nav-item" onclick="showSection('logros')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
+      Mis Logros
+    </div>
+    <div class="nav-item" onclick="showSection('certificados')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+      Certificados
+    </div>
+
     <p class="nav-section-label">Mi cuenta</p>
     <div class="nav-item" onclick="showSection('suscripcion')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
@@ -1402,28 +1412,79 @@
       <div class="page-header">
         <p class="page-tag">Herramienta · Recursos</p>
         <h1 class="page-title">Plantillas Premium</h1>
-        <p class="page-sub">Plantillas listas para usar en Excel y Google Sheets para gestionar tu negocio. Descarga, edita y aplica.</p>
+        <p class="page-sub">Plantillas listas para usar en Excel, Word y PowerPoint para gestionar tu negocio. Descarga, edita y aplica.</p>
+      </div>
+
+      <!-- Stats banner -->
+      <div class="tpl-stats">
+        <div class="tpl-stat">
+          <span class="tpl-stat-num" id="tpl-stat-total">0</span>
+          <span class="tpl-stat-lbl">Plantillas disponibles</span>
+        </div>
+        <div class="tpl-stat-divider"></div>
+        <div class="tpl-stat">
+          <span class="tpl-stat-num" id="tpl-stat-feat">0</span>
+          <span class="tpl-stat-lbl">Destacadas</span>
+        </div>
+        <div class="tpl-stat-divider"></div>
+        <div class="tpl-stat">
+          <span class="tpl-stat-num">7</span>
+          <span class="tpl-stat-lbl">Categorías</span>
+        </div>
+        <div class="tpl-stat-divider"></div>
+        <div class="tpl-stat">
+          <span class="tpl-stat-num">∞</span>
+          <span class="tpl-stat-lbl">Descargas</span>
+        </div>
+      </div>
+
+      <!-- Search bar + view toggle -->
+      <div class="tpl-toolbar">
+        <div class="tpl-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="tpl-search-input" placeholder="Buscar por nombre o descripción..." autocomplete="off">
+          <button class="tpl-search-clear" id="tpl-search-clear" aria-label="Limpiar búsqueda" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="tpl-view-toggle">
+          <button class="tpl-view-btn is-active" data-view="grid" aria-label="Vista de cuadrícula" title="Vista cuadrícula">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+          <button class="tpl-view-btn" data-view="list" aria-label="Vista de lista" title="Vista lista">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+        </div>
       </div>
 
       <!-- Filtros por categoría -->
       <div class="tpl-filters">
         <button class="tpl-filter is-active" data-cat="todas">Todas <span class="tpl-count" id="tpl-c-todas">0</span></button>
-        <button class="tpl-filter" data-cat="finanzas">💰 Finanzas <span class="tpl-count" id="tpl-c-finanzas">0</span></button>
-        <button class="tpl-filter" data-cat="rh">👥 RH <span class="tpl-count" id="tpl-c-rh">0</span></button>
-        <button class="tpl-filter" data-cat="ventas">📈 Ventas <span class="tpl-count" id="tpl-c-ventas">0</span></button>
-        <button class="tpl-filter" data-cat="operaciones">⚙️ Operaciones <span class="tpl-count" id="tpl-c-operaciones">0</span></button>
-        <button class="tpl-filter" data-cat="marketing">🎯 Marketing <span class="tpl-count" id="tpl-c-marketing">0</span></button>
-        <button class="tpl-filter" data-cat="legal">⚖️ Legal <span class="tpl-count" id="tpl-c-legal">0</span></button>
+        <button class="tpl-filter" data-cat="finanzas">Finanzas <span class="tpl-count" id="tpl-c-finanzas">0</span></button>
+        <button class="tpl-filter" data-cat="rh">RH <span class="tpl-count" id="tpl-c-rh">0</span></button>
+        <button class="tpl-filter" data-cat="ventas">Ventas <span class="tpl-count" id="tpl-c-ventas">0</span></button>
+        <button class="tpl-filter" data-cat="operaciones">Operaciones <span class="tpl-count" id="tpl-c-operaciones">0</span></button>
+        <button class="tpl-filter" data-cat="marketing">Marketing <span class="tpl-count" id="tpl-c-marketing">0</span></button>
+        <button class="tpl-filter" data-cat="legal">Legal <span class="tpl-count" id="tpl-c-legal">0</span></button>
+        <button class="tpl-filter tpl-filter-feat" data-cat="destacadas">★ Destacadas <span class="tpl-count" id="tpl-c-destacadas">0</span></button>
+      </div>
+
+      <!-- Resultados de búsqueda info -->
+      <div class="tpl-results-info" id="tpl-results-info" style="display:none">
+        <span id="tpl-results-text"></span>
+        <button class="tpl-clear-search" id="tpl-clear-search">Limpiar búsqueda</button>
       </div>
 
       <!-- Grid de plantillas -->
       <div id="plantillas-grid" class="tpl-grid"></div>
 
       <!-- Estado vacío al filtrar -->
-      <div id="tpl-empty" style="display:none;text-align:center;padding:3rem 1rem;color:rgba(168,184,209,0.6)">
-        <div style="font-size:48px;margin-bottom:1rem">📂</div>
-        <p style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px">No hay plantillas en esta categoría</p>
-        <p style="font-size:12.5px">Pronto agregaremos más recursos. Mientras tanto, prueba otra categoría.</p>
+      <div id="tpl-empty" style="display:none">
+        <div class="tpl-empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </div>
+        <p class="tpl-empty-title">Sin resultados</p>
+        <p class="tpl-empty-desc">No encontramos plantillas que coincidan. Prueba otra categoría o limpia la búsqueda.</p>
       </div>
 
       <!-- Footer info -->
@@ -2832,6 +2893,200 @@
       </div>
     </div>
 
+    <!-- ============================================================
+         🏆 SECCIÓN: MIS LOGROS — Sistema de gamificación ICADEM
+         ============================================================ -->
+    <div class="section" id="sec-logros">
+      <div class="page-header">
+        <p class="page-tag">Gamificación</p>
+        <h1 class="page-title">Tus <em style="font-style:italic;color:#93b4ed">logros</em> y progreso.</h1>
+        <p class="page-sub">Desbloquea medallas, gana XP y sube de nivel mientras aprendes, compartes y creces con la comunidad ICADEM.</p>
+      </div>
+
+      <!-- Banner de nivel actual -->
+      <div class="lg-level-banner" id="lg-level-banner">
+        <div class="lg-level-info">
+          <span class="lg-level-tag" id="lg-level-tag">Nivel actual · Rango 1 de 5</span>
+          <div class="lg-level-name-row">
+            <span class="lg-level-icon" id="lg-level-icon">🎓</span>
+            <div>
+              <h2 class="lg-level-name" id="lg-level-name">Aprendiz</h2>
+              <p class="lg-level-next" id="lg-level-next">Siguiente nivel: Profesional</p>
+            </div>
+          </div>
+        </div>
+        <div class="lg-level-xp">
+          <div class="lg-level-xp-row">
+            <span class="lg-level-xp-num" id="lg-level-xp-current">0</span>
+            <span class="lg-level-xp-lbl">XP</span>
+            <span class="lg-level-xp-divider">/</span>
+            <span class="lg-level-xp-target" id="lg-level-xp-target">150 XP</span>
+          </div>
+          <div class="lg-level-bar">
+            <div class="lg-level-bar-fill" id="lg-level-bar-fill"></div>
+          </div>
+          <p class="lg-level-faltan" id="lg-level-faltan">Te faltan <strong>150 XP</strong> para subir a Profesional</p>
+        </div>
+      </div>
+
+      <!-- Camino de progresión: 5 niveles -->
+      <h3 class="lg-section-title">Tu camino de Aprendiz a Maestro</h3>
+      <div class="lg-path">
+        <div class="lg-path-item" data-level="1" data-min="0" data-max="150">
+          <div class="lg-path-icon">🎓</div>
+          <p class="lg-path-name">Aprendiz</p>
+          <p class="lg-path-xp">0 - 150 XP</p>
+        </div>
+        <div class="lg-path-item" data-level="2" data-min="150" data-max="500">
+          <div class="lg-path-icon">📚</div>
+          <p class="lg-path-name">Profesional</p>
+          <p class="lg-path-xp">150 - 500 XP</p>
+        </div>
+        <div class="lg-path-item" data-level="3" data-min="500" data-max="1200">
+          <div class="lg-path-icon">💼</div>
+          <p class="lg-path-name">Experto</p>
+          <p class="lg-path-xp">500 - 1,200 XP</p>
+        </div>
+        <div class="lg-path-item" data-level="4" data-min="1200" data-max="2500">
+          <div class="lg-path-icon">🏆</div>
+          <p class="lg-path-name">Líder</p>
+          <p class="lg-path-xp">1,200 - 2,500 XP</p>
+        </div>
+        <div class="lg-path-item" data-level="5" data-min="2500" data-max="999999">
+          <div class="lg-path-icon">👑</div>
+          <p class="lg-path-name">Maestro</p>
+          <p class="lg-path-xp">2,500+ XP</p>
+        </div>
+      </div>
+
+      <!-- Stats cards -->
+      <div class="lg-stats">
+        <div class="lg-stat">
+          <div class="lg-stat-icon" style="background:rgba(245,215,122,0.1);color:#f5d77a">🏆</div>
+          <span class="lg-stat-num" id="lg-stat-logros">0</span>
+          <span class="lg-stat-lbl">Logros desbloqueados</span>
+        </div>
+        <div class="lg-stat">
+          <div class="lg-stat-icon" style="background:rgba(147,180,237,0.1);color:#93b4ed">⚡</div>
+          <span class="lg-stat-num" id="lg-stat-xp">0</span>
+          <span class="lg-stat-lbl">XP total ganado</span>
+        </div>
+        <div class="lg-stat">
+          <div class="lg-stat-icon" style="background:rgba(239,68,68,0.1);color:#ef4444">🔥</div>
+          <span class="lg-stat-num" id="lg-stat-racha">0</span>
+          <span class="lg-stat-lbl">Días de racha</span>
+        </div>
+        <div class="lg-stat">
+          <div class="lg-stat-icon" style="background:rgba(16,185,129,0.1);color:#10b981">📊</div>
+          <span class="lg-stat-num" id="lg-stat-cursos">0</span>
+          <span class="lg-stat-lbl">Cursos completados</span>
+        </div>
+      </div>
+
+      <!-- Filtros por categoría -->
+      <div class="lg-filters">
+        <button class="lg-filter is-active" data-cat="todos">🏆 Todos <span class="lg-count" id="lg-c-todos">0/26</span></button>
+        <button class="lg-filter" data-cat="inicio">🌱 Inicio <span class="lg-count" id="lg-c-inicio">0/3</span></button>
+        <button class="lg-filter" data-cat="cursos">📚 Cursos <span class="lg-count" id="lg-c-cursos">0/5</span></button>
+        <button class="lg-filter" data-cat="sesiones">🎥 Sesiones <span class="lg-count" id="lg-c-sesiones">0/3</span></button>
+        <button class="lg-filter" data-cat="rachas">🔥 Rachas <span class="lg-count" id="lg-c-rachas">0/4</span></button>
+        <button class="lg-filter" data-cat="comunidad">💬 Comunidad <span class="lg-count" id="lg-c-comunidad">0/4</span></button>
+        <button class="lg-filter" data-cat="contenido">📂 Contenido <span class="lg-count" id="lg-c-contenido">0/2</span></button>
+        <button class="lg-filter" data-cat="certificados">🎓 Certificados <span class="lg-count" id="lg-c-certificados">0/2</span></button>
+        <button class="lg-filter" data-cat="secretos">🔮 Secretos <span class="lg-count" id="lg-c-secretos">0/3</span></button>
+      </div>
+
+      <!-- Grid de logros -->
+      <div id="lg-grid" class="lg-grid"></div>
+    </div>
+
+    <!-- ============================================================
+         🎓 SECCIÓN: CERTIFICADOS — Acreditaciones ICADEM
+         ============================================================ -->
+    <div class="section" id="sec-certificados">
+      <div class="page-header">
+        <p class="page-tag">Acreditaciones</p>
+        <h1 class="page-title">Tus <em style="font-style:italic;color:#93b4ed">certificados</em> con folio y QR.</h1>
+        <p class="page-sub">Al completar cada curso emitimos tu certificado oficial con folio único y código QR verificable.</p>
+      </div>
+
+      <!-- Stats banner -->
+      <div class="cert-stats">
+        <div class="cert-stat">
+          <span class="cert-stat-num" id="cert-stat-total">0</span>
+          <span class="cert-stat-lbl">Certificados obtenidos</span>
+        </div>
+        <div class="cert-stat-divider"></div>
+        <div class="cert-stat">
+          <span class="cert-stat-num" id="cert-stat-horas">0</span>
+          <span class="cert-stat-lbl">Horas acreditadas</span>
+        </div>
+        <div class="cert-stat-divider"></div>
+        <div class="cert-stat">
+          <span class="cert-stat-num" id="cert-stat-cursos">36</span>
+          <span class="cert-stat-lbl">Disponibles VIP</span>
+        </div>
+      </div>
+
+      <h3 class="cert-section-title">Tus certificados obtenidos</h3>
+
+      <!-- Lista de certificados -->
+      <div id="cert-list" class="cert-list">
+        <!-- Estado vacío inicial -->
+        <div class="cert-empty" id="cert-empty">
+          <div class="cert-empty-icon">
+            <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></svg>
+          </div>
+          <p class="cert-empty-title">Aún no tienes certificados</p>
+          <p class="cert-empty-desc">Completa tu primer curso de ICADEM y emitiremos tu certificado oficial con folio único y código QR verificable.</p>
+          <button class="cert-empty-btn" onclick="window.showSection('videos')">
+            Explorar Videoteca →
+          </button>
+        </div>
+      </div>
+
+      <!-- Info card -->
+      <div class="cert-info-card">
+        <div class="cert-info-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div>
+          <p class="cert-info-title">Validación oficial con QR</p>
+          <p class="cert-info-desc">Cada certificado tiene un folio único IPCI y un código QR que terceros pueden escanear para validar la autenticidad del documento. Compatible con LinkedIn, currículum y procesos de contratación.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         🎫 MODAL: Vista de certificado
+         ============================================================ -->
+    <div id="cert-modal" class="cert-modal" style="display:none">
+      <div class="cert-modal-overlay" onclick="window.cerrarCertificado()"></div>
+      <div class="cert-modal-content">
+        <button class="cert-modal-close" onclick="window.cerrarCertificado()" aria-label="Cerrar">×</button>
+        <div class="cert-doc" id="cert-doc">
+          <!-- Se llena dinámicamente con JS -->
+        </div>
+        <div class="cert-actions">
+          <button class="cert-action-btn" onclick="window.imprimirCertificado()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimir / PDF
+          </button>
+          <button class="cert-action-btn" onclick="window.copiarLinkCert()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Copiar link QR
+          </button>
+          <button class="cert-action-btn cert-action-primary" onclick="window.verificarCertificado()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9c2.5 0 4.77 1.02 6.4 2.66"/></svg>
+            Verificar
+          </button>
+        </div>
+        <p class="cert-folio-info">
+          Folio: <strong id="cert-folio-display"></strong> · Certificado ICADEM con valor curricular
+        </p>
+      </div>
+    </div>
+
     <!-- MI SUSCRIPCIÓN -->
     <div class="section" id="sec-suscripcion">
       <div class="page-header">
@@ -3323,7 +3578,7 @@
       const accion = e.target.closest(
         '.cf-btn-calc, .cf-btn-secondary, .cf-btn-clear, .cf-action, ' +
         '.tpl-card-cta, .tpl-card, .tpl-filter, ' +
-        'button:not(.cf-subtab):not(.cf-tab):not(.cf-radio):not(.is-tab):not(.is-tour-skip):not(.is-tour-next):not(.is-close), ' +
+        'button:not(.cf-subtab):not(.cf-tab):not(.cf-radio):not(.is-tab):not(.is-tour-skip):not(.is-tour-next):not(.is-close):not(.tpl-view-btn):not(.tpl-search-clear):not(.tpl-clear-search), ' +
         'a[href]:not([href^="#"]):not([href="javascript:void(0)"])'
       );
       if (accion) {
@@ -4720,7 +4975,7 @@
 </script>
 
 <script>
-  const sectionTitles = {inicio:'Inicio',novedades:'Novedades',cursos:'Clases en Vivo',videos:'Videoteca',material:'Material Premium',comunidad:'Comunidad','cursos-vivo':'Cursos en Vivo',perfil:'Mi Perfil',suscripcion:'Mi Suscripción',soporte:'Soporte',configuracion:'Configuración'};
+  const sectionTitles = {inicio:'Inicio',novedades:'Novedades',cursos:'Clases en Vivo',videos:'Videoteca',material:'Material Premium',comunidad:'Comunidad','cursos-vivo':'Cursos en Vivo',perfil:'Mi Perfil',suscripcion:'Mi Suscripción',soporte:'Soporte',configuracion:'Configuración',logros:'Mis Logros',certificados:'Certificados',plantillas:'Plantillas Premium','calc-fiscal':'Calculadora Fiscal','calc-nomina':'Nómina IMSS','calc-credito':'Préstamo & TIR','docs-legales':'Documentos Legales',directorio:'Directorio VIP'};
   window.showSection = function(id) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -5638,21 +5893,178 @@ buildVideoteca();
       icono: '⚖️',
       formato: 'DOCX',
       url: 'https://docs.google.com/document/d/1example_rit'
+    },
+
+    // === PLANTILLAS NUEVAS (segunda tanda) ===
+    {
+      id: 'kpi-ejecutivo',
+      titulo: 'Dashboard ejecutivo de KPIs',
+      desc: 'Panel visual con los 12 KPIs más importantes de tu negocio: ventas, rentabilidad, eficiencia y crecimiento.',
+      cat: 'finanzas',
+      icono: '📉',
+      formato: 'XLSX',
+      url: 'https://docs.google.com/spreadsheets/d/1example_kpi',
+      destacada: true
+    },
+    {
+      id: 'evaluacion-360',
+      titulo: 'Evaluación de desempeño 360°',
+      desc: 'Formato de evaluación integral con auto-evaluación, jefe directo, pares y subordinados. Genera reporte automático.',
+      cat: 'rh',
+      icono: '🎯',
+      formato: 'XLSX',
+      url: 'https://docs.google.com/spreadsheets/d/1example_360'
+    },
+    {
+      id: 'organigrama-empresa',
+      titulo: 'Organigrama empresarial editable',
+      desc: 'Plantilla con jerarquías, departamentos, fotos y datos de contacto. Compatible con Word y PDF.',
+      cat: 'rh',
+      icono: '🏢',
+      formato: 'PPTX',
+      url: 'https://docs.google.com/presentation/d/1example_organigrama'
+    },
+    {
+      id: 'pipeline-ventas',
+      titulo: 'Pipeline de ventas y forecast',
+      desc: 'Embudo de ventas con etapas, probabilidad de cierre, valor estimado y proyección de cierre mensual.',
+      cat: 'ventas',
+      icono: '🚀',
+      formato: 'XLSX',
+      url: 'https://docs.google.com/spreadsheets/d/1example_pipeline',
+      destacada: true
+    },
+    {
+      id: 'crm-clientes',
+      titulo: 'Mini CRM en Excel',
+      desc: 'Sistema simple para gestionar clientes, oportunidades, contactos y historial de seguimiento sin software adicional.',
+      cat: 'ventas',
+      icono: '📇',
+      formato: 'XLSX',
+      url: 'https://docs.google.com/spreadsheets/d/1example_crm'
+    },
+    {
+      id: 'inventario-pyme',
+      titulo: 'Control de inventario PyME',
+      desc: 'Entradas, salidas, mínimos, máximos, alertas de stock crítico y valoración por método PEPS o promedio.',
+      cat: 'operaciones',
+      icono: '📦',
+      formato: 'XLSX',
+      url: 'https://docs.google.com/spreadsheets/d/1example_inventario'
+    },
+    {
+      id: 'orden-compra',
+      titulo: 'Orden de compra profesional',
+      desc: 'Formato editable con datos del proveedor, productos, condiciones de pago y firma. Cumple requisitos contables.',
+      cat: 'operaciones',
+      icono: '🧾',
+      formato: 'DOCX',
+      url: 'https://docs.google.com/document/d/1example_oc'
+    },
+    {
+      id: 'pitch-deck',
+      titulo: 'Pitch deck para inversionistas',
+      desc: 'Presentación de 12 slides con problema, solución, mercado, tracción, equipo y financiamiento. Estilo investor-ready.',
+      cat: 'marketing',
+      icono: '💎',
+      formato: 'PPTX',
+      url: 'https://docs.google.com/presentation/d/1example_pitch',
+      destacada: true
+    },
+    {
+      id: 'briefing-creativo',
+      titulo: 'Briefing creativo para campañas',
+      desc: 'Formato profesional para briefar agencias o equipos: objetivos, target, mensaje, tono, entregables y KPIs.',
+      cat: 'marketing',
+      icono: '🎨',
+      formato: 'DOCX',
+      url: 'https://docs.google.com/document/d/1example_brief'
+    },
+    {
+      id: 'aviso-privacidad',
+      titulo: 'Aviso de privacidad LFPDPPP',
+      desc: 'Aviso integral compliant con la Ley Federal de Protección de Datos Personales. Listo para tu sitio web.',
+      cat: 'legal',
+      icono: '🔒',
+      formato: 'DOCX',
+      url: 'https://docs.google.com/document/d/1example_privacidad'
+    },
+    {
+      id: 'contrato-confidencialidad',
+      titulo: 'Acuerdo de confidencialidad (NDA)',
+      desc: 'NDA bilateral en español con cláusulas mexicanas. Protege información sensible al compartirla con terceros.',
+      cat: 'legal',
+      icono: '📝',
+      formato: 'DOCX',
+      url: 'https://docs.google.com/document/d/1example_nda'
+    },
+    {
+      id: 'analisis-foda',
+      titulo: 'Análisis FODA estratégico',
+      desc: 'Matriz FODA con cuadrantes editables, ejemplos prácticos y guía paso a paso para definir tu estrategia.',
+      cat: 'operaciones',
+      icono: '🎲',
+      formato: 'PPTX',
+      url: 'https://docs.google.com/presentation/d/1example_foda'
     }
   ];
 
   const grid = document.getElementById('plantillas-grid');
   const empty = document.getElementById('tpl-empty');
   const filterBtns = document.querySelectorAll('.tpl-filter');
+  const searchInput = document.getElementById('tpl-search-input');
+  const searchClear = document.getElementById('tpl-search-clear');
+  const resultsInfo = document.getElementById('tpl-results-info');
+  const resultsText = document.getElementById('tpl-results-text');
+  const clearSearchBtn = document.getElementById('tpl-clear-search');
+  const viewBtns = document.querySelectorAll('.tpl-view-btn');
 
-  function renderPlantillas(catFiltro) {
+  let _currentCat = 'todas';
+  let _currentView = 'grid';
+  let _currentSearch = '';
+
+  function normalizar(str) {
+    return (str || '').toString().toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  function renderPlantillas() {
     if (!grid) return;
-    const lista = catFiltro === 'todas'
-      ? PLANTILLAS
-      : PLANTILLAS.filter(p => p.cat === catFiltro);
+
+    // 1) Filtrar por categoría
+    let lista;
+    if (_currentCat === 'todas') {
+      lista = PLANTILLAS;
+    } else if (_currentCat === 'destacadas') {
+      lista = PLANTILLAS.filter(p => p.destacada);
+    } else {
+      lista = PLANTILLAS.filter(p => p.cat === _currentCat);
+    }
+
+    // 2) Filtrar por búsqueda
+    if (_currentSearch) {
+      const q = normalizar(_currentSearch);
+      lista = lista.filter(p =>
+        normalizar(p.titulo).includes(q) ||
+        normalizar(p.desc).includes(q) ||
+        normalizar(p.cat).includes(q) ||
+        normalizar(p.formato).includes(q)
+      );
+    }
+
+    // Mostrar info de resultados si hay búsqueda
+    if (_currentSearch && resultsInfo && resultsText) {
+      resultsInfo.style.display = 'flex';
+      resultsText.innerHTML = `<strong>${lista.length}</strong> ${lista.length === 1 ? 'resultado' : 'resultados'} para "<em>${_currentSearch}</em>"`;
+    } else if (resultsInfo) {
+      resultsInfo.style.display = 'none';
+    }
 
     if (lista.length === 0) {
       grid.innerHTML = '';
+      grid.classList.remove('tpl-grid-list');
       if (empty) empty.style.display = 'block';
       return;
     }
@@ -5660,6 +6072,13 @@ buildVideoteca();
 
     // Ordenar: destacadas primero
     const ordenadas = [...lista].sort((a, b) => (b.destacada ? 1 : 0) - (a.destacada ? 1 : 0));
+
+    // Aplicar clase de vista
+    if (_currentView === 'list') {
+      grid.classList.add('tpl-grid-list');
+    } else {
+      grid.classList.remove('tpl-grid-list');
+    }
 
     grid.innerHTML = ordenadas.map(p => {
       const tieneUrl = p.url && p.url.length > 10;
@@ -5670,12 +6089,24 @@ buildVideoteca();
         'PDF':  '#ef4444'
       }[p.formato] || '#94a3b8';
 
+      const catLabel = {
+        'finanzas': 'Finanzas',
+        'rh': 'RH',
+        'ventas': 'Ventas',
+        'operaciones': 'Operaciones',
+        'marketing': 'Marketing',
+        'legal': 'Legal'
+      }[p.cat] || p.cat;
+
       return `
         <article class="tpl-card ${p.destacada ? 'tpl-card-feat' : ''}" data-cat="${p.cat}">
           ${p.destacada ? '<span class="tpl-badge-feat">★ Destacada</span>' : ''}
           <div class="tpl-card-icon">${p.icono}</div>
           <div class="tpl-card-body">
-            <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15">${p.formato}</span>
+            <div class="tpl-card-meta">
+              <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15">${p.formato}</span>
+              <span class="tpl-card-cat">${catLabel}</span>
+            </div>
             <h3 class="tpl-card-title">${p.titulo}</h3>
             <p class="tpl-card-desc">${p.desc}</p>
           </div>
@@ -5696,28 +6127,92 @@ buildVideoteca();
   function actualizarContadores() {
     const contadores = {
       todas: PLANTILLAS.length,
+      destacadas: 0,
       finanzas: 0, rh: 0, ventas: 0,
       operaciones: 0, marketing: 0, legal: 0
     };
-    PLANTILLAS.forEach(p => { contadores[p.cat] = (contadores[p.cat] || 0) + 1; });
+    PLANTILLAS.forEach(p => {
+      contadores[p.cat] = (contadores[p.cat] || 0) + 1;
+      if (p.destacada) contadores.destacadas += 1;
+    });
     Object.keys(contadores).forEach(cat => {
       const el = document.getElementById('tpl-c-' + cat);
       if (el) el.textContent = contadores[cat];
     });
+    // Stats banner
+    const totalEl = document.getElementById('tpl-stat-total');
+    const featEl  = document.getElementById('tpl-stat-feat');
+    if (totalEl) totalEl.textContent = PLANTILLAS.length;
+    if (featEl)  featEl.textContent  = contadores.destacadas;
   }
 
-  // Listeners de filtros
+  // Listeners de filtros de categoría
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => b.classList.remove('is-active'));
       btn.classList.add('is-active');
-      renderPlantillas(btn.dataset.cat);
+      _currentCat = btn.dataset.cat;
+      renderPlantillas();
+    });
+  });
+
+  // Listener de búsqueda con debounce
+  let _searchTimer = null;
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (searchClear) searchClear.style.display = val ? 'flex' : 'none';
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => {
+        _currentSearch = val.trim();
+        renderPlantillas();
+      }, 180);
+    });
+    // Atajo: Esc para limpiar
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        _currentSearch = '';
+        if (searchClear) searchClear.style.display = 'none';
+        renderPlantillas();
+      }
+    });
+  }
+
+  // Botón limpiar búsqueda (en el input)
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      _currentSearch = '';
+      searchClear.style.display = 'none';
+      searchInput.focus();
+      renderPlantillas();
+    });
+  }
+
+  // Botón limpiar búsqueda (en el banner de resultados)
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      _currentSearch = '';
+      if (searchClear) searchClear.style.display = 'none';
+      renderPlantillas();
+    });
+  }
+
+  // Toggle vista grid/list
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      viewBtns.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      _currentView = btn.dataset.view;
+      renderPlantillas();
     });
   });
 
   // Render inicial
   actualizarContadores();
-  renderPlantillas('todas');
+  renderPlantillas();
 })();
 </script>
 
@@ -13141,12 +13636,341 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   gap: 14px;
   margin-top: 1rem;
   padding: 1.25rem 1.5rem;
-  background: linear-gradient(180deg, rgba(147,180,237,0.06), rgba(45,90,94,0.15));
+  background: linear-gradient(180deg, rgba(147,180,237,0.06), rgba(26,58,107,0.15));
   border: 1px solid rgba(147,180,237,0.2);
   border-radius: 14px;
   backdrop-filter: blur(10px);
 }
 .tpl-footer-note > svg { flex-shrink: 0; }
+
+/* ====================================================================
+   📊 STATS BANNER — Plantillas Premium
+   ==================================================================== */
+.tpl-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #1a3a6b 0%, #122b54 50%, #0c1e4a 100%);
+  border: 1px solid rgba(147,180,237,0.18);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+.tpl-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 110px;
+}
+.tpl-stat-num {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #fafafa;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tpl-stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(168,184,209,0.7);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tpl-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(147,180,237,0.2);
+  flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .tpl-stats { gap: 1rem; padding: 1rem; }
+  .tpl-stat-divider { display: none; }
+  .tpl-stat { min-width: 100px; }
+  .tpl-stat-num { font-size: 22px; }
+}
+
+/* ====================================================================
+   🔍 SEARCH BAR + VIEW TOGGLE — Plantillas
+   ==================================================================== */
+.tpl-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.tpl-search {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+}
+.tpl-search > svg {
+  position: absolute;
+  left: 14px;
+  color: rgba(168,184,209,0.6);
+  pointer-events: none;
+}
+.tpl-search input {
+  width: 100%;
+  padding: 11px 38px 11px 42px;
+  background: rgba(11,31,74,0.5);
+  border: 1px solid rgba(147,180,237,0.18);
+  border-radius: 8px;
+  color: #fafafa;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.tpl-search input::placeholder { color: rgba(168,184,209,0.5); }
+.tpl-search input:focus {
+  outline: none;
+  border-color: rgba(147,180,237,0.5);
+  background: rgba(11,31,74,0.7);
+}
+.tpl-search-clear {
+  position: absolute;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: rgba(168,184,209,0.1);
+  color: rgba(168,184,209,0.7);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.tpl-search-clear:hover {
+  background: rgba(168,184,209,0.2);
+  color: #fafafa;
+}
+
+.tpl-view-toggle {
+  display: flex;
+  background: rgba(11,31,74,0.5);
+  border: 1px solid rgba(147,180,237,0.18);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.tpl-view-btn {
+  background: transparent;
+  border: none;
+  color: rgba(168,184,209,0.6);
+  width: 36px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.tpl-view-btn:hover {
+  color: rgba(168,184,209,0.9);
+  background: rgba(147,180,237,0.08);
+}
+.tpl-view-btn.is-active {
+  background: rgba(147,180,237,0.15);
+  color: #93b4ed;
+}
+
+/* ====================================================================
+   ⭐ FILTRO DESTACADAS + RESULTADOS INFO
+   ==================================================================== */
+.tpl-filter-feat {
+  background: linear-gradient(135deg, rgba(245,215,122,0.08), rgba(200,150,42,0.05)) !important;
+  border-color: rgba(245,215,122,0.25) !important;
+  color: #f5d77a !important;
+}
+.tpl-filter-feat.is-active {
+  background: linear-gradient(135deg, rgba(245,215,122,0.18), rgba(200,150,42,0.12)) !important;
+  border-color: rgba(245,215,122,0.5) !important;
+  color: #fef3c7 !important;
+}
+
+.tpl-results-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: rgba(147,180,237,0.06);
+  border: 1px solid rgba(147,180,237,0.15);
+  border-radius: 8px;
+  font-size: 13px;
+  color: rgba(168,184,209,0.85);
+}
+.tpl-results-info strong { color: #fafafa; font-weight: 600; }
+.tpl-results-info em { color: #93b4ed; font-style: normal; font-weight: 500; }
+.tpl-clear-search {
+  background: transparent;
+  border: 1px solid rgba(147,180,237,0.3);
+  color: #93b4ed;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tpl-clear-search:hover {
+  background: rgba(147,180,237,0.1);
+  border-color: rgba(147,180,237,0.5);
+}
+
+/* ====================================================================
+   🪶 ESTADO VACÍO MEJORADO
+   ==================================================================== */
+#tpl-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(180deg, rgba(11,31,74,0.3), transparent);
+  border: 1px dashed rgba(147,180,237,0.2);
+  border-radius: 16px;
+  margin: 1rem 0 2rem;
+}
+.tpl-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: rgba(147,180,237,0.06);
+  border: 1px solid rgba(147,180,237,0.15);
+  border-radius: 50%;
+  color: rgba(147,180,237,0.5);
+  margin-bottom: 1.25rem;
+}
+.tpl-empty-title {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+.tpl-empty-desc {
+  font-size: 13px;
+  color: rgba(168,184,209,0.7);
+  margin: 0;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ====================================================================
+   📋 VISTA LISTA — tpl-grid-list
+   ==================================================================== */
+.tpl-grid-list {
+  display: flex !important;
+  flex-direction: column;
+  gap: 8px !important;
+}
+
+.tpl-grid-list .tpl-card {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center;
+  gap: 16px !important;
+  padding: 14px 18px !important;
+  border-radius: 10px !important;
+  flex-direction: row !important;
+}
+
+.tpl-grid-list .tpl-card-icon {
+  width: 42px !important;
+  height: 42px !important;
+  font-size: 22px !important;
+  border-radius: 8px !important;
+  margin: 0 !important;
+}
+
+.tpl-grid-list .tpl-card-body {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px !important;
+  flex-wrap: wrap;
+  flex: 1 !important;
+}
+
+.tpl-grid-list .tpl-card-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.tpl-grid-list .tpl-card-title {
+  font-size: 14px !important;
+  margin: 0 !important;
+  flex: 1;
+  min-width: 220px;
+}
+
+.tpl-grid-list .tpl-card-desc {
+  display: none;
+}
+
+.tpl-grid-list .tpl-card-cta {
+  margin: 0 !important;
+  padding: 8px 14px !important;
+  font-size: 11.5px !important;
+  white-space: nowrap;
+}
+
+.tpl-grid-list .tpl-badge-feat {
+  position: static !important;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .tpl-grid-list .tpl-card {
+    grid-template-columns: auto 1fr !important;
+    grid-template-rows: auto auto !important;
+  }
+  .tpl-grid-list .tpl-card-cta {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+}
+
+/* ====================================================================
+   🏷️ META DE CARD — Categoría junto al formato
+   ==================================================================== */
+.tpl-card-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tpl-card-cat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(168,184,209,0.6);
+  padding: 3px 8px;
+  background: rgba(168,184,209,0.06);
+  border: 1px solid rgba(168,184,209,0.12);
+  border-radius: 5px;
+}
 
 /* ====================================================================
    🛠️ TOOLS PRÓXIMAMENTE — Estado vacío para herramientas en construcción
@@ -16812,7 +17636,1519 @@ body.is-guest #perfil-avatar-big {
   border-color: rgba(107,143,196,0.25) !important;
 }
 
+/* ════════════════════════════════════════════════════════════════════
+   🏆 LOGROS — Sistema de gamificación ICADEM
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ─── Banner de nivel actual ─── */
+.lg-level-banner {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 2rem;
+  padding: 1.75rem 2rem;
+  margin-bottom: 2rem;
+  background: linear-gradient(135deg, #d4a72c 0%, #b8861a 50%, #8a6614 100%);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(212,167,44,0.25);
+}
+.lg-level-banner::before {
+  content: '';
+  position: absolute;
+  top: -40%;
+  right: -10%;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(255,255,255,0.18), transparent 60%);
+  pointer-events: none;
+}
+
+.lg-level-info { position: relative; z-index: 1; }
+.lg-level-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.95);
+  background: rgba(0,0,0,0.25);
+  padding: 5px 12px;
+  border-radius: 999px;
+  margin-bottom: 12px;
+}
+.lg-level-name-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.lg-level-icon {
+  font-size: 56px;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.25));
+}
+.lg-level-name {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 38px;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+.lg-level-next {
+  font-size: 13px;
+  color: rgba(255,255,255,0.85);
+  margin: 4px 0 0;
+  font-weight: 400;
+}
+.lg-level-next strong { font-weight: 600; }
+
+.lg-level-xp { position: relative; z-index: 1; align-self: center; }
+.lg-level-xp-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.lg-level-xp-num {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 38px;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.lg-level-xp-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,0.85);
+}
+.lg-level-xp-divider {
+  font-size: 22px;
+  color: rgba(255,255,255,0.5);
+  margin: 0 4px;
+}
+.lg-level-xp-target {
+  font-size: 16px;
+  color: rgba(255,255,255,0.75);
+}
+
+.lg-level-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(0,0,0,0.25);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.lg-level-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #fef3c7, #fff);
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 16px rgba(255,255,255,0.4);
+}
+.lg-level-faltan {
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.85);
+  margin: 0;
+}
+.lg-level-faltan strong {
+  color: #fff;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .lg-level-banner { grid-template-columns: 1fr; gap: 1rem; padding: 1.5rem; }
+  .lg-level-name { font-size: 28px; }
+  .lg-level-icon { font-size: 44px; }
+  .lg-level-xp-num { font-size: 28px; }
+}
+
+/* ─── Camino de progresión ─── */
+.lg-section-title {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+.lg-path {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.lg-path-item {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background: #0d1117;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  position: relative;
+  transition: all 0.25s;
+  cursor: default;
+}
+.lg-path-item.is-current {
+  border-color: rgba(212,167,44,0.5);
+  background: linear-gradient(180deg, rgba(212,167,44,0.08), #0d1117);
+  box-shadow: 0 0 0 1px rgba(212,167,44,0.3), 0 8px 24px rgba(212,167,44,0.15);
+}
+.lg-path-item.is-current::before {
+  content: 'TÚ';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #d4a72c;
+  color: #0a0b0d;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.lg-path-item.is-completed {
+  border-color: rgba(16,185,129,0.4);
+  background: linear-gradient(180deg, rgba(16,185,129,0.05), #0d1117);
+  opacity: 0.85;
+}
+.lg-path-item.is-completed::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  background: rgba(16,185,129,0.2);
+  border: 1px solid rgba(16,185,129,0.5);
+  border-radius: 50%;
+  color: #10b981;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lg-path-icon {
+  font-size: 32px;
+  margin-bottom: 6px;
+  filter: grayscale(0.4);
+  transition: filter 0.25s;
+}
+.lg-path-item.is-current .lg-path-icon,
+.lg-path-item.is-completed .lg-path-icon {
+  filter: grayscale(0);
+}
+.lg-path-name {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 2px;
+  letter-spacing: -0.01em;
+}
+.lg-path-xp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: rgba(168,184,209,0.6);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 768px) {
+  .lg-path {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .lg-path-item:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ─── Stats cards ─── */
+.lg-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 2rem;
+}
+.lg-stat {
+  background: #0d1117;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.lg-stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+.lg-stat-num {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 32px;
+  font-weight: 600;
+  color: #fafafa;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.lg-stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  color: rgba(168,184,209,0.7);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .lg-stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* ─── Filtros de logros ─── */
+.lg-filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.lg-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: rgba(11,31,74,0.5);
+  border: 1px solid rgba(147,180,237,0.18);
+  color: rgba(168,184,209,0.85);
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.lg-filter:hover {
+  border-color: rgba(147,180,237,0.4);
+  color: #fafafa;
+}
+.lg-filter.is-active {
+  background: rgba(147,180,237,0.15);
+  border-color: rgba(147,180,237,0.5);
+  color: #fafafa;
+}
+.lg-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.25);
+  padding: 2px 7px;
+  border-radius: 6px;
+  letter-spacing: 0.04em;
+}
+.lg-filter.is-active .lg-count {
+  background: rgba(147,180,237,0.25);
+  color: #fafafa;
+}
+
+/* ─── Grid de logros ─── */
+.lg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.lg-card {
+  position: relative;
+  background: #0d1117;
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 10px;
+  padding: 1.25rem 1rem;
+  text-align: center;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+  cursor: default;
+}
+.lg-card.is-unlocked {
+  background: linear-gradient(180deg, rgba(245,215,122,0.05), #0d1117);
+  border-color: rgba(245,215,122,0.3);
+  box-shadow: 0 0 0 1px rgba(245,215,122,0.1);
+}
+.lg-card.is-unlocked:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245,215,122,0.5);
+  box-shadow: 0 8px 24px rgba(245,215,122,0.15);
+}
+.lg-card-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: rgba(16,185,129,0.15);
+  border: 1px solid rgba(16,185,129,0.4);
+  color: #10b981;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+.lg-card-lock {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(168,184,209,0.5);
+}
+.lg-card-icon {
+  font-size: 42px;
+  margin-bottom: 8px;
+  filter: grayscale(1) opacity(0.4);
+  transition: filter 0.25s;
+  line-height: 1;
+}
+.lg-card.is-unlocked .lg-card-icon {
+  filter: grayscale(0) opacity(1);
+}
+.lg-card.is-secret .lg-card-icon {
+  filter: blur(4px) opacity(0.5);
+}
+.lg-card-name {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+.lg-card.is-secret .lg-card-name {
+  color: rgba(168,184,209,0.5);
+  font-style: italic;
+}
+.lg-card-desc {
+  font-size: 11.5px;
+  color: rgba(168,184,209,0.7);
+  margin: 0 0 8px;
+  line-height: 1.4;
+  min-height: 32px;
+}
+.lg-card-xp {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #d4a72c;
+  background: rgba(212,167,44,0.1);
+  border: 1px solid rgba(212,167,44,0.3);
+  padding: 3px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.04em;
+}
+.lg-card.is-unlocked .lg-card-xp {
+  background: rgba(212,167,44,0.15);
+  color: #fef3c7;
+}
+
+
+/* ════════════════════════════════════════════════════════════════════
+   🎓 CERTIFICADOS — Lista + Modal
+   ════════════════════════════════════════════════════════════════════ */
+
+/* ─── Stats banner certificados ─── */
+.cert-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 1.75rem;
+  background: linear-gradient(135deg, #1a3a6b 0%, #122b54 50%, #0c1e4a 100%);
+  border: 1px solid rgba(147,180,237,0.18);
+  border-radius: 12px;
+}
+.cert-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+.cert-stat-num {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 28px;
+  font-weight: 600;
+  color: #fafafa;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.cert-stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(168,184,209,0.7);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cert-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(147,180,237,0.2);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .cert-stats { flex-direction: column; align-items: stretch; gap: 0.75rem; padding: 1rem; }
+  .cert-stat-divider { display: none; }
+}
+
+/* ─── Section title ─── */
+.cert-section-title {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 14px;
+  letter-spacing: -0.01em;
+}
+
+/* ─── Lista de certificados ─── */
+.cert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 1.5rem;
+}
+.cert-item {
+  background: #0d1117;
+  border: 1px solid rgba(147,180,237,0.18);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.cert-item:hover {
+  border-color: rgba(212,167,44,0.4);
+  background: linear-gradient(135deg, rgba(212,167,44,0.04), #0d1117);
+  transform: translateY(-1px);
+}
+.cert-item-info { flex: 1; min-width: 0; }
+.cert-item-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #10b981;
+  background: rgba(16,185,129,0.1);
+  padding: 3px 8px;
+  border-radius: 5px;
+  margin-bottom: 8px;
+  border: 1px solid rgba(16,185,129,0.25);
+}
+.cert-item-title {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 16.5px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.cert-item-meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(168,184,209,0.7);
+}
+.cert-item-meta > span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.cert-item-folio {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #93b4ed;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+  background: rgba(147,180,237,0.08);
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(147,180,237,0.2);
+}
+
+/* ─── Estado vacío ─── */
+.cert-empty {
+  text-align: center;
+  padding: 3.5rem 2rem;
+  background: linear-gradient(180deg, rgba(11,31,74,0.3), transparent);
+  border: 1px dashed rgba(147,180,237,0.2);
+  border-radius: 14px;
+}
+.cert-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 88px;
+  height: 88px;
+  background: rgba(147,180,237,0.06);
+  border: 1px solid rgba(147,180,237,0.15);
+  border-radius: 50%;
+  color: rgba(147,180,237,0.6);
+  margin-bottom: 1.25rem;
+}
+.cert-empty-title {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 19px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+.cert-empty-desc {
+  font-size: 13.5px;
+  color: rgba(168,184,209,0.7);
+  margin: 0 0 1.5rem;
+  max-width: 440px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+.cert-empty-btn {
+  background: #d4a72c;
+  color: #0a0b0d;
+  border: none;
+  padding: 11px 22px;
+  border-radius: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.cert-empty-btn:hover { background: #b88a1f; }
+
+/* ─── Info card ─── */
+.cert-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 1.25rem 1.5rem;
+  background: rgba(147,180,237,0.05);
+  border: 1px solid rgba(147,180,237,0.15);
+  border-radius: 12px;
+}
+.cert-info-icon {
+  flex-shrink: 0;
+  color: #93b4ed;
+  margin-top: 2px;
+}
+.cert-info-title {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 4px;
+  letter-spacing: -0.01em;
+}
+.cert-info-desc {
+  font-size: 12.5px;
+  color: rgba(168,184,209,0.75);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ─── Modal del certificado ─── */
+.cert-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.cert-modal[style*="none"] { display: none !important; }
+.cert-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(2,5,15,0.85);
+  backdrop-filter: blur(12px);
+}
+.cert-modal-content {
+  position: relative;
+  z-index: 1;
+  max-width: 920px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  background: #f8f9fb;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.cert-modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(0,0,0,0.08);
+  color: #0a0b0d;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.cert-modal-close:hover { background: #fff; }
+
+/* ─── Documento del certificado ─── */
+.cert-doc {
+  background: #ffffff;
+  border-radius: 8px;
+  padding: 3rem 2.5rem 2.5rem;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  position: relative;
+  font-family: 'Inter', sans-serif;
+  color: #0d1f4a;
+  text-align: center;
+  border: 8px double #0d4737;
+}
+.cert-doc::before {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px solid rgba(13,71,55,0.2);
+  pointer-events: none;
+  border-radius: 4px;
+}
+
+.cert-doc-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+.cert-doc-logo {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+}
+.cert-doc-brand {
+  text-align: left;
+}
+.cert-doc-brand h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 26px;
+  font-weight: 600;
+  color: #0d4737;
+  margin: 0;
+  letter-spacing: -0.01em;
+  font-style: italic !important;
+}
+.cert-doc-brand p {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: #5a6b7e;
+  margin: 2px 0 0;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.cert-doc-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0 2rem;
+  color: #0d4737;
+}
+.cert-doc-divider::before,
+.cert-doc-divider::after {
+  content: '';
+  flex: 0 0 60px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #0d4737, transparent);
+}
+.cert-doc-divider svg {
+  width: 18px;
+  height: 18px;
+  color: #0d4737;
+  flex-shrink: 0;
+}
+
+.cert-doc-title {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 38px;
+  font-weight: 600;
+  color: #0d4737;
+  margin: 0 0 8px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-style: normal !important;
+}
+.cert-doc-title-line {
+  width: 80px;
+  height: 1.5px;
+  background: #0d4737;
+  margin: 0 auto 2rem;
+}
+
+.cert-doc-otorga {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 14px;
+  color: #5a6b7e;
+  margin: 0 0 1rem;
+  font-weight: 400;
+}
+.cert-doc-nombre {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 44px;
+  font-weight: 700;
+  color: #0d4737;
+  margin: 0 0 4px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-style: normal !important;
+}
+.cert-doc-nombre-line {
+  width: 60%;
+  max-width: 480px;
+  height: 1.2px;
+  background: #0d4737;
+  margin: 12px auto 1.75rem;
+}
+
+.cert-doc-subtitulo {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13.5px;
+  color: #5a6b7e;
+  margin: 0 0 0.75rem;
+  font-weight: 400;
+}
+.cert-doc-curso {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 24px;
+  font-weight: 600;
+  color: #0d4737;
+  margin: 0 0 1.5rem;
+  font-style: italic !important;
+  letter-spacing: 0.01em;
+}
+
+.cert-doc-meta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+  margin: 0 0 2rem;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #0d4737;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.cert-doc-meta-divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(13,71,55,0.4);
+}
+
+.cert-doc-emitido {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 14.5px;
+  color: #5a6b7e;
+  margin: 0 0 2rem;
+  font-style: italic !important;
+}
+
+.cert-doc-firmas {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 2rem;
+  align-items: end;
+  margin-top: 1rem;
+}
+.cert-doc-qr {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.cert-doc-qr-img {
+  width: 110px;
+  height: 110px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.1);
+  padding: 6px;
+  border-radius: 4px;
+}
+.cert-doc-qr-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8.5px;
+  font-weight: 600;
+  color: #5a6b7e;
+  letter-spacing: 0.14em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.cert-doc-firma {
+  text-align: center;
+}
+.cert-doc-firma-img {
+  height: 54px;
+  margin-bottom: -8px;
+  opacity: 0.85;
+}
+.cert-doc-firma-line {
+  width: 80%;
+  margin: 0 auto;
+  border: 0;
+  border-top: 1.2px solid #0d4737;
+}
+.cert-doc-firma-name {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 15px;
+  font-weight: 600;
+  color: #0d4737;
+  margin: 8px 0 2px;
+}
+.cert-doc-firma-role {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11px;
+  color: #5a6b7e;
+  margin: 0;
+}
+.cert-doc-firma-pendiente {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #c5a55c;
+  margin: 0;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cert-doc-footer {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(13,71,55,0.2);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10.5px;
+  color: #5a6b7e;
+  background: rgba(13,71,55,0.04);
+  margin-left: -2.5rem;
+  margin-right: -2.5rem;
+  margin-bottom: -2.5rem;
+  padding: 1rem 2.5rem;
+}
+.cert-doc-footer strong { color: #0d4737; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+@media (max-width: 768px) {
+  .cert-doc { padding: 2rem 1.25rem 1.25rem; }
+  .cert-doc-title { font-size: 26px; }
+  .cert-doc-nombre { font-size: 28px; }
+  .cert-doc-curso { font-size: 18px; }
+  .cert-doc-firmas { grid-template-columns: 1fr; gap: 1.5rem; text-align: center; }
+  .cert-doc-footer { flex-direction: column; gap: 6px; margin: 1.5rem -1.25rem -1.25rem; padding: 1rem 1.25rem; }
+}
+
+/* ─── Acciones del modal ─── */
+.cert-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+.cert-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: #0d4737;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.cert-action-btn:hover { background: #0a3a2c; }
+.cert-action-btn:active { transform: scale(0.98); }
+.cert-action-btn.cert-action-primary { background: #0d4737; }
+.cert-action-btn.cert-action-primary:hover { background: #0a3a2c; }
+
+.cert-folio-info {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(13,71,55,0.7);
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+.cert-folio-info strong {
+  color: #0d4737;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .cert-actions { grid-template-columns: 1fr; }
+}
+
 </style>
+
+
+<!-- ═══════════════════════════════════════════════════════════════
+     🏆 LOGROS + 🎓 CERTIFICADOS — Lógica completa ICADEM
+     Lee/escribe en Firestore (membresias/{uid}) los campos:
+       xp, logrosDesbloqueados, racha, cursosCompletados, certificados
+     ═══════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { getAuth } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ═══════════════════════════════════════════════════════════════
+// 🏆 CATÁLOGO DE LOGROS (26 logros, 8 categorías) — ICADEM
+// ═══════════════════════════════════════════════════════════════
+const LOGROS = [
+  // ─── INICIO (3) ───
+  { id: 'primer-paso',           cat: 'inicio',       icono: '🌱', nombre: 'Primer paso',         desc: 'Entra al Panel VIP por primera vez.',                xp: 20  },
+  { id: 'perfil-completo',       cat: 'inicio',       icono: '✨', nombre: 'Perfil completo',     desc: 'Completa tu perfil al 100%.',                        xp: 40  },
+  { id: 'compromiso-anual',      cat: 'inicio',       icono: '🥇', nombre: 'Compromiso anual',    desc: 'Adquiere el plan VIP anual.',                        xp: 300 },
+
+  // ─── CURSOS (5) ───
+  { id: 'primer-curso',          cat: 'cursos',       icono: '📖', nombre: 'Primer curso',        desc: 'Completa tu primer curso ICADEM.',                   xp: 50  },
+  { id: 'estudiante-activo',     cat: 'cursos',       icono: '📋', nombre: 'Estudiante activo',   desc: 'Completa 3 cursos.',                                 xp: 120 },
+  { id: 'devorador-saber',       cat: 'cursos',       icono: '🎒', nombre: 'Devorador de saber',  desc: 'Completa 10 cursos.',                                xp: 400 },
+  { id: 'todoterreno',           cat: 'cursos',       icono: '🌐', nombre: 'Todoterreno',         desc: 'Completa cursos en 3 áreas distintas (Fiscal, Jurídico, Liderazgo, etc.).', xp: 250 },
+  { id: 'biblioteca-activa',     cat: 'cursos',       icono: '📕', nombre: 'Biblioteca activa',   desc: 'Completa 5 cursos.',                                 xp: 200 },
+
+  // ─── SESIONES (3) ───
+  { id: 'en-vivo-directo',       cat: 'sesiones',     icono: '🎥', nombre: 'En vivo y directo',   desc: 'Asiste a tu primera Clase en Vivo.',                 xp: 75  },
+  { id: 'fiel-seguidor',         cat: 'sesiones',     icono: '📡', nombre: 'Fiel seguidor',       desc: 'Asiste a 3 Clases en Vivo.',                         xp: 200 },
+  { id: 'espectador-vip',        cat: 'sesiones',     icono: '🎬', nombre: 'Espectador VIP',      desc: 'Asiste a 10 Clases en Vivo.',                        xp: 500 },
+
+  // ─── RACHAS (4) ───
+  { id: '3-dias-seguidos',       cat: 'rachas',       icono: '💧', nombre: '3 días seguidos',     desc: 'Mantén una racha de 3 días activos.',                xp: 30  },
+  { id: 'semana-completa',       cat: 'rachas',       icono: '⚡', nombre: 'Semana completa',     desc: 'Mantén una racha de 7 días activos.',                xp: 100 },
+  { id: 'dos-semanas-firme',     cat: 'rachas',       icono: '🌟', nombre: 'Dos semanas firme',   desc: 'Mantén una racha de 14 días activos.',               xp: 250 },
+  { id: 'mes-perfecto',          cat: 'rachas',       icono: '💎', nombre: 'Mes perfecto',        desc: 'Mantén una racha de 30 días activos.',               xp: 500 },
+
+  // ─── COMUNIDAD (4) ───
+  { id: 'primera-discusion',     cat: 'comunidad',    icono: '💭', nombre: 'Primera discusión',   desc: 'Inicia tu primera discusión en el foro.',            xp: 60  },
+  { id: 'primera-respuesta',     cat: 'comunidad',    icono: '💬', nombre: 'Primera respuesta',   desc: 'Responde a un colega en el foro.',                   xp: 30  },
+  { id: 'voz-activa',            cat: 'comunidad',    icono: '📣', nombre: 'Voz activa',          desc: 'Responde 5 veces en el foro.',                       xp: 150 },
+  { id: 'lider-opinion',         cat: 'comunidad',    icono: '🎙️', nombre: 'Líder de opinión',    desc: 'Publica 10 discusiones.',                            xp: 350 },
+
+  // ─── CONTENIDO (2) ───
+  { id: 'lector',                cat: 'contenido',    icono: '📄', nombre: 'Lector',              desc: 'Descarga tu primer PDF de Material Premium.',        xp: 25  },
+  { id: 'bibliotecario',         cat: 'contenido',    icono: '📚', nombre: 'Bibliotecario',       desc: 'Descarga 10 PDFs de Material Premium.',              xp: 150 },
+
+  // ─── CERTIFICADOS (2) ───
+  { id: 'certificado-oro',       cat: 'certificados', icono: '🎓', nombre: 'Certificado oro',     desc: 'Obtén tu primer certificado oficial ICADEM.',        xp: 100 },
+  { id: 'coleccionista',         cat: 'certificados', icono: '🏆', nombre: 'Coleccionista',       desc: 'Obtén 5 certificados oficiales ICADEM.',             xp: 350 },
+
+  // ─── SECRETOS (3) ───
+  { id: 'explorador-total',      cat: 'secretos',     icono: '🗺️', nombre: 'Explorador total',   desc: 'Visita las 15 secciones del panel.',                 xp: 80  },
+  { id: 'logro-secreto-1',       cat: 'secretos',     icono: '❓', nombre: 'Logro secreto',       desc: 'Sigue explorando para descubrirlo...',               xp: 50,  secreto: true },
+  { id: 'logro-secreto-2',       cat: 'secretos',     icono: '❓', nombre: 'Logro secreto',       desc: 'Sigue explorando para descubrirlo...',               xp: 300, secreto: true }
+];
+
+// ═══════════════════════════════════════════════════════════════
+// NIVELES
+// ═══════════════════════════════════════════════════════════════
+const NIVELES = [
+  { id: 1, nombre: 'Aprendiz',     icono: '🎓', min: 0,    max: 150  },
+  { id: 2, nombre: 'Profesional',  icono: '📚', min: 150,  max: 500  },
+  { id: 3, nombre: 'Experto',      icono: '💼', min: 500,  max: 1200 },
+  { id: 4, nombre: 'Líder',        icono: '🏆', min: 1200, max: 2500 },
+  { id: 5, nombre: 'Maestro',      icono: '👑', min: 2500, max: 999999 }
+];
+
+function nivelDeXP(xp) {
+  return NIVELES.find(n => xp >= n.min && xp < n.max) || NIVELES[NIVELES.length - 1];
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ESTADO LOCAL
+// ═══════════════════════════════════════════════════════════════
+let _userData = {
+  xp: 0,
+  logrosDesbloqueados: [],   // array de IDs de logros
+  racha: 0,
+  cursosCompletados: 0,
+  certificados: []           // array de objetos { id, curso, fecha, horas, area, folio }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// CARGAR DATOS DE FIRESTORE
+// ═══════════════════════════════════════════════════════════════
+async function cargarDatosUsuario() {
+  try {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) {
+      // Modo invitado: dejar todo en 0
+      renderLogros();
+      renderCertificados();
+      return;
+    }
+    const db = getFirestore();
+    const snap = await getDoc(doc(db, 'membresias', user.uid));
+    if (snap.exists()) {
+      const data = snap.data();
+      _userData.xp                  = data.xp || 0;
+      _userData.logrosDesbloqueados = data.logrosDesbloqueados || [];
+      _userData.racha               = data.racha || 0;
+      _userData.cursosCompletados   = data.cursosCompletados || 0;
+      _userData.certificados        = data.certificados || [];
+    }
+    renderLogros();
+    renderCertificados();
+  } catch(e) {
+    console.warn('[Logros] Error cargando datos:', e);
+    renderLogros();
+    renderCertificados();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// RENDER LOGROS
+// ═══════════════════════════════════════════════════════════════
+let _filtroLogros = 'todos';
+
+function renderLogros() {
+  const grid = document.getElementById('lg-grid');
+  if (!grid) return;
+
+  // Calcular nivel
+  const nivel = nivelDeXP(_userData.xp);
+  const siguienteNivel = NIVELES.find(n => n.id === nivel.id + 1);
+  const xpEnNivel    = _userData.xp - nivel.min;
+  const xpNecesarioNivel = nivel.max - nivel.min;
+  const porcentaje   = nivel.id === NIVELES.length
+    ? 100
+    : Math.min(100, Math.round((xpEnNivel / xpNecesarioNivel) * 100));
+  const xpFaltan     = nivel.id === NIVELES.length ? 0 : (nivel.max - _userData.xp);
+
+  // Banner de nivel
+  setTxt('lg-level-tag', `Nivel actual · Rango ${nivel.id} de ${NIVELES.length}`);
+  setTxt('lg-level-icon', nivel.icono);
+  setTxt('lg-level-name', nivel.nombre);
+  setTxt('lg-level-next', siguienteNivel ? `Siguiente nivel: ${siguienteNivel.nombre}` : 'Nivel máximo alcanzado');
+  setTxt('lg-level-xp-current', _userData.xp);
+  setTxt('lg-level-xp-target', `${nivel.max === 999999 ? '∞' : nivel.max} XP`);
+  const barFill = document.getElementById('lg-level-bar-fill');
+  if (barFill) barFill.style.width = porcentaje + '%';
+  const faltan = document.getElementById('lg-level-faltan');
+  if (faltan) {
+    faltan.innerHTML = siguienteNivel
+      ? `Te faltan <strong>${xpFaltan} XP</strong> para subir a ${siguienteNivel.nombre}`
+      : '🎉 Has alcanzado el nivel máximo';
+  }
+
+  // Camino de progresión: marcar el actual y los completados
+  document.querySelectorAll('.lg-path-item').forEach(item => {
+    item.classList.remove('is-current', 'is-completed');
+    const lvl = parseInt(item.dataset.level);
+    if (lvl < nivel.id) item.classList.add('is-completed');
+    else if (lvl === nivel.id) item.classList.add('is-current');
+  });
+
+  // Stats cards
+  setTxt('lg-stat-logros', _userData.logrosDesbloqueados.length);
+  setTxt('lg-stat-xp',     _userData.xp);
+  setTxt('lg-stat-racha',  _userData.racha);
+  setTxt('lg-stat-cursos', _userData.cursosCompletados);
+
+  // Contadores de filtros
+  const totales = {
+    todos: { all: LOGROS.length, unlocked: 0 },
+    inicio: { all: 0, unlocked: 0 },
+    cursos: { all: 0, unlocked: 0 },
+    sesiones: { all: 0, unlocked: 0 },
+    rachas: { all: 0, unlocked: 0 },
+    comunidad: { all: 0, unlocked: 0 },
+    contenido: { all: 0, unlocked: 0 },
+    certificados: { all: 0, unlocked: 0 },
+    secretos: { all: 0, unlocked: 0 }
+  };
+  LOGROS.forEach(l => {
+    totales[l.cat].all++;
+    if (_userData.logrosDesbloqueados.includes(l.id)) {
+      totales[l.cat].unlocked++;
+      totales.todos.unlocked++;
+    }
+  });
+  Object.keys(totales).forEach(cat => {
+    const el = document.getElementById('lg-c-' + cat);
+    if (el) el.textContent = `${totales[cat].unlocked}/${totales[cat].all}`;
+  });
+
+  // Filtrar
+  const lista = _filtroLogros === 'todos'
+    ? LOGROS
+    : LOGROS.filter(l => l.cat === _filtroLogros);
+
+  // Render cards: desbloqueados primero
+  const ordenados = [...lista].sort((a, b) => {
+    const aUn = _userData.logrosDesbloqueados.includes(a.id) ? 1 : 0;
+    const bUn = _userData.logrosDesbloqueados.includes(b.id) ? 1 : 0;
+    return bUn - aUn;
+  });
+
+  grid.innerHTML = ordenados.map(l => {
+    const unlocked = _userData.logrosDesbloqueados.includes(l.id);
+    const esSecreto = l.secreto && !unlocked;
+
+    const badge = unlocked
+      ? '<span class="lg-card-badge">✓ Desbloqueado</span>'
+      : `<span class="lg-card-lock">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>`;
+
+    return `
+      <div class="lg-card ${unlocked ? 'is-unlocked' : ''} ${esSecreto ? 'is-secret' : ''}">
+        ${badge}
+        <div class="lg-card-icon">${esSecreto ? '❓' : l.icono}</div>
+        <p class="lg-card-name">${esSecreto ? 'Logro secreto' : l.nombre}</p>
+        <p class="lg-card-desc">${esSecreto ? 'Sigue explorando para descubrirlo...' : l.desc}</p>
+        <span class="lg-card-xp">+${l.xp} XP</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function setTxt(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+
+// Listeners de filtros
+function attachFilters() {
+  document.querySelectorAll('.lg-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.lg-filter').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      _filtroLogros = btn.dataset.cat;
+      renderLogros();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🎓 RENDER CERTIFICADOS
+// ═══════════════════════════════════════════════════════════════
+function renderCertificados() {
+  const list = document.getElementById('cert-list');
+  const empty = document.getElementById('cert-empty');
+  if (!list) return;
+
+  // Stats
+  const total = _userData.certificados.length;
+  const horas = _userData.certificados.reduce((sum, c) => sum + (c.horas || 0), 0);
+  setTxt('cert-stat-total', total);
+  setTxt('cert-stat-horas', horas);
+
+  if (total === 0) {
+    // Mantener el estado vacío visible
+    list.innerHTML = '';
+    if (empty) {
+      list.appendChild(empty);
+      empty.style.display = '';
+    }
+    return;
+  }
+
+  if (empty) empty.style.display = 'none';
+
+  // Render lista
+  list.innerHTML = _userData.certificados.map(c => {
+    const fecha = c.fecha ? formatearFecha(c.fecha) : '—';
+    return `
+      <div class="cert-item" onclick="window.abrirCertificado('${c.id}')">
+        <div class="cert-item-info">
+          <span class="cert-item-tag">✓ Certificado válido</span>
+          <h4 class="cert-item-title">${c.curso}</h4>
+          <div class="cert-item-meta">
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              ${fecha}
+            </span>
+            <span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              ${c.horas || 0} horas
+            </span>
+          </div>
+        </div>
+        <span class="cert-item-folio">${c.folio || ''}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatearFecha(fecha) {
+  if (!fecha) return '—';
+  const d = fecha.toDate ? fecha.toDate() : new Date(fecha);
+  if (isNaN(d.getTime())) return '—';
+  const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🎫 MODAL DE CERTIFICADO
+// ═══════════════════════════════════════════════════════════════
+let _certActivo = null;
+
+window.abrirCertificado = function(certId) {
+  const cert = _userData.certificados.find(c => c.id === certId);
+  if (!cert) return;
+  _certActivo = cert;
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const nombreUsuario = user?.displayName || cert.nombreAlumno || 'Alumno ICADEM';
+
+  const docEl = document.getElementById('cert-doc');
+  if (!docEl) return;
+
+  const fecha = cert.fecha ? formatearFecha(cert.fecha) : '—';
+
+  // Generar QR data URL (usando una API simple)
+  const verifyUrl = `https://icademx.com/verificar?folio=${encodeURIComponent(cert.folio || '')}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(verifyUrl)}&color=0d4737&bgcolor=ffffff&margin=4`;
+
+  docEl.innerHTML = `
+    <div class="cert-doc-header">
+      <div class="cert-doc-logo">
+        <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="30" r="28" fill="none" stroke="#0d4737" stroke-width="2"/>
+          <text x="30" y="38" text-anchor="middle" font-family="serif" font-size="22" font-weight="700" fill="#0d4737" font-style="italic">I</text>
+        </svg>
+      </div>
+      <div class="cert-doc-brand">
+        <h2>ICADEM</h2>
+        <p>Instituto de Capacitación y Desarrollo Empresarial</p>
+      </div>
+    </div>
+
+    <div class="cert-doc-divider">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="8" r="6"/>
+        <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/>
+      </svg>
+    </div>
+
+    <h1 class="cert-doc-title">Certificado de Acreditación</h1>
+    <div class="cert-doc-title-line"></div>
+
+    <p class="cert-doc-otorga">Se otorga la presente constancia a</p>
+    <h2 class="cert-doc-nombre">${escapeHtml(nombreUsuario.toUpperCase())}</h2>
+    <div class="cert-doc-nombre-line"></div>
+
+    <p class="cert-doc-subtitulo">Por haber acreditado satisfactoriamente el programa académico denominado:</p>
+    <h3 class="cert-doc-curso">${escapeHtml(cert.curso || '')}</h3>
+
+    <div class="cert-doc-meta">
+      <span>Carga académica: ${cert.sesiones || cert.horas || '—'} sesiones · ${cert.horas || '—'} horas</span>
+      <span class="cert-doc-meta-divider"></span>
+      <span>Área: ${cert.area || 'Capacitación empresarial'}</span>
+    </div>
+
+    <p class="cert-doc-emitido">Emitido el ${fecha}</p>
+
+    <div class="cert-doc-firmas">
+      <div class="cert-doc-qr">
+        <img class="cert-doc-qr-img" src="${qrUrl}" alt="QR de validación" onerror="this.style.opacity='0.3'">
+        <span class="cert-doc-qr-label">Escanea<br>para validar</span>
+      </div>
+      <div class="cert-doc-firma">
+        <hr class="cert-doc-firma-line" style="margin-bottom:8px">
+        <p class="cert-doc-firma-pendiente">Pendiente · Firma coordinación</p>
+        <p class="cert-doc-firma-role">Coordinación General · ICADEM</p>
+      </div>
+      <div class="cert-doc-firma">
+        <hr class="cert-doc-firma-line" style="margin-bottom:8px">
+        <p class="cert-doc-firma-pendiente">Pendiente · Firma certificación</p>
+        <p class="cert-doc-firma-role">Coordinación de Certificación · IPCI Latinoamericano</p>
+      </div>
+    </div>
+
+    <div class="cert-doc-footer">
+      <span>Folio: <strong>${cert.folio || ''}</strong></span>
+      <span>icademx.com</span>
+      <span>Certificado emitido digitalmente por ICADEM / IPCI Latinoamericano</span>
+    </div>
+  `;
+
+  // Folio en el footer del modal
+  setTxt('cert-folio-display', cert.folio || '');
+
+  // Mostrar
+  const modal = document.getElementById('cert-modal');
+  if (modal) modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+};
+
+window.cerrarCertificado = function() {
+  const modal = document.getElementById('cert-modal');
+  if (modal) modal.style.display = 'none';
+  document.body.style.overflow = '';
+};
+
+window.imprimirCertificado = function() {
+  if (!_certActivo) return;
+  const docEl = document.getElementById('cert-doc');
+  if (!docEl) return;
+  const w = window.open('', '_blank');
+  w.document.write(`<!DOCTYPE html><html><head><title>Certificado ${_certActivo.folio || ''}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+      body{margin:0;padding:24px;background:#f8f9fb;font-family:'Inter',sans-serif}
+      .cert-doc{background:#fff;padding:48px;border:8px double #0d4737;border-radius:8px;text-align:center;color:#0d1f4a;position:relative;max-width:900px;margin:0 auto}
+      .cert-doc::before{content:'';position:absolute;inset:14px;border:1px solid rgba(13,71,55,0.2);pointer-events:none;border-radius:4px}
+      h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif}
+      .cert-doc-title{font-size:36px;color:#0d4737;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px;font-weight:600}
+      .cert-doc-nombre{font-size:42px;color:#0d4737;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;font-weight:700}
+      .cert-doc-curso{font-size:24px;color:#0d4737;margin:0 0 1.5rem;font-style:italic;font-weight:600}
+      .cert-doc-firmas{display:grid;grid-template-columns:auto 1fr 1fr;gap:32px;align-items:end;margin-top:24px}
+      .cert-doc-qr-img{width:110px;height:110px}
+      hr{border:0;border-top:1.2px solid #0d4737}
+      @media print{body{background:#fff;padding:0}.cert-doc{box-shadow:none}}
+    </style>
+    </head><body>${docEl.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
+  w.document.close();
+};
+
+window.copiarLinkCert = function() {
+  if (!_certActivo) return;
+  const url = `https://icademx.com/verificar?folio=${encodeURIComponent(_certActivo.folio || '')}`;
+  navigator.clipboard.writeText(url).then(() => {
+    alert('✓ Link copiado al portapapeles\n\n' + url);
+  }).catch(() => {
+    prompt('Copia el link del certificado:', url);
+  });
+};
+
+window.verificarCertificado = function() {
+  if (!_certActivo) return;
+  const url = `https://icademx.com/verificar?folio=${encodeURIComponent(_certActivo.folio || '')}`;
+  window.open(url, '_blank');
+};
+
+function escapeHtml(str) {
+  return (str || '').toString()
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// 🚀 INICIALIZACIÓN
+// ═══════════════════════════════════════════════════════════════
+function inicializar() {
+  attachFilters();
+  cargarDatosUsuario();
+}
+
+// Esperar a que DOM y Firebase Auth estén listos
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', inicializar);
+} else {
+  inicializar();
+}
+
+// Re-cargar si el usuario cambia (post-login, post-pago)
+const auth = getAuth();
+auth.onAuthStateChanged?.(() => {
+  cargarDatosUsuario();
+});
+
+// ESC para cerrar modal de certificado
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const modal = document.getElementById('cert-modal');
+    if (modal && modal.style.display !== 'none') window.cerrarCertificado();
+  }
+});
+
+// Exponer para debugging / triggers manuales
+window._icademLogros = {
+  data: _userData,
+  catalog: LOGROS,
+  niveles: NIVELES,
+  reload: cargarDatosUsuario,
+  // Agregar logro manualmente (para futuras integraciones desde otras secciones)
+  desbloquear: async function(logroId) {
+    const logro = LOGROS.find(l => l.id === logroId);
+    if (!logro) return console.warn('[Logros] No existe logro', logroId);
+    if (_userData.logrosDesbloqueados.includes(logroId)) return; // ya estaba
+
+    _userData.logrosDesbloqueados.push(logroId);
+    _userData.xp += logro.xp;
+
+    try {
+      const auth = getAuth();
+      const user = auth.currentUser;
+      if (user) {
+        const db = getFirestore();
+        await setDoc(doc(db, 'membresias', user.uid), {
+          xp: _userData.xp,
+          logrosDesbloqueados: _userData.logrosDesbloqueados,
+          actualizadoEn: serverTimestamp()
+        }, { merge: true });
+      }
+    } catch(e) { console.warn('[Logros] No se pudo guardar:', e); }
+
+    renderLogros();
+    return logro;
+  }
+};
+</script>
 
 </body>
 </html>
