@@ -686,9 +686,27 @@
   onAuthStateChanged(auth, async user => {
     if (!user) { return; } // Esperar login en pantalla propia
 
-    // Verificar rol coordinador
-    const snap = await getDoc(doc(db, 'usuarios', user.uid));
-    if (!snap.exists() || snap.data().rol !== 'coordinador') {
+    // MODIFICADO: Whitelist de emails admin como respaldo (Opción B)
+    const ADMIN_EMAILS = [
+      'teccapitalweb@gmail.com',
+      'icademconsultoria2024@gmail.com',
+      'sinergiaagricola789@gmail.com',
+      'ipcilinstituto@gmail.com'
+    ];
+    const esAdminPorEmail = ADMIN_EMAILS.includes((user.email || '').toLowerCase());
+
+    // Verificar rol coordinador en Firestore (o usar whitelist como respaldo)
+    let esCoordinador = false;
+    try {
+      const snap = await getDoc(doc(db, 'usuarios', user.uid));
+      if (snap.exists() && snap.data().rol === 'coordinador') {
+        esCoordinador = true;
+      }
+    } catch (e) {
+      console.warn('No se pudo leer Firestore /usuarios, usando whitelist:', e);
+    }
+
+    if (!esCoordinador && !esAdminPorEmail) {
       document.getElementById('login-error').textContent = 'Esta cuenta no tiene acceso de coordinador.';
       document.getElementById('login-error').style.display = 'block';
       document.getElementById('login-btn').textContent = 'Iniciar sesión';
