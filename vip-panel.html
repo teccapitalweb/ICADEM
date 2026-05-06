@@ -3215,6 +3215,12 @@
       <div class="dir-perfil-content">
         <button class="dir-perfil-close" onclick="window.cerrarPerfilDirectorio()" aria-label="Cerrar">×</button>
 
+        <!-- Botón "Editar mi perfil" — solo visible cuando es tu propio perfil -->
+        <button class="dir-perfil-edit-btn" id="dir-perfil-edit-btn" onclick="window.editarDesdePerfil()" style="display:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Editar mi perfil
+        </button>
+
         <header class="dir-perfil-header">
           <div class="dir-perfil-avatar" id="dir-perfil-avatar">JP</div>
           <div class="dir-perfil-info">
@@ -20585,6 +20591,40 @@ body.is-guest #perfil-avatar-big {
 }
 .dir-perfil-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
+/* Botón "Editar mi perfil" — solo visible en mi propio perfil */
+.dir-perfil-edit-btn {
+  position: absolute;
+  top: 14px;
+  right: 58px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: linear-gradient(135deg, var(--card-accent, #f5d77a) 0%, color-mix(in srgb, var(--card-accent, #f5d77a) 70%, #c8962a) 100%);
+  color: #0b1f4a !important;
+  -webkit-text-fill-color: #0b1f4a !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  cursor: pointer;
+  z-index: 3;
+  box-shadow: 0 4px 14px rgba(245, 215, 122, 0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.dir-perfil-edit-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(245, 215, 122, 0.4);
+}
+.dir-perfil-edit-btn svg { flex-shrink: 0; }
+@media (max-width: 480px) {
+  .dir-perfil-edit-btn span { display: none; }
+  .dir-perfil-edit-btn { padding: 8px; right: 52px; }
+}
+
 .dir-perfil-header {
   position: relative;
   padding: 2.25rem 1.75rem 1.75rem;
@@ -21453,105 +21493,222 @@ body.is-guest #perfil-avatar-big {
    sin gradientes, con texto en MAYÚSCULAS y fuente monoespaciada.
    ═══════════════════════════════════════════════════════════════ */
 
-/* CARD principal: restaurar diseño fancy completo */
+/* CARD principal: diseño FANCY con banner superior */
 .section .dir-card,
 .section button.dir-card,
 button.dir-card,
 .dir-card[class*="card"] {
-  border-radius: 16px !important;
+  position: relative !important;
+  border-radius: 18px !important;
   background:
-    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
+    linear-gradient(180deg,
+      var(--card-accent-soft, rgba(245, 215, 122, 0.12)) 0%,
+      rgba(13, 37, 71, 0.6) 80px,
+      rgba(11, 31, 74, 0.55) 100%) !important;
   background-image:
-    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
-  border: 1px solid rgba(147, 180, 237, 0.1) !important;
+    linear-gradient(180deg,
+      var(--card-accent-soft, rgba(245, 215, 122, 0.12)) 0%,
+      rgba(13, 37, 71, 0.6) 80px,
+      rgba(11, 31, 74, 0.55) 100%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   padding: 0 !important;
   overflow: hidden !important;
-  box-shadow: none !important;
   font-family: 'Inter', sans-serif !important;
   font-weight: 400 !important;
   text-transform: none !important;
   letter-spacing: 0 !important;
   text-align: left !important;
+  isolation: isolate !important;
+  cursor: pointer !important;
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    border-color 0.3s ease,
+    box-shadow 0.3s ease !important;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 4px 16px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Banner superior con gradiente del color de acento */
+.dir-card::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 90px !important;
+  background:
+    linear-gradient(135deg,
+      var(--card-accent, #f5d77a) 0%,
+      color-mix(in srgb, var(--card-accent, #f5d77a) 50%, #0b2554) 100%) !important;
+  opacity: 0.18 !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  transition: opacity 0.3s ease !important;
+}
+
+/* Pattern decorativo sutil en el banner */
+.dir-card::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 90px !important;
+  background-image:
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    radial-gradient(circle at 80% 30%, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
+  background-size: 24px 24px, 32px 32px !important;
+  background-position: 0 0, 12px 12px !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  opacity: 0.7 !important;
 }
 
 .section .dir-card:hover,
 button.dir-card:hover {
-  transform: translateY(-4px) !important;
-  border-color: rgba(255, 255, 255, 0.18) !important;
+  transform: translateY(-6px) !important;
+  border-color: var(--card-accent, #f5d77a) !important;
   background:
-    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
+    linear-gradient(180deg,
+      var(--card-accent-soft, rgba(245, 215, 122, 0.18)) 0%,
+      rgba(13, 37, 71, 0.65) 80px,
+      rgba(11, 31, 74, 0.6) 100%) !important;
   background-image:
-    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
+    linear-gradient(180deg,
+      var(--card-accent-soft, rgba(245, 215, 122, 0.18)) 0%,
+      rgba(13, 37, 71, 0.65) 80px,
+      rgba(11, 31, 74, 0.6) 100%) !important;
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    0 0 0 1px var(--card-accent-soft, rgba(245, 215, 122, 0.15)),
-    0 0 20px var(--card-accent-glow, rgba(245, 215, 122, 0.25)) !important;
+    0 1px 0 rgba(255, 255, 255, 0.08) inset,
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 0 0 1px var(--card-accent, #f5d77a),
+    0 0 32px var(--card-accent-glow, rgba(245, 215, 122, 0.35)) !important;
 }
+.dir-card:hover::before { opacity: 0.3 !important; }
 
-/* CARD CONTENT wrapper: mantener padding interno */
+/* CARD CONTENT wrapper: padding ajustado para banner superior */
 .dir-card .dir-card-content {
-  padding: 1.5rem 1.4rem 1.25rem !important;
+  position: relative !important;
+  z-index: 2 !important;
+  padding: 1.5rem 1.4rem 1.35rem !important;
 }
 
-/* AVATAR: restaurar el gradiente con el color de acento */
+/* Top con avatar elevado sobre el banner */
+.dir-card .dir-card-top {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  margin-bottom: 14px !important;
+  margin-top: 28px !important;
+}
+
+/* AVATAR: flota sobre el banner con borde grueso */
 .dir-card .dir-card-avatar {
+  position: relative !important;
   border-radius: 50% !important;
   background:
     linear-gradient(135deg, var(--card-accent, #f5d77a) 0%, color-mix(in srgb, var(--card-accent, #f5d77a) 60%, #0b2554) 100%) !important;
-  width: 58px !important;
-  height: 58px !important;
-  font-size: 19px !important;
+  width: 64px !important;
+  height: 64px !important;
+  font-size: 21px !important;
   font-weight: 700 !important;
   color: #0b1f4a !important;
   -webkit-text-fill-color: #0b1f4a !important;
   font-family: 'Inter', sans-serif !important;
   text-transform: none !important;
   letter-spacing: 0.02em !important;
+  border: 4px solid #0d2547 !important;
   box-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    0 8px 20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--card-accent, #f5d77a),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  margin-top: -4px !important;
 }
 
-/* SELLO VIP: pill dorado redondo */
+/* Anillo decorativo del avatar (en hover crece) */
+.dir-card .dir-card-avatar::after {
+  content: '' !important;
+  position: absolute !important;
+  inset: -6px !important;
+  border-radius: 50% !important;
+  border: 1.5px solid var(--card-accent, #f5d77a) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+.dir-card:hover .dir-card-avatar::after {
+  opacity: 0.5 !important;
+  transform: scale(1.05) !important;
+}
+
+/* SELLO VIP: nuevo diseño más elegante */
 .dir-card .dir-card-premium {
+  position: absolute !important;
+  top: 14px !important;
+  right: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 5px 11px !important;
   border-radius: 999px !important;
   font-family: 'Inter', sans-serif !important;
-  letter-spacing: 0.1em !important;
-  text-transform: uppercase !important;
   font-size: 9.5px !important;
-  font-weight: 600 !important;
-  padding: 3px 9px !important;
-  color: var(--card-accent, #f5d77a) !important;
-  -webkit-text-fill-color: var(--card-accent, #f5d77a) !important;
-  background: linear-gradient(135deg, rgba(245, 215, 122, 0.18), rgba(200, 150, 42, 0.15)) !important;
-  background-image: linear-gradient(135deg, rgba(245, 215, 122, 0.18), rgba(200, 150, 42, 0.15)) !important;
-  border: 1px solid rgba(245, 215, 122, 0.35) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: #0b1f4a !important;
+  -webkit-text-fill-color: #0b1f4a !important;
+  background:
+    linear-gradient(135deg,
+      #fff 0%,
+      var(--card-accent, #f5d77a) 100%) !important;
+  background-image:
+    linear-gradient(135deg,
+      rgba(255, 255, 255, 0.95) 0%,
+      var(--card-accent, #f5d77a) 100%) !important;
+  border: none !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.3) inset !important;
+  z-index: 4 !important;
+}
+.dir-card .dir-card-premium svg {
+  width: 10px !important;
+  height: 10px !important;
+  flex-shrink: 0 !important;
 }
 
-/* NOMBRE: tipografía Inter (no monoespaciada anti-IA) */
+/* NOMBRE: tipografía Inter elegante */
 .dir-card .dir-card-name {
   font-family: 'Inter', sans-serif !important;
-  font-size: 15.5px !important;
+  font-size: 16px !important;
   font-weight: 700 !important;
   color: #fafafa !important;
   -webkit-text-fill-color: #fafafa !important;
-  letter-spacing: -0.01em !important;
+  letter-spacing: -0.015em !important;
   text-transform: none !important;
   line-height: 1.25 !important;
   margin: 0 0 3px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }
 
-/* CARGO: color de acento dinámico (Inter) */
+/* CARGO: con color de acento */
 .dir-card .dir-card-cargo {
   font-family: 'Inter', sans-serif !important;
   font-size: 12.5px !important;
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   color: var(--card-accent, #f5d77a) !important;
   -webkit-text-fill-color: var(--card-accent, #f5d77a) !important;
   text-transform: none !important;
   letter-spacing: 0.005em !important;
   line-height: 1.4 !important;
-  margin: 0 0 1px !important;
+  margin: 0 0 2px !important;
 }
 
 /* EMPRESA */
@@ -21563,19 +21720,30 @@ button.dir-card:hover {
   text-transform: none !important;
   letter-spacing: 0.01em !important;
   font-style: normal !important;
-  font-weight: 400 !important;
+  font-weight: 500 !important;
   margin: 0 !important;
 }
 
-/* DIVIDER: línea con gradiente */
+/* INFO container con espaciado para alinear con avatar */
+.dir-card .dir-card-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-top: 4px !important;
+}
+
+/* DIVIDER: línea sutil con gradiente */
 .dir-card .dir-card-divider {
   height: 1px !important;
-  background: linear-gradient(90deg, transparent 0%, rgba(147, 180, 237, 0.12) 20%, rgba(147, 180, 237, 0.12) 80%, transparent 100%) !important;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 20%,
+    rgba(255, 255, 255, 0.08) 80%,
+    transparent 100%) !important;
   margin: 0 0 14px !important;
   border: none !important;
 }
 
-/* BIO: texto legible */
+/* BIO: texto bien legible */
 .dir-card .dir-card-bio {
   font-family: 'Inter', sans-serif !important;
   font-size: 12.5px !important;
@@ -21585,20 +21753,25 @@ button.dir-card:hover {
   line-height: 1.6 !important;
   text-transform: none !important;
   letter-spacing: 0.005em !important;
-  margin: 0 0 14px !important;
+  margin: 0 0 16px !important;
+  display: -webkit-box !important;
+  -webkit-line-clamp: 3 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
 }
 
-/* TAGS: pills redondas con tipografía Inter (no la mono anti-IA) */
+/* TAGS: pills redondas con tipografía Inter */
 .dir-card .dir-card-tag {
   font-family: 'Inter', sans-serif !important;
   font-size: 10.5px !important;
   font-weight: 600 !important;
-  letter-spacing: 0.02em !important;
+  letter-spacing: 0.015em !important;
   text-transform: none !important;
   border-radius: 999px !important;
   padding: 4px 10px !important;
   background: var(--card-accent-soft, rgba(245, 215, 122, 0.15)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background-image: none !important;
+  border: 1px solid color-mix(in srgb, var(--card-accent, #f5d77a) 25%, transparent) !important;
   color: var(--card-accent, #f5d77a) !important;
   -webkit-text-fill-color: var(--card-accent, #f5d77a) !important;
   display: inline-flex !important;
@@ -21607,46 +21780,44 @@ button.dir-card:hover {
 }
 
 .dir-card .dir-card-tag.is-ciudad {
-  background: rgba(147, 180, 237, 0.08) !important;
+  background: rgba(147, 180, 237, 0.1) !important;
   background-image: none !important;
-  border-color: rgba(147, 180, 237, 0.15) !important;
+  border-color: rgba(147, 180, 237, 0.2) !important;
   color: #b8cdf0 !important;
   -webkit-text-fill-color: #b8cdf0 !important;
 }
 
 .dir-card .dir-card-tag.is-experiencia {
-  background: rgba(255, 255, 255, 0.05) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
   background-image: none !important;
-  border-color: rgba(255, 255, 255, 0.08) !important;
-  color: #c8d4ec !important;
-  -webkit-text-fill-color: #c8d4ec !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #d4dffa !important;
+  -webkit-text-fill-color: #d4dffa !important;
 }
 
-/* TAGS contenedor con flex y gap */
+/* TAGS contenedor */
 .dir-card .dir-card-tags {
   display: flex !important;
-  gap: 5px !important;
+  gap: 6px !important;
   flex-wrap: wrap !important;
   align-items: center !important;
   margin: 0 !important;
 }
 
-/* GRID del directorio: respetar grid template */
+/* GRID del directorio */
 .section .dir-grid {
   display: grid !important;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
-  gap: 14px !important;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)) !important;
+  gap: 16px !important;
 }
 
-/* ─── Mismo tratamiento al PREVIEW del editor ─── */
+/* ─── PREVIEW del editor (no hover, no cursor pointer) ─── */
 .dir-preview-card-render,
 .dir-preview-card-render.dir-card {
-  border-radius: 16px !important;
   cursor: default !important;
 }
 .dir-preview-card-render:hover {
   transform: none !important;
-  box-shadow: none !important;
 }
 
 /* ─── Modal de perfil: avatar grande con anillo + colores ─── */
@@ -23294,6 +23465,12 @@ window._icademLogros = {
       modal.style.setProperty('--card-accent-glow', hexToRgba(accent, 0.25));
     }
 
+    // Mostrar botón "Editar" si es mi propio perfil
+    const auth = (typeof getAuth === 'function') ? getAuth() : null;
+    const editBtn = document.getElementById('dir-perfil-edit-btn');
+    const esMio = auth && auth.currentUser && auth.currentUser.uid === p.id;
+    if (editBtn) editBtn.style.display = esMio ? 'inline-flex' : 'none';
+
     // Avatar (foto o iniciales)
     const avatarEl = document.getElementById('dir-perfil-avatar');
     const tieneFoto = p.foto && (p.foto.startsWith('http') || p.foto.startsWith('data:'));
@@ -23393,6 +23570,12 @@ window._icademLogros = {
     document.getElementById('dir-perfil-modal').style.display = 'none';
     document.body.style.overflow = '';
     _perfilActivo = null;
+  };
+
+  // Cerrar modal de Ver perfil y abrir el Editor (si es propio)
+  window.editarDesdePerfil = function() {
+    document.getElementById('dir-perfil-modal').style.display = 'none';
+    setTimeout(() => window.abrirEditorDirectorio(), 100);
   };
 
   // ═══════════════════════════════════════════════════════════
