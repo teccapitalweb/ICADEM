@@ -21446,6 +21446,242 @@ body.is-guest #perfil-avatar-big {
   .dir-active-filters { padding: 8px 10px; }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   🛡️ EXCEPCIONES PARA EL DIRECTORIO VIP
+   Pisan los overrides globales "anti-IA" que aplastaban el diseño
+   premium de las cards. Sin esto, las cards salen sin border-radius,
+   sin gradientes, con texto en MAYÚSCULAS y fuente monoespaciada.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* CARD principal: restaurar diseño fancy completo */
+.section .dir-card,
+.section button.dir-card,
+button.dir-card,
+.dir-card[class*="card"] {
+  border-radius: 16px !important;
+  background:
+    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
+  background-image:
+    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
+  border: 1px solid rgba(147, 180, 237, 0.1) !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  text-align: left !important;
+}
+
+.section .dir-card:hover,
+button.dir-card:hover {
+  transform: translateY(-4px) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  background:
+    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
+  background-image:
+    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%) !important;
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--card-accent-soft, rgba(245, 215, 122, 0.15)),
+    0 0 20px var(--card-accent-glow, rgba(245, 215, 122, 0.25)) !important;
+}
+
+/* CARD CONTENT wrapper: mantener padding interno */
+.dir-card .dir-card-content {
+  padding: 1.5rem 1.4rem 1.25rem !important;
+}
+
+/* AVATAR: restaurar el gradiente con el color de acento */
+.dir-card .dir-card-avatar {
+  border-radius: 50% !important;
+  background:
+    linear-gradient(135deg, var(--card-accent, #f5d77a) 0%, color-mix(in srgb, var(--card-accent, #f5d77a) 60%, #0b2554) 100%) !important;
+  width: 58px !important;
+  height: 58px !important;
+  font-size: 19px !important;
+  font-weight: 700 !important;
+  color: #0b1f4a !important;
+  -webkit-text-fill-color: #0b1f4a !important;
+  font-family: 'Inter', sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+}
+
+/* SELLO VIP: pill dorado redondo */
+.dir-card .dir-card-premium {
+  border-radius: 999px !important;
+  font-family: 'Inter', sans-serif !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  font-size: 9.5px !important;
+  font-weight: 600 !important;
+  padding: 3px 9px !important;
+  color: var(--card-accent, #f5d77a) !important;
+  -webkit-text-fill-color: var(--card-accent, #f5d77a) !important;
+  background: linear-gradient(135deg, rgba(245, 215, 122, 0.18), rgba(200, 150, 42, 0.15)) !important;
+  background-image: linear-gradient(135deg, rgba(245, 215, 122, 0.18), rgba(200, 150, 42, 0.15)) !important;
+  border: 1px solid rgba(245, 215, 122, 0.35) !important;
+}
+
+/* NOMBRE: tipografía Inter (no monoespaciada anti-IA) */
+.dir-card .dir-card-name {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
+  color: #fafafa !important;
+  -webkit-text-fill-color: #fafafa !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+  line-height: 1.25 !important;
+  margin: 0 0 3px !important;
+}
+
+/* CARGO: color de acento dinámico (Inter) */
+.dir-card .dir-card-cargo {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  color: var(--card-accent, #f5d77a) !important;
+  -webkit-text-fill-color: var(--card-accent, #f5d77a) !important;
+  text-transform: none !important;
+  letter-spacing: 0.005em !important;
+  line-height: 1.4 !important;
+  margin: 0 0 1px !important;
+}
+
+/* EMPRESA */
+.dir-card .dir-card-empresa {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11.5px !important;
+  color: #93b4ed !important;
+  -webkit-text-fill-color: #93b4ed !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  font-style: normal !important;
+  font-weight: 400 !important;
+  margin: 0 !important;
+}
+
+/* DIVIDER: línea con gradiente */
+.dir-card .dir-card-divider {
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent 0%, rgba(147, 180, 237, 0.12) 20%, rgba(147, 180, 237, 0.12) 80%, transparent 100%) !important;
+  margin: 0 0 14px !important;
+  border: none !important;
+}
+
+/* BIO: texto legible */
+.dir-card .dir-card-bio {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12.5px !important;
+  font-weight: 400 !important;
+  color: #c8d4ec !important;
+  -webkit-text-fill-color: #c8d4ec !important;
+  line-height: 1.6 !important;
+  text-transform: none !important;
+  letter-spacing: 0.005em !important;
+  margin: 0 0 14px !important;
+}
+
+/* TAGS: pills redondas con tipografía Inter (no la mono anti-IA) */
+.dir-card .dir-card-tag {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  text-transform: none !important;
+  border-radius: 999px !important;
+  padding: 4px 10px !important;
+  background: var(--card-accent-soft, rgba(245, 215, 122, 0.15)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  color: var(--card-accent, #f5d77a) !important;
+  -webkit-text-fill-color: var(--card-accent, #f5d77a) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.dir-card .dir-card-tag.is-ciudad {
+  background: rgba(147, 180, 237, 0.08) !important;
+  background-image: none !important;
+  border-color: rgba(147, 180, 237, 0.15) !important;
+  color: #b8cdf0 !important;
+  -webkit-text-fill-color: #b8cdf0 !important;
+}
+
+.dir-card .dir-card-tag.is-experiencia {
+  background: rgba(255, 255, 255, 0.05) !important;
+  background-image: none !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  color: #c8d4ec !important;
+  -webkit-text-fill-color: #c8d4ec !important;
+}
+
+/* TAGS contenedor con flex y gap */
+.dir-card .dir-card-tags {
+  display: flex !important;
+  gap: 5px !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  margin: 0 !important;
+}
+
+/* GRID del directorio: respetar grid template */
+.section .dir-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap: 14px !important;
+}
+
+/* ─── Mismo tratamiento al PREVIEW del editor ─── */
+.dir-preview-card-render,
+.dir-preview-card-render.dir-card {
+  border-radius: 16px !important;
+  cursor: default !important;
+}
+.dir-preview-card-render:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── Modal de perfil: avatar grande con anillo + colores ─── */
+.dir-perfil-avatar {
+  border-radius: 50% !important;
+  width: 88px !important;
+  height: 88px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 30px !important;
+  font-weight: 700 !important;
+  color: #0b1f4a !important;
+  -webkit-text-fill-color: #0b1f4a !important;
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+}
+.dir-perfil-tag {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10.5px !important;
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+  font-weight: 500 !important;
+  border-radius: 999px !important;
+}
+.dir-perfil-tag-industria {
+  font-weight: 600 !important;
+}
+.dir-perfil-chip {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+}
+
 </style>
 
 
