@@ -3284,17 +3284,26 @@
           <!-- Vista previa del card -->
           <div class="dir-preview-section">
             <p class="dir-preview-label">👁️ Así te verán otros miembros</p>
-            <div class="dir-preview-card" id="dir-preview-card">
-              <div class="dir-card-top">
-                <div class="dir-card-avatar" id="dir-preview-avatar">?</div>
-                <div class="dir-card-info">
-                  <p class="dir-card-name" id="dir-preview-nombre">Tu nombre</p>
-                  <p class="dir-card-cargo" id="dir-preview-cargo">Tu cargo</p>
-                  <p class="dir-card-empresa" id="dir-preview-empresa">Tu empresa</p>
+            <div class="dir-preview-card-wrap">
+              <div class="dir-card dir-preview-card-render" id="dir-preview-card">
+                <span class="dir-card-premium">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+                  VIP
+                </span>
+                <div class="dir-card-content">
+                  <div class="dir-card-top">
+                    <div class="dir-card-avatar" id="dir-preview-avatar">?</div>
+                    <div class="dir-card-info">
+                      <p class="dir-card-name" id="dir-preview-nombre">Tu nombre</p>
+                      <p class="dir-card-cargo" id="dir-preview-cargo">Tu cargo</p>
+                      <p class="dir-card-empresa" id="dir-preview-empresa">Tu empresa</p>
+                    </div>
+                  </div>
+                  <div class="dir-card-divider"></div>
+                  <p class="dir-card-bio" id="dir-preview-bio" style="color:#5d7396;font-style:italic">Llena tu bio para ver cómo se verá aquí…</p>
+                  <div class="dir-card-tags" id="dir-preview-tags"></div>
                 </div>
               </div>
-              <p class="dir-card-bio" id="dir-preview-bio" style="color:#5d7396;font-style:italic">Llena tu bio para ver cómo se verá aquí…</p>
-              <div class="dir-card-tags" id="dir-preview-tags"></div>
             </div>
           </div>
 
@@ -3352,6 +3361,29 @@
             <div class="dir-editor-field">
               <label>Años de experiencia</label>
               <input type="number" id="dir-edit-experiencia" placeholder="10" min="0" max="60">
+            </div>
+
+            <div class="dir-editor-section-title">🎨 Personaliza tu card</div>
+
+            <div class="dir-editor-field">
+              <label>Foto de perfil <span class="dir-hint">(URL de imagen, opcional)</span></label>
+              <input type="url" id="dir-edit-foto" placeholder="https://example.com/mi-foto.jpg" oninput="window.actualizarPreviewDir()">
+              <p class="dir-field-hint" style="font-size:10.5px;color:#5d7396;margin:4px 0 0;line-height:1.4">💡 Tip: Sube tu foto a Imgur, Cloudinary o Google Drive (compartido públicamente) y pega el link aquí.</p>
+            </div>
+
+            <div class="dir-editor-field">
+              <label>Color de acento de tu card</label>
+              <div class="dir-color-palette" id="dir-color-palette">
+                <button type="button" class="dir-color-swatch is-active" data-color="#f5d77a" style="--swatch:#f5d77a" onclick="window.elegirColorDir(this)" title="Dorado clásico"></button>
+                <button type="button" class="dir-color-swatch" data-color="#93c5fd" style="--swatch:#93c5fd" onclick="window.elegirColorDir(this)" title="Azul cielo"></button>
+                <button type="button" class="dir-color-swatch" data-color="#86efac" style="--swatch:#86efac" onclick="window.elegirColorDir(this)" title="Verde menta"></button>
+                <button type="button" class="dir-color-swatch" data-color="#f9a8d4" style="--swatch:#f9a8d4" onclick="window.elegirColorDir(this)" title="Rosa suave"></button>
+                <button type="button" class="dir-color-swatch" data-color="#c4b5fd" style="--swatch:#c4b5fd" onclick="window.elegirColorDir(this)" title="Lavanda"></button>
+                <button type="button" class="dir-color-swatch" data-color="#fb923c" style="--swatch:#fb923c" onclick="window.elegirColorDir(this)" title="Naranja"></button>
+                <button type="button" class="dir-color-swatch" data-color="#fb7185" style="--swatch:#fb7185" onclick="window.elegirColorDir(this)" title="Coral"></button>
+                <button type="button" class="dir-color-swatch" data-color="#5eead4" style="--swatch:#5eead4" onclick="window.elegirColorDir(this)" title="Turquesa"></button>
+              </div>
+              <input type="hidden" id="dir-edit-color" value="#f5d77a">
             </div>
 
             <div class="dir-editor-field">
@@ -20237,97 +20269,220 @@ body.is-guest #perfil-avatar-big {
   gap: 14px;
 }
 .dir-card {
-  background: rgba(11, 31, 74, 0.4);
-  border: 1px solid rgba(147, 180, 237, 0.12);
-  border-radius: 12px;
-  padding: 1.25rem;
+  position: relative;
+  background:
+    linear-gradient(135deg, rgba(11, 31, 74, 0.55) 0%, rgba(13, 37, 71, 0.4) 100%);
+  border: 1px solid rgba(147, 180, 237, 0.1);
+  border-radius: 16px;
+  padding: 0;
   cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+              border-color 0.25s ease,
+              box-shadow 0.3s ease;
   font-family: 'Inter', sans-serif;
   text-align: left;
+  overflow: hidden;
+  isolation: isolate;
+  /* Color de acento personalizable por usuario (default dorado ICADEM) */
+  --card-accent: #f5d77a;
+  --card-accent-soft: rgba(245, 215, 122, 0.15);
+  --card-accent-glow: rgba(245, 215, 122, 0.25);
+}
+/* Sutil gradient overlay en la parte superior, color del acento */
+.dir-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: linear-gradient(180deg, var(--card-accent-soft) 0%, transparent 100%);
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+/* Línea de acento sutil arriba */
+.dir-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--card-accent) 50%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
 }
 .dir-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(245, 215, 122, 0.3);
-  background: rgba(11, 31, 74, 0.65);
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 1px var(--card-accent-soft),
+    0 0 20px var(--card-accent-glow);
+}
+.dir-card:hover::before { opacity: 1; }
+.dir-card:hover::after { opacity: 1; }
+
+.dir-card-content {
+  position: relative;
+  z-index: 2;
+  padding: 1.5rem 1.4rem 1.25rem;
 }
 .dir-card-top {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
+  gap: 14px;
+  margin-bottom: 14px;
 }
 .dir-card-avatar {
   flex-shrink: 0;
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1565c0, #0b2554);
+  background:
+    linear-gradient(135deg, var(--card-accent) 0%, color-mix(in srgb, var(--card-accent) 60%, #0b2554) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #fafafa;
+  color: #0b1f4a;
   font-weight: 700;
-  font-size: 18px;
+  font-size: 19px;
   letter-spacing: 0.02em;
-  border: 2px solid rgba(245, 215, 122, 0.15);
+  position: relative;
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
+/* Anillo dorado sutil alrededor del avatar */
+.dir-card-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1.5px solid var(--card-accent);
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+.dir-card:hover .dir-card-avatar::after { opacity: 0.7; }
+.dir-card-avatar.has-img {
+  background-size: cover;
+  background-position: center;
+  color: transparent;
+}
+
+/* Sello PREMIUM sutil */
+.dir-card-premium {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  background: linear-gradient(135deg, rgba(245, 215, 122, 0.18), rgba(200, 150, 42, 0.15));
+  border: 1px solid rgba(245, 215, 122, 0.35);
+  border-radius: 999px;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--card-accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  z-index: 3;
+  backdrop-filter: blur(6px);
+}
+.dir-card-premium svg {
+  width: 9px;
+  height: 9px;
+}
+
 .dir-card-info {
   flex: 1;
   min-width: 0;
+  padding-top: 2px;
 }
 .dir-card-name {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 15.5px !important;
+  font-weight: 700 !important;
   color: #fafafa !important;
   -webkit-text-fill-color: #fafafa !important;
-  margin: 0 0 2px;
-  line-height: 1.3;
-  letter-spacing: 0;
-  text-transform: none;
-  font-family: 'Inter', sans-serif;
-  font-style: normal;
+  margin: 0 0 3px !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.01em !important;
+  text-transform: none !important;
+  font-family: 'Inter', sans-serif !important;
+  font-style: normal !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .dir-card-cargo {
-  font-size: 12px;
-  color: #93b4ed;
-  margin: 0;
+  font-size: 12.5px;
+  color: var(--card-accent);
+  margin: 0 0 1px;
   line-height: 1.4;
+  font-weight: 500;
+  letter-spacing: 0.005em;
 }
 .dir-card-empresa {
   font-size: 11.5px;
-  color: #5d7396;
+  color: #93b4ed;
   margin: 0;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 400;
+  letter-spacing: 0.01em;
 }
+
+/* Separador sutil */
+.dir-card-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(147, 180, 237, 0.12) 20%, rgba(147, 180, 237, 0.12) 80%, transparent 100%);
+  margin: 0 0 14px;
+}
+
 .dir-card-bio {
-  font-size: 12px;
-  color: #d4dffa;
-  line-height: 1.55;
-  margin: 0 0 10px;
+  font-size: 12.5px;
+  color: #c8d4ec;
+  line-height: 1.6;
+  margin: 0 0 14px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  font-weight: 400;
+  letter-spacing: 0.005em;
 }
 .dir-card-tags {
   display: flex;
-  gap: 6px;
+  gap: 5px;
   flex-wrap: wrap;
+  align-items: center;
 }
 .dir-card-tag {
-  display: inline-block;
-  padding: 3px 10px;
-  background: rgba(245, 215, 122, 0.08);
-  border: 1px solid rgba(245, 215, 122, 0.18);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: var(--card-accent-soft);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 999px;
   font-size: 10.5px;
-  font-weight: 500;
-  color: #f5d77a;
+  font-weight: 600;
+  color: var(--card-accent);
   letter-spacing: 0.02em;
+  backdrop-filter: blur(4px);
+}
+.dir-card-tag.is-ciudad {
+  background: rgba(147, 180, 237, 0.08);
+  border-color: rgba(147, 180, 237, 0.15);
+  color: #b8cdf0;
+}
+.dir-card-tag.is-experiencia {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #c8d4ec;
 }
 .dir-card-tag.is-ciudad {
   background: rgba(147, 180, 237, 0.08);
@@ -20431,24 +20586,67 @@ body.is-guest #perfil-avatar-big {
 .dir-perfil-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
 .dir-perfil-header {
-  padding: 2rem 1.75rem 1.5rem;
+  position: relative;
+  padding: 2.25rem 1.75rem 1.75rem;
   display: flex;
-  gap: 16px;
+  gap: 18px;
   align-items: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.dir-perfil-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background: linear-gradient(135deg, var(--card-accent-soft, rgba(245, 215, 122, 0.15)) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.dir-perfil-header > * { position: relative; z-index: 1; }
+.dir-perfil-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, var(--card-accent, #f5d77a) 50%, transparent 100%);
+  opacity: 0.4;
+  z-index: 1;
 }
 .dir-perfil-avatar {
   flex-shrink: 0;
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #f5d77a, #c8962a);
+  background: linear-gradient(135deg, var(--card-accent, #f5d77a) 0%, color-mix(in srgb, var(--card-accent, #f5d77a) 60%, #0b2554) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #0b1f4a;
-  font-size: 28px;
+  font-size: 30px;
   font-weight: 700;
+  letter-spacing: 0.02em;
+  position: relative;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+.dir-perfil-avatar::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid var(--card-accent, #f5d77a);
+  opacity: 0.4;
+}
+.dir-perfil-avatar.has-img {
+  background-size: cover;
+  background-position: center;
+  color: transparent;
 }
 .dir-perfil-info { flex: 1; min-width: 0; }
 .dir-perfil-info h2 {
@@ -20463,15 +20661,17 @@ body.is-guest #perfil-avatar-big {
   line-height: 1.2;
 }
 .dir-perfil-cargo {
-  font-size: 14px;
-  color: #f5d77a;
+  font-size: 14.5px;
+  color: var(--card-accent, #f5d77a);
   margin: 0 0 2px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.005em;
 }
 .dir-perfil-empresa {
   font-size: 13px;
   color: #93b4ed;
-  margin: 0 0 10px;
+  margin: 0 0 12px;
+  font-weight: 400;
 }
 .dir-perfil-tags {
   display: flex;
@@ -20480,18 +20680,20 @@ body.is-guest #perfil-avatar-big {
 }
 .dir-perfil-tag {
   display: inline-block;
-  padding: 4px 10px;
+  padding: 4px 11px;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   font-size: 10.5px;
   color: #d4dffa;
   font-weight: 500;
+  letter-spacing: 0.02em;
 }
 .dir-perfil-tag-industria {
-  background: rgba(245, 215, 122, 0.1);
-  border-color: rgba(245, 215, 122, 0.2);
-  color: #f5d77a;
+  background: var(--card-accent-soft, rgba(245, 215, 122, 0.12));
+  border-color: rgba(255, 255, 255, 0.08);
+  color: var(--card-accent, #f5d77a);
+  font-weight: 600;
 }
 
 .dir-perfil-body {
@@ -20524,18 +20726,19 @@ body.is-guest #perfil-avatar-big {
 }
 .dir-perfil-chip {
   display: inline-block;
-  padding: 6px 12px;
-  background: rgba(245, 215, 122, 0.08);
-  border: 1px solid rgba(245, 215, 122, 0.18);
+  padding: 6px 13px;
+  background: var(--card-accent-soft, rgba(245, 215, 122, 0.1));
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   font-size: 12px;
-  color: #f5d77a;
-  font-weight: 500;
+  color: var(--card-accent, #f5d77a);
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 .dir-perfil-chip.is-busca {
   background: rgba(147, 180, 237, 0.08);
-  border-color: rgba(147, 180, 237, 0.18);
-  color: #93b4ed;
+  border-color: rgba(147, 180, 237, 0.15);
+  color: #b8cdf0;
 }
 
 .dir-perfil-contacto {
@@ -21034,13 +21237,55 @@ body.is-guest #perfil-avatar-big {
   font-weight: 600;
   margin: 0 0 10px;
 }
-.dir-preview-card {
-  background: rgba(11, 31, 74, 0.6);
-  border: 1px solid rgba(147, 180, 237, 0.15);
-  border-radius: 12px;
-  padding: 1rem 1.1rem;
+.dir-preview-card-wrap {
   pointer-events: none;
-  transition: all 0.2s;
+}
+.dir-preview-card-render {
+  cursor: default !important;
+}
+.dir-preview-card-render:hover {
+  transform: none !important;
+}
+
+/* Paleta de colores (swatches) */
+.dir-color-palette {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+.dir-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--swatch);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  padding: 0;
+  position: relative;
+  outline: none;
+}
+.dir-color-swatch:hover {
+  transform: scale(1.1);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+.dir-color-swatch.is-active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--swatch), 0 4px 12px rgba(0, 0, 0, 0.3);
+  transform: scale(1.05);
+}
+.dir-color-swatch.is-active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230b1f4a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 /* Counter de bio con cambio de color */
@@ -22729,24 +22974,53 @@ window._icademLogros = {
     if (emptyFirst) emptyFirst.style.display = 'none';
     grid.style.display = '';
 
-    grid.innerHTML = perfiles.map(p => `
-      <button class="dir-card" onclick="window.verPerfilDirectorio('${escapeHtml(p.id)}')">
-        <div class="dir-card-top">
-          <div class="dir-card-avatar">${obtenerIniciales(p.nombre)}</div>
-          <div class="dir-card-info">
-            <p class="dir-card-name">${escapeHtml(p.nombre || 'Miembro VIP')}</p>
-            <p class="dir-card-cargo">${escapeHtml(p.cargo || '—')}</p>
-            <p class="dir-card-empresa">${escapeHtml(p.empresa || '')}</p>
+    grid.innerHTML = perfiles.map(p => {
+      const accent = p.colorAcento || '#f5d77a';
+      const accentSoft = hexToRgba(accent, 0.15);
+      const accentGlow = hexToRgba(accent, 0.25);
+      const styleVars = `--card-accent:${accent};--card-accent-soft:${accentSoft};--card-accent-glow:${accentGlow}`;
+
+      const tieneFoto = p.foto && (p.foto.startsWith('http') || p.foto.startsWith('data:'));
+      const avatarStyle = tieneFoto ? `background-image:url('${escapeHtml(p.foto)}')` : '';
+      const avatarClass = tieneFoto ? 'has-img' : '';
+
+      return `
+      <button class="dir-card" style="${styleVars}" onclick="window.verPerfilDirectorio('${escapeHtml(p.id)}')">
+        <span class="dir-card-premium">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8 5.8 21.3l2.4-7.4L2 9.4h7.6L12 2z"/></svg>
+          VIP
+        </span>
+        <div class="dir-card-content">
+          <div class="dir-card-top">
+            <div class="dir-card-avatar ${avatarClass}" style="${avatarStyle}">${tieneFoto ? '' : obtenerIniciales(p.nombre)}</div>
+            <div class="dir-card-info">
+              <p class="dir-card-name">${escapeHtml(p.nombre || 'Miembro VIP')}</p>
+              <p class="dir-card-cargo">${escapeHtml(p.cargo || '—')}</p>
+              <p class="dir-card-empresa">${escapeHtml(p.empresa || '')}</p>
+            </div>
+          </div>
+          <div class="dir-card-divider"></div>
+          ${p.bio ? `<p class="dir-card-bio">${escapeHtml(p.bio)}</p>` : '<p class="dir-card-bio" style="color:#5d7396;font-style:italic">Sin descripción</p>'}
+          <div class="dir-card-tags">
+            ${p.industria ? `<span class="dir-card-tag">${escapeHtml(p.industria)}</span>` : ''}
+            ${p.ciudad ? `<span class="dir-card-tag is-ciudad">📍 ${escapeHtml(p.ciudad)}</span>` : ''}
+            ${p.experiencia ? `<span class="dir-card-tag is-experiencia">⏱ ${p.experiencia} años</span>` : ''}
           </div>
         </div>
-        ${p.bio ? `<p class="dir-card-bio">${escapeHtml(p.bio)}</p>` : ''}
-        <div class="dir-card-tags">
-          ${p.industria ? `<span class="dir-card-tag">${escapeHtml(p.industria)}</span>` : ''}
-          ${p.ciudad ? `<span class="dir-card-tag is-ciudad">📍 ${escapeHtml(p.ciudad)}</span>` : ''}
-          ${p.experiencia ? `<span class="dir-card-tag is-ciudad">⏱ ${p.experiencia} años</span>` : ''}
-        </div>
       </button>
-    `).join('');
+    `;
+    }).join('');
+  }
+
+  // Helper: convertir hex a rgba
+  function hexToRgba(hex, alpha) {
+    if (!hex) return `rgba(245,215,122,${alpha})`;
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const r = parseInt(h.substring(0, 2), 16);
+    const g = parseInt(h.substring(2, 4), 16);
+    const b = parseInt(h.substring(4, 6), 16);
+    return `rgba(${r},${g},${b},${alpha})`;
   }
 
   function renderEmptyFiltered() {
@@ -22775,7 +23049,30 @@ window._icademLogros = {
     if (!p) return;
     _perfilActivo = p;
 
-    document.getElementById('dir-perfil-avatar').textContent = obtenerIniciales(p.nombre);
+    // Aplicar color de acento al modal
+    const modal = document.getElementById('dir-perfil-modal');
+    const accent = p.colorAcento || '#f5d77a';
+    if (modal) {
+      modal.style.setProperty('--card-accent', accent);
+      modal.style.setProperty('--card-accent-soft', hexToRgba(accent, 0.15));
+      modal.style.setProperty('--card-accent-glow', hexToRgba(accent, 0.25));
+    }
+
+    // Avatar (foto o iniciales)
+    const avatarEl = document.getElementById('dir-perfil-avatar');
+    const tieneFoto = p.foto && (p.foto.startsWith('http') || p.foto.startsWith('data:'));
+    if (avatarEl) {
+      if (tieneFoto) {
+        avatarEl.classList.add('has-img');
+        avatarEl.style.backgroundImage = `url('${escapeHtml(p.foto)}')`;
+        avatarEl.textContent = '';
+      } else {
+        avatarEl.classList.remove('has-img');
+        avatarEl.style.backgroundImage = '';
+        avatarEl.textContent = obtenerIniciales(p.nombre);
+      }
+    }
+
     document.getElementById('dir-perfil-nombre').textContent = p.nombre || 'Miembro VIP';
     document.getElementById('dir-perfil-cargo').textContent = p.cargo || '—';
     document.getElementById('dir-perfil-empresa').textContent = p.empresa || '';
@@ -22882,6 +23179,14 @@ window._icademLogros = {
     document.getElementById('dir-edit-bio').value = p.bio || '';
     document.getElementById('dir-edit-ofrece').value = (p.ofrece || []).join(', ');
     document.getElementById('dir-edit-busca').value = (p.busca || []).join(', ');
+    document.getElementById('dir-edit-foto').value = p.foto || '';
+
+    // Color de acento
+    const colorActivo = p.colorAcento || '#f5d77a';
+    document.getElementById('dir-edit-color').value = colorActivo;
+    document.querySelectorAll('.dir-color-swatch').forEach(s => {
+      s.classList.toggle('is-active', s.dataset.color === colorActivo);
+    });
 
     const c = p.contacto || {};
     document.getElementById('dir-edit-whatsapp').value = c.whatsapp || '';
@@ -22902,6 +23207,18 @@ window._icademLogros = {
   };
 
   // ═══════════════════════════════════════════════════════════
+  // Elegir color de acento (paleta de swatches)
+  // ═══════════════════════════════════════════════════════════
+  window.elegirColorDir = function(btn) {
+    const palette = btn.parentElement;
+    palette.querySelectorAll('.dir-color-swatch').forEach(s => s.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    const color = btn.dataset.color;
+    document.getElementById('dir-edit-color').value = color;
+    window.actualizarPreviewDir();
+  };
+
+  // ═══════════════════════════════════════════════════════════
   // Vista previa del card en vivo (en el editor)
   // ═══════════════════════════════════════════════════════════
   window.actualizarPreviewDir = function() {
@@ -22915,8 +23232,12 @@ window._icademLogros = {
     const empresa = document.getElementById('dir-edit-empresa')?.value.trim() || 'Tu empresa';
     const industria = document.getElementById('dir-edit-industria')?.value || '';
     const ciudad = document.getElementById('dir-edit-ciudad')?.value || '';
+    const experiencia = document.getElementById('dir-edit-experiencia')?.value || '';
     const bio = document.getElementById('dir-edit-bio')?.value.trim();
+    const foto = document.getElementById('dir-edit-foto')?.value.trim() || '';
+    const color = document.getElementById('dir-edit-color')?.value || '#f5d77a';
 
+    const previewCard = document.getElementById('dir-preview-card');
     const avatarEl = document.getElementById('dir-preview-avatar');
     const nombreEl = document.getElementById('dir-preview-nombre');
     const cargoEl = document.getElementById('dir-preview-cargo');
@@ -22924,7 +23245,27 @@ window._icademLogros = {
     const bioEl = document.getElementById('dir-preview-bio');
     const tagsEl = document.getElementById('dir-preview-tags');
 
-    if (avatarEl) avatarEl.textContent = obtenerIniciales(nombre);
+    // Aplicar color de acento al card
+    if (previewCard) {
+      previewCard.style.setProperty('--card-accent', color);
+      previewCard.style.setProperty('--card-accent-soft', hexToRgba(color, 0.15));
+      previewCard.style.setProperty('--card-accent-glow', hexToRgba(color, 0.25));
+    }
+
+    // Avatar (foto o iniciales)
+    if (avatarEl) {
+      const tieneFoto = foto && (foto.startsWith('http') || foto.startsWith('data:'));
+      if (tieneFoto) {
+        avatarEl.classList.add('has-img');
+        avatarEl.style.backgroundImage = `url('${foto}')`;
+        avatarEl.textContent = '';
+      } else {
+        avatarEl.classList.remove('has-img');
+        avatarEl.style.backgroundImage = '';
+        avatarEl.textContent = obtenerIniciales(nombre);
+      }
+    }
+
     if (nombreEl) nombreEl.textContent = nombre || 'Tu nombre';
     if (cargoEl) cargoEl.textContent = cargo;
     if (empresaEl) empresaEl.textContent = empresa;
@@ -22945,6 +23286,7 @@ window._icademLogros = {
       const tags = [];
       if (industria) tags.push(`<span class="dir-card-tag">${escapeHtml(industria)}</span>`);
       if (ciudad) tags.push(`<span class="dir-card-tag is-ciudad">📍 ${escapeHtml(ciudad)}</span>`);
+      if (experiencia) tags.push(`<span class="dir-card-tag is-experiencia">⏱ ${experiencia} años</span>`);
       tagsEl.innerHTML = tags.join('');
     }
   };
@@ -23013,6 +23355,10 @@ window._icademLogros = {
     const ofrece = ofreceRaw ? ofreceRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5) : [];
     const busca = buscaRaw ? buscaRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5) : [];
 
+    // Personalización
+    const foto = document.getElementById('dir-edit-foto').value.trim();
+    const colorAcento = document.getElementById('dir-edit-color').value || '#f5d77a';
+
     const whatsappInput = document.getElementById('dir-edit-whatsapp');
     const whatsappValido = window.validarWhatsappDir(whatsappInput);
     if (!whatsappValido && whatsappInput.value) {
@@ -23075,6 +23421,7 @@ window._icademLogros = {
         uid: user.uid,
         nombre, cargo, empresa, industria, ciudad, experiencia,
         bio, ofrece, busca, contacto, visible,
+        foto, colorAcento,
         actualizadoEn: serverTimestamp()
       };
 
