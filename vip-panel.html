@@ -3099,21 +3099,317 @@
     </div>
 
     <!-- ============================================================
-         🛠️ HERRAMIENTA #6 — DIRECTORIO VIP + FEED (PLACEHOLDER)
+         🛠️ HERRAMIENTA #6 — DIRECTORIO VIP
+         Red profesional entre miembros VIP (LinkedIn interno)
          ============================================================ -->
     <div class="section" id="sec-directorio">
       <div class="page-header">
         <p class="page-tag">Herramienta · Comunidad</p>
-        <h1 class="page-title">Directorio VIP &amp; Feed</h1>
-        <p class="page-sub">Conecta, publica y conversa con la comunidad VIP de ICADEM.</p>
+        <h1 class="page-title">Directorio <em>VIP</em></h1>
+        <p class="page-sub">Conecta con otros miembros VIP de ICADEM. Encuentra proveedores, clientes y aliados estratégicos por industria y ciudad.</p>
       </div>
-      <div class="tool-soon">
-        <div class="tool-soon-icon">🌐</div>
-        <p class="tool-soon-eyebrow">Próximamente</p>
-        <h2 class="tool-soon-title">Directorio VIP &amp; Feed</h2>
-        <p class="tool-soon-desc">En construcción. Pronto podrás publicar logros y dudas, dar like y comentar a otros miembros, y encontrar contactos VIP por industria y estado para hacer networking.</p>
+
+      <!-- Banner de privacidad -->
+      <div class="dir-privacy-banner" id="dir-privacy-banner">
+        <div class="dir-privacy-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="dir-privacy-text">
+          <strong id="dir-privacy-title">Tu perfil está oculto</strong>
+          <p id="dir-privacy-desc">Activa tu visibilidad para que otros miembros VIP puedan contactarte y descubrir tus servicios.</p>
+        </div>
+        <button class="dir-privacy-btn" id="dir-privacy-btn" onclick="window.abrirEditorDirectorio()">
+          Activar perfil VIP →
+        </button>
+      </div>
+
+      <!-- Toolbar: búsqueda + filtros + orden -->
+      <div class="dir-toolbar">
+        <div class="dir-search-wrap">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="dir-search" placeholder="Buscar por nombre, empresa o cargo..." autocomplete="off" oninput="window.filtrarDirectorio()">
+          <button class="dir-search-clear" id="dir-search-clear" onclick="window.limpiarBusquedaDir()" style="display:none" aria-label="Limpiar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <select id="dir-filter-industria" onchange="window.filtrarDirectorio()">
+          <option value="">Todas las industrias</option>
+          <option value="Fiscal/Contable">Fiscal/Contable</option>
+          <option value="Legal">Legal</option>
+          <option value="Inmobiliario">Inmobiliario</option>
+          <option value="Marketing">Marketing</option>
+          <option value="Tecnología">Tecnología</option>
+          <option value="Manufactura">Manufactura</option>
+          <option value="Comercio">Comercio</option>
+          <option value="Servicios profesionales">Servicios profesionales</option>
+          <option value="Salud">Salud</option>
+          <option value="Educación">Educación</option>
+          <option value="Construcción">Construcción</option>
+          <option value="Restauración">Restauración</option>
+          <option value="Otros">Otros</option>
+        </select>
+        <select id="dir-filter-ciudad" onchange="window.filtrarDirectorio()">
+          <option value="">Todas las ciudades</option>
+          <option value="CDMX">CDMX</option>
+          <option value="Guadalajara">Guadalajara</option>
+          <option value="Monterrey">Monterrey</option>
+          <option value="Puebla">Puebla</option>
+          <option value="Tehuacán">Tehuacán</option>
+          <option value="Querétaro">Querétaro</option>
+          <option value="León">León</option>
+          <option value="Mérida">Mérida</option>
+          <option value="Tijuana">Tijuana</option>
+          <option value="Otra">Otra</option>
+        </select>
+        <select id="dir-sort" onchange="window.filtrarDirectorio()" title="Ordenar resultados">
+          <option value="recientes">Más recientes</option>
+          <option value="alfabetico">A-Z (nombre)</option>
+          <option value="experiencia">Más experiencia</option>
+        </select>
+      </div>
+
+      <!-- Filtros activos (chips) -->
+      <div class="dir-active-filters" id="dir-active-filters" style="display:none">
+        <span class="dir-active-filters-label">Filtros activos:</span>
+        <div id="dir-active-chips"></div>
+        <button class="dir-clear-all" onclick="window.limpiarFiltrosDir()">Limpiar todos</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="dir-stats" id="dir-stats">
+        <span><strong id="dir-count-visible">0</strong> miembros visibles</span>
+        <span class="dir-stats-sep">·</span>
+        <span id="dir-count-filtrados"></span>
+      </div>
+
+      <!-- Grid de cards -->
+      <div class="dir-grid" id="dir-grid">
+        <!-- Skeleton loading -->
+        <div class="dir-skeleton-card"><div class="dir-skel-top"><div class="dir-skel-avatar"></div><div class="dir-skel-info"><div class="dir-skel-line"></div><div class="dir-skel-line dir-skel-short"></div><div class="dir-skel-line dir-skel-shorter"></div></div></div><div class="dir-skel-bio"></div><div class="dir-skel-bio dir-skel-short"></div><div class="dir-skel-tags"><div class="dir-skel-tag"></div><div class="dir-skel-tag"></div></div></div>
+        <div class="dir-skeleton-card"><div class="dir-skel-top"><div class="dir-skel-avatar"></div><div class="dir-skel-info"><div class="dir-skel-line"></div><div class="dir-skel-line dir-skel-short"></div><div class="dir-skel-line dir-skel-shorter"></div></div></div><div class="dir-skel-bio"></div><div class="dir-skel-bio dir-skel-short"></div><div class="dir-skel-tags"><div class="dir-skel-tag"></div><div class="dir-skel-tag"></div></div></div>
+        <div class="dir-skeleton-card"><div class="dir-skel-top"><div class="dir-skel-avatar"></div><div class="dir-skel-info"><div class="dir-skel-line"></div><div class="dir-skel-line dir-skel-short"></div><div class="dir-skel-line dir-skel-shorter"></div></div></div><div class="dir-skel-bio"></div><div class="dir-skel-bio dir-skel-short"></div><div class="dir-skel-tags"><div class="dir-skel-tag"></div><div class="dir-skel-tag"></div></div></div>
+      </div>
+
+      <!-- Empty: filtros vacíos -->
+      <div class="dir-empty" id="dir-empty" style="display:none">
+        <div class="dir-empty-icon">🔍</div>
+        <h3>Sin resultados</h3>
+        <p>No encontramos miembros que coincidan con tus filtros. Prueba con otros criterios o limpia los filtros.</p>
+        <button class="dir-empty-btn" onclick="window.limpiarFiltrosDir()">Limpiar filtros</button>
+      </div>
+
+      <!-- Empty: zero perfiles totales (primer miembro) -->
+      <div class="dir-empty dir-empty-first" id="dir-empty-first" style="display:none">
+        <div class="dir-empty-icon">🌟</div>
+        <h3>Sé el primer miembro VIP del directorio</h3>
+        <p>Aún nadie ha activado su perfil. Activa el tuyo y conviértete en el primer miembro visible. Tendrás visibilidad completa con la comunidad VIP.</p>
+        <button class="dir-empty-btn dir-empty-btn-primary" onclick="window.abrirEditorDirectorio()">Activar mi perfil VIP →</button>
       </div>
     </div>
+
+    <!-- ============================================================
+         👤 MODAL: Ver perfil completo de un miembro VIP
+         ============================================================ -->
+    <div id="dir-perfil-modal" class="dir-perfil-modal" style="display:none">
+      <div class="dir-perfil-overlay" onclick="window.cerrarPerfilDirectorio()"></div>
+      <div class="dir-perfil-content">
+        <button class="dir-perfil-close" onclick="window.cerrarPerfilDirectorio()" aria-label="Cerrar">×</button>
+
+        <header class="dir-perfil-header">
+          <div class="dir-perfil-avatar" id="dir-perfil-avatar">JP</div>
+          <div class="dir-perfil-info">
+            <h2 id="dir-perfil-nombre">—</h2>
+            <p class="dir-perfil-cargo" id="dir-perfil-cargo">—</p>
+            <p class="dir-perfil-empresa" id="dir-perfil-empresa">—</p>
+            <div class="dir-perfil-tags">
+              <span class="dir-perfil-tag dir-perfil-tag-industria" id="dir-perfil-industria">—</span>
+              <span class="dir-perfil-tag dir-perfil-tag-ciudad" id="dir-perfil-ciudad">📍 —</span>
+              <span class="dir-perfil-tag" id="dir-perfil-experiencia">—</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="dir-perfil-body">
+          <section class="dir-perfil-section">
+            <h3>📋 Sobre mí</h3>
+            <p id="dir-perfil-bio">—</p>
+          </section>
+
+          <section class="dir-perfil-section" id="dir-perfil-ofrece-section">
+            <h3>✨ Lo que ofrezco</h3>
+            <div class="dir-perfil-chips" id="dir-perfil-ofrece"></div>
+          </section>
+
+          <section class="dir-perfil-section" id="dir-perfil-busca-section">
+            <h3>🎯 Lo que busco</h3>
+            <div class="dir-perfil-chips" id="dir-perfil-busca"></div>
+          </section>
+
+          <section class="dir-perfil-section">
+            <h3>📞 Contactar</h3>
+            <div class="dir-perfil-contacto" id="dir-perfil-contacto"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         ✏️ MODAL: Editar mi perfil del Directorio
+         ============================================================ -->
+    <div id="dir-editor-modal" class="dir-editor-modal" style="display:none">
+      <div class="dir-editor-overlay" onclick="window.cerrarEditorDirectorio()"></div>
+      <div class="dir-editor-content">
+        <header class="dir-editor-header">
+          <div>
+            <p class="dir-editor-eyebrow">Mi perfil VIP</p>
+            <h2>Edita tu perfil del Directorio</h2>
+          </div>
+          <button class="dir-editor-close" onclick="window.cerrarEditorDirectorio()" aria-label="Cerrar">×</button>
+        </header>
+
+        <div class="dir-editor-body">
+
+          <!-- Toggle visibilidad -->
+          <div class="dir-editor-toggle-card">
+            <div>
+              <strong>Aparecer en el Directorio VIP</strong>
+              <p>Cuando lo activas, otros miembros pueden encontrarte y contactarte.</p>
+            </div>
+            <label class="dir-toggle-switch">
+              <input type="checkbox" id="dir-edit-visible">
+              <span class="dir-toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Vista previa del card -->
+          <div class="dir-preview-section">
+            <p class="dir-preview-label">👁️ Así te verán otros miembros</p>
+            <div class="dir-preview-card" id="dir-preview-card">
+              <div class="dir-card-top">
+                <div class="dir-card-avatar" id="dir-preview-avatar">?</div>
+                <div class="dir-card-info">
+                  <p class="dir-card-name" id="dir-preview-nombre">Tu nombre</p>
+                  <p class="dir-card-cargo" id="dir-preview-cargo">Tu cargo</p>
+                  <p class="dir-card-empresa" id="dir-preview-empresa">Tu empresa</p>
+                </div>
+              </div>
+              <p class="dir-card-bio" id="dir-preview-bio" style="color:#5d7396;font-style:italic">Llena tu bio para ver cómo se verá aquí…</p>
+              <div class="dir-card-tags" id="dir-preview-tags"></div>
+            </div>
+          </div>
+
+          <!-- Form -->
+          <div class="dir-editor-form">
+            <div class="dir-editor-row">
+              <div class="dir-editor-field">
+                <label>Cargo / Puesto<span class="dir-req">*</span></label>
+                <input type="text" id="dir-edit-cargo" placeholder="Ej: Director General" maxlength="60" oninput="window.actualizarPreviewDir()">
+              </div>
+              <div class="dir-editor-field">
+                <label>Empresa<span class="dir-req">*</span></label>
+                <input type="text" id="dir-edit-empresa" placeholder="Ej: Mi Empresa S.A." maxlength="80" oninput="window.actualizarPreviewDir()">
+              </div>
+            </div>
+
+            <div class="dir-editor-row">
+              <div class="dir-editor-field">
+                <label>Industria<span class="dir-req">*</span></label>
+                <select id="dir-edit-industria" onchange="window.actualizarPreviewDir()">
+                  <option value="">Selecciona…</option>
+                  <option value="Fiscal/Contable">Fiscal/Contable</option>
+                  <option value="Legal">Legal</option>
+                  <option value="Inmobiliario">Inmobiliario</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Tecnología">Tecnología</option>
+                  <option value="Manufactura">Manufactura</option>
+                  <option value="Comercio">Comercio</option>
+                  <option value="Servicios profesionales">Servicios profesionales</option>
+                  <option value="Salud">Salud</option>
+                  <option value="Educación">Educación</option>
+                  <option value="Construcción">Construcción</option>
+                  <option value="Restauración">Restauración</option>
+                  <option value="Otros">Otros</option>
+                </select>
+              </div>
+              <div class="dir-editor-field">
+                <label>Ciudad<span class="dir-req">*</span></label>
+                <select id="dir-edit-ciudad" onchange="window.actualizarPreviewDir()">
+                  <option value="">Selecciona…</option>
+                  <option value="CDMX">CDMX</option>
+                  <option value="Guadalajara">Guadalajara</option>
+                  <option value="Monterrey">Monterrey</option>
+                  <option value="Puebla">Puebla</option>
+                  <option value="Tehuacán">Tehuacán</option>
+                  <option value="Querétaro">Querétaro</option>
+                  <option value="León">León</option>
+                  <option value="Mérida">Mérida</option>
+                  <option value="Tijuana">Tijuana</option>
+                  <option value="Otra">Otra</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="dir-editor-field">
+              <label>Años de experiencia</label>
+              <input type="number" id="dir-edit-experiencia" placeholder="10" min="0" max="60">
+            </div>
+
+            <div class="dir-editor-field">
+              <label>Sobre mí <span class="dir-hint">(máx 250 caracteres)</span></label>
+              <textarea id="dir-edit-bio" placeholder="Cuenta brevemente quién eres profesionalmente, qué te apasiona y cómo ayudas a tus clientes." maxlength="250" oninput="window.actualizarPreviewDir()"></textarea>
+              <p class="dir-char-counter" id="dir-bio-counter"><span id="dir-bio-count">0</span>/250</p>
+            </div>
+
+            <div class="dir-editor-field">
+              <label>Lo que ofrezco <span class="dir-hint">(separa con comas, máx 5)</span></label>
+              <input type="text" id="dir-edit-ofrece" placeholder="Asesoría fiscal, contabilidad, declaraciones SAT...">
+            </div>
+
+            <div class="dir-editor-field">
+              <label>Lo que busco <span class="dir-hint">(separa con comas, máx 5)</span></label>
+              <input type="text" id="dir-edit-busca" placeholder="Clientes PYMEs, alianzas con abogados, proveedores de software...">
+            </div>
+
+            <div class="dir-editor-section-title">📞 ¿Cómo quieres que te contacten?</div>
+
+            <div class="dir-editor-row">
+              <div class="dir-editor-field">
+                <label>WhatsApp <span class="dir-hint">(con lada, ej: 5212381234567)</span></label>
+                <input type="text" id="dir-edit-whatsapp" placeholder="5212381234567" oninput="window.validarWhatsappDir(this)">
+                <p class="dir-field-error" id="dir-whatsapp-err" style="display:none">Formato no válido. Usa solo números (10 a 13 dígitos, con lada).</p>
+              </div>
+              <div class="dir-editor-field">
+                <label>Email visible</label>
+                <input type="email" id="dir-edit-email" placeholder="contacto@miempresa.com">
+              </div>
+            </div>
+
+            <div class="dir-editor-row">
+              <div class="dir-editor-field">
+                <label>LinkedIn (opcional)</label>
+                <input type="text" id="dir-edit-linkedin" placeholder="linkedin.com/in/tu-perfil">
+              </div>
+              <div class="dir-editor-field">
+                <label>Sitio web (opcional)</label>
+                <input type="text" id="dir-edit-web" placeholder="www.miempresa.com">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <footer class="dir-editor-footer">
+          <button class="dir-editor-btn dir-editor-btn-secondary" onclick="window.cerrarEditorDirectorio()">Cancelar</button>
+          <button class="dir-editor-btn dir-editor-btn-primary" onclick="window.guardarPerfilDirectorio()" id="dir-edit-save">
+            Guardar perfil
+          </button>
+        </footer>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         🔔 TOAST NOTIFICATIONS (Directorio)
+         ============================================================ -->
+    <div id="dir-toast-container" class="dir-toast-container"></div>
 
 
     <!-- CURSOS EN VIVO -->
@@ -14215,35 +14511,46 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   align-items: center;
 }
 .tpl-search > svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
   width: 16px !important;
   height: 16px !important;
-  flex-shrink: 0;
-  color: rgba(168,184,209,0.6);
-  pointer-events: none;
-  z-index: 2;
+  min-width: 16px !important;
+  min-height: 16px !important;
+  max-width: 16px !important;
+  max-height: 16px !important;
+  flex-shrink: 0 !important;
+  color: rgba(168,184,209,0.6) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+  display: block !important;
 }
-.tpl-search input {
-  width: 100%;
-  padding: 11px 38px 11px 42px;
-  background: rgba(11,31,74,0.5);
-  border: 1px solid rgba(147,180,237,0.18);
-  border-radius: 8px;
-  color: #fafafa;
-  font-family: 'Inter', sans-serif;
-  font-size: 13px;
+.tpl-search input,
+.tpl-search input[type="text"],
+input#tpl-search-input {
+  width: 100% !important;
+  padding-left: 42px !important;
+  padding-right: 38px !important;
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+  background: rgba(11,31,74,0.5) !important;
+  border: 1px solid rgba(147,180,237,0.18) !important;
+  border-radius: 8px !important;
+  color: #fafafa !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
   transition: border-color 0.15s, background 0.15s;
-  box-sizing: border-box;
-  text-indent: 0;
+  box-sizing: border-box !important;
+  text-indent: 0 !important;
+  margin: 0 !important;
 }
 .tpl-search input::placeholder { color: rgba(168,184,209,0.5); }
 .tpl-search input:focus {
-  outline: none;
-  border-color: rgba(147,180,237,0.5);
-  background: rgba(11,31,74,0.7);
+  outline: none !important;
+  border-color: rgba(147,180,237,0.5) !important;
+  background: rgba(11,31,74,0.7) !important;
 }
 .tpl-search-clear {
   position: absolute;
@@ -19794,6 +20101,1122 @@ body.is-guest #perfil-avatar-big {
   -webkit-text-fill-color: #0d4737 !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   🌐 DIRECTORIO VIP — Estilos
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Banner privacidad ─── */
+.dir-privacy-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, rgba(245, 215, 122, 0.06), rgba(13, 71, 55, 0.04));
+  border: 1px solid rgba(245, 215, 122, 0.18);
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.dir-privacy-banner.is-active {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.06), rgba(13, 71, 55, 0.04));
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.dir-privacy-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(245, 215, 122, 0.1);
+  border-radius: 10px;
+  color: #f5d77a;
+}
+.dir-privacy-banner.is-active .dir-privacy-icon {
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+}
+.dir-privacy-text {
+  flex: 1;
+  min-width: 200px;
+}
+.dir-privacy-text strong {
+  display: block;
+  color: #fafafa !important;
+  -webkit-text-fill-color: #fafafa !important;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.dir-privacy-text p {
+  color: #93b4ed !important;
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.5;
+}
+.dir-privacy-btn {
+  flex-shrink: 0;
+  padding: 10px 18px;
+  background: linear-gradient(135deg, #f5d77a, #c8962a);
+  color: #0b1f4a;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.dir-privacy-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 215, 122, 0.3);
+}
+
+/* ─── Toolbar (búsqueda + filtros) ─── */
+.dir-toolbar {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+.dir-search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  align-items: center;
+}
+.dir-search-wrap > svg {
+  position: absolute !important;
+  left: 14px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 16px !important;
+  height: 16px !important;
+  color: rgba(168,184,209,0.6) !important;
+  pointer-events: none !important;
+  z-index: 2 !important;
+}
+.dir-search-wrap input {
+  width: 100% !important;
+  padding: 11px 14px 11px 42px !important;
+  background: rgba(11,31,74,0.5) !important;
+  border: 1px solid rgba(147,180,237,0.18) !important;
+  border-radius: 8px !important;
+  color: #fafafa !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  box-sizing: border-box !important;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dir-search-wrap input::placeholder { color: rgba(168,184,209,0.5); }
+.dir-search-wrap input:focus {
+  border-color: rgba(147,180,237,0.5) !important;
+  background: rgba(11,31,74,0.7) !important;
+}
+.dir-toolbar select {
+  padding: 11px 14px;
+  background: rgba(11,31,74,0.5);
+  border: 1px solid rgba(147,180,237,0.18);
+  border-radius: 8px;
+  color: #fafafa;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+  min-width: 180px;
+}
+.dir-toolbar select:focus { border-color: rgba(147,180,237,0.5); }
+
+/* ─── Stats ─── */
+.dir-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  margin-bottom: 1rem;
+  font-size: 12px;
+  color: #93b4ed;
+}
+.dir-stats strong {
+  color: #f5d77a;
+  font-weight: 600;
+}
+.dir-stats-sep { color: rgba(147, 180, 237, 0.4); }
+
+/* ─── Grid de cards ─── */
+.dir-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+.dir-card {
+  background: rgba(11, 31, 74, 0.4);
+  border: 1px solid rgba(147, 180, 237, 0.12);
+  border-radius: 12px;
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  font-family: 'Inter', sans-serif;
+  text-align: left;
+}
+.dir-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(245, 215, 122, 0.3);
+  background: rgba(11, 31, 74, 0.65);
+}
+.dir-card-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.dir-card-avatar {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1565c0, #0b2554);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fafafa;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  border: 2px solid rgba(245, 215, 122, 0.15);
+}
+.dir-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.dir-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fafafa !important;
+  -webkit-text-fill-color: #fafafa !important;
+  margin: 0 0 2px;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-transform: none;
+  font-family: 'Inter', sans-serif;
+  font-style: normal;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.dir-card-cargo {
+  font-size: 12px;
+  color: #93b4ed;
+  margin: 0;
+  line-height: 1.4;
+}
+.dir-card-empresa {
+  font-size: 11.5px;
+  color: #5d7396;
+  margin: 0;
+  font-style: italic;
+}
+.dir-card-bio {
+  font-size: 12px;
+  color: #d4dffa;
+  line-height: 1.55;
+  margin: 0 0 10px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dir-card-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dir-card-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  background: rgba(245, 215, 122, 0.08);
+  border: 1px solid rgba(245, 215, 122, 0.18);
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #f5d77a;
+  letter-spacing: 0.02em;
+}
+.dir-card-tag.is-ciudad {
+  background: rgba(147, 180, 237, 0.08);
+  border-color: rgba(147, 180, 237, 0.18);
+  color: #93b4ed;
+}
+
+/* Loading + empty */
+.dir-loading {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #93b4ed;
+}
+.dir-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(245, 215, 122, 0.2);
+  border-top-color: #f5d77a;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  animation: dirSpin 1s linear infinite;
+}
+@keyframes dirSpin { to { transform: rotate(360deg); } }
+.dir-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #93b4ed;
+}
+.dir-empty-icon { font-size: 48px; margin-bottom: 1rem; }
+.dir-empty h3 {
+  color: #fafafa !important;
+  -webkit-text-fill-color: #fafafa !important;
+  font-size: 18px;
+  margin: 0 0 6px;
+  font-family: 'Inter', sans-serif;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.dir-empty p {
+  font-size: 13px;
+  color: #93b4ed;
+  margin: 0;
+  max-width: 420px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+/* ─── Modal: Ver perfil ─── */
+.dir-perfil-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10080;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: dirFadeIn 0.3s ease-out;
+}
+@keyframes dirFadeIn { from { opacity: 0; } to { opacity: 1; } }
+.dir-perfil-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 5, 15, 0.85);
+  backdrop-filter: blur(8px);
+}
+.dir-perfil-content {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  max-height: 92vh;
+  background: linear-gradient(160deg, #0d2547 0%, #0a1f3d 100%);
+  border: 1px solid rgba(245, 215, 122, 0.15);
+  border-radius: 16px;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: dirSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes dirSlideIn {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.dir-perfil-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #93b4ed;
+  font-size: 22px;
+  cursor: pointer;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.dir-perfil-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.dir-perfil-header {
+  padding: 2rem 1.75rem 1.5rem;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.dir-perfil-avatar {
+  flex-shrink: 0;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f5d77a, #c8962a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0b1f4a;
+  font-size: 28px;
+  font-weight: 700;
+}
+.dir-perfil-info { flex: 1; min-width: 0; }
+.dir-perfil-info h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 24px !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  margin: 0 0 4px !important;
+  font-style: normal !important;
+  text-transform: none !important;
+  letter-spacing: 0.01em !important;
+  line-height: 1.2;
+}
+.dir-perfil-cargo {
+  font-size: 14px;
+  color: #f5d77a;
+  margin: 0 0 2px;
+  font-weight: 500;
+}
+.dir-perfil-empresa {
+  font-size: 13px;
+  color: #93b4ed;
+  margin: 0 0 10px;
+}
+.dir-perfil-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dir-perfil-tag {
+  display: inline-block;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  font-size: 10.5px;
+  color: #d4dffa;
+  font-weight: 500;
+}
+.dir-perfil-tag-industria {
+  background: rgba(245, 215, 122, 0.1);
+  border-color: rgba(245, 215, 122, 0.2);
+  color: #f5d77a;
+}
+
+.dir-perfil-body {
+  padding: 1.5rem 1.75rem 2rem;
+}
+.dir-perfil-section {
+  margin-bottom: 1.5rem;
+}
+.dir-perfil-section h3 {
+  font-size: 12px !important;
+  color: #93b4ed !important;
+  -webkit-text-fill-color: #93b4ed !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.12em !important;
+  font-weight: 600 !important;
+  margin: 0 0 0.75rem !important;
+  font-family: 'Inter', sans-serif !important;
+  font-style: normal !important;
+}
+.dir-perfil-section p {
+  color: #d4dffa;
+  font-size: 13.5px;
+  line-height: 1.7;
+  margin: 0;
+}
+.dir-perfil-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dir-perfil-chip {
+  display: inline-block;
+  padding: 6px 12px;
+  background: rgba(245, 215, 122, 0.08);
+  border: 1px solid rgba(245, 215, 122, 0.18);
+  border-radius: 8px;
+  font-size: 12px;
+  color: #f5d77a;
+  font-weight: 500;
+}
+.dir-perfil-chip.is-busca {
+  background: rgba(147, 180, 237, 0.08);
+  border-color: rgba(147, 180, 237, 0.18);
+  color: #93b4ed;
+}
+
+.dir-perfil-contacto {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.dir-perfil-contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #d4dffa;
+  text-decoration: none;
+  font-size: 12.5px;
+  transition: background 0.15s, transform 0.1s;
+}
+.dir-perfil-contact-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  transform: translateY(-1px);
+}
+.dir-perfil-contact-btn.is-whatsapp {
+  background: rgba(37, 211, 102, 0.08);
+  border-color: rgba(37, 211, 102, 0.2);
+  color: #25D366;
+}
+.dir-perfil-contact-btn.is-whatsapp:hover {
+  background: rgba(37, 211, 102, 0.15);
+}
+.dir-perfil-contact-btn svg { flex-shrink: 0; width: 18px; height: 18px; }
+
+/* ─── Modal Editor ─── */
+.dir-editor-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10085;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: dirFadeIn 0.3s ease-out;
+}
+.dir-editor-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(2, 5, 15, 0.85);
+  backdrop-filter: blur(8px);
+}
+.dir-editor-content {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  max-height: 92vh;
+  background: linear-gradient(160deg, #0d2547 0%, #0a1f3d 100%);
+  border: 1px solid rgba(245, 215, 122, 0.15);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  animation: dirSlideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dir-editor-header {
+  padding: 1.25rem 1.75rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dir-editor-eyebrow {
+  font-size: 10.5px;
+  color: #f5d77a;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+.dir-editor-header h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 22px !important;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  margin: 0 !important;
+  font-style: normal !important;
+  text-transform: none !important;
+}
+.dir-editor-close {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  border-radius: 8px;
+  color: #93b4ed;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+.dir-editor-close:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+.dir-editor-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem 1.75rem;
+}
+
+.dir-editor-toggle-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  background: rgba(245, 215, 122, 0.06);
+  border: 1px solid rgba(245, 215, 122, 0.18);
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+}
+.dir-editor-toggle-card strong {
+  display: block;
+  color: #fafafa;
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.dir-editor-toggle-card p {
+  color: #93b4ed;
+  font-size: 12px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Toggle switch */
+.dir-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.dir-toggle-switch input { opacity: 0; width: 0; height: 0; }
+.dir-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dir-toggle-slider::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform 0.2s;
+}
+.dir-toggle-switch input:checked + .dir-toggle-slider {
+  background: linear-gradient(135deg, #f5d77a, #c8962a);
+}
+.dir-toggle-switch input:checked + .dir-toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.dir-editor-form {}
+.dir-editor-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.dir-editor-field {
+  margin-bottom: 14px;
+}
+.dir-editor-field label {
+  display: block;
+  font-size: 11.5px;
+  color: #d4dffa;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+.dir-req { color: #f5d77a; margin-left: 3px; }
+.dir-hint { color: #5d7396; font-weight: 400; font-size: 10.5px; }
+.dir-editor-field input,
+.dir-editor-field select,
+.dir-editor-field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(147, 180, 237, 0.15);
+  border-radius: 7px;
+  color: #fff;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: all 0.15s;
+  box-sizing: border-box;
+}
+.dir-editor-field input:focus,
+.dir-editor-field select:focus,
+.dir-editor-field textarea:focus {
+  border-color: #f5d77a;
+  background: rgba(245, 215, 122, 0.04);
+}
+.dir-editor-field textarea {
+  min-height: 80px;
+  resize: vertical;
+  font-family: 'Inter', sans-serif;
+}
+.dir-char-counter {
+  font-size: 11px;
+  color: #5d7396;
+  text-align: right;
+  margin: 4px 0 0;
+}
+.dir-editor-section-title {
+  font-size: 11px;
+  color: #93b4ed;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 1rem 0 0.85rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dir-editor-footer {
+  display: flex;
+  gap: 8px;
+  padding: 1rem 1.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+  justify-content: flex-end;
+}
+.dir-editor-btn {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.15s;
+}
+.dir-editor-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  color: #d4dffa;
+}
+.dir-editor-btn-secondary:hover { background: rgba(255, 255, 255, 0.1); }
+.dir-editor-btn-primary {
+  background: linear-gradient(135deg, #f5d77a, #c8962a);
+  color: #0b1f4a;
+  box-shadow: 0 2px 12px rgba(245, 215, 122, 0.25);
+}
+.dir-editor-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(245, 215, 122, 0.35);
+}
+.dir-editor-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Responsive */
+@media (max-width: 700px) {
+  .dir-editor-row { grid-template-columns: 1fr; }
+  .dir-perfil-contacto { grid-template-columns: 1fr; }
+  .dir-perfil-header { flex-direction: column; text-align: center; }
+}
+
+/* ─── MEJORAS PROFESIONALES ADICIONALES ─── */
+
+/* Botón limpiar búsqueda */
+.dir-search-clear {
+  position: absolute !important;
+  right: 12px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 22px !important;
+  height: 22px !important;
+  background: rgba(255,255,255,0.08) !important;
+  border: none !important;
+  border-radius: 6px !important;
+  color: #93b4ed !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 3 !important;
+  transition: background 0.15s, color 0.15s;
+}
+.dir-search-clear:hover {
+  background: rgba(255,255,255,0.15) !important;
+  color: #fff !important;
+}
+
+/* Filtros activos (chips) */
+.dir-active-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+  padding: 10px 14px;
+  background: rgba(245, 215, 122, 0.04);
+  border: 1px solid rgba(245, 215, 122, 0.12);
+  border-radius: 10px;
+}
+.dir-active-filters-label {
+  font-size: 11px;
+  color: #93b4ed;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+#dir-active-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+.dir-active-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(245, 215, 122, 0.12);
+  border: 1px solid rgba(245, 215, 122, 0.25);
+  border-radius: 999px;
+  font-size: 11.5px;
+  color: #f5d77a;
+  font-weight: 500;
+}
+.dir-active-chip button {
+  background: none;
+  border: none;
+  color: #f5d77a;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+.dir-active-chip button:hover { opacity: 1; }
+.dir-clear-all {
+  background: none;
+  border: 1px solid rgba(147, 180, 237, 0.2);
+  color: #93b4ed;
+  padding: 5px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+.dir-clear-all:hover {
+  background: rgba(147, 180, 237, 0.08);
+  color: #d4dffa;
+}
+
+/* Skeleton loading cards */
+.dir-skeleton-card {
+  background: rgba(11, 31, 74, 0.4);
+  border: 1px solid rgba(147, 180, 237, 0.08);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+.dir-skel-top {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.dir-skel-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: dirShimmer 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.dir-skel-info { flex: 1; padding-top: 4px; }
+.dir-skel-line {
+  height: 12px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: dirShimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.dir-skel-short { width: 70%; }
+.dir-skel-shorter { width: 50%; }
+.dir-skel-bio {
+  height: 11px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: dirShimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.dir-skel-tags { display: flex; gap: 6px; margin-top: 12px; }
+.dir-skel-tag {
+  height: 20px;
+  width: 70px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  animation: dirShimmer 1.5s ease-in-out infinite;
+  border-radius: 999px;
+}
+@keyframes dirShimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Empty states mejorados */
+.dir-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: #93b4ed;
+  background: rgba(11, 31, 74, 0.3);
+  border: 1px dashed rgba(147, 180, 237, 0.2);
+  border-radius: 14px;
+}
+.dir-empty-first {
+  background: linear-gradient(135deg, rgba(245, 215, 122, 0.06), rgba(13, 71, 55, 0.03));
+  border-color: rgba(245, 215, 122, 0.2);
+}
+.dir-empty-icon { font-size: 48px; margin-bottom: 1rem; line-height: 1; }
+.dir-empty h3 {
+  color: #fafafa !important;
+  -webkit-text-fill-color: #fafafa !important;
+  font-size: 18px !important;
+  margin: 0 0 8px !important;
+  font-family: 'Inter', sans-serif !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 600 !important;
+}
+.dir-empty p {
+  font-size: 13px;
+  color: #93b4ed;
+  margin: 0 auto 1.25rem;
+  max-width: 420px;
+  line-height: 1.6;
+}
+.dir-empty-btn {
+  padding: 10px 22px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  color: #d4dffa;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.dir-empty-btn:hover { background: rgba(255, 255, 255, 0.1); }
+.dir-empty-btn-primary {
+  background: linear-gradient(135deg, #f5d77a, #c8962a);
+  border: none;
+  color: #0b1f4a;
+  box-shadow: 0 4px 16px rgba(245, 215, 122, 0.25);
+}
+.dir-empty-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(245, 215, 122, 0.35);
+}
+
+/* Vista previa del card en el editor */
+.dir-preview-section {
+  margin-bottom: 1.5rem;
+  padding: 14px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(147, 180, 237, 0.1);
+  border-radius: 10px;
+}
+.dir-preview-label {
+  font-size: 11px;
+  color: #93b4ed;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin: 0 0 10px;
+}
+.dir-preview-card {
+  background: rgba(11, 31, 74, 0.6);
+  border: 1px solid rgba(147, 180, 237, 0.15);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  pointer-events: none;
+  transition: all 0.2s;
+}
+
+/* Counter de bio con cambio de color */
+.dir-char-counter {
+  font-size: 11px;
+  color: #5d7396;
+  text-align: right;
+  margin: 4px 0 0;
+  transition: color 0.2s;
+}
+.dir-char-counter.is-warning { color: #fbbf24; }
+.dir-char-counter.is-danger { color: #ef4444; }
+
+/* Errores de validación inline */
+.dir-field-error {
+  font-size: 11px;
+  color: #ef4444;
+  margin: 4px 0 0;
+}
+
+/* Inputs con error */
+.dir-editor-field input.has-error,
+.dir-editor-field select.has-error,
+.dir-editor-field textarea.has-error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.05) !important;
+}
+
+/* Toast notifications */
+.dir-toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 10090;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+}
+.dir-toast {
+  pointer-events: auto;
+  min-width: 280px;
+  max-width: 380px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #0d2547 0%, #0a1f3d 100%);
+  border: 1px solid rgba(147, 180, 237, 0.2);
+  border-radius: 10px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  animation: dirToastIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.dir-toast.is-leaving {
+  animation: dirToastOut 0.3s ease-in forwards;
+}
+@keyframes dirToastIn {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes dirToastOut {
+  to { opacity: 0; transform: translateX(100%); }
+}
+.dir-toast-icon {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 13px;
+}
+.dir-toast.is-success {
+  border-color: rgba(34, 197, 94, 0.3);
+}
+.dir-toast.is-success .dir-toast-icon {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+.dir-toast.is-error {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+.dir-toast.is-error .dir-toast-icon {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+.dir-toast.is-info {
+  border-color: rgba(147, 180, 237, 0.25);
+}
+.dir-toast.is-info .dir-toast-icon {
+  background: rgba(147, 180, 237, 0.12);
+  color: #93b4ed;
+}
+.dir-toast-body { flex: 1; min-width: 0; }
+.dir-toast-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 2px;
+}
+.dir-toast-msg {
+  font-size: 12px;
+  color: #d4dffa;
+  margin: 0;
+  line-height: 1.5;
+}
+.dir-toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: #5d7396;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.15s;
+}
+.dir-toast-close:hover { color: #fafafa; }
+
+/* Hover lift en cards del Directorio */
+.dir-card:active { transform: scale(0.98); }
+
+/* Avatar con foto */
+.dir-card-avatar.has-img,
+.dir-perfil-avatar.has-img {
+  background-size: cover;
+  background-position: center;
+  color: transparent;
+}
+
+/* Botón compartir perfil */
+.dir-perfil-share {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #93b4ed;
+  padding: 6px 12px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-top: 0.75rem;
+  transition: all 0.15s;
+}
+.dir-perfil-share:hover {
+  background: rgba(245, 215, 122, 0.08);
+  border-color: rgba(245, 215, 122, 0.2);
+  color: #f5d77a;
+}
+
+/* Móvil */
+@media (max-width: 700px) {
+  .dir-toast-container { left: 16px; right: 16px; bottom: 16px; }
+  .dir-toast { min-width: 0; max-width: 100%; }
+  .dir-active-filters { padding: 8px 10px; }
+}
+
 </style>
 
 
@@ -21039,6 +22462,715 @@ window._icademLogros = {
       }
     }
   });
+
+
+// ═══════════════════════════════════════════════════════════════
+// 🌐 DIRECTORIO VIP — Lógica completa (versión profesional)
+// Usa Firestore: colección /directorio/{uid}
+// Estructura del doc:
+//   { uid, nombre, cargo, empresa, industria, ciudad, bio,
+//     experiencia, ofrece[], busca[], contacto: {whatsapp, email,
+//     linkedin, web}, visible: bool, actualizadoEn }
+// ═══════════════════════════════════════════════════════════════
+(function() {
+  'use strict';
+
+  let _todosPerfiles = [];
+  let _miPerfil = null;
+  let _perfilActivo = null;
+  let _firstLoad = true;
+
+  // ─── Helpers ───
+  function obtenerIniciales(nombre) {
+    if (!nombre) return '?';
+    const partes = nombre.trim().split(/\s+/);
+    if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+    return (partes[0][0] + partes[1][0]).toUpperCase();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = String(str || '');
+    return div.innerHTML;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // 🔔 SISTEMA DE TOAST (notificaciones elegantes)
+  // ═══════════════════════════════════════════════════════════
+  function mostrarToast(opts) {
+    opts = opts || {};
+    const tipo = opts.tipo || 'info';
+    const titulo = opts.titulo || '';
+    const mensaje = opts.mensaje || '';
+    const duracion = opts.duracion || 4000;
+
+    const container = document.getElementById('dir-toast-container');
+    if (!container) return;
+
+    const iconos = { success: '✓', error: '✕', info: 'ℹ' };
+
+    const toast = document.createElement('div');
+    toast.className = `dir-toast is-${tipo}`;
+    toast.innerHTML = `
+      <div class="dir-toast-icon">${iconos[tipo] || 'ℹ'}</div>
+      <div class="dir-toast-body">
+        ${titulo ? `<p class="dir-toast-title">${escapeHtml(titulo)}</p>` : ''}
+        ${mensaje ? `<p class="dir-toast-msg">${escapeHtml(mensaje)}</p>` : ''}
+      </div>
+      <button class="dir-toast-close" aria-label="Cerrar">×</button>
+    `;
+    container.appendChild(toast);
+
+    // Cerrar manual
+    toast.querySelector('.dir-toast-close').addEventListener('click', () => removerToast(toast));
+
+    // Auto-cerrar
+    if (duracion > 0) {
+      setTimeout(() => removerToast(toast), duracion);
+    }
+  }
+
+  function removerToast(toast) {
+    if (!toast || !toast.parentNode) return;
+    toast.classList.add('is-leaving');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }
+
+  window.dirToast = mostrarToast; // exposición
+
+  // ═══════════════════════════════════════════════════════════
+  // CARGAR perfiles del directorio
+  // ═══════════════════════════════════════════════════════════
+  async function cargarDirectorio() {
+    try {
+      const auth = (typeof getAuth === 'function') ? getAuth() : null;
+      const db = (typeof getFirestore === 'function') ? getFirestore() : null;
+      if (!db) {
+        console.warn('[Directorio] Firestore no disponible');
+        renderEmptyFirst();
+        return;
+      }
+
+      const { collection, query, where, getDocs, doc, getDoc } =
+        await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+
+      // Cargar todos los perfiles visibles
+      const ref = collection(db, 'directorio');
+      const q = query(ref, where('visible', '==', true));
+      const snap = await getDocs(q);
+
+      _todosPerfiles = [];
+      snap.forEach(d => {
+        const data = d.data();
+        _todosPerfiles.push({ id: d.id, ...data });
+      });
+
+      // Si el usuario está logueado, cargar SU perfil
+      if (auth && auth.currentUser) {
+        try {
+          const miRef = doc(db, 'directorio', auth.currentUser.uid);
+          const miSnap = await getDoc(miRef);
+          if (miSnap.exists()) {
+            _miPerfil = { id: miSnap.id, ...miSnap.data() };
+          }
+        } catch(e) {
+          console.warn('[Directorio] No pude cargar mi perfil:', e);
+        }
+      }
+
+      actualizarBannerPrivacidad();
+      filtrarYRenderizar();
+    } catch(e) {
+      console.error('[Directorio] Error cargando:', e);
+      renderEmptyFirst();
+      mostrarToast({ tipo: 'error', titulo: 'Error de carga', mensaje: 'No se pudo cargar el directorio. Intenta refrescar.' });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // BANNER de privacidad — refleja si el user es visible
+  // ═══════════════════════════════════════════════════════════
+  function actualizarBannerPrivacidad() {
+    const banner = document.getElementById('dir-privacy-banner');
+    const title = document.getElementById('dir-privacy-title');
+    const desc = document.getElementById('dir-privacy-desc');
+    const btn = document.getElementById('dir-privacy-btn');
+    if (!banner) return;
+
+    const visible = _miPerfil && _miPerfil.visible;
+
+    if (visible) {
+      banner.classList.add('is-active');
+      title.textContent = '✓ Tu perfil está visible';
+      const otros = Math.max(0, _todosPerfiles.length - 1);
+      desc.textContent = otros > 0
+        ? `Eres parte del Directorio VIP junto con otros ${otros} miembro${otros===1?'':'s'}.`
+        : 'Eres el primer miembro visible. Pronto más miembros se sumarán.';
+      btn.textContent = 'Editar mi perfil';
+    } else {
+      banner.classList.remove('is-active');
+      title.textContent = 'Tu perfil está oculto';
+      desc.textContent = 'Activa tu visibilidad para que otros miembros VIP puedan encontrarte y contactarte.';
+      btn.textContent = _miPerfil ? 'Activar mi perfil' : 'Crear mi perfil VIP →';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FILTRAR + ORDENAR + RENDERIZAR
+  // ═══════════════════════════════════════════════════════════
+  function filtrarYRenderizar() {
+    const search = (document.getElementById('dir-search')?.value || '').toLowerCase().trim();
+    const industria = document.getElementById('dir-filter-industria')?.value || '';
+    const ciudad = document.getElementById('dir-filter-ciudad')?.value || '';
+    const sort = document.getElementById('dir-sort')?.value || 'recientes';
+
+    // Mostrar/ocultar botón clear de búsqueda
+    const clearBtn = document.getElementById('dir-search-clear');
+    if (clearBtn) clearBtn.style.display = search ? 'flex' : 'none';
+
+    let filtrados = _todosPerfiles.slice();
+
+    if (search) {
+      filtrados = filtrados.filter(p => {
+        const txt = (
+          (p.nombre || '') + ' ' +
+          (p.empresa || '') + ' ' +
+          (p.cargo || '') + ' ' +
+          (p.bio || '') + ' ' +
+          ((p.ofrece || []).join(' ')) + ' ' +
+          ((p.busca || []).join(' '))
+        ).toLowerCase();
+        return txt.includes(search);
+      });
+    }
+    if (industria) {
+      filtrados = filtrados.filter(p => p.industria === industria);
+    }
+    if (ciudad) {
+      filtrados = filtrados.filter(p => p.ciudad === ciudad);
+    }
+
+    // Ordenar
+    if (sort === 'alfabetico') {
+      filtrados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || '', 'es'));
+    } else if (sort === 'experiencia') {
+      filtrados.sort((a, b) => (b.experiencia || 0) - (a.experiencia || 0));
+    } else {
+      // Recientes (por actualizadoEn descendente)
+      filtrados.sort((a, b) => {
+        const ta = a.actualizadoEn?.seconds || 0;
+        const tb = b.actualizadoEn?.seconds || 0;
+        return tb - ta;
+      });
+    }
+
+    // Actualizar chips de filtros activos
+    actualizarChipsFiltros(industria, ciudad, search);
+
+    // Stats
+    const countTotal = document.getElementById('dir-count-visible');
+    const countFiltrados = document.getElementById('dir-count-filtrados');
+    if (countTotal) countTotal.textContent = _todosPerfiles.length;
+    if (countFiltrados) {
+      if (filtrados.length === _todosPerfiles.length) {
+        countFiltrados.textContent = '';
+      } else {
+        countFiltrados.textContent = `${filtrados.length} con los filtros aplicados`;
+      }
+    }
+
+    // Render según estado
+    if (_todosPerfiles.length === 0) {
+      renderEmptyFirst();
+    } else if (filtrados.length === 0) {
+      renderEmptyFiltered();
+    } else {
+      renderCards(filtrados);
+    }
+  }
+
+  function actualizarChipsFiltros(industria, ciudad, search) {
+    const cont = document.getElementById('dir-active-filters');
+    const chips = document.getElementById('dir-active-chips');
+    if (!cont || !chips) return;
+
+    const items = [];
+    if (industria) items.push({ tipo: 'industria', val: industria });
+    if (ciudad) items.push({ tipo: 'ciudad', val: ciudad });
+    if (search) items.push({ tipo: 'search', val: `"${search}"` });
+
+    if (items.length === 0) {
+      cont.style.display = 'none';
+      return;
+    }
+
+    cont.style.display = '';
+    chips.innerHTML = items.map(it => `
+      <span class="dir-active-chip">
+        ${escapeHtml(it.val)}
+        <button onclick="window.quitarFiltroDir('${it.tipo}')" aria-label="Quitar">×</button>
+      </span>
+    `).join('');
+  }
+
+  window.quitarFiltroDir = function(tipo) {
+    if (tipo === 'industria') document.getElementById('dir-filter-industria').value = '';
+    else if (tipo === 'ciudad') document.getElementById('dir-filter-ciudad').value = '';
+    else if (tipo === 'search') document.getElementById('dir-search').value = '';
+    filtrarYRenderizar();
+  };
+
+  window.limpiarFiltrosDir = function() {
+    document.getElementById('dir-filter-industria').value = '';
+    document.getElementById('dir-filter-ciudad').value = '';
+    document.getElementById('dir-search').value = '';
+    document.getElementById('dir-sort').value = 'recientes';
+    filtrarYRenderizar();
+  };
+
+  window.limpiarBusquedaDir = function() {
+    document.getElementById('dir-search').value = '';
+    filtrarYRenderizar();
+  };
+
+  function renderCards(perfiles) {
+    const grid = document.getElementById('dir-grid');
+    const empty = document.getElementById('dir-empty');
+    const emptyFirst = document.getElementById('dir-empty-first');
+    if (!grid) return;
+
+    if (empty) empty.style.display = 'none';
+    if (emptyFirst) emptyFirst.style.display = 'none';
+    grid.style.display = '';
+
+    grid.innerHTML = perfiles.map(p => `
+      <button class="dir-card" onclick="window.verPerfilDirectorio('${escapeHtml(p.id)}')">
+        <div class="dir-card-top">
+          <div class="dir-card-avatar">${obtenerIniciales(p.nombre)}</div>
+          <div class="dir-card-info">
+            <p class="dir-card-name">${escapeHtml(p.nombre || 'Miembro VIP')}</p>
+            <p class="dir-card-cargo">${escapeHtml(p.cargo || '—')}</p>
+            <p class="dir-card-empresa">${escapeHtml(p.empresa || '')}</p>
+          </div>
+        </div>
+        ${p.bio ? `<p class="dir-card-bio">${escapeHtml(p.bio)}</p>` : ''}
+        <div class="dir-card-tags">
+          ${p.industria ? `<span class="dir-card-tag">${escapeHtml(p.industria)}</span>` : ''}
+          ${p.ciudad ? `<span class="dir-card-tag is-ciudad">📍 ${escapeHtml(p.ciudad)}</span>` : ''}
+          ${p.experiencia ? `<span class="dir-card-tag is-ciudad">⏱ ${p.experiencia} años</span>` : ''}
+        </div>
+      </button>
+    `).join('');
+  }
+
+  function renderEmptyFiltered() {
+    const grid = document.getElementById('dir-grid');
+    const empty = document.getElementById('dir-empty');
+    const emptyFirst = document.getElementById('dir-empty-first');
+    if (grid) grid.style.display = 'none';
+    if (emptyFirst) emptyFirst.style.display = 'none';
+    if (empty) empty.style.display = '';
+  }
+
+  function renderEmptyFirst() {
+    const grid = document.getElementById('dir-grid');
+    const empty = document.getElementById('dir-empty');
+    const emptyFirst = document.getElementById('dir-empty-first');
+    if (grid) grid.style.display = 'none';
+    if (empty) empty.style.display = 'none';
+    if (emptyFirst) emptyFirst.style.display = '';
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // VER perfil completo (modal)
+  // ═══════════════════════════════════════════════════════════
+  window.verPerfilDirectorio = function(uid) {
+    const p = _todosPerfiles.find(x => x.id === uid);
+    if (!p) return;
+    _perfilActivo = p;
+
+    document.getElementById('dir-perfil-avatar').textContent = obtenerIniciales(p.nombre);
+    document.getElementById('dir-perfil-nombre').textContent = p.nombre || 'Miembro VIP';
+    document.getElementById('dir-perfil-cargo').textContent = p.cargo || '—';
+    document.getElementById('dir-perfil-empresa').textContent = p.empresa || '';
+    document.getElementById('dir-perfil-industria').textContent = p.industria || '—';
+    document.getElementById('dir-perfil-ciudad').textContent = '📍 ' + (p.ciudad || '—');
+
+    const expEl = document.getElementById('dir-perfil-experiencia');
+    if (p.experiencia) {
+      expEl.style.display = '';
+      expEl.textContent = `⏱ ${p.experiencia} años`;
+    } else {
+      expEl.style.display = 'none';
+    }
+
+    document.getElementById('dir-perfil-bio').textContent = p.bio || 'Sin biografía registrada.';
+
+    // Ofrece
+    const ofreceSec = document.getElementById('dir-perfil-ofrece-section');
+    const ofreceEl = document.getElementById('dir-perfil-ofrece');
+    if (Array.isArray(p.ofrece) && p.ofrece.length > 0) {
+      ofreceSec.style.display = '';
+      ofreceEl.innerHTML = p.ofrece.map(o => `<span class="dir-perfil-chip">${escapeHtml(o)}</span>`).join('');
+    } else {
+      ofreceSec.style.display = 'none';
+    }
+
+    // Busca
+    const buscaSec = document.getElementById('dir-perfil-busca-section');
+    const buscaEl = document.getElementById('dir-perfil-busca');
+    if (Array.isArray(p.busca) && p.busca.length > 0) {
+      buscaSec.style.display = '';
+      buscaEl.innerHTML = p.busca.map(b => `<span class="dir-perfil-chip is-busca">${escapeHtml(b)}</span>`).join('');
+    } else {
+      buscaSec.style.display = 'none';
+    }
+
+    // Contacto
+    const contactoEl = document.getElementById('dir-perfil-contacto');
+    const c = p.contacto || {};
+    const links = [];
+
+    if (c.whatsapp) {
+      const numero = c.whatsapp.replace(/\D/g, '');
+      const mensaje = encodeURIComponent(`Hola ${(p.nombre||'').split(' ')[0]}, te contacto desde el Directorio VIP de ICADEM.`);
+      links.push(`<a class="dir-perfil-contact-btn is-whatsapp" href="https://wa.me/${numero}?text=${mensaje}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448L.057 24z"/></svg>
+        <span>WhatsApp</span>
+      </a>`);
+    }
+    if (c.email) {
+      links.push(`<a class="dir-perfil-contact-btn" href="mailto:${escapeHtml(c.email)}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+        <span>${escapeHtml(c.email)}</span>
+      </a>`);
+    }
+    if (c.linkedin) {
+      const url = c.linkedin.startsWith('http') ? c.linkedin : 'https://' + c.linkedin;
+      links.push(`<a class="dir-perfil-contact-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="#0A66C2"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        <span>LinkedIn</span>
+      </a>`);
+    }
+    if (c.web) {
+      const url = c.web.startsWith('http') ? c.web : 'https://' + c.web;
+      links.push(`<a class="dir-perfil-contact-btn" href="${escapeHtml(url)}" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+        <span>Sitio web</span>
+      </a>`);
+    }
+
+    if (links.length === 0) {
+      contactoEl.innerHTML = `<p style="color:#5d7396;font-size:12px;font-style:italic;margin:0;grid-column:1/-1">Este miembro no ha compartido información de contacto.</p>`;
+    } else {
+      contactoEl.innerHTML = links.join('');
+    }
+
+    document.getElementById('dir-perfil-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.cerrarPerfilDirectorio = function() {
+    document.getElementById('dir-perfil-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    _perfilActivo = null;
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // EDITOR del perfil propio
+  // ═══════════════════════════════════════════════════════════
+  window.abrirEditorDirectorio = function() {
+    const auth = (typeof getAuth === 'function') ? getAuth() : null;
+    if (!auth || !auth.currentUser) {
+      mostrarToast({ tipo: 'error', titulo: 'Sesión requerida', mensaje: 'Inicia sesión para gestionar tu perfil.' });
+      return;
+    }
+
+    const p = _miPerfil || {};
+    document.getElementById('dir-edit-visible').checked = !!p.visible;
+    document.getElementById('dir-edit-cargo').value = p.cargo || '';
+    document.getElementById('dir-edit-empresa').value = p.empresa || '';
+    document.getElementById('dir-edit-industria').value = p.industria || '';
+    document.getElementById('dir-edit-ciudad').value = p.ciudad || '';
+    document.getElementById('dir-edit-experiencia').value = p.experiencia || '';
+    document.getElementById('dir-edit-bio').value = p.bio || '';
+    document.getElementById('dir-edit-ofrece').value = (p.ofrece || []).join(', ');
+    document.getElementById('dir-edit-busca').value = (p.busca || []).join(', ');
+
+    const c = p.contacto || {};
+    document.getElementById('dir-edit-whatsapp').value = c.whatsapp || '';
+    document.getElementById('dir-edit-email').value = c.email || auth.currentUser.email || '';
+    document.getElementById('dir-edit-linkedin').value = c.linkedin || '';
+    document.getElementById('dir-edit-web').value = c.web || '';
+
+    actualizarContadorBio();
+    window.actualizarPreviewDir();
+
+    document.getElementById('dir-editor-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.cerrarEditorDirectorio = function() {
+    document.getElementById('dir-editor-modal').style.display = 'none';
+    document.body.style.overflow = '';
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // Vista previa del card en vivo (en el editor)
+  // ═══════════════════════════════════════════════════════════
+  window.actualizarPreviewDir = function() {
+    const auth = (typeof getAuth === 'function') ? getAuth() : null;
+    let nombre = '';
+    if (auth && auth.currentUser) {
+      nombre = auth.currentUser.displayName || (auth.currentUser.email || '').split('@')[0] || '';
+    }
+
+    const cargo = document.getElementById('dir-edit-cargo')?.value.trim() || 'Tu cargo';
+    const empresa = document.getElementById('dir-edit-empresa')?.value.trim() || 'Tu empresa';
+    const industria = document.getElementById('dir-edit-industria')?.value || '';
+    const ciudad = document.getElementById('dir-edit-ciudad')?.value || '';
+    const bio = document.getElementById('dir-edit-bio')?.value.trim();
+
+    const avatarEl = document.getElementById('dir-preview-avatar');
+    const nombreEl = document.getElementById('dir-preview-nombre');
+    const cargoEl = document.getElementById('dir-preview-cargo');
+    const empresaEl = document.getElementById('dir-preview-empresa');
+    const bioEl = document.getElementById('dir-preview-bio');
+    const tagsEl = document.getElementById('dir-preview-tags');
+
+    if (avatarEl) avatarEl.textContent = obtenerIniciales(nombre);
+    if (nombreEl) nombreEl.textContent = nombre || 'Tu nombre';
+    if (cargoEl) cargoEl.textContent = cargo;
+    if (empresaEl) empresaEl.textContent = empresa;
+
+    if (bioEl) {
+      if (bio) {
+        bioEl.textContent = bio;
+        bioEl.style.color = '';
+        bioEl.style.fontStyle = '';
+      } else {
+        bioEl.textContent = 'Llena tu bio para ver cómo se verá aquí…';
+        bioEl.style.color = '#5d7396';
+        bioEl.style.fontStyle = 'italic';
+      }
+    }
+
+    if (tagsEl) {
+      const tags = [];
+      if (industria) tags.push(`<span class="dir-card-tag">${escapeHtml(industria)}</span>`);
+      if (ciudad) tags.push(`<span class="dir-card-tag is-ciudad">📍 ${escapeHtml(ciudad)}</span>`);
+      tagsEl.innerHTML = tags.join('');
+    }
+  };
+
+  function actualizarContadorBio() {
+    const bio = document.getElementById('dir-edit-bio');
+    const counter = document.getElementById('dir-bio-counter');
+    const count = document.getElementById('dir-bio-count');
+    if (!bio || !count || !counter) return;
+    const n = bio.value.length;
+    count.textContent = n;
+    counter.classList.remove('is-warning', 'is-danger');
+    if (n >= 250) counter.classList.add('is-danger');
+    else if (n >= 200) counter.classList.add('is-warning');
+  }
+
+  document.addEventListener('input', function(e) {
+    if (e.target && e.target.id === 'dir-edit-bio') actualizarContadorBio();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // Validar WhatsApp en vivo
+  // ═══════════════════════════════════════════════════════════
+  window.validarWhatsappDir = function(input) {
+    const errEl = document.getElementById('dir-whatsapp-err');
+    const val = input.value.trim();
+    if (!val) {
+      input.classList.remove('has-error');
+      if (errEl) errEl.style.display = 'none';
+      return true;
+    }
+    // Solo dígitos, entre 10 y 13 caracteres (con o sin lada)
+    const digits = val.replace(/\D/g, '');
+    const valido = /^[0-9]{10,13}$/.test(digits);
+    if (valido) {
+      input.classList.remove('has-error');
+      if (errEl) errEl.style.display = 'none';
+      // Auto-formato: solo dígitos
+      if (input.value !== digits) input.value = digits;
+    } else {
+      input.classList.add('has-error');
+      if (errEl) errEl.style.display = 'block';
+    }
+    return valido;
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // GUARDAR perfil
+  // ═══════════════════════════════════════════════════════════
+  window.guardarPerfilDirectorio = async function() {
+    const auth = (typeof getAuth === 'function') ? getAuth() : null;
+    if (!auth || !auth.currentUser) {
+      return mostrarToast({ tipo: 'error', titulo: 'Sesión requerida' });
+    }
+
+    const visible = document.getElementById('dir-edit-visible').checked;
+    const cargo = document.getElementById('dir-edit-cargo').value.trim();
+    const empresa = document.getElementById('dir-edit-empresa').value.trim();
+    const industria = document.getElementById('dir-edit-industria').value;
+    const ciudad = document.getElementById('dir-edit-ciudad').value;
+    const experiencia = parseInt(document.getElementById('dir-edit-experiencia').value) || null;
+    const bio = document.getElementById('dir-edit-bio').value.trim();
+
+    const ofreceRaw = document.getElementById('dir-edit-ofrece').value.trim();
+    const buscaRaw = document.getElementById('dir-edit-busca').value.trim();
+    const ofrece = ofreceRaw ? ofreceRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5) : [];
+    const busca = buscaRaw ? buscaRaw.split(',').map(s => s.trim()).filter(Boolean).slice(0, 5) : [];
+
+    const whatsappInput = document.getElementById('dir-edit-whatsapp');
+    const whatsappValido = window.validarWhatsappDir(whatsappInput);
+    if (!whatsappValido && whatsappInput.value) {
+      mostrarToast({ tipo: 'error', titulo: 'WhatsApp inválido', mensaje: 'Usa solo dígitos (10 a 13 con lada).' });
+      whatsappInput.focus();
+      return;
+    }
+
+    const contacto = {
+      whatsapp: whatsappInput.value.trim(),
+      email:    document.getElementById('dir-edit-email').value.trim(),
+      linkedin: document.getElementById('dir-edit-linkedin').value.trim(),
+      web:      document.getElementById('dir-edit-web').value.trim(),
+    };
+
+    // Validar requeridos si quiere ser visible
+    if (visible) {
+      const faltan = [];
+      if (!cargo) faltan.push('Cargo');
+      if (!empresa) faltan.push('Empresa');
+      if (!industria) faltan.push('Industria');
+      if (!ciudad) faltan.push('Ciudad');
+      if (faltan.length > 0) {
+        mostrarToast({ tipo: 'error', titulo: 'Campos requeridos', mensaje: `Faltan: ${faltan.join(', ')}` });
+        return;
+      }
+      if (!contacto.whatsapp && !contacto.email) {
+        mostrarToast({ tipo: 'error', titulo: 'Contacto requerido', mensaje: 'Necesitas al menos WhatsApp o Email.' });
+        return;
+      }
+    }
+
+    const btn = document.getElementById('dir-edit-save');
+    const txtOrig = btn ? btn.textContent : '';
+    if (btn) {
+      btn.textContent = 'Guardando…';
+      btn.disabled = true;
+    }
+
+    try {
+      const { doc, setDoc, getDoc, serverTimestamp } =
+        await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const db = getFirestore();
+      const user = auth.currentUser;
+
+      // Obtener nombre real
+      let nombre = user.displayName || '';
+      if (!nombre || nombre.length < 3) {
+        try {
+          const ps = await getDoc(doc(db, 'perfiles', user.uid));
+          if (ps.exists()) {
+            const pd = ps.data();
+            nombre = pd.nombreCertificado || pd.nombre || nombre;
+          }
+        } catch(e) {}
+      }
+      if (!nombre) nombre = (user.email || '').split('@')[0];
+
+      const data = {
+        uid: user.uid,
+        nombre, cargo, empresa, industria, ciudad, experiencia,
+        bio, ofrece, busca, contacto, visible,
+        actualizadoEn: serverTimestamp()
+      };
+
+      await setDoc(doc(db, 'directorio', user.uid), data, { merge: true });
+      _miPerfil = { id: user.uid, ...data };
+
+      await cargarDirectorio();
+      window.cerrarEditorDirectorio();
+
+      mostrarToast({
+        tipo: 'success',
+        titulo: visible ? '¡Perfil VIP activado!' : 'Perfil guardado',
+        mensaje: visible ? 'Otros miembros ya pueden encontrarte.' : 'Tu perfil está oculto. Actívalo cuando quieras.',
+        duracion: 5000
+      });
+    } catch(e) {
+      console.error('[Directorio] Error guardando:', e);
+      mostrarToast({ tipo: 'error', titulo: 'Error al guardar', mensaje: 'No se pudo guardar. Intenta de nuevo.' });
+    } finally {
+      if (btn) {
+        btn.textContent = txtOrig;
+        btn.disabled = false;
+      }
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // FILTRAR (handler global expuesto)
+  // ═══════════════════════════════════════════════════════════
+  window.filtrarDirectorio = function() {
+    filtrarYRenderizar();
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // INICIALIZACIÓN
+  // ═══════════════════════════════════════════════════════════
+  function inicializarDirectorio() {
+    if (_firstLoad) {
+      _firstLoad = false;
+      cargarDirectorio();
+    }
+  }
+
+  const _origShowSection = window.showSection;
+  if (typeof _origShowSection === 'function') {
+    window.showSection = function(name) {
+      const result = _origShowSection.apply(this, arguments);
+      if (name === 'directorio') {
+        inicializarDirectorio();
+      }
+      return result;
+    };
+  }
+
+  if (typeof onAuthStateChanged === 'function') {
+    try {
+      const auth = getAuth();
+      onAuthStateChanged(auth, (user) => {
+        if (user && document.getElementById('sec-directorio')?.classList.contains('active')) {
+          cargarDirectorio();
+        }
+      });
+    } catch(e) {}
+  }
+
+  // ESC para cerrar modales del directorio
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const m1 = document.getElementById('dir-perfil-modal');
+      const m2 = document.getElementById('dir-editor-modal');
+      if (m2 && m2.style.display === 'flex') {
+        window.cerrarEditorDirectorio();
+      } else if (m1 && m1.style.display === 'flex') {
+        window.cerrarPerfilDirectorio();
+      }
+    }
+  });
+
+  console.log('[Directorio VIP] Módulo profesional cargado');
+})();
 
 </script>
 
