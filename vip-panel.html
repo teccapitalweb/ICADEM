@@ -17393,7 +17393,15 @@ const PLAN_INFO = {
 };
 
 // ── Stripe ────────────────────────────────────────────────────
-const stripe = window.Stripe(STRIPE_PUBLISHABLE_KEY);
+// MODIFICADO: lazy init para evitar crash si Stripe CDN tarda en cargar
+let _stripe = null;
+function getStripe() {
+  if (!_stripe) {
+    if (!window.Stripe) throw new Error('[ICADEM] Stripe.js no cargó aún');
+    _stripe = window.Stripe(STRIPE_PUBLISHABLE_KEY);
+  }
+  return _stripe;
+}
 let _embeddedCheckout = null;
 let _planSeleccionado = null;
 
@@ -17738,7 +17746,7 @@ async function iniciarStripeCheckout(plan) {
     if (!clientSecret) throw new Error('No se recibió clientSecret de Stripe');
 
     mount.innerHTML = '';
-    _embeddedCheckout = await stripe.initEmbeddedCheckout({ clientSecret });
+    _embeddedCheckout = await getStripe().initEmbeddedCheckout({ clientSecret });
     _embeddedCheckout.mount('#is-stripe-mount');
   } catch(e) {
     console.error('[Stripe] Error iniciando checkout:', e);
