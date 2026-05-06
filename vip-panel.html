@@ -3126,7 +3126,7 @@
       <!-- Toolbar: búsqueda + filtros + orden -->
       <div class="dir-toolbar">
         <div class="dir-search-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="dir-search" placeholder="Buscar por nombre, empresa o cargo..." autocomplete="off" oninput="window.filtrarDirectorio()">
           <button class="dir-search-clear" id="dir-search-clear" onclick="window.limpiarBusquedaDir()" style="display:none" aria-label="Limpiar">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -14507,41 +14507,30 @@ body #banner-cancelacion p strong { color: #fef3c7 !important; font-weight: 800;
   position: relative;
   flex: 1;
   min-width: 240px;
-  display: flex;
-  align-items: center;
 }
+/* Ocultar SVG: usamos background-image en el input */
 .tpl-search > svg {
-  position: absolute !important;
-  left: 14px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  width: 16px !important;
-  height: 16px !important;
-  min-width: 16px !important;
-  min-height: 16px !important;
-  max-width: 16px !important;
-  max-height: 16px !important;
-  flex-shrink: 0 !important;
-  color: rgba(168,184,209,0.6) !important;
-  pointer-events: none !important;
-  z-index: 2 !important;
-  display: block !important;
+  display: none !important;
 }
 .tpl-search input,
 .tpl-search input[type="text"],
 input#tpl-search-input {
   width: 100% !important;
-  padding-left: 42px !important;
+  padding-left: 40px !important;
   padding-right: 38px !important;
   padding-top: 11px !important;
   padding-bottom: 11px !important;
-  background: rgba(11,31,74,0.5) !important;
+  background-color: rgba(11,31,74,0.5) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8b8d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px center !important;
+  background-size: 16px 16px !important;
   border: 1px solid rgba(147,180,237,0.18) !important;
   border-radius: 8px !important;
   color: #fafafa !important;
   font-family: 'Inter', sans-serif !important;
   font-size: 13px !important;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
   box-sizing: border-box !important;
   text-indent: 0 !important;
   margin: 0 !important;
@@ -14550,7 +14539,7 @@ input#tpl-search-input {
 .tpl-search input:focus {
   outline: none !important;
   border-color: rgba(147,180,237,0.5) !important;
-  background: rgba(11,31,74,0.7) !important;
+  background-color: rgba(11,31,74,0.7) !important;
 }
 .tpl-search-clear {
   position: absolute;
@@ -20184,24 +20173,19 @@ body.is-guest #perfil-avatar-big {
   position: relative;
   flex: 1;
   min-width: 240px;
-  display: flex;
-  align-items: center;
 }
+/* Ocultar SVG: usamos background-image en el input para garantía total */
 .dir-search-wrap > svg {
-  position: absolute !important;
-  left: 14px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  width: 16px !important;
-  height: 16px !important;
-  color: rgba(168,184,209,0.6) !important;
-  pointer-events: none !important;
-  z-index: 2 !important;
+  display: none !important;
 }
 .dir-search-wrap input {
   width: 100% !important;
-  padding: 11px 14px 11px 42px !important;
-  background: rgba(11,31,74,0.5) !important;
+  padding: 11px 14px 11px 40px !important;
+  background-color: rgba(11,31,74,0.5) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8b8d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px center !important;
+  background-size: 16px 16px !important;
   border: 1px solid rgba(147,180,237,0.18) !important;
   border-radius: 8px !important;
   color: #fafafa !important;
@@ -20209,12 +20193,12 @@ body.is-guest #perfil-avatar-big {
   font-size: 13px !important;
   box-sizing: border-box !important;
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background-color 0.15s;
 }
 .dir-search-wrap input::placeholder { color: rgba(168,184,209,0.5); }
 .dir-search-wrap input:focus {
   border-color: rgba(147,180,237,0.5) !important;
-  background: rgba(11,31,74,0.7) !important;
+  background-color: rgba(11,31,74,0.7) !important;
 }
 .dir-toolbar select {
   padding: 11px 14px;
