@@ -24366,170 +24366,173 @@ window.loginDirecto = function() {
 
   var MODO_DIA_CSS = `
   /* ══════════════════════════════════════════════════════════
-     MODO DÍA ICADEM — Fondo claro profesional
-     Al deshabilitar fx-mega-override el panel restaura su CSS
-     original (topbar blanca, sidebar azul, texto oscuro).
-     Este bloque solo complementa lo que el original no cubre.
+     MODO DÍA ICADEM — Enfoque: texto siempre legible
+     Estrategia: universal oscuro → excepciones en blanco
   ══════════════════════════════════════════════════════════ */
 
-  /* 1. Fondo general — azul muy claro, como papel premium */
+  /* ─── FONDO GENERAL ─────────────────────────────────────── */
   html {
-    background: #f0f4ff !important;
+    background: #edf1ff !important;
     background-image: none !important;
   }
   body, .main, .content {
     background: transparent !important;
-    color: #0d1b4b !important;
   }
 
-  /* 2. Sección principal — tarjeta blanca con sombra suave */
-  .section {
-    background: #ffffff !important;
-    border: 1px solid rgba(0, 30, 180, 0.08) !important;
-    box-shadow: 0 2px 20px rgba(0, 20, 120, 0.06) !important;
+  /* ─── TEXTO: REGLA UNIVERSAL ─────────────────────────────
+     Fuerza TODOS los textos del panel a color oscuro legible.
+     Cubre clases, inline styles, estilos dinámicos JS.
+  ─────────────────────────────────────────────────────────── */
+  body.modo-dia *:not(.ic-hero):not(.ic-hero *):not(.sidebar):not(.sidebar *) {
     color: #0d1b4b !important;
+    -webkit-text-fill-color: #0d1b4b !important;
   }
 
-  /* 3. Hero "Hola, Nombre" — texto oscuro legible sobre fondo claro */
-  .ic-hello-eyebrow { color: #3355aa !important; }
+  /* ─── EXCEPCIONES: elementos que SÍ deben ser blancos ───── */
+
+  /* Sidebar — mantiene fondo azul ICADEM, texto blanco */
+  .sidebar,
+  .sidebar *,
+  .sidebar-logo-name,
+  .sidebar-role,
+  .nav-item,
+  .nav-label,
+  .nav-section-title,
+  .nav-icon,
+  .btn-logout {
+    color: rgba(255,255,255,0.88) !important;
+    -webkit-text-fill-color: rgba(255,255,255,0.88) !important;
+  }
+  .nav-item.active,
+  .nav-item:hover {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  /* Hero azul — texto blanco sobre fondo azul */
+  .ic-hero *,
+  .ic-hero-content *,
+  .ic-plan-badge,
+  .ic-plan-badge *,
+  .ic-hero-greeting,
+  .ic-hero-desc,
+  .ic-streak-card,
+  .ic-streak-card *,
+  .ic-streak-num,
+  .ic-streak-label,
+  .ic-countdown,
+  .ic-countdown * {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  /* Botones con fondo azul — texto blanco */
+  .fhero-btn-primary, .fhero-btn-primary *,
+  .btn-primary, .btn-primary *,
+  button[style*="background:#001fcc"] *,
+  button[style*="background:linear-gradient"] *,
+  .ic-quick-cta { 
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+  /* Botón logout sidebar */
+  .btn-logout { color: rgba(255,255,255,0.7) !important; -webkit-text-fill-color: rgba(255,255,255,0.7) !important; }
+
+  /* ─── COLORES DE ACENTO (dorado/azul) — no oscuro plano ─── */
   .ic-hello-title {
     background: linear-gradient(135deg, #001fcc 0%, #0033ee 100%) !important;
     -webkit-background-clip: text !important;
     background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
+    color: #001fcc !important;
   }
   .ic-hello-title #user-nombre {
-    background: linear-gradient(135deg, #c8962a 0%, #f5d77a 100%) !important;
+    background: linear-gradient(135deg, #c8962a 0%, #e8a800 100%) !important;
     -webkit-background-clip: text !important;
     background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
   }
-  .ic-hello-line {
-    background: linear-gradient(90deg, #001fcc, #f5d77a, transparent) !important;
-  }
+  .ic-hello-eyebrow { color: #3355aa !important; -webkit-text-fill-color: #3355aa !important; }
+  .ic-hello-line { background: linear-gradient(90deg, #001fcc, #f5d77a, transparent) !important; }
 
-  /* 4. Hero azul ICADEM — se mantiene azul (es la identidad de marca) */
-  .ic-hero {
-    background: linear-gradient(135deg, #001fcc 0%, #0033e6 40%, #1a55f5 100%) !important;
-    border: 1px solid rgba(0, 60, 220, 0.3) !important;
-    box-shadow: 0 8px 32px rgba(0, 20, 180, 0.25) !important;
-  }
-  /* Texto dentro del hero — blanco, está sobre fondo azul */
-  .ic-hero-content, .ic-hero-content *,
-  .ic-plan-badge, .ic-plan-badge *,
-  .ic-hero-greeting, .ic-hero-desc,
-  .ic-streak-card, .ic-streak-num, .ic-streak-label { color: #fff !important; -webkit-text-fill-color: #fff !important; }
-
-  /* 5. Quick cards (accesos rápidos) */
-  .ic-quick-card {
-    background: #ffffff !important;
-    border: 1px solid rgba(0, 30, 180, 0.1) !important;
-    box-shadow: 0 2px 12px rgba(0, 20, 120, 0.06) !important;
-    color: #0d1b4b !important;
-  }
-  .ic-quick-card * { color: #0d1b4b !important; -webkit-text-fill-color: #0d1b4b !important; }
-  .ic-quick-card h3, .ic-quick-card .ic-quick-title { color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
-  /* Excepciones: badge VIP y CTA link */
-  .ic-quick-badge { background: rgba(0,31,204,0.1) !important; color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
-  .ic-quick-cta { color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
-  /* Contador de racha — mantener su tema */
-  .ic-streak-card { background: rgba(255,255,255,0.15) !important; }
-
-  /* 6. Stat cards en el inicio */
-  .ic-stat-card {
-    background: #ffffff !important;
-    border: 1px solid rgba(0,30,180,0.1) !important;
-    color: #0d1b4b !important;
-  }
-  .ic-stat-card * { color: #0d1b4b !important; -webkit-text-fill-color: #0d1b4b !important; }
-  .ic-stat-num { color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
-
-  /* 7. CTA banner ("¿Quieres conocer los cursos?") */
-  .ic-cta-banner {
-    background: #ffffff !important;
-    border: 1px solid rgba(0,30,180,0.1) !important;
-    color: #0d1b4b !important;
-  }
-  .ic-cta-banner * { color: #0d1b4b !important; }
-  .ic-cta-banner strong, .ic-cta-banner b { color: #001fcc !important; }
-
-  /* 8. Logros */
-  .ic-logros-header, .ic-logros-header * { color: #0d1b4b !important; -webkit-text-fill-color: #0d1b4b !important; }
-  .achievement-card {
-    background: #ffffff !important;
-    border: 1px solid rgba(0,30,180,0.08) !important;
-    color: #0d1b4b !important;
-  }
-  .achievement-card * { color: #0d1b4b !important; -webkit-text-fill-color: #0d1b4b !important; }
-  .achievement-name { color: #0d1b4b !important; -webkit-text-fill-color: #0d1b4b !important; }
-  .achievement-desc { color: #3355aa !important; -webkit-text-fill-color: #3355aa !important; }
-  .achievement-prog-label { color: #3355aa !important; -webkit-text-fill-color: #3355aa !important; }
-
-  /* 9. Noticias / videos / material */
-  .noticia-card {
-    background: #ffffff !important;
-    border: 1px solid rgba(0,30,180,0.1) !important;
-    color: #0d1b4b !important;
-  }
-  .noticia-card * { color: #0d1b4b !important; -webkit-text-fill-color: #0d1b4b !important; }
-
-  /* 10. Topbar plan badge */
-  .topbar-plan {
-    background: rgba(0, 31, 204, 0.08) !important;
-    border: 1px solid rgba(0, 31, 204, 0.2) !important;
+  .topbar-plan, .topbar-plan * {
     color: #001fcc !important;
+    -webkit-text-fill-color: #001fcc !important;
   }
-  .topbar-plan * { color: #001fcc !important; }
+  .status-dot { background: #001fcc !important; }
 
-  /* 11. Directorio VIP — cards */
-  .dir-card {
+  /* ─── FONDOS ─────────────────────────────────────────────── */
+
+  /* Secciones — blanco puro */
+  .section {
     background: #ffffff !important;
-    border: 1.5px solid rgba(0, 31, 204, 0.12) !important;
-    color: #0d1b4b !important;
+    border: 1px solid rgba(0,30,180,0.09) !important;
+    box-shadow: 0 2px 20px rgba(0,20,120,0.06) !important;
   }
-  .dir-card-name { color: #0d1b4b !important; -webkit-text-fill-color: #0d1b4b !important; }
-  .dir-card-bio { color: #3355aa !important; -webkit-text-fill-color: #3355aa !important; }
 
-  /* 12. Inputs y formularios */
+  /* Hero — azul ICADEM */
+  .ic-hero {
+    background: linear-gradient(135deg, #001fcc 0%, #0033e6 50%, #1a55f5 100%) !important;
+    border: 1px solid rgba(0,60,220,0.3) !important;
+    box-shadow: 0 8px 32px rgba(0,20,180,0.2) !important;
+  }
+
+  /* Cards genéricas — blanco */
+  .ic-quick-card,
+  .ic-stat-card,
+  .ic-cta-banner,
+  .achievement-card,
+  .noticia-card,
+  .video-card,
+  .material-card,
+  .dir-card,
+  .cert-item,
+  .ic-config-card,
+  .glass-panel {
+    background: #ffffff !important;
+    border-color: rgba(0,30,180,0.09) !important;
+    box-shadow: 0 2px 12px rgba(0,20,120,0.05) !important;
+  }
+
+  /* Inputs */
   input, textarea, select {
-    background: #fff !important;
+    background: #ffffff !important;
     border-color: rgba(0,30,180,0.2) !important;
     color: #0d1b4b !important;
   }
-  input::placeholder, textarea::placeholder { color: rgba(0,30,100,0.4) !important; }
+  input::placeholder, textarea::placeholder {
+    color: rgba(13,27,75,0.4) !important;
+    -webkit-text-fill-color: rgba(13,27,75,0.4) !important;
+  }
 
-  /* 13. Fondos inline oscuros — convertir a blanco */
-  [style*="background:#0b2f68"], [style*="background: #0b2f68"],
-  [style*="background:#0d2547"], [style*="background: #0d2547"],
-  [style*="background:#1a3a6b"], [style*="background: #1a3a6b"],
-  [style*="background:rgba(11,31,74"], [style*="background:rgba(13,37,71"],
+  /* Fondos inline oscuros → blanco */
+  [style*="background:#0b2f68"],
+  [style*="background:#0d2547"],
+  [style*="background:#1a3a6b"],
+  [style*="background:#020d30"],
+  [style*="background:#031040"],
+  [style*="background:rgba(11,31,74"],
+  [style*="background:rgba(13,37,71"],
+  [style*="background:rgba(2,13,48"],
   [style*="background:linear-gradient(135deg,#1a3a6b"],
-  [style*="background:linear-gradient(180deg, #0b1f4a"],
-  [style*="background:linear-gradient(180deg,#0b1f4a"] {
+  [style*="background:linear-gradient(180deg,#0b1f4a"],
+  [style*="background:linear-gradient(180deg, #0b1f4a"] {
     background: #ffffff !important;
     background-image: none !important;
-    border-color: rgba(0, 30, 180, 0.1) !important;
+    border-color: rgba(0,30,180,0.09) !important;
   }
 
-  /* 14. Colores de texto inline claro → texto oscuro legible */
-  [style*="color:#cbd5e1"], [style*="color: #cbd5e1"],
-  [style*="color:#94a3b8"], [style*="color: #94a3b8"],
-  [style*="color:#e2e8f0"], [style*="color: #e2e8f0"],
-  [style*="color:rgba(226,232,240"], [style*="color:rgba(203,213,225"],
-  [style*="color:rgba(148,163,184"] {
-    color: #1e3a6e !important;
-  }
-  /* Texto casi-blanco también */
-  [style*="color:#fff;"], [style*="color: #fff;"],
-  [style*="color:#ffffff"], [style*="color: #ffffff"] {
-    color: #0d1b4b !important;
+  /* Topbar plan badge */
+  .topbar-plan {
+    background: rgba(0,31,204,0.08) !important;
+    border: 1px solid rgba(0,31,204,0.2) !important;
   }
 
-  /* 15. Scrollbar */
-  ::-webkit-scrollbar-track { background: #dde4f5 !important; }
+  /* Scrollbar */
+  ::-webkit-scrollbar-track { background: #dde6ff !important; }
   ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(0,31,204,0.35), rgba(0,20,150,0.2)) !important;
-    border-color: #f0f4ff !important;
+    background: linear-gradient(180deg,rgba(0,31,204,0.4),rgba(0,20,150,0.25)) !important;
+    border-color: #edf1ff !important;
   }
 `;
 
