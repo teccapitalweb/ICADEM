@@ -24354,93 +24354,186 @@ window.loginDirecto = function() {
 };
 </script>
 
-<!-- MODO DÍA/NOCHE — Minimal y seguro -->
+<!-- MODO DÍA/NOCHE — Enfoque media-query trick + CSS limpio -->
 <script>
 (function() {
   try {
+
     var btn = document.getElementById('btn-modo-toggle');
     var KEY = 'icadem_modo';
+    var esDia = false;
 
-    // Limpiar modo día guardado — siempre inicia en noche
+    // Siempre inicia en noche — evita crasheos por localStorage corrupto
     localStorage.removeItem(KEY);
 
     if (!btn) return;
 
-    btn.addEventListener('click', function() {
-      try {
-        var esDia = !document.body.classList.contains('modo-dia');
-        if (esDia) {
-          aplicarDia();
-        } else {
-          aplicarNoche();
-        }
-        document.body.classList.toggle('modo-dia', esDia);
-      } catch(e) {
-        console.warn('Toggle error:', e);
+    /* ─── PALETA DÍA ──────────────────────────────────────────
+       Inspirada en el diseño corporativo azul/blanco de referencia:
+       fondos blancos puros, azul ICADEM como acento, navy oscuro en textos
+    ─────────────────────────────────────────────────────────── */
+    var DIA_CSS = `
+      /* Fondo general — azul muy claro premium */
+      html {
+        background: #eef2ff !important;
+        background-image:
+          radial-gradient(ellipse 80% 50% at 20% 0%, rgba(0,51,255,0.06) 0%, transparent 60%),
+          radial-gradient(ellipse 60% 40% at 80% 100%, rgba(0,31,204,0.04) 0%, transparent 60%)
+          !important;
       }
-    });
+      body, .main, .content { background: transparent !important; }
+
+      /* Topbar — blanco con sombra azul suave */
+      .topbar {
+        background: #ffffff !important;
+        border-bottom: 1px solid rgba(0,31,204,0.1) !important;
+        box-shadow: 0 2px 16px rgba(0,20,120,0.07) !important;
+      }
+      .topbar-title { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }
+      .menu-btn { color: #0d1440 !important; background: rgba(0,31,204,0.04) !important; border-color: rgba(0,31,204,0.12) !important; }
+      .topbar-plan { background: rgba(0,31,204,0.07) !important; border-color: rgba(0,31,204,0.18) !important; }
+      .topbar-plan * { color: #0022bb !important; -webkit-text-fill-color: #0022bb !important; }
+
+      /* Secciones — blanco puro */
+      .section {
+        background: #ffffff !important;
+        border: 1px solid rgba(0,31,204,0.07) !important;
+        box-shadow: 0 2px 20px rgba(0,20,120,0.05) !important;
+      }
+
+      /* Hero — azul ICADEM, identidad de marca */
+      .ic-hero {
+        background: linear-gradient(135deg, #001fcc 0%, #0033e6 50%, #1a55f5 100%) !important;
+        border: 1px solid rgba(0,60,220,0.25) !important;
+        box-shadow: 0 8px 32px rgba(0,20,180,0.2) !important;
+      }
+      .ic-hero *, .ic-hero-content *, .ic-plan-badge *,
+      .ic-hero-greeting, .ic-hero-desc,
+      .ic-streak-card, .ic-streak-card *, .ic-streak-num, .ic-streak-label {
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+      }
+
+      /* Hello title — gradiente navy */
+      .ic-hello-title {
+        background: linear-gradient(135deg, #001fcc 0%, #0044ee 100%) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+      }
+      .ic-hello-title #user-nombre {
+        background: linear-gradient(135deg, #996600 0%, #cc8800 100%) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+      }
+      .ic-hello-eyebrow { color: #3355aa !important; -webkit-text-fill-color: #3355aa !important; }
+      .ic-hello-line { background: linear-gradient(90deg, #001fcc, #cc8800, transparent) !important; }
+
+      /* Cards específicas — blanco con borde azul sutil */
+      .ic-quick-card, .ic-stat-card, .ic-cta-banner,
+      .achievement-card, .glass-panel, .ic-config-card {
+        background: #ffffff !important;
+        border: 1px solid rgba(0,31,204,0.08) !important;
+        box-shadow: 0 2px 12px rgba(0,20,120,0.05) !important;
+        color: #0d1440 !important;
+      }
+      .ic-quick-card *, .ic-stat-card *, .ic-cta-banner *,
+      .achievement-card *, .glass-panel *, .ic-config-card * {
+        color: #0d1440 !important;
+        -webkit-text-fill-color: #0d1440 !important;
+      }
+      /* Excepción: iconos de color y badges dorados */
+      .ic-quick-badge { background: rgba(0,31,204,0.08) !important; color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
+      .ic-quick-cta { color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
+      .ic-quick-icon { background: rgba(0,31,204,0.08) !important; }
+
+      /* Accesos rápidos — títulos en azul */
+      .ic-quick-card h3, .ic-quick-title { color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
+
+      /* Countdown — mantiene su tema */
+      .ic-countdown, .ic-countdown * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+
+      /* Novedades / webinar / noticias */
+      .ic-novedades-card, .ic-novedades-card *,
+      .noticia-card, .noticia-card h3, .noticia-card p { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }
+
+      /* Inputs */
+      input, textarea, select {
+        background: #f8faff !important;
+        color: #0d1440 !important;
+        border-color: rgba(0,31,204,0.15) !important;
+      }
+      input::placeholder, textarea::placeholder {
+        color: rgba(13,20,64,0.35) !important;
+        -webkit-text-fill-color: rgba(13,20,64,0.35) !important;
+      }
+
+      /* Scrollbar */
+      ::-webkit-scrollbar-track { background: #e0e8ff !important; }
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, rgba(0,31,204,0.45), rgba(0,20,160,0.28)) !important;
+        border-color: #eef2ff !important;
+      }
+
+      /* Botón toggle — sol en día */
+      body.modo-dia #btn-modo-toggle { background: rgba(204,136,0,0.1) !important; border-color: rgba(204,136,0,0.45) !important; }
+    `;
 
     function aplicarDia() {
-      // Deshabilitar mega-override
-      var mo = document.getElementById('fx-mega-override');
-      if (mo) mo.disabled = true;
+      esDia = true;
+      document.body.classList.add('modo-dia');
 
-      // Inyectar CSS
+      /* 1. Desactivar mega-override con media trick (funciona en todos los browsers) */
+      var mo = document.getElementById('fx-mega-override');
+      if (mo) mo.setAttribute('media', 'print'); // solo aplica al imprimir = nunca en pantalla
+
+      /* 2. Inyectar CSS de día */
       var st = document.getElementById('icadem-dia-css');
       if (!st) {
         st = document.createElement('style');
         st.id = 'icadem-dia-css';
         document.head.appendChild(st);
       }
-      st.textContent = [
-        'html{background:#f0f4ff!important;background-image:none!important}',
-        'body,.main,.content{background:transparent!important}',
-        '.topbar{background:#ffffff!important;box-shadow:0 1px 12px rgba(0,20,120,.08)!important}',
-        '.topbar-title{color:#0d1b4b!important}',
-        '.menu-btn{color:#0d1b4b!important}',
-        '.topbar-plan,.topbar-plan *{color:#001fcc!important;-webkit-text-fill-color:#001fcc!important}',
-        '.topbar-plan{background:rgba(0,31,204,.08)!important;border:1px solid rgba(0,31,204,.2)!important}',
-        '.section{background:#ffffff!important}',
-        '.ic-hero{background:linear-gradient(135deg,#001fcc,#0033e6,#1a55f5)!important}',
-        '.ic-hero *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-        '.ic-hello-title{background:linear-gradient(135deg,#001fcc,#0044ee)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
-        '.ic-hello-title #user-nombre{background:linear-gradient(135deg,#b87a00,#e8a800)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
-        '.ic-hello-eyebrow{color:#3355aa!important;-webkit-text-fill-color:#3355aa!important}',
-        'input,textarea,select{background:#fff!important;color:#0d1b4b!important}'
-      ].join('');
+      st.textContent = DIA_CSS;
 
-      // Fix elementos con fondo oscuro — solo background-color, nada más
+      /* 3. Fix puntual de inline styles en cards conocidas oscuras */
       setTimeout(function() {
-        try {
-          var all = document.querySelectorAll('.section, .ic-quick-card, .ic-stat-card, .ic-cta-banner, .achievement-card, .noticia-card, .video-card, .material-card, .ic-config-card, .glass-panel');
-          all.forEach(function(el) {
-            el.style.setProperty('background-color', '#ffffff', 'important');
-          });
-          // Fix texto oscuro
-          var textEls = document.querySelectorAll('.section *, .ic-quick-card *, .ic-stat-card *, .achievement-card *, .noticia-card *');
-          textEls.forEach(function(el) {
-            if (el.closest && (el.closest('.ic-hero') || el.closest('.sidebar'))) return;
-            var cs = window.getComputedStyle(el);
-            var c = cs.color.match(/[\d.]+/g);
-            if (c && 0.299*+c[0]+0.587*+c[1]+0.114*+c[2] > 155) {
-              el.style.setProperty('color','#0d1b4b','important');
-            }
-          });
-        } catch(e) {}
-      }, 300);
+        var darkCards = document.querySelectorAll(
+          '.ic-quick-card, .ic-stat-card, .ic-cta-banner, .achievement-card, ' +
+          '.ic-novedades-card, .cert-item, .ic-config-card, .glass-panel, ' +
+          '.noticia-card, .video-card, .material-card'
+        );
+        darkCards.forEach(function(el) {
+          el.style.setProperty('background', '#ffffff', 'important');
+          el.style.setProperty('background-image', 'none', 'important');
+          el.style.setProperty('color', '#0d1440', 'important');
+        });
+      }, 200);
     }
 
     function aplicarNoche() {
+      esDia = false;
+      document.body.classList.remove('modo-dia');
+
+      /* 1. Restaurar mega-override */
       var mo = document.getElementById('fx-mega-override');
-      if (mo) mo.disabled = false;
+      if (mo) mo.removeAttribute('media');
+
+      /* 2. Eliminar CSS de día */
       var st = document.getElementById('icadem-dia-css');
-      if (st) { st.textContent = ''; st.disabled = true; }
-      // Recargar para restaurar estado limpio
+      if (st) st.textContent = '';
+
+      /* 3. Recargar para limpiar inline styles que pusimos */
       window.location.reload();
     }
 
+    btn.addEventListener('click', function() {
+      esDia ? aplicarNoche() : aplicarDia();
+    });
+
   } catch(e) {
-    console.warn('Modo toggle init error:', e);
+    console.warn('[ICADEM modo toggle]', e);
   }
 })();
 </script>
