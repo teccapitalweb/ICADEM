@@ -23972,49 +23972,42 @@ window._icademLogros = {
     </div>
   </div>
 
-<!-- MODIFICADO: login directo independiente de Stripe/icademStripe -->
+<!-- MODIFICADO: login directo — Firebase Auth pre-cargado para no perder gesto de usuario -->
 <script>
-window.loginDirecto = async function() {
-  const btn = document.querySelector('.btn-guest-login');
-  const originalHTML = btn ? btn.innerHTML : '';
-  try {
-    if (btn) {
-      btn.style.opacity = '0.7';
-      btn.style.pointerEvents = 'none';
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Abriendo...';
-    }
+// Pre-cargar módulo ANTES del click para que signInWithPopup corra sincrónicamente
+// (si se llama después de un await/import dentro del click, el navegador bloquea el popup)
+var _fbAuth = null;
+import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js').then(function(m) {
+  _fbAuth = m;
+}).catch(function(e) {
+  console.warn('[loginDirecto] pre-load falló:', e);
+});
 
-    // Primero intentar el modal normal (si icademStripe ya cargó)
-    if (window.icademStripe && window.icademStripe.abrir) {
-      window.icademStripe.abrir({ vistaInicial: 'cuenta', soloLogin: true });
-      return;
-    }
-
-    // Fallback: Google Sign-In directo sin modal ni Stripe
-    const { GoogleAuthProvider, signInWithPopup } =
-      await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
-
-    const auth = window.auth;
-    if (!auth) {
-      alert('Error: Firebase no cargó correctamente. Recarga la página (Ctrl+R) e intenta de nuevo.');
-      return;
-    }
-
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    window.location.reload();
-
-  } catch(e) {
-    if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
-    console.error('[loginDirecto]', e);
-    alert('No se pudo iniciar sesión.\n\nError: ' + (e.message || e.code || e) + '\n\nIntenta recargar la página (Ctrl+R).');
-  } finally {
-    if (btn) {
-      btn.style.opacity = '';
-      btn.style.pointerEvents = '';
-      btn.innerHTML = originalHTML;
-    }
+window.loginDirecto = function() {
+  // Opción A: modal completo si Stripe ya cargó
+  if (window.icademStripe && window.icademStripe.abrir) {
+    window.icademStripe.abrir({ vistaInicial: 'cuenta', soloLogin: true });
+    return;
   }
+
+  // Opción B: Google Sign-In directo (sincrónico desde el gesto del usuario)
+  if (!_fbAuth) {
+    alert('Cargando autenticación, espera 2 segundos e intenta de nuevo.');
+    return;
+  }
+  if (!window.auth) {
+    alert('Firebase no cargó. Recarga la página con Ctrl+R.');
+    return;
+  }
+
+  var provider = new _fbAuth.GoogleAuthProvider();
+  // ⚠️ SIN await aquí — debe ser sincrónico para que el navegador permita el popup
+  _fbAuth.signInWithPopup(window.auth, provider)
+    .then(function() { window.location.reload(); })
+    .catch(function(e) {
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
+      alert('Error al iniciar sesión:\n' + (e.message || e.code || 'Error desconocido') + '\n\nRecarga la página (Ctrl+R) e intenta de nuevo.');
+    });
 };
 </script>
 </body>
