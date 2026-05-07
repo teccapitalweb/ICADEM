@@ -24370,167 +24370,169 @@ window.loginDirecto = function() {
 
     /* ── CSS de día completo ── */
     var DAY = [
-      /* ── FONDO BASE: secciones en azul muy claro (capas premium) ── */
-      'html{background:#f0f5fb!important;background-image:none!important}',
+      /* ═══════════════════════════════════════════════════════
+         ICADEM VIP — MODO DÍA PREMIUM
+         Paleta: #0F172A sidebar / #2563EB primary / #F8FAFC bg
+         Basado en auditoría completa de 14 pestañas
+      ══════════════════════════════════════════════════════ */
+
+      /* ── Fondo global ── */
+      'html{background:#F8FAFC!important;background-image:none!important}',
       'body,.main,.content{background:transparent!important}',
-      'body.modo-dia .section,[id^=sec-]{background:#f0f5fb!important}',
+      '.section,[id^=sec-]{background:#F8FAFC!important}',
 
-      /* ── SIDEBAR ── */
-      '.sidebar{background:#0b2f68!important;background-image:none!important;border-right:none!important;box-shadow:2px 0 20px rgba(0,20,100,.2)!important}',
-      '.sidebar *{color:rgba(255,255,255,.75)!important;-webkit-text-fill-color:rgba(255,255,255,.75)!important}',
-      '.nav-item.active{background:rgba(255,255,255,.22)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.nav-item.active *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.nav-item:hover:not(.active){background:rgba(255,255,255,.1)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.sidebar-logo-name{color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:800!important}',
-      '.nav-section-title{color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}',
-      '.btn-logout{color:rgba(255,255,255,.65)!important;background:transparent!important;border-color:rgba(255,255,255,.25)!important}',
+      /* ── Sidebar ── */
+      '.sidebar{background:#0F172A!important;background-image:none!important;border-right:1px solid rgba(0,0,0,.12)!important;box-shadow:2px 0 16px rgba(0,0,0,.1)!important}',
+      '.sidebar *{color:#94A3B8!important;-webkit-text-fill-color:#94A3B8!important}',
+      '.nav-item.active{background:rgba(37,99,235,.15)!important;border-left:3px solid #3B82F6!important;color:#93C5FD!important;-webkit-text-fill-color:#93C5FD!important;font-weight:600!important}',
+      '.nav-item.active *{color:#93C5FD!important;-webkit-text-fill-color:#93C5FD!important}',
+      '.nav-item:hover:not(.active){background:rgba(255,255,255,.06)!important;color:#CBD5E1!important;-webkit-text-fill-color:#CBD5E1!important}',
+      '.sidebar-logo-name{color:#F1F5F9!important;-webkit-text-fill-color:#F1F5F9!important;font-weight:700!important}',
+      '.sidebar-role,.sidebar-user-role{color:#475569!important;-webkit-text-fill-color:#475569!important}',
+      '.nav-section-title{color:#475569!important;-webkit-text-fill-color:#475569!important;font-size:10px!important;letter-spacing:1.5px!important;font-weight:600!important}',
+      '.btn-logout{color:#64748B!important;-webkit-text-fill-color:#64748B!important;background:transparent!important;border-color:transparent!important;font-size:12px!important}',
 
-      /* ── TOPBAR ── */
-      '.topbar{background:#fff!important;border-bottom:1px solid rgba(11,47,104,.1)!important;box-shadow:0 1px 0 rgba(11,47,104,.07),0 2px 12px rgba(11,47,104,.05)!important}',
-      '.topbar-title{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:600!important}',
-      '.menu-btn{color:#0b2554!important;background:rgba(11,47,104,.05)!important;border-color:rgba(11,47,104,.12)!important}',
-      '.topbar-plan{background:#eef2ff!important;border:1px solid rgba(17,85,204,.22)!important}',
-      '.topbar-plan,.topbar-plan *{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;font-weight:700!important}',
-      '.status-dot{background:#22c55e!important;box-shadow:0 0 6px rgba(34,197,94,.55)!important}',
+      /* ── Topbar ── */
+      '.topbar{background:#FFFFFF!important;border-bottom:1px solid #E2E8F0!important;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)!important}',
+      '.topbar-title{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-size:15px!important;font-weight:700!important}',
+      '.menu-btn{color:#475569!important;background:transparent!important;border-color:#E2E8F0!important}',
+      '.topbar-plan{background:#EFF6FF!important;border:1px solid #BFDBFE!important}',
+      '.topbar-plan,.topbar-plan *{color:#1E40AF!important;-webkit-text-fill-color:#1E40AF!important;font-weight:700!important;font-size:10px!important;letter-spacing:.08em!important}',
+      '.status-dot{background:#10B981!important;box-shadow:none!important}',
 
-      /* ── SISTEMA DE TARJETAS UNIFICADO (P10 fix) ── */
-      '.section{background:#ffffff!important;border:1px solid rgba(11,47,104,.08)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important;border-radius:16px!important}',
-      '.ic-stat-card,.ic-quick-card,.plantilla-card,.noticia-card,.directorio-card{background:#fff!important;border:1px solid rgba(11,47,104,.09)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important}',
+      /* ── Sistema de tarjetas unificado ── */
+      '.section{background:#FFFFFF!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)!important}',
 
-      /* ── HELLO ── */
-      '.ic-hello-eyebrow{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
-      '.ic-hello-title{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;background:none!important;font-size:clamp(28px,4vw,38px)!important;font-weight:700!important}',
-      '.ic-hello-title #user-nombre{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;background:none!important}',
-      '.ic-hello-line{background:linear-gradient(90deg,#1155cc,transparent)!important}',
+      /* ── Hello ── */
+      '.ic-hello-eyebrow{color:#3B82F6!important;-webkit-text-fill-color:#3B82F6!important;font-size:11px!important;font-weight:600!important;letter-spacing:.1em!important}',
+      '.ic-hello-title{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;background:none!important;font-size:28px!important;font-weight:700!important;letter-spacing:-.5px!important}',
+      '.ic-hello-title #user-nombre{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;background:none!important}',
+      '.ic-hello-line{background:linear-gradient(90deg,#2563EB,transparent)!important;height:3px!important}',
 
-      /* ── HERO ── */
-      '.ic-hero{background:#1155cc!important;background-image:radial-gradient(ellipse at 85% 50%,rgba(255,255,255,.09),transparent 65%)!important;border:none!important}',
+      /* ── Hero ── */
+      '.ic-hero{background:linear-gradient(135deg,#1E3A8A 0%,#2563EB 100%)!important;background-image:none!important;border:none!important;box-shadow:0 8px 24px rgba(37,99,235,.25)!important;border-radius:16px!important}',
       '.ic-hero *,.ic-hero-content *,.ic-plan-badge,.ic-plan-badge *,.ic-hero-greeting,.ic-hero-desc{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.ic-streak-card{background:rgba(255,255,255,.17)!important;border:1px solid rgba(255,255,255,.28)!important}',
+      '.ic-plan-badge{background:rgba(255,255,255,.15)!important;border-color:rgba(255,255,255,.25)!important}',
+      '.ic-streak-card{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.25)!important}',
       '.ic-streak-card *,.ic-streak-num,.ic-streak-label{color:#fff!important;-webkit-text-fill-color:#fff!important}',
 
-      /* ── STAT CARDS (P08 fix) ── */
-      '.ic-stat-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.09)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important;border-radius:14px!important}',
-      '.ic-stat-card::before{opacity:.45!important}',
-      '.ic-stat-value,.ic-stat-num{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:800!important}',
-      '.ic-stat-label{color:#2563eb!important;-webkit-text-fill-color:#2563eb!important;font-size:9px!important;letter-spacing:.12em!important;font-weight:700!important}',
-      '.ic-stat-icon{color:#0b2554!important}',
-      '.ic-section-label{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:600!important}',
+      /* ── Stat cards ── */
+      '.ic-stat-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
+      '.ic-stat-card::before{opacity:.3!important}',
+      '.ic-stat-value,.ic-stat-num{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:800!important}',
+      '.ic-stat-label{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-size:10px!important;font-weight:600!important;letter-spacing:.08em!important}',
+      '.ic-stat-icon{color:#0F172A!important}',
+      '.ic-section-label{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:600!important;font-size:14px!important}',
 
-      /* ── QUICK CARDS (P01 fix — ya no negras) ── */
-      '.ic-quick-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.09)!important;border-radius:14px!important}',
-      '.ic-quick-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      '.ic-quick-title{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;font-weight:700!important}',
-      '.ic-quick-sub{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
-      '.ic-quick-cta{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;font-weight:700!important}',
-      '.ic-quick-badge{background:#eef2ff!important;color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;border-color:rgba(17,85,204,.2)!important}',
-      '.ic-quick-icon{background:rgba(17,85,204,.08)!important;border-color:rgba(17,85,204,.12)!important}',
+      /* ── Quick cards (base blanca) ── */
+      '.ic-quick-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
+      '.ic-quick-card *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
+      '.ic-quick-title{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;font-weight:700!important}',
+      '.ic-quick-sub{color:#64748B!important;-webkit-text-fill-color:#64748B!important}',
+      '.ic-quick-cta{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;font-weight:600!important}',
+      '.ic-quick-badge{background:#EFF6FF!important;color:#1E40AF!important;-webkit-text-fill-color:#1E40AF!important;border-color:#BFDBFE!important;font-weight:700!important}',
+      '.ic-quick-icon{background:#EFF6FF!important;border-color:#BFDBFE!important}',
 
-      /* Quick card primary — azul oscuro, NO negro (P01) */
-      '.ic-quick-card-primary{background:#0b2f68!important;background-image:none!important;border-color:rgba(11,47,104,.3)!important}',
+      /* Quick card primary — azul corporativo */
+      '.ic-quick-card-primary{background:linear-gradient(135deg,#1E3A8A,#2563EB)!important;background-image:linear-gradient(135deg,#1E3A8A,#2563EB)!important;border-color:rgba(30,58,138,.3)!important}',
       '.ic-quick-card-primary *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.18)!important}',
-      '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.18)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.18)!important;border-color:rgba(255,255,255,.25)!important}',
+      '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.18)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:rgba(255,255,255,.25)!important}',
 
-      /* WA card — verde oscuro */
-      '.ic-quick-card-wa{background:#065f46!important;background-image:none!important}',
+      /* WA card */
+      '.ic-quick-card-wa{background:linear-gradient(135deg,#065F46,#059669)!important;background-image:linear-gradient(135deg,#065F46,#059669)!important}',
       '.ic-quick-card-wa *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
 
-      /* Countdown — morado */
-      '.ic-countdown{background:#2d1b69!important;background-image:none!important}',
+      /* Countdown */
+      '.ic-countdown{background:linear-gradient(135deg,#1E1B4B,#3730A3)!important;background-image:linear-gradient(135deg,#1E1B4B,#3730A3)!important}',
       '.ic-countdown *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
 
-      /* ── BANNERS STATS OSCUROS → AZUL ELÉCTRICO (P02 fix) ── */
-      /* Selectores por inline style inline color #1a2a4a, #1a3060 etc */
-      '[style*="1a2a4a"],[style*="1a3060"],[style*="0f1c35"],[style*="0b2554"]{background:#1155cc!important;color:#fff!important}',
-      '.ic-vid-progress,.ic-plant-stats,.ic-cert-stats,.ic-clases-empty,.ic-logros-header{background:#1155cc!important;color:#fff!important}',
-      '.ic-vid-progress *,.ic-plant-stats *,.ic-cert-stats *,.ic-clases-empty *,.ic-logros-header *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      /* ── Banners stats oscuros → azul (Videoteca, Plantillas, Certificados) ── */
+      '[style*="1a2a4a"],[style*="1a3060"],[style*="0f1c35"],[style*="1a3a6b"]{background:#2563EB!important;background-image:none!important;color:#fff!important}',
+      '.ic-vid-progress,.ic-plant-stats,.ic-cert-stats,.ic-clases-empty{background:#2563EB!important;color:#fff!important;border-radius:12px!important}',
+      '.ic-vid-progress *,.ic-plant-stats *,.ic-cert-stats *,.ic-clases-empty *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
 
-      /* ── CTA BANNER ── */
-      '.ic-cta-banner{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important}',
-      '.ic-cta-banner *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      '.ic-cta-banner strong,.ic-cta-banner b{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}',
+      /* ── CTA banner ── */
+      '.ic-cta-banner{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important}',
+      '.ic-cta-banner *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
+      '.ic-cta-banner strong,.ic-cta-banner b{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important}',
 
-      /* ── LOGROS / ACHIEVEMENTS ── */
-      '.achievement-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
-      '.achievement-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      '.achievement-name{font-weight:700!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      '.achievement-desc{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important;font-size:11px!important}',
-      '.achievement-prog-label{color:#2563eb!important;-webkit-text-fill-color:#2563eb!important}',
-      /* Mis Logros header (P15 fix) */
-      '.ic-logros-top,.ic-logros-banner{background:#0b2f68!important;background-image:none!important}',
+      /* ── Logros ── */
+      '.achievement-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
+      '.achievement-card *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
+      '.achievement-name{font-weight:600!important;color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
+      '.achievement-desc{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-size:12px!important;font-weight:400!important}',
+      '.achievement-prog-label{color:#64748B!important;-webkit-text-fill-color:#64748B!important}',
+      '.ic-logros-top,.ic-logros-banner{background:linear-gradient(135deg,#1E3A8A,#2563EB)!important;background-image:linear-gradient(135deg,#1E3A8A,#2563EB)!important}',
       '.ic-logros-top *,.ic-logros-banner *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.progress-track,.achievement-prog-track{background:#E2E8F0!important}',
+      '.progress-bar,.achievement-prog-fill{background:linear-gradient(90deg,#2563EB,#3B82F6)!important}',
 
-      /* ── VIDEOTECA / CLASES / MATERIAL ── */
-      '.video-card,.clase-card,.course-card,.material-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
-      '.video-card *,.clase-card *,.course-card *,.material-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      /* ── Videoteca / Clases / Material ── */
+      '.video-card,.clase-card,.course-card,.material-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
+      '.video-card *,.clase-card *,.course-card *,.material-card *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
 
-      /* ── NOTICIAS ── */
-      '.noticia-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
-      '.noticia-card h3,.noticia-card p{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      /* ── Noticias ── */
+      '.noticia-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important}',
+      '.noticia-card h3{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:600!important}',
+      '.noticia-card p{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-weight:400!important}',
 
-      /* ── DIRECTORIO VIP (P20, P21 fix) ── */
-      '.dir-card{background:#fff!important;background-image:none!important;border:1.5px solid rgba(11,47,104,.1)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important}',
-      '.dir-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      '.dir-card-name{font-weight:700!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      '.dir-card-cargo{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}',
-      '.dir-card-bio{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
-      '.dir-card-avatar{background:#0b2f68!important}',
-      /* Banner perfil oculto */
-      '.dir-profile-banner,.ic-dir-banner{background:#eef2ff!important;border:1px solid rgba(17,85,204,.2)!important}',
-      '.dir-profile-banner *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      /* ── Directorio ── */
+      '.dir-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
+      '.dir-card *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
+      '.dir-card-name{font-weight:700!important;color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
+      '.dir-card-cargo{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;font-weight:600!important}',
+      '.dir-card-bio{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-weight:400!important}',
+      '.dir-card-avatar{background:#1E3A8A!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.dir-profile-banner,.ic-dir-banner{background:#EFF6FF!important;border:1px solid #BFDBFE!important;border-radius:12px!important}',
+      '.dir-profile-banner *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
 
-      /* ── AVISOS LEGALES AZUL (P11 fix) ── */
-      '.aviso-legal,[class*=aviso],[class*=legal-notice],[class*=disclaimer]{background:#e8f0fe!important;border-left:4px solid #1155cc!important;border-radius:10px!important;color:#0b2554!important}',
-      '.aviso-legal *,[class*=aviso] *,[class*=legal-notice] *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      /* Aviso beige rgba fix */
-      '[style*="255,237,213"],[style*="rgba(255,237,213"],[style*="rgb(255,237,213"]{background:#e8f0fe!important;color:#0b2554!important}',
+      /* ── Botones: TODOS los dorados/amarillos → azul ── */
+      '.btn-gold,[class*=btn-vip],[class*=btn-explorar],[style*="c8962a"],[style*="f5d77a"],[style*="e8a000"],[style*="cc8800"]{background:#2563EB!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#2563EB!important}',
+      /* Botón primario general */
+      '.btn-primary,[class*=btn-primary]{background:#2563EB!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
 
-      /* ── TABS CALCULADORAS (P12 fix) ── */
-      '.tab-activo,.tab-btn.active,[class*=tab][class*=active]{background:#0b2f68!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#0b2f68!important}',
+      /* ── Avisos legales → azul claro ── */
+      '.aviso-legal,[class*=aviso],[class*=legal-notice],[class*=disclaimer]{background:#EFF6FF!important;border-left:4px solid #2563EB!important;border-radius:8px!important;color:#1E3A8A!important}',
+      '.aviso-legal *,[class*=aviso] *,[class*=legal-notice] *{color:#1E40AF!important;-webkit-text-fill-color:#1E40AF!important;font-weight:400!important}',
+      '[style*="255,237,213"],[style*="rgba(255,237,213"]{background:#EFF6FF!important;color:#1E40AF!important}',
 
-      /* ── SELECT NATIVO ESTILIZADO (P13 fix) ── */
-      'select{border:1px solid rgba(11,47,104,.2)!important;border-radius:8px!important;padding:10px 14px!important;color:#0b2554!important;background-color:#fff!important;-webkit-appearance:none!important;appearance:none!important}',
+      /* ── Tabs activos ── */
+      '.tab-activo,.tab-btn.active,[class*=tab][class*=active]{background:#1E3A8A!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#1E3A8A!important}',
 
-      /* ── TABLA PAGOS (P18 fix) ── */
-      'table th,[class*=tabla] th{background:#f0f5fb!important;color:#0b2554!important;font-size:11px!important;font-weight:700!important;letter-spacing:.06em!important}',
+      /* ── Select estilizado ── */
+      'select{border:1px solid #CBD5E1!important;border-radius:8px!important;padding:10px 14px!important;color:#0F172A!important;background-color:#fff!important;-webkit-appearance:none!important;appearance:none!important}',
 
-      /* ── BOTONES DORADOS → AZUL EN DÍA (P09 fix) ── */
-      '.btn-gold,[class*=btn-vip],[class*=btn-explorar],[style*="c8962a"],[style*="f5d77a"]:not(.ic-streak-card):not(.ic-plan-badge){background:#0b2f68!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#0b2f68!important}',
+      /* ── Tabla ── */
+      'table th,[class*=tabla] th{background:#F8FAFC!important;color:#475569!important;font-size:11px!important;font-weight:700!important;letter-spacing:.06em!important;border-bottom:1px solid #E2E8F0!important}',
 
-      /* ── GLASS / CONFIG / CERTIFICADOS ── */
-      '.glass-panel,.ic-config-card,.cert-card,.ic-cert-card,.certificate-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
-      '.glass-panel *,.ic-config-card *,.cert-card *,.ic-cert-card *,.certificate-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      /* ── Glass / Config / Certs ── */
+      '.glass-panel,.ic-config-card,.cert-card,.certificate-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important}',
+      '.glass-panel *,.ic-config-card *,.cert-card *,.certificate-card *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
 
-      /* ── COMUNIDAD (P06 fix) ── */
-      '.comunidad-card,.ic-comunidad-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important}',
-      '.comunidad-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      /* ── Fondos inline oscuros → blanco ── */
+      '[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],[style*="background:#020d30"],[style*="background:#031040"],[style*="background:rgba(11,31,74"],[style*="background:rgba(13,37,71"],[style*="background:linear-gradient(135deg,#1a3a6b"],[style*="background:linear-gradient(180deg,#0b1f4a"]{background:#FFFFFF!important;background-image:none!important;border-color:#E2E8F0!important}',
 
-      /* ── PROGRESO BARS ── */
-      '.progress-track,.achievement-prog-track{background:rgba(11,47,104,.1)!important}',
-      '.progress-bar,.achievement-prog-fill{background:linear-gradient(90deg,#1155cc,#0b2f68)!important}',
+      /* ── Textos claros inline → legibles ── */
+      '[style*="color:#cbd5e1"],[style*="color:#94a3b8"],[style*="color:#e2e8f0"],[style*="color:rgba(226,232,240"],[style*="color:rgba(203,213,225"]{color:#64748B!important;-webkit-text-fill-color:#64748B!important}',
 
-      /* ── PÁRRAFOS — peso 400 (P17 fix) ── */
-      '.section p:not([class*=badge]):not([class*=tag]){font-weight:400!important;color:#4a5578!important;-webkit-text-fill-color:#4a5578!important}',
-      '.section h1,.section h2,.section h3,.section h4{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
-      '.section label{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      /* ── Tipografía global ── */
+      '.section p:not([class*=badge]):not([class*=tag]):not([class*=label]){font-weight:400!important;color:#475569!important;-webkit-text-fill-color:#475569!important}',
+      '.section h1,.section h2{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;letter-spacing:-.5px!important}',
+      '.section h3,.section h4{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
+      '.section label{color:#475569!important;-webkit-text-fill-color:#475569!important;font-size:13px!important}',
 
-      /* ── INPUTS ── */
-      'input,textarea{background:#fff!important;color:#0b2554!important;border-color:rgba(11,47,104,.18)!important;border-radius:8px!important}',
-      'input::placeholder,textarea::placeholder{color:rgba(11,37,84,.35)!important;-webkit-text-fill-color:rgba(11,37,84,.35)!important}',
+      /* ── Inputs ── */
+      'input,textarea{background:#FFFFFF!important;color:#0F172A!important;border:1px solid #CBD5E1!important;border-radius:8px!important}',
+      'input::placeholder,textarea::placeholder{color:#94A3B8!important;-webkit-text-fill-color:#94A3B8!important}',
 
-      /* ── FONDOS INLINE OSCUROS → BLANCO ── */
-      '[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],[style*="background:#020d30"],[style*="background:rgba(11,31,74"],[style*="background:rgba(13,37,71"]{background:#fff!important;background-image:none!important;border-color:rgba(11,47,104,.08)!important}',
+      /* ── Scrollbar ── */
+      '::-webkit-scrollbar-track{background:#F1F5F9!important}',
+      '::-webkit-scrollbar-thumb{background:#CBD5E1!important;border-radius:4px!important}',
+      '::-webkit-scrollbar-thumb:hover{background:#94A3B8!important}',
 
-      /* ── TEXTOS CLAROS INLINE ── */
-      '[style*="color:#cbd5e1"],[style*="color:#94a3b8"],[style*="color:#e2e8f0"],[style*="color:rgba(226,232,240"]{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
-
-      /* ── SCROLLBAR ── */
-      '::-webkit-scrollbar-track{background:#e2eaf5!important}',
-      '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(11,47,104,.5),rgba(11,47,104,.3))!important;border-color:#f0f5fb!important}',
-
-      /* ── TOGGLE BOTÓN ── */
-      'body.modo-dia #btn-modo-toggle{background:rgba(255,185,0,.12)!important;border-color:rgba(180,110,0,.35)!important}'
+      /* ── Toggle botón ── */
+      'body.modo-dia #btn-modo-toggle{background:rgba(255,185,0,.1)!important;border-color:rgba(180,100,0,.3)!important}'
     ].join('');
 
     /* ── Crear/reusar style tag ── */
