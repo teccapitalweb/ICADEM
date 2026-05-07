@@ -185,26 +185,40 @@
       box-shadow: 0 24px 64px rgba(0,0,0,0.4), inset 0 0 0 1px rgba(245,215,122,0.05) !important;
     }
     .glass-panel .section-tag { color: #f5d77a !important; }
+    .check-list {
+      padding: 0 !important;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+    }
     .check-list li {
       color: rgba(255,255,255,0.92) !important;
-      position: relative;
-      padding-left: 28px;
+      position: relative !important;
+      padding: 10px 12px 10px 38px !important;
+      font-size: 14px !important;
+      line-height: 1.4 !important;
+      list-style: none !important;
+      background: rgba(255,255,255,0.04) !important;
+      border-radius: 10px !important;
+      border: 1px solid rgba(255,255,255,0.07) !important;
     }
     .check-list li::before {
       content: '✓' !important;
-      position: absolute;
-      left: 0; top: 50%;
-      transform: translateY(-50%);
-      width: 18px; height: 18px;
-      background: linear-gradient(135deg, #f5d77a, #c8962a);
+      position: absolute !important;
+      left: 10px !important;
+      top: 50% !important;
+      transform: translateY(-50%) !important;
+      width: 20px !important; height: 20px !important;
+      background: linear-gradient(135deg, #f5d77a, #c8962a) !important;
       color: #0b1f4a !important;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: 900;
-      box-shadow: 0 0 10px rgba(245,215,122,0.5);
+      border-radius: 50% !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      font-size: 10px !important;
+      font-weight: 900 !important;
+      box-shadow: 0 0 10px rgba(245,215,122,0.5) !important;
     }
 
     /* === SERVICE CARDS === */
@@ -608,6 +622,13 @@
       gap: 60px !important;
       align-items: center;
     }
+    /* Mobile: columna única, card stack abajo */
+    @media (max-width: 900px) {
+      .fwho-grid {
+        grid-template-columns: 1fr !important;
+        gap: 40px !important;
+      }
+    }
     .fwho-tag {
       display: inline-flex;
       align-items: center;
@@ -863,14 +884,47 @@
       0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; }
     }
     @media (max-width: 900px) {
-      .fwho-stack-scene { max-width: 340px; height: 380px; margin: 0 auto; }
-      .fwho-card3d { width: 240px; height: 150px; margin: -75px 0 0 -120px; padding: 18px 22px; }
-      .fwho-card3d-title { font-size: 15px; }
-      .fwho-card3d-num { font-size: 22px; }
+      /* Simplificar a 2D en móvil — iOS Safari no soporta bien preserve-3d complejos */
+      .fwho-stack-scene {
+        max-width: 100% !important;
+        height: auto !important;
+        perspective: none !important;
+        margin: 0 auto;
+      }
+      .fwho-stack {
+        width: 100% !important;
+        height: auto !important;
+        transform-style: flat !important;
+        animation: none !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        position: static !important;
+      }
+      /* Cada carta: display normal apilado, no 3D */
+      .fwho-card3d {
+        position: static !important;
+        width: 100% !important;
+        height: auto !important;
+        margin: 0 !important;
+        padding: 20px 22px !important;
+        transform: none !important;
+        opacity: 1 !important;
+        border-radius: 16px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+      }
+      .fwho-stack-scene:hover .fwho-card3d { transform: none !important; }
+      .fwho-card3d-title { font-size: 16px !important; }
+      .fwho-card3d-num { font-size: 24px !important; }
+      .fwho-stack-hint { display: none !important; }
+      /* Ocultar cartas 4 y 5 en móvil para no saturar */
+      .fwho-card3d:nth-child(4),
+      .fwho-card3d:nth-child(5) { display: none !important; }
     }
     @media (max-width: 480px) {
-      .fwho-stack-scene { max-width: 300px; height: 340px; }
-      .fwho-card3d { width: 210px; height: 135px; margin: -67px 0 0 -105px; padding: 16px 18px; }
+      .fwho-card3d { padding: 16px 18px !important; }
     }
 
     /* ============================================================
@@ -1208,6 +1262,24 @@
         #nosotros .glass-panel .section-tag {
           color: #f5d77a !important;
           opacity: 1 !important;
+        }
+        /* Forzar visibilidad del card stack — reveal-delay no debe ocultarlo */
+        .fwho-visual,
+        .fwho-stack-scene,
+        .fwho-stack,
+        .fwho-card3d {
+          opacity: 1 !important;
+          visibility: visible !important;
+          transform: none;
+        }
+        @media (min-width: 901px) {
+          /* Restaurar 3D en desktop */
+          .fwho-stack { transform: rotateX(6deg) rotateY(-8deg); animation: stack-float 7s ease-in-out infinite !important; }
+          .fwho-card3d:nth-child(1) { transform: translateZ(80px)  translateY(-36px) !important; }
+          .fwho-card3d:nth-child(2) { transform: translateZ(40px)  translateY(-18px) !important; }
+          .fwho-card3d:nth-child(3) { transform: translateZ(0px)   translateY(0px)   !important; }
+          .fwho-card3d:nth-child(4) { transform: translateZ(-40px) translateY(18px)  !important; }
+          .fwho-card3d:nth-child(5) { transform: translateZ(-80px) translateY(36px)  !important; }
         }
       </style>
     </div>
