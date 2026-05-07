@@ -24369,62 +24369,169 @@ window.loginDirecto = function() {
     var active = false;
 
     /* ── CSS de día completo ── */
-    var DAY = 'html{background:#edf2ff!important;background-image:none!important}'
-      + 'body,.main,.content{background:transparent!important}'
-      + '.sidebar{background:#1155cc!important;background-image:none!important;border-right:none!important}'
-      + '.sidebar *{color:rgba(255,255,255,.75)!important;-webkit-text-fill-color:rgba(255,255,255,.75)!important}'
-      + '.nav-item.active{background:rgba(255,255,255,.22)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.nav-item.active *{color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.nav-item:hover{background:rgba(255,255,255,.1)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.sidebar-logo-name{color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.nav-section-title{color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}'
-      + '.btn-logout{color:rgba(255,255,255,.6)!important;background:transparent!important;border-color:rgba(255,255,255,.2)!important}'
-      + '.topbar{background:#fff!important;border-bottom:1px solid rgba(0,30,180,.09)!important;box-shadow:0 2px 14px rgba(0,20,120,.06)!important}'
-      + '.topbar-title{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.menu-btn{color:#0d1440!important}'
-      + '.topbar-plan{background:#edf2ff!important;border:1px solid rgba(17,85,204,.2)!important}'
-      + '.topbar-plan,.topbar-plan *{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}'
-      + '.status-dot{background:#22c55e!important}'
-      + '.section{background:#fff!important;border:1px solid rgba(0,30,180,.07)!important}'
-      + '.ic-hello-title{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important;background:none!important}'
-      + '.ic-hello-title #user-nombre{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;background:none!important}'
-      + '.ic-hello-eyebrow{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}'
-      + '.ic-hello-line{background:linear-gradient(90deg,#1155cc,transparent)!important}'
-      + '.ic-hero{background:#1155cc!important;background-image:none!important}'
-      + '.ic-hero *{color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.ic-streak-card{background:rgba(255,255,255,.18)!important;border:1px solid rgba(255,255,255,.28)!important}'
-      + '.ic-streak-card *{color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.ic-stat-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,30,180,.08)!important}'
-      + '.ic-stat-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.ic-stat-value{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.ic-stat-label{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}'
-      + '.ic-section-label{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.ic-quick-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,30,180,.08)!important}'
-      + '.ic-quick-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.ic-quick-title{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}'
-      + '.ic-quick-sub{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}'
-      + '.ic-quick-cta{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}'
-      + '.ic-quick-badge{background:#edf2ff!important;color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}'
-      + '.ic-quick-card-primary{background:#1155cc!important;background-image:none!important}'
-      + '.ic-quick-card-primary *{color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.ic-quick-card-wa{background:#065f46!important;background-image:none!important}'
-      + '.ic-quick-card-wa *{color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.ic-countdown{background:#2d1b69!important;background-image:none!important}'
-      + '.ic-countdown *{color:#fff!important;-webkit-text-fill-color:#fff!important}'
-      + '.ic-cta-banner{background:#fff!important;background-image:none!important;border:1px solid rgba(0,30,180,.07)!important}'
-      + '.ic-cta-banner *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.achievement-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,30,180,.07)!important}'
-      + '.achievement-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.achievement-desc{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}'
-      + '.noticia-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,30,180,.07)!important}'
-      + '.noticia-card h3,.noticia-card p{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.dir-card{background:#fff!important;background-image:none!important}'
-      + '.dir-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + '.dir-card-cargo{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}'
-      + '.glass-panel,.ic-config-card{background:#fff!important;background-image:none!important}'
-      + '.glass-panel *,.ic-config-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}'
-      + 'input,textarea,select{background:#f5f7ff!important;color:#0d1440!important;border-color:rgba(0,30,180,.15)!important}'
-      + 'input::placeholder,textarea::placeholder{color:rgba(13,20,64,.35)!important}';
+    var DAY = [
+      /* ── FONDO BASE: secciones en azul muy claro (capas premium) ── */
+      'html{background:#f0f5fb!important;background-image:none!important}',
+      'body,.main,.content{background:transparent!important}',
+      'body.modo-dia .section,[id^=sec-]{background:#f0f5fb!important}',
+
+      /* ── SIDEBAR ── */
+      '.sidebar{background:#0b2f68!important;background-image:none!important;border-right:none!important;box-shadow:2px 0 20px rgba(0,20,100,.2)!important}',
+      '.sidebar *{color:rgba(255,255,255,.75)!important;-webkit-text-fill-color:rgba(255,255,255,.75)!important}',
+      '.nav-item.active{background:rgba(255,255,255,.22)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.nav-item.active *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.nav-item:hover:not(.active){background:rgba(255,255,255,.1)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.sidebar-logo-name{color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:800!important}',
+      '.nav-section-title{color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important}',
+      '.btn-logout{color:rgba(255,255,255,.65)!important;background:transparent!important;border-color:rgba(255,255,255,.25)!important}',
+
+      /* ── TOPBAR ── */
+      '.topbar{background:#fff!important;border-bottom:1px solid rgba(11,47,104,.1)!important;box-shadow:0 1px 0 rgba(11,47,104,.07),0 2px 12px rgba(11,47,104,.05)!important}',
+      '.topbar-title{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:600!important}',
+      '.menu-btn{color:#0b2554!important;background:rgba(11,47,104,.05)!important;border-color:rgba(11,47,104,.12)!important}',
+      '.topbar-plan{background:#eef2ff!important;border:1px solid rgba(17,85,204,.22)!important}',
+      '.topbar-plan,.topbar-plan *{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;font-weight:700!important}',
+      '.status-dot{background:#22c55e!important;box-shadow:0 0 6px rgba(34,197,94,.55)!important}',
+
+      /* ── SISTEMA DE TARJETAS UNIFICADO (P10 fix) ── */
+      '.section{background:#ffffff!important;border:1px solid rgba(11,47,104,.08)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important;border-radius:16px!important}',
+      '.ic-stat-card,.ic-quick-card,.plantilla-card,.noticia-card,.directorio-card{background:#fff!important;border:1px solid rgba(11,47,104,.09)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important}',
+
+      /* ── HELLO ── */
+      '.ic-hello-eyebrow{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
+      '.ic-hello-title{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;background:none!important;font-size:clamp(28px,4vw,38px)!important;font-weight:700!important}',
+      '.ic-hello-title #user-nombre{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;background:none!important}',
+      '.ic-hello-line{background:linear-gradient(90deg,#1155cc,transparent)!important}',
+
+      /* ── HERO ── */
+      '.ic-hero{background:#1155cc!important;background-image:radial-gradient(ellipse at 85% 50%,rgba(255,255,255,.09),transparent 65%)!important;border:none!important}',
+      '.ic-hero *,.ic-hero-content *,.ic-plan-badge,.ic-plan-badge *,.ic-hero-greeting,.ic-hero-desc{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.ic-streak-card{background:rgba(255,255,255,.17)!important;border:1px solid rgba(255,255,255,.28)!important}',
+      '.ic-streak-card *,.ic-streak-num,.ic-streak-label{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+      /* ── STAT CARDS (P08 fix) ── */
+      '.ic-stat-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.09)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important;border-radius:14px!important}',
+      '.ic-stat-card::before{opacity:.45!important}',
+      '.ic-stat-value,.ic-stat-num{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:800!important}',
+      '.ic-stat-label{color:#2563eb!important;-webkit-text-fill-color:#2563eb!important;font-size:9px!important;letter-spacing:.12em!important;font-weight:700!important}',
+      '.ic-stat-icon{color:#0b2554!important}',
+      '.ic-section-label{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:600!important}',
+
+      /* ── QUICK CARDS (P01 fix — ya no negras) ── */
+      '.ic-quick-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.09)!important;border-radius:14px!important}',
+      '.ic-quick-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.ic-quick-title{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;font-weight:700!important}',
+      '.ic-quick-sub{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
+      '.ic-quick-cta{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;font-weight:700!important}',
+      '.ic-quick-badge{background:#eef2ff!important;color:#1155cc!important;-webkit-text-fill-color:#1155cc!important;border-color:rgba(17,85,204,.2)!important}',
+      '.ic-quick-icon{background:rgba(17,85,204,.08)!important;border-color:rgba(17,85,204,.12)!important}',
+
+      /* Quick card primary — azul oscuro, NO negro (P01) */
+      '.ic-quick-card-primary{background:#0b2f68!important;background-image:none!important;border-color:rgba(11,47,104,.3)!important}',
+      '.ic-quick-card-primary *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.18)!important}',
+      '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.18)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+      /* WA card — verde oscuro */
+      '.ic-quick-card-wa{background:#065f46!important;background-image:none!important}',
+      '.ic-quick-card-wa *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+      /* Countdown — morado */
+      '.ic-countdown{background:#2d1b69!important;background-image:none!important}',
+      '.ic-countdown *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+      /* ── BANNERS STATS OSCUROS → AZUL ELÉCTRICO (P02 fix) ── */
+      /* Selectores por inline style inline color #1a2a4a, #1a3060 etc */
+      '[style*="1a2a4a"],[style*="1a3060"],[style*="0f1c35"],[style*="0b2554"]{background:#1155cc!important;color:#fff!important}',
+      '.ic-vid-progress,.ic-plant-stats,.ic-cert-stats,.ic-clases-empty,.ic-logros-header{background:#1155cc!important;color:#fff!important}',
+      '.ic-vid-progress *,.ic-plant-stats *,.ic-cert-stats *,.ic-clases-empty *,.ic-logros-header *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+      /* ── CTA BANNER ── */
+      '.ic-cta-banner{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important}',
+      '.ic-cta-banner *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.ic-cta-banner strong,.ic-cta-banner b{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}',
+
+      /* ── LOGROS / ACHIEVEMENTS ── */
+      '.achievement-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
+      '.achievement-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.achievement-name{font-weight:700!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.achievement-desc{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important;font-size:11px!important}',
+      '.achievement-prog-label{color:#2563eb!important;-webkit-text-fill-color:#2563eb!important}',
+      /* Mis Logros header (P15 fix) */
+      '.ic-logros-top,.ic-logros-banner{background:#0b2f68!important;background-image:none!important}',
+      '.ic-logros-top *,.ic-logros-banner *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+      /* ── VIDEOTECA / CLASES / MATERIAL ── */
+      '.video-card,.clase-card,.course-card,.material-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
+      '.video-card *,.clase-card *,.course-card *,.material-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+
+      /* ── NOTICIAS ── */
+      '.noticia-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
+      '.noticia-card h3,.noticia-card p{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+
+      /* ── DIRECTORIO VIP (P20, P21 fix) ── */
+      '.dir-card{background:#fff!important;background-image:none!important;border:1.5px solid rgba(11,47,104,.1)!important;box-shadow:0 2px 10px rgba(11,47,104,.06)!important}',
+      '.dir-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.dir-card-name{font-weight:700!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.dir-card-cargo{color:#1155cc!important;-webkit-text-fill-color:#1155cc!important}',
+      '.dir-card-bio{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
+      '.dir-card-avatar{background:#0b2f68!important}',
+      /* Banner perfil oculto */
+      '.dir-profile-banner,.ic-dir-banner{background:#eef2ff!important;border:1px solid rgba(17,85,204,.2)!important}',
+      '.dir-profile-banner *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+
+      /* ── AVISOS LEGALES AZUL (P11 fix) ── */
+      '.aviso-legal,[class*=aviso],[class*=legal-notice],[class*=disclaimer]{background:#e8f0fe!important;border-left:4px solid #1155cc!important;border-radius:10px!important;color:#0b2554!important}',
+      '.aviso-legal *,[class*=aviso] *,[class*=legal-notice] *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      /* Aviso beige rgba fix */
+      '[style*="255,237,213"],[style*="rgba(255,237,213"],[style*="rgb(255,237,213"]{background:#e8f0fe!important;color:#0b2554!important}',
+
+      /* ── TABS CALCULADORAS (P12 fix) ── */
+      '.tab-activo,.tab-btn.active,[class*=tab][class*=active]{background:#0b2f68!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#0b2f68!important}',
+
+      /* ── SELECT NATIVO ESTILIZADO (P13 fix) ── */
+      'select{border:1px solid rgba(11,47,104,.2)!important;border-radius:8px!important;padding:10px 14px!important;color:#0b2554!important;background-color:#fff!important;-webkit-appearance:none!important;appearance:none!important}',
+
+      /* ── TABLA PAGOS (P18 fix) ── */
+      'table th,[class*=tabla] th{background:#f0f5fb!important;color:#0b2554!important;font-size:11px!important;font-weight:700!important;letter-spacing:.06em!important}',
+
+      /* ── BOTONES DORADOS → AZUL EN DÍA (P09 fix) ── */
+      '.btn-gold,[class*=btn-vip],[class*=btn-explorar],[style*="c8962a"],[style*="f5d77a"]:not(.ic-streak-card):not(.ic-plan-badge){background:#0b2f68!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#0b2f68!important}',
+
+      /* ── GLASS / CONFIG / CERTIFICADOS ── */
+      '.glass-panel,.ic-config-card,.cert-card,.ic-cert-card,.certificate-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important;border-radius:14px!important}',
+      '.glass-panel *,.ic-config-card *,.cert-card *,.ic-cert-card *,.certificate-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+
+      /* ── COMUNIDAD (P06 fix) ── */
+      '.comunidad-card,.ic-comunidad-card{background:#fff!important;background-image:none!important;border:1px solid rgba(11,47,104,.08)!important}',
+      '.comunidad-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+
+      /* ── PROGRESO BARS ── */
+      '.progress-track,.achievement-prog-track{background:rgba(11,47,104,.1)!important}',
+      '.progress-bar,.achievement-prog-fill{background:linear-gradient(90deg,#1155cc,#0b2f68)!important}',
+
+      /* ── PÁRRAFOS — peso 400 (P17 fix) ── */
+      '.section p:not([class*=badge]):not([class*=tag]){font-weight:400!important;color:#4a5578!important;-webkit-text-fill-color:#4a5578!important}',
+      '.section h1,.section h2,.section h3,.section h4{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.section label{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+
+      /* ── INPUTS ── */
+      'input,textarea{background:#fff!important;color:#0b2554!important;border-color:rgba(11,47,104,.18)!important;border-radius:8px!important}',
+      'input::placeholder,textarea::placeholder{color:rgba(11,37,84,.35)!important;-webkit-text-fill-color:rgba(11,37,84,.35)!important}',
+
+      /* ── FONDOS INLINE OSCUROS → BLANCO ── */
+      '[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],[style*="background:#020d30"],[style*="background:rgba(11,31,74"],[style*="background:rgba(13,37,71"]{background:#fff!important;background-image:none!important;border-color:rgba(11,47,104,.08)!important}',
+
+      /* ── TEXTOS CLAROS INLINE ── */
+      '[style*="color:#cbd5e1"],[style*="color:#94a3b8"],[style*="color:#e2e8f0"],[style*="color:rgba(226,232,240"]{color:#5577aa!important;-webkit-text-fill-color:#5577aa!important}',
+
+      /* ── SCROLLBAR ── */
+      '::-webkit-scrollbar-track{background:#e2eaf5!important}',
+      '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(11,47,104,.5),rgba(11,47,104,.3))!important;border-color:#f0f5fb!important}',
+
+      /* ── TOGGLE BOTÓN ── */
+      'body.modo-dia #btn-modo-toggle{background:rgba(255,185,0,.12)!important;border-color:rgba(180,110,0,.35)!important}'
+    ].join('');
 
     /* ── Crear/reusar style tag ── */
     function getStyle() {
