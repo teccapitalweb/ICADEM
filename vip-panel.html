@@ -4236,7 +4236,7 @@
     const sidebarFooter = document.querySelector('.sidebar-footer');
     if (sidebarFooter) {
       sidebarFooter.innerHTML = `
-        <a href="javascript:void(0)" onclick="window.mostrarPaywall('login')" class="btn-guest btn-guest-login">
+        <a href="javascript:void(0)" onclick="window.loginDirecto()" class="btn-guest btn-guest-login">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           Iniciar sesión
         </a>
@@ -23971,5 +23971,51 @@ window._icademLogros = {
       </div>
     </div>
   </div>
+
+<!-- MODIFICADO: login directo independiente de Stripe/icademStripe -->
+<script>
+window.loginDirecto = async function() {
+  const btn = document.querySelector('.btn-guest-login');
+  const originalHTML = btn ? btn.innerHTML : '';
+  try {
+    if (btn) {
+      btn.style.opacity = '0.7';
+      btn.style.pointerEvents = 'none';
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Abriendo...';
+    }
+
+    // Primero intentar el modal normal (si icademStripe ya cargó)
+    if (window.icademStripe && window.icademStripe.abrir) {
+      window.icademStripe.abrir({ vistaInicial: 'cuenta', soloLogin: true });
+      return;
+    }
+
+    // Fallback: Google Sign-In directo sin modal ni Stripe
+    const { GoogleAuthProvider, signInWithPopup } =
+      await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+
+    const auth = window.auth;
+    if (!auth) {
+      alert('Error: Firebase no cargó correctamente. Recarga la página (Ctrl+R) e intenta de nuevo.');
+      return;
+    }
+
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    window.location.reload();
+
+  } catch(e) {
+    if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
+    console.error('[loginDirecto]', e);
+    alert('No se pudo iniciar sesión.\n\nError: ' + (e.message || e.code || e) + '\n\nIntenta recargar la página (Ctrl+R).');
+  } finally {
+    if (btn) {
+      btn.style.opacity = '';
+      btn.style.pointerEvents = '';
+      btn.innerHTML = originalHTML;
+    }
+  }
+};
+</script>
 </body>
 </html>
