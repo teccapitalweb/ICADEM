@@ -24354,142 +24354,73 @@ window.loginDirecto = function() {
 };
 </script>
 
-<!-- MODO DÍA/NOCHE — Solución definitiva correcta -->
+<!-- MODO DÍA/NOCHE — Premium BBVA/Spotify style -->
 <script>
 (function() {
   try {
     var btn = document.getElementById('btn-modo-toggle');
     if (!btn) return;
-
     var esDia = false;
-
-    // CSS día — cubre TODO lo que el mega-override define, reemplazando oscuro por claro
-    var DIA_CSS = [
-      // Fondo global
-      'html{background:#f0f4ff!important;background-image:none!important}',
-      'body,.main,.content{background:transparent!important;color:#0d1440!important}',
-
-      // Topbar
-      '.topbar{background:#fff!important;border-bottom:1px solid rgba(0,31,204,.1)!important;box-shadow:0 2px 14px rgba(0,20,120,.07)!important}',
-      '.topbar-title{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-      '.menu-btn{color:#0d1440!important;background:rgba(0,31,204,.05)!important;border-color:rgba(0,31,204,.12)!important}',
-      '.topbar-plan{background:rgba(0,31,204,.07)!important;border:1px solid rgba(0,31,204,.18)!important}',
-      '.topbar-plan,.topbar-plan *{color:#001fcc!important;-webkit-text-fill-color:#001fcc!important}',
-
-      // Sección principal
-      '.section{background:#fff!important;border:1px solid rgba(0,31,204,.07)!important;box-shadow:0 2px 20px rgba(0,20,120,.05)!important}',
-
-      // Hero — azul ICADEM (único elemento que se queda azul)
-      '.ic-hero{background:linear-gradient(135deg,#001fcc 0%,#0033e6 50%,#1a55f5 100%)!important;box-shadow:0 8px 32px rgba(0,20,180,.2)!important}',
-      '.ic-hero,.ic-hero *,.ic-hero-content,.ic-hero-content *,.ic-plan-badge,.ic-plan-badge *,.ic-hero-greeting,.ic-hero-desc{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.ic-streak-card,.ic-streak-card *,.ic-streak-num,.ic-streak-label{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-
-      // Hello
-      '.ic-hello-title{background:linear-gradient(135deg,#001fcc,#0044ee)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
-      '.ic-hello-title #user-nombre{background:linear-gradient(135deg,#996600,#cc8800)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
-      '.ic-hello-eyebrow{color:#3355aa!important;-webkit-text-fill-color:#3355aa!important}',
-      '.ic-hello-line{background:linear-gradient(90deg,#001fcc,#cc8800,transparent)!important}',
-
-      // Stat cards — clave: éstas tienen background SOLO en mega-override
-      '.ic-stat-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,31,204,.1)!important;box-shadow:0 2px 12px rgba(0,20,120,.06)!important;color:#0d1440!important}',
-      '.ic-stat-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-      '.ic-stat-card::before{opacity:.6!important}',
-      '.ic-stat-value,.ic-stat-label,.ic-section-label{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-
-      // Quick cards — clave: éstas también solo están en mega-override
-      '.ic-quick-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,31,204,.1)!important;box-shadow:0 2px 16px rgba(0,20,120,.06)!important;backdrop-filter:none!important}',
-      '.ic-quick-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-      '.ic-quick-card-primary{background:#0033e6!important;background-image:none!important;border-color:rgba(0,60,220,.3)!important}',
-      '.ic-quick-card-primary *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.ic-quick-title{color:#001fcc!important;-webkit-text-fill-color:#001fcc!important}',
-      '.ic-quick-card-primary .ic-quick-title{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-      '.ic-quick-cta{color:#001fcc!important;-webkit-text-fill-color:#001fcc!important}',
-      '.ic-quick-card-primary .ic-quick-cta{color:rgba(255,255,255,.85)!important;-webkit-text-fill-color:rgba(255,255,255,.85)!important}',
-      '.ic-quick-icon{background:rgba(0,31,204,.08)!important;border-color:rgba(0,31,204,.15)!important}',
-      '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.2)!important;border-color:rgba(255,255,255,.3)!important}',
-      '.ic-quick-badge{background:rgba(0,31,204,.08)!important;color:#001fcc!important;-webkit-text-fill-color:#001fcc!important;border-color:rgba(0,31,204,.2)!important}',
-      '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.2)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
-
-      // Countdown (webinar)
-      '.ic-countdown{background:linear-gradient(135deg,#2a1862,#4527a0,#5e35b1)!important}',
-      '.ic-countdown *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-
-      // WA card
-      '.ic-quick-card-wa{background:linear-gradient(135deg,#064e3b,#065f46,#047857)!important}',
-      '.ic-quick-card-wa *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-
-      // CTA banner cursos
-      '.ic-cta-banner{background:#fff!important;background-image:none!important;border:1px solid rgba(0,31,204,.1)!important;box-shadow:0 2px 12px rgba(0,20,120,.05)!important}',
-      '.ic-cta-banner *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-      '.ic-cta-banner strong,.ic-cta-banner b{color:#001fcc!important;-webkit-text-fill-color:#001fcc!important}',
-      '.ic-cta-banner .btn-primary{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-
-      // Logros cards
-      '.achievement-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,31,204,.08)!important;box-shadow:0 2px 10px rgba(0,20,120,.04)!important}',
-      '.achievement-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-      '.achievement-name{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important;font-weight:700!important}',
-      '.achievement-desc{color:#3355aa!important;-webkit-text-fill-color:#3355aa!important}',
-      '.achievement-prog-label{color:#3355aa!important;-webkit-text-fill-color:#3355aa!important}',
-
-      // Novedades
-      '.ic-novedad-card,.noticia-card,.video-card,.material-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,31,204,.08)!important;color:#0d1440!important}',
-      '.ic-novedad-card *,.noticia-card h3,.noticia-card p{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-
-      // Glass panels y config cards
-      '.glass-panel,.ic-config-card{background:#fff!important;background-image:none!important;border:1px solid rgba(0,31,204,.08)!important}',
-      '.glass-panel *,.ic-config-card *{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-
-      // Textos genéricos con colores claros — pisar con navy
-      'body.modo-dia .section p:not([class*="badge"]):not([class*="tag"]),' +
-      'body.modo-dia .section span:not([class*="badge"]):not([class*="tag"]),' +
-      'body.modo-dia .section label,' +
-      'body.modo-dia .section h1,body.modo-dia .section h2,' +
-      'body.modo-dia .section h3,body.modo-dia .section h4{color:#0d1440!important;-webkit-text-fill-color:#0d1440!important}',
-
-      // Inputs
-      'input,textarea,select{background:#f8faff!important;color:#0d1440!important;border-color:rgba(0,31,204,.15)!important}',
-      'input::placeholder,textarea::placeholder{color:rgba(13,20,64,.4)!important;-webkit-text-fill-color:rgba(13,20,64,.4)!important}',
-
-      // Scrollbar
-      '::-webkit-scrollbar-track{background:#e0e8ff!important}',
-      '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(0,31,204,.45),rgba(0,20,160,.28))!important;border-color:#f0f4ff!important}',
-
-      // Toggle botón sol
-      'body.modo-dia #btn-modo-toggle{background:rgba(180,120,0,.12)!important;border-color:rgba(180,120,0,.4)!important}',
-      'body.modo-dia .modo-icon-sol{color:#cc8800!important}'
-    ].join('');
 
     function aplicarDia() {
       esDia = true;
       document.body.classList.add('modo-dia');
 
-      // 1. Desactivar mega-override — media trick es el más confiable
+      /* 1. Desactivar mega-override con media trick */
       var mo = document.getElementById('fx-mega-override');
       if (mo) mo.setAttribute('media', 'print');
 
-      // 2. Inyectar CSS completo de día
+      /* 2. Inyectar CSS premium */
       var st = document.getElementById('icadem-dia-css');
       if (!st) {
         st = document.createElement('style');
         st.id = 'icadem-dia-css';
         document.head.appendChild(st);
       }
-      st.textContent = DIA_CSS;
+      st.textContent = '\n@import url(\'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap\');\n\n/* ════════════════════════════════════════════════════\n   ICADEM — MODO DÍA PREMIUM\n   Un solo azul: #0038d1\n   Inspirado en BBVA · Spotify · Facebook\n   ════════════════════════════════════════════════════ */\n\n/* ── Tipografía global ── */\nbody.modo-dia, body.modo-dia * {\n  font-family: \'Inter\', -apple-system, BlinkMacSystemFont, sans-serif !important;\n}\n\n/* ── Fondo general ── */\nhtml {\n  background: #eef2ff !important;\n  background-image: none !important;\n}\nbody, .main, .content {\n  background: transparent !important;\n}\n\n/* ── Sidebar — azul ICADEM sólido ── */\n.sidebar {\n  background: #0038d1 !important;\n  border-right: none !important;\n  box-shadow: 2px 0 20px rgba(0,40,180,.18) !important;\n}\n.sidebar * {\n  color: rgba(255,255,255,.65) !important;\n  -webkit-text-fill-color: rgba(255,255,255,.65) !important;\n}\n.nav-item.active {\n  background: rgba(255,255,255,.18) !important;\n  color: #fff !important;\n  -webkit-text-fill-color: #fff !important;\n  font-weight: 600 !important;\n}\n.nav-item:hover:not(.active) {\n  background: rgba(255,255,255,.08) !important;\n  color: rgba(255,255,255,.92) !important;\n  -webkit-text-fill-color: rgba(255,255,255,.92) !important;\n}\n.nav-item.active * { color: #fff !important; -webkit-text-fill-color: #fff !important; }\n.sidebar-logo-name { color: #fff !important; -webkit-text-fill-color: #fff !important; font-weight: 800 !important; }\n.sidebar-role, .sidebar-user-role { color: rgba(255,255,255,.45) !important; -webkit-text-fill-color: rgba(255,255,255,.45) !important; }\n.btn-logout { color: rgba(255,255,255,.55) !important; border-color: rgba(255,255,255,.18) !important; background: transparent !important; }\n.btn-logout:hover { background: rgba(255,255,255,.08) !important; color: rgba(255,255,255,.9) !important; }\n.nav-section-title { color: rgba(255,255,255,.35) !important; -webkit-text-fill-color: rgba(255,255,255,.35) !important; letter-spacing: .14em !important; font-size: 9px !important; font-weight: 600 !important; }\n\n/* ── Topbar — blanca premium ── */\n.topbar {\n  background: #ffffff !important;\n  border-bottom: 1px solid rgba(0,40,200,.07) !important;\n  box-shadow: 0 1px 0 rgba(0,40,200,.05), 0 2px 16px rgba(0,20,120,.05) !important;\n}\n.topbar-title {\n  color: #0d1440 !important;\n  -webkit-text-fill-color: #0d1440 !important;\n  font-weight: 600 !important;\n  font-size: 13px !important;\n  letter-spacing: -.01em !important;\n}\n.menu-btn {\n  color: #0d1440 !important;\n  background: rgba(0,56,209,.05) !important;\n  border-color: rgba(0,56,209,.12) !important;\n}\n.topbar-plan {\n  background: #eef2ff !important;\n  border: 1px solid rgba(0,56,209,.18) !important;\n  border-radius: 20px !important;\n}\n.topbar-plan, .topbar-plan * {\n  color: #0038d1 !important;\n  -webkit-text-fill-color: #0038d1 !important;\n  font-weight: 700 !important;\n  font-size: 9.5px !important;\n  letter-spacing: .1em !important;\n}\n.status-dot { background: #22c55e !important; box-shadow: 0 0 6px rgba(34,197,94,.5) !important; }\n\n/* ── Sección contenedor — fondo eef2ff ── */\n.section {\n  background: #ffffff !important;\n  border: 1px solid rgba(0,40,200,.07) !important;\n  box-shadow: 0 1px 6px rgba(0,20,120,.04), 0 4px 18px rgba(0,20,120,.04) !important;\n  border-radius: 16px !important;\n}\n\n/* ── Hello ── */\n.ic-hello-eyebrow {\n  color: #6b82c4 !important;\n  -webkit-text-fill-color: #6b82c4 !important;\n  letter-spacing: .2em !important;\n  font-size: 9.5px !important;\n  font-weight: 600 !important;\n  font-family: \'JetBrains Mono\', monospace !important;\n}\n.ic-hello-title {\n  font-size: clamp(32px,5vw,48px) !important;\n  font-weight: 900 !important;\n  letter-spacing: -.04em !important;\n  color: #0d1440 !important;\n  -webkit-text-fill-color: #0d1440 !important;\n  background: none !important;\n}\n.ic-hello-title #user-nombre {\n  color: #0038d1 !important;\n  -webkit-text-fill-color: #0038d1 !important;\n  background: none !important;\n}\n.ic-hello-line {\n  background: linear-gradient(90deg, #0038d1, rgba(0,56,209,0)) !important;\n  height: 3px !important;\n  width: 42px !important;\n  border-radius: 9px !important;\n}\n\n/* ── Hero — azul ICADEM ── */\n.ic-hero {\n  background: #0038d1 !important;\n  background-image: radial-gradient(ellipse at 85% 50%, rgba(255,255,255,.07), transparent 65%) !important;\n  border: none !important;\n  border-radius: 16px !important;\n  box-shadow: 0 8px 32px rgba(0,40,180,.25) !important;\n}\n.ic-hero *, .ic-hero-content *, .ic-plan-badge, .ic-plan-badge *,\n.ic-hero-greeting, .ic-hero-desc, .ic-streak-card, .ic-streak-card *,\n.ic-streak-num, .ic-streak-label, .ic-countdown, .ic-countdown * {\n  color: #ffffff !important;\n  -webkit-text-fill-color: #ffffff !important;\n}\n.ic-streak-card {\n  background: rgba(255,255,255,.14) !important;\n  border: 1px solid rgba(255,255,255,.22) !important;\n  border-radius: 14px !important;\n}\n.ic-plan-badge {\n  background: rgba(255,255,255,.14) !important;\n  border-color: rgba(255,255,255,.2) !important;\n}\n\n/* ── Stat cards ── */\n.ic-stat-card {\n  background: #ffffff !important;\n  background-image: none !important;\n  border: 1px solid rgba(0,40,200,.07) !important;\n  border-radius: 14px !important;\n  box-shadow: 0 1px 6px rgba(0,20,120,.04), 0 3px 14px rgba(0,20,120,.03) !important;\n  color: #0d1440 !important;\n}\n.ic-stat-card::before { opacity: .5 !important; }\n.ic-stat-value, .ic-stat-num {\n  color: #0d1440 !important;\n  -webkit-text-fill-color: #0d1440 !important;\n  font-weight: 800 !important;\n  letter-spacing: -.04em !important;\n}\n.ic-stat-label {\n  color: #6b82c4 !important;\n  -webkit-text-fill-color: #6b82c4 !important;\n  font-size: 9px !important;\n  letter-spacing: .12em !important;\n  font-weight: 600 !important;\n}\n.ic-stat-icon { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }\n.ic-section-label {\n  color: #0d1440 !important;\n  -webkit-text-fill-color: #0d1440 !important;\n  font-weight: 600 !important;\n  font-size: 13px !important;\n  letter-spacing: -.01em !important;\n}\n\n/* ── Quick cards ── */\n.ic-quick-card {\n  background: #ffffff !important;\n  background-image: none !important;\n  border: 1px solid rgba(0,40,200,.07) !important;\n  border-radius: 14px !important;\n  box-shadow: 0 1px 6px rgba(0,20,120,.04), 0 3px 14px rgba(0,20,120,.03) !important;\n  backdrop-filter: none !important;\n}\n.ic-quick-card * { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }\n.ic-quick-title { color: #0038d1 !important; -webkit-text-fill-color: #0038d1 !important; font-weight: 700 !important; }\n.ic-quick-sub { color: #6b82c4 !important; -webkit-text-fill-color: #6b82c4 !important; }\n.ic-quick-cta { color: #0038d1 !important; -webkit-text-fill-color: #0038d1 !important; font-weight: 700 !important; }\n.ic-quick-badge {\n  background: #eef2ff !important;\n  color: #0038d1 !important;\n  -webkit-text-fill-color: #0038d1 !important;\n  border-color: rgba(0,56,209,.18) !important;\n  font-weight: 700 !important;\n}\n.ic-quick-icon {\n  background: rgba(0,56,209,.07) !important;\n  border-color: rgba(0,56,209,.12) !important;\n}\n\n/* Primary quick card — azul ICADEM */\n.ic-quick-card-primary {\n  background: #0038d1 !important;\n  background-image: radial-gradient(ellipse at 90% 20%, rgba(255,255,255,.1), transparent 60%) !important;\n  border-color: rgba(0,20,150,.25) !important;\n}\n.ic-quick-card-primary * { color: #fff !important; -webkit-text-fill-color: #fff !important; }\n.ic-quick-card-primary .ic-quick-icon { background: rgba(255,255,255,.18) !important; border-color: rgba(255,255,255,.25) !important; }\n.ic-quick-card-primary .ic-quick-badge { background: rgba(255,255,255,.18) !important; color: #fff !important; -webkit-text-fill-color: #fff !important; border-color: rgba(255,255,255,.25) !important; }\n\n/* WA card */\n.ic-quick-card-wa {\n  background: #064e3b !important;\n  background-image: none !important;\n  border-color: rgba(6,78,59,.3) !important;\n}\n.ic-quick-card-wa * { color: #fff !important; -webkit-text-fill-color: #fff !important; }\n\n/* Countdown */\n.ic-countdown {\n  background: #2d1b69 !important;\n  background-image: none !important;\n  border-color: rgba(45,27,105,.3) !important;\n}\n.ic-countdown * { color: #fff !important; -webkit-text-fill-color: #fff !important; }\n\n/* ── CTA Banner ── */\n.ic-cta-banner {\n  background: #ffffff !important;\n  background-image: none !important;\n  border: 1px solid rgba(0,40,200,.07) !important;\n  border-radius: 14px !important;\n  box-shadow: 0 1px 6px rgba(0,20,120,.04) !important;\n}\n.ic-cta-banner * { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }\n.ic-cta-banner strong, .ic-cta-banner b, .ic-cta-banner span[style*="color:#f5d77a"],\n.ic-cta-banner [style*="color:#e8a000"] { color: #0038d1 !important; -webkit-text-fill-color: #0038d1 !important; }\n.ic-cta-banner .btn-primary, .ic-cta-banner [class*="btn"] { background: #0038d1 !important; color: #fff !important; -webkit-text-fill-color: #fff !important; }\n\n/* ── Achievement cards (logros) ── */\n.achievement-card {\n  background: #ffffff !important;\n  background-image: none !important;\n  border: 1px solid rgba(0,40,200,.07) !important;\n  border-radius: 14px !important;\n  box-shadow: 0 1px 6px rgba(0,20,120,.04) !important;\n  color: #0d1440 !important;\n}\n.achievement-card * { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }\n.achievement-name { font-weight: 700 !important; color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }\n.achievement-desc { color: #6b82c4 !important; -webkit-text-fill-color: #6b82c4 !important; font-size: 11px !important; }\n.achievement-prog-label { color: #6b82c4 !important; -webkit-text-fill-color: #6b82c4 !important; }\n\n/* ── Noticias / videos / material ── */\n.ic-novedad-card, .noticia-card, .video-card, .material-card, .ic-novedades-card {\n  background: #ffffff !important;\n  background-image: none !important;\n  border: 1px solid rgba(0,40,200,.07) !important;\n  border-radius: 14px !important;\n  box-shadow: 0 1px 6px rgba(0,20,120,.04) !important;\n}\n.ic-novedad-card *, .noticia-card h3, .noticia-card p,\n.noticia-card *, .material-card * {\n  color: #0d1440 !important;\n  -webkit-text-fill-color: #0d1440 !important;\n}\n\n/* ── Glass panels, config cards ── */\n.glass-panel, .ic-config-card {\n  background: #ffffff !important;\n  background-image: none !important;\n  border: 1px solid rgba(0,40,200,.07) !important;\n  border-radius: 14px !important;\n}\n.glass-panel *, .ic-config-card * { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }\n\n/* ── Dir cards ── */\n.dir-card {\n  background: #ffffff !important;\n  border: 1.5px solid rgba(0,40,200,.09) !important;\n  color: #0d1440 !important;\n}\n.dir-card * { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; }\n.dir-card-name { color: #0d1440 !important; -webkit-text-fill-color: #0d1440 !important; font-weight: 700 !important; }\n.dir-card-cargo { color: #0038d1 !important; -webkit-text-fill-color: #0038d1 !important; }\n.dir-card-bio { color: #6b82c4 !important; -webkit-text-fill-color: #6b82c4 !important; }\n\n/* ── Fondos inline oscuros → blanco ── */\n[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],\n[style*="background:#020d30"],[style*="background:#031040"],[style*="background:rgba(11,31,74"],\n[style*="background:rgba(13,37,71"],[style*="background:linear-gradient(135deg,#1a3a6b"],\n[style*="background:linear-gradient(180deg,#0b1f4a"],[style*="background:linear-gradient(180deg, #0b1f4a"],\n[style*="background:rgba(2,13,48"],[style*="background:rgba(30,64,175"] {\n  background: #ffffff !important;\n  background-image: none !important;\n  border-color: rgba(0,40,200,.07) !important;\n}\n\n/* ── Textos inline claros → navy ── */\n[style*="color:#cbd5e1"],[style*="color: #cbd5e1"],[style*="color:#94a3b8"],\n[style*="color:#e2e8f0"],[style*="color:rgba(226,232,240"],[style*="color:rgba(203,213,225"],\n[style*="color:rgba(148,163,184"],[style*="color:rgba(168,184,209"] {\n  color: #4a5578 !important;\n  -webkit-text-fill-color: #4a5578 !important;\n}\n\n/* ── Inputs ── */\ninput, textarea, select {\n  background: #f8faff !important;\n  color: #0d1440 !important;\n  border-color: rgba(0,40,200,.15) !important;\n  font-family: \'Inter\', sans-serif !important;\n}\ninput::placeholder, textarea::placeholder {\n  color: rgba(13,20,64,.38) !important;\n  -webkit-text-fill-color: rgba(13,20,64,.38) !important;\n}\n\n/* ── Toggle button ── */\nbody.modo-dia #btn-modo-toggle {\n  background: rgba(255,185,0,.1) !important;\n  border-color: rgba(180,110,0,.35) !important;\n}\nbody.modo-dia .modo-icon-sol { color: #b87800 !important; }\n\n/* ── Scrollbar ── */\n::-webkit-scrollbar-track { background: #e2e9ff !important; }\n::-webkit-scrollbar-thumb {\n  background: linear-gradient(180deg, rgba(0,56,209,.45), rgba(0,40,180,.28)) !important;\n  border-color: #eef2ff !important;\n}\n';
+
+      /* 3. Fix puntual de cards conocidas — background directo */
+      setTimeout(function() {
+        var whiteBg = [
+          '.ic-quick-card:not(.ic-quick-card-primary):not(.ic-quick-card-wa):not(.ic-countdown)',
+          '.ic-stat-card','.ic-cta-banner','.achievement-card',
+          '.noticia-card','.video-card','.material-card',
+          '.glass-panel','.ic-config-card','.section'
+        ].join(',');
+        document.querySelectorAll(whiteBg).forEach(function(el) {
+          el.style.setProperty('background','#ffffff','important');
+          el.style.setProperty('background-image','none','important');
+          el.style.setProperty('border','1px solid rgba(0,40,200,.07)','important');
+          el.style.setProperty('box-shadow','0 1px 6px rgba(0,20,120,.04)','important');
+        });
+        document.querySelectorAll('.ic-quick-card-primary').forEach(function(el){
+          el.style.setProperty('background','#0038d1','important');
+          el.style.setProperty('background-image','none','important');
+        });
+        /* Fix textos claros en cards blancas */
+        var textFix = document.querySelectorAll(
+          '.ic-stat-card *, .ic-cta-banner *, .achievement-card *,' +
+          '.ic-quick-card:not(.ic-quick-card-primary) *'
+        );
+        textFix.forEach(function(el){
+          if (el.closest('.ic-quick-card-primary') || el.closest('.sidebar') || el.closest('.ic-hero')) return;
+          var cs = window.getComputedStyle(el);
+          var c = cs.color.match(/[\d.]+/g);
+          if (c && 0.299*+c[0]+0.587*+c[1]+0.114*+c[2] > 155) {
+            el.style.setProperty('color','#0d1440','important');
+            el.style.setProperty('-webkit-text-fill-color','#0d1440','important');
+          }
+        });
+      }, 250);
     }
 
     function aplicarNoche() {
       esDia = false;
       document.body.classList.remove('modo-dia');
-
-      // Restaurar mega-override
       var mo = document.getElementById('fx-mega-override');
       if (mo) mo.removeAttribute('media');
-
-      // Eliminar CSS de día
       var st = document.getElementById('icadem-dia-css');
       if (st) st.textContent = '';
-
-      // Recargar para estado limpio (la más segura)
       window.location.reload();
     }
 
@@ -24497,9 +24428,7 @@ window.loginDirecto = function() {
       esDia ? aplicarNoche() : aplicarDia();
     });
 
-  } catch(e) {
-    console.warn('[Toggle]', e);
-  }
+  } catch(e) { console.warn('[Toggle]', e); }
 })();
 </script>
 
