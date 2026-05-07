@@ -1107,7 +1107,7 @@
           }
           .header-inner {
             margin: 0 12px !important;
-            background: linear-gradient(180deg, rgba(11, 31, 74, 0.85), rgba(2, 5, 15, 0.92)) !important;
+            background: linear-gradient(180deg, rgba(0, 30, 180, 0.92), rgba(0, 20, 150, 0.95)) !important;
             border: 1px solid rgba(245, 215, 122, 0.22) !important;
             border-radius: 999px !important;
             padding: 8px 8px 8px 14px !important;
@@ -1162,6 +1162,29 @@
             height: 1.5px;
             background: #fff !important;
             border-radius: 2px;
+          }
+
+          /* Nav dropdown abierto en mobile — azul ICADEM, NO blanco */
+          .nav.is-open,
+          .nav[aria-hidden="false"],
+          #main-nav.is-open,
+          #main-nav:not([aria-hidden="true"]) {
+            background: linear-gradient(180deg, #001fcc, #0028dd) !important;
+            border: 1px solid rgba(255,255,255,0.15) !important;
+            border-radius: 20px !important;
+            backdrop-filter: blur(20px) !important;
+            box-shadow: 0 16px 48px rgba(0,10,100,0.5) !important;
+          }
+          .nav.is-open a,
+          #main-nav.is-open a,
+          #main-nav:not([aria-hidden="true"]) a {
+            color: rgba(220, 235, 255, 0.9) !important;
+            border-bottom-color: rgba(255,255,255,0.08) !important;
+          }
+          .nav.is-open a:hover,
+          #main-nav.is-open a:hover {
+            color: #fff !important;
+            background: rgba(255,255,255,0.08) !important;
           }
         }
 
@@ -2227,28 +2250,220 @@
           </ul>
         </div>
 
-        <div class="certificate-card reveal reveal-delay">
-          <div class="certificate-header">
-            <span>ICADEM</span>
-            <strong>Certificado digital</strong>
-          </div>
-          <div class="certificate-body">
-            <div class="certificate-title">Constancia de participación</div>
-            <p>Documento emitido con imagen institucional, identificación visual y elementos de validación.</p>
-            <div class="certificate-meta">
-              <span>QR incluido</span>
-              <span>Folio único</span>
-              <span>Valor curricular</span>
+        <!-- MODIFICADO: Certificate card rediseñado — premium 3D floating -->
+        <div class="cert-premium reveal reveal-delay">
+          <!-- Glow de fondo -->
+          <div class="cert-glow"></div>
+
+          <!-- Encabezado -->
+          <div class="cert-top">
+            <div class="cert-brand">
+              <div class="cert-brand-dot"></div>
+              <span class="cert-brand-name">ICADEM</span>
             </div>
+            <div class="cert-badge">★ Certificado Digital</div>
           </div>
-          <div class="certificate-footer">
-            <div class="qr-mock" aria-hidden="true"></div>
-            <div>
-              <small>Folio de referencia</small>
-              <strong>ICADEM-VC-2026</strong>
+
+          <!-- Cuerpo principal -->
+          <div class="cert-body">
+            <p class="cert-label">Constancia de</p>
+            <h3 class="cert-title">Participación</h3>
+            <p class="cert-desc">Emitido con imagen institucional, folio único y código QR de validación.</p>
+          </div>
+
+          <!-- Chips de características -->
+          <div class="cert-chips">
+            <span class="cert-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>QR incluido</span>
+            <span class="cert-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Folio único</span>
+            <span class="cert-chip"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>Valor curricular</span>
+          </div>
+
+          <!-- Footer con QR y folio -->
+          <div class="cert-footer">
+            <div class="cert-qr">
+              <div class="cert-qr-inner"></div>
             </div>
+            <div class="cert-folio">
+              <p class="cert-folio-label">Folio de referencia</p>
+              <p class="cert-folio-num">ICADEM-VC-2026</p>
+            </div>
+            <div class="cert-seal">✦</div>
           </div>
+
+          <!-- Brillo de luz superior -->
+          <div class="cert-shine"></div>
         </div>
+
+        <style>
+          /* ── Certificado premium 3D ── */
+          .cert-premium {
+            position: relative;
+            background: linear-gradient(145deg,
+              rgba(0,40,200,0.65) 0%,
+              rgba(0,20,140,0.75) 60%,
+              rgba(0,10,100,0.85) 100%);
+            border: 1px solid rgba(100,160,255,0.3);
+            border-radius: 24px;
+            padding: 32px;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow:
+              0 0 0 1px rgba(80,140,255,0.15),
+              0 32px 80px rgba(0,10,120,0.5),
+              inset 0 1px 0 rgba(255,255,255,0.12);
+            transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.4s ease;
+          }
+          .cert-premium:hover {
+            transform: translateY(-8px) rotateX(2deg);
+            box-shadow:
+              0 0 0 1px rgba(100,180,255,0.35),
+              0 40px 100px rgba(0,10,150,0.6),
+              inset 0 1px 0 rgba(255,255,255,0.2);
+          }
+          .cert-glow {
+            position: absolute;
+            top: -40%; right: -20%;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(0,80,255,0.25) 0%, transparent 65%);
+            pointer-events: none;
+          }
+          .cert-shine {
+            position: absolute;
+            inset: 0;
+            border-radius: 24px;
+            background: linear-gradient(135deg,
+              rgba(255,255,255,0.1) 0%,
+              transparent 40%,
+              rgba(0,0,0,0.05) 100%);
+            pointer-events: none;
+          }
+          .cert-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+          }
+          .cert-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+          }
+          .cert-brand-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #f5d77a;
+            box-shadow: 0 0 10px rgba(245,215,122,0.8);
+          }
+          .cert-brand-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            color: rgba(200,225,255,0.8);
+            text-transform: uppercase;
+          }
+          .cert-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            color: #f5d77a;
+            background: rgba(245,215,122,0.1);
+            border: 1px solid rgba(245,215,122,0.3);
+            padding: 5px 12px;
+            border-radius: 999px;
+          }
+          .cert-body { margin-bottom: 24px; }
+          .cert-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: rgba(147,197,253,0.7);
+            margin: 0 0 6px;
+          }
+          .cert-title {
+            font-family: 'Inter Tight', 'Plus Jakarta Sans', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            letter-spacing: -0.03em;
+            color: #fff;
+            margin: 0 0 12px;
+          }
+          .cert-desc {
+            font-size: 13.5px;
+            color: rgba(180,210,255,0.75);
+            line-height: 1.6;
+            margin: 0;
+          }
+          .cert-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 28px;
+          }
+          .cert-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: rgba(200,225,255,0.85);
+            background: rgba(100,160,255,0.12);
+            border: 1px solid rgba(100,160,255,0.22);
+            padding: 6px 14px;
+            border-radius: 999px;
+          }
+          .cert-chip svg { flex-shrink: 0; color: #f5d77a; }
+          .cert-footer {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(100,160,255,0.15);
+          }
+          .cert-qr {
+            width: 52px; height: 52px;
+            border-radius: 10px;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            padding: 4px;
+          }
+          .cert-qr-inner {
+            width: 100%; height: 100%;
+            background:
+              repeating-conic-gradient(#1a1a2e 0% 25%, #fff 0% 50%)
+              0 0 / 8px 8px;
+            border-radius: 6px;
+          }
+          .cert-folio { flex: 1; }
+          .cert-folio-label {
+            font-size: 10px;
+            color: rgba(147,197,253,0.6);
+            margin: 0 0 3px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 0.1em;
+          }
+          .cert-folio-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            color: #f5d77a;
+            letter-spacing: 0.05em;
+            margin: 0;
+          }
+          .cert-seal {
+            font-size: 28px;
+            color: rgba(245,215,122,0.6);
+            filter: drop-shadow(0 0 8px rgba(245,215,122,0.4));
+            flex-shrink: 0;
+          }
+        </style>
       </div>
     </section>
 
