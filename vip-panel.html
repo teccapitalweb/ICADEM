@@ -24354,165 +24354,93 @@ window.loginDirecto = function() {
 };
 </script>
 
-<!-- MODO DÍA/NOCHE — Versión segura: trackea solo elementos modificados -->
+<!-- MODO DÍA/NOCHE — Minimal y seguro -->
 <script>
 (function() {
-  var btn      = document.getElementById('btn-modo-toggle');
-  var body     = document.body;
-  var KEY      = 'icadem_modo';
-  var observer = null;
-  var intervals = [];
-  /* Set de elementos que modificamos — para restaurar SOLO esos */
-  var modified  = new Set();
+  try {
+    var btn = document.getElementById('btn-modo-toggle');
+    var KEY = 'icadem_modo';
 
-  function excluido(el) {
-    if (!el || !el.closest) return true;
-    return el.closest('.sidebar') ||
-           el.closest('.ic-hero') ||
-           el.closest('.ic-countdown') ||
-           el.closest('#threejs-hero') ||
-           el.closest('.ic-streak-card') ||
-           el.closest('#btn-modo-toggle');
-  }
+    // Limpiar modo día guardado — siempre inicia en noche
+    localStorage.removeItem(KEY);
 
-  /* Corrige SOLO fondo oscuro y texto claro. No toca nada más. */
-  function fix(el) {
-    if (!el || el.nodeType !== 1 || excluido(el)) return;
-    var cs = window.getComputedStyle(el);
+    if (!btn) return;
 
-    /* Fondo oscuro → blanco */
-    var bg = cs.backgroundColor;
-    var bm = bg.match(/[\d.]+/g);
-    if (bm && bm.length >= 3 && parseFloat(bm[3] !== undefined ? bm[3] : 1) > 0.05) {
-      var lum = 0.299 * +bm[0] + 0.587 * +bm[1] + 0.114 * +bm[2];
-      if (lum < 90) {
-        el.style.setProperty('background-color', '#ffffff', 'important');
-        modified.add(el);
+    btn.addEventListener('click', function() {
+      try {
+        var esDia = !document.body.classList.contains('modo-dia');
+        if (esDia) {
+          aplicarDia();
+        } else {
+          aplicarNoche();
+        }
+        document.body.classList.toggle('modo-dia', esDia);
+      } catch(e) {
+        console.warn('Toggle error:', e);
       }
-    }
-
-    /* Texto claro → navy */
-    var co = cs.color;
-    var cm = co.match(/[\d.]+/g);
-    if (cm && cm.length >= 3) {
-      var clum = 0.299 * +cm[0] + 0.587 * +cm[1] + 0.114 * +cm[2];
-      if (clum > 155) {
-        el.style.setProperty('color',                   '#0d1b4b', 'important');
-        el.style.setProperty('-webkit-text-fill-color', '#0d1b4b', 'important');
-        modified.add(el);
-      }
-    }
-  }
-
-  /* Restaura SOLO los elementos que tocamos */
-  function restoreModified() {
-    modified.forEach(function(el) {
-      el.style.removeProperty('background-color');
-      el.style.removeProperty('color');
-      el.style.removeProperty('-webkit-text-fill-color');
     });
-    modified.clear();
-  }
 
-  function fixAll() {
-    document.querySelectorAll('*').forEach(fix);
-  }
+    function aplicarDia() {
+      // Deshabilitar mega-override
+      var mo = document.getElementById('fx-mega-override');
+      if (mo) mo.disabled = true;
 
-  /* CSS base — solo estructura, sin tocar inline styles */
-  var BASE = [
-    'html{background:#f0f4ff!important;background-image:none!important}',
-    'body,.main,.content{background:transparent!important}',
-    '.topbar{background:#fff!important;border-bottom:1px solid rgba(0,30,180,.1)!important;box-shadow:0 1px 12px rgba(0,20,120,.08)!important}',
-    '.topbar-title{color:#0d1b4b!important}',
-    '.menu-btn{color:#0d1b4b!important}',
-    '.topbar-plan,.topbar-plan *{color:#001fcc!important;-webkit-text-fill-color:#001fcc!important}',
-    '.topbar-plan{background:rgba(0,31,204,.08)!important;border:1px solid rgba(0,31,204,.2)!important}',
-    '.section{background:#ffffff!important}',
-    '.ic-hero{background:linear-gradient(135deg,#001fcc,#0033e6,#1a55f5)!important}',
-    '.ic-hero *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
-    '.ic-hello-title{background:linear-gradient(135deg,#001fcc,#0044ee)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
-    '.ic-hello-title #user-nombre{background:linear-gradient(135deg,#b87a00,#e8a800)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
-    '.ic-hello-eyebrow{color:#3355aa!important;-webkit-text-fill-color:#3355aa!important}',
-    '.ic-hello-line{background:linear-gradient(90deg,#001fcc,#f5d77a,transparent)!important}',
-    'input,textarea,select{background:#fff!important;color:#0d1b4b!important}',
-    'input::placeholder,textarea::placeholder{color:rgba(13,27,75,.4)!important;-webkit-text-fill-color:rgba(13,27,75,.4)!important}',
-    '::-webkit-scrollbar-track{background:#dde6ff!important}',
-    '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(0,31,204,.4),rgba(0,20,150,.25))!important}'
-  ].join('');
+      // Inyectar CSS
+      var st = document.getElementById('icadem-dia-css');
+      if (!st) {
+        st = document.createElement('style');
+        st.id = 'icadem-dia-css';
+        document.head.appendChild(st);
+      }
+      st.textContent = [
+        'html{background:#f0f4ff!important;background-image:none!important}',
+        'body,.main,.content{background:transparent!important}',
+        '.topbar{background:#ffffff!important;box-shadow:0 1px 12px rgba(0,20,120,.08)!important}',
+        '.topbar-title{color:#0d1b4b!important}',
+        '.menu-btn{color:#0d1b4b!important}',
+        '.topbar-plan,.topbar-plan *{color:#001fcc!important;-webkit-text-fill-color:#001fcc!important}',
+        '.topbar-plan{background:rgba(0,31,204,.08)!important;border:1px solid rgba(0,31,204,.2)!important}',
+        '.section{background:#ffffff!important}',
+        '.ic-hero{background:linear-gradient(135deg,#001fcc,#0033e6,#1a55f5)!important}',
+        '.ic-hero *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+        '.ic-hello-title{background:linear-gradient(135deg,#001fcc,#0044ee)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
+        '.ic-hello-title #user-nombre{background:linear-gradient(135deg,#b87a00,#e8a800)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
+        '.ic-hello-eyebrow{color:#3355aa!important;-webkit-text-fill-color:#3355aa!important}',
+        'input,textarea,select{background:#fff!important;color:#0d1b4b!important}'
+      ].join('');
 
-  function aplicarDia() {
-    var mo = document.getElementById('fx-mega-override');
-    if (mo) mo.disabled = true;
-
-    var st = document.getElementById('icadem-dia-css');
-    if (!st) { st = document.createElement('style'); st.id = 'icadem-dia-css'; document.head.appendChild(st); }
-    st.disabled = false;
-    st.textContent = BASE;
-
-    fixAll();
-
-    /* Re-aplicar cada 500ms por 15s para contenido de Firebase */
-    var n = 0;
-    var iv = setInterval(function() {
-      fixAll();
-      if (++n > 30) clearInterval(iv);
-    }, 500);
-    intervals.push(iv);
-
-    /* Observer para nodos nuevos y cambios de atributo style */
-    if (observer) observer.disconnect();
-    observer = new MutationObserver(function(mutations) {
-      var queue = [];
-      mutations.forEach(function(m) {
-        if (m.type === 'childList') {
-          m.addedNodes.forEach(function(n) {
-            if (n.nodeType === 1) {
-              queue.push(n);
-              if (n.querySelectorAll) n.querySelectorAll('*').forEach(function(c){ queue.push(c); });
+      // Fix elementos con fondo oscuro — solo background-color, nada más
+      setTimeout(function() {
+        try {
+          var all = document.querySelectorAll('.section, .ic-quick-card, .ic-stat-card, .ic-cta-banner, .achievement-card, .noticia-card, .video-card, .material-card, .ic-config-card, .glass-panel');
+          all.forEach(function(el) {
+            el.style.setProperty('background-color', '#ffffff', 'important');
+          });
+          // Fix texto oscuro
+          var textEls = document.querySelectorAll('.section *, .ic-quick-card *, .ic-stat-card *, .achievement-card *, .noticia-card *');
+          textEls.forEach(function(el) {
+            if (el.closest && (el.closest('.ic-hero') || el.closest('.sidebar'))) return;
+            var cs = window.getComputedStyle(el);
+            var c = cs.color.match(/[\d.]+/g);
+            if (c && 0.299*+c[0]+0.587*+c[1]+0.114*+c[2] > 155) {
+              el.style.setProperty('color','#0d1b4b','important');
             }
           });
-        } else if (m.type === 'attributes') {
-          queue.push(m.target);
-        }
-      });
-      queue.forEach(fix);
-    });
-    observer.observe(document.body, {
-      childList: true, subtree: true,
-      attributes: true, attributeFilter: ['style', 'class']
-    });
-  }
+        } catch(e) {}
+      }, 300);
+    }
 
-  function aplicarNoche() {
-    /* Limpiar intervalos y observer */
-    intervals.forEach(clearInterval); intervals = [];
-    if (observer) { observer.disconnect(); observer = null; }
+    function aplicarNoche() {
+      var mo = document.getElementById('fx-mega-override');
+      if (mo) mo.disabled = false;
+      var st = document.getElementById('icadem-dia-css');
+      if (st) { st.textContent = ''; st.disabled = true; }
+      // Recargar para restaurar estado limpio
+      window.location.reload();
+    }
 
-    /* Re-habilitar mega-override PRIMERO */
-    var mo = document.getElementById('fx-mega-override');
-    if (mo) mo.disabled = false;
-
-    /* Deshabilitar CSS de día */
-    var st = document.getElementById('icadem-dia-css');
-    if (st) st.disabled = true;
-
-    /* Restaurar SOLO los elementos que modificamos — nada más */
-    restoreModified();
-  }
-
-  function toggle(dia) {
-    body.classList.toggle('modo-dia', dia);
-    dia ? aplicarDia() : aplicarNoche();
-  }
-
-  toggle(localStorage.getItem(KEY) === 'dia');
-
-  if (btn) {
-    btn.addEventListener('click', function() {
-      var dia = !body.classList.contains('modo-dia');
-      toggle(dia);
-      localStorage.setItem(KEY, dia ? 'dia' : 'noche');
-    });
+  } catch(e) {
+    console.warn('Modo toggle init error:', e);
   }
 })();
 </script>
