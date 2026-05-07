@@ -24354,183 +24354,148 @@ window.loginDirecto = function() {
 };
 </script>
 
-<!-- MODIFICADO: Modo día/noche — toggle con persistencia localStorage -->
+<!-- MODIFICADO: Modo día/noche — solución definitiva con computed styles -->
 <script>
 (function() {
+
   var btn  = document.getElementById('btn-modo-toggle');
   var body = document.body;
   var KEY  = 'icadem_modo';
+  var observer = null;
 
-  // ── Crear el style de modo día ──────────────────────────────
-  var styleId = 'icadem-modo-dia-style';
-
-  var MODO_DIA_CSS = `
-  /* MODO DÍA — estrategia: universal oscuro → excepciones en blanco */
-
-  /* FONDO */
-  html { background: #edf1ff !important; background-image: none !important; }
-  body, .main, .content { background: transparent !important; }
-
-  /* UNIVERSAL: todo texto oscuro (selector simple — funciona en todos los browsers) */
-  body.modo-dia * {
-    color: #0d1b4b !important;
-    -webkit-text-fill-color: #0d1b4b !important;
+  // ── Elementos que se mantienen con su tema original (no se tocan) ──
+  function estaExcluido(el) {
+    return el.closest && (
+      el.closest('.sidebar')   ||
+      el.closest('.ic-hero')   ||
+      el.closest('.ic-countdown') ||
+      el.closest('#threejs-hero') ||
+      el.closest('.ic-streak-card')
+    );
   }
 
-  /* EXCEPCIONES — sidebar: blanco sobre azul */
-  body.modo-dia .sidebar *,
-  body.modo-dia .btn-logout,
-  body.modo-dia .btn-logout * {
-    color: rgba(255,255,255,0.88) !important;
-    -webkit-text-fill-color: rgba(255,255,255,0.88) !important;
-  }
-  body.modo-dia .nav-item.active,
-  body.modo-dia .nav-item:hover {
-    color: #fff !important;
-    -webkit-text-fill-color: #fff !important;
-  }
+  // ── Corrige un solo elemento: fondo oscuro → blanco, texto claro → oscuro ──
+  function fixEl(el) {
+    if (!el || el.nodeType !== 1) return;
+    if (estaExcluido(el)) return;
 
-  /* EXCEPCIONES — hero: blanco sobre azul */
-  body.modo-dia .ic-hero *,
-  body.modo-dia .ic-countdown * {
-    color: #fff !important;
-    -webkit-text-fill-color: #fff !important;
-  }
+    var cs = window.getComputedStyle(el);
 
-  /* ACENTO — título "Hola" con gradiente */
-  body.modo-dia .ic-hello-title {
-    background: linear-gradient(135deg, #001fcc, #0044ee) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-  }
-  body.modo-dia .ic-hello-title #user-nombre {
-    background: linear-gradient(135deg, #b87a00, #e8a800) !important;
-    -webkit-background-clip: text !important;
-    background-clip: text !important;
-    -webkit-text-fill-color: transparent !important;
-  }
-  body.modo-dia .ic-hello-eyebrow {
-    color: #3355aa !important;
-    -webkit-text-fill-color: #3355aa !important;
-  }
-  body.modo-dia .ic-hello-line {
-    background: linear-gradient(90deg, #001fcc, #f5d77a, transparent) !important;
-  }
-
-  /* TOPBAR badge */
-  body.modo-dia .topbar-plan,
-  body.modo-dia .topbar-plan * {
-    color: #001fcc !important;
-    -webkit-text-fill-color: #001fcc !important;
-  }
-
-  /* FONDOS — secciones y cards */
-  body.modo-dia .section {
-    background: #ffffff !important;
-    border: 1px solid rgba(0,30,180,0.08) !important;
-    box-shadow: 0 2px 20px rgba(0,20,120,0.06) !important;
-  }
-  body.modo-dia .ic-hero {
-    background: linear-gradient(135deg, #001fcc 0%, #0033e6 50%, #1a55f5 100%) !important;
-  }
-  body.modo-dia .ic-quick-card,
-  body.modo-dia .ic-stat-card,
-  body.modo-dia .ic-cta-banner,
-  body.modo-dia .achievement-card,
-  body.modo-dia .noticia-card,
-  body.modo-dia .video-card,
-  body.modo-dia .material-card,
-  body.modo-dia .dir-card,
-  body.modo-dia .ic-config-card,
-  body.modo-dia .glass-panel {
-    background: #ffffff !important;
-    border-color: rgba(0,30,180,0.08) !important;
-  }
-  body.modo-dia input,
-  body.modo-dia textarea,
-  body.modo-dia select {
-    background: #fff !important;
-    border-color: rgba(0,30,180,0.2) !important;
-  }
-  body.modo-dia input::placeholder,
-  body.modo-dia textarea::placeholder {
-    color: rgba(13,27,75,0.35) !important;
-    -webkit-text-fill-color: rgba(13,27,75,0.35) !important;
-  }
-
-  /* FONDOS inline oscuros → blanco */
-  body.modo-dia [style*="background:#0b2f68"],
-  body.modo-dia [style*="background:#0d2547"],
-  body.modo-dia [style*="background:#1a3a6b"],
-  body.modo-dia [style*="background:#020d30"],
-  body.modo-dia [style*="background:#031040"],
-  body.modo-dia [style*="background:rgba(11,31,74"],
-  body.modo-dia [style*="background:rgba(13,37,71"],
-  body.modo-dia [style*="background:linear-gradient(135deg,#1a3a6b"],
-  body.modo-dia [style*="background:linear-gradient(180deg,#0b1f4a"],
-  body.modo-dia [style*="background:linear-gradient(180deg, #0b1f4a"] {
-    background: #ffffff !important;
-    background-image: none !important;
-    border-color: rgba(0,30,180,0.08) !important;
-  }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar-track { background: #dde6ff !important; }
-  ::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg,rgba(0,31,204,0.4),rgba(0,20,150,0.25)) !important;
-    border-color: #edf1ff !important;
-  }
-`;
-
-  function aplicarModo(dia) {
-    // 1. Deshabilitar / habilitar el mega-override
-    var megaOverride = document.getElementById('fx-mega-override');
-    if (megaOverride) megaOverride.disabled = dia;
-
-    // 2. Inyectar / remover nuestro style de día
-    var existing = document.getElementById(styleId);
-    if (dia) {
-      if (!existing) {
-        var s = document.createElement('style');
-        s.id = styleId;
-        s.textContent = MODO_DIA_CSS;
-        document.head.appendChild(s);
-      } else {
-        existing.disabled = false;
+    // Fondo: si es oscuro (luminancia < 80) → blanco
+    var bg = cs.backgroundColor;
+    var bm = bg.match(/[\d.]+/g);
+    if (bm && bm.length >= 3 && +bm[3] !== 0) { // no transparent
+      var lum = 0.299 * +bm[0] + 0.587 * +bm[1] + 0.114 * +bm[2];
+      if (lum < 80) {
+        el.style.setProperty('background-color', '#ffffff', 'important');
+        el.style.setProperty('background-image', 'none',    'important');
+        el.style.setProperty('background',       '#ffffff', 'important');
       }
-    } else {
-      if (existing) existing.disabled = true;
     }
 
-    // 3. Clase en body (para que los selectores body.modo-dia funcionen)
-    body.classList.toggle('modo-dia', dia);
+    // Texto: si es muy claro (luminancia > 160) → azul oscuro legible
+    var co = cs.color;
+    var cm = co.match(/[\d.]+/g);
+    if (cm && cm.length >= 3) {
+      var clum = 0.299 * +cm[0] + 0.587 * +cm[1] + 0.114 * +cm[2];
+      if (clum > 160) {
+        el.style.setProperty('color',                '#0d1b4b', 'important');
+        el.style.setProperty('-webkit-text-fill-color','#0d1b4b','important');
+      }
+    }
+  }
 
-    // 4. Fix inline color styles — el CSS no puede pisar inline style sin !important
-    //    en el atributo style mismo. Usamos JS para limpiar los colores inline claros.
-    if (dia) {
-      requestAnimationFrame(function() {
-        var lightColors = ['#fff','#ffffff','#fafafa','#f8fafc',
-          '#cbd5e1','#94a3b8','#e2e8f0','#d4dffa','#93b4ed','#f5d77a'];
-        var all = document.querySelectorAll('[style*="color"]');
-        all.forEach(function(el) {
-          // Skip sidebar and hero
-          if (el.closest('.sidebar') || el.closest('.ic-hero') || el.closest('.ic-countdown')) return;
-          var computed = window.getComputedStyle(el).color;
-          // Check if text is light (RGB sum > 500 = likely white/near-white)
-          var m = computed.match(/\d+/g);
-          if (m && m.length >= 3) {
-            var r = +m[0], g = +m[1], b = +m[2];
-            if (r + g + b > 550) {
-              el.style.setProperty('color', '#0d1b4b', 'important');
+  // ── Restaura los estilos inline que habíamos puesto ──
+  function restoreEl(el) {
+    if (!el || el.nodeType !== 1) return;
+    el.style.removeProperty('background-color');
+    el.style.removeProperty('background-image');
+    el.style.removeProperty('background');
+    el.style.removeProperty('color');
+    el.style.removeProperty('-webkit-text-fill-color');
+  }
+
+  // ── Aplica modo día completo ──
+  function aplicarDia() {
+    // 1. Deshabilitar mega-override
+    var mo = document.getElementById('fx-mega-override');
+    if (mo) mo.disabled = true;
+
+    // 2. Inyectar CSS base (fondo html, topbar blanco, sidebar blue)
+    var s = document.getElementById('icadem-dia-style');
+    if (!s) {
+      s = document.createElement('style');
+      s.id = 'icadem-dia-style';
+      document.head.appendChild(s);
+    }
+    s.disabled = false;
+    s.textContent = `
+      html { background: #edf1ff !important; background-image: none !important; }
+      body, .main, .content { background: transparent !important; }
+      .topbar {
+        background: #ffffff !important;
+        border-bottom: 1px solid rgba(0,30,180,0.1) !important;
+        box-shadow: 0 1px 12px rgba(0,20,120,0.08) !important;
+      }
+      .topbar-title { color: #0d1b4b !important; }
+      .menu-btn { color: #0d1b4b !important; background: rgba(0,30,180,0.05) !important; border-color: rgba(0,30,180,0.15) !important; }
+      .topbar-plan { background: rgba(0,31,204,0.08) !important; border-color: rgba(0,31,204,0.2) !important; color: #001fcc !important; }
+      .topbar-plan * { color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
+      .section { background: #ffffff !important; border: 1px solid rgba(0,30,180,0.07) !important; box-shadow: 0 2px 16px rgba(0,20,120,0.05) !important; }
+      .ic-hero { background: linear-gradient(135deg, #001fcc 0%, #0033e6 50%, #1a55f5 100%) !important; }
+      .ic-hero * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
+      .ic-hello-title { background: linear-gradient(135deg,#001fcc,#0044ee) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent !important; }
+      .ic-hello-title #user-nombre { background: linear-gradient(135deg,#b87a00,#e8a800) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent !important; }
+      .ic-hello-eyebrow { color: #3355aa !important; -webkit-text-fill-color: #3355aa !important; }
+      .ic-hello-line { background: linear-gradient(90deg,#001fcc,#f5d77a,transparent) !important; }
+      input, textarea, select { background: #fff !important; color: #0d1b4b !important; border-color: rgba(0,30,180,0.2) !important; }
+      ::-webkit-scrollbar-track { background: #dde6ff !important; }
+      ::-webkit-scrollbar-thumb { background: linear-gradient(180deg,rgba(0,31,204,0.4),rgba(0,20,150,0.25)) !important; border-color: #edf1ff !important; }
+    `;
+
+    // 3. Recorrer TODOS los elementos y corregir computed colors
+    requestAnimationFrame(function() {
+      document.querySelectorAll('*').forEach(fixEl);
+
+      // 4. MutationObserver para secciones que cargan después (SPA)
+      if (observer) observer.disconnect();
+      observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(m) {
+          m.addedNodes.forEach(function(node) {
+            if (node.nodeType === 1) {
+              fixEl(node);
+              node.querySelectorAll && node.querySelectorAll('*').forEach(fixEl);
             }
-          }
+          });
         });
       });
-    }
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
   }
 
-  // Aplicar modo guardado al cargar (sin flash)
+  // ── Restaura modo noche ──
+  function aplicarNoche() {
+    // 1. Re-habilitar mega-override
+    var mo = document.getElementById('fx-mega-override');
+    if (mo) mo.disabled = false;
+
+    // 2. Deshabilitar nuestro style
+    var s = document.getElementById('icadem-dia-style');
+    if (s) s.disabled = true;
+
+    // 3. Quitar inline styles que pusimos
+    if (observer) { observer.disconnect(); observer = null; }
+    document.querySelectorAll('*').forEach(restoreEl);
+  }
+
+  // ── Toggle ──
+  function aplicarModo(dia) {
+    body.classList.toggle('modo-dia', dia);
+    if (dia) aplicarDia();
+    else aplicarNoche();
+  }
+
+  // Cargar preferencia guardada
   aplicarModo(localStorage.getItem(KEY) === 'dia');
 
   if (btn) {
@@ -24540,6 +24505,7 @@ window.loginDirecto = function() {
       localStorage.setItem(KEY, esDia ? 'dia' : 'noche');
     });
   }
+
 })();
 </script>
 
