@@ -22666,69 +22666,37 @@ window.imprimirCertificado = function() {
     
 /* ═══════════════════════════════════════════════════════════
    🌙☀️ MODO DÍA / NOCHE — ICADEM VIP PANEL
-   Noche (default): azul profundo #020d30 — trabajo prolongado
-   Día:             azul eléctrico #0022cc — energético, como el index
+   Noche (default): azul profundo #020d30
+   Día: azul eléctrico brillante #0022cc (como el index)
+   Usamos selectores directos con !important para pisar el mega-override
    ═══════════════════════════════════════════════════════════ */
 
-/* ── Variables de modo — se sobreescriben con .modo-dia ── */
-:root {
-  --m-bg:          #020d30;
-  --m-bg2:         #031040;
-  --m-sidebar:     #010d38;
-  --m-sidebar-b:   #011050;
-  --m-surface:     rgba(0,30,120,0.25);
-  --m-border:      rgba(80,140,255,0.15);
-  --m-text:        rgba(210,228,255,0.9);
-  --m-muted:       rgba(140,180,255,0.6);
-  --m-nav-active:  rgba(255,255,255,0.1);
-  --m-transition:  all 0.45s cubic-bezier(0.4,0,0.2,1);
+/* Transición global suave al cambiar modo */
+html, .sidebar, .topbar, .main, .content {
+  transition:
+    background 0.45s cubic-bezier(0.4,0,0.2,1),
+    background-image 0.45s cubic-bezier(0.4,0,0.2,1),
+    border-color 0.45s ease !important;
 }
 
-/* ── MODO DÍA: todo en azul eléctrico brillante ── */
-body.modo-dia {
-  --m-bg:          #0022cc;
-  --m-bg2:         #0028dd;
-  --m-sidebar:     #001aaa;
-  --m-sidebar-b:   #0015dd;
-  --m-surface:     rgba(255,255,255,0.08);
-  --m-border:      rgba(255,255,255,0.2);
-  --m-text:        rgba(255,255,255,0.95);
-  --m-muted:       rgba(200,225,255,0.75);
-  --m-nav-active:  rgba(255,255,255,0.15);
-}
-
-/* ── Aplicar variables a los elementos clave ── */
-html, body.modo-dia ~ * {
-  transition: var(--m-transition);
-}
-
-/* Fondo principal */
-html {
-  background: var(--m-bg) !important;
+/* ── MODO DÍA — todos los selectores con !important para pisar mega-override ── */
+body.modo-dia html,
+html:has(body.modo-dia) {
+  background: #0022cc !important;
   background-image:
-    radial-gradient(ellipse 90% 60% at 40% 0%, rgba(0,70,255,0.22) 0%, transparent 55%),
-    radial-gradient(ellipse 70% 50% at 80% 80%, rgba(0,40,200,0.18) 0%, transparent 55%),
-    linear-gradient(180deg, var(--m-bg) 0%, var(--m-bg2) 50%, var(--m-bg) 100%) !important;
-  transition: var(--m-transition) !important;
+    radial-gradient(ellipse 80% 60% at 20% 0%,  rgba(0,80,255,0.35) 0%, transparent 50%),
+    radial-gradient(ellipse 70% 50% at 80% 90%,  rgba(0,40,220,0.25) 0%, transparent 55%),
+    linear-gradient(180deg, #0022cc 0%, #0028dd 50%, #0022cc 100%) !important;
 }
 
-/* Sidebar */
-.sidebar {
-  background: var(--m-sidebar) !important;
-  border-right: 1px solid var(--m-border) !important;
-  transition: var(--m-transition) !important;
+body.modo-dia .sidebar {
+  background: #001aaa !important;
+  border-right: 1px solid rgba(255,255,255,0.2) !important;
 }
 
-/* Sidebar items hover/active */
-.nav-item.active, .nav-item:hover {
-  background: var(--m-nav-active) !important;
-}
-
-/* Topbar del panel */
-.topbar {
+body.modo-dia .topbar {
   background: rgba(0,0,0,0.15) !important;
-  border-bottom: 1px solid var(--m-border) !important;
-  transition: var(--m-transition) !important;
+  border-bottom: 1px solid rgba(255,255,255,0.15) !important;
 }
 
 </style>
@@ -24391,16 +24359,49 @@ window.loginDirecto = function() {
 (function() {
   var btn  = document.getElementById('btn-modo-toggle');
   var body = document.body;
+  var html = document.documentElement;
   var KEY  = 'icadem_modo';
 
-  // Aplicar modo guardado antes de render (evita flash)
-  if (localStorage.getItem(KEY) === 'dia') {
-    body.classList.add('modo-dia');
+  var BG_NOCHE = '#020d30';
+  var BG_NOCHE_IMG = [
+    'radial-gradient(ellipse 90% 60% at 40% 0%, rgba(0,70,255,0.22) 0%, transparent 55%)',
+    'radial-gradient(ellipse 70% 50% at 80% 80%, rgba(0,40,200,0.18) 0%, transparent 55%)',
+    'linear-gradient(180deg, #020d30 0%, #031040 50%, #020d30 100%)'
+  ].join(',');
+
+  var BG_DIA = '#0022cc';
+  var BG_DIA_IMG = [
+    'radial-gradient(ellipse 80% 60% at 20% 0%, rgba(0,80,255,0.35) 0%, transparent 50%)',
+    'radial-gradient(ellipse 70% 50% at 80% 90%, rgba(0,40,220,0.25) 0%, transparent 55%)',
+    'linear-gradient(180deg, #0022cc 0%, #0028dd 50%, #0022cc 100%)'
+  ].join(',');
+
+  var SIDEBAR_NOCHE = '#001fcc';
+  var SIDEBAR_DIA   = '#001aaa';
+
+  function aplicarModo(dia) {
+    // Cambiar html background directamente via style (pisa cualquier !important de CSS)
+    html.style.setProperty('background', dia ? BG_DIA : BG_NOCHE, 'important');
+    html.style.setProperty('background-image', dia ? BG_DIA_IMG : BG_NOCHE_IMG, 'important');
+
+    // Cambiar sidebar
+    var sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+      sidebar.style.setProperty('background', dia ? SIDEBAR_DIA : SIDEBAR_NOCHE, 'important');
+    }
+
+    // Clase en body para que el CSS del toggle icon funcione
+    body.classList.toggle('modo-dia', dia);
   }
+
+  // Aplicar modo guardado al cargar
+  var savedMode = localStorage.getItem(KEY);
+  aplicarModo(savedMode === 'dia');
 
   if (btn) {
     btn.addEventListener('click', function() {
-      var esDia = body.classList.toggle('modo-dia');
+      var esDia = !body.classList.contains('modo-dia');
+      aplicarModo(esDia);
       localStorage.setItem(KEY, esDia ? 'dia' : 'noche');
     });
   }
