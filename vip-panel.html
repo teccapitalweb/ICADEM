@@ -24518,17 +24518,22 @@ window.loginDirecto = function() {
       esDia = true;
       document.body.classList.add('modo-dia');
 
-      /* 1. CSS en body (pisa mega-override por cascada) */
+      /* 1. CSS - append al final del body para ganar cascada */
       var st = document.getElementById('icadem-dia-css');
-      if (!st) { st = document.createElement('style'); st.id = 'icadem-dia-css'; document.body.appendChild(st); }
+      if (!st) {
+        st = document.createElement('style');
+        st.id = 'icadem-dia-css';
+      }
       st.textContent = getCSS();
+      /* Siempre re-appendear al final del body para ganar al mega-override */
+      document.body.appendChild(st);
 
-      /* 2. JS fix inmediato + cada 600ms por 20s (cubre contenido async de Firebase) */
-      requestAnimationFrame(function() {
-        fixAll();
-        iv = setInterval(fixAll, 600);
-        setTimeout(function() { if (iv) { clearInterval(iv); iv = null; } }, 20000);
-      });
+      /* 2. JS fix inmediato + cada 600ms por 20s */
+      fixAll();
+      setTimeout(fixAll, 300);
+      setTimeout(fixAll, 800);
+      iv = setInterval(fixAll, 600);
+      setTimeout(function() { if (iv) { clearInterval(iv); iv = null; } }, 20000);
 
       /* 3. MutationObserver — nodos nuevos + cambios de atributo */
       if (window._icademObs) window._icademObs.disconnect();
