@@ -24354,158 +24354,200 @@ window.loginDirecto = function() {
 };
 </script>
 
-<!-- MODIFICADO: Modo día/noche — solución definitiva con computed styles -->
+<!-- MODO DÍA/NOCHE — Versión definitiva senior -->
 <script>
 (function() {
-
-  var btn  = document.getElementById('btn-modo-toggle');
-  var body = document.body;
-  var KEY  = 'icadem_modo';
+  var btn      = document.getElementById('btn-modo-toggle');
+  var body     = document.body;
+  var KEY      = 'icadem_modo';
   var observer = null;
+  var intervals = [];
 
-  // ── Elementos que se mantienen con su tema original (no se tocan) ──
-  function estaExcluido(el) {
-    return el.closest && (
-      el.closest('.sidebar')   ||
-      el.closest('.ic-hero')   ||
-      el.closest('.ic-countdown') ||
-      el.closest('#threejs-hero') ||
-      el.closest('.ic-streak-card')
-    );
+  /* ── Paleta día — basada en referencia azul/blanco corporativo ── */
+  var DIA = {
+    bg:       '#f0f4ff',
+    white:    '#ffffff',
+    navy:     '#0d1b4b',
+    blue:     '#0033cc',
+    soft:     '#3355aa',
+    border:   'rgba(0,30,180,0.09)',
+    shadow:   '0 2px 16px rgba(0,20,120,0.07)'
+  };
+
+  /* Excluir: sidebar, hero azul, countdown */
+  function excluido(el) {
+    if (!el || !el.closest) return true;
+    return el.closest('.sidebar') ||
+           el.closest('.ic-hero') ||
+           el.closest('.ic-countdown') ||
+           el.closest('#threejs-hero') ||
+           el.closest('.ic-streak-card') ||
+           el.closest('#btn-modo-toggle');
   }
 
-  // ── Corrige un solo elemento: fondo oscuro → blanco, texto claro → oscuro ──
-  function fixEl(el) {
-    if (!el || el.nodeType !== 1) return;
-    if (estaExcluido(el)) return;
+  /* Corregir un elemento según su luminancia real */
+  function fix(el) {
+    if (!el || el.nodeType !== 1 || excluido(el)) return;
+    var cs  = window.getComputedStyle(el);
 
-    var cs = window.getComputedStyle(el);
-
-    // Fondo: si es oscuro (luminancia < 80) → blanco
-    var bg = cs.backgroundColor;
-    var bm = bg.match(/[\d.]+/g);
-    if (bm && bm.length >= 3 && +bm[3] !== 0) { // no transparent
-      var lum = 0.299 * +bm[0] + 0.587 * +bm[1] + 0.114 * +bm[2];
-      if (lum < 80) {
-        el.style.setProperty('background-color', '#ffffff', 'important');
-        el.style.setProperty('background-image', 'none',    'important');
-        el.style.setProperty('background',       '#ffffff', 'important');
+    /* Fondo oscuro → blanco */
+    var bg  = cs.backgroundColor;
+    var bm  = bg.match(/[\d.]+/g);
+    if (bm && bm.length >= 3 && parseFloat(bm[3] || 1) > 0.02) {
+      var bl = 0.299*+bm[0] + 0.587*+bm[1] + 0.114*+bm[2];
+      if (bl < 90) {
+        el.style.setProperty('background-color',  DIA.white, 'important');
+        el.style.setProperty('background-image',  'none',     'important');
+        el.style.setProperty('background',        DIA.white, 'important');
+        el.style.setProperty('border-color',      DIA.border, 'important');
+        el.style.setProperty('box-shadow',        DIA.shadow, 'important');
       }
     }
 
-    // Texto: si es muy claro (luminancia > 160) → azul oscuro legible
-    var co = cs.color;
-    var cm = co.match(/[\d.]+/g);
+    /* Texto claro → navy */
+    var co  = cs.color;
+    var cm  = co.match(/[\d.]+/g);
     if (cm && cm.length >= 3) {
-      var clum = 0.299 * +cm[0] + 0.587 * +cm[1] + 0.114 * +cm[2];
-      if (clum > 160) {
-        el.style.setProperty('color',                '#0d1b4b', 'important');
-        el.style.setProperty('-webkit-text-fill-color','#0d1b4b','important');
+      var cl = 0.299*+cm[0] + 0.587*+cm[1] + 0.114*+cm[2];
+      if (cl > 155) {
+        el.style.setProperty('color',                   DIA.navy, 'important');
+        el.style.setProperty('-webkit-text-fill-color', DIA.navy, 'important');
       }
     }
   }
 
-  // ── Restaura los estilos inline que habíamos puesto ──
-  function restoreEl(el) {
+  /* Restaurar estilos inline al volver a noche */
+  function restore(el) {
     if (!el || el.nodeType !== 1) return;
-    el.style.removeProperty('background-color');
-    el.style.removeProperty('background-image');
-    el.style.removeProperty('background');
-    el.style.removeProperty('color');
-    el.style.removeProperty('-webkit-text-fill-color');
+    ['background-color','background-image','background',
+     'border-color','box-shadow','color','-webkit-text-fill-color'].forEach(function(p) {
+      el.style.removeProperty(p);
+    });
   }
 
-  // ── Aplica modo día completo ──
+  /* Recorrer todo el árbol */
+  function fixAll() {
+    document.querySelectorAll('*').forEach(fix);
+  }
+  function restoreAll() {
+    document.querySelectorAll('*').forEach(restore);
+  }
+
+  /* CSS base — estructura fija que no depende de computed styles */
+  var BASE_CSS = [
+    /* Fondo general */
+    'html{background:' + DIA.bg + '!important;background-image:none!important}',
+    'body,.main,.content{background:transparent!important}',
+
+    /* Topbar */
+    '.topbar{background:#fff!important;border-bottom:1px solid rgba(0,30,180,.1)!important;box-shadow:0 1px 12px rgba(0,20,120,.08)!important}',
+    '.topbar-title{color:' + DIA.navy + '!important}',
+    '.menu-btn{color:' + DIA.navy + '!important;background:rgba(0,30,180,.05)!important;border-color:rgba(0,30,180,.15)!important}',
+    '.topbar-plan,.topbar-plan *{color:' + DIA.blue + '!important;-webkit-text-fill-color:' + DIA.blue + '!important}',
+    '.topbar-plan{background:rgba(0,31,204,.08)!important;border-color:rgba(0,31,204,.2)!important}',
+    '.status-dot{background:' + DIA.blue + '!important}',
+
+    /* Secciones */
+    '.section{background:#fff!important;border:1px solid rgba(0,30,180,.08)!important;box-shadow:' + DIA.shadow + '!important}',
+
+    /* Hero — mantiene identidad azul ICADEM */
+    '.ic-hero{background:linear-gradient(135deg,#001fcc 0%,#0033e6 50%,#1a55f5 100%)!important}',
+    '.ic-hero *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+    /* Hello title */
+    '.ic-hello-title{background:linear-gradient(135deg,#001fcc,#0044ee)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
+    '.ic-hello-title #user-nombre{background:linear-gradient(135deg,#b87a00,#e8a800)!important;-webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important}',
+    '.ic-hello-eyebrow{color:' + DIA.soft + '!important;-webkit-text-fill-color:' + DIA.soft + '!important}',
+    '.ic-hello-line{background:linear-gradient(90deg,#001fcc,#f5d77a,transparent)!important}',
+
+    /* Sidebar mantiene azul */
+    '.sidebar{background:linear-gradient(180deg,#001eb5 0%,#001799 100%)!important}',
+    '.sidebar *,.btn-logout{color:rgba(255,255,255,.88)!important;-webkit-text-fill-color:rgba(255,255,255,.88)!important}',
+    '.nav-item.active,.nav-item:hover{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+
+    /* Inputs */
+    'input,textarea,select{background:#fff!important;color:' + DIA.navy + '!important;border-color:rgba(0,30,180,.2)!important}',
+    'input::placeholder,textarea::placeholder{color:rgba(13,27,75,.35)!important;-webkit-text-fill-color:rgba(13,27,75,.35)!important}',
+
+    /* Scrollbar */
+    '::-webkit-scrollbar-track{background:#dde6ff!important}',
+    '::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(0,31,204,.4),rgba(0,20,150,.25))!important;border-color:' + DIA.bg + '!important}'
+  ].join('');
+
   function aplicarDia() {
-    // 1. Deshabilitar mega-override
+    /* 1. Desactivar mega-override */
     var mo = document.getElementById('fx-mega-override');
     if (mo) mo.disabled = true;
 
-    // 2. Inyectar CSS base (fondo html, topbar blanco, sidebar blue)
-    var s = document.getElementById('icadem-dia-style');
-    if (!s) {
-      s = document.createElement('style');
-      s.id = 'icadem-dia-style';
-      document.head.appendChild(s);
-    }
-    s.disabled = false;
-    s.textContent = `
-      html { background: #edf1ff !important; background-image: none !important; }
-      body, .main, .content { background: transparent !important; }
-      .topbar {
-        background: #ffffff !important;
-        border-bottom: 1px solid rgba(0,30,180,0.1) !important;
-        box-shadow: 0 1px 12px rgba(0,20,120,0.08) !important;
-      }
-      .topbar-title { color: #0d1b4b !important; }
-      .menu-btn { color: #0d1b4b !important; background: rgba(0,30,180,0.05) !important; border-color: rgba(0,30,180,0.15) !important; }
-      .topbar-plan { background: rgba(0,31,204,0.08) !important; border-color: rgba(0,31,204,0.2) !important; color: #001fcc !important; }
-      .topbar-plan * { color: #001fcc !important; -webkit-text-fill-color: #001fcc !important; }
-      .section { background: #ffffff !important; border: 1px solid rgba(0,30,180,0.07) !important; box-shadow: 0 2px 16px rgba(0,20,120,0.05) !important; }
-      .ic-hero { background: linear-gradient(135deg, #001fcc 0%, #0033e6 50%, #1a55f5 100%) !important; }
-      .ic-hero * { color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; }
-      .ic-hello-title { background: linear-gradient(135deg,#001fcc,#0044ee) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent !important; }
-      .ic-hello-title #user-nombre { background: linear-gradient(135deg,#b87a00,#e8a800) !important; -webkit-background-clip:text !important; background-clip:text !important; -webkit-text-fill-color:transparent !important; }
-      .ic-hello-eyebrow { color: #3355aa !important; -webkit-text-fill-color: #3355aa !important; }
-      .ic-hello-line { background: linear-gradient(90deg,#001fcc,#f5d77a,transparent) !important; }
-      input, textarea, select { background: #fff !important; color: #0d1b4b !important; border-color: rgba(0,30,180,0.2) !important; }
-      ::-webkit-scrollbar-track { background: #dde6ff !important; }
-      ::-webkit-scrollbar-thumb { background: linear-gradient(180deg,rgba(0,31,204,0.4),rgba(0,20,150,0.25)) !important; border-color: #edf1ff !important; }
-    `;
+    /* 2. Inyectar CSS base */
+    var st = document.getElementById('icadem-dia-css');
+    if (!st) { st = document.createElement('style'); st.id = 'icadem-dia-css'; document.head.appendChild(st); }
+    st.disabled = false;
+    st.textContent = BASE_CSS;
 
-    // 3. Recorrer TODOS los elementos y corregir computed colors
-    requestAnimationFrame(function() {
-      document.querySelectorAll('*').forEach(fixEl);
+    /* 3. Fix inmediato */
+    fixAll();
 
-      // 4. MutationObserver para secciones que cargan después (SPA)
-      if (observer) observer.disconnect();
-      observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(m) {
-          m.addedNodes.forEach(function(node) {
-            if (node.nodeType === 1) {
-              fixEl(node);
-              node.querySelectorAll && node.querySelectorAll('*').forEach(fixEl);
+    /* 4. Re-aplicar cada 400ms durante 12s (para contenido que carga de Firebase) */
+    var count = 0;
+    var iv = setInterval(function() {
+      fixAll();
+      if (++count > 30) clearInterval(iv);
+    }, 400);
+    intervals.push(iv);
+
+    /* 5. MutationObserver — nuevos nodos Y cambios de style/class */
+    if (observer) observer.disconnect();
+    observer = new MutationObserver(function(mutations) {
+      var toFix = [];
+      mutations.forEach(function(m) {
+        if (m.type === 'childList') {
+          m.addedNodes.forEach(function(n) {
+            if (n.nodeType === 1) {
+              toFix.push(n);
+              n.querySelectorAll && n.querySelectorAll('*').forEach(function(c){ toFix.push(c); });
             }
           });
-        });
+        } else if (m.type === 'attributes') {
+          toFix.push(m.target);
+        }
       });
-      observer.observe(document.body, { childList: true, subtree: true });
+      toFix.forEach(fix);
+    });
+    observer.observe(document.body, {
+      childList: true, subtree: true,
+      attributes: true, attributeFilter: ['style','class']
     });
   }
 
-  // ── Restaura modo noche ──
   function aplicarNoche() {
-    // 1. Re-habilitar mega-override
+    intervals.forEach(clearInterval); intervals = [];
+    if (observer) { observer.disconnect(); observer = null; }
+
     var mo = document.getElementById('fx-mega-override');
     if (mo) mo.disabled = false;
 
-    // 2. Deshabilitar nuestro style
-    var s = document.getElementById('icadem-dia-style');
-    if (s) s.disabled = true;
+    var st = document.getElementById('icadem-dia-css');
+    if (st) st.disabled = true;
 
-    // 3. Quitar inline styles que pusimos
-    if (observer) { observer.disconnect(); observer = null; }
-    document.querySelectorAll('*').forEach(restoreEl);
+    restoreAll();
   }
 
-  // ── Toggle ──
-  function aplicarModo(dia) {
+  function toggle(dia) {
     body.classList.toggle('modo-dia', dia);
-    if (dia) aplicarDia();
-    else aplicarNoche();
+    dia ? aplicarDia() : aplicarNoche();
   }
 
-  // Cargar preferencia guardada
-  aplicarModo(localStorage.getItem(KEY) === 'dia');
+  /* Cargar preferencia guardada */
+  toggle(localStorage.getItem(KEY) === 'dia');
 
   if (btn) {
     btn.addEventListener('click', function() {
-      var esDia = !body.classList.contains('modo-dia');
-      aplicarModo(esDia);
-      localStorage.setItem(KEY, esDia ? 'dia' : 'noche');
+      var dia = !body.classList.contains('modo-dia');
+      toggle(dia);
+      localStorage.setItem(KEY, dia ? 'dia' : 'noche');
     });
   }
-
 })();
 </script>
 
