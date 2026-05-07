@@ -4236,7 +4236,7 @@
     const sidebarFooter = document.querySelector('.sidebar-footer');
     if (sidebarFooter) {
       sidebarFooter.innerHTML = `
-        <a href="javascript:void(0)" onclick="window.loginDirecto()" class="btn-guest btn-guest-login">
+        <a href="javascript:void(0)" onclick="window.loginConGoogle()" class="btn-guest btn-guest-login">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
           Iniciar sesión
         </a>
@@ -17508,6 +17508,19 @@ function cerrarModal() {
 }
 
 window.icademStripe = { abrir: abrirModal, cerrar: cerrarModal };
+
+// MODIFICADO: login directo con Google — expuesto desde este módulo que ya tiene
+// GoogleAuthProvider y signInWithPopup importados. El botón "Iniciar sesión" lo usa.
+window.loginConGoogle = function() {
+  const auth = getAuth();
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+    .then(function() { window.location.reload(); })
+    .catch(function(e) {
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
+      alert('Error al iniciar sesión: ' + (e.message || e.code || 'Error desconocido'));
+    });
+};
 
 // ── Eventos del modal ─────────────────────────────────────────
 document.getElementById('is-btn-close').addEventListener('click', cerrarModal);
