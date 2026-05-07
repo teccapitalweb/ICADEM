@@ -2769,167 +2769,140 @@
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════
-     GSAP + ScrollTrigger — Animaciones de scroll cinematográficas
+     ANIMACIONES — GSAP hero + IntersectionObserver para secciones
+     Arquitectura confiable: secciones NUNCA quedan en opacity:0
      ═══════════════════════════════════════════════════════════ -->
 <script>
-(function initGSAP() {
-  if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+(function() {
 
-  gsap.registerPlugin(ScrollTrigger);
+  // ── PASO 1: Asegurar que TODO el contenido sea visible
+  // Aunque GSAP/ScrollTrigger fallen, nada queda oculto
+  document.querySelectorAll(
+    '.section-heading, .section-copy, .authority-grid article, ' +
+    '.service-card, .benefit-card, .course-card, .glass-panel, ' +
+    '.stat-chip, .number-card, .certificate-card, .gallery-item, ' +
+    '.testimonial-card, .cta-box, .contact-form, .fhero-stat-chip'
+  ).forEach(el => {
+    el.style.opacity    = '1';
+    el.style.transform  = 'none';
+    el.style.visibility = 'visible';
+  });
 
-  // ── Hero content entrance — orquestado ────────────────
-  const heroTl = gsap.timeline({ delay: 0.2 });
-  heroTl
-    .from('.fhero-eyebrow', {
-      y: 30, opacity: 0, duration: 0.7, ease: 'power3.out'
-    })
-    .from('.fhero-title', {
-      y: 50, opacity: 0, duration: 0.9, ease: 'power3.out',
-      skewY: 2
-    }, '-=0.4')
-    .from('.fhero-title-line', {
-      scaleX: 0, opacity: 0, duration: 0.6, ease: 'power2.out',
-      transformOrigin: 'left center'
-    }, '-=0.5')
-    .from('.fhero-text', {
-      y: 30, opacity: 0, duration: 0.7, ease: 'power2.out'
-    }, '-=0.4')
-    .from('.fhero-btn-primary, .fhero-btn-secondary', {
-      y: 20, opacity: 0, duration: 0.6, ease: 'power2.out', stagger: 0.12
-    }, '-=0.35')
-    .from('.fhero-pills span', {
-      y: 15, opacity: 0, duration: 0.4, ease: 'power2.out', stagger: 0.08
-    }, '-=0.3')
-    .from('.fhero-card', {
-      x: 60, opacity: 0, duration: 0.9, ease: 'power3.out'
-    }, '-=0.8')
-    .from('.fhero-stat-chip', {
-      y: 30, opacity: 0, duration: 0.5, ease: 'power2.out', stagger: 0.1
-    }, '-=0.4');
+  // ── PASO 2: GSAP solo para el HERO (no afecta visibilidad de secciones)
+  if (typeof gsap !== 'undefined') {
+    gsap.registerPlugin(ScrollTrigger);
 
-  // ── Utility: animate any section's children ────────────
-  function animateSection(trigger, targets, options) {
-    gsap.from(targets, {
-      scrollTrigger: {
-        trigger: trigger,
-        start: 'top 82%',
-        toggleActions: 'play none none none'
-      },
-      y: 45,
-      opacity: 0,
-      duration: 0.75,
-      ease: 'power3.out',
-      stagger: 0.1,
-      ...options
+    // Hero entrance — orquestado
+    const heroTl = gsap.timeline({ delay: 0.3 });
+    heroTl
+      .from('.fhero-eyebrow',   { y: 28, opacity: 0, duration: 0.65, ease: 'power3.out' })
+      .from('.fhero-title',     { y: 48, opacity: 0, duration: 0.85, ease: 'power3.out', skewY: 1.5 }, '-=0.4')
+      .from('.fhero-title-line',{ scaleX: 0, opacity: 0, duration: 0.55, ease: 'power2.out', transformOrigin: 'left center' }, '-=0.5')
+      .from('.fhero-text',      { y: 28, opacity: 0, duration: 0.65, ease: 'power2.out' }, '-=0.35')
+      .from('.fhero-btn-primary, .fhero-btn-secondary',
+                                { y: 20, opacity: 0, duration: 0.5,  ease: 'power2.out', stagger: 0.12 }, '-=0.3')
+      .from('.fhero-pills span',{ y: 14, opacity: 0, duration: 0.4,  ease: 'power2.out', stagger: 0.07 }, '-=0.25')
+      .from('.fhero-card',      { x: 55, opacity: 0, duration: 0.85, ease: 'power3.out' }, '-=0.7')
+      .from('.fhero-stat-chip', { y: 28, opacity: 0, duration: 0.45, ease: 'power2.out', stagger: 0.09 }, '-=0.35');
+
+    // Parallax sutil en glows del hero
+    gsap.to('.fhero-glow1', {
+      scrollTrigger: { trigger: '.fhero', start: 'top top', end: 'bottom top', scrub: 1.5 },
+      y: -100, ease: 'none'
+    });
+    gsap.to('.fhero-glow2', {
+      scrollTrigger: { trigger: '.fhero', start: 'top top', end: 'bottom top', scrub: 1.5 },
+      y: 70, ease: 'none'
+    });
+
+    // Counter animado en cifras
+    document.querySelectorAll('[data-count]').forEach(el => {
+      const target    = parseInt(el.dataset.count) || 0;
+      const isPercent = el.textContent.includes('%');
+      gsap.fromTo(el,
+        { textContent: 0 },
+        {
+          scrollTrigger: { trigger: el.closest('section, article') || el, start: 'top 85%', once: true },
+          textContent: target,
+          duration: 1.8,
+          ease: 'power2.out',
+          snap: { textContent: 1 },
+          onUpdate: function() {
+            const v = Math.round(this.targets()[0].textContent);
+            el.textContent = v + (isPercent ? '%' : '+');
+          }
+        }
+      );
     });
   }
 
-  // ── Authority strip ────────────────────────────────────
-  animateSection('.authority-strip', '.authority-grid article');
+  // ── PASO 3: IntersectionObserver — reveal suave al entrar al viewport
+  // No usa opacity:0 como estado inicial — los elementos son visibles por defecto
+  const style = document.createElement('style');
+  style.textContent = `
+    .io-ready {
+      transform: translateY(32px);
+      opacity: 0.01;
+      transition: transform 0.65s cubic-bezier(0.22,1,0.36,1),
+                  opacity 0.65s ease;
+      will-change: transform, opacity;
+    }
+    .io-ready.io-visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    /* Variantes de dirección */
+    .io-left  { transform: translateX(-40px) !important; }
+    .io-right { transform: translateX( 40px) !important; }
+    .io-left.io-visible,
+    .io-right.io-visible { transform: translateX(0) !important; }
+    /* Stagger para grids */
+    .io-stagger .io-ready:nth-child(1) { transition-delay: 0.05s; }
+    .io-stagger .io-ready:nth-child(2) { transition-delay: 0.12s; }
+    .io-stagger .io-ready:nth-child(3) { transition-delay: 0.19s; }
+    .io-stagger .io-ready:nth-child(4) { transition-delay: 0.26s; }
+    .io-stagger .io-ready:nth-child(5) { transition-delay: 0.33s; }
+    .io-stagger .io-ready:nth-child(6) { transition-delay: 0.40s; }
+  `;
+  document.head.appendChild(style);
 
-  // ── Nosotros ───────────────────────────────────────────
-  gsap.from('.fwho-section .section-tag', {
-    scrollTrigger: { trigger: '.fwho-section', start: 'top 80%' },
-    x: -40, opacity: 0, duration: 0.7, ease: 'power3.out'
-  });
-  gsap.from('.fwho-section h2', {
-    scrollTrigger: { trigger: '.fwho-section', start: 'top 78%' },
-    y: 40, opacity: 0, duration: 0.8, ease: 'power3.out'
-  });
-  gsap.from('.glass-panel', {
-    scrollTrigger: { trigger: '.fwho-section', start: 'top 72%' },
-    y: 50, opacity: 0, scale: 0.97, duration: 0.9, ease: 'power3.out'
-  });
+  // Aplicar clases io-ready a los elementos que queremos revelar
+  function applyReveal(selector, direction) {
+    document.querySelectorAll(selector).forEach(el => {
+      el.classList.add('io-ready');
+      if (direction) el.classList.add(direction);
+    });
+  }
 
-  // ── Servicios ──────────────────────────────────────────
-  animateSection('#servicios', '#servicios .service-card');
-  gsap.from('#servicios .section-heading', {
-    scrollTrigger: { trigger: '#servicios', start: 'top 80%' },
-    y: 35, opacity: 0, duration: 0.75, ease: 'power3.out'
-  });
+  // Marcar contenedores como stagger
+  document.querySelectorAll(
+    '.authority-grid, .service-grid, .benefit-grid, .course-grid, .gallery-grid'
+  ).forEach(g => g.classList.add('io-stagger'));
 
-  // ── Beneficios ─────────────────────────────────────────
-  animateSection('#beneficios', '#beneficios .benefit-card');
+  // Aplicar reveals a cada tipo de elemento
+  applyReveal('.authority-grid article');
+  applyReveal('.service-card');
+  applyReveal('.benefit-card');
+  applyReveal('.course-card');
+  applyReveal('.gallery-item');
+  applyReveal('.testimonial-card');
+  applyReveal('.glass-panel', 'io-left');
+  applyReveal('.certificate-card', 'io-right');
+  applyReveal('.cta-box');
+  applyReveal('.section-heading.center');
+  applyReveal('.stat-chip, .number-card');
 
-  // ── Capacitaciones ─────────────────────────────────────
-  animateSection('#capacitaciones', '#capacitaciones .course-card');
-  gsap.from('#capacitaciones .filter-bar', {
-    scrollTrigger: { trigger: '#capacitaciones', start: 'top 80%' },
-    y: 20, opacity: 0, duration: 0.6, ease: 'power2.out'
-  });
-
-  // ── Cifras — counter animation ─────────────────────────
-  document.querySelectorAll('.number-card strong[data-count], .fhero-stat-chip strong[data-count]').forEach(el => {
-    const target = parseInt(el.dataset.count) || 0;
-    const isPercent = el.textContent.includes('%');
-    gsap.fromTo(el,
-      { textContent: 0 },
-      {
-        scrollTrigger: { trigger: el.closest('section') || el, start: 'top 80%' },
-        textContent: target,
-        duration: 1.8,
-        ease: 'power2.out',
-        snap: { textContent: 1 },
-        onUpdate: function() {
-          el.textContent = Math.round(this.targets()[0].textContent) + (isPercent ? '%' : '+');
-        }
+  // Observer
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('io-visible');
+        observer.unobserve(entry.target);
       }
-    );
-  });
-
-  // ── Certificación ──────────────────────────────────────
-  gsap.from('#certificacion .certificate-card', {
-    scrollTrigger: { trigger: '#certificacion', start: 'top 75%' },
-    y: 60, opacity: 0, scale: 0.96, duration: 1.0, ease: 'power3.out'
-  });
-  gsap.from('#certificacion .section-copy', {
-    scrollTrigger: { trigger: '#certificacion', start: 'top 80%' },
-    x: -50, opacity: 0, duration: 0.85, ease: 'power3.out'
-  });
-
-  // ── Evidencia ──────────────────────────────────────────
-  animateSection('#evidencia', '#evidencia .gallery-item');
-
-  // ── Testimonios ────────────────────────────────────────
-  animateSection('#testimonios', '#testimonios .testimonial-card');
-
-  // ── CTA section ────────────────────────────────────────
-  gsap.from('.cta-box', {
-    scrollTrigger: { trigger: '.cta-section', start: 'top 80%' },
-    y: 50, opacity: 0, scale: 0.97, duration: 1.0, ease: 'power3.out'
-  });
-
-  // ── Contacto ───────────────────────────────────────────
-  gsap.from('#contacto .section-copy', {
-    scrollTrigger: { trigger: '#contacto', start: 'top 80%' },
-    x: -50, opacity: 0, duration: 0.85, ease: 'power3.out'
-  });
-  gsap.from('.contact-form', {
-    scrollTrigger: { trigger: '#contacto', start: 'top 78%' },
-    x: 50, opacity: 0, duration: 0.85, ease: 'power3.out'
-  });
-
-  // ── Parallax ligero en glows de secciones ─────────────
-  document.querySelectorAll('.fhero-glow1, .fhero-glow2').forEach((el, i) => {
-    gsap.to(el, {
-      scrollTrigger: {
-        trigger: '.fhero',
-        start: 'top top',
-        end: 'bottom top',
-        scrub: 1.5
-      },
-      y: i === 0 ? -120 : 80,
-      ease: 'none'
     });
-  });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
 
-  // ── Section headings — slight reveal clip ─────────────
-  document.querySelectorAll('.section-heading h2, .section-copy h2').forEach(h => {
-    gsap.from(h, {
-      scrollTrigger: { trigger: h, start: 'top 85%' },
-      y: 35, opacity: 0, duration: 0.8, ease: 'power3.out'
-    });
-  });
+  document.querySelectorAll('.io-ready').forEach(el => observer.observe(el));
 
 })();
 </script>
