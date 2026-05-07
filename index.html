@@ -699,192 +699,178 @@
       align-items: center;
       justify-content: center;
     }
-    .fwho-orbit {
-      position: relative;
+    /* ── ICADEM 3D CARD STACK — reemplaza el orbital ── */
+    .fwho-stack-scene {
+      perspective: 900px;
+      perspective-origin: 50% 40%;
       width: 100%;
-      max-width: 500px;
-      aspect-ratio: 1;
-    }
-
-    /* Anillos */
-    .fwho-ring {
-      position: absolute;
-      top: 50%; left: 50%;
-      border-radius: 50%;
-      transform: translate(-50%, -50%);
-    }
-    .fwho-ring-1 {
-      width: 50%; height: 50%;
-      border: 1px dashed rgba(245,215,122,0.25);
-      animation: ringRotate 30s linear infinite;
-    }
-    .fwho-ring-2 {
-      width: 75%; height: 75%;
-      border: 1px solid rgba(96,165,250,0.18);
-      animation: ringRotate 60s linear infinite reverse;
-    }
-    .fwho-ring-3 {
-      width: 100%; height: 100%;
-      border: 1px dashed rgba(255,255,255,0.08);
-      animation: ringRotate 100s linear infinite;
-    }
-    @keyframes ringRotate {
-      from { transform: translate(-50%, -50%) rotate(0deg); }
-      to   { transform: translate(-50%, -50%) rotate(360deg); }
-    }
-
-    /* Núcleo central */
-    .fwho-core {
-      position: absolute;
-      top: 50%; left: 50%;
-      transform: translate(-50%, -50%);
-      width: 130px; height: 130px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle, rgba(30,58,138,0.95) 0%, rgba(11,31,74,0.95) 60%, rgba(2,5,15,0.95) 100%);
-      border: 2px solid rgba(245,215,122,0.5);
-      box-shadow:
-        0 0 40px rgba(96,165,250,0.4),
-        0 0 80px rgba(245,215,122,0.2),
-        inset 0 0 30px rgba(245,215,122,0.15);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 5;
-    }
-    .fwho-core-pulse {
-      position: absolute;
-      inset: -6px;
-      border-radius: 50%;
-      border: 2px solid rgba(245,215,122,0.5);
-      animation: corePulse 2.5s ease-out infinite;
-    }
-    @keyframes corePulse {
-      0%   { transform: scale(1);   opacity: 0.8; }
-      100% { transform: scale(1.5); opacity: 0; }
-    }
-    .fwho-core-label {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: 0.05em;
-      background: linear-gradient(180deg, #fff, #f5d77a);
-      -webkit-background-clip: text;
-      background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .fwho-core-sub {
-      font-size: 9.5px;
-      letter-spacing: 0.3em;
-      color: rgba(245,215,122,0.7);
-      margin-top: 2px;
-      font-weight: 600;
-    }
-
-    /* Rotador con nodos */
-    .fwho-rotator {
-      position: absolute;
-      inset: 0;
-      animation: orbitForward 40s linear infinite;
-    }
-    @keyframes orbitForward {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    .fwho-node {
-      position: absolute;
-      top: 50%; left: 50%;
-      width: 0; height: 0;
-      transform: rotate(var(--ang));
-    }
-    .fwho-node-inner {
-      position: absolute;
-      top: -38px; left: -38px;
-      width: 76px; height: 76px;
-      background: linear-gradient(180deg, rgba(11,31,74,0.95), rgba(2,5,15,0.95));
-      border: 1px solid rgba(245,215,122,0.3);
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
-      animation: orbitBackward 40s linear infinite;
-      transform-origin: center;
-      /* Posicionar en el borde externo del orbit */
-      margin-top: -200px;
-      transition: scale 0.3s, border-color 0.3s, box-shadow 0.3s;
+      max-width: 480px;
+      height: 480px;
+      position: relative;
       cursor: pointer;
     }
-    .fwho-node-inner:hover {
-      scale: 1.18;
-      border-color: #f5d77a;
-      box-shadow: 0 12px 32px rgba(245,215,122,0.5), inset 0 0 0 1px rgba(245,215,122,0.3);
+    .fwho-stack {
+      width: 100%; height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      animation: stack-float 7s ease-in-out infinite;
     }
-    @keyframes orbitBackward {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(-360deg); }
+    @keyframes stack-float {
+      0%, 100% { transform: rotateX(6deg) rotateY(-8deg) translateY(0); }
+      33%       { transform: rotateX(4deg) rotateY(-12deg) translateY(-12px); }
+      66%       { transform: rotateX(8deg) rotateY(-5deg)  translateY(-6px); }
     }
-    .fwho-node-icon {
-      font-size: 24px;
-      margin-bottom: 2px;
-      filter: drop-shadow(0 0 8px rgba(245,215,122,0.4));
-    }
-    .fwho-node-label {
-      font-size: 9px;
-      font-weight: 700;
-      color: rgba(255,255,255,0.85);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-    }
-
-    /* Partículas decorativas */
-    .fwho-particle {
+    .fwho-card3d {
       position: absolute;
-      top: var(--y); left: var(--x);
-      width: 4px; height: 4px;
-      background: #f5d77a;
+      inset: 0;
+      margin: auto;
+      width: 300px;
+      height: 185px;
+      border-radius: 20px;
+      padding: 24px 28px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1);
+      top: 50%; left: 50%;
+      margin: -92px 0 0 -150px;
+    }
+    /* Hover: las cartas se abren como un abanico */
+    .fwho-stack-scene:hover .fwho-card3d:nth-child(1) { transform: translateZ(120px) translateY(-55px) rotateX(-4deg); }
+    .fwho-stack-scene:hover .fwho-card3d:nth-child(2) { transform: translateZ(60px)  translateY(-20px) rotateX(-2deg); }
+    .fwho-stack-scene:hover .fwho-card3d:nth-child(3) { transform: translateZ(0px)   translateY(15px)  rotateX(1deg);  }
+    .fwho-stack-scene:hover .fwho-card3d:nth-child(4) { transform: translateZ(-60px) translateY(50px)  rotateX(3deg);  }
+    .fwho-stack-scene:hover .fwho-card3d:nth-child(5) { transform: translateZ(-120px)translateY(85px)  rotateX(5deg);  }
+    /* Estado en reposo — stack apilado */
+    .fwho-card3d:nth-child(1) { transform: translateZ(80px)  translateY(-36px); }
+    .fwho-card3d:nth-child(2) { transform: translateZ(40px)  translateY(-18px); }
+    .fwho-card3d:nth-child(3) { transform: translateZ(0px)   translateY(0px);   }
+    .fwho-card3d:nth-child(4) { transform: translateZ(-40px) translateY(18px);  }
+    .fwho-card3d:nth-child(5) { transform: translateZ(-80px) translateY(36px);  }
+    /* Estilo visual de cada carta */
+    .fwho-card3d:nth-child(1) {
+      background: linear-gradient(135deg, rgba(0,80,255,0.95) 0%, rgba(0,40,200,0.92) 100%);
+      border: 1px solid rgba(255,255,255,0.25);
+      box-shadow: 0 32px 60px rgba(0,0,120,0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+    }
+    .fwho-card3d:nth-child(2) {
+      background: linear-gradient(135deg, rgba(0,60,220,0.90) 0%, rgba(0,30,180,0.88) 100%);
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 24px 50px rgba(0,0,100,0.4), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .fwho-card3d:nth-child(3) {
+      background: linear-gradient(135deg, rgba(0,50,200,0.86) 0%, rgba(0,25,160,0.84) 100%);
+      border: 1px solid rgba(255,255,255,0.14);
+      box-shadow: 0 18px 40px rgba(0,0,80,0.35);
+    }
+    .fwho-card3d:nth-child(4) {
+      background: linear-gradient(135deg, rgba(0,40,180,0.80) 0%, rgba(0,20,140,0.78) 100%);
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow: 0 12px 30px rgba(0,0,60,0.3);
+    }
+    .fwho-card3d:nth-child(5) {
+      background: linear-gradient(135deg, rgba(0,30,160,0.72) 0%, rgba(0,15,120,0.70) 100%);
+      border: 1px solid rgba(255,255,255,0.07);
+      box-shadow: 0 8px 20px rgba(0,0,40,0.25);
+    }
+    /* Barra de color superior de cada carta */
+    .fwho-card3d::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 28px; right: 28px;
+      height: 3px;
+      border-radius: 999px;
+      bottom: auto;
+    }
+    .fwho-card3d:nth-child(1)::before { background: linear-gradient(90deg, #f5d77a, rgba(245,215,122,0)); }
+    .fwho-card3d:nth-child(2)::before { background: linear-gradient(90deg, #93c5fd, rgba(147,197,253,0)); }
+    .fwho-card3d:nth-child(3)::before { background: linear-gradient(90deg, #6ee7b7, rgba(110,231,183,0)); }
+    .fwho-card3d:nth-child(4)::before { background: linear-gradient(90deg, #c4b5fd, rgba(196,181,253,0)); }
+    .fwho-card3d:nth-child(5)::before { background: linear-gradient(90deg, #fca5a5, rgba(252,165,165,0)); }
+    /* Contenido de la carta */
+    .fwho-card3d-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(200,225,255,0.75);
+    }
+    .fwho-card3d-chip span {
+      width: 6px; height: 6px;
       border-radius: 50%;
-      box-shadow: 0 0 12px rgba(245,215,122,0.8);
-      animation: particleFloat 3s ease-in-out infinite;
-      animation-delay: var(--d);
-      opacity: 0.7;
+      display: inline-block;
+      flex-shrink: 0;
     }
-    @keyframes particleFloat {
-      0%, 100% { transform: translateY(0); opacity: 0.4; }
-      50%      { transform: translateY(-12px); opacity: 1; }
+    .fwho-card3d:nth-child(1) .fwho-card3d-chip span { background: #f5d77a; box-shadow: 0 0 8px rgba(245,215,122,0.8); }
+    .fwho-card3d:nth-child(2) .fwho-card3d-chip span { background: #93c5fd; box-shadow: 0 0 8px rgba(147,197,253,0.8); }
+    .fwho-card3d:nth-child(3) .fwho-card3d-chip span { background: #6ee7b7; box-shadow: 0 0 8px rgba(110,231,183,0.8); }
+    .fwho-card3d:nth-child(4) .fwho-card3d-chip span { background: #c4b5fd; box-shadow: 0 0 8px rgba(196,181,253,0.8); }
+    .fwho-card3d:nth-child(5) .fwho-card3d-chip span { background: #fca5a5; box-shadow: 0 0 8px rgba(252,165,165,0.8); }
+    .fwho-card3d-title {
+      font-family: 'Inter Tight', 'Plus Jakarta Sans', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
     }
-
-    /* Mobile: stack vertical, orbit más pequeño */
+    .fwho-card3d-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .fwho-card3d-num {
+      font-family: 'Inter Tight', sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.04em;
+      color: rgba(255,255,255,0.9);
+    }
+    .fwho-card3d-icon {
+      font-size: 28px;
+      filter: drop-shadow(0 0 8px rgba(255,255,255,0.3));
+    }
+    /* Brillo de luz en la cara superior */
+    .fwho-card3d-shine {
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      background: linear-gradient(135deg,
+        rgba(255,255,255,0.12) 0%,
+        transparent 50%,
+        rgba(0,0,0,0.08) 100%);
+      pointer-events: none;
+    }
+    /* Hint "hover" */
+    .fwho-stack-hint {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: rgba(147,197,253,0.55);
+      text-transform: uppercase;
+      animation: hint-fade 2.5s ease-in-out infinite;
+    }
+    @keyframes hint-fade {
+      0%, 100% { opacity: 0.4; } 50% { opacity: 0.9; }
+    }
     @media (max-width: 900px) {
-      .fwho-section { padding: 60px 0 !important; }
-      .fwho-grid {
-        grid-template-columns: 1fr !important;
-        gap: 40px !important;
-      }
-      .fwho-orbit { max-width: 360px; }
-      .fwho-core { width: 100px; height: 100px; }
-      .fwho-core-label { font-size: 18px; }
-      .fwho-core-sub { font-size: 8px; }
-      .fwho-node-inner {
-        width: 60px; height: 60px;
-        margin-top: -150px;
-        top: -30px; left: -30px;
-      }
-      .fwho-node-icon { font-size: 18px; }
-      .fwho-node-label { font-size: 7.5px; }
+      .fwho-stack-scene { max-width: 340px; height: 380px; margin: 0 auto; }
+      .fwho-card3d { width: 240px; height: 150px; margin: -75px 0 0 -120px; padding: 18px 22px; }
+      .fwho-card3d-title { font-size: 15px; }
+      .fwho-card3d-num { font-size: 22px; }
     }
     @media (max-width: 480px) {
-      .fwho-orbit { max-width: 300px; }
-      .fwho-node-inner {
-        width: 52px; height: 52px;
-        margin-top: -125px;
-        top: -26px; left: -26px;
-      }
-      .fwho-node-icon { font-size: 16px; }
-      .fwho-node-label { font-size: 6.5px; }
+      .fwho-stack-scene { max-width: 300px; height: 340px; }
+      .fwho-card3d { width: 210px; height: 135px; margin: -67px 0 0 -105px; padding: 16px 18px; }
     }
 
     /* ============================================================
@@ -1944,62 +1930,91 @@
           </div>
         </div>
 
+        <!-- MODIFICADO: 3D Card Stack — efecto hojas flotantes tipo Magma -->
         <div class="fwho-visual reveal reveal-delay">
-          <div class="fwho-orbit">
-            <!-- Anillos decorativos -->
-            <div class="fwho-ring fwho-ring-1"></div>
-            <div class="fwho-ring fwho-ring-2"></div>
-            <div class="fwho-ring fwho-ring-3"></div>
+          <div class="fwho-stack-scene" id="fwho-stack-scene">
+            <div class="fwho-stack" id="fwho-stack">
 
-            <!-- Núcleo central con la marca -->
-            <div class="fwho-core">
-              <div class="fwho-core-pulse"></div>
-              <span class="fwho-core-label">ICADEM</span>
-              <span class="fwho-core-sub">2026</span>
+              <!-- Carta 1 — frente / más cercana -->
+              <div class="fwho-card3d">
+                <div class="fwho-card3d-shine"></div>
+                <div class="fwho-card3d-chip"><span></span>Capacitación</div>
+                <div class="fwho-card3d-title">Formación<br>empresarial</div>
+                <div class="fwho-card3d-bottom">
+                  <span class="fwho-card3d-num">+30</span>
+                  <span class="fwho-card3d-icon">📚</span>
+                </div>
+              </div>
+
+              <!-- Carta 2 -->
+              <div class="fwho-card3d">
+                <div class="fwho-card3d-shine"></div>
+                <div class="fwho-card3d-chip"><span></span>Consultoría</div>
+                <div class="fwho-card3d-title">Estrategia<br>y crecimiento</div>
+                <div class="fwho-card3d-bottom">
+                  <span class="fwho-card3d-num">100%</span>
+                  <span class="fwho-card3d-icon">🎯</span>
+                </div>
+              </div>
+
+              <!-- Carta 3 -->
+              <div class="fwho-card3d">
+                <div class="fwho-card3d-shine"></div>
+                <div class="fwho-card3d-chip"><span></span>Certificación</div>
+                <div class="fwho-card3d-title">Valor<br>curricular QR</div>
+                <div class="fwho-card3d-bottom">
+                  <span class="fwho-card3d-num">+500</span>
+                  <span class="fwho-card3d-icon">📜</span>
+                </div>
+              </div>
+
+              <!-- Carta 4 -->
+              <div class="fwho-card3d">
+                <div class="fwho-card3d-shine"></div>
+                <div class="fwho-card3d-chip"><span></span>Online</div>
+                <div class="fwho-card3d-title">Clases en<br>vivo digitales</div>
+                <div class="fwho-card3d-bottom">
+                  <span class="fwho-card3d-num">7</span>
+                  <span class="fwho-card3d-icon">💻</span>
+                </div>
+              </div>
+
+              <!-- Carta 5 — fondo / más lejana -->
+              <div class="fwho-card3d">
+                <div class="fwho-card3d-shine"></div>
+                <div class="fwho-card3d-chip"><span></span>Empresarial</div>
+                <div class="fwho-card3d-title">Consultoría<br>organizacional</div>
+                <div class="fwho-card3d-bottom">
+                  <span class="fwho-card3d-num">+14</span>
+                  <span class="fwho-card3d-icon">🏢</span>
+                </div>
+              </div>
+
             </div>
-
-            <!-- Rotador con nodos orbitando -->
-            <div class="fwho-rotator">
-              <div class="fwho-node" style="--ang: 0deg;">
-                <div class="fwho-node-inner">
-                  <span class="fwho-node-icon">📚</span>
-                  <span class="fwho-node-label">Capacitación</span>
-                </div>
-              </div>
-              <div class="fwho-node" style="--ang: 72deg;">
-                <div class="fwho-node-inner">
-                  <span class="fwho-node-icon">🎯</span>
-                  <span class="fwho-node-label">Consultoría</span>
-                </div>
-              </div>
-              <div class="fwho-node" style="--ang: 144deg;">
-                <div class="fwho-node-inner">
-                  <span class="fwho-node-icon">📜</span>
-                  <span class="fwho-node-label">Certificación</span>
-                </div>
-              </div>
-              <div class="fwho-node" style="--ang: 216deg;">
-                <div class="fwho-node-inner">
-                  <span class="fwho-node-icon">💻</span>
-                  <span class="fwho-node-label">Online</span>
-                </div>
-              </div>
-              <div class="fwho-node" style="--ang: 288deg;">
-                <div class="fwho-node-inner">
-                  <span class="fwho-node-icon">🏢</span>
-                  <span class="fwho-node-label">Empresarial</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Partículas decorativas -->
-            <div class="fwho-particle" style="--x: 10%; --y: 20%; --d: 0s;"></div>
-            <div class="fwho-particle" style="--x: 85%; --y: 30%; --d: 1s;"></div>
-            <div class="fwho-particle" style="--x: 70%; --y: 80%; --d: 2s;"></div>
-            <div class="fwho-particle" style="--x: 20%; --y: 75%; --d: 0.5s;"></div>
-            <div class="fwho-particle" style="--x: 90%; --y: 60%; --d: 1.5s;"></div>
+            <p class="fwho-stack-hint">↑ Hover para explorar</p>
           </div>
         </div>
+
+        <script>
+        // Mouse parallax en el card stack
+        (function() {
+          const scene = document.getElementById('fwho-stack-scene');
+          const stack = document.getElementById('fwho-stack');
+          if (!scene || !stack) return;
+          scene.addEventListener('mousemove', function(e) {
+            const rect = scene.getBoundingClientRect();
+            const cx = (e.clientX - rect.left) / rect.width  - 0.5;
+            const cy = (e.clientY - rect.top)  / rect.height - 0.5;
+            stack.style.transform =
+              'rotateX(' + (-cy * 14 + 6) + 'deg) rotateY(' + (cx * 18 - 8) + 'deg)';
+            stack.style.transition = 'transform 0.1s ease';
+          });
+          scene.addEventListener('mouseleave', function() {
+            stack.style.transition = 'transform 0.8s ease';
+            stack.style.transform  = '';
+          });
+        })();
+        </script>
       </div>
     </section>
     <!-- FIN sección Nosotros futurista -->
