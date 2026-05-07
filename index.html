@@ -1263,23 +1263,19 @@
           color: #f5d77a !important;
           opacity: 1 !important;
         }
-        /* Forzar visibilidad del card stack — reveal-delay no debe ocultarlo */
-        .fwho-visual,
-        .fwho-stack-scene,
-        .fwho-stack,
-        .fwho-card3d {
+        /* Forzar visibilidad — SOLO el contenedor, sin tocar transforms de las cartas */
+        .fwho-visual {
           opacity: 1 !important;
           visibility: visible !important;
-          transform: none;
         }
-        @media (min-width: 901px) {
-          /* Restaurar 3D en desktop */
-          .fwho-stack { transform: rotateX(6deg) rotateY(-8deg); animation: stack-float 7s ease-in-out infinite !important; }
-          .fwho-card3d:nth-child(1) { transform: translateZ(80px)  translateY(-36px) !important; }
-          .fwho-card3d:nth-child(2) { transform: translateZ(40px)  translateY(-18px) !important; }
-          .fwho-card3d:nth-child(3) { transform: translateZ(0px)   translateY(0px)   !important; }
-          .fwho-card3d:nth-child(4) { transform: translateZ(-40px) translateY(18px)  !important; }
-          .fwho-card3d:nth-child(5) { transform: translateZ(-80px) translateY(36px)  !important; }
+        /* En mobile: forzar también las cartas (ya sin 3D) */
+        @media (max-width: 900px) {
+          .fwho-stack-scene,
+          .fwho-stack,
+          .fwho-card3d {
+            opacity: 1 !important;
+            visibility: visible !important;
+          }
         }
       </style>
     </div>
@@ -1754,7 +1750,8 @@
         .fhero { padding: 40px 0 30px; }
         .fhero-stat-chip strong { font-size: 28px; }
         .fhero-title { font-size: clamp(36px, 10vw, 52px); }
-        #threejs-hero { display: none; }
+        /* MODIFICADO: Three.js visible en móvil, opacidad baja para no tapar texto */
+        #threejs-hero { opacity: 0.3; display: block; }
       }
     </style>
 
@@ -2841,10 +2838,36 @@
   const db   = getFirestore(app);
 
   window.irAlVIP = function() {
-    // FLUJO NUEVO: Cualquier usuario (invitado o VIP) entra al panel.
-    // El panel detectará el modo (invitado vs VIP) y mostrará paywalls cuando corresponda.
     window.location.href = 'vip-panel.html';
   };
+
+  // ── Click fuera del menú hamburguesa → cerrar ──────────────
+  // js/script.js no incluye este handler por defecto
+  document.addEventListener('click', function(e) {
+    var nav    = document.getElementById('main-nav');
+    var toggle = document.querySelector('.menu-toggle');
+    if (!nav || !toggle) return;
+    // Si el menú está abierto y el click fue fuera de nav y toggle → cerrar
+    var isOpen = nav.classList.contains('is-open') ||
+                 nav.getAttribute('aria-hidden') === 'false' ||
+                 toggle.getAttribute('aria-expanded') === 'true';
+    if (isOpen && !nav.contains(e.target) && !toggle.contains(e.target)) {
+      // Simular click en el toggle para cerrar (usa la lógica de script.js)
+      toggle.click();
+    }
+  });
+
+  // ── ESC cierra el menú también ─────────────────────────────
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      var toggle = document.querySelector('.menu-toggle');
+      var nav    = document.getElementById('main-nav');
+      if (!toggle || !nav) return;
+      var isOpen = nav.classList.contains('is-open') ||
+                   toggle.getAttribute('aria-expanded') === 'true';
+      if (isOpen) toggle.click();
+    }
+  });
 
   // Al cargar la página, verificar sesión para actualizar el botón visualmente
   onAuthStateChanged(auth, async (user) => {
