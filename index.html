@@ -32,13 +32,13 @@
     /* === BASE — ICADEM Blue System · color único unificado === */
     :root {
       --icadem-blue:      #0033cc;
-      --icadem-deep:      #010818;
-      --icadem-mid:       #010d24;
-      --icadem-surface:   #020f2a;
+      --icadem-deep:      #020d30;
+      --icadem-mid:       #021540;
+      --icadem-surface:   #031850;
       --icadem-electric:  #1a55f5;
       --icadem-gold:      #f5d77a;
       --icadem-text:      rgba(210, 228, 255, 0.9);
-      --icadem-muted:     rgba(150, 185, 240, 0.65);
+      --icadem-muted:     rgba(160, 195, 255, 0.7);
     }
     body {
       background: var(--icadem-deep) !important;
@@ -51,9 +51,9 @@
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       background:
-        radial-gradient(ellipse 70% 50% at 20% 10%, rgba(0, 51, 200, 0.18) 0%, transparent 55%),
-        radial-gradient(ellipse 60% 40% at 80% 80%, rgba(0, 30, 140, 0.15) 0%, transparent 55%),
-        radial-gradient(ellipse 80% 30% at 50% 50%, rgba(0, 20, 100, 0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 80% 60% at 15% 0%,   rgba(0, 80, 255, 0.28) 0%, transparent 55%),
+        radial-gradient(ellipse 70% 50% at 85% 100%,  rgba(0, 40, 200, 0.22) 0%, transparent 55%),
+        radial-gradient(ellipse 100% 40% at 50% 50%, rgba(0, 30, 160, 0.18) 0%, transparent 70%),
         var(--icadem-deep);
       z-index: -2;
       pointer-events: none;
@@ -112,18 +112,18 @@
       position: absolute;
       top: 50%; left: -8%;
       width: 600px; height: 600px;
-      background: radial-gradient(circle, rgba(0, 68, 220, 0.07) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(0, 80, 255, 0.10) 0%, transparent 65%);
       pointer-events: none;
       z-index: 0;
       transform: translateY(-50%);
     }
     .section-alt::before {
       left: auto; right: -8%;
-      background: radial-gradient(circle, rgba(0, 51, 200, 0.08) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(0, 60, 230, 0.10) 0%, transparent 65%);
     }
     .section-dark::before {
       left: 50%; transform: translate(-50%, -50%);
-      background: radial-gradient(circle, rgba(0, 40, 180, 0.1) 0%, transparent 65%);
+      background: radial-gradient(circle, rgba(0, 50, 210, 0.12) 0%, transparent 65%);
     }
     .section .container, .section-alt .container, .section-dark .container {
       position: relative;
@@ -156,7 +156,7 @@
 
     /* === AUTHORITY STRIP === */
     .authority-strip {
-      background: rgba(0,30,120,0.08) !important;
+      background: rgba(0,40,180,0.12) !important;
       border-top: 1px solid rgba(60,120,255,0.1);
       border-bottom: 1px solid rgba(60,120,255,0.1);
       padding: 40px 0;
@@ -178,7 +178,7 @@
 
     /* === GLASS PANEL (Quiénes somos) === */
     .glass-panel {
-      background: linear-gradient(160deg, rgba(0,40,160,0.22), rgba(1,8,24,0.7)) !important;
+      background: linear-gradient(160deg, rgba(0,50,200,0.30), rgba(2,13,48,0.80)) !important;
       border: 1px solid rgba(80,140,255,0.2) !important;
       border-radius: 20px !important;
       backdrop-filter: blur(20px) !important;
@@ -448,7 +448,7 @@
       padding: 60px 0 !important;
     }
     .cta-box {
-      background: linear-gradient(135deg, rgba(11,47,104,0.6), rgba(2,5,15,0.6)) !important;
+      background: linear-gradient(135deg, rgba(0,40,180,0.45), rgba(2,13,48,0.75)) !important;
       border: 1px solid rgba(245,215,122,0.25) !important;
       border-radius: 24px !important;
       backdrop-filter: blur(20px);
