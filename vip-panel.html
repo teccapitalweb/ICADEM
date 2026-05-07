@@ -23,7 +23,7 @@
     }
     html,body{min-height:100vh}
     body{background:#f4f7fc;color:var(--text-body);font-family:var(--font-b);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex}
-    .sidebar{width:var(--nav-w);min-height:100vh;background:#0b2f68;border-right:none;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:20;transition:transform 0.3s ease}
+    .sidebar{width:var(--nav-w);min-height:100vh;background:#001fcc;border-right:none;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:20;transition:transform 0.3s ease}
     .sidebar-logo{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:10px}
     .logo-mark{width:32px;height:32px;background:rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
     .logo-text strong{display:block;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:.06em;color:#ffffff}
@@ -1298,6 +1298,16 @@
     </div>
   </nav>
   <div class="sidebar-footer">
+    <!-- MODIFICADO: Toggle modo día/noche -->
+    <button class="btn-modo-toggle" id="btn-modo-toggle" title="Cambiar modo">
+      <div class="modo-toggle-track">
+        <div class="modo-toggle-thumb">
+          <span class="modo-icon-noche">🌙</span>
+          <span class="modo-icon-dia">☀️</span>
+        </div>
+      </div>
+      <span class="modo-label" id="modo-label">Modo día</span>
+    </button>
     <button class="btn-logout" id="btn-logout">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       Cerrar sesión
@@ -1323,13 +1333,26 @@
     <!-- INICIO -->
     <div class="section active" id="sec-inicio">
 
-      <!-- HERO HOLA — estilo Sinergia adaptado a azul -->
+      <!-- HERO HOLA — MODIFICADO: tipografía cinemática ICADEM -->
       <div class="ic-hello">
+        <p class="ic-hello-eyebrow">Panel VIP · Exclusivo para miembros</p>
         <h1 class="ic-hello-title">Hola, <span id="user-nombre">miembro</span>.</h1>
+        <div class="ic-hello-line"></div>
       </div>
 
-      <!-- HERO MEMBRESÍA ACTIVA — gradient azul futurista con racha -->
+      <!-- HERO MEMBRESÍA ACTIVA — MODIFICADO: azul eléctrico ICADEM + orb 3D -->
       <div class="ic-hero">
+        <!-- Objeto 3D CSS — decorativo, pointer-events none -->
+        <div class="ic-orb3d" aria-hidden="true">
+          <div class="ic-orb3d-glow"></div>
+          <div class="ic-orb3d-core"></div>
+          <div class="ic-orb3d-ring r1"></div>
+          <div class="ic-orb3d-ring r2"></div>
+          <div class="ic-orb3d-ring r3"></div>
+          <div class="ic-orb3d-dot d1"></div>
+          <div class="ic-orb3d-dot d2"></div>
+          <div class="ic-orb3d-dot d3"></div>
+        </div>
         <div class="ic-hero-content">
           <span class="ic-hero-badge">★ MEMBRESÍA ACTIVA</span>
           <h2 class="ic-hero-title">Buen día, <em id="user-nombre-2">miembro</em></h2>
@@ -12081,11 +12104,11 @@ buildVideoteca();
 <style id="fx-mega-override">
 /* ============ VARIABLES ============ */
 :root {
-  --fx-deep:        #02050f !important;
-  --fx-blue-deep:   #050b22 !important;
-  --fx-blue-mid:    #0a1f4a !important;
-  --fx-blue-bright: #1e40af !important;
-  --fx-azul-glow:   #93c5fd !important;
+  --fx-deep:        #020d30 !important;
+  --fx-blue-deep:   #031040 !important;
+  --fx-blue-mid:    #0b2060 !important;
+  --fx-blue-bright: #1a55f5 !important;
+  --fx-azul-glow:   #7db8ff !important;
   --fx-gold-1:      #fef3c7 !important;
   --fx-gold-2:      #f5d77a !important;
   --fx-gold-3:      #c8962a !important;
@@ -12104,11 +12127,12 @@ buildVideoteca();
 /* ============ FORZAR FONDO OSCURO ============ */
 /* HTML lleva el fondo azul muy oscuro (NO debe ser transparent) */
 html {
-  background: #02050f !important;
+  background: #020d30 !important;
   background-image:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(30,64,175,0.18) 0%, transparent 60%),
-    radial-gradient(ellipse 60% 40% at 100% 100%, rgba(245,215,122,0.06) 0%, transparent 60%),
-    linear-gradient(180deg, #02050f 0%, #050b22 50%, #02050f 100%) !important;
+    radial-gradient(ellipse 90% 60% at 40% 0%,   rgba(0, 70, 255, 0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 80% 80%,   rgba(0, 40, 200, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse 100% 40% at 50% 50%, rgba(0, 30, 170, 0.15) 0%, transparent 70%),
+    linear-gradient(180deg, #020d30 0%, #031040 50%, #020d30 100%) !important;
 }
 
 /* Body, main y content transparentes para dejar ver el html (fondo) y el canvas (estrellas) */
@@ -12321,7 +12345,7 @@ h2, h3 {
 
 /* ============ SIDEBAR FUTURISTA ============ */
 .sidebar {
-  background: linear-gradient(180deg, #0b1f4a 0%, #02050f 100%) !important;
+  background: linear-gradient(180deg, #0b2060 0%, #020d30 100%) !important;
   border-right: 1px solid rgba(147,197,253,0.12) !important;
   box-shadow: 6px 0 40px rgba(0,0,0,0.6), inset -1px 0 0 rgba(245,215,122,0.05) !important;
   height: 100vh !important;
@@ -12694,7 +12718,7 @@ table tr {
 
 /* ============ LOADING SCREEN ============ */
 #loading {
-  background: #02050f !important;
+  background: #020d30 !important;
   background-image:
     radial-gradient(circle at 50% 50%, rgba(30,64,175,0.3), transparent 60%),
     radial-gradient(circle at 30% 70%, rgba(245,215,122,0.1), transparent 50%) !important;
@@ -12859,7 +12883,7 @@ body.is-guest .guest-lock-wrap::after {
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, rgba(245,215,122,0.4), rgba(200,150,42,0.25));
   border-radius: 10px;
-  border: 2px solid #02050f;
+  border: 2px solid #020d30;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(180deg, rgba(245,215,122,0.7), rgba(200,150,42,0.5));
@@ -16485,7 +16509,7 @@ input#tpl-search-input {
 <style>
 /* ─────────── Variables del módulo ─────────── */
 :root {
-  --is-deep:    #02050f;
+  --is-deep:    #020d30;
   --is-blue:    #0b2f68;
   --is-blue-2:  #0b1f4a;
   --is-gold:    #f5d77a;
@@ -16974,7 +16998,7 @@ input#tpl-search-input {
 #is-onboarding {
   position: fixed; inset: 0;
   z-index: 999999;
-  background: radial-gradient(ellipse at center, #0b2f68 0%, #02050f 70%);
+  background: radial-gradient(ellipse at center, #0033cc 0%, #020d30 70%);
   display: none;
   align-items: center;
   justify-content: center;
@@ -21622,7 +21646,7 @@ button.dir-card:hover {
   text-transform: uppercase !important;
   letter-spacing: 0.01em !important;
   /* Borde grueso del mismo color que la card para efecto "flotado" */
-  border: 4px solid #081425 !important;
+  border: 4px solid #020d30 !important;
   box-shadow:
     0 6px 22px rgba(0,0,0,0.5),
     0 0 0 2px var(--card-accent, #f5d77a),
@@ -21849,6 +21873,203 @@ button.dir-card:hover {
   font-weight: 600 !important;
   border-radius: 8px !important;
 }
+/* ═══════════════════════════════════════════════════════════════
+   🎨 ICADEM INICIO — Rediseño cinemático + Orb 3D
+   Paleta: azul eléctrico ICADEM #0033cc · dorado VIP #f5d77a
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── EYEBROW + HELLO ────────────────────────────────────────── */
+.ic-hello {
+  margin-bottom: 2rem !important;
+  position: relative !important;
+}
+.ic-hello-eyebrow {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.25em !important;
+  text-transform: uppercase !important;
+  color: rgba(147, 197, 253, 0.7) !important;
+  margin: 0 0 10px 0 !important;
+}
+.ic-hello-title {
+  font-family: 'Inter Tight', 'Plus Jakarta Sans', sans-serif !important;
+  font-size: clamp(38px, 5.5vw, 58px) !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.04em !important;
+  line-height: 1.0 !important;
+  background: linear-gradient(160deg, #ffffff 0%, #e0eeff 60%, #93c5fd 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  margin: 0 0 14px 0 !important;
+  filter: drop-shadow(0 4px 24px rgba(147,197,253,0.2)) !important;
+}
+.ic-hello-title #user-nombre {
+  background: linear-gradient(135deg, #fef3c7 0%, #f5d77a 50%, #e8a000 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  filter: drop-shadow(0 0 20px rgba(245,215,122,0.4)) !important;
+}
+.ic-hello-line {
+  width: 60px !important;
+  height: 3px !important;
+  background: linear-gradient(90deg, #0044ff, #f5d77a, transparent) !important;
+  border-radius: 999px !important;
+  margin: 0 !important;
+}
+
+/* ── HERO — azul eléctrico ICADEM ───────────────────────────── */
+.ic-hero {
+  position: relative !important;
+  background: linear-gradient(
+    135deg,
+    #001fcc 0%,
+    #0033e6 30%,
+    #0a4af0 60%,
+    #1a60f5 100%
+  ) !important;
+  border-radius: 24px !important;
+  padding: 2.5rem 2.25rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 2rem !important;
+  margin-bottom: 1.5rem !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(100, 160, 255, 0.35) !important;
+  box-shadow:
+    0 0 0 1px rgba(0, 51, 230, 0.6),
+    0 24px 80px rgba(0, 30, 180, 0.55),
+    0 0 120px rgba(0, 68, 255, 0.2),
+    inset 0 1px 0 rgba(255,255,255,0.15) !important;
+}
+/* Remove old pseudo-elements */
+.ic-hero::before,
+.ic-hero::after { display: none !important; }
+
+/* ── ORB 3D CSS ─────────────────────────────────────────────── */
+.ic-orb3d {
+  position: absolute !important;
+  right: 190px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 150px !important;
+  height: 150px !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+  opacity: 0.55 !important;
+}
+/* Glow ambient */
+.ic-orb3d-glow {
+  position: absolute !important;
+  inset: -20% !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, rgba(100,160,255,0.35) 0%, transparent 70%) !important;
+  animation: orb-pulse 4s ease-in-out infinite alternate !important;
+}
+/* Core esfera */
+.ic-orb3d-core {
+  position: absolute !important;
+  inset: 30% !important;
+  border-radius: 50% !important;
+  background: radial-gradient(
+    circle at 35% 35%,
+    #a8c8ff 0%,
+    #3366ff 40%,
+    #001fcc 100%
+  ) !important;
+  box-shadow:
+    0 0 20px rgba(100,160,255,0.6),
+    0 0 40px rgba(0,51,230,0.4),
+    inset 0 -4px 12px rgba(0,0,0,0.3) !important;
+  z-index: 1 !important;
+}
+/* Anillos orbitales */
+.ic-orb3d-ring {
+  position: absolute !important;
+  inset: 5% !important;
+  border-radius: 50% !important;
+  border: 1.5px solid transparent !important;
+  z-index: 0 !important;
+}
+.ic-orb3d-ring.r1 {
+  border-color: rgba(147, 197, 253, 0.7) !important;
+  border-top-color: transparent !important;
+  border-bottom-color: transparent !important;
+  transform: rotateX(75deg) !important;
+  animation: ring-spin 7s linear infinite !important;
+}
+.ic-orb3d-ring.r2 {
+  inset: 10% !important;
+  border-color: rgba(245, 215, 122, 0.5) !important;
+  border-left-color: transparent !important;
+  border-right-color: transparent !important;
+  transform: rotateY(70deg) rotateX(20deg) !important;
+  animation: ring-spin 11s linear infinite reverse !important;
+}
+.ic-orb3d-ring.r3 {
+  inset: 18% !important;
+  border-color: rgba(200, 220, 255, 0.4) !important;
+  border-top-color: transparent !important;
+  transform: rotateX(60deg) rotateZ(45deg) !important;
+  animation: ring-spin 15s linear infinite !important;
+}
+/* Puntos orbitales */
+.ic-orb3d-dot {
+  position: absolute !important;
+  width: 7px !important;
+  height: 7px !important;
+  border-radius: 50% !important;
+  background: #fff !important;
+  box-shadow: 0 0 8px rgba(147,197,253,0.9) !important;
+  z-index: 2 !important;
+  top: 50% !important;
+  left: 50% !important;
+  margin: -3.5px !important;
+}
+.ic-orb3d-dot.d1 {
+  background: #f5d77a !important;
+  box-shadow: 0 0 10px rgba(245,215,122,0.8) !important;
+  animation: dot-orbit-1 7s linear infinite !important;
+  transform-origin: center center !important;
+}
+.ic-orb3d-dot.d2 {
+  animation: dot-orbit-2 11s linear infinite reverse !important;
+}
+.ic-orb3d-dot.d3 {
+  background: #93c5fd !important;
+  animation: dot-orbit-3 15s linear infinite !important;
+}
+
+/* ── ANIMACIONES ─────────────────────────────────────────────── */
+@keyframes orb-pulse {
+  from { opacity: 0.6; transform: scale(0.95); }
+  to   { opacity: 1.0; transform: scale(1.05); }
+}
+@keyframes ring-spin {
+  from { transform: rotateX(75deg) rotateZ(0deg); }
+  to   { transform: rotateX(75deg) rotateZ(360deg); }
+}
+@keyframes dot-orbit-1 {
+  from { transform: translateX(60px) rotateX(75deg) rotateZ(0deg); }
+  to   { transform: translateX(60px) rotateX(75deg) rotateZ(360deg); }
+}
+@keyframes dot-orbit-2 {
+  from { transform: rotateY(70deg) translateX(52px) rotateY(-70deg); }
+  to   { transform: rotateY(430deg) translateX(52px) rotateY(-430deg); }
+}
+@keyframes dot-orbit-3 {
+  from { transform: rotateZ(0deg) translateX(46px) rotateZ(0deg); }
+  to   { transform: rotateZ(360deg) translateX(46px) rotateZ(-360deg); }
+}
+
+/* Ocultar orb en mobile — evita que tape el contenido */
+@media (max-width: 600px) {
+  .ic-orb3d { display: none !important; }
+}
+
 
 </style>
 
@@ -22369,7 +22590,144 @@ window.imprimirCertificado = function() {
       .cert-doc-qr-img{width:110px;height:110px}
       hr{border:0;border-top:1.2px solid #0d4737}
       @media print{body{background:#fff;padding:0}.cert-doc{box-shadow:none}}
-    </style>
+    
+/* ═══════════════════════════════════════════════════════════
+   🌙☀️ MODO DÍA / NOCHE — ICADEM VIP PANEL
+   Noche (default): azul profundo #020d30 — trabajo prolongado
+   Día:             azul eléctrico #0022cc — energético, como el index
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Variables de modo — se sobreescriben con .modo-dia ── */
+:root {
+  --m-bg:          #020d30;
+  --m-bg2:         #031040;
+  --m-sidebar:     #010d38;
+  --m-sidebar-b:   #011050;
+  --m-surface:     rgba(0,30,120,0.25);
+  --m-border:      rgba(80,140,255,0.15);
+  --m-text:        rgba(210,228,255,0.9);
+  --m-muted:       rgba(140,180,255,0.6);
+  --m-nav-active:  rgba(255,255,255,0.1);
+  --m-transition:  all 0.45s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* ── MODO DÍA: todo en azul eléctrico brillante ── */
+body.modo-dia {
+  --m-bg:          #0022cc;
+  --m-bg2:         #0028dd;
+  --m-sidebar:     #001aaa;
+  --m-sidebar-b:   #0015dd;
+  --m-surface:     rgba(255,255,255,0.08);
+  --m-border:      rgba(255,255,255,0.2);
+  --m-text:        rgba(255,255,255,0.95);
+  --m-muted:       rgba(200,225,255,0.75);
+  --m-nav-active:  rgba(255,255,255,0.15);
+}
+
+/* ── Aplicar variables a los elementos clave ── */
+html, body.modo-dia ~ * {
+  transition: var(--m-transition);
+}
+
+/* Fondo principal */
+html {
+  background: var(--m-bg) !important;
+  background-image:
+    radial-gradient(ellipse 90% 60% at 40% 0%, rgba(0,70,255,0.22) 0%, transparent 55%),
+    radial-gradient(ellipse 70% 50% at 80% 80%, rgba(0,40,200,0.18) 0%, transparent 55%),
+    linear-gradient(180deg, var(--m-bg) 0%, var(--m-bg2) 50%, var(--m-bg) 100%) !important;
+  transition: var(--m-transition) !important;
+}
+
+/* Sidebar */
+.sidebar {
+  background: var(--m-sidebar) !important;
+  border-right: 1px solid var(--m-border) !important;
+  transition: var(--m-transition) !important;
+}
+
+/* Sidebar items hover/active */
+.nav-item.active, .nav-item:hover {
+  background: var(--m-nav-active) !important;
+}
+
+/* Topbar del panel */
+.topbar {
+  background: rgba(0,0,0,0.15) !important;
+  border-bottom: 1px solid var(--m-border) !important;
+  transition: var(--m-transition) !important;
+}
+
+/* ── BOTÓN TOGGLE ── */
+.btn-modo-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 10px;
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.btn-modo-toggle:hover {
+  background: rgba(255,255,255,0.09);
+  border-color: rgba(255,255,255,0.25);
+}
+.modo-toggle-track {
+  width: 42px;
+  height: 22px;
+  border-radius: 999px;
+  background: #020d30;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.4s ease;
+  overflow: hidden;
+}
+body.modo-dia .modo-toggle-track {
+  background: #f5d77a;
+  border-color: rgba(255,255,255,0.4);
+}
+.modo-toggle-thumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+body.modo-dia .modo-toggle-thumb {
+  transform: translateX(20px);
+}
+/* Solo mostrar el icono correcto */
+.modo-icon-dia  { display: none; }
+.modo-icon-noche { display: block; }
+body.modo-dia .modo-icon-dia   { display: block; }
+body.modo-dia .modo-icon-noche { display: none; }
+
+.modo-label {
+  font-family: var(--font-b, 'Inter', sans-serif);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  letter-spacing: 0.04em;
+  flex: 1;
+  text-align: left;
+  transition: color 0.3s;
+}
+body.modo-dia .modo-label {
+  color: rgba(255,255,255,0.9);
+}
+
+</style>
     </head><body>${docEl.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
   w.document.close();
 };
@@ -24022,6 +24380,30 @@ window.loginDirecto = function() {
       alert('Error al iniciar sesión:\n' + (e.message || e.code || 'Error desconocido') + '\n\nRecarga la página (Ctrl+R) e intenta de nuevo.');
     });
 };
+</script>
+
+<!-- MODIFICADO: Modo día/noche — toggle con persistencia localStorage -->
+<script>
+(function() {
+  var btn   = document.getElementById('btn-modo-toggle');
+  var label = document.getElementById('modo-label');
+  var body  = document.body;
+  var KEY   = 'icadem_modo';
+
+  // Aplicar modo guardado al cargar (antes de que el usuario interactúe)
+  if (localStorage.getItem(KEY) === 'dia') {
+    body.classList.add('modo-dia');
+    if (label) label.textContent = 'Modo noche';
+  }
+
+  if (btn) {
+    btn.addEventListener('click', function() {
+      var esDia = body.classList.toggle('modo-dia');
+      localStorage.setItem(KEY, esDia ? 'dia' : 'noche');
+      if (label) label.textContent = esDia ? 'Modo noche' : 'Modo día';
+    });
+  }
+})();
 </script>
 </body>
 </html>
