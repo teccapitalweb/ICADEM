@@ -24371,196 +24371,173 @@ window.loginDirecto = function() {
     /* ── CSS de día completo ── */
     var DAY = [
       /* ═══════════════════════════════════════════════════════
-         MODO DÍA — PROMPT MAESTRO TÉCNICO COMPLETO
-         Auditoría técnica profunda · 10 reglas WCAG 2.1
+         ICADEM VIP — MODO DÍA DEFINITIVO
+         7 auditorías integradas · WCAG 2.1 AA · Enterprise fintech
+         Paleta: #0b2f68 / #1a5298 / #1a73e8 / blanco / #f8fafc
       ═══════════════════════════════════════════════════════ */
 
-      /* ── FONDO LAYOUT ── */
-      'html{background:#F1F5F9!important;background-image:none!important}',
-      'body,.main,.content{background:#F1F5F9!important}',
-      'body.modo-dia .section.active,body.modo-dia [id^=sec-].active,body.modo-dia .section{background:#F1F5F9!important}',
+      /* ── 1. FONDO LAYOUT ── */
+      'html{background:#f8fafc!important;background-image:none!important}',
+      'body,.main,.content{background:#f8fafc!important}',
+      '.section,.section.active,[id^=sec-]{background:#f8fafc!important;padding:32px 40px!important}',
 
-      /* ── BLOQUE 1: SIDEBAR BLANCO CON SEPARACIÓN (R-03) ── */
-      /* Sidebar día = blanco, no oscuro */
-      '.sidebar{background:#FFFFFF!important;background-image:none!important;border-right:1px solid #E2E8F0!important;box-shadow:2px 0 8px rgba(0,0,0,.06)!important}',
-      /* Logo área */
-      '.sidebar-logo,.ic-sidebar-logo{border-bottom:1px solid #E2E8F0!important}',
-      /* User área */
-      '.sidebar-user,.ic-sidebar-user{border-bottom:1px solid #E2E8F0!important}',
-      '.sidebar-user-name,[class*=user-name]{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:600!important}',
-      '.sidebar-role,.sidebar-user-role,[class*=user-plan],[class*=plan-badge]{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;font-size:11px!important;font-weight:600!important}',
-      /* Etiquetas de grupo — NUNCA < 11px (R-04) */
-      '.nav-section-title,[class*=section-label],.sidebar-group-title{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-size:11px!important;font-weight:700!important;letter-spacing:.8px!important}',
-      /* Nav items inactivos — #334155 sobre blanco = 9.3:1 ✓ */
+      /* ── 2. SIDEBAR BLANCO CON SEPARACIÓN (crítico) ── */
+      '.sidebar{background:#ffffff!important;background-image:none!important;border-right:1px solid rgba(11,47,104,.08)!important;box-shadow:2px 0 8px rgba(11,47,104,.04)!important}',
+      /* Etiquetas de grupo — 9.5px, no más oscuro que 40% opacidad */
+      '.nav-section-title,[class*=section-label],.sidebar-group-title{color:rgba(11,47,104,.4)!important;-webkit-text-fill-color:rgba(11,47,104,.4)!important;font-size:9.5px!important;font-weight:600!important;letter-spacing:.08em!important}',
+      /* Nav items inactivos — iconos 45% opacidad */
       '.nav-item{color:#334155!important;-webkit-text-fill-color:#334155!important;background:transparent!important}',
-      '.nav-item:hover:not(.active){background:#F1F5F9!important;color:#1E3A8A!important;-webkit-text-fill-color:#1E3A8A!important}',
-      /* Nav item activo — #1D4ED8 sobre #EFF6FF ✓ */
-      '.nav-item.active{color:#1D4ED8!important;-webkit-text-fill-color:#1D4ED8!important;background:#EFF6FF!important;border-left:3px solid #2563EB!important;font-weight:600!important}',
-      '.nav-item.active *{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;opacity:1!important}',
-      /* Iconos inactivos */
-      '.nav-item .nav-icon,.nav-item svg,.nav-item i{color:#64748B!important;opacity:1!important}',
-      '.nav-item.active .nav-icon,.nav-item.active svg,.nav-item.active i{color:#2563EB!important;opacity:1!important}',
-      /* Sidebar texts genéricos */
-      '.sidebar-logo-name{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:700!important}',
-      /* Footer / cerrar sesión */
-      '.sidebar-footer,[class*=sidebar-footer]{border-top:1px solid #E2E8F0!important}',
-      '.sidebar-footer button,[class*=logout],[class*=btn-logout]{color:#64748B!important;-webkit-text-fill-color:#64748B!important;background:transparent!important;border:none!important;font-size:13px!important}',
+      '.nav-item .nav-icon,.nav-item svg,.nav-item i{color:rgba(11,47,104,.45)!important;opacity:1!important}',
+      '.nav-item:hover:not(.active){background:#f1f5f9!important;color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important}',
+      '.nav-item:hover .nav-icon,.nav-item:hover svg{color:#0b2f68!important}',
+      /* Nav item activo */
+      '.nav-item.active{background:#eff6ff!important;color:#1d4ed8!important;-webkit-text-fill-color:#1d4ed8!important;border-left:2px solid #1d4ed8!important;font-weight:600!important}',
+      '.nav-item.active *{color:#1d4ed8!important;-webkit-text-fill-color:#1d4ed8!important;opacity:1!important}',
+      '.nav-item.active .nav-icon,.nav-item.active svg{color:#1d4ed8!important}',
+      /* User info */
+      '.sidebar-logo-name{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important;font-weight:700!important}',
+      '.sidebar-role,.sidebar-user-role{color:#1d4ed8!important;-webkit-text-fill-color:#1d4ed8!important;font-size:11px!important;font-weight:600!important}',
+      '.sidebar-user,.ic-sidebar-user{border-bottom:1px solid rgba(11,47,104,.08)!important}',
+      '.sidebar-logo,.ic-sidebar-logo{border-bottom:1px solid rgba(11,47,104,.08)!important}',
+      '.sidebar-footer,[class*=sidebar-footer]{border-top:1px solid rgba(11,47,104,.08)!important}',
+      '.btn-logout,[class*=logout]{color:#64748b!important;-webkit-text-fill-color:#64748b!important;background:transparent!important;border:none!important;font-size:13px!important}',
 
-      /* ── TOPBAR ── */
-      '.topbar{background:#FFFFFF!important;border-bottom:1px solid #E2E8F0!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
-      '.topbar-title{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:700!important;font-size:15px!important}',
-      '.menu-btn{color:#475569!important;background:transparent!important;border-color:#E2E8F0!important}',
-      '.topbar-plan{background:#DBEAFE!important;border:1px solid #BFDBFE!important;border-radius:20px!important}',
-      '.topbar-plan,.topbar-plan *{color:#1E40AF!important;-webkit-text-fill-color:#1E40AF!important;font-weight:700!important;font-size:11px!important;letter-spacing:.5px!important;opacity:1!important}',
-      '.status-dot{background:#10B981!important;box-shadow:none!important;animation:none!important}',
+      /* ── 3. TOPBAR ── */
+      '.topbar{background:#ffffff!important;height:64px!important;padding:0 32px!important;border-bottom:1px solid rgba(11,47,104,.08)!important;box-shadow:0 1px 4px rgba(11,47,104,.04)!important}',
+      '.topbar-title{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important;font-weight:700!important;font-size:16px!important;letter-spacing:-.3px!important}',
+      '.menu-btn{color:#475569!important;background:transparent!important;border-color:rgba(11,47,104,.12)!important}',
+      '.topbar-plan{background:#dbeafe!important;border:1px solid #bfdbfe!important;border-radius:20px!important}',
+      '.topbar-plan,.topbar-plan *{color:#1e40af!important;-webkit-text-fill-color:#1e40af!important;font-weight:700!important;font-size:11px!important;letter-spacing:.5px!important;opacity:1!important}',
+      '.status-dot{background:#10b981!important;box-shadow:none!important;animation:none!important}',
 
-      /* ── BLOQUE 3: HERO — textos BLANCOS sobre azul (R-02) ── */
-      '.ic-hero{background:linear-gradient(135deg,#1E40AF 0%,#2563EB 100%)!important;background-image:linear-gradient(135deg,#1E40AF 0%,#2563EB 100%)!important;border:none!important;box-shadow:0 4px 16px rgba(30,64,175,.2)!important;border-radius:16px!important}',
-      /* Todos los textos dentro del hero = blancos */
-      '.ic-hero *{opacity:1!important}',
-      '.ic-hero-title,.ic-hello-title{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;background:none!important;font-weight:800!important;font-size:28px!important}',
-      /* Nombre del usuario en azul claro sobre azul oscuro */
-      '.ic-hero-title span,.ic-hello-title #user-nombre,.ic-hello-title [class*=name]{color:#93C5FD!important;-webkit-text-fill-color:#93C5FD!important;background:none!important}',
-      '.ic-hero-sub,.ic-hero-desc{color:rgba(255,255,255,.88)!important;-webkit-text-fill-color:rgba(255,255,255,.88)!important}',
-      '.ic-hero *,.ic-hero-content *,.ic-plan-badge,.ic-plan-badge *,.ic-hero-greeting{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important}',
-      '.ic-hero-badge,.ic-plan-badge{background:rgba(255,255,255,.15)!important;color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;border:1px solid rgba(255,255,255,.3)!important}',
+      /* ── 4. HERO — texto blanco legible (R-02) ── */
+      '.ic-hero{background:linear-gradient(135deg,#1e40af 0%,#2563eb 100%)!important;background-image:linear-gradient(135deg,#1e40af 0%,#2563eb 100%)!important;border:none!important;border-radius:16px!important;box-shadow:0 4px 20px rgba(30,64,175,.2)!important}',
+      /* TODO texto dentro del hero = blanco */
+      '.ic-hero *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
+      '.ic-hero-title,.ic-hello-title{font-weight:800!important;font-size:28px!important;background:none!important}',
+      '.ic-hello-title #user-nombre,.ic-hero-title [class*=name]{color:#93c5fd!important;-webkit-text-fill-color:#93c5fd!important}',
+      /* Subtítulo blanco legible */
+      '.ic-hero-sub,.ic-hero-desc,.ic-hero p{color:rgba(255,255,255,.88)!important;-webkit-text-fill-color:rgba(255,255,255,.88)!important}',
+      '.ic-plan-badge{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.3)!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important}',
       '.ic-streak-card{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.25)!important;border-radius:12px!important}',
-      '.ic-streak-card *,.ic-streak-num,.ic-streak-label{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;opacity:1!important}',
       /* Hello eyebrow sobre fondo layout */
-      '.ic-hello-eyebrow{color:#3B82F6!important;-webkit-text-fill-color:#3B82F6!important;font-size:11px!important;font-weight:600!important;letter-spacing:.5px!important}',
-      '.ic-hello-line{background:linear-gradient(90deg,#2563EB,transparent)!important;height:3px!important}',
+      '.ic-hello-eyebrow{color:#3b82f6!important;-webkit-text-fill-color:#3b82f6!important;font-size:11px!important;font-weight:600!important;letter-spacing:.5px!important}',
+      '.ic-hello-line{background:linear-gradient(90deg,#2563eb,transparent)!important;height:3px!important}',
 
-      /* ── BLOQUE 4: SISTEMA DE TARJETAS (R-06) ── */
-      /* Reemplaza rgba(255,255,255,0.07) con borde sólido visible */
-      '.lg-card,.card,[class*=-card],[class*=card-]{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)!important;border-radius:12px!important}',
-      '.section{background:#FFFFFF!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04)!important}',
-      /* Textos de tarjeta */
-      '.lg-card-name,.card-title,[class*=card-name]{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-size:13px!important;font-weight:600!important;opacity:1!important}',
-      '.lg-card-desc,.card-description,[class*=card-desc]{color:#475569!important;-webkit-text-fill-color:#475569!important;font-size:12px!important;font-weight:400!important;opacity:1!important}',
-      '.lg-card-xp,[class*=card-xp],[class*=card-meta]{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-size:11px!important;opacity:1!important}',
-      /* Badge de candado — azul, no blanco sobre blanco */
-      '.lg-card-lock,[class*=card-lock],[class*=locked-badge]{background:#EFF6FF!important;color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;border:1px solid #BFDBFE!important;font-weight:600!important}',
+      /* ── 5. SISTEMA DE TARJETAS CON PROFUNDIDAD ── */
+      /* border rgba(11,47,104,0.09) + shadow doble capa = profundidad premium */
+      '.ic-stat-card,.ic-quick-card,.achievement-card,.noticia-card,.dir-card,.glass-panel,.ic-config-card,.cert-card,.certificate-card,.video-card,.material-card,.material-item,.plantilla-card,.lg-card,.card,[class*=-card]:not(.ic-quick-card-primary):not(.ic-quick-card-wa):not(.ic-countdown){background:#ffffff!important;background-image:none!important;border:1px solid rgba(11,47,104,.09)!important;box-shadow:0 1px 3px rgba(11,47,104,.06),0 4px 12px rgba(11,47,104,.04)!important;border-radius:12px!important;transition:box-shadow .18s ease,transform .18s ease!important}',
+      '.section{background:#ffffff!important;border:1px solid rgba(11,47,104,.09)!important;border-radius:16px!important;box-shadow:0 1px 3px rgba(11,47,104,.06),0 4px 12px rgba(11,47,104,.04)!important}',
 
-      /* ── STAT CARDS ── */
-      '.ic-stat-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important;border-radius:12px!important}',
-      '.ic-stat-card *{opacity:1!important}',
+      /* ── 6. TARJETAS OSCURAS → GRADIENTE AZUL PREMIUM (crítico) ── */
+      '.ic-quick-card-primary{background:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;background-image:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;border-color:rgba(11,47,104,.3)!important}',
+      '.ic-quick-card-primary *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
+      '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.18)!important;border-color:rgba(255,255,255,.25)!important}',
+      '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.15)!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:rgba(255,255,255,.25)!important}',
+      /* WA card — verde oscuro */
+      '.ic-quick-card-wa{background:linear-gradient(135deg,#065f46 0%,#059669 100%)!important;background-image:linear-gradient(135deg,#065f46 0%,#059669 100%)!important}',
+      '.ic-quick-card-wa *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
+      /* Countdown — índigo */
+      '.ic-countdown{background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 100%)!important;background-image:linear-gradient(135deg,#1e1b4b 0%,#3730a3 100%)!important}',
+      '.ic-countdown *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
+
+      /* ── 7. SECCIÓN "MIS LOGROS" EN INICIO — fondo azul claro, NO negro ── */
+      '.ic-logros-wrapper,.ic-logros-container,[class*=logros-widget]{background:#eef4ff!important;border:1px solid rgba(11,47,104,.1)!important;border-radius:16px!important}',
+      '.ic-logros-header,.ic-logros-top,.ic-logros-banner{background:#1e3a8a!important;background-image:none!important;border-radius:12px!important}',
+      '.ic-logros-header *,.ic-logros-top *,.ic-logros-banner *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
+
+      /* ── 8. STAT CARDS — tipografía clara ── */
+      '.ic-stat-card *{opacity:1!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
       '.ic-stat-card::before{opacity:.2!important}',
-      '.ic-stat-value,.ic-stat-num{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:800!important;font-size:24px!important}',
-      '.ic-stat-label{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-size:11px!important;font-weight:600!important;letter-spacing:.5px!important}',
-      '.ic-section-label{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:600!important;font-size:14px!important}',
+      '.ic-stat-value,.ic-stat-num{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important;font-weight:800!important;font-size:24px!important;letter-spacing:-.04em!important}',
+      '.ic-stat-label{color:#64748b!important;-webkit-text-fill-color:#64748b!important;font-size:11px!important;font-weight:600!important;letter-spacing:.08em!important}',
+      '.ic-section-label{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important;font-weight:600!important;font-size:14px!important;letter-spacing:.08em!important}',
 
-      /* ── QUICK CARDS ── */
-      '.ic-quick-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important;border-radius:12px!important}',
-      '.ic-quick-card *{opacity:1!important;color:#0F172A!important;-webkit-text-fill-color:#0F172A!important}',
-      '.ic-quick-title{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;font-weight:700!important}',
+      /* ── 9. QUICK CARDS BLANCAS ── */
+      '.ic-quick-card *{opacity:1!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
+      '.ic-quick-title{color:#1d4ed8!important;-webkit-text-fill-color:#1d4ed8!important;font-weight:700!important}',
       '.ic-quick-sub{color:#475569!important;-webkit-text-fill-color:#475569!important;font-weight:400!important}',
-      '.ic-quick-cta{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;font-weight:600!important}',
-      '.ic-quick-badge{background:#DBEAFE!important;color:#1E40AF!important;-webkit-text-fill-color:#1E40AF!important;border-color:#BFDBFE!important;font-weight:700!important;font-size:11px!important}',
-      '.ic-quick-icon{background:#EFF6FF!important;border-color:#BFDBFE!important}',
-      /* Primary — azul sólido texto blanco (R-07) */
-      '.ic-quick-card-primary{background:#1E40AF!important;background-image:none!important;border-color:rgba(30,64,175,.3)!important}',
-      '.ic-quick-card-primary *{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;opacity:1!important}',
-      '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.18)!important}',
-      '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.18)!important;color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important}',
-      /* WA */
-      '.ic-quick-card-wa{background:#065F46!important;background-image:none!important}',
-      '.ic-quick-card-wa *{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;opacity:1!important}',
-      /* Countdown */
-      '.ic-countdown{background:#1E1B4B!important;background-image:none!important}',
-      '.ic-countdown *{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;opacity:1!important}',
+      '.ic-quick-cta{color:#1d4ed8!important;-webkit-text-fill-color:#1d4ed8!important;font-weight:600!important}',
+      '.ic-quick-badge{background:#dbeafe!important;color:#1e40af!important;-webkit-text-fill-color:#1e40af!important;border-color:#bfdbfe!important;font-weight:700!important}',
+      '.ic-quick-icon{background:#eff6ff!important;border-color:#bfdbfe!important}',
 
-      /* ── BLOQUE 5: VIDEOTECA — placeholder profesional (R-09) ── */
-      '.lg-card-icon{background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%)!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:10px 10px 0 0!important;border-bottom:1px solid #E2E8F0!important;color:#3B82F6!important;font-size:32px!important;min-height:100px!important}',
-      /* Banner progreso videoteca */
-      '[class*=progress-banner],[class*=ic-progress-bar]{background:linear-gradient(135deg,#1E3A8A 0%,#2563EB 100%)!important;border-radius:12px!important}',
-      '[class*=progress-banner] *{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;opacity:1!important}',
-      '[class*=progress-label],[class*=progreso-label]{color:rgba(255,255,255,.8)!important;-webkit-text-fill-color:rgba(255,255,255,.8)!important;font-size:11px!important}',
+      /* ── 10. BANNERS DE ESTADÍSTICAS — azul oscuro, texto blanco ── */
+      '.ic-vid-progress,.ic-plant-stats,.ic-cert-stats,[class*=stats-banner],[class*=progress-stats]{background:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%)!important;background-image:linear-gradient(135deg,#1e3a8a 0%,#1e40af 100%)!important;border-radius:12px!important}',
+      '.ic-vid-progress *,.ic-plant-stats *,.ic-cert-stats *,[class*=stats-banner] *{opacity:1!important}',
+      '.ic-vid-progress strong,.ic-plant-stats strong,.ic-cert-stats strong,[class*=stats-banner] strong{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;font-weight:700!important;font-size:28px!important}',
+      '.ic-vid-progress span,.ic-plant-stats span,.ic-cert-stats span,[class*=stats-banner] span{color:rgba(255,255,255,.8)!important;-webkit-text-fill-color:rgba(255,255,255,.8)!important;font-size:11px!important;font-weight:600!important;letter-spacing:.5px!important}',
+      '[style*="1a2a4a"],[style*="1a3060"],[style*="0f1c35"]{background:#1e3a8a!important;background-image:none!important}',
 
-      /* ── BLOQUE 6: MATERIAL ── */
-      '.material-item{background:#FFFFFF!important;border:1px solid #E2E8F0!important;box-shadow:0 1px 4px rgba(0,0,0,.06)!important;border-radius:12px!important}',
-      '.material-item p,[class*=doc-name]{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-size:12px!important;font-weight:500!important;opacity:1!important}',
+      /* ── 11. INPUTS SIEMPRE VISIBLES ── */
+      'input,textarea{background:#ffffff!important;color:#0b2554!important;border:1px solid rgba(11,47,104,.15)!important;border-radius:8px!important;font-size:14px!important;padding:10px 14px!important;opacity:1!important;transition:border-color .15s,box-shadow .15s!important}',
+      'input::placeholder,textarea::placeholder{color:rgba(11,47,104,.35)!important;-webkit-text-fill-color:rgba(11,47,104,.35)!important}',
+      'select{background:#ffffff!important;color:#0b2554!important;border:1px solid rgba(11,47,104,.15)!important;border-radius:8px!important;padding:10px 14px!important;-webkit-appearance:none!important;appearance:none!important}',
 
-      /* ── BLOQUE 7: BANNERS ESTADÍSTICAS ── */
-      '[class*=stats-banner],[class*=progress-stats],.ic-stats-bar,[class*=ic-stats],.ic-vid-progress,.ic-plant-stats,.ic-cert-stats,.ic-logros-banner{background:linear-gradient(135deg,#1E3A8A 0%,#1E40AF 100%)!important;background-image:linear-gradient(135deg,#1E3A8A 0%,#1E40AF 100%)!important;border-radius:12px!important}',
-      '[class*=stats-banner] *,.ic-vid-progress *,.ic-plant-stats *,.ic-cert-stats *,.ic-logros-banner *{opacity:1!important}',
-      '[class*=stats-banner] strong,[class*=stats-banner] b,.ic-vid-progress strong,.ic-plant-stats strong,.ic-cert-stats strong{color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;font-weight:700!important;font-size:28px!important}',
-      '[class*=stats-banner] span,[class*=stats-banner] p,[class*=stats-banner] small{color:rgba(255,255,255,.8)!important;-webkit-text-fill-color:rgba(255,255,255,.8)!important;font-size:11px!important;font-weight:600!important;letter-spacing:.5px!important}',
-      /* Fix inline style oscuros */
-      '[style*="1a2a4a"],[style*="1a3060"],[style*="0f1c35"]{background:#1E3A8A!important;background-image:none!important}',
+      /* ── 12. BOTONES — texto blanco (ratio 5.9:1 ✓) ── */
+      '.btn-primary,[class*=btn-primary]{background:#2563eb!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:14px!important;letter-spacing:.01em!important}',
+      '[style*="c8962a"],[style*="f5d77a"],[style*="e8a000"],[style*="fef3c7"],[style*="cc8800"]{background:#2563eb!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:#2563eb!important}',
 
-      /* ── BLOQUE 8: INPUTS SIEMPRE CON BORDE (R-05) ── */
-      /* Reemplaza rgba(147,180,237,0.18) con borde sólido visible */
-      'input,textarea{background:#FFFFFF!important;color:#0F172A!important;border:1px solid #CBD5E1!important;border-radius:8px!important;font-size:14px!important;padding:10px 14px!important;opacity:1!important}',
-      'input::placeholder,textarea::placeholder{color:#94A3B8!important;-webkit-text-fill-color:#94A3B8!important}',
-      'select{background:#FFFFFF!important;color:#0F172A!important;border:1px solid #CBD5E1!important;border-radius:8px!important;padding:10px 14px!important;-webkit-appearance:none!important;appearance:none!important}',
-
-      /* ── BLOQUE 9: BOTONES CTA — texto blanco (R-07) ── */
-      /* #FFFFFF sobre #2563EB = 5.9:1 ✓ WCAG AA */
-      '.btn-primary,[class*=btn-primary]{background:#2563EB!important;color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:14px!important}',
-      /* Eliminar amarillo/dorado en botones (R-08) */
-      '[style*="c8962a"],[style*="f5d77a"],[style*="e8a000"],[style*="fef3c7"],[style*="cc8800"]{background:#2563EB!important;color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;border-color:#2563EB!important}',
-
-      /* ── LOGROS ── */
-      '.achievement-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
-      '.achievement-card *{opacity:1!important}',
-      '.achievement-name{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:600!important}',
+      /* ── 13. LOGROS / ACHIEVEMENTS ── */
+      '.achievement-card *{opacity:1!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
+      '.achievement-name{font-weight:600!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
       '.achievement-desc{color:#475569!important;-webkit-text-fill-color:#475569!important;font-size:12px!important;font-weight:400!important}',
-      '.achievement-prog-label{color:#64748B!important;-webkit-text-fill-color:#64748B!important}',
-      '.progress-track,.achievement-prog-track{background:#E2E8F0!important}',
-      '.progress-bar,.achievement-prog-fill{background:#2563EB!important}',
-      /* Dorado SOLO para gamificación XP (R-08) */
-      '.ic-xp-badge,[class*=xp-value],[class*=nivel-badge]{color:#F59E0B!important;-webkit-text-fill-color:#F59E0B!important}',
+      '.achievement-prog-label{color:#64748b!important;-webkit-text-fill-color:#64748b!important}',
+      '.progress-track,.achievement-prog-track{background:rgba(11,47,104,.1)!important}',
+      '.progress-bar,.achievement-prog-fill{background:#1a73e8!important}',
+      '.ic-xp-badge,[class*=xp-value],[class*=nivel-badge]{color:#f59e0b!important;-webkit-text-fill-color:#f59e0b!important}',
 
-      /* ── AVISOS LEGALES ── */
-      '.aviso-legal,[class*=aviso],[class*=legal-notice]{background:#EFF6FF!important;border-left:4px solid #2563EB!important;border-radius:8px!important}',
-      '.aviso-legal *,[class*=aviso] *{color:#1E3A8A!important;-webkit-text-fill-color:#1E3A8A!important;font-weight:400!important;opacity:1!important}',
-      '[style*="255,237,213"]{background:#EFF6FF!important;color:#1E3A8A!important}',
+      /* ── 14. PLACEHOLDER PROFESIONAL para tarjetas sin imagen ── */
+      '.lg-card-icon{background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:10px 10px 0 0!important;border-bottom:1px solid rgba(11,47,104,.08)!important;color:#3b82f6!important;font-size:32px!important;min-height:100px!important}',
 
-      /* ── TABS ── */
-      '.tab-activo,.tab-btn.active,[class*=tab][class*=active]{background:#1E40AF!important;color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important;border-color:#1E40AF!important}',
-
-      /* ── TABLA ── */
-      'table th{background:#F8FAFC!important;color:#475569!important;font-size:11px!important;font-weight:700!important;letter-spacing:.5px!important;border-bottom:1px solid #E2E8F0!important;opacity:1!important}',
-      'table td{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;opacity:1!important}',
-
-      /* ── DIRECTORIO ── */
-      '.dir-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important;box-shadow:0 1px 3px rgba(0,0,0,.06)!important}',
-      '.dir-card *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;opacity:1!important}',
-      '.dir-card-cargo{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important;font-weight:600!important}',
-      '.dir-card-bio,.dir-card-empresa{color:#64748B!important;-webkit-text-fill-color:#64748B!important;font-weight:400!important}',
-      '.dir-card-avatar{background:#1E3A8A!important;color:#FFFFFF!important;-webkit-text-fill-color:#FFFFFF!important}',
-      '.dir-profile-banner,.ic-dir-banner{background:#EFF6FF!important;border:1px solid #BFDBFE!important;border-radius:12px!important}',
-      '.dir-profile-banner *{color:#1E40AF!important;-webkit-text-fill-color:#1E40AF!important;opacity:1!important}',
-
-      /* ── ELIMINAR OPACIDAD REDUCIDA EN TEXTOS (R-10) ── */
-      '[style*="opacity:0."],[style*="opacity: 0."]{opacity:1!important}',
-      /* Fondos inline oscuros → blanco */
-      '[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],[style*="background:#020d30"],[style*="background:rgba(11,31,74"],[style*="background:rgba(13,37,71"],[style*="background:linear-gradient(135deg,#1a3a6b"],[style*="background:linear-gradient(180deg,#0b1f4a"]{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important}',
-      /* Textos claros inline → legibles */
-      '[style*="color:#cbd5e1"],[style*="color:#94a3b8"],[style*="color:#e2e8f0"],[style*="color:rgba(226,232,240"]{color:#64748B!important;-webkit-text-fill-color:#64748B!important}',
-      '[style*="color:#fff;"],[style*="color: #fff;"],[style*="color:#ffffff"]{color:#1E293B!important;-webkit-text-fill-color:#1E293B!important}',
-
-      /* ── TIPOGRAFÍA GLOBAL ── */
-      '.section p:not([class*=badge]):not([class*=tag]):not([class*=label]){font-weight:400!important;color:#475569!important;-webkit-text-fill-color:#475569!important;opacity:1!important}',
-      '.section h1,.section h2{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:700!important;opacity:1!important}',
-      '.section h3,.section h4{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;font-weight:600!important;opacity:1!important}',
+      /* ── 15. TEXTOS GENERALES ── */
+      '.section p:not([class*=badge]):not([class*=tag]){font-weight:400!important;color:#475569!important;-webkit-text-fill-color:#475569!important;opacity:1!important}',
+      '.section h1,.section h2{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important;font-weight:700!important;letter-spacing:-.5px!important;opacity:1!important}',
+      '.section h3,.section h4{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important;font-weight:600!important;opacity:1!important}',
       '.section label{color:#475569!important;-webkit-text-fill-color:#475569!important;font-size:13px!important;font-weight:500!important;opacity:1!important}',
 
-      /* ── SCROLLBAR NEUTRAL ── */
-      '::-webkit-scrollbar-track{background:#F1F5F9!important}',
-      '::-webkit-scrollbar-thumb{background:#CBD5E1!important;border-radius:4px!important}',
-      '::-webkit-scrollbar-thumb:hover{background:#94A3B8!important}',
+      /* ── 16. AVISOS LEGALES ── */
+      '.aviso-legal,[class*=aviso],[class*=legal-notice]{background:#eff6ff!important;border-left:4px solid #2563eb!important;border-radius:8px!important}',
+      '.aviso-legal *,[class*=aviso] *{color:#1e3a8a!important;-webkit-text-fill-color:#1e3a8a!important;font-weight:400!important;opacity:1!important}',
+      '[style*="255,237,213"]{background:#eff6ff!important;color:#1e3a8a!important}',
 
-      /* ── CTA BANNER ── */
-      '.ic-cta-banner{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important}',
-      '.ic-cta-banner *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;opacity:1!important}',
-      '.ic-cta-banner strong,.ic-cta-banner b{color:#2563EB!important;-webkit-text-fill-color:#2563EB!important}',
+      /* ── 17. TABS ── */
+      '.tab-activo,.tab-btn.active,[class*=tab][class*=active]{background:#1e40af!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:#1e40af!important}',
 
-      /* ── GLASS / CERT / CONFIG ── */
-      '.glass-panel,.ic-config-card,.cert-card,.certificate-card{background:#FFFFFF!important;background-image:none!important;border:1px solid #E2E8F0!important;border-radius:12px!important}',
-      '.glass-panel *,.ic-config-card *,.cert-card *,.certificate-card *{color:#0F172A!important;-webkit-text-fill-color:#0F172A!important;opacity:1!important}',
+      /* ── 18. TABLA ── */
+      'table th{background:#f8fafc!important;color:#475569!important;font-size:11px!important;font-weight:700!important;letter-spacing:.5px!important;border-bottom:1px solid rgba(11,47,104,.08)!important;opacity:1!important}',
+      'table td{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important;opacity:1!important;border-color:rgba(11,47,104,.06)!important}',
 
-      /* ── TOGGLE ── */
+      /* ── 19. DIRECTORIO ── */
+      '.dir-card *{opacity:1!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
+      '.dir-card-cargo{color:#1d4ed8!important;-webkit-text-fill-color:#1d4ed8!important;font-weight:600!important}',
+      '.dir-card-bio,.dir-card-empresa{color:#64748b!important;-webkit-text-fill-color:#64748b!important;font-weight:400!important}',
+      '.dir-card-avatar{background:#0b2f68!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important}',
+      '.dir-profile-banner,.ic-dir-banner{background:#eff6ff!important;border:1px solid #bfdbfe!important;border-radius:12px!important}',
+      '.dir-profile-banner *{color:#1e40af!important;-webkit-text-fill-color:#1e40af!important;opacity:1!important}',
+
+      /* ── 20. GLASS / CERT / CONFIG ── */
+      '.glass-panel *,.ic-config-card *,.cert-card *,.certificate-card *{opacity:1!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
+
+      /* ── 21. CTA BANNER ── */
+      '.ic-cta-banner *{opacity:1!important;color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
+      '.ic-cta-banner strong,.ic-cta-banner b{color:#2563eb!important;-webkit-text-fill-color:#2563eb!important}',
+
+      /* ── 22. ELIMINAR OPACIDAD REDUCIDA ── */
+      '[style*="opacity:0."],[style*="opacity: 0."]{opacity:1!important}',
+
+      /* ── 23. FONDOS OSCUROS INLINE → BLANCO ── */
+      '[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],[style*="background:#020d30"],[style*="background:#031040"],[style*="background:rgba(11,31,74"],[style*="background:rgba(13,37,71"],[style*="background:linear-gradient(135deg,#1a3a6b"],[style*="background:linear-gradient(180deg,#0b1f4a"],[style*="background:#0d1117"]{background:#ffffff!important;background-image:none!important;border:1px solid rgba(11,47,104,.09)!important}',
+
+      /* ── 24. TEXTOS CLAROS INLINE → LEGIBLES ── */
+      '[style*="color:#cbd5e1"],[style*="color:#94a3b8"],[style*="color:#e2e8f0"],[style*="color:rgba(226,232,240"],[style*="color:rgba(203,213,225"]{color:#64748b!important;-webkit-text-fill-color:#64748b!important}',
+      '[style*="color:#fff;"],[style*="color: #fff;"],[style*="color:#ffffff;"]{color:#0f172a!important;-webkit-text-fill-color:#0f172a!important}',
+
+      /* ── 25. SCROLLBAR ── */
+      '::-webkit-scrollbar-track{background:#f1f5f9!important}',
+      '::-webkit-scrollbar-thumb{background:#cbd5e1!important;border-radius:4px!important}',
+      '::-webkit-scrollbar-thumb:hover{background:#94a3b8!important}',
+
+      /* ── 26. TOGGLE BOTÓN ── */
       'body.modo-dia #btn-modo-toggle{background:rgba(251,191,36,.1)!important;border-color:rgba(180,100,0,.25)!important}'
     ].join('');
 
