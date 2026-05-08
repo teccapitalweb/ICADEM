@@ -5572,7 +5572,7 @@
     const pctGeneral = total > 0 ? Math.round((desbloqueados / total) * 100) : 0;
 
     container.innerHTML = `
-      <div style="background:linear-gradient(135deg,#f8fafc 0%,#f0f6ff 100%);border-radius:16px;padding:1.5rem;border:1px solid rgba(20,104,177,0.08);box-shadow:0 3px 12px rgba(20,104,177,0.05);margin-bottom:2rem">
+      <div style="background:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%);border-radius:16px;padding:1.5rem;border:1px solid #D4C4A8;box-shadow:0 3px 12px rgba(139,110,78,0.08);margin-bottom:2rem">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:10px">
           <div style="display:flex;align-items:center;gap:10px">
             <div style="width:36px;height:36px;background:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid #c8962a;flex-shrink:0">
@@ -24533,13 +24533,9 @@ window.loginDirecto = function() {
 
       /* ── 26. TOGGLE ── */
       'body.modo-dia #btn-modo-toggle{background:rgba(200,169,110,.15)!important;border-color:rgba(200,169,110,.4)!important}',
-      /* Botones azules inline → tierra */
-      '[style*="background:#2563"],[style*="background:#1d4e"],[style*="background:#1a73"],[style*="background:rgb(37,99"],[style*="background:rgb(29,78"]{background:#7A5C38!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important}',
-      /* Fondo Mis logros — override máxima especificidad */
-      'html body .ic-logros-header,html body [class*=logros-header],html body [class*=logros-banner],html body [class*=logros-top]{background:#F0EAD6!important;background-image:none!important;border:1px solid #D4C4A8!important;color:#2C1810!important}',
-      'html body .ic-logros-header *,html body [class*=logros-header] *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}',
-      /* Botón "Ver cursos" azul brillante → crema tierra */
-      'body.modo-dia a[style*="background"][style*="2563"],body.modo-dia button[style*="background"][style*="2563"],body.modo-dia [class*=cta-btn],body.modo-dia .ic-cta-btn{background:#C8A96E!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:#C8A96E!important}'
+      'body.modo-dia .ic-btn-cta{background:linear-gradient(135deg,#fef3c7 0%,#f5d77a 35%,#c8962a 100%)!important;color:#0b1f4a!important;-webkit-text-fill-color:#0b1f4a!important;border-color:rgba(254,243,199,.5)!important;box-shadow:0 6px 22px rgba(245,215,122,.45)!important}',
+      'html body .ic-logros-header,html body [class*=logros-header],html body [class*=logros-banner],html body [class*=logros-top]{background:#F5EDD8!important;background-image:none!important;border:1px solid #D4C4A8!important}',
+      'html body .ic-logros-header *,html body [class*=logros-header] *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}'
     ].join('');
 
     /* ── Crear/reusar style tag ── */
