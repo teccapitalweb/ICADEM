@@ -24617,10 +24617,32 @@ window.loginDirecto = function() {
     function off() {
       active = false;
       document.body.classList.remove('modo-dia');
+
+      /* Vaciar CSS de día */
       var s = document.getElementById('ic-day');
-      if (s) s.textContent = '';
+      if (s) { s.textContent = ''; }
+
+      /* Detener observer e intervals */
       if (window._icOb) { window._icOb.disconnect(); window._icOb = null; }
-      window.location.reload();
+
+      /* Re-habilitar mega-override (lo desactivó el mode día) */
+      var mo = document.getElementById('fx-mega-override');
+      if (mo) mo.removeAttribute('media');
+      if (mo) mo.disabled = false;
+
+      /* Limpiar inline styles que pusimos — solo background y color */
+      document.querySelectorAll('*').forEach(function(el) {
+        try {
+          el.style.removeProperty('background');
+          el.style.removeProperty('background-color');
+          el.style.removeProperty('background-image');
+          el.style.removeProperty('color');
+          el.style.removeProperty('-webkit-text-fill-color');
+          el.style.removeProperty('border-color');
+          el.style.removeProperty('box-shadow');
+          el.style.removeProperty('opacity');
+        } catch(e) {}
+      });
     }
 
     /* ── Click handler ── */
