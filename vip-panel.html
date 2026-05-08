@@ -24408,7 +24408,7 @@ window.loginDirecto = function() {
 
       /* ── 4. SISTEMA DE TARJETAS — blanco cálido con borde beige ── */
       '.section{background:#FFFEF9!important;border:1px solid #E8DFD0!important;border-radius:16px!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important}',
-      '.ic-stat-card,.ic-quick-card,.achievement-card,.noticia-card,.dir-card,.glass-panel,.ic-config-card,.cert-card,.certificate-card,.video-card,.material-card,.material-item,.plantilla-card,.card{background:#FFFEF9!important;background-image:none!important;border:1px solid #E8DFD0!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important;border-radius:12px!important;transition:box-shadow .18s ease,transform .18s ease!important}',
+      '.ic-stat-card,.ic-quick-card,.achievement-card,.dir-card,.glass-panel,.ic-config-card,.cert-card,.certificate-card,.video-card,.material-card,.material-item,.plantilla-card,.card{background:#FFFEF9!important;background-image:none!important;border:1px solid #E8DFD0!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important;border-radius:12px!important;transition:box-shadow .18s ease,transform .18s ease!important}',
       /* Cards de videoteca — transparentes con borde negro elegante */
       '.lg-card{background:transparent!important;background-image:none!important;background-color:transparent!important;border:1.5px solid rgba(20,15,10,.55)!important;box-shadow:none!important;border-radius:14px!important;backdrop-filter:none!important;transition:border-color .18s ease,transform .18s ease!important}',
       '.lg-card:hover{border-color:rgba(20,15,10,.85)!important;transform:translateY(-2px)!important;box-shadow:0 4px 16px rgba(20,15,10,.12)!important}',
@@ -24562,6 +24562,7 @@ window.loginDirecto = function() {
         if (el.closest('.sidebar') || el.closest('.ic-hero') ||
             el.closest('.ic-quick-card-primary') || el.closest('.ic-quick-card-wa') ||
             el.closest('.ic-countdown') || el.closest('.ic-streak-card') ||
+            el.closest('.noticia-card') ||
             el.closest('#ic-day') || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
       }
       try {
