@@ -23,7 +23,11 @@
     }
     html,body{min-height:100vh}
     body{background:#f4f7fc;color:var(--text-body);font-family:var(--font-b);font-size:14px;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex}
-    .sidebar{width:var(--nav-w);min-height:100vh;background:#001fcc;border-right:none;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:20;transition:transform 0.3s ease}
+    .sidebar{width:var(--nav-w);height:100vh;max-height:100vh;background:#001fcc;border-right:none;display:flex;flex-direction:column;position:fixed;left:0;top:0;z-index:20;transition:transform 0.3s ease;overflow-y:auto;overflow-x:hidden}
+    .sidebar::-webkit-scrollbar{width:6px}
+    .sidebar::-webkit-scrollbar-track{background:transparent}
+    .sidebar::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
+    .sidebar::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,0.30)}
     .sidebar-logo{padding:1.5rem 1.5rem 1rem;border-bottom:1px solid rgba(255,255,255,0.15);display:flex;align-items:center;gap:10px}
     .logo-mark{width:32px;height:32px;background:rgba(255,255,255,0.25);border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-d);font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
     .logo-text strong{display:block;font-family:var(--font-d);font-size:16px;font-weight:700;letter-spacing:.06em;color:#ffffff}
@@ -24316,36 +24320,17 @@ window.loginDirecto = function() {
          el CSS limpio v7 cubre todo con !important + specificity ganadora */
     }
 
-    /* ── Desactivar modo día ── */
+    /* ── Desactivar modo día (v7 LIMPIO - NO toca inline styles del HTML) ── */
     function off() {
       active = false;
       document.body.classList.remove('modo-dia');
 
-      /* Vaciar CSS de día */
+      /* Vaciar el CSS limpio: con esto, las reglas body:not(.modo-dia)
+         del mega-override vuelven a aplicar automáticamente.
+         NO tocamos inline styles del HTML porque el sistema v7
+         NUNCA los modificó (todo se hace vía CSS). */
       var s = document.getElementById('ic-day');
       if (s) { s.textContent = ''; }
-
-      /* Detener observer e intervals */
-      if (window._icOb) { window._icOb.disconnect(); window._icOb = null; }
-
-      /* Re-habilitar mega-override (lo desactivó el mode día) */
-      var mo = document.getElementById('fx-mega-override');
-      if (mo) mo.removeAttribute('media');
-      if (mo) mo.disabled = false;
-
-      /* Limpiar inline styles que pusimos — solo background y color */
-      document.querySelectorAll('*').forEach(function(el) {
-        try {
-          el.style.removeProperty('background');
-          el.style.removeProperty('background-color');
-          el.style.removeProperty('background-image');
-          el.style.removeProperty('color');
-          el.style.removeProperty('-webkit-text-fill-color');
-          el.style.removeProperty('border-color');
-          el.style.removeProperty('box-shadow');
-          el.style.removeProperty('opacity');
-        } catch(e) {}
-      });
     }
 
     /* ── Click handler con persistencia ── */
