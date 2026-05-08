@@ -24370,181 +24370,171 @@ window.loginDirecto = function() {
 
     /* ── CSS de día completo ── */
     var DAY = [
-      /* ═══════════════════════════════════════════════════════
-         ICADEM VIP — MODO DÍA PALETA TIERRA CÁLIDA
-         Cremas · Beiges · Tostados suaves
-         Sidebar: azul ICADEM (identidad de marca)
-         Hero: azul ICADEM (identidad de marca)
-      ═══════════════════════════════════════════════════════ */
+      /* ═══════════════════════════════════════════════════
+         MODO DÍA — PROFESIONAL LIMPIO
+         Fondo: #F0F4F8 | Cards: #FFF | Sidebar: azul ICADEM
+         Paleta ICADEM: #0b2f68 azul / #f5d77a dorado
+         Prioridad: LEGIBILIDAD TOTAL en todos los elementos
+      ═══════════════════════════════════════════════════ */
 
-      /* ── 1. FONDO LAYOUT — crema muy suave ── */
-      'html{background:#FAF7F2!important;background-image:none!important}',
-      'body,.main,.content{background:#FAF7F2!important}',
-      '.section,.section.active,[id^=sec-]{background:#FAF7F2!important}',
+      /* 1. FONDO LAYOUT */
+      'html{background:#F0F4F8!important;background-image:none!important}',
+      'body,.main,.content{background:#F0F4F8!important}',
+      '.section,.section.active,[id^=sec-]{background:#F0F4F8!important}',
 
-      /* ── 2. SIDEBAR — azul ICADEM, identidad de marca ── */
-      '.sidebar{background:#0b2f68!important;background-image:none!important;border-right:none!important;box-shadow:2px 0 16px rgba(11,47,104,.15)!important}',
-      '.nav-section-title,[class*=section-label],.sidebar-group-title{color:rgba(255,255,255,.38)!important;-webkit-text-fill-color:rgba(255,255,255,.38)!important;font-size:9.5px!important;font-weight:600!important;letter-spacing:.1em!important}',
-      '.nav-item{color:rgba(255,255,255,.65)!important;-webkit-text-fill-color:rgba(255,255,255,.65)!important;background:transparent!important}',
-      '.nav-item .nav-icon,.nav-item svg,.nav-item i{color:rgba(255,255,255,.45)!important;opacity:1!important}',
-      '.nav-item:hover:not(.active){background:rgba(255,255,255,.07)!important;color:rgba(255,255,255,.9)!important;-webkit-text-fill-color:rgba(255,255,255,.9)!important}',
-      '.nav-item.active{background:rgba(255,255,255,.15)!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-left:3px solid #C8A96E!important;font-weight:600!important}',
-      '.nav-item.active *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
-      '.nav-item.active .nav-icon,.nav-item.active svg{color:#C8A96E!important}',
-      '.sidebar-logo-name{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;font-weight:700!important}',
-      '.sidebar-role,.sidebar-user-role{color:rgba(200,169,110,.85)!important;-webkit-text-fill-color:rgba(200,169,110,.85)!important;font-size:11px!important;font-weight:600!important}',
-      '.sidebar-user,.ic-sidebar-user{border-bottom:1px solid rgba(255,255,255,.08)!important}',
-      '.sidebar-logo,.ic-sidebar-logo{border-bottom:1px solid rgba(255,255,255,.08)!important}',
-      '.sidebar-footer,[class*=sidebar-footer]{border-top:1px solid rgba(255,255,255,.08)!important}',
-      '.btn-logout,[class*=logout]{color:rgba(255,255,255,.5)!important;-webkit-text-fill-color:rgba(255,255,255,.5)!important;background:transparent!important;border:none!important;font-size:13px!important}',
+      /* 2. SIDEBAR — azul ICADEM intacto */
+      '.sidebar{background:#0b2f68!important;background-image:none!important;border-right:none!important;box-shadow:2px 0 20px rgba(0,0,0,.2)!important}',
+      '.sidebar *{opacity:1!important}',
+      '.nav-section-title,[class*=section-label]{color:rgba(255,255,255,.4)!important;-webkit-text-fill-color:rgba(255,255,255,.4)!important;font-size:10px!important;font-weight:700!important;letter-spacing:.1em!important}',
+      '.nav-item{color:rgba(255,255,255,.7)!important;-webkit-text-fill-color:rgba(255,255,255,.7)!important;background:transparent!important}',
+      '.nav-item .nav-icon,.nav-item svg{color:rgba(255,255,255,.5)!important;opacity:1!important}',
+      '.nav-item:hover:not(.active){background:rgba(255,255,255,.08)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.nav-item.active{background:rgba(255,255,255,.18)!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-left:3px solid #f5d77a!important;font-weight:700!important}',
+      '.nav-item.active *{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
+      '.nav-item.active .nav-icon,.nav-item.active svg{color:#f5d77a!important}',
+      '.sidebar-logo-name{color:#fff!important;-webkit-text-fill-color:#fff!important;font-weight:700!important}',
+      '.sidebar-role,.sidebar-user-role{color:rgba(245,215,122,.85)!important;-webkit-text-fill-color:rgba(245,215,122,.85)!important;font-size:11px!important;font-weight:600!important}',
+      '.sidebar-user{border-bottom:1px solid rgba(255,255,255,.1)!important}',
+      '.sidebar-logo{border-bottom:1px solid rgba(255,255,255,.1)!important}',
+      '.sidebar-footer{border-top:1px solid rgba(255,255,255,.1)!important}',
+      '.btn-logout{color:rgba(255,255,255,.5)!important;-webkit-text-fill-color:rgba(255,255,255,.5)!important;background:transparent!important;border:none!important}',
 
-      /* ── 3. TOPBAR — blanco cálido ── */
-      '.topbar{background:#FFFEF9!important;height:64px!important;padding:0 32px!important;border-bottom:1px solid #E8DFD0!important;box-shadow:0 1px 6px rgba(139,110,78,.06)!important}',
-      '.topbar-title{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;font-weight:700!important;font-size:16px!important;letter-spacing:-.3px!important}',
-      '.menu-btn{color:#6B5744!important;background:transparent!important;border-color:#E8DFD0!important}',
-      '.topbar-plan{background:#F5EDD8!important;border:1px solid #D4C4A8!important;border-radius:20px!important}',
-      '.topbar-plan,.topbar-plan *{color:#7A5C38!important;-webkit-text-fill-color:#7A5C38!important;font-weight:700!important;font-size:11px!important;letter-spacing:.5px!important;opacity:1!important}',
-      '.status-dot{background:#6B9E5E!important;box-shadow:none!important;animation:none!important}',
+      /* 3. TOPBAR */
+      '.topbar{background:#fff!important;height:60px!important;border-bottom:1px solid #DDE3EC!important;box-shadow:0 1px 8px rgba(0,0,0,.05)!important}',
+      '.topbar-title{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:700!important;font-size:15px!important}',
+      '.menu-btn{color:#475569!important;border-color:#DDE3EC!important;background:transparent!important}',
+      '.topbar-plan{background:#EBF3FF!important;border:1px solid rgba(11,47,104,.2)!important;border-radius:20px!important}',
+      '.topbar-plan,.topbar-plan *{color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important;font-weight:700!important;font-size:11px!important;letter-spacing:.05em!important;opacity:1!important}',
+      '.status-dot{background:#10B981!important;box-shadow:none!important;animation:none!important}',
 
-      /* ── 4. SISTEMA DE TARJETAS — blanco cálido con borde beige ── */
-      '.section{background:#FFFEF9!important;border:1px solid #E8DFD0!important;border-radius:16px!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important}',
-      '.ic-stat-card,.ic-quick-card,.achievement-card,.dir-card,.glass-panel,.ic-config-card,.cert-card,.certificate-card,.video-card,.material-card,.material-item,.plantilla-card,.card{background:#FFFEF9!important;background-image:none!important;border:1px solid #E8DFD0!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important;border-radius:12px!important;transition:box-shadow .18s ease,transform .18s ease!important}',
-      /* Cards de videoteca — transparentes con borde negro elegante */
-      '.lg-card{background:transparent!important;background-image:none!important;background-color:transparent!important;border:1.5px solid rgba(20,15,10,.55)!important;box-shadow:none!important;border-radius:14px!important;backdrop-filter:none!important;transition:border-color .18s ease,transform .18s ease!important}',
-      '.lg-card:hover{border-color:rgba(20,15,10,.85)!important;transform:translateY(-2px)!important;box-shadow:0 4px 16px rgba(20,15,10,.12)!important}',
+      /* 4. SECCIÓN CARDS */
+      '.section{background:#fff!important;border:1px solid #DDE3EC!important;border-radius:16px!important;box-shadow:0 1px 4px rgba(0,0,0,.05),0 4px 16px rgba(0,0,0,.04)!important}',
 
-      /* ── 5. HERO — crema cálido ── */
-      '.ic-hero{background:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;background-image:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;border:1px solid #D4C4A8!important;border-radius:16px!important;box-shadow:0 4px 20px rgba(139,110,78,.12)!important}',
+      /* 5. HERO — azul ICADEM, textos BLANCOS */
+      '.ic-hero{background:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;background-image:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;border:none!important;border-radius:16px!important;box-shadow:0 8px 32px rgba(11,47,104,.3)!important}',
       '.ic-hero *{opacity:1!important}',
-      '.ic-hero-title,.ic-hello-title{font-weight:800!important;font-size:28px!important;background:none!important;color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
-      '.ic-hello-title #user-nombre,.ic-hero-title [class*=name]{color:#7A5C38!important;-webkit-text-fill-color:#7A5C38!important;background:none!important}',
-      '.ic-hero-sub,.ic-hero-desc,.ic-hero p{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important}',
-      '.ic-plan-badge{background:rgba(122,92,56,.12)!important;border:1px solid rgba(122,92,56,.25)!important;color:#5C3D1E!important;-webkit-text-fill-color:#5C3D1E!important}',
-      '.ic-streak-card{background:rgba(255,255,255,.6)!important;border:1px solid #D4C4A8!important;border-radius:12px!important}',
-      '.ic-streak-card *,.ic-streak-num,.ic-streak-label{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}',
+      '.ic-hero-title,.ic-hello-title{color:#fff!important;-webkit-text-fill-color:#fff!important;background:none!important;font-weight:800!important;font-size:28px!important}',
+      '.ic-hello-title #user-nombre{color:#f5d77a!important;-webkit-text-fill-color:#f5d77a!important;background:none!important}',
+      '.ic-hero-sub,.ic-hero-desc,.ic-hero p{color:rgba(255,255,255,.88)!important;-webkit-text-fill-color:rgba(255,255,255,.88)!important}',
+      '.ic-hero *{color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.ic-plan-badge{background:rgba(255,255,255,.18)!important;border:1px solid rgba(255,255,255,.3)!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.ic-streak-card{background:rgba(255,255,255,.15)!important;border:1px solid rgba(255,255,255,.25)!important;border-radius:12px!important}',
+      '.ic-streak-card *{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
 
-      /* ── 6. HELLO fuera del hero ── */
-      '.ic-hello-eyebrow{color:#9E8272!important;-webkit-text-fill-color:#9E8272!important;font-size:11px!important;font-weight:600!important;letter-spacing:.5px!important}',
-      '.ic-hello-line{background:linear-gradient(90deg,#C8A96E,transparent)!important;height:3px!important}',
+      /* 6. HELLO fuera del hero */
+      '.ic-hello-eyebrow{color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important;font-size:11px!important;font-weight:600!important;letter-spacing:.1em!important}',
+      '.ic-hello-line{background:linear-gradient(90deg,#0b2f68,transparent)!important;height:3px!important}',
 
-      /* ── 7. TARJETAS OSCURAS → AZUL ICADEM (no negro) ── */
-      '.ic-quick-card-primary{background:linear-gradient(135deg,#2C3E50 0%,#3D5A73 100%)!important;background-image:linear-gradient(135deg,#2C3E50 0%,#3D5A73 100%)!important;border-color:rgba(44,62,80,.3)!important}',
-      '.ic-quick-card-primary *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
-      '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.18)!important;border-color:rgba(255,255,255,.25)!important}',
-      '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.15)!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:rgba(255,255,255,.25)!important}',
-      '.ic-quick-card-wa{background:linear-gradient(135deg,#1B4332 0%,#2D6A4F 100%)!important;background-image:linear-gradient(135deg,#1B4332 0%,#2D6A4F 100%)!important}',
-      '.ic-quick-card-wa *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
-      '.ic-countdown{background:linear-gradient(135deg,#2D3561 0%,#3D4A8A 100%)!important;background-image:linear-gradient(135deg,#2D3561 0%,#3D4A8A 100%)!important}',
-      '.ic-countdown *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
+      /* 7. SISTEMA DE TARJETAS — blanco con bordes visibles */
+      '.ic-stat-card,.ic-quick-card,.achievement-card,.dir-card,.glass-panel,.ic-config-card,.cert-card,.certificate-card,.plantilla-card,.card{background:#fff!important;background-image:none!important;border:1px solid #DDE3EC!important;border-radius:12px!important;box-shadow:0 1px 4px rgba(0,0,0,.05),0 2px 12px rgba(0,0,0,.04)!important}',
 
-      /* ── 8. BANNERS ESTADÍSTICAS — crema cálido (mismo tono que hero) ── */
-      '.ic-vid-progress,.ic-plant-stats,.ic-cert-stats,[class*=stats-banner],[class*=progress-stats]{background:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;background-image:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;border:1px solid #D4C4A8!important;border-radius:12px!important}',
-      '.ic-vid-progress *,.ic-plant-stats *,.ic-cert-stats *,[class*=stats-banner] *{opacity:1!important;color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
-      '.ic-vid-progress strong,.ic-plant-stats strong,.ic-cert-stats strong,[class*=stats-banner] strong{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;font-weight:700!important}',
-      '.ic-vid-progress span,.ic-plant-stats span,.ic-cert-stats span,[class*=stats-banner] span{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important;font-size:11px!important;font-weight:600!important;letter-spacing:.5px!important}',
-      /* Mis logros — crema, NO azul */
-      '.ic-logros-header,.ic-logros-banner,.ic-logros-wrapper,.ic-logros-container,[class*=logros]{background:#F5EDD8!important;background-image:none!important;border:1px solid #D4C4A8!important;border-radius:16px!important}',
-      '.ic-logros-header *,.ic-logros-banner *,.ic-logros-wrapper *,.ic-logros-container *,[class*=logros] *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}',
-      /* Cualquier fondo oscuro que sobreviva → crema */
-      '[style*="1a2a4a"],[style*="1a3060"],[style*="0f1c35"],[style*="0d1117"],[style*="0b1f3a"],[style*="0a1628"]{background:#F5EDD8!important;background-image:none!important;border:1px solid #D4C4A8!important}',
-
-      /* ── 9. STAT CARDS ── */
-      '.ic-stat-card *{opacity:1!important}',
+      /* 8. STAT CARDS — texto oscuro, legible */
+      '.ic-stat-card *{opacity:1!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
       '.ic-stat-card::before{opacity:.15!important}',
-      '.ic-stat-value,.ic-stat-num{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;font-weight:800!important;font-size:24px!important;letter-spacing:-.04em!important}',
-      '.ic-stat-label{color:#9E8272!important;-webkit-text-fill-color:#9E8272!important;font-size:11px!important;font-weight:600!important;letter-spacing:.08em!important}',
-      '.ic-section-label{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;font-weight:600!important;font-size:14px!important;letter-spacing:.06em!important}',
+      '.ic-stat-value,.ic-stat-num{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:800!important;font-size:24px!important}',
+      '.ic-stat-label{color:#64748b!important;-webkit-text-fill-color:#64748b!important;font-size:11px!important;font-weight:700!important;letter-spacing:.08em!important}',
+      '.ic-section-label{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:700!important;font-size:13px!important;letter-spacing:.06em!important}',
 
-      /* ── 10. QUICK CARDS BLANCAS ── */
-      '.ic-quick-card *{opacity:1!important;color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
+      /* 9. QUICK CARDS blancas */
+      '.ic-quick-card *{opacity:1!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
       '.ic-quick-title{color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important;font-weight:700!important}',
-      '.ic-quick-sub{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important;font-weight:400!important}',
+      '.ic-quick-sub{color:#475569!important;-webkit-text-fill-color:#475569!important;font-weight:400!important}',
       '.ic-quick-cta{color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important;font-weight:600!important}',
-      '.ic-quick-badge{background:#F5EDD8!important;color:#7A5C38!important;-webkit-text-fill-color:#7A5C38!important;border-color:#D4C4A8!important;font-weight:700!important}',
-      '.ic-quick-icon{background:#F5EDD8!important;border-color:#D4C4A8!important}',
+      '.ic-quick-badge{background:#EBF3FF!important;color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important;border-color:rgba(11,47,104,.2)!important;font-weight:700!important}',
+      '.ic-quick-icon{background:#EBF3FF!important;border-color:rgba(11,47,104,.15)!important}',
 
-      /* ── 11. CTA BANNER ── */
-      '.ic-cta-banner{background:#FFFEF9!important;background-image:none!important;border:1px solid #E8DFD0!important;border-radius:12px!important}',
-      '.ic-cta-banner *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}',
+      /* 10. CARDS ESPECIALES — azul oscuro, texto blanco */
+      '.ic-quick-card-primary{background:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;background-image:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;border-color:rgba(11,47,104,.3)!important}',
+      '.ic-quick-card-primary *{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
+      '.ic-quick-card-wa{background:linear-gradient(135deg,#065f46 0%,#059669 100%)!important;background-image:linear-gradient(135deg,#065f46 0%,#059669 100%)!important}',
+      '.ic-quick-card-wa *{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
+      '.ic-countdown{background:linear-gradient(135deg,#1e1b4b 0%,#3730a3 100%)!important;background-image:linear-gradient(135deg,#1e1b4b 0%,#3730a3 100%)!important}',
+      '.ic-countdown *{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
+
+      /* 11. BANNERS DE ESTADÍSTICAS — azul oscuro, texto blanco */
+      '.ic-vid-progress,.ic-plant-stats,.ic-cert-stats,.ic-logros-header,.ic-logros-banner{background:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;background-image:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;border-radius:12px!important}',
+      '.ic-vid-progress *,.ic-plant-stats *,.ic-cert-stats *,.ic-logros-header *,.ic-logros-banner *{color:#fff!important;-webkit-text-fill-color:#fff!important;opacity:1!important}',
+      '[style*="1a2a4a"],[style*="1a3060"],[style*="0f1c35"]{background:#0b2f68!important;background-image:none!important}',
+
+      /* 12. CLASES EN VIVO — empty state */
+      'body.modo-dia #cursos-empty,body.modo-dia #cursos-empty[style]{background:linear-gradient(135deg,#EBF3FF 0%,#D9E8FC 100%)!important;border:1px solid rgba(11,47,104,.15)!important;box-shadow:none!important;border-radius:16px!important}',
+      'body.modo-dia #cursos-empty *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;opacity:1!important}',
+      'body.modo-dia #cursos-empty svg{stroke:#0b2f68!important}',
+
+      /* 13. CTA BANNER */
+      '.ic-cta-banner{background:#fff!important;background-image:none!important;border:1px solid #DDE3EC!important;border-radius:12px!important}',
+      '.ic-cta-banner *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;opacity:1!important}',
       '.ic-cta-banner strong,.ic-cta-banner b{color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important}',
 
-      /* ── 12. LOGROS ── */
-      '.achievement-card *{opacity:1!important}',
-      '.achievement-name{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;font-weight:600!important}',
-      '.achievement-desc{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important;font-size:12px!important;font-weight:400!important}',
-      '.achievement-prog-label{color:#9E8272!important;-webkit-text-fill-color:#9E8272!important}',
-      '.progress-track,.achievement-prog-track{background:#E8DFD0!important}',
+      /* 14. MIS LOGROS WIDGET */
+      '.ic-logros-top,.ic-logros-container{background:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;background-image:linear-gradient(135deg,#0b2f68 0%,#1a5298 100%)!important;border-radius:16px!important}',
+
+      /* 15. LOGROS / ACHIEVEMENTS */
+      '.achievement-card *{opacity:1!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.achievement-name{font-weight:600!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+      '.achievement-desc{color:#475569!important;-webkit-text-fill-color:#475569!important;font-size:12px!important;font-weight:400!important}',
+      '.achievement-prog-label{color:#64748b!important;-webkit-text-fill-color:#64748b!important}',
+      '.progress-track,.achievement-prog-track{background:#DDE3EC!important}',
       '.progress-bar,.achievement-prog-fill{background:#0b2f68!important}',
-      '.ic-xp-badge,[class*=xp-value],[class*=nivel-badge]{color:#C8A96E!important;-webkit-text-fill-color:#C8A96E!important}',
+      '.ic-xp-badge,[class*=xp-value],[class*=nivel-badge]{color:#c8962a!important;-webkit-text-fill-color:#c8962a!important}',
 
-      /* ── 13. BOTONES CTA ── */
-      '.btn-primary,[class*=btn-primary]{background:#7A5C38!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border:none!important;border-radius:8px!important;font-weight:600!important;font-size:14px!important}',
-      '[style*="c8962a"],[style*="f5d77a"],[style*="e8a000"],[style*="fef3c7"],[style*="cc8800"],[style*="2563eb"],[style*="1d4ed8"],[style*="1a73e8"]{background:#7A5C38!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:#7A5C38!important}',
+      /* 16. NOTICIAS — mantener estilo oscuro (imágenes visibles) */
+      /* noticia-card intencionalamente excluida — mantiene su estilo oscuro premium */
 
-      /* ── 14. AVISOS LEGALES — tono crema ── */
-      '.aviso-legal,[class*=aviso],[class*=legal-notice]{background:#F5EDD8!important;border-left:4px solid #C8A96E!important;border-radius:8px!important}',
-      '.aviso-legal *,[class*=aviso] *{color:#5C3D1E!important;-webkit-text-fill-color:#5C3D1E!important;font-weight:400!important;opacity:1!important}',
-      '[style*="255,237,213"]{background:#F5EDD8!important;color:#5C3D1E!important}',
-
-      /* ── 15. TABS ── */
-      '.tab-activo,.tab-btn.active,[class*=tab][class*=active]{background:#7A5C38!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:#7A5C38!important}',
-
-      /* ── 16. INPUTS ── */
-      'input,textarea{background:#FFFEF9!important;color:#2C1810!important;border:1px solid #D4C4A8!important;border-radius:8px!important;font-size:14px!important;padding:10px 14px!important;opacity:1!important}',
-      'input::placeholder,textarea::placeholder{color:#B5A090!important;-webkit-text-fill-color:#B5A090!important}',
-      'select{background:#FFFEF9!important;color:#2C1810!important;border:1px solid #D4C4A8!important;border-radius:8px!important;padding:10px 14px!important;-webkit-appearance:none!important;appearance:none!important}',
-
-      /* ── 17. TABLA ── */
-      'table th{background:#F5EDD8!important;color:#6B5744!important;font-size:11px!important;font-weight:700!important;letter-spacing:.5px!important;border-bottom:1px solid #E8DFD0!important;opacity:1!important}',
-      'table td{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important;border-color:#F5EDD8!important}',
-
-      /* ── 18. DIRECTORIO ── */
-      '.dir-card *{opacity:1!important;color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
-      '.dir-card-name{font-weight:700!important}',
+      /* 17. DIRECTORIO */
+      '.dir-card *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;opacity:1!important}',
       '.dir-card-cargo{color:#0b2f68!important;-webkit-text-fill-color:#0b2f68!important;font-weight:600!important}',
-      '.dir-card-bio,.dir-card-empresa{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important;font-weight:400!important}',
-      '.dir-card-avatar{background:#0b2f68!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important}',
-      '.dir-profile-banner,.ic-dir-banner{background:#F5EDD8!important;border:1px solid #D4C4A8!important;border-radius:12px!important}',
-      '.dir-profile-banner *{color:#5C3D1E!important;-webkit-text-fill-color:#5C3D1E!important;opacity:1!important}',
+      '.dir-card-bio,.dir-card-empresa{color:#475569!important;-webkit-text-fill-color:#475569!important;font-weight:400!important}',
+      '.dir-card-avatar{background:#0b2f68!important;color:#fff!important;-webkit-text-fill-color:#fff!important}',
+      '.dir-profile-banner,.ic-dir-banner{background:#EBF3FF!important;border:1px solid rgba(11,47,104,.15)!important;border-radius:12px!important}',
+      '.dir-profile-banner *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;opacity:1!important}',
 
-      /* ── 19. TIPOGRAFÍA GLOBAL ── */
-      '.section p:not([class*=badge]):not([class*=tag]){font-weight:400!important;color:#6B5744!important;-webkit-text-fill-color:#6B5744!important;opacity:1!important}',
-      '.section h1,.section h2{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;font-weight:700!important;letter-spacing:-.5px!important;opacity:1!important}',
-      '.section h3,.section h4{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;font-weight:600!important;opacity:1!important}',
-      '.section label{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important;font-size:13px!important;font-weight:500!important;opacity:1!important}',
+      /* 18. BOTÓN CTA PRINCIPAL — restaurar dorado */
+      'body.modo-dia .ic-btn-cta{background:linear-gradient(135deg,#fef3c7 0%,#f5d77a 35%,#c8962a 100%)!important;color:#0b1f4a!important;-webkit-text-fill-color:#0b1f4a!important;border-color:rgba(254,243,199,.5)!important}',
 
-      /* ── 20. GLASS / CERT / CONFIG ── */
-      '.glass-panel *,.ic-config-card *,.cert-card *,.certificate-card *{opacity:1!important;color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
+      /* 19. AVISOS LEGALES */
+      '.aviso-legal,[class*=aviso],[class*=legal-notice]{background:#EBF3FF!important;border-left:4px solid #0b2f68!important;border-radius:8px!important}',
+      '.aviso-legal *,[class*=aviso] *{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:400!important;opacity:1!important}',
+      '[style*="255,237,213"]{background:#EBF3FF!important;color:#0b2554!important}',
 
-      /* ── 21. ELIMINAR OPACIDAD REDUCIDA ── */
+      /* 20. TABS */
+      '.tab-activo,.tab-btn.active,[class*=tab][class*=active]{background:#0b2f68!important;color:#fff!important;-webkit-text-fill-color:#fff!important;border-color:#0b2f68!important}',
+
+      /* 21. INPUTS */
+      'input,textarea{background:#fff!important;color:#0b2554!important;border:1px solid #DDE3EC!important;border-radius:8px!important;font-size:14px!important;opacity:1!important}',
+      'input::placeholder,textarea::placeholder{color:#94A3B8!important;-webkit-text-fill-color:#94A3B8!important}',
+      'select{background:#fff!important;color:#0b2554!important;border:1px solid #DDE3EC!important;border-radius:8px!important;padding:10px 14px!important;-webkit-appearance:none!important;appearance:none!important}',
+
+      /* 22. TABLA */
+      'table th{background:#EBF3FF!important;color:#475569!important;font-size:11px!important;font-weight:700!important;letter-spacing:.05em!important;border-bottom:1px solid #DDE3EC!important;opacity:1!important}',
+      'table td{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;opacity:1!important;border-color:#F0F4F8!important}',
+
+      /* 23. GLASS / CONFIG / CERT */
+      '.glass-panel *,.ic-config-card *,.cert-card *,.certificate-card *{opacity:1!important;color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
+
+      /* 24. TIPOGRAFÍA GLOBAL */
+      '.section p:not([class*=badge]):not([class*=tag]){font-weight:400!important;color:#475569!important;-webkit-text-fill-color:#475569!important;opacity:1!important}',
+      '.section h1,.section h2{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:700!important;letter-spacing:-.5px!important;opacity:1!important}',
+      '.section h3,.section h4{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important;font-weight:600!important;opacity:1!important}',
+      '.section label{color:#475569!important;-webkit-text-fill-color:#475569!important;font-size:13px!important;font-weight:500!important;opacity:1!important}',
+
+      /* 25. QUITAR OPACIDAD REDUCIDA */
       '[style*="opacity:0."],[style*="opacity: 0."]{opacity:1!important}',
 
-      /* ── 22. FONDOS OSCUROS INLINE → CREMA ── */
-      '[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],[style*="background:#020d30"],[style*="background:#031040"],[style*="background:rgba(11,31,74"],[style*="background:rgba(13,37,71"],[style*="background:linear-gradient(135deg,#1a3a6b"],[style*="background:linear-gradient(180deg,#0b1f4a"],[style*="background:#0d1117"]{background:#FFFEF9!important;background-image:none!important;border:1px solid #E8DFD0!important}',
+      /* 26. FONDOS OSCUROS INLINE GENÉRICOS → BLANCO */
+      '[style*="background:#0b2f68"],[style*="background:#0d2547"],[style*="background:#1a3a6b"],[style*="background:#020d30"],[style*="background:#031040"],[style*="background:rgba(11,31,74"],[style*="background:rgba(13,37,71"],[style*="background:#0d1117"]{background:#fff!important;background-image:none!important;border:1px solid #DDE3EC!important}',
 
-      /* ── 23. TEXTOS CLAROS INLINE → LEGIBLES ── */
-      '[style*="color:#cbd5e1"],[style*="color:#94a3b8"],[style*="color:#e2e8f0"],[style*="color:rgba(226,232,240"]{color:#9E8272!important;-webkit-text-fill-color:#9E8272!important}',
-      '[style*="color:#fff;"],[style*="color: #fff;"],[style*="color:#ffffff;"]{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
+      /* 27. TEXTOS CLAROS INLINE → OSCUROS LEGIBLES */
+      '[style*="color:#cbd5e1"],[style*="color:#94a3b8"],[style*="color:#e2e8f0"]{color:#64748b!important;-webkit-text-fill-color:#64748b!important}',
+      '[style*="color:#fff;"],[style*="color: #fff;"],[style*="color:#ffffff;"]{color:#0b2554!important;-webkit-text-fill-color:#0b2554!important}',
 
-      /* ── 24. PLACEHOLDER TARJETAS SIN IMAGEN ── */
-      '.lg-card-icon{background:linear-gradient(135deg,#F5EDD8 0%,#E8DFD0 100%)!important;display:flex!important;align-items:center!important;justify-content:center!important;border-radius:10px 10px 0 0!important;border-bottom:1px solid #E8DFD0!important;color:#C8A96E!important;font-size:32px!important;min-height:100px!important}',
+      /* 28. SCROLLBAR */
+      '::-webkit-scrollbar-track{background:#EBF3FF!important}',
+      '::-webkit-scrollbar-thumb{background:#CBD5E1!important;border-radius:4px!important}',
+      '::-webkit-scrollbar-thumb:hover{background:#94A3B8!important}',
 
-      /* ── 25. SCROLLBAR CÁLIDO ── */
-      '::-webkit-scrollbar-track{background:#F5EDD8!important}',
-      '::-webkit-scrollbar-thumb{background:#D4C4A8!important;border-radius:4px!important}',
-      '::-webkit-scrollbar-thumb:hover{background:#C8A96E!important}',
-
-      /* ── 26. TOGGLE ── */
-      'body.modo-dia #btn-modo-toggle{background:rgba(200,169,110,.15)!important;border-color:rgba(200,169,110,.4)!important}',
-      /* Clases en Vivo — estado vacío crema */
-      'body.modo-dia #cursos-empty,body.modo-dia #cursos-empty[style]{background:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;border:1px solid #D4C4A8!important;box-shadow:0 2px 12px rgba(139,110,78,.08)!important;border-radius:16px!important}',
-      'body.modo-dia #cursos-empty *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
-      'body.modo-dia #cursos-empty p[style*="color:#64748b"]{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important}',
-      'body.modo-dia #cursos-empty svg{stroke:#7A5C38!important}',
-      'body.modo-dia #cursos-empty [style*="background:rgba(20,104,177"]{background:rgba(122,92,56,.12)!important;border-color:rgba(122,92,56,.2)!important}',
-      'body.modo-dia .ic-btn-cta{background:linear-gradient(135deg,#fef3c7 0%,#f5d77a 35%,#c8962a 100%)!important;color:#0b1f4a!important;-webkit-text-fill-color:#0b1f4a!important;border-color:rgba(254,243,199,.5)!important;box-shadow:0 6px 22px rgba(245,215,122,.45)!important}',
-      'html body .ic-logros-header,html body [class*=logros-header],html body [class*=logros-banner],html body [class*=logros-top]{background:#F5EDD8!important;background-image:none!important;border:1px solid #D4C4A8!important}',
-      'html body .ic-logros-header *,html body [class*=logros-header] *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}'
+      /* 29. TOGGLE BOTÓN */
+      'body.modo-dia #btn-modo-toggle{background:rgba(245,215,122,.15)!important;border-color:rgba(200,150,42,.3)!important}'
     ].join('');
 
     /* ── Crear/reusar style tag ── */
@@ -24557,53 +24547,50 @@ window.loginDirecto = function() {
     /* ── Detectar y corregir elemento oscuro individualmente ── */
     function fixOne(el) {
       if (!el || el.nodeType !== 1) return;
-      /* Excluir zonas que deben permanecer de color */
       if (el.closest) {
         if (el.closest('.sidebar') || el.closest('.ic-hero') ||
             el.closest('.ic-quick-card-primary') || el.closest('.ic-quick-card-wa') ||
             el.closest('.ic-countdown') || el.closest('.ic-streak-card') ||
-            el.closest('.noticia-card') ||
+            el.closest('.noticia-card') || el.closest('.ic-logros-container') ||
+            el.closest('.ic-vid-progress') || el.closest('.ic-plant-stats') ||
+            el.closest('.ic-cert-stats') || el.closest('.ic-logros-header') ||
+            el.closest('#cursos-empty') ||
             el.closest('#ic-day') || el.tagName === 'SCRIPT' || el.tagName === 'STYLE') return;
       }
       try {
         var cs = window.getComputedStyle(el);
-        /* Fondo — checa color sólido Y gradiente */
+        var bgi = cs.backgroundImage;
+        /* NUNCA tocar elementos con imagen de fondo */
+        if (bgi && bgi !== 'none' && bgi.indexOf('url(') !== -1) return;
+
         var needBg = false;
         var bgc = cs.backgroundColor;
         var bm = bgc.match(/[\d.]+/g);
-        if (bm && bm.length >= 3 && +(bm[3]||1) > 0.04) {
-          if (0.299*+bm[0]+0.587*+bm[1]+0.114*+bm[2] < 80) needBg = true;
+        if (bm && bm.length >= 3 && +(bm[3]||1) > 0.3) {
+          if (0.299*+bm[0]+0.587*+bm[1]+0.114*+bm[2] < 60) needBg = true;
         }
-        if (!needBg) {
-          var bgi = cs.backgroundImage;
-          if (bgi && bgi !== 'none' && bgi.indexOf('url(') === -1) {
-            var hx = bgi.match(/#[0-9a-fA-F]{6}/g)||[];
-            needBg = hx.some(function(h){
-              return 0.299*parseInt(h.slice(1,3),16)+0.587*parseInt(h.slice(3,5),16)+0.114*parseInt(h.slice(5,7),16) < 90;
-            });
-          }
+        /* Gradiente oscuro sin url() */
+        if (!needBg && bgi && bgi !== 'none') {
+          var hx = bgi.match(/#[0-9a-fA-F]{6}/g)||[];
+          needBg = hx.some(function(h){
+            return 0.299*parseInt(h.slice(1,3),16)+0.587*parseInt(h.slice(3,5),16)+0.114*parseInt(h.slice(5,7),16) < 60;
+          });
         }
         if (needBg) {
-          /* NO tocar si tiene imagen de fondo (portada de curso) */
-          var bgiCheck = cs.backgroundImage;
-          if (bgiCheck && bgiCheck !== 'none' && bgiCheck.indexOf('url(') !== -1) {
-            needBg = false;
-          }
-        }
-        if (needBg) {
-          el.style.setProperty('background','#FFFEF9','important');
+          el.style.setProperty('background','#fff','important');
           el.style.setProperty('background-image','none','important');
-          el.style.setProperty('background-color','#FFFEF9','important');
+          el.style.setProperty('background-color','#fff','important');
         }
+        /* Texto claro → oscuro */
         var cc = cs.color.match(/[\d.]+/g);
         if (cc && cc.length >= 3 && 0.299*+cc[0]+0.587*+cc[1]+0.114*+cc[2] > 155) {
-          el.style.setProperty('color','#2C1810','important');
-          el.style.setProperty('-webkit-text-fill-color','#2C1810','important');
+          el.style.setProperty('color','#0b2554','important');
+          el.style.setProperty('-webkit-text-fill-color','#0b2554','important');
         }
       } catch(e) {}
     }
 
-    function fixAll() {
+        function fixAll() {
       document.querySelectorAll('*').forEach(fixOne);
     }
 
