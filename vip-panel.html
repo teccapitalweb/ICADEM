@@ -4090,7 +4090,7 @@
         <div class="ic-config-danger-body">
           <div style="flex:1;min-width:220px">
             <p class="ic-config-title">Solicitar cancelación de suscripción</p>
-            <p class="ic-config-sub">Al confirmar, tu acceso se desactivará de inmediato. <strong style="color:#f5d77a">No perderás tus datos</strong> — si decides regresar en el futuro podrás retomar exactamente donde lo dejaste.</p>
+            <p class="ic-config-sub">Al confirmar, tu acceso se desactivará de inmediato. <strong style="color:inherit">No perderás tus datos</strong> — si decides regresar en el futuro podrás retomar exactamente donde lo dejaste.</p>
           </div>
           <button id="btn-solicitar-cancelacion" onclick="solicitarCancelacion()" class="ic-btn-danger" type="button">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -24425,13 +24425,13 @@ window.loginDirecto = function() {
       '.ic-hello-line{background:linear-gradient(90deg,#C8A96E,transparent)!important;height:3px!important}',
 
       /* ── 7. TARJETAS OSCURAS → AZUL ICADEM (no negro) ── */
-      '.ic-quick-card-primary{background:linear-gradient(135deg,#C8A96E 0%,#A07840 100%)!important;background-image:linear-gradient(135deg,#C8A96E 0%,#A07840 100%)!important;border-color:rgba(122,92,56,.3)!important}',
+      '.ic-quick-card-primary{background:linear-gradient(135deg,#2C3E50 0%,#3D5A73 100%)!important;background-image:linear-gradient(135deg,#2C3E50 0%,#3D5A73 100%)!important;border-color:rgba(44,62,80,.3)!important}',
       '.ic-quick-card-primary *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
       '.ic-quick-card-primary .ic-quick-icon{background:rgba(255,255,255,.18)!important;border-color:rgba(255,255,255,.25)!important}',
       '.ic-quick-card-primary .ic-quick-badge{background:rgba(255,255,255,.15)!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;border-color:rgba(255,255,255,.25)!important}',
       '.ic-quick-card-wa{background:linear-gradient(135deg,#1B4332 0%,#2D6A4F 100%)!important;background-image:linear-gradient(135deg,#1B4332 0%,#2D6A4F 100%)!important}',
       '.ic-quick-card-wa *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
-      '.ic-countdown{background:linear-gradient(135deg,#3D2B1F 0%,#6B4226 100%)!important;background-image:linear-gradient(135deg,#3D2B1F 0%,#6B4226 100%)!important}',
+      '.ic-countdown{background:linear-gradient(135deg,#2D3561 0%,#3D4A8A 100%)!important;background-image:linear-gradient(135deg,#2D3561 0%,#3D4A8A 100%)!important}',
       '.ic-countdown *{color:#ffffff!important;-webkit-text-fill-color:#ffffff!important;opacity:1!important}',
 
       /* ── 8. BANNERS ESTADÍSTICAS — crema cálido (mismo tono que hero) ── */
@@ -24574,6 +24574,13 @@ window.loginDirecto = function() {
           }
         }
         if (needBg) {
+          /* NO tocar si tiene imagen de fondo (portada de curso) */
+          var bgiCheck = cs.backgroundImage;
+          if (bgiCheck && bgiCheck !== 'none' && bgiCheck.indexOf('url(') !== -1) {
+            needBg = false;
+          }
+        }
+        if (needBg) {
           el.style.setProperty('background','#FFFEF9','important');
           el.style.setProperty('background-image','none','important');
           el.style.setProperty('background-color','#FFFEF9','important');
@@ -24614,32 +24621,7 @@ window.loginDirecto = function() {
           el.style.setProperty('border','1px solid #D4C4A8','important');
           el.style.setProperty('border-radius','16px','important');
         });
-        /* También atacar por luminancia: cualquier contenedor con fondo muy oscuro que NO sea sidebar */
-        document.querySelectorAll('.section > div, .section > section, main > div').forEach(function(el) {
-          if (el.closest('.sidebar') || el.closest('.ic-hero')) return;
-          var cs = window.getComputedStyle(el);
-          var bg = cs.backgroundColor;
-          var bm = bg.match(/[\d.]+/g);
-          if (bm && bm.length >= 3 && parseFloat(bm[3]||1) > 0.5) {
-            var lum = 0.299*+bm[0] + 0.587*+bm[1] + 0.114*+bm[2];
-            if (lum < 60) {
-              el.style.setProperty('background','#F0EAD6','important');
-              el.style.setProperty('background-image','none','important');
-              el.style.setProperty('background-color','#F0EAD6','important');
-              el.style.setProperty('border','1px solid #D4C4A8','important');
-              el.style.setProperty('border-radius','16px','important');
-              /* Fix textos dentro */
-              el.querySelectorAll('*').forEach(function(c) {
-                var ccs = window.getComputedStyle(c);
-                var cc = ccs.color.match(/[\d.]+/g);
-                if (cc && 0.299*+cc[0]+0.587*+cc[1]+0.114*+cc[2] > 155) {
-                  c.style.setProperty('color','#2C1810','important');
-                  c.style.setProperty('-webkit-text-fill-color','#2C1810','important');
-                }
-              });
-            }
-          }
-        });
+        /* Luminance check removido — las cards de color son intencionales */
         /* Botón "Ver cursos" azul → tierra */
         document.querySelectorAll('button,a').forEach(function(el) {
           if (el.closest('.sidebar') || el.closest('.ic-hero')) return;
