@@ -24408,7 +24408,10 @@ window.loginDirecto = function() {
 
       /* ── 4. SISTEMA DE TARJETAS — blanco cálido con borde beige ── */
       '.section{background:#FFFEF9!important;border:1px solid #E8DFD0!important;border-radius:16px!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important}',
-      '.ic-stat-card,.ic-quick-card,.achievement-card,.noticia-card,.dir-card,.glass-panel,.ic-config-card,.cert-card,.certificate-card,.video-card,.material-card,.material-item,.plantilla-card,.lg-card,.card{background:#FFFEF9!important;background-image:none!important;border:1px solid #E8DFD0!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important;border-radius:12px!important;transition:box-shadow .18s ease,transform .18s ease!important}',
+      '.ic-stat-card,.ic-quick-card,.achievement-card,.noticia-card,.dir-card,.glass-panel,.ic-config-card,.cert-card,.certificate-card,.video-card,.material-card,.material-item,.plantilla-card,.card{background:#FFFEF9!important;background-image:none!important;border:1px solid #E8DFD0!important;box-shadow:0 1px 4px rgba(139,110,78,.07),0 4px 16px rgba(139,110,78,.05)!important;border-radius:12px!important;transition:box-shadow .18s ease,transform .18s ease!important}',
+      /* Cards de videoteca — transparentes con borde negro elegante */
+      '.lg-card{background:transparent!important;background-image:none!important;background-color:transparent!important;border:1.5px solid rgba(20,15,10,.55)!important;box-shadow:none!important;border-radius:14px!important;backdrop-filter:none!important;transition:border-color .18s ease,transform .18s ease!important}',
+      '.lg-card:hover{border-color:rgba(20,15,10,.85)!important;transform:translateY(-2px)!important;box-shadow:0 4px 16px rgba(20,15,10,.12)!important}',
 
       /* ── 5. HERO — crema cálido ── */
       '.ic-hero{background:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;background-image:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;border:1px solid #D4C4A8!important;border-radius:16px!important;box-shadow:0 4px 20px rgba(139,110,78,.12)!important}',
@@ -24533,6 +24536,12 @@ window.loginDirecto = function() {
 
       /* ── 26. TOGGLE ── */
       'body.modo-dia #btn-modo-toggle{background:rgba(200,169,110,.15)!important;border-color:rgba(200,169,110,.4)!important}',
+      /* Clases en Vivo — estado vacío crema */
+      'body.modo-dia #cursos-empty,body.modo-dia #cursos-empty[style]{background:linear-gradient(135deg,#F5EDD8 0%,#EDE0C4 100%)!important;border:1px solid #D4C4A8!important;box-shadow:0 2px 12px rgba(139,110,78,.08)!important;border-radius:16px!important}',
+      'body.modo-dia #cursos-empty *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important}',
+      'body.modo-dia #cursos-empty p[style*="color:#64748b"]{color:#6B5744!important;-webkit-text-fill-color:#6B5744!important}',
+      'body.modo-dia #cursos-empty svg{stroke:#7A5C38!important}',
+      'body.modo-dia #cursos-empty [style*="background:rgba(20,104,177"]{background:rgba(122,92,56,.12)!important;border-color:rgba(122,92,56,.2)!important}',
       'body.modo-dia .ic-btn-cta{background:linear-gradient(135deg,#fef3c7 0%,#f5d77a 35%,#c8962a 100%)!important;color:#0b1f4a!important;-webkit-text-fill-color:#0b1f4a!important;border-color:rgba(254,243,199,.5)!important;box-shadow:0 6px 22px rgba(245,215,122,.45)!important}',
       'html body .ic-logros-header,html body [class*=logros-header],html body [class*=logros-banner],html body [class*=logros-top]{background:#F5EDD8!important;background-image:none!important;border:1px solid #D4C4A8!important}',
       'html body .ic-logros-header *,html body [class*=logros-header] *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}'
