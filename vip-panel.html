@@ -24225,6 +24225,71 @@ window._icademLogros = {
   };
 
   // ═══════════════════════════════════════════════════════════
+  // 🚨 LIMPIEZA FORZADA (emergencia) - llamar desde consola si quedó card
+  // fantasma de versiones viejas. Uso: window.borrarMiCardYa()
+  // ═══════════════════════════════════════════════════════════
+  window.borrarMiCardYa = async function() {
+    const auth = (typeof getAuth === 'function') ? getAuth() : null;
+    if (!auth || !auth.currentUser) {
+      console.error('❌ No estás logueado. Inicia sesión primero.');
+      return false;
+    }
+
+    console.log('🧹 Limpiando card del directorio para UID:', auth.currentUser.uid);
+
+    try {
+      const { doc, setDoc, deleteDoc, serverTimestamp } =
+        await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const db = getFirestore();
+      const ref = doc(db, 'directorio', auth.currentUser.uid);
+
+      // Soft delete robusto
+      await setDoc(ref, {
+        uid: auth.currentUser.uid,
+        visible: false,
+        cargo: '',
+        empresa: '',
+        industria: '',
+        ciudad: '',
+        experiencia: null,
+        bio: '',
+        ofrece: [],
+        busca: [],
+        contacto: { whatsapp: '', email: '', linkedin: '', web: '' },
+        foto: '',
+        colorAcento: '#f5d77a',
+        nombre: '',
+        eliminadoEn: serverTimestamp(),
+        actualizadoEn: serverTimestamp()
+      }, { merge: false });
+
+      // Intentar hard delete también
+      try { await deleteDoc(ref); } catch(e) {}
+
+      // Limpiar state local
+      _miPerfil = null;
+      _todosPerfiles = _todosPerfiles.filter(p => p.id !== auth.currentUser.uid);
+      filtrarYRenderizar();
+      actualizarBannerPrivacidad();
+
+      // Recargar del server
+      await cargarDirectorio();
+
+      console.log('✅ Card eliminada exitosamente');
+      mostrarToast({
+        tipo: 'success',
+        titulo: '✓ Card eliminada',
+        mensaje: 'Tu card del Directorio fue eliminada correctamente.',
+        duracion: 5000
+      });
+      return true;
+    } catch(e) {
+      console.error('❌ Error en limpieza:', e);
+      return false;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
   // FILTRAR (handler global expuesto)
   // ═══════════════════════════════════════════════════════════
   window.filtrarDirectorio = function() {
