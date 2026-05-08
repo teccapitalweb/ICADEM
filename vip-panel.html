@@ -24532,7 +24532,12 @@ window.loginDirecto = function() {
       '::-webkit-scrollbar-thumb:hover{background:#C8A96E!important}',
 
       /* ── 26. TOGGLE ── */
-      'body.modo-dia #btn-modo-toggle{background:rgba(200,169,110,.15)!important;border-color:rgba(200,169,110,.4)!important}'
+      'body.modo-dia #btn-modo-toggle{background:rgba(200,169,110,.15)!important;border-color:rgba(200,169,110,.4)!important}',
+      /* Botones azules inline → tierra */
+      '[style*="background:#2563"],[style*="background:#1d4e"],[style*="background:#1a73"],[style*="background:rgb(37,99"],[style*="background:rgb(29,78"]{background:#7A5C38!important;color:#ffffff!important;-webkit-text-fill-color:#ffffff!important}',
+      /* Fondo Mis logros — override máxima especificidad */
+      'html body .ic-logros-header,html body [class*=logros-header],html body [class*=logros-banner],html body [class*=logros-top]{background:#F0EAD6!important;background-image:none!important;border:1px solid #D4C4A8!important}',
+      'html body .ic-logros-header *,html body [class*=logros-header] *{color:#2C1810!important;-webkit-text-fill-color:#2C1810!important;opacity:1!important}'
     ].join('');
 
     /* ── Crear/reusar style tag ── */
@@ -24571,15 +24576,18 @@ window.loginDirecto = function() {
           }
         }
         if (needBg) {
-          el.style.setProperty('background','#fff','important');
-          el.style.setProperty('background-image','none','important');
-          el.style.setProperty('background-color','#fff','important');
+          /* Crema para elementos generales, blanco cálido para cards */
+          var bg_cream = '#F0EAD6';
+          el.style.setProperty('background', bg_cream, 'important');
+          el.style.setProperty('background-image', 'none', 'important');
+          el.style.setProperty('background-color', bg_cream, 'important');
+          el.style.setProperty('border-color', 'rgba(139,110,78,.15)', 'important');
         }
-        /* Color de texto */
+        /* Color de texto — café oscuro */
         var cc = cs.color.match(/[\d.]+/g);
         if (cc && cc.length >= 3 && 0.299*+cc[0]+0.587*+cc[1]+0.114*+cc[2] > 155) {
-          el.style.setProperty('color','#0d1440','important');
-          el.style.setProperty('-webkit-text-fill-color','#0d1440','important');
+          el.style.setProperty('color','#2C1810','important');
+          el.style.setProperty('-webkit-text-fill-color','#2C1810','important');
         }
       } catch(e) {}
     }
