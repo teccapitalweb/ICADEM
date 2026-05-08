@@ -24607,8 +24607,67 @@ window.loginDirecto = function() {
       setTimeout(fixAll, 400);
       setTimeout(fixAll, 1000);
       setTimeout(fixAll, 2500);
+
+      /* Fix puntual: logros container + botón Ver cursos */
+      function fixSpecific() {
+        /* Mis logros — el contenedor oscuro completo */
+        document.querySelectorAll('.ic-logros-header,.ic-logros-banner,.ic-logros-wrapper,.ic-logros-container,[class*=logros-header],[class*=logros-banner],[class*=logros-top],[class*=logros-wrap]').forEach(function(el) {
+          el.style.setProperty('background','#F0EAD6','important');
+          el.style.setProperty('background-image','none','important');
+          el.style.setProperty('background-color','#F0EAD6','important');
+          el.style.setProperty('border','1px solid #D4C4A8','important');
+          el.style.setProperty('border-radius','16px','important');
+        });
+        /* También atacar por luminancia: cualquier contenedor con fondo muy oscuro que NO sea sidebar */
+        document.querySelectorAll('.section > div, .section > section, main > div').forEach(function(el) {
+          if (el.closest('.sidebar') || el.closest('.ic-hero')) return;
+          var cs = window.getComputedStyle(el);
+          var bg = cs.backgroundColor;
+          var bm = bg.match(/[\d.]+/g);
+          if (bm && bm.length >= 3 && parseFloat(bm[3]||1) > 0.5) {
+            var lum = 0.299*+bm[0] + 0.587*+bm[1] + 0.114*+bm[2];
+            if (lum < 60) {
+              el.style.setProperty('background','#F0EAD6','important');
+              el.style.setProperty('background-image','none','important');
+              el.style.setProperty('background-color','#F0EAD6','important');
+              el.style.setProperty('border','1px solid #D4C4A8','important');
+              el.style.setProperty('border-radius','16px','important');
+              /* Fix textos dentro */
+              el.querySelectorAll('*').forEach(function(c) {
+                var ccs = window.getComputedStyle(c);
+                var cc = ccs.color.match(/[\d.]+/g);
+                if (cc && 0.299*+cc[0]+0.587*+cc[1]+0.114*+cc[2] > 155) {
+                  c.style.setProperty('color','#2C1810','important');
+                  c.style.setProperty('-webkit-text-fill-color','#2C1810','important');
+                }
+              });
+            }
+          }
+        });
+        /* Botón "Ver cursos" azul → tierra */
+        document.querySelectorAll('button,a').forEach(function(el) {
+          if (el.closest('.sidebar') || el.closest('.ic-hero')) return;
+          var cs = window.getComputedStyle(el);
+          var bg = cs.backgroundColor;
+          var bm = bg.match(/[\d.]+/g);
+          if (bm && bm.length >= 3 && parseFloat(bm[3]||1) > 0.5) {
+            var r=+bm[0], g=+bm[1], b=+bm[2];
+            /* Azul brillante: B dominante y alto, R y G bajos */
+            if (b > 150 && b > r*1.5 && b > g*1.5) {
+              el.style.setProperty('background','#C8A96E','important');
+              el.style.setProperty('background-color','#C8A96E','important');
+              el.style.setProperty('color','#ffffff','important');
+              el.style.setProperty('-webkit-text-fill-color','#ffffff','important');
+            }
+          }
+        });
+      }
+      setTimeout(fixSpecific, 200);
+      setTimeout(fixSpecific, 800);
+      setTimeout(fixSpecific, 2000);
+
       /* Interval por 20s */
-      var iv = setInterval(fixAll, 800);
+      var iv = setInterval(function(){ fixAll(); fixSpecific(); }, 800);
       setTimeout(function(){ clearInterval(iv); }, 20000);
       /* Observer */
       var ob = new MutationObserver(function(ms){
