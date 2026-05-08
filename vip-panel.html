@@ -23451,7 +23451,18 @@ window._icademLogros = {
       _todosPerfiles = [];
       snap.forEach(d => {
         const data = d.data();
-        _todosPerfiles.push({ id: d.id, ...data });
+        // ── FILTRO DEFENSIVO: excluir cards "fantasma" ──
+        // Una card es válida solo si:
+        // 1. NO tiene flag `eliminadoEn` (no fue soft-deleted)
+        // 2. Tiene al menos cargo O empresa (datos básicos del perfil)
+        // 3. visible == true (ya filtrado por la query, pero double-check)
+        const fueEliminada = !!data.eliminadoEn;
+        const tieneInfoBasica = (data.cargo && data.cargo.trim()) || (data.empresa && data.empresa.trim());
+        const realmenteVisible = data.visible === true;
+
+        if (!fueEliminada && tieneInfoBasica && realmenteVisible) {
+          _todosPerfiles.push({ id: d.id, ...data });
+        }
       });
 
       // Si el usuario está logueado, cargar SU perfil
