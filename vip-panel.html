@@ -24235,57 +24235,165 @@ window._icademLogros = {
       return false;
     }
 
-    console.log('🧹 Limpiando card del directorio para UID:', auth.currentUser.uid);
+    const user = auth.currentUser;
+    console.log('🧹 Limpiando cards del directorio para:');
+    console.log('   - UID actual:', user.uid);
+    console.log('   - Email:', user.email);
+    console.log('   - DisplayName:', user.displayName);
 
     try {
-      const { doc, setDoc, deleteDoc, serverTimestamp } =
+      const { doc, setDoc, deleteDoc, collection, query, where, getDocs, serverTimestamp } =
         await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
       const db = getFirestore();
-      const ref = doc(db, 'directorio', auth.currentUser.uid);
 
-      // Soft delete robusto
-      await setDoc(ref, {
-        uid: auth.currentUser.uid,
-        visible: false,
-        cargo: '',
-        empresa: '',
-        industria: '',
-        ciudad: '',
-        experiencia: null,
-        bio: '',
-        ofrece: [],
-        busca: [],
-        contacto: { whatsapp: '', email: '', linkedin: '', web: '' },
-        foto: '',
-        colorAcento: '#f5d77a',
-        nombre: '',
-        eliminadoEn: serverTimestamp(),
-        actualizadoEn: serverTimestamp()
-      }, { merge: false });
+      // ── PASO 1: Borrar el doc con el UID actual ──
+      const refMio = doc(db, 'directorio', user.uid);
+      try {
+        await setDoc(refMio, {
+          uid: user.uid,
+          visible: false,
+          cargo: '', empresa: '', industria: '', ciudad: '',
+          experiencia: null, bio: '', ofrece: [], busca: [],
+          contacto: { whatsapp: '', email: '', linkedin: '', web: '' },
+          foto: '', colorAcento: '#f5d77a', nombre: '',
+          eliminadoEn: serverTimestamp(),
+          actualizadoEn: serverTimestamp()
+        }, { merge: false });
+        console.log('✓ Doc del UID actual marcado como eliminado');
+      } catch(e) {
+        console.warn('⚠ No pude tocar el doc del UID actual:', e.message);
+      }
+      try { await deleteDoc(refMio); } catch(e) {}
 
-      // Intentar hard delete también
-      try { await deleteDoc(ref); } catch(e) {}
+      // ── PASO 2: Buscar TODAS las cards visibles cuyo nombre o email coincida ──
+      // (cubre el caso de cuentas duplicadas con UIDs diferentes)
+      const ref = collection(db, 'directorio');
+      const q = query(ref, where('visible', '==', true));
+      const snap = await getDocs(q);
 
-      // Limpiar state local
+      const candidatos = [];
+      snap.forEach(d => {
+        const data = d.data();
+        const matchEmail = data.contacto && data.contacto.email && user.email &&
+                           data.contacto.email.toLowerCase() === user.email.toLowerCase();
+        const matchNombre = data.nombre && user.displayName &&
+                            data.nombre.toLowerCase().trim() === user.displayName.toLowerCase().trim();
+        if (matchEmail || matchNombre || d.id === user.uid) {
+          candidatos.push({ id: d.id, nombre: data.nombre, email: data.contacto?.email });
+        }
+      });
+
+      console.log(`🎯 Encontré ${candidatos.length} card(s) que parecen tuyas:`, candidatos);
+
+      // ── PASO 3: Soft delete a cada candidata ──
+      let eliminadas = 0;
+      for (const c of candidatos) {
+        try {
+          await setDoc(doc(db, 'directorio', c.id), {
+            uid: c.id,
+            visible: false,
+            cargo: '', empresa: '', industria: '', ciudad: '',
+            experiencia: null, bio: '', ofrece: [], busca: [],
+            contacto: { whatsapp: '', email: '', linkedin: '', web: '' },
+            foto: '', colorAcento: '#f5d77a', nombre: '',
+            eliminadoEn: serverTimestamp(),
+            actualizadoEn: serverTimestamp()
+          }, { merge: false });
+          try { await deleteDoc(doc(db, 'directorio', c.id)); } catch(e) {}
+          eliminadas++;
+          console.log(`   ✓ Eliminada: "${c.nombre}" (${c.id})`);
+        } catch(e) {
+          console.warn(`   ⚠ No pude eliminar "${c.nombre}" (${c.id}):`, e.message);
+          console.warn('     → Esto probablemente significa que las security rules de Firestore');
+          console.warn('       solo permiten que el dueño original elimine su doc.');
+          console.warn('       Necesitas iniciar sesión con la cuenta que creó esa card.');
+        }
+      }
+
+      // ── PASO 4: Limpiar state local ──
       _miPerfil = null;
-      _todosPerfiles = _todosPerfiles.filter(p => p.id !== auth.currentUser.uid);
+      const idsEliminados = candidatos.map(c => c.id);
+      _todosPerfiles = _todosPerfiles.filter(p => !idsEliminados.includes(p.id));
       filtrarYRenderizar();
       actualizarBannerPrivacidad();
 
-      // Recargar del server
+      // ── PASO 5: Recargar del server ──
       await cargarDirectorio();
 
-      console.log('✅ Card eliminada exitosamente');
-      mostrarToast({
-        tipo: 'success',
-        titulo: '✓ Card eliminada',
-        mensaje: 'Tu card del Directorio fue eliminada correctamente.',
-        duracion: 5000
-      });
-      return true;
+      if (eliminadas > 0) {
+        console.log(`✅ ${eliminadas} card(s) eliminadas exitosamente`);
+        mostrarToast({
+          tipo: 'success',
+          titulo: '✓ Cards eliminadas',
+          mensaje: `Se eliminaron ${eliminadas} card(s) del Directorio.`,
+          duracion: 5000
+        });
+      } else {
+        console.warn('⚠ NINGUNA card se pudo eliminar.');
+        console.warn('   Probable causa: las cards visibles fueron creadas con OTRA cuenta.');
+        console.warn('   Ejecuta window.diagnosticarDirectorio() para más info.');
+      }
+      return eliminadas > 0;
     } catch(e) {
       console.error('❌ Error en limpieza:', e);
       return false;
+    }
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // 🔍 DIAGNÓSTICO del directorio - ver UIDs y dueños
+  // Uso: window.diagnosticarDirectorio()
+  // ═══════════════════════════════════════════════════════════
+  window.diagnosticarDirectorio = async function() {
+    const auth = (typeof getAuth === 'function') ? getAuth() : null;
+    if (!auth) { console.error('❌ Auth no disponible'); return; }
+    
+    console.log('═══════════════════════════════════════════');
+    console.log('🔍 DIAGNÓSTICO DEL DIRECTORIO');
+    console.log('═══════════════════════════════════════════');
+    
+    const user = auth.currentUser;
+    if (user) {
+      console.log('\n👤 USUARIO ACTUAL:');
+      console.log('   UID:', user.uid);
+      console.log('   Email:', user.email);
+      console.log('   DisplayName:', user.displayName);
+    } else {
+      console.log('\n❌ NO ESTÁS LOGUEADO');
+      return;
+    }
+    
+    try {
+      const { collection, getDocs } =
+        await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      const db = getFirestore();
+      const snap = await getDocs(collection(db, 'directorio'));
+      
+      console.log(`\n📋 DOCUMENTOS EN /directorio (${snap.size} total):`);
+      console.log('───────────────────────────────────────────');
+      snap.forEach(d => {
+        const data = d.data();
+        const esTuyo = d.id === user.uid;
+        const matchEmail = data.contacto?.email?.toLowerCase() === user.email?.toLowerCase();
+        const matchNombre = data.nombre?.toLowerCase().trim() === user.displayName?.toLowerCase().trim();
+        const tag = esTuyo ? ' 🟢 (UID coincide)' : 
+                    matchEmail ? ' 🟡 (email coincide)' : 
+                    matchNombre ? ' 🟡 (nombre coincide)' : '';
+        console.log(`\n📄 ${d.id}${tag}`);
+        console.log('   nombre:', data.nombre);
+        console.log('   email:', data.contacto?.email || '(sin email)');
+        console.log('   visible:', data.visible);
+        console.log('   eliminadoEn:', data.eliminadoEn ? '(eliminada)' : '(activa)');
+      });
+      
+      console.log('\n═══════════════════════════════════════════');
+      console.log('💡 SI VES UNA CARD QUE NO ES "TUYA" PERO QUERÍAS BORRARLA:');
+      console.log('   → Esa card fue creada con OTRA cuenta de Firebase');
+      console.log('   → Cierra sesión y entra con la cuenta que la creó');
+      console.log('   → O pide a Anthropic Support borrarla manualmente desde Firestore Console');
+      console.log('═══════════════════════════════════════════');
+    } catch(e) {
+      console.error('Error:', e);
     }
   };
 
