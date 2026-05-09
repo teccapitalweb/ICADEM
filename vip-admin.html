@@ -132,6 +132,218 @@
       .sidebar-overlay.open{display:block}.main{margin-left:0}.menu-btn{display:flex}
       .content{padding:1.25rem}
     }
+
+    /* ═══════════════════════════════════════════════════════════
+       BOTONES DE ACCIÓN COMPACTOS (panel miembros)
+       ═══════════════════════════════════════════════════════════ */
+    .m-actions{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+    .m-act-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:30px;height:30px;border-radius:6px;
+      background:#fff;border:1px solid var(--border2);
+      color:var(--text-muted);cursor:pointer;
+      transition:all .15s;flex-shrink:0;padding:0
+    }
+    .m-act-btn:hover{background:#f8fafc;color:var(--blue);transform:translateY(-1px)}
+    .m-act-btn.activate:hover{background:rgba(16,185,129,.1);color:var(--green);border-color:rgba(16,185,129,.4)}
+    .m-act-btn.deactivate:hover{background:rgba(200,150,42,.1);color:var(--gold);border-color:rgba(200,150,42,.4)}
+    .m-act-btn.danger:hover{background:rgba(220,38,38,.08);color:var(--red);border-color:rgba(220,38,38,.4)}
+    .m-act-btn svg{width:14px;height:14px;stroke-width:2}
+    .m-act-btn:disabled,.m-act-btn[disabled]{pointer-events:none}
+
+    /* ═══════════════════════════════════════════════════════════
+       TOAST (notificaciones flotantes)
+       ═══════════════════════════════════════════════════════════ */
+    .icd-toast{
+      position:fixed;bottom:24px;right:24px;
+      min-width:280px;max-width:420px;
+      background:#fff;border-radius:10px;
+      padding:14px 18px;
+      box-shadow:0 10px 30px rgba(11,37,84,.18),0 2px 8px rgba(0,0,0,.06);
+      border-left:4px solid var(--blue);
+      display:flex;align-items:center;gap:12px;
+      font-family:var(--font-b);font-size:13px;color:var(--text-body);
+      z-index:9999;
+      transform:translateY(20px);opacity:0;pointer-events:none;
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1),opacity .25s
+    }
+    .icd-toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
+    .icd-toast.success{border-left-color:var(--green)}
+    .icd-toast.success .icd-toast-icon{background:rgba(16,185,129,.12);color:var(--green)}
+    .icd-toast.error{border-left-color:var(--red)}
+    .icd-toast.error .icd-toast-icon{background:rgba(220,38,38,.12);color:var(--red)}
+    .icd-toast.warn{border-left-color:var(--gold)}
+    .icd-toast.warn .icd-toast-icon{background:rgba(200,150,42,.12);color:var(--gold)}
+    .icd-toast-icon{
+      width:28px;height:28px;border-radius:8px;
+      background:rgba(11,47,104,.1);color:var(--blue);
+      display:flex;align-items:center;justify-content:center;flex-shrink:0
+    }
+    .icd-toast-icon svg{width:16px;height:16px;stroke-width:2.5}
+    .icd-toast-msg{flex:1;font-weight:500;line-height:1.4}
+
+    /* ═══════════════════════════════════════════════════════════
+       MODAL DE CONFIRMACIÓN GENÉRICO (showModal)
+       ═══════════════════════════════════════════════════════════ */
+    .icd-modal-backdrop{
+      position:fixed;inset:0;background:rgba(11,37,84,.55);
+      backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+      z-index:800;display:none;align-items:center;justify-content:center;
+      padding:20px;opacity:0;transition:opacity .25s
+    }
+    .icd-modal-backdrop.show{display:flex;opacity:1}
+    .icd-modal-card{
+      background:#fff;border-radius:16px;
+      max-width:440px;width:100%;
+      box-shadow:0 25px 60px rgba(0,0,0,.3);
+      transform:scale(.95) translateY(10px);
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1);
+      overflow:hidden
+    }
+    .icd-modal-backdrop.show .icd-modal-card{transform:scale(1) translateY(0)}
+    .icd-modal-head{padding:22px 24px 0;display:flex;gap:14px;align-items:flex-start}
+    .icd-modal-icon{
+      width:42px;height:42px;border-radius:11px;
+      display:flex;align-items:center;justify-content:center;flex-shrink:0
+    }
+    .icd-modal-icon svg{width:22px;height:22px;stroke-width:2.2}
+    .icd-modal-icon.warn{background:rgba(200,150,42,.15);color:var(--gold)}
+    .icd-modal-icon.danger{background:rgba(220,38,38,.12);color:var(--red)}
+    .icd-modal-icon.info{background:rgba(11,47,104,.1);color:var(--blue)}
+    .icd-modal-icon.success{background:rgba(16,185,129,.12);color:var(--green)}
+    .icd-modal-title{
+      font-family:var(--font-d);font-size:20px;font-weight:700;
+      color:var(--text);margin:0;line-height:1.2;flex:1
+    }
+    .icd-modal-body{
+      padding:14px 24px 4px 80px;
+      font-size:13.5px;color:var(--text-body);line-height:1.55
+    }
+    .icd-modal-body b{color:var(--text);font-weight:700}
+    .icd-modal-foot{
+      padding:18px 24px 22px;
+      display:flex;gap:10px;justify-content:flex-end
+    }
+    .icd-modal-btn{
+      padding:10px 20px;border-radius:8px;
+      font-family:var(--font-b);font-size:12px;font-weight:600;
+      letter-spacing:.05em;cursor:pointer;
+      transition:all .15s;border:none
+    }
+    .icd-modal-btn.cancel{
+      background:#fff;border:1px solid var(--border2);color:var(--text-muted)
+    }
+    .icd-modal-btn.cancel:hover{background:#f8fafc;color:var(--text)}
+    .icd-modal-btn.primary{
+      background:linear-gradient(135deg,var(--blue),var(--blue-mid));color:#fff
+    }
+    .icd-modal-btn.primary:hover{opacity:.9;transform:translateY(-1px)}
+    .icd-modal-btn.danger{
+      background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff
+    }
+    .icd-modal-btn.danger:hover{opacity:.9;transform:translateY(-1px)}
+    .icd-modal-btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+    @media(max-width:520px){
+      .icd-modal-body{padding-left:24px}
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MODAL DE ACTIVACIÓN (Mensual / Anual / Regalo)
+       ═══════════════════════════════════════════════════════════ */
+    .icd-act-overlay{
+      position:fixed;inset:0;background:rgba(11,37,84,.55);
+      backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);
+      z-index:700;display:none;align-items:center;justify-content:center;
+      padding:20px;opacity:0;transition:opacity .25s
+    }
+    .icd-act-overlay.active{display:flex;opacity:1}
+    .icd-act-modal{
+      background:#fff;border-radius:18px;
+      max-width:480px;width:100%;
+      max-height:92vh;overflow-y:auto;
+      box-shadow:0 25px 60px rgba(0,0,0,.3);
+      transform:scale(.95) translateY(10px);
+      transition:transform .3s cubic-bezier(.34,1.56,.64,1)
+    }
+    .icd-act-overlay.active .icd-act-modal{transform:scale(1) translateY(0)}
+    .icd-act-head{padding:22px 24px 14px;border-bottom:1px solid var(--border)}
+    .icd-act-head h3{
+      font-family:var(--font-d);font-size:21px;font-weight:700;
+      color:var(--text);margin:0;letter-spacing:-.01em
+    }
+    .icd-act-head p{
+      font-family:var(--font-b);font-size:12.5px;color:var(--text-muted);
+      margin:5px 0 0;line-height:1.45
+    }
+    .icd-act-body{padding:18px 24px}
+    .icd-act-option{
+      width:100%;display:flex;gap:13px;align-items:center;
+      padding:13px 15px;background:#fff;
+      border:1.5px solid var(--border);border-radius:13px;
+      cursor:pointer;transition:all .2s;
+      margin-bottom:9px;text-align:left;
+      font-family:var(--font-b)
+    }
+    .icd-act-option:hover{
+      border-color:var(--blue-mid);
+      background:rgba(20,82,152,.04);
+      transform:translateY(-1px);
+      box-shadow:0 4px 14px rgba(11,47,104,.1)
+    }
+    .icd-act-icon{
+      width:42px;height:42px;border-radius:11px;
+      display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;font-size:21px
+    }
+    .icd-act-icon.mensual{background:rgba(11,47,104,.1);color:var(--blue)}
+    .icd-act-icon.anual{background:rgba(200,150,42,.15);color:var(--gold)}
+    .icd-act-icon.regalo{background:rgba(16,185,129,.15);color:var(--green)}
+    .icd-act-text{flex:1;min-width:0}
+    .icd-act-title{
+      font-family:var(--font-b);font-size:13.5px;font-weight:700;
+      color:var(--text);margin:0 0 2px
+    }
+    .icd-act-desc{
+      font-size:12px;color:var(--text-muted);margin:0;line-height:1.4
+    }
+    .icd-act-arrow{
+      color:#cbd5e1;font-size:17px;flex-shrink:0;
+      transition:transform .2s,color .2s
+    }
+    .icd-act-option:hover .icd-act-arrow{
+      transform:translateX(3px);color:var(--blue)
+    }
+    .icd-regalo-buttons{
+      display:none;gap:9px;
+      padding:13px 15px;
+      background:rgba(16,185,129,.07);
+      border:1.5px solid rgba(16,185,129,.35);
+      border-radius:13px;margin-bottom:9px
+    }
+    .icd-regalo-buttons.active{display:flex}
+    .icd-regalo-btn{
+      flex:1;padding:11px;background:#fff;
+      border:1.5px solid rgba(16,185,129,.4);
+      border-radius:10px;
+      font-family:var(--font-b);font-size:12.5px;font-weight:700;
+      color:#047857;cursor:pointer;transition:all .15s
+    }
+    .icd-regalo-btn:hover{
+      background:rgba(16,185,129,.12);
+      border-color:rgba(16,185,129,.7);
+      transform:translateY(-1px)
+    }
+    .icd-act-foot{
+      padding:14px 24px 22px;display:flex;justify-content:flex-end
+    }
+    .icd-act-cancel{
+      padding:10px 18px;background:#fff;
+      border:1.5px solid var(--border2);border-radius:10px;
+      font-family:var(--font-b);font-size:12px;font-weight:600;
+      color:var(--text-muted);cursor:pointer;
+      transition:all .15s
+    }
+    .icd-act-cancel:hover{background:#f8fafc;color:var(--text)}
   </style>
   <!-- EmailJS SDK -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -903,10 +1115,22 @@
       const avatar = `<div style="width:36px;height:36px;border-radius:50%;background:${colorAvatar(m.uid)};color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${iniciales(m.nombre, m.email)}</div>`;
 
       const accion = conAccion ? `<td>
-        ${!activa ? `<button class="btn-activar" onclick="window.activarMembreciaManual('${m.uid}', this)" title="Activar VIP manualmente">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-          Activar VIP
-        </button>` : `<button class="btn-outline" onclick="window.verMiembroAdmin('${m.uid}')" style="padding:5px 12px;font-size:10px">Ver</button>`}
+        <div class="m-actions">
+          ${!activa
+            ? `<button class="m-act-btn activate" title="Activar membresía" onclick="window.abrirModalActivar('${m.uid}')">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+               </button>`
+            : `<button class="m-act-btn deactivate" title="Desactivar membresía" onclick="window.toggleActiveAdmin('${m.uid}', false)">
+                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+               </button>`
+          }
+          <button class="m-act-btn" title="Ver detalles" onclick="window.verMiembroAdmin('${m.uid}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+          <button class="m-act-btn danger" title="Eliminar miembro" onclick="window.eliminarMiembroAdmin('${m.uid}')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+        </div>
       </td>` : '';
 
       return `<tr>
@@ -1478,6 +1702,242 @@ match /databases/{database}/documents {
     }
   };
 
+  // ═══════════════════════════════════════════════════════════════
+  // SISTEMA DE TOAST + MODAL (replicado del admin de Sinergia)
+  // ═══════════════════════════════════════════════════════════════
+  function icdToast(msg, type = 'success') {
+    const t = document.getElementById('icd-toast');
+    if (!t) { console.log('[toast]', type, msg); return; }
+    document.getElementById('icd-toast-msg').textContent = msg;
+    t.className = 'icd-toast ' + type;
+    const icon = document.getElementById('icd-toast-icon');
+    if (type === 'error')      icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+    else if (type === 'warn')  icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    else                       icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    requestAnimationFrame(() => t.classList.add('show'));
+    clearTimeout(window._icdToastTimer);
+    window._icdToastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+  }
+
+  window.icdCloseModal = function() {
+    document.getElementById('icd-modal-backdrop').classList.remove('show');
+  };
+
+  function icdShowModal({ title, body, confirmText = 'Confirmar', type = 'warn', onConfirm }) {
+    document.getElementById('icd-modal-title').textContent = title;
+    document.getElementById('icd-modal-body').innerHTML = body;
+
+    const iconBox = document.getElementById('icd-modal-icon');
+    iconBox.className = 'icd-modal-icon ' + type;
+    if (type === 'danger')      iconBox.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+    else if (type === 'success') iconBox.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    else if (type === 'info')    iconBox.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    else                          iconBox.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+
+    const btn = document.getElementById('icd-modal-confirm');
+    btn.textContent = confirmText;
+    btn.className = 'icd-modal-btn ' + (type === 'danger' ? 'danger' : 'primary');
+    btn.onclick = async () => {
+      btn.disabled = true;
+      try { await onConfirm(); }
+      catch (e) { console.error('[icdShowModal] Error en onConfirm:', e); icdToast('Error: ' + (e.message || e), 'error'); }
+      btn.disabled = false;
+      icdCloseModal();
+    };
+    document.getElementById('icd-modal-backdrop').classList.add('show');
+  }
+
+  // Cerrar modal genérico con ESC
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const bk = document.getElementById('icd-modal-backdrop');
+      if (bk && bk.classList.contains('show')) icdCloseModal();
+      const ov = document.getElementById('icd-act-overlay');
+      if (ov && ov.classList.contains('active')) cerrarModalActivar();
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // DESACTIVAR MEMBRESÍA (NO toca Stripe — solo pone activa:false)
+  // ═══════════════════════════════════════════════════════════════
+  window.toggleActiveAdmin = function(uid, newState) {
+    const m = (window._miembros || []).find(x => x.uid === uid);
+    if (!m) { icdToast('Miembro no encontrado', 'error'); return; }
+    const nombre = m.nombre || m.email || 'este miembro';
+    icdShowModal({
+      type: newState ? 'info' : 'warn',
+      title: newState ? '¿Activar membresía?' : '¿Desactivar membresía?',
+      body: newState
+        ? `Se activará la membresía de <b>${nombre}</b>.`
+        : `Se desactivará la membresía de <b>${nombre}</b> inmediatamente.<br><br>Los datos se conservan: puedes reactivarla cuando quieras.<br><br><span style="color:#b45309;font-weight:600">⚠ Esta acción NO cancela suscripciones de pago — solo bloquea el acceso al panel VIP.</span>`,
+      confirmText: newState ? 'Activar' : 'Desactivar',
+      onConfirm: async () => {
+        const { db, doc, updateDoc, serverTimestamp } = window._fb;
+        await updateDoc(doc(db, 'membresias', uid), {
+          activa: newState,
+          estado: newState ? 'activa' : 'inactiva',
+          ...(newState
+            ? { activadaEn: serverTimestamp(), activadaPor: 'admin' }
+            : { desactivadaEn: serverTimestamp(), desactivadaPor: 'admin' })
+        });
+        // Refrescar state local + UI
+        m.activa = newState;
+        m._activaCalculada = newState;
+        m.estado = newState ? 'activa' : 'inactiva';
+        renderMiembros(window._miembros);
+        recalcStatsMiembros();
+        icdToast(newState ? 'Membresía activada ✓' : 'Membresía desactivada ✓', newState ? 'success' : 'success');
+      }
+    });
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // MODAL DE ACTIVACIÓN (Mensual / Anual / Regalo 3-5-7 días)
+  // ═══════════════════════════════════════════════════════════════
+  let _icdActivandoUid = null;
+
+  window.abrirModalActivar = function(uid) {
+    _icdActivandoUid = uid;
+    const m = (window._miembros || []).find(x => x.uid === uid);
+    if (!m) { icdToast('Miembro no encontrado', 'error'); return; }
+    const nombre = m.nombre || m.email || 'este miembro';
+    document.getElementById('icd-act-subtitle').textContent = `Para: ${nombre}. Selecciona el tipo de activación:`;
+    document.getElementById('icd-regalo-buttons').classList.remove('active');
+    document.getElementById('icd-act-overlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.cerrarModalActivar = function() {
+    document.getElementById('icd-act-overlay').classList.remove('active');
+    document.getElementById('icd-regalo-buttons').classList.remove('active');
+    document.body.style.overflow = '';
+    _icdActivandoUid = null;
+  };
+
+  window.toggleRegaloButtons = function(event) {
+    event.stopPropagation();
+    document.getElementById('icd-regalo-buttons').classList.toggle('active');
+  };
+
+  window.confirmarActivacion = function(tipo, dias) {
+    if (!_icdActivandoUid) return;
+    const uid = _icdActivandoUid;
+    let plan, precio, duracionDias, esRegalo = false;
+    if (tipo === 'mensual')      { plan = 'mensual'; precio = 250;  duracionDias = 30;  }
+    else if (tipo === 'anual')   { plan = 'anual';   precio = 2400; duracionDias = 365; }
+    else if (tipo === 'regalo')  { plan = 'regalo';  precio = 0;    duracionDias = dias || 3; esRegalo = true; }
+    else return;
+
+    const tipoLabel = tipo === 'mensual' ? 'Plan Mensual ($250 MXN)'
+                    : tipo === 'anual'   ? 'Plan Anual ($2,400 MXN)'
+                    : `Acceso de ${duracionDias} días (REGALO sin cobro)`;
+
+    cerrarModalActivar();
+    setTimeout(() => {
+      icdShowModal({
+        type: 'info',
+        title: '¿Confirmar activación?',
+        body: `<b>${tipoLabel}</b><br>Duración: ${duracionDias} días desde hoy.<br><br>El miembro tendrá acceso completo al panel VIP de inmediato.`,
+        confirmText: 'Sí, activar',
+        onConfirm: async () => {
+          const { db, doc, updateDoc, serverTimestamp } = window._fb;
+          const ahora = new Date();
+          const fechaVenc = new Date(ahora.getTime() + duracionDias * 24 * 60 * 60 * 1000);
+          await updateDoc(doc(db, 'membresias', uid), {
+            activa: true,
+            estado: 'activa',
+            plan: plan,
+            precio: precio,
+            activadaEn: serverTimestamp(),
+            fechaVencimiento: fechaVenc,
+            activadaManual: true,
+            activadoPor: 'admin',
+            esRegalo: esRegalo,
+            duracionDias: duracionDias,
+            tipoMembresia: esRegalo ? 'regalo' : 'pago'
+          });
+          // Refrescar state local + UI
+          const m = (window._miembros || []).find(x => x.uid === uid);
+          if (m) {
+            m.activa = true;
+            m._activaCalculada = true;
+            m.estado = 'activa';
+            m.plan = plan;
+            m.precio = precio;
+            m.esRegalo = esRegalo;
+            m.tipoMembresia = esRegalo ? 'regalo' : 'pago';
+            // Aproximar fechaVencimiento como objeto con toDate() para mantener compatibilidad
+            m.fechaVencimiento = { toDate: () => fechaVenc };
+          }
+          renderMiembros(window._miembros);
+          recalcStatsMiembros();
+          const fechaFmt = fechaVenc.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+          icdToast(`Membresía activada ✓ (vence ${fechaFmt})`, 'success');
+        }
+      });
+    }, 300);
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // ELIMINAR MIEMBRO (con fallback a soft delete si rules bloquean)
+  // ═══════════════════════════════════════════════════════════════
+  window.eliminarMiembroAdmin = function(uid) {
+    const m = (window._miembros || []).find(x => x.uid === uid);
+    const nombre = m ? (m.nombre || m.email || '(sin nombre)') : '(sin nombre)';
+    // Escapar para HTML (no para JS — aquí ya estamos en JS plano)
+    const nombreHtml = nombre.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    icdShowModal({
+      type: 'danger',
+      title: '¿Eliminar miembro?',
+      body: `Se eliminará permanentemente a <b>${nombreHtml}</b>.<br><br>Si las reglas de Firestore no permiten borrar, se hará una <b>baja lógica</b> (queda marcado como eliminado pero el documento se conserva).<br><br><span style="color:#be123c;font-weight:600">⚠ Esta acción NO se puede deshacer.</span>`,
+      confirmText: 'Eliminar',
+      onConfirm: async () => {
+        const { db, doc, deleteDoc, updateDoc, serverTimestamp } = window._fb;
+        let modo = 'borrado-completo';
+        try {
+          await deleteDoc(doc(db, 'membresias', uid));
+        } catch (errDel) {
+          console.warn('[eliminarMiembro] deleteDoc bloqueado por rules, aplicando soft-delete:', errDel?.message || errDel);
+          // Fallback: soft delete con updateDoc (el doc ya existe, no necesita setDoc)
+          await updateDoc(doc(db, 'membresias', uid), {
+            activa: false,
+            estado: 'eliminada',
+            eliminadoEn: serverTimestamp(),
+            eliminadoPor: 'admin'
+          });
+          modo = 'soft-delete';
+        }
+
+        if (modo === 'borrado-completo') {
+          // Quitar del state local
+          window._miembros = (window._miembros || []).filter(x => x.uid !== uid);
+        } else {
+          // Mantener en lista pero marcado como eliminado/inactivo
+          const m = (window._miembros || []).find(x => x.uid === uid);
+          if (m) {
+            m.activa = false;
+            m._activaCalculada = false;
+            m.estado = 'eliminada';
+          }
+        }
+        renderMiembros(window._miembros);
+        recalcStatsMiembros();
+        icdToast(modo === 'borrado-completo' ? 'Miembro eliminado ✓' : 'Miembro dado de baja ✓ (soft-delete)', 'success');
+      }
+    });
+  };
+
+  // Helper: recalcular contadores de stats tras cambios
+  function recalcStatsMiembros() {
+    const lista = window._miembros || [];
+    const activos = lista.filter(m => m._activaCalculada || m.activa).length;
+    const mensual = lista.filter(m => (m._activaCalculada || m.activa) && m.plan !== 'anual' && m.plan !== 'regalo').length;
+    const anual   = lista.filter(m => (m._activaCalculada || m.activa) && m.plan === 'anual').length;
+    const e1 = document.getElementById('stat-miembros'); if (e1) e1.textContent = activos;
+    const e2 = document.getElementById('stat-mensual');  if (e2) e2.textContent = mensual;
+    const e3 = document.getElementById('stat-anual');    if (e3) e3.textContent = anual;
+  }
+
 </script>
 
 <script>
@@ -1825,5 +2285,77 @@ match /databases/{database}/documents {
     </div>
   </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TOAST (notificación flotante)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="icd-toast" id="icd-toast" role="status" aria-live="polite">
+  <div class="icd-toast-icon" id="icd-toast-icon"></div>
+  <div class="icd-toast-msg" id="icd-toast-msg"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL DE CONFIRMACIÓN GENÉRICO (showModal)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="icd-modal-backdrop" id="icd-modal-backdrop" onclick="if(event.target===this)icdCloseModal()">
+  <div class="icd-modal-card" role="dialog" aria-modal="true" aria-labelledby="icd-modal-title">
+    <div class="icd-modal-head">
+      <div class="icd-modal-icon warn" id="icd-modal-icon"></div>
+      <h3 class="icd-modal-title" id="icd-modal-title">Confirmar acción</h3>
+    </div>
+    <div class="icd-modal-body" id="icd-modal-body"></div>
+    <div class="icd-modal-foot">
+      <button type="button" class="icd-modal-btn cancel" onclick="icdCloseModal()">Cancelar</button>
+      <button type="button" class="icd-modal-btn primary" id="icd-modal-confirm">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     MODAL DE ACTIVACIÓN DE MEMBRESÍA (Mensual / Anual / Regalo)
+     ═══════════════════════════════════════════════════════════════ -->
+<div class="icd-act-overlay" id="icd-act-overlay" onclick="if(event.target===this)cerrarModalActivar()">
+  <div class="icd-act-modal" role="dialog" aria-modal="true" aria-labelledby="icd-act-title">
+    <div class="icd-act-head">
+      <h3 id="icd-act-title">Activar membresía</h3>
+      <p id="icd-act-subtitle">Selecciona el tipo de activación que deseas otorgar:</p>
+    </div>
+    <div class="icd-act-body">
+      <button type="button" class="icd-act-option" onclick="confirmarActivacion('mensual')">
+        <div class="icd-act-icon mensual">📅</div>
+        <div class="icd-act-text">
+          <p class="icd-act-title">Mensual ($250 MXN)</p>
+          <p class="icd-act-desc">Activación de 30 días desde hoy</p>
+        </div>
+        <span class="icd-act-arrow">→</span>
+      </button>
+      <button type="button" class="icd-act-option" onclick="confirmarActivacion('anual')">
+        <div class="icd-act-icon anual">💎</div>
+        <div class="icd-act-text">
+          <p class="icd-act-title">Anual ($2,400 MXN)</p>
+          <p class="icd-act-desc">Activación de 365 días desde hoy</p>
+        </div>
+        <span class="icd-act-arrow">→</span>
+      </button>
+      <button type="button" class="icd-act-option" onclick="toggleRegaloButtons(event)">
+        <div class="icd-act-icon regalo">🎁</div>
+        <div class="icd-act-text">
+          <p class="icd-act-title">Acceso temporal (regalo)</p>
+          <p class="icd-act-desc">Sin cobro · Expira automáticamente</p>
+        </div>
+        <span class="icd-act-arrow">→</span>
+      </button>
+      <div class="icd-regalo-buttons" id="icd-regalo-buttons">
+        <button type="button" class="icd-regalo-btn" onclick="confirmarActivacion('regalo', 3)">3 días</button>
+        <button type="button" class="icd-regalo-btn" onclick="confirmarActivacion('regalo', 5)">5 días</button>
+        <button type="button" class="icd-regalo-btn" onclick="confirmarActivacion('regalo', 7)">7 días</button>
+      </div>
+    </div>
+    <div class="icd-act-foot">
+      <button type="button" class="icd-act-cancel" onclick="cerrarModalActivar()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
