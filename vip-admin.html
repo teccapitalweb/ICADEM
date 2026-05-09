@@ -729,8 +729,21 @@
     document.getElementById('loading').classList.add('hidden');
 
     // Cargar estadísticas de miembros
+    console.log('[Admin] Iniciando carga de miembros desde Firestore...');
     try {
       const memSnap = await getDocs(collection(db, 'membresias'));
+      console.log(`[Admin] ✓ Query exitosa. Documentos encontrados: ${memSnap.size}`);
+
+      if (memSnap.empty) {
+        console.warn('[Admin] ⚠ La colección "membresias" está VACÍA o no se pudo leer.');
+        document.getElementById('tabla-miembros').innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:2rem">Sin miembros registrados aún.<br><span style="font-size:11px">Si esperabas ver miembros, verifica que la colección "membresias" tenga documentos en Firebase Console.</span></td></tr>';
+        document.getElementById('tabla-recientes').innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:2rem">Sin miembros aún.</td></tr>';
+        document.getElementById('stat-miembros').textContent = '0';
+        document.getElementById('stat-mensual').textContent = '0';
+        document.getElementById('stat-anual').textContent = '0';
+        return;
+      }
+
       let activos = 0, mensual = 0, anual = 0;
       const filas = [];
 
@@ -764,14 +777,55 @@
           if (data.plan === 'anual') anual++; else mensual++;
         }
         filas.push({ uid: d.id, ...data });
+        console.log(`[Admin] Miembro: ${data.nombre || data.email || d.id} | activa:${data.activa} estado:${data.estado} → ${activaCalculada ? 'ACTIVO' : 'inactivo'}`);
       });
+
+      console.log(`[Admin] ✓ Total: ${filas.length} miembros | ${activos} activos | ${mensual} mensual | ${anual} anual`);
+
       document.getElementById('stat-miembros').textContent = activos;
       document.getElementById('stat-mensual').textContent = mensual;
       document.getElementById('stat-anual').textContent = anual;
       window._miembros = filas;
       // Mostrar TODOS los miembros, no solo los activos (admin necesita ver todo)
       renderMiembros(filas);
-    } catch(e) { console.warn('Error cargando miembros:', e); }
+      console.log('[Admin] ✓ Miembros renderizados en tabla');
+    } catch(e) {
+      // ── Mostrar error visible al usuario, no silenciar ──
+      console.error('[Admin] ❌ ERROR al cargar miembros:', e);
+      console.error('[Admin] Código de error:', e.code);
+      console.error('[Admin] Mensaje:', e.message);
+
+      let mensajeError = 'No se pudieron cargar los miembros.';
+      let detalle = '';
+
+      if (e.code === 'permission-denied' || (e.message || '').includes('permission')) {
+        mensajeError = '🔒 Sin permisos para leer la colección "membresias"';
+        detalle = `
+          <div style="margin-top:14px;padding:14px;background:#fef3c7;border:1px solid #fbbf24;border-radius:8px;text-align:left;font-size:12px;color:#78350f;line-height:1.6">
+            <strong style="display:block;margin-bottom:8px">⚠ Las security rules de Firestore están bloqueando la lectura.</strong>
+            Necesitas agregar esta regla en <strong>Firebase Console → Firestore Database → Reglas</strong>:
+            <pre style="margin-top:10px;padding:10px;background:#1f2937;color:#fbbf24;border-radius:6px;font-size:11px;overflow-x:auto">match /membresias/{uid} {
+  allow read: if request.auth != null;
+  allow write: if request.auth != null;
+}</pre>
+            <span style="display:block;margin-top:8px;font-size:11px">Después de actualizar, recarga esta página con <strong>Ctrl+Shift+R</strong>.</span>
+          </div>
+        `;
+      } else {
+        detalle = `<div style="margin-top:10px;font-size:11px;color:#dc2626;font-family:monospace;text-align:left;background:#fef2f2;padding:10px;border-radius:6px;border:1px solid #fecaca">${e.message || e}</div>`;
+      }
+
+      const tablaMsg = `<tr><td colspan="5" style="text-align:center;color:#dc2626;padding:2rem"><strong>${mensajeError}</strong>${detalle}</td></tr>`;
+      const recientesMsg = `<tr><td colspan="4" style="text-align:center;color:#dc2626;padding:2rem">${mensajeError}</td></tr>`;
+
+      const tm = document.getElementById('tabla-miembros');
+      const tr = document.getElementById('tabla-recientes');
+      if (tm) tm.innerHTML = tablaMsg;
+      if (tr) tr.innerHTML = recientesMsg;
+      document.getElementById('stat-miembros').textContent = '?';
+      document.getElementById('stat-mensual').textContent = '?';
+      document.getElementById('stat-anual').textContent = '?';
+    }
 
     // Cargar novedades
     try {
@@ -881,6 +935,92 @@
   }
   // Exponer a window para acceso externo
   window.renderMiembros = renderMiembros;
+
+  // ═══════════════════════════════════════════════════════════
+  // 🔍 DIAGNÓSTICO - ejecutar desde consola si la lista no carga
+  // Uso: window.diagnosticarMiembros()
+  // ═══════════════════════════════════════════════════════════
+  window.diagnosticarMiembros = async function() {
+    console.log('═══════════════════════════════════════════');
+    console.log('🔍 DIAGNÓSTICO DE MIEMBROS');
+    console.log('═══════════════════════════════════════════');
+
+    try {
+      const auth = (typeof getAuth === 'function') ? getAuth() : (window._fb && window._fb.auth);
+      const user = auth && auth.currentUser;
+      console.log('\n👤 USUARIO COORDINADOR:');
+      if (user) {
+        console.log('   UID:', user.uid);
+        console.log('   Email:', user.email);
+      } else {
+        console.error('   ❌ NO ESTÁS LOGUEADO COMO COORDINADOR');
+        console.log('   → Inicia sesión primero');
+        return;
+      }
+
+      const { db, collection, getDocs } = window._fb;
+      console.log('\n📋 INTENTANDO LEER colección "membresias"...');
+
+      try {
+        const snap = await getDocs(collection(db, 'membresias'));
+        console.log(`✓ Lectura exitosa. Documentos: ${snap.size}`);
+
+        if (snap.empty) {
+          console.warn('⚠ La colección está VACÍA');
+          console.log('   → Verifica en Firebase Console que existan documentos en /membresias');
+          return;
+        }
+
+        console.log('\n📄 DOCUMENTOS:');
+        let i = 0;
+        snap.forEach(d => {
+          i++;
+          const data = d.data();
+          const activaBool = data.activa;
+          const estadoStr = data.estado;
+          let estaActivo = '?';
+          if (activaBool === true) estaActivo = '✅ Activa (boolean)';
+          else if (activaBool === false) estaActivo = '❌ Inactiva (boolean false)';
+          else if (estadoStr === 'activo' || estadoStr === 'activa') estaActivo = '✅ Activa (estado:string)';
+          else if (estadoStr === 'cancelada' || estadoStr === 'cancelado') estaActivo = '❌ Cancelada';
+          else if (estadoStr === 'pendiente') estaActivo = '⏳ Pendiente';
+          else estaActivo = '❓ Sin estado claro';
+
+          console.log(`\n${i}. ${data.nombre || data.email || d.id}`);
+          console.log('   UID:', d.id);
+          console.log('   Email:', data.email || data.correo || '—');
+          console.log('   Plan:', data.plan || '—');
+          console.log('   activa (bool):', activaBool);
+          console.log('   estado (str):', estadoStr || '(no definido)');
+          console.log('   ESTATUS:', estaActivo);
+        });
+
+        console.log('\n═══════════════════════════════════════════');
+        console.log('💡 CONSEJOS:');
+        console.log('   • Si ves "❓ Sin estado claro" → ese miembro no se mostrará como activo');
+        console.log('   • Para activar manualmente: window.activarMembreciaManual("UID-AQUI")');
+        console.log('═══════════════════════════════════════════');
+
+      } catch(e) {
+        console.error('❌ ERROR al leer membresías:', e);
+        console.error('   Código:', e.code);
+        console.error('   Mensaje:', e.message);
+        if (e.code === 'permission-denied') {
+          console.warn('\n🔒 PROBLEMA: Las SECURITY RULES de Firestore están bloqueando la lectura.');
+          console.warn('SOLUCIÓN: Ve a Firebase Console → Firestore → Reglas y asegúrate de tener:');
+          console.warn(`
+match /databases/{database}/documents {
+  match /membresias/{uid} {
+    allow read: if request.auth != null;
+    allow write: if request.auth != null && request.auth.uid == uid;
+  }
+}`);
+        }
+      }
+    } catch(e) {
+      console.error('Error en diagnóstico:', e);
+    }
+  };
 
   // ═══════════════════════════════════════════════════════════
   // ACTIVAR MEMBRESÍA MANUALMENTE (cuando webhook viejo no puso `activa: true`)
