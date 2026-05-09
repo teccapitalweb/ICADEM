@@ -3894,6 +3894,210 @@
           </div>
         </div>
 
+<!-- ============================================================
+     🎉 MODAL: Splash de ACTIVACIÓN VIP (admin activó al miembro)
+     Lo dispara automáticamente vip-admin.html escribiendo
+     `notificacionPendiente` en el doc /membresias/{uid}.
+     ============================================================ -->
+<style>
+  .splash-activacion {
+    position: fixed; inset: 0; z-index: 99999;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .35s;
+  }
+  .splash-activacion.show { opacity: 1; pointer-events: auto; }
+  .splash-activacion-overlay {
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(11,47,104,0.85), rgba(2,5,15,0.95));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .splash-activacion-content {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 460px;
+    background: linear-gradient(160deg, #0b2554 0%, #0b2f68 50%, #1a5298 100%);
+    border: 1px solid rgba(245,215,122,0.35);
+    border-radius: 22px;
+    padding: 38px 30px 30px;
+    box-shadow:
+      0 30px 80px rgba(0,0,0,0.55),
+      0 0 0 1px rgba(245,215,122,0.18),
+      inset 0 1px 0 rgba(255,255,255,0.08),
+      0 0 60px rgba(245,215,122,0.18);
+    text-align: center;
+    transform: scale(.85) translateY(20px);
+    transition: transform .45s cubic-bezier(.34,1.56,.64,1);
+  }
+  .splash-activacion.show .splash-activacion-content { transform: scale(1) translateY(0); }
+  .splash-activacion-glow {
+    position: absolute;
+    top: -40px; left: 50%; transform: translateX(-50%);
+    width: 140px; height: 140px;
+    background: radial-gradient(circle, rgba(245,215,122,0.4), transparent 70%);
+    pointer-events: none;
+    animation: splashActGlowPulse 2.4s ease-in-out infinite;
+  }
+  @keyframes splashActGlowPulse {
+    0%,100% { opacity: .7; transform: translateX(-50%) scale(1); }
+    50% { opacity: 1; transform: translateX(-50%) scale(1.15); }
+  }
+  .splash-activacion-icon {
+    position: relative;
+    width: 86px; height: 86px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f5d77a, #d4a743);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow:
+      0 8px 24px rgba(245,215,122,0.4),
+      0 0 0 4px rgba(245,215,122,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.4);
+    animation: splashActIconBounce .7s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes splashActIconBounce {
+    0% { transform: scale(.3); opacity: 0; }
+    60% { transform: scale(1.15); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .splash-activacion-icon svg { color: #0b2554; }
+  .splash-activacion-eyebrow {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: .2em; text-transform: uppercase;
+    color: #f5d77a;
+    margin-bottom: 10px;
+  }
+  .splash-activacion-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 28px; font-weight: 700;
+    line-height: 1.15;
+    color: #fff;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .splash-activacion-title em {
+    font-style: italic;
+    color: #f5d77a;
+  }
+  .splash-activacion-desc {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    color: rgba(255,255,255,0.78);
+    line-height: 1.55;
+    margin-bottom: 22px;
+  }
+  .splash-activacion-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(245,215,122,0.25);
+    border-radius: 14px;
+    padding: 16px 18px;
+    margin-bottom: 22px;
+    text-align: left;
+  }
+  .splash-activacion-card-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .splash-activacion-card-row + .splash-activacion-card-row {
+    border-top: 1px solid rgba(245,215,122,0.12);
+  }
+  .splash-activacion-card-label {
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    font-weight: 600;
+  }
+  .splash-activacion-card-value {
+    font-size: 14px;
+    color: #fff;
+    font-weight: 700;
+  }
+  .splash-activacion-card-value.gold {
+    color: #f5d77a;
+  }
+  .splash-activacion-btn {
+    width: 100%;
+    padding: 14px 20px;
+    background: linear-gradient(135deg, #f5d77a, #d4a743);
+    color: #0b2554;
+    border: none;
+    border-radius: 11px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 13px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(245,215,122,0.35);
+    transition: transform .15s, box-shadow .15s, opacity .15s;
+  }
+  .splash-activacion-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 28px rgba(245,215,122,0.5);
+  }
+  .splash-activacion-btn:active { transform: translateY(0); }
+  /* Confetti dots */
+  .splash-activacion-confetti {
+    position: absolute; pointer-events: none;
+    inset: 0; overflow: hidden; border-radius: 22px;
+  }
+  .splash-activacion-confetti span {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    opacity: 0;
+    animation: splashActConfetti 2.5s ease-out forwards;
+  }
+  @keyframes splashActConfetti {
+    0% { opacity: 0; transform: translateY(-20px) scale(.5); }
+    20% { opacity: 1; }
+    100% { opacity: 0; transform: translateY(440px) scale(1) rotate(540deg); }
+  }
+  @media (max-width: 520px) {
+    .splash-activacion-content { padding: 32px 22px 24px; }
+    .splash-activacion-title { font-size: 24px; }
+    .splash-activacion-icon { width: 72px; height: 72px; }
+  }
+</style>
+
+<div id="splash-activacion" class="splash-activacion" role="dialog" aria-modal="true" aria-labelledby="splash-act-title">
+  <div class="splash-activacion-overlay" onclick="window.cerrarSplashActivacion && window.cerrarSplashActivacion()"></div>
+  <div class="splash-activacion-content">
+    <div class="splash-activacion-confetti" id="splash-act-confetti"></div>
+    <div class="splash-activacion-glow"></div>
+    <div class="splash-activacion-icon">
+      <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+    </div>
+    <p class="splash-activacion-eyebrow" id="splash-act-eyebrow">¡Acceso activado!</p>
+    <h2 class="splash-activacion-title" id="splash-act-title">¡Bienvenido al <em>club VIP</em>!</h2>
+    <p class="splash-activacion-desc" id="splash-act-desc">
+      Ya tienes acceso completo a todos los cursos, recursos y beneficios de ICADEM.
+    </p>
+    <div class="splash-activacion-card">
+      <div class="splash-activacion-card-row">
+        <span class="splash-activacion-card-label">Plan</span>
+        <span class="splash-activacion-card-value gold" id="splash-act-plan">—</span>
+      </div>
+      <div class="splash-activacion-card-row">
+        <span class="splash-activacion-card-label">Vence</span>
+        <span class="splash-activacion-card-value" id="splash-act-vence">—</span>
+      </div>
+      <div class="splash-activacion-card-row">
+        <span class="splash-activacion-card-label">Tiempo de acceso</span>
+        <span class="splash-activacion-card-value" id="splash-act-dias">—</span>
+      </div>
+    </div>
+    <button class="splash-activacion-btn" onclick="window.cerrarSplashActivacion && window.cerrarSplashActivacion()">
+      Empezar ahora →
+    </button>
+  </div>
+</div>
+
         <p class="splash-cert-eyebrow">Felicidades</p>
         <h2 class="splash-cert-title">¡Has completado <em>el curso</em>!</h2>
         <p class="splash-cert-curso" id="splash-cert-curso-titulo">—</p>
@@ -4724,6 +4928,21 @@
         activarModoInvitado(user); return;
       }
       // Aún no vence — dejar pasar, mostrar banner de aviso
+    } else if (snapData.activadaManual === true && snapData.fechaVencimiento) {
+      // Activación manual del admin (mensual/anual/regalo): respetar fechaVencimiento.
+      // Si ya pasó la fecha, auto-expirar y mandar a modo invitado.
+      const ahora = new Date();
+      const vence = snapData.fechaVencimiento.toDate ? snapData.fechaVencimiento.toDate() : new Date(snapData.fechaVencimiento);
+      if (ahora > vence) {
+        const { setDoc: sd, doc: dd } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        await sd(dd(db, 'membresias', user.uid), { activa: false, estado: 'expirado' }, { merge: true })
+          .catch(err => console.warn('No se pudo marcar como expirado:', err));
+        activarModoInvitado(user); return;
+      }
+      // Aún dentro del periodo: si activa es false (raro), forzar a true para mantener acceso
+      if (!snapData.activa) {
+        activarModoInvitado(user); return;
+      }
     } else if (!snapData.activa) {
       activarModoInvitado(user); return;
     }
@@ -4908,6 +5127,36 @@
           window.mostrarSplashBienvenida(user);
         }
       }, 1200);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // 🎉 SPLASH DE ACTIVACIÓN — el admin activó/regaló membresía a este miembro
+    // Lo dispara la presencia de `notificacionPendiente` con mostrada:false
+    // en el doc /membresias/{uid}. Después de mostrarlo se marca mostrada:true.
+    // ═══════════════════════════════════════════════════════════════════════
+    try {
+      const np = data.notificacionPendiente;
+      if (np && np.tipo === 'activacion' && np.mostrada !== true) {
+        // Decidir si mostrar al iniciar o después del splash de bienvenida
+        const delay = necesitaSplashNombre ? 0 : 900;
+        setTimeout(() => {
+          if (typeof window.mostrarSplashActivacion === 'function') {
+            window.mostrarSplashActivacion({
+              plan: np.plan,
+              duracionDias: np.duracionDias,
+              esRegalo: np.esRegalo === true,
+              fechaVencimiento: np.fechaVencimiento
+            });
+          }
+          // Marcar como mostrada (no bloquear si falla)
+          updateDoc(doc(db, 'membresias', user.uid), {
+            'notificacionPendiente.mostrada': true,
+            'notificacionPendiente.mostradaEn': serverTimestamp()
+          }).catch(err => console.warn('No se pudo marcar notificación como mostrada:', err));
+        }, delay);
+      }
+    } catch (e) {
+      console.warn('[notificacionPendiente] Error procesando:', e);
     }
 
     // Guardar perfil
@@ -22748,6 +22997,95 @@ window.cerrarSplashBienvenida = function() {
   if (!splash) return;
   splash.style.display = 'none';
   document.body.style.overflow = '';
+};
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🎉 SPLASH DE ACTIVACIÓN — popup que ve el miembro cuando el admin lo activa
+// ═══════════════════════════════════════════════════════════════════════════
+window.mostrarSplashActivacion = function(opts) {
+  const splash = document.getElementById('splash-activacion');
+  if (!splash) return;
+  opts = opts || {};
+
+  // ── Construir textos según el tipo de activación ──
+  const esRegalo = opts.esRegalo === true;
+  const plan = opts.plan || 'mensual';
+  const dias = Number(opts.duracionDias) || 30;
+
+  let planLabel, eyebrowLabel, titleHtml, descText;
+  if (esRegalo || plan === 'regalo') {
+    planLabel    = '🎁 Acceso de regalo';
+    eyebrowLabel = '¡TIENES UN REGALO!';
+    titleHtml    = 'ICADEM te regaló <em>acceso VIP</em>';
+    descText     = 'Disfruta todos los cursos, recursos y beneficios sin costo durante este periodo.';
+  } else if (plan === 'anual') {
+    planLabel    = 'Plan Anual';
+    eyebrowLabel = '¡MEMBRESÍA VIP ACTIVA!';
+    titleHtml    = '¡Bienvenido al <em>club VIP</em>!';
+    descText     = 'Tienes acceso completo durante todo el año. Aprovecha cada curso, cada recurso y cada beneficio.';
+  } else {
+    planLabel    = 'Plan Mensual';
+    eyebrowLabel = '¡MEMBRESÍA VIP ACTIVA!';
+    titleHtml    = '¡Bienvenido al <em>club VIP</em>!';
+    descText     = 'Ya tienes acceso completo a todos los cursos, recursos y beneficios de ICADEM.';
+  }
+
+  // ── Calcular fecha de vencimiento legible ──
+  let fechaVenceTxt = '—';
+  try {
+    let fv = opts.fechaVencimiento;
+    if (fv && typeof fv.toDate === 'function') fv = fv.toDate();
+    else if (fv && fv.seconds) fv = new Date(fv.seconds * 1000);
+    else if (typeof fv === 'string' || typeof fv === 'number') fv = new Date(fv);
+    if (fv instanceof Date && !isNaN(fv)) {
+      fechaVenceTxt = fv.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+    }
+  } catch(e) { /* fallback a "—" */ }
+
+  // ── Pintar contenido ──
+  const set = (id, val, html) => {
+    const el = document.getElementById(id);
+    if (el) { if (html) el.innerHTML = val; else el.textContent = val; }
+  };
+  set('splash-act-eyebrow', eyebrowLabel);
+  set('splash-act-title', titleHtml, true);
+  set('splash-act-desc', descText);
+  set('splash-act-plan', planLabel);
+  set('splash-act-vence', fechaVenceTxt);
+  set('splash-act-dias', `${dias} día${dias !== 1 ? 's' : ''}`);
+
+  // ── Lanzar confeti ──
+  const confetti = document.getElementById('splash-act-confetti');
+  if (confetti) {
+    confetti.innerHTML = '';
+    const colores = ['#f5d77a', '#fff', '#93c5fd', '#fde68a', '#1a5298'];
+    for (let i = 0; i < 22; i++) {
+      const dot = document.createElement('span');
+      dot.style.left = Math.random() * 100 + '%';
+      dot.style.top = (-20 + Math.random() * 40) + 'px';
+      dot.style.background = colores[Math.floor(Math.random() * colores.length)];
+      dot.style.animationDelay = (Math.random() * 0.6) + 's';
+      dot.style.animationDuration = (1.8 + Math.random() * 1.2) + 's';
+      confetti.appendChild(dot);
+    }
+  }
+
+  // ── Mostrar con animación ──
+  splash.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+  // Force reflow para que la animación arranque
+  void splash.offsetWidth;
+  splash.classList.add('show');
+};
+
+window.cerrarSplashActivacion = function() {
+  const splash = document.getElementById('splash-activacion');
+  if (!splash) return;
+  splash.classList.remove('show');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    document.body.style.overflow = '';
+  }, 350);
 };
 
 // ═══════════════════════════════════════════════════════════════

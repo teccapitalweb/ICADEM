@@ -1854,7 +1854,18 @@ match /databases/{database}/documents {
             activadoPor: 'admin',
             esRegalo: esRegalo,
             duracionDias: duracionDias,
-            tipoMembresia: esRegalo ? 'regalo' : 'pago'
+            tipoMembresia: esRegalo ? 'regalo' : 'pago',
+            // Notificación que el panel VIP del miembro detectará al cargar:
+            // muestra un splash de bienvenida y se marca mostrada:true para no repetir.
+            notificacionPendiente: {
+              tipo: 'activacion',
+              plan: plan,
+              duracionDias: duracionDias,
+              esRegalo: esRegalo,
+              fechaVencimiento: fechaVenc,
+              fechaCreacion: ahora,
+              mostrada: false
+            }
           });
           // Refrescar state local + UI
           const m = (window._miembros || []).find(x => x.uid === uid);
