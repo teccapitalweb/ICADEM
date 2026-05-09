@@ -104,6 +104,12 @@
     .btn-outline{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;background:transparent;border:1px solid var(--border2);border-radius:6px;font-family:var(--font-b);font-size:11px;font-weight:600;color:var(--blue);cursor:pointer;transition:all .15s}
     .btn-outline:hover{background:rgba(20,104,177,.06)}
 
+    /* Botón Activar VIP - verde llamativo */
+    .btn-activar{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;background:linear-gradient(135deg,#10b981,#059669);border:none;border-radius:6px;font-family:var(--font-b);font-size:10px;font-weight:700;letter-spacing:.05em;color:#fff;cursor:pointer;transition:all .15s;box-shadow:0 1px 3px rgba(16,185,129,.3)}
+    .btn-activar:hover{transform:translateY(-1px);box-shadow:0 4px 10px rgba(16,185,129,.4)}
+    .btn-activar:disabled{opacity:.6;cursor:not-allowed}
+    .btn-activar svg{stroke:#fff}
+
     /* SEARCH */
     .search-wrap{position:relative;flex:1;max-width:280px}
     .search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.4}
@@ -727,9 +733,33 @@
       const memSnap = await getDocs(collection(db, 'membresias'));
       let activos = 0, mensual = 0, anual = 0;
       const filas = [];
+
+      // ── Helper: detectar si una membresía está activa ──
+      // Acepta TANTO el formato viejo (estado: "activo") como el nuevo (activa: true)
+      // Esto hace el panel compatible con docs creados por webhooks viejos Y nuevos
+      function esMembreciaActiva(data) {
+        if (data.activa === true) return true;  // formato nuevo (boolean)
+        if (data.activa === false) return false; // explícitamente desactivada
+
+        // Formatos viejos (string) - normaliza a minúsculas
+        const estado = (data.estado || '').toString().toLowerCase().trim();
+        if (estado === 'activo' || estado === 'activa' || estado === 'active') return true;
+
+        // Caso especial: cancelado_pendiente con fecha de vencimiento futura sigue siendo activa
+        if (estado === 'cancelado_pendiente' && data.fechaVencimiento) {
+          const vence = data.fechaVencimiento.toDate ? data.fechaVencimiento.toDate() : new Date(data.fechaVencimiento);
+          if (new Date() < vence) return true;
+        }
+        return false;
+      }
+      window._esMembreciaActiva = esMembreciaActiva;
+
       memSnap.forEach(d => {
         const data = d.data();
-        if (data.activa) {
+        const activaCalculada = esMembreciaActiva(data);
+        // Normalizar el campo activa para que las funciones siguientes funcionen
+        data._activaCalculada = activaCalculada;
+        if (activaCalculada) {
           activos++;
           if (data.plan === 'anual') anual++; else mensual++;
         }
@@ -739,7 +769,8 @@
       document.getElementById('stat-mensual').textContent = mensual;
       document.getElementById('stat-anual').textContent = anual;
       window._miembros = filas;
-      renderMiembros(filas.filter(m => m.activa));
+      // Mostrar TODOS los miembros, no solo los activos (admin necesita ver todo)
+      renderMiembros(filas);
     } catch(e) { console.warn('Error cargando miembros:', e); }
 
     // Cargar novedades
@@ -775,39 +806,139 @@
       tbodyR.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:2rem">Sin miembros registrados aún.</td></tr>';
       return;
     }
-    const rows = lista.map(m => {
-      const plan   = m.plan === 'anual' ? '<span class="badge badge-gold">Anual</span>' : '<span class="badge badge-blue">Mensual</span>';
-      const estado = m.activa ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
-      const fecha  = m.creadoEn?.toDate ? m.creadoEn.toDate().toLocaleDateString('es-MX') : '—';
-      const nombre = m.nombre || m.email || '—';
-      const correo = m.correo || '—';
+
+    // Helper para iniciales del avatar
+    function iniciales(nombre, email) {
+      const fuente = (nombre || email || '?').toString().trim();
+      const palabras = fuente.split(/\s+/).filter(Boolean);
+      if (palabras.length >= 2) return (palabras[0][0] + palabras[1][0]).toUpperCase();
+      return fuente.substring(0, 2).toUpperCase();
+    }
+
+    // Helper para color de avatar (consistente por uid)
+    function colorAvatar(uid) {
+      const colors = ['#1E3A8A', '#0d9488', '#7c3aed', '#dc2626', '#c8962a', '#0891b2', '#be185d'];
+      let hash = 0;
+      for (let i = 0; i < (uid || '').length; i++) hash = (hash * 31 + uid.charCodeAt(i)) | 0;
+      return colors[Math.abs(hash) % colors.length];
+    }
+
+    const esActiva = window._esMembreciaActiva || (m => m.activa === true);
+
+    const renderFila = (m, conAccion) => {
+      const activa = m._activaCalculada !== undefined ? m._activaCalculada : esActiva(m);
+      const plan = m.plan === 'anual' ? '<span class="badge badge-gold">Anual</span>' : '<span class="badge badge-blue">Mensual</span>';
+      // Estado más rico: activa, cancelada, pendiente
+      let estado;
+      const estadoStr = (m.estado || '').toString().toLowerCase().trim();
+      if (activa) {
+        if (estadoStr === 'cancelado_pendiente') estado = '<span class="badge badge-gold">Por vencer</span>';
+        else estado = '<span class="badge badge-green">Activa</span>';
+      } else if (estadoStr === 'cancelada' || estadoStr === 'cancelado') {
+        estado = '<span class="badge badge-red">Cancelada</span>';
+      } else if (estadoStr === 'expirado' || estadoStr === 'vencida') {
+        estado = '<span class="badge badge-red">Vencida</span>';
+      } else {
+        estado = '<span class="badge badge-red">Inactiva</span>';
+      }
+      const fecha = m.creadoEn?.toDate ? m.creadoEn.toDate().toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' })
+                  : m.fechaSuscripcion?.toDate ? m.fechaSuscripcion.toDate().toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' })
+                  : '—';
+      const nombre = m.nombre || (m.email || '').split('@')[0] || 'Sin nombre';
+      const correo = m.correo || m.email || '—';
+      const avatar = `<div style="width:36px;height:36px;border-radius:50%;background:${colorAvatar(m.uid)};color:#fff;font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0">${iniciales(m.nombre, m.email)}</div>`;
+
+      const accion = conAccion ? `<td>
+        ${!activa ? `<button class="btn-activar" onclick="window.activarMembreciaManual('${m.uid}', this)" title="Activar VIP manualmente">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          Activar VIP
+        </button>` : `<button class="btn-outline" onclick="window.verMiembroAdmin('${m.uid}')" style="padding:5px 12px;font-size:10px">Ver</button>`}
+      </td>` : '';
+
       return `<tr>
         <td>
-          <p style="font-size:13px;font-weight:600;color:#0d47a1">${nombre}</p>
-          <p style="font-size:11px;color:#64748b">${correo}</p>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${avatar}
+            <div style="min-width:0">
+              <p style="font-size:13px;font-weight:600;color:#0d47a1;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nombre}</p>
+              <p style="font-size:11px;color:#64748b;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${correo}</p>
+            </div>
+          </div>
         </td>
         <td>${plan}</td><td>${estado}</td><td>${fecha}</td>
-        <td><button class="btn-outline" style="padding:4px 10px;font-size:10px">Ver</button></td>
+        ${accion}
       </tr>`;
-    });
-    tbody.innerHTML = rows.join('');
-    // Tabla recientes sin botón
-    const rowsR = lista.slice(0,5).map(m => {
-      const plan   = m.plan === 'anual' ? '<span class="badge badge-gold">Anual</span>' : '<span class="badge badge-blue">Mensual</span>';
-      const estado = m.activa ? '<span class="badge badge-green">Activo</span>' : '<span class="badge badge-red">Inactivo</span>';
-      const fecha  = m.creadoEn?.toDate ? m.creadoEn.toDate().toLocaleDateString('es-MX') : '—';
-      const nombre = m.nombre || m.email || '—';
-      const correo = m.correo || '—';
-      return `<tr>
-        <td>
-          <p style="font-size:13px;font-weight:600;color:#0d47a1">${nombre}</p>
-          <p style="font-size:11px;color:#64748b">${correo}</p>
-        </td>
-        <td>${plan}</td><td>${estado}</td><td>${fecha}</td>
-      </tr>`;
-    });
-    tbodyR.innerHTML = rowsR.join('');
+    };
+
+    tbody.innerHTML = lista.map(m => renderFila(m, true)).join('');
+    // Tabla recientes (sin columna acción)
+    const recientes = lista.slice().sort((a, b) => {
+      const da = a.creadoEn?.toDate ? a.creadoEn.toDate() : new Date(0);
+      const db_ = b.creadoEn?.toDate ? b.creadoEn.toDate() : new Date(0);
+      return db_ - da;
+    }).slice(0, 5);
+    tbodyR.innerHTML = recientes.map(m => renderFila(m, false)).join('');
   }
+  // Exponer a window para acceso externo
+  window.renderMiembros = renderMiembros;
+
+  // ═══════════════════════════════════════════════════════════
+  // ACTIVAR MEMBRESÍA MANUALMENTE (cuando webhook viejo no puso `activa: true`)
+  // ═══════════════════════════════════════════════════════════
+  window.activarMembreciaManual = async function(uid, btn) {
+    if (!window.confirm('¿Activar membresía VIP de este usuario?\n\nSe agregará el campo activa: true al doc.\nEl usuario tendrá acceso completo al panel VIP.')) return;
+
+    const txtOrig = btn ? btn.innerHTML : '';
+    if (btn) { btn.innerHTML = 'Activando…'; btn.disabled = true; }
+
+    try {
+      const { db, doc, updateDoc, serverTimestamp } = window._fb;
+      await updateDoc(doc(db, 'membresias', uid), {
+        activa: true,
+        estado: 'activa',
+        activadaEn: serverTimestamp(),
+        activadaManual: true
+      });
+
+      // Actualizar el state local y re-render
+      const idx = (window._miembros || []).findIndex(m => m.uid === uid);
+      if (idx >= 0) {
+        window._miembros[idx].activa = true;
+        window._miembros[idx]._activaCalculada = true;
+        window._miembros[idx].estado = 'activa';
+      }
+      renderMiembros(window._miembros);
+      // Recalcular stats
+      const activos = window._miembros.filter(m => m._activaCalculada || m.activa).length;
+      const mensual = window._miembros.filter(m => (m._activaCalculada || m.activa) && m.plan !== 'anual').length;
+      const anual = window._miembros.filter(m => (m._activaCalculada || m.activa) && m.plan === 'anual').length;
+      document.getElementById('stat-miembros').textContent = activos;
+      document.getElementById('stat-mensual').textContent = mensual;
+      document.getElementById('stat-anual').textContent = anual;
+
+      alert('✅ Membresía activada correctamente.');
+    } catch(e) {
+      console.error('Error activando membresía:', e);
+      alert('❌ Error al activar: ' + (e.message || 'desconocido'));
+      if (btn) { btn.innerHTML = txtOrig; btn.disabled = false; }
+    }
+  };
+
+  // Ver detalles de un miembro (placeholder simple - puede expandirse)
+  window.verMiembroAdmin = function(uid) {
+    const m = (window._miembros || []).find(x => x.uid === uid);
+    if (!m) return alert('Miembro no encontrado');
+    const info = [
+      `📧 Email: ${m.email || m.correo || '—'}`,
+      `👤 Nombre: ${m.nombre || '—'}`,
+      `💎 Plan: ${m.plan || '—'}`,
+      `✓ Estado: ${m.estado || (m.activa ? 'activa' : 'inactiva')}`,
+      `📅 Suscrito: ${m.fechaSuscripcion?.toDate ? m.fechaSuscripcion.toDate().toLocaleDateString('es-MX') : '—'}`,
+      `⏰ Vence: ${m.fechaVencimiento?.toDate ? m.fechaVencimiento.toDate().toLocaleDateString('es-MX') : '—'}`,
+      `🆔 UID: ${m.uid}`
+    ].join('\n');
+    alert(info);
+  };
 
   function renderNovedades(lista) {
     const tbody = document.getElementById('tabla-novedades');
