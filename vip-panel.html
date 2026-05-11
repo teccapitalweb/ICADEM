@@ -1974,6 +1974,154 @@ body.modo-dia .topbar > div:not(.topbar-right):not(.topbar-plan) {
 .topbar .topbar-plan {
   /* mantiene amarillo */
 }
+
+/* ============================================================================
+   PERFIL INPUTS PREMIUM + TOPBAR SOLIDO
+   - Topbar dejara de ser translucido para verse limpio
+   - Inputs del perfil estilizados premium (no negros, no planos)
+   ============================================================================ */
+
+/* TOPBAR: SOLIDO BLANCO sin blur translucido */
+.topbar,
+body.modo-dia .topbar,
+html.modo-dia .topbar {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid #E5E9F2 !important;
+  box-shadow: 0 1px 3px rgba(15,23,42,0.04) !important;
+}
+
+/* TOPBAR-TITLE ("Mi Perfil") - SIN recuadro/fondo, solo texto limpio */
+.topbar-title,
+#topbar-title,
+body.modo-dia .topbar-title,
+body.modo-dia #topbar-title {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+}
+
+/* ============================================================================
+   INPUTS DEL PERFIL - Look premium elegante (sobrescribe estilos inline)
+   ============================================================================ */
+#perfil-nombre-input,
+#perfil-empresa,
+#perfil-cargo,
+#pass-actual,
+#pass-nueva,
+#pass-confirmar {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  border: 1.5px solid #E5E9F2 !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  font-family: 'Inter', 'Space Grotesk', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  width: 100% !important;
+  outline: none !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+  letter-spacing: 0.005em !important;
+}
+
+#perfil-nombre-input:hover,
+#perfil-empresa:hover,
+#perfil-cargo:hover,
+#pass-actual:hover,
+#pass-nueva:hover,
+#pass-confirmar:hover {
+  border-color: #CBD5E1 !important;
+  background: #FAFBFC !important;
+  background-color: #FAFBFC !important;
+}
+
+#perfil-nombre-input:focus,
+#perfil-empresa:focus,
+#perfil-cargo:focus,
+#pass-actual:focus,
+#pass-nueva:focus,
+#pass-confirmar:focus {
+  border-color: #1E3A8A !important;
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 0 0 4px rgba(30,58,138,0.10), 0 1px 2px rgba(15,23,42,0.04) !important;
+  outline: none !important;
+}
+
+#perfil-nombre-input::placeholder,
+#perfil-empresa::placeholder,
+#perfil-cargo::placeholder,
+#pass-actual::placeholder,
+#pass-nueva::placeholder,
+#pass-confirmar::placeholder {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+}
+
+/* Labels arriba de los inputs - elegancia con dorado sutil */
+.perfil-label,
+[class*="perfil-label"],
+#sec-perfil label,
+body.modo-dia #sec-perfil label {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+}
+
+/* ============================================================================
+   BOTONES del perfil: Guardar cambios + Actualizar contrasena
+   ============================================================================ */
+#btn-guardar-perfil,
+#btn-cambiar-pass,
+button[onclick*="cambiarContrasena"],
+button[onclick*="guardarPerfil"] {
+  background: linear-gradient(135deg, #0b2554 0%, #1565c0 100%) !important;
+  background-image: linear-gradient(135deg, #0b2554 0%, #1565c0 100%) !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  border: none !important;
+  border-radius: 10px !important;
+  padding: 11px 22px !important;
+  font-weight: 700 !important;
+  font-size: 12.5px !important;
+  letter-spacing: 0.06em !important;
+  cursor: pointer !important;
+  box-shadow: 0 2px 8px rgba(11, 37, 84, 0.25) !important;
+  transition: all 0.2s ease !important;
+  text-transform: uppercase !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+#btn-guardar-perfil:hover,
+#btn-cambiar-pass:hover,
+button[onclick*="cambiarContrasena"]:hover,
+button[onclick*="guardarPerfil"]:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(11, 37, 84, 0.35) !important;
+  opacity: 1 !important;
+}
 </style>
 </head>
 <body>
