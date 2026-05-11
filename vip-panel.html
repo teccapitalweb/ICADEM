@@ -1276,6 +1276,328 @@ body.modo-dia .lg-card.is-unlocked .lg-card-xp {
     }
 
   </style>
+
+<style id="premium-vip-styles">
+/* ============================================================================
+   PREMIUM SIDEBAR USER + TOPBAR VIP - Mas presencia visual
+   Cubre modo dia Y modo noche con la misma estetica premium dorada.
+   ============================================================================ */
+
+/* Keyframes premium */
+@keyframes vip-shimmer-bg {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes vip-pulse-soft {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,215,122,0.45), 0 4px 14px rgba(245,215,122,0.30); }
+  50%      { box-shadow: 0 0 0 6px rgba(245,215,122,0.00), 0 4px 18px rgba(245,215,122,0.50); }
+}
+@keyframes vip-sun-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(251,191,36,0.30), 0 2px 10px rgba(245,158,11,0.35); transform: scale(1); }
+  50%      { box-shadow: 0 0 0 6px rgba(251,191,36,0.00), 0 4px 14px rgba(245,158,11,0.55); transform: scale(1.04); }
+}
+
+/* ----------------------------------------------------------------------------
+   1. SIDEBAR USER CARD - PREMIUM en ambos modos
+   ---------------------------------------------------------------------------- */
+.sidebar-user {
+  position: relative !important;
+  padding: 14px 16px !important;
+  margin: 10px 14px !important;
+  border: 1px solid rgba(245, 215, 122, 0.22) !important;
+  border-bottom: 1px solid rgba(245, 215, 122, 0.22) !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg,
+    rgba(245, 215, 122, 0.08) 0%,
+    rgba(245, 215, 122, 0.03) 40%,
+    rgba(255, 255, 255, 0.04) 100%) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  transition: all 0.25s ease !important;
+  box-shadow:
+    0 1px 2px rgba(0,0,0,0.20),
+    inset 0 1px 0 rgba(255,255,255,0.06) !important;
+}
+/* Línea brillante decorativa en la parte superior */
+.sidebar-user::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 12% !important;
+  right: 12% !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(245,215,122,0.6), transparent) !important;
+  pointer-events: none !important;
+}
+/* Glow sutil dorado en hover */
+.sidebar-user:hover {
+  border-color: rgba(245, 215, 122, 0.45) !important;
+  background: linear-gradient(135deg,
+    rgba(245, 215, 122, 0.14) 0%,
+    rgba(245, 215, 122, 0.05) 40%,
+    rgba(255, 255, 255, 0.06) 100%) !important;
+  box-shadow:
+    0 4px 16px rgba(245, 215, 122, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.08) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* AVATAR redondo con anillo dorado glow */
+.sidebar-user .user-avatar,
+#sidebar-avatar {
+  width: 42px !important;
+  height: 42px !important;
+  min-width: 42px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #f5d77a 0%, #d4a72c 50%, #b8860b 100%) !important;
+  background-image: linear-gradient(135deg, #f5d77a 0%, #d4a72c 50%, #b8860b 100%) !important;
+  color: #1a1f3a !important;
+  -webkit-text-fill-color: #1a1f3a !important;
+  font-size: 17px !important;
+  font-weight: 800 !important;
+  font-family: 'Inter Tight', 'Inter', sans-serif !important;
+  letter-spacing: -0.02em !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  box-shadow:
+    0 0 0 2px rgba(11, 31, 74, 1),
+    0 0 0 3.5px rgba(245, 215, 122, 0.5),
+    0 4px 12px rgba(245, 215, 122, 0.35),
+    inset 0 1px 1px rgba(255, 255, 255, 0.5),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.15) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+  position: relative !important;
+  z-index: 2 !important;
+}
+.sidebar-user:hover .user-avatar,
+.sidebar-user:hover #sidebar-avatar {
+  animation: vip-pulse-soft 1.6s ease-in-out infinite !important;
+}
+
+/* Texto: nombre + plan en columna */
+.sidebar-user > p,
+.sidebar-user > div:not(.user-avatar) {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Si el nombre y plan están como <p> sueltos, agrupar visualmente */
+.sidebar-user > .user-name,
+.sidebar-user > .user-plan {
+  display: block !important;
+  margin: 0 !important;
+}
+
+.sidebar-user .user-name,
+#sidebar-name {
+  font-family: 'Inter Tight', 'Inter', sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin: 0 0 5px 0 !important;
+}
+
+/* BADGE VIP MENSUAL en el sidebar - pill dorado premium con shimmer */
+.sidebar-user .user-plan,
+#sidebar-plan {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 3px !important;
+  background: linear-gradient(135deg,
+    rgba(245, 215, 122, 0.95) 0%,
+    rgba(212, 167, 44, 0.95) 50%,
+    rgba(245, 215, 122, 0.95) 100%) !important;
+  background-image: linear-gradient(135deg,
+    rgba(245, 215, 122, 0.95) 0%,
+    rgba(212, 167, 44, 0.95) 50%,
+    rgba(245, 215, 122, 0.95) 100%) !important;
+  background-size: 200% 100% !important;
+  color: #1a1f3a !important;
+  -webkit-text-fill-color: #1a1f3a !important;
+  font-family: 'JetBrains Mono', 'Inter', sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  padding: 3px 9px 3px 9px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(184, 134, 11, 0.55) !important;
+  box-shadow:
+    0 1px 3px rgba(184, 134, 11, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+/* Estrella decorativa antes del texto */
+.sidebar-user .user-plan::before,
+#sidebar-plan::before {
+  content: '★' !important;
+  font-size: 9.5px !important;
+  line-height: 1 !important;
+  color: #1a1f3a !important;
+  -webkit-text-fill-color: #1a1f3a !important;
+  margin-right: 1px !important;
+  letter-spacing: 0 !important;
+}
+/* Shimmer on hover */
+.sidebar-user:hover .user-plan,
+.sidebar-user:hover #sidebar-plan {
+  animation: vip-shimmer-bg 1.8s linear infinite !important;
+}
+
+/* Chevron a la derecha (>) si existe */
+.sidebar-user .sidebar-chevron,
+.sidebar-user > svg:last-child,
+.sidebar-user [class*="chevron"] {
+  color: rgba(245, 215, 122, 0.6) !important;
+  fill: rgba(245, 215, 122, 0.6) !important;
+  stroke: rgba(245, 215, 122, 0.6) !important;
+  transition: transform 0.25s ease !important;
+}
+.sidebar-user:hover .sidebar-chevron,
+.sidebar-user:hover > svg:last-child,
+.sidebar-user:hover [class*="chevron"] {
+  color: #f5d77a !important;
+  fill: #f5d77a !important;
+  stroke: #f5d77a !important;
+  transform: translateX(3px) !important;
+}
+
+
+/* ----------------------------------------------------------------------------
+   2. TOPBAR - Toggle Sol (boton modo dia/noche) Premium
+   ---------------------------------------------------------------------------- */
+#btn-modo-toggle,
+[id*="modo-toggle"] {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FBBF24 100%) !important;
+  background-image: linear-gradient(135deg, #FEF3C7 0%, #FBBF24 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.7) !important;
+  border-radius: 50% !important;
+  width: 38px !important;
+  height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  box-shadow:
+    0 0 0 0 rgba(251, 191, 36, 0.0),
+    0 2px 8px rgba(245, 158, 11, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  position: relative !important;
+  animation: vip-sun-glow 2.4s ease-in-out infinite !important;
+}
+#btn-modo-toggle:hover,
+[id*="modo-toggle"]:hover {
+  transform: scale(1.08) rotate(-12deg) !important;
+  background: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%) !important;
+  background-image: linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%) !important;
+  box-shadow:
+    0 0 0 4px rgba(251, 191, 36, 0.20),
+    0 6px 16px rgba(245, 158, 11, 0.55),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+  animation: none !important;
+}
+#btn-modo-toggle svg,
+#btn-modo-toggle * {
+  color: #92400E !important;
+  fill: #92400E !important;
+  stroke: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+}
+
+
+/* ----------------------------------------------------------------------------
+   3. TOPBAR - Badge "VIP MENSUAL" PREMIUM con estrella + gradiente rico
+   ---------------------------------------------------------------------------- */
+.topbar-plan,
+[class*="topbar-plan"] {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 6px 16px 6px 14px !important;
+  background: linear-gradient(135deg,
+    #FEF3C7 0%,
+    #FBBF24 35%,
+    #F59E0B 65%,
+    #FBBF24 100%) !important;
+  background-image: linear-gradient(135deg,
+    #FEF3C7 0%,
+    #FBBF24 35%,
+    #F59E0B 65%,
+    #FBBF24 100%) !important;
+  background-size: 200% 200% !important;
+  border: 1px solid #D97706 !important;
+  border-radius: 999px !important;
+  color: #78350F !important;
+  -webkit-text-fill-color: #78350F !important;
+  font-family: 'JetBrains Mono', 'Inter', sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  box-shadow:
+    0 2px 6px rgba(217, 119, 6, 0.35),
+    0 4px 14px rgba(245, 158, 11, 0.20),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -1px 0 rgba(120, 53, 15, 0.10) !important;
+  text-shadow: 0 1px 0 rgba(255, 248, 220, 0.35) !important;
+  overflow: hidden !important;
+  transition: all 0.25s ease !important;
+}
+/* Estrella dorada antes del texto */
+.topbar-plan::before {
+  content: '★' !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  color: #78350F !important;
+  -webkit-text-fill-color: #78350F !important;
+  letter-spacing: 0 !important;
+  filter: drop-shadow(0 1px 0 rgba(255, 248, 220, 0.4)) !important;
+}
+/* Brillo animado sutil cruzando el badge */
+.topbar-plan::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 60% !important;
+  height: 100% !important;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%) !important;
+  transform: skewX(-20deg) !important;
+  animation: vip-shimmer-bg 3s ease-in-out infinite !important;
+  pointer-events: none !important;
+}
+.topbar-plan:hover {
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow:
+    0 4px 12px rgba(217, 119, 6, 0.50),
+    0 8px 22px rgba(245, 158, 11, 0.30),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+</style>
 </head>
 <body>
 
