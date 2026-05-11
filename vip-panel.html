@@ -1065,7 +1065,110 @@
       max-width: 360px;
     }
 
-    /* ===== MODAL FOOTER (botones) ===== */
+    
+/* ====================================================================
+   MODO DIA - .lg-card (cards de Mis Logros) en modo claro
+   Convierte las cards negras en cards blancas premium con borde
+   dorado destacado para las desbloqueadas.
+   ==================================================================== */
+body.modo-dia .lg-card,
+html.modo-dia .lg-card {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.04) !important;
+}
+body.modo-dia .lg-card:hover {
+  transform: translateY(-2px) !important;
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 4px 16px rgba(15,23,42,0.08), 0 12px 28px rgba(15,23,42,0.06) !important;
+}
+body.modo-dia .lg-card.is-unlocked {
+  background: linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 100%) !important;
+  background-image: linear-gradient(180deg, #FFFBEB 0%, #FFFFFF 100%) !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #FBBF24 !important;
+  box-shadow: 0 0 0 2px rgba(251,191,36,0.18), 0 8px 24px rgba(245,158,11,0.12) !important;
+}
+body.modo-dia .lg-card.is-unlocked:hover {
+  transform: translateY(-3px) !important;
+  border-color: #F59E0B !important;
+  box-shadow: 0 0 0 2px rgba(251,191,36,0.30), 0 12px 32px rgba(245,158,11,0.20) !important;
+}
+body.modo-dia .lg-card.is-secret {
+  background: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%) !important;
+  background-image: linear-gradient(180deg, #F8FAFC 0%, #FFFFFF 100%) !important;
+  background-color: #F8FAFC !important;
+  border: 1px dashed #CBD5E1 !important;
+}
+body.modo-dia .lg-card-badge {
+  background: #D1FAE5 !important;
+  background-color: #D1FAE5 !important;
+  color: #047857 !important;
+  -webkit-text-fill-color: #047857 !important;
+  border: 1px solid #A7F3D0 !important;
+  font-weight: 700 !important;
+}
+body.modo-dia .lg-card-lock {
+  background: #F1F5F9 !important;
+  background-color: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+}
+body.modo-dia .lg-card-icon {
+  filter: grayscale(1) opacity(0.35) !important;
+}
+body.modo-dia .lg-card.is-unlocked .lg-card-icon {
+  filter: grayscale(0) opacity(1) drop-shadow(0 2px 4px rgba(245,158,11,0.20)) !important;
+}
+body.modo-dia .lg-card.is-secret .lg-card-icon {
+  filter: blur(4px) opacity(0.4) !important;
+}
+body.modo-dia .lg-card-name {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 700 !important;
+}
+body.modo-dia .lg-card.is-unlocked .lg-card-name {
+  color: #78350F !important;
+  -webkit-text-fill-color: #78350F !important;
+}
+body.modo-dia .lg-card.is-secret .lg-card-name {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-style: italic !important;
+}
+body.modo-dia .lg-card-desc {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+}
+body.modo-dia .lg-card.is-secret .lg-card-desc {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-style: italic !important;
+}
+body.modo-dia .lg-card-xp {
+  background: #FEF3C7 !important;
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  border: 1px solid #FDE68A !important;
+  font-weight: 700 !important;
+}
+body.modo-dia .lg-card.is-unlocked .lg-card-xp {
+  background: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+  background-image: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%) !important;
+  background-color: #F59E0B !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  border: none !important;
+  box-shadow: 0 2px 6px rgba(245,158,11,0.30) !important;
+}
+
+/* ===== MODAL FOOTER (botones) ===== */
     .tpl-modal-footer {
       display: flex;
       align-items: center;
