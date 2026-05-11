@@ -27269,25 +27269,44 @@ window._icademLogros = {
   window._tplModalData = null;
 
   function openTemplateModal(id) {
+    console.log('%c[Plantillas] openTemplateModal(' + id + ')','color:#3b82f6;font-weight:bold');
+    try {
     const p = PLANTILLAS.find(x => x.id === id);
-    if (!p || p.proximamente) return;
+    if (!p) {
+      console.warn('[Plantillas] No se encontró plantilla con id:', id);
+      return;
+    }
+    if (p.proximamente) {
+      console.log('[Plantillas] Plantilla próximamente, no se abre modal');
+      return;
+    }
 
     window._tplModalData = p;
     const overlay = document.getElementById('tpl-modal-overlay');
     const modal = document.getElementById('tpl-modal');
+    if (!overlay || !modal) {
+      console.error('[Plantillas] ✗ Modal no encontrado en DOM. overlay:', !!overlay, 'modal:', !!modal);
+      window.notify('Error al abrir el modal. Recarga la página.', 'error');
+      return;
+    }
 
-    // Populate header
-    document.getElementById('tpl-modal-icon').textContent = p.icono;
-    document.getElementById('tpl-modal-title-text').textContent = p.titulo;
-    document.getElementById('tpl-modal-desc').textContent = p.desc;
-    document.getElementById('tpl-modal-format').textContent = p.formato;
-    document.getElementById('tpl-modal-version').textContent = p.version || 'v1.0';
+    // [FIX_MODAL_BUG_v1] Acceso defensivo a elementos del header
+    const setText = (id, val) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = val;
+      else console.warn('[Plantillas] Elemento no encontrado:', id);
+    };
+    setText('tpl-modal-icon', p.icono);
+    setText('tpl-modal-title-text', p.titulo);
+    setText('tpl-modal-desc', p.desc);
+    setText('tpl-modal-format', p.formato);
+    setText('tpl-modal-version', p.version || 'v1.0');
 
     const catLabels = {
       'finanzas': 'Finanzas', 'rh': 'Capital Humano', 'ventas': 'Ventas',
       'operaciones': 'Operaciones', 'marketing': 'Marketing', 'legal': 'Legal'
     };
-    document.getElementById('tpl-modal-cat').textContent = catLabels[p.cat] || p.cat;
+    setText('tpl-modal-cat', catLabels[p.cat] || p.cat);
 
     // [FORMATO_LABELS_v1] Soporte de descarga directa para todos los formatos Office
     const esDescargaDirecta = ['XLSX','DOCX','PPTX','PDF'].includes(p.formato) || p.urlDownload;
@@ -27309,7 +27328,9 @@ window._icademLogros = {
 
     // Configure copy button (para XLSX = download, para SHEETS = Google copy)
     const copyBtn = document.getElementById('tpl-btn-copy');
-    if (hasUrl || hasDownloadUrl) {
+    if (!copyBtn) {
+      console.warn('[Plantillas] tpl-btn-copy no encontrado');
+    } else if (hasUrl || hasDownloadUrl) {
       const targetUrl = hasDownloadUrl ? p.urlDownload : p.urlCopy;
       copyBtn.href = targetUrl;
       copyBtn.classList.remove('tpl-btn-disabled');
@@ -27327,7 +27348,7 @@ window._icademLogros = {
         // Restaurar texto original
         copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> <span>Hacer una copia</span>';
       }
-    } else {
+    } else if (copyBtn) {
       copyBtn.href = '#';
       copyBtn.classList.add('tpl-btn-disabled');
       copyBtn.style.pointerEvents = 'none';
@@ -27336,18 +27357,23 @@ window._icademLogros = {
 
     // Configure Drive button
     const driveBtn = document.getElementById('tpl-btn-drive');
-    if (hasEditUrl) {
-      driveBtn.href = p.urlEdit;
-      driveBtn.style.display = 'flex';
-    } else {
-      driveBtn.style.display = 'none';
+    if (driveBtn) {
+      if (hasEditUrl) {
+        driveBtn.href = p.urlEdit;
+        driveBtn.style.display = 'flex';
+      } else {
+        driveBtn.style.display = 'none';
+      }
     }
 
     // Configure iframe / pending state
     const loading = document.getElementById('tpl-modal-loading');
     const iframe = document.getElementById('tpl-modal-iframe');
     const pending = document.getElementById('tpl-modal-pending');
-    document.getElementById('tpl-pending-icon').textContent = p.icono;
+    // [FIX_MODAL_BUG_v1] Acceso defensivo: el elemento puede haber sido
+    // reemplazado por HTML dinamico en una apertura previa del modal
+    const pendingIcon = document.getElementById('tpl-pending-icon');
+    if (pendingIcon) pendingIcon.textContent = p.icono;
 
     if (hasEditUrl) {
       // Build preview URL (Google embed format)
@@ -27371,7 +27397,7 @@ window._icademLogros = {
       // Personalizar el "pending" para ser un "preview de descarga premium"
       pending.innerHTML = `
         <div style="text-align:center;padding:2rem 1.5rem;max-width:540px;margin:0 auto;">
-          <div id="tpl-pending-icon" style="font-size:80px;line-height:1;margin-bottom:1.25rem;filter:drop-shadow(0 8px 24px rgba(201,169,97,0.30));">${p.icono}</div>
+          <div class="tpl-pending-icon-dynamic" style="font-size:80px;line-height:1;margin-bottom:1.25rem;filter:drop-shadow(0 8px 24px rgba(201,169,97,0.30));">${p.icono}</div>
           <h3 style="font-family:'Cormorant Garamond',Georgia,serif;font-size:1.7rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">${({'XLSX':'Plantilla Excel premium','DOCX':'Plantilla Word premium','PPTX':'Plantilla PowerPoint premium','PDF':'Plantilla PDF premium'}[p.formato] || 'Plantilla premium')}</h3>
           <p style="font-family:'Inter',sans-serif;font-size:14px;color:#475569;-webkit-text-fill-color:#475569;line-height:1.55;margin:0 0 1.5rem;">${({'XLSX':'Descarga el archivo Excel con fórmulas y gráficas preconfiguradas. Ábrelo con Microsoft Excel, Numbers (Mac) o Google Sheets.','DOCX':'Descarga el documento Word con formato profesional listo para editar. Ábrelo con Microsoft Word, Pages (Mac) o Google Docs.','PPTX':'Descarga la presentación PowerPoint con 12 slides investor-ready. Ábrela con Microsoft PowerPoint, Keynote (Mac) o Google Slides.','PDF':'Descarga el PDF listo para imprimir o compartir.'}[p.formato] || 'Descarga el archivo premium con formato profesional listo para usar.')}</p>
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 1.75rem;text-align:left;">
@@ -27426,6 +27452,14 @@ window._icademLogros = {
     modal.style.animation = 'none';
     modal.offsetHeight; // force reflow
     modal.style.animation = '';
+
+    console.log('%c[Plantillas] ✓ Modal abierto correctamente','color:#10b981;font-weight:bold');
+    } catch(err) {
+      console.error('[Plantillas] ✗ Error en openTemplateModal:', err);
+      if (window.notify) {
+        window.notify('Error al abrir la plantilla: ' + (err.message || 'Desconocido'), 'error');
+      }
+    }
   }
 
   function closeTemplateModal() {
@@ -27445,6 +27479,22 @@ window._icademLogros = {
   // Export to global scope for use in onclick handlers
   window.openTemplateModal = openTemplateModal;
   window.closeTemplateModal = closeTemplateModal;
+
+  // [LISTENER_RESPALDO_v1] Event delegation defensivo para cards
+  // Garantiza que aunque el onclick inline falle, el click siempre funcione
+  document.addEventListener('click', function(e) {
+    const card = e.target.closest('.tpl-card-premium');
+    if (!card) return;
+    if (card.classList.contains('tpl-card-soon')) return;
+    const id = card.dataset.id;
+    if (!id) return;
+    // Solo activar si el onclick inline no manejo el evento
+    // (verificamos que el modal no este ya abierto)
+    const overlay = document.getElementById('tpl-modal-overlay');
+    if (overlay && overlay.classList.contains('tpl-modal-visible')) return;
+    console.log('[Plantillas] click delegado en card:', id);
+    openTemplateModal(id);
+  });
 
 
   // Close on overlay click
