@@ -4589,22 +4589,33 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
             <div class="dir-editor-row">
               <div class="dir-editor-field">
                 <label>Industria<span class="dir-req">*</span></label>
-                <select id="dir-edit-industria" onchange="window.actualizarPreviewDir()">
-                  <option value="">Selecciona…</option>
-                  <option value="Fiscal/Contable">Fiscal/Contable</option>
-                  <option value="Legal">Legal</option>
-                  <option value="Inmobiliario">Inmobiliario</option>
-                  <option value="Marketing">Marketing</option>
-                  <option value="Tecnología">Tecnología</option>
-                  <option value="Manufactura">Manufactura</option>
-                  <option value="Comercio">Comercio</option>
-                  <option value="Servicios profesionales">Servicios profesionales</option>
-                  <option value="Salud">Salud</option>
-                  <option value="Educación">Educación</option>
-                  <option value="Construcción">Construcción</option>
-                  <option value="Restauración">Restauración</option>
-                  <option value="Otros">Otros</option>
-                </select>
+                <input type="text" id="dir-edit-industria" list="dir-industria-list"
+                  placeholder="Ej: Fiscal/Contable, Tecnología, o escribe la tuya…"
+                  autocomplete="off" maxlength="60"
+                  onchange="window.actualizarPreviewDir()" oninput="window.actualizarPreviewDir()">
+                <datalist id="dir-industria-list">
+                  <option value="Fiscal/Contable"></option>
+                  <option value="Legal"></option>
+                  <option value="Inmobiliario"></option>
+                  <option value="Marketing"></option>
+                  <option value="Tecnología"></option>
+                  <option value="Manufactura"></option>
+                  <option value="Comercio"></option>
+                  <option value="Servicios profesionales"></option>
+                  <option value="Salud"></option>
+                  <option value="Educación"></option>
+                  <option value="Construcción"></option>
+                  <option value="Restauración"></option>
+                  <option value="Creadora de contenido"></option>
+                  <option value="Consultoría"></option>
+                  <option value="Recursos Humanos"></option>
+                  <option value="Logística"></option>
+                  <option value="Agricultura/Ganadería"></option>
+                  <option value="Turismo/Hotelería"></option>
+                  <option value="Arte/Diseño"></option>
+                  <option value="Medios/Comunicación"></option>
+                  <option value="Otros"></option>
+                </datalist>
               </div>
               <div class="dir-editor-field">
                 <label>Ciudad / Estado<span class="dir-req">*</span></label>
