@@ -31394,15 +31394,27 @@ ${htmlImprimible}
           + '<iframe id="icadem-office-iframe" src="' + officeViewerUrl + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.5s;background:#fff;" allowfullscreen></iframe>'
         + '</div>';
 
-      // Listener iframe
       const iframeReal = document.getElementById('icadem-office-iframe');
       const skeleton = document.getElementById('icadem-office-skeleton');
+      
+      // [PRECARGA_HOVER_v1] Si ya precargamos durante el hover, transicion rapida
+      const yaPrecargadoModal = window._iframesPrecargados && window._iframesPrecargados[id];
+      if (yaPrecargadoModal) {
+        console.log('%c[PRECARGA_HOVER_v1] ⚡ Mostrando iframe precargado (rapido)','color:#f59e0b;font-weight:bold;font-size:14px');
+        // El iframe nuevo cargara desde cache del browser (mucho mas rapido)
+        // Aceleramos la transicion del skeleton -> iframe
+        setTimeout(() => {
+          if (iframeReal) iframeReal.style.opacity = '1';
+          if (skeleton) skeleton.style.display = 'none';
+        }, 600);
+      }
+      
       if (iframeReal && skeleton) {
         let cargado = false;
         iframeReal.onload = function() {
           cargado = true;
           iframeReal.style.opacity = '1';
-          setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, 400);
+          setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, yaPrecargadoModal ? 200 : 400);
         };
         // Fallback elegante a los 10 segundos
         setTimeout(() => {
@@ -31500,13 +31512,71 @@ ${htmlImprimible}
       // Remover el onclick inline para evitar duplicacion
       card.removeAttribute('onclick');
       
-      // Agregar listener directo
+      // [PRECARGA_HOVER_v1] Precargar iframe Office al pasar el mouse
+      let preloadTimer = null;
+      let preloadedIframe = null;
+      let preloadedPrefetch = null;
+      
+      card.addEventListener('mouseenter', function() {
+        if (preloadTimer) clearTimeout(preloadTimer);
+        preloadTimer = setTimeout(() => {
+          if (!window.PLANTILLAS) return;
+          const pp = window.PLANTILLAS.find(x => x.id === id);
+          if (!pp || pp.proximamente) return;
+          if (!['XLSX','DOCX','PPTX','PDF'].includes(pp.formato) && !pp.urlDownload) return;
+          
+          window._iframesPrecargados = window._iframesPrecargados || {};
+          if (window._iframesPrecargados[id]) return;  // ya precargado
+          
+          const enLocal = ['localhost','127.0.0.1',''].includes(location.hostname) || location.protocol === 'file:';
+          if (enLocal) return;
+          
+          const archivoUrl = location.origin + '/' + (pp.urlDownload || pp.urlCopy);
+          
+          // PASO 1: prefetch del archivo para que GitHub Pages lo prepare
+          if (!preloadedPrefetch) {
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = archivoUrl;
+            link.as = 'fetch';
+            link.crossOrigin = 'anonymous';
+            document.head.appendChild(link);
+            preloadedPrefetch = link;
+          }
+          
+          // PASO 2: iframe oculto que precarga Office Online Viewer
+          if (!preloadedIframe) {
+            const officeUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(archivoUrl);
+            const ifr = document.createElement('iframe');
+            ifr.src = officeUrl;
+            ifr.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:0;opacity:0;pointer-events:none;';
+            ifr.setAttribute('aria-hidden', 'true');
+            ifr.dataset.precargaId = id;
+            document.body.appendChild(ifr);
+            preloadedIframe = ifr;
+            
+            ifr.onload = function() {
+              window._iframesPrecargados[id] = true;
+              console.log('%c[PRECARGA_HOVER_v1] ⚡ Precargado: ' + id, 'color:#10b981;font-weight:bold');
+            };
+          }
+        }, 200);  // 200ms delay para evitar precargas accidentales
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        if (preloadTimer) {
+          clearTimeout(preloadTimer);
+          preloadTimer = null;
+        }
+      });
+      
+      // Agregar listener directo del click
       card.addEventListener('click', function(e) {
-        // Si el click es en un boton interno, no interferir
         if (e.target.closest('button[onclick]')) return;
         e.preventDefault();
         e.stopPropagation();
-        console.log('%c[SOLUCION_RADICAL_v4] CLICK RADICAL en card: ' + id,'color:#dc2626;font-weight:bold;font-size:14px');
+        const yaPrecargado = window._iframesPrecargados && window._iframesPrecargados[id];
+        console.log('%c[SOLUCION_RADICAL_v4] CLICK RADICAL en card: ' + id + (yaPrecargado ? ' (PRECARGADO ⚡)' : ''),'color:#dc2626;font-weight:bold;font-size:14px');
         abrirModalDirecto(id);
       });
     });
