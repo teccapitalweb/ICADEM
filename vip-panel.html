@@ -31397,16 +31397,16 @@ ${htmlImprimible}
       const iframeReal = document.getElementById('icadem-office-iframe');
       const skeleton = document.getElementById('icadem-office-skeleton');
       
-      // [PRECARGA_HOVER_v1] Si ya precargamos durante el hover, transicion rapida
+      // [TURBO_v2] Si ya precargamos durante el hover, transicion casi instantanea
       const yaPrecargadoModal = window._iframesPrecargados && window._iframesPrecargados[id];
       if (yaPrecargadoModal) {
-        console.log('%c[PRECARGA_HOVER_v1] ⚡ Mostrando iframe precargado (rapido)','color:#f59e0b;font-weight:bold;font-size:14px');
-        // El iframe nuevo cargara desde cache del browser (mucho mas rapido)
-        // Aceleramos la transicion del skeleton -> iframe
+        console.log('%c[TURBO_v2] ⚡⚡ Mostrando iframe precargado (turbo)','color:#f59e0b;font-weight:bold;font-size:14px');
+        // El iframe del modal cargara desde cache del browser (instantaneo)
+        // Skeleton solo 150ms para evitar parpadeo
         setTimeout(() => {
           if (iframeReal) iframeReal.style.opacity = '1';
           if (skeleton) skeleton.style.display = 'none';
-        }, 600);
+        }, 150);
       }
       
       if (iframeReal && skeleton) {
@@ -31414,7 +31414,7 @@ ${htmlImprimible}
         iframeReal.onload = function() {
           cargado = true;
           iframeReal.style.opacity = '1';
-          setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, yaPrecargadoModal ? 200 : 400);
+          setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, yaPrecargadoModal ? 100 : 250);  // [TURBO_v2] mas rapido
         };
         // Fallback elegante a los 10 segundos
         setTimeout(() => {
@@ -31560,7 +31560,7 @@ ${htmlImprimible}
               console.log('%c[PRECARGA_HOVER_v1] ⚡ Precargado: ' + id, 'color:#10b981;font-weight:bold');
             };
           }
-        }, 200);  // 200ms delay para evitar precargas accidentales
+        }, 50);  // [TURBO_v2] delay minimo para reaccion casi instantanea
       });
       
       card.addEventListener('mouseleave', function() {
@@ -31606,6 +31606,46 @@ ${htmlImprimible}
   
   // Watchdog: cada 1 segundo verificar si hay cards nuevas (por filtros que rehacen el grid)
   setInterval(adjuntarListeners, 1000);
+  
+  // [TURBO_v2] PREFETCH AGRESIVO: precargar los 10 archivos al cargar el panel
+  // Esto los pone en cache del browser para que cuando Microsoft los pida sea instantaneo
+  function prefetchTodasLasPlantillas() {
+    if (window._prefetchHecho) return;
+    window._prefetchHecho = true;
+    
+    if (!window.PLANTILLAS) {
+      setTimeout(prefetchTodasLasPlantillas, 500);
+      return;
+    }
+    
+    const enLocal = ['localhost','127.0.0.1',''].includes(location.hostname) || location.protocol === 'file:';
+    if (enLocal) return;
+    
+    let prefetched = 0;
+    window.PLANTILLAS.forEach((pp, idx) => {
+      if (pp.proximamente) return;
+      if (!['XLSX','DOCX','PPTX','PDF'].includes(pp.formato) && !pp.urlDownload) return;
+      
+      const archivoUrl = location.origin + '/' + (pp.urlDownload || pp.urlCopy);
+      
+      // Espaciar los prefetch para no saturar (50ms entre cada uno)
+      setTimeout(() => {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = archivoUrl;
+        link.as = 'fetch';
+        link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+        prefetched++;
+        if (prefetched === 1) {
+          console.log('%c[TURBO_v2] 🚀 Prefetching ' + window.PLANTILLAS.filter(x => !x.proximamente).length + ' plantillas en paralelo...', 'color:#8b5cf6;font-weight:bold;font-size:13px');
+        }
+      }, idx * 50);
+    });
+  }
+  
+  // Iniciar prefetch despues de 2 segundos (no bloquear el render del panel)
+  setTimeout(prefetchTodasLasPlantillas, 2000);
   
   // ESC cierra el modal
   document.addEventListener('keydown', function(e) {
