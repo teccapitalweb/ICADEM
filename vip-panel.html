@@ -2334,6 +2334,85 @@ body > .doc-legal-modal .doc-legal-form-panel {
   padding: 0 8px !important;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIX_FIRMAS_PREVIEW_v1 — Firmas lado a lado en preview en pantalla
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Bloque de firmas: 2 columnas lado a lado */
+#doc-legal-preview .doc-legal-signatures,
+.doc-legal-preview-paper .doc-legal-signatures {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 2rem !important;
+  margin-top: 3rem !important;
+  page-break-inside: avoid !important;
+}
+
+/* Cada firma individual */
+#doc-legal-preview .doc-legal-signature,
+.doc-legal-preview-paper .doc-legal-signature {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center !important;
+  padding: 0 0.5rem !important;
+}
+
+/* Linea de firma: solo arriba del nombre */
+#doc-legal-preview .doc-legal-signature-line,
+.doc-legal-preview-paper .doc-legal-signature-line {
+  width: 100% !important;
+  border-top: 1px solid #0A1F44 !important;
+  margin-top: 3rem !important;
+  margin-bottom: 8px !important;
+  padding: 0 !important;
+  height: 1px !important;
+}
+
+/* Nombre del firmante */
+#doc-legal-preview .doc-legal-signature-name,
+.doc-legal-preview-paper .doc-legal-signature-name {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  margin: 0 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+
+/* Rol bajo la firma */
+#doc-legal-preview .doc-legal-signature-role,
+.doc-legal-preview-paper .doc-legal-signature-role {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+  margin: 4px 0 0 0 !important;
+}
+
+/* Si solo hay 1 firma (testigos), centrarla */
+#doc-legal-preview .doc-legal-signatures:has(.doc-legal-signature:only-child) {
+  grid-template-columns: 1fr !important;
+  max-width: 360px !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* En mobile (preview pequeño) apilar las firmas */
+@media (max-width: 600px) {
+  #doc-legal-preview .doc-legal-signatures {
+    grid-template-columns: 1fr !important;
+    gap: 2.5rem !important;
+  }
+}
+
 </style>
 
 <style id="premium-vip-styles">
@@ -28633,11 +28712,11 @@ window.loginDirecto = function() {
       tiempoEstimado: '8 min',
       icono: ICONS.laboral,
       secciones: [
-        { titulo: 'Datos del patrón', fields: [
-          { id: 'nombrePatron', label: 'Nombre / Razón social del patrón', tipo: 'text', required: true, placeholder: 'Ej: TEC CAPITAL GROUP S.A. de C.V.' },
-          { id: 'rfcPatron', label: 'RFC del patrón', tipo: 'text', placeholder: 'XAXX010101000', maxlength: 13 },
-          { id: 'domicilioPatron', label: 'Domicilio fiscal del patrón', tipo: 'text', required: true, placeholder: 'Calle, número, colonia, ciudad, estado, CP' },
-          { id: 'representantePatron', label: 'Representante legal (opcional)', tipo: 'text', placeholder: 'Si el patrón es persona moral' }
+        { titulo: 'Datos del empleador', fields: [
+          { id: 'nombreEmpleador', label: 'Nombre / Razón social del empleador', tipo: 'text', required: true, placeholder: 'Ej: TEC CAPITAL GROUP S.A. de C.V.' },
+          { id: 'rfcEmpleador', label: 'RFC del empleador', tipo: 'text', placeholder: 'XAXX010101000', maxlength: 13 },
+          { id: 'domicilioEmpleador', label: 'Domicilio fiscal del empleador', tipo: 'text', required: true, placeholder: 'Calle, número, colonia, ciudad, estado, CP' },
+          { id: 'representanteEmpleador', label: 'Representante legal (opcional)', tipo: 'text', placeholder: 'Si el empleador es persona moral' }
         ]},
         { titulo: 'Datos del trabajador', fields: [
           { id: 'nombreTrabajador', label: 'Nombre completo del trabajador', tipo: 'text', required: true },
@@ -28675,17 +28754,17 @@ window.loginDirecto = function() {
 
 <h1>Contrato Individual de Trabajo<br><span style="font-size:0.75em;font-weight:600;letter-spacing:0.02em;">por Tiempo Indeterminado</span></h1>
 
-<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, siendo el día <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <span class="{{__claseNombrePatron}}">{{nombrePatron}}</span>, con domicilio en <span class="{{__claseDomicilioPatron}}">{{domicilioPatron}}</span> y RFC <span class="{{__claseRfcPatron}}">{{rfcPatron}}</span>{{__representanteFrase}}, a quien en lo sucesivo se le denominará <strong>"EL PATRÓN"</strong>; y por la otra parte el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, de nacionalidad <span class="{{__claseNacionalidad}}">{{nacionalidad}}</span>, de <span class="{{__claseEdad}}">{{edad}}</span> años de edad, de estado civil <span class="{{__claseEstadoCivil}}">{{estadoCivil}}</span>, con domicilio en <span class="{{__claseDomicilioTrabajador}}">{{domicilioTrabajador}}</span>, CURP <span class="{{__claseCurp}}">{{curp}}</span>, RFC <span class="{{__claseRfcTrabajador}}">{{rfcTrabajador}}</span> y NSS <span class="{{__claseNss}}">{{nss}}</span>, a quien en lo sucesivo se le denominará <strong>"EL TRABAJADOR"</strong>; quienes celebran el presente Contrato Individual de Trabajo al tenor de las siguientes:</p>
+<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, siendo el día <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <span class="{{__claseNombrePatron}}">{{nombreEmpleador}}</span>, con domicilio en <span class="{{__claseDomicilioPatron}}">{{domicilioEmpleador}}</span> y RFC <span class="{{__claseRfcPatron}}">{{rfcEmpleador}}</span>{{__representanteFrase}}, a quien en lo sucesivo se le denominará <strong>"EL EMPLEADOR"</strong>; y por la otra parte el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, de nacionalidad <span class="{{__claseNacionalidad}}">{{nacionalidad}}</span>, de <span class="{{__claseEdad}}">{{edad}}</span> años de edad, de estado civil <span class="{{__claseEstadoCivil}}">{{estadoCivil}}</span>, con domicilio en <span class="{{__claseDomicilioTrabajador}}">{{domicilioTrabajador}}</span>, CURP <span class="{{__claseCurp}}">{{curp}}</span>, RFC <span class="{{__claseRfcTrabajador}}">{{rfcTrabajador}}</span> y NSS <span class="{{__claseNss}}">{{nss}}</span>, a quien en lo sucesivo se le denominará <strong>"EL TRABAJADOR"</strong>; quienes celebran el presente Contrato Individual de Trabajo al tenor de las siguientes:</p>
 
 <h2>Declaraciones</h2>
-<p><strong>I.</strong> Declara EL PATRÓN tener capacidad legal para celebrar el presente contrato y contar con el domicilio fiscal antes señalado.</p>
+<p><strong>I.</strong> Declara EL EMPLEADOR tener capacidad legal para celebrar el presente contrato y contar con el domicilio fiscal antes señalado.</p>
 <p><strong>II.</strong> Declara EL TRABAJADOR ser mayor de edad, con plenos derechos para celebrar el presente contrato y contar con la experiencia y conocimientos requeridos para el puesto.</p>
 
 <h2>Cláusulas</h2>
 
 <div class="doc-legal-clause">
 <div class="doc-legal-clause-title">Primera · Objeto del Contrato</div>
-<p>EL TRABAJADOR se obliga a prestar sus servicios personales subordinados a EL PATRÓN en el puesto de <span class="{{__clasePuesto}}">{{puesto}}</span>, desempeñando las siguientes funciones: <span class="{{__claseFunciones}}">{{funciones}}</span>.</p>
+<p>EL TRABAJADOR se obliga a prestar sus servicios personales subordinados a EL EMPLEADOR en el puesto de <span class="{{__clasePuesto}}">{{puesto}}</span>, desempeñando las siguientes funciones: <span class="{{__claseFunciones}}">{{funciones}}</span>.</p>
 </div>
 
 <div class="doc-legal-clause">
@@ -28705,7 +28784,7 @@ window.loginDirecto = function() {
 
 <div class="doc-legal-clause">
 <div class="doc-legal-clause-title">Quinta · Salario</div>
-<p>EL PATRÓN pagará a EL TRABAJADOR un salario mensual bruto de <span class="{{__claseSalario}}">$ {{salarioMensual}}</span> M.N. ({{salarioLetra}}), con periodicidad de pago <span class="{{__claseFormaPago}}">{{formaPago}}</span>, mediante depósito bancario o pago directo, libre de polvo y paja, con las deducciones de ley correspondientes.</p>
+<p>EL EMPLEADOR pagará a EL TRABAJADOR un salario mensual bruto de <span class="{{__claseSalario}}">$ {{salarioMensual}}</span> M.N. ({{salarioLetra}}), con periodicidad de pago <span class="{{__claseFormaPago}}">{{formaPago}}</span>, mediante depósito bancario o pago directo, libre de polvo y paja, con las deducciones de ley correspondientes.</p>
 </div>
 
 <div class="doc-legal-clause">
@@ -28720,7 +28799,7 @@ window.loginDirecto = function() {
 
 <div class="doc-legal-clause">
 <div class="doc-legal-clause-title">Octava · Causales de Rescisión</div>
-<p>Serán causales de rescisión sin responsabilidad para EL PATRÓN las previstas en el artículo 47 de la Ley Federal del Trabajo. Asimismo serán causales sin responsabilidad para EL TRABAJADOR las previstas en el artículo 51 del mismo ordenamiento.</p>
+<p>Serán causales de rescisión sin responsabilidad para EL EMPLEADOR las previstas en el artículo 47 de la Ley Federal del Trabajo. Asimismo serán causales sin responsabilidad para EL TRABAJADOR las previstas en el artículo 51 del mismo ordenamiento.</p>
 </div>
 
 <div class="doc-legal-clause">
@@ -28733,8 +28812,8 @@ window.loginDirecto = function() {
 <div class="doc-legal-signatures">
 <div class="doc-legal-signature">
 <div class="doc-legal-signature-line"></div>
-<div class="doc-legal-signature-name">{{nombrePatron}}</div>
-<div class="doc-legal-signature-role">EL PATRÓN</div>
+<div class="doc-legal-signature-name">{{nombreEmpleador}}</div>
+<div class="doc-legal-signature-role">EL EMPLEADOR</div>
 </div>
 <div class="doc-legal-signature">
 <div class="doc-legal-signature-line"></div>
@@ -28757,10 +28836,10 @@ window.loginDirecto = function() {
       tiempoEstimado: '8 min',
       icono: ICONS.determinado,
       secciones: [
-        { titulo: 'Datos del patrón', fields: [
-          { id: 'nombrePatron', label: 'Nombre / Razón social del patrón', tipo: 'text', required: true },
-          { id: 'rfcPatron', label: 'RFC del patrón', tipo: 'text', maxlength: 13 },
-          { id: 'domicilioPatron', label: 'Domicilio del patrón', tipo: 'text', required: true }
+        { titulo: 'Datos del empleador', fields: [
+          { id: 'nombreEmpleador', label: 'Nombre / Razón social del empleador', tipo: 'text', required: true },
+          { id: 'rfcEmpleador', label: 'RFC del empleador', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioEmpleador', label: 'Domicilio del empleador', tipo: 'text', required: true }
         ]},
         { titulo: 'Datos del trabajador', fields: [
           { id: 'nombreTrabajador', label: 'Nombre del trabajador', tipo: 'text', required: true },
@@ -28794,7 +28873,7 @@ window.loginDirecto = function() {
 
 <h1>Contrato Individual de Trabajo<br><span style="font-size:0.75em;font-weight:600;">por Tiempo Determinado</span></h1>
 
-<p>En <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen <span class="{{__claseNombrePatron}}">{{nombrePatron}}</span>, RFC <span class="{{__claseRfcPatron}}">{{rfcPatron}}</span>, con domicilio en <span class="{{__claseDomicilioPatron}}">{{domicilioPatron}}</span>, en lo sucesivo <strong>"EL PATRÓN"</strong>; y el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, con domicilio en <span class="{{__claseDomicilioTrabajador}}">{{domicilioTrabajador}}</span>, CURP <span class="{{__claseCurp}}">{{curp}}</span>, RFC <span class="{{__claseRfcTrabajador}}">{{rfcTrabajador}}</span>, NSS <span class="{{__claseNss}}">{{nss}}</span>, en lo sucesivo <strong>"EL TRABAJADOR"</strong>, quienes celebran el presente contrato conforme a las siguientes:</p>
+<p>En <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen <span class="{{__claseNombrePatron}}">{{nombreEmpleador}}</span>, RFC <span class="{{__claseRfcPatron}}">{{rfcEmpleador}}</span>, con domicilio en <span class="{{__claseDomicilioPatron}}">{{domicilioEmpleador}}</span>, en lo sucesivo <strong>"EL EMPLEADOR"</strong>; y el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, con domicilio en <span class="{{__claseDomicilioTrabajador}}">{{domicilioTrabajador}}</span>, CURP <span class="{{__claseCurp}}">{{curp}}</span>, RFC <span class="{{__claseRfcTrabajador}}">{{rfcTrabajador}}</span>, NSS <span class="{{__claseNss}}">{{nss}}</span>, en lo sucesivo <strong>"EL TRABAJADOR"</strong>, quienes celebran el presente contrato conforme a las siguientes:</p>
 
 <h2>Cláusulas</h2>
 
@@ -28820,7 +28899,7 @@ window.loginDirecto = function() {
 
 <div class="doc-legal-clause">
 <div class="doc-legal-clause-title">Quinta · Terminación</div>
-<p>Al concluir el plazo pactado, la relación laboral terminará sin responsabilidad para EL PATRÓN, quien únicamente cubrirá las partes proporcionales devengadas a esa fecha. Si subsiste la materia del trabajo, podrá prorrogarse por escrito.</p>
+<p>Al concluir el plazo pactado, la relación laboral terminará sin responsabilidad para EL EMPLEADOR, quien únicamente cubrirá las partes proporcionales devengadas a esa fecha. Si subsiste la materia del trabajo, podrá prorrogarse por escrito.</p>
 </div>
 
 <div class="doc-legal-clause">
@@ -28833,8 +28912,8 @@ window.loginDirecto = function() {
 <div class="doc-legal-signatures">
 <div class="doc-legal-signature">
 <div class="doc-legal-signature-line"></div>
-<div class="doc-legal-signature-name">{{nombrePatron}}</div>
-<div class="doc-legal-signature-role">EL PATRÓN</div>
+<div class="doc-legal-signature-name">{{nombreEmpleador}}</div>
+<div class="doc-legal-signature-role">EL EMPLEADOR</div>
 </div>
 <div class="doc-legal-signature">
 <div class="doc-legal-signature-line"></div>
@@ -28862,8 +28941,8 @@ window.loginDirecto = function() {
           { id: 'puesto', label: 'Puesto que desempeñas', tipo: 'text', required: true },
           { id: 'fechaIngreso', label: 'Fecha de ingreso a la empresa', tipo: 'date' }
         ]},
-        { titulo: 'Datos del patrón / empresa', fields: [
-          { id: 'razonSocialPatron', label: 'Razón social / Nombre del patrón', tipo: 'text', required: true },
+        { titulo: 'Datos del empleador / empresa', fields: [
+          { id: 'razonSocialPatron', label: 'Razón social / Nombre del empleador', tipo: 'text', required: true },
           { id: 'nombreResponsable', label: 'Nombre del responsable a quien diriges la carta', tipo: 'text', placeholder: 'Ej: Lic. María Pérez, Gerente de RH' },
           { id: 'cargoResponsable', label: 'Cargo del responsable', tipo: 'text', placeholder: 'Gerente, Director, Recursos Humanos…' }
         ]},
@@ -28928,9 +29007,9 @@ window.loginDirecto = function() {
           { id: 'nss', label: 'NSS', tipo: 'text', maxlength: 11 },
           { id: 'puesto', label: 'Puesto que desempeñaba', tipo: 'text', required: true }
         ]},
-        { titulo: 'Datos del patrón', fields: [
-          { id: 'razonSocialPatron', label: 'Razón social del patrón', tipo: 'text', required: true },
-          { id: 'rfcPatron', label: 'RFC del patrón', tipo: 'text', maxlength: 13 }
+        { titulo: 'Datos del empleador', fields: [
+          { id: 'razonSocialPatron', label: 'Razón social del empleador', tipo: 'text', required: true },
+          { id: 'rfcEmpleador', label: 'RFC del empleador', tipo: 'text', maxlength: 13 }
         ]},
         { titulo: 'Vigencia de la relación laboral', fields: [
           { id: 'fechaIngreso', label: 'Fecha de ingreso', tipo: 'date', required: true },
@@ -28957,13 +29036,13 @@ window.loginDirecto = function() {
 
 <h1>Carta Finiquito</h1>
 
-<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <span class="{{__claseRazonSocial}}">{{razonSocialPatron}}</span>, con RFC <span class="{{__claseRfcPatron}}">{{rfcPatron}}</span>, en lo sucesivo <strong>"EL PATRÓN"</strong>; y por la otra parte el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, con RFC <span class="{{__claseRfc}}">{{rfc}}</span> y NSS <span class="{{__claseNss}}">{{nss}}</span>, en lo sucesivo <strong>"EL TRABAJADOR"</strong>.</p>
+<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <span class="{{__claseRazonSocial}}">{{razonSocialPatron}}</span>, con RFC <span class="{{__claseRfcPatron}}">{{rfcEmpleador}}</span>, en lo sucesivo <strong>"EL EMPLEADOR"</strong>; y por la otra parte el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, con RFC <span class="{{__claseRfc}}">{{rfc}}</span> y NSS <span class="{{__claseNss}}">{{nss}}</span>, en lo sucesivo <strong>"EL TRABAJADOR"</strong>.</p>
 
 <h2>Antecedentes</h2>
-<p>EL TRABAJADOR prestó sus servicios subordinados para EL PATRÓN en el puesto de <span class="{{__clasePuesto}}">{{puesto}}</span>, del <span class="{{__claseFechaIngreso}}">{{fechaIngresoTexto}}</span> al <span class="{{__claseFechaSalida}}">{{fechaSalidaTexto}}</span>, concluyendo la relación laboral por causa de: <strong><span class="{{__claseCausa}}">{{causaSeparacion}}</span></strong>.</p>
+<p>EL TRABAJADOR prestó sus servicios subordinados para EL EMPLEADOR en el puesto de <span class="{{__clasePuesto}}">{{puesto}}</span>, del <span class="{{__claseFechaIngreso}}">{{fechaIngresoTexto}}</span> al <span class="{{__claseFechaSalida}}">{{fechaSalidaTexto}}</span>, concluyendo la relación laboral por causa de: <strong><span class="{{__claseCausa}}">{{causaSeparacion}}</span></strong>.</p>
 
 <h2>Liquidación de prestaciones</h2>
-<p>EL PATRÓN cubre en este acto a EL TRABAJADOR las siguientes partes proporcionales devengadas:</p>
+<p>EL EMPLEADOR cubre en este acto a EL TRABAJADOR las siguientes partes proporcionales devengadas:</p>
 
 <table style="width:100%;border-collapse:collapse;margin:0.75rem 0;font-family:'Inter',sans-serif;font-size:12px;">
 <thead>
@@ -28985,9 +29064,9 @@ window.loginDirecto = function() {
 </tbody>
 </table>
 
-<p>EL TRABAJADOR declara haber recibido en este acto, a su entera satisfacción, la cantidad total señalada, manifestando que <strong>no se reserva acción ni derecho alguno</strong> que ejercitar en contra de EL PATRÓN, ya sea de carácter laboral, civil, mercantil, penal o de cualquier otra índole, derivado o relacionado con la relación laboral que en este acto se da por terminada.</p>
+<p>EL TRABAJADOR declara haber recibido en este acto, a su entera satisfacción, la cantidad total señalada, manifestando que <strong>no se reserva acción ni derecho alguno</strong> que ejercitar en contra de EL EMPLEADOR, ya sea de carácter laboral, civil, mercantil, penal o de cualquier otra índole, derivado o relacionado con la relación laboral que en este acto se da por terminada.</p>
 
-<p>Asimismo, EL TRABAJADOR otorga el más amplio finiquito que conforme a derecho proceda, declarando que no le adeuda EL PATRÓN cantidad alguna por concepto de salarios, vacaciones, aguinaldos, prima vacacional, primas de antigüedad, tiempo extraordinario, gratificaciones, comisiones, ni por ningún otro concepto.</p>
+<p>Asimismo, EL TRABAJADOR otorga el más amplio finiquito que conforme a derecho proceda, declarando que no le adeuda EL EMPLEADOR cantidad alguna por concepto de salarios, vacaciones, aguinaldos, prima vacacional, primas de antigüedad, tiempo extraordinario, gratificaciones, comisiones, ni por ningún otro concepto.</p>
 
 <p style="margin-top:1.5rem;">Leído el presente finiquito por las partes y enteradas de su contenido y consecuencias legales, lo firman de conformidad por duplicado.</p>
 
@@ -28995,7 +29074,7 @@ window.loginDirecto = function() {
 <div class="doc-legal-signature">
 <div class="doc-legal-signature-line"></div>
 <div class="doc-legal-signature-name">{{razonSocialPatron}}</div>
-<div class="doc-legal-signature-role">EL PATRÓN</div>
+<div class="doc-legal-signature-role">EL EMPLEADOR</div>
 </div>
 <div class="doc-legal-signature">
 <div class="doc-legal-signature-line"></div>
