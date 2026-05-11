@@ -20130,70 +20130,179 @@ body:not(.modo-dia) .fx-mini-card, body:not(.modo-dia) [class*="dusty-teal"], bo
 }
 
 .splash-bienvenida-form {
-  margin-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
   text-align: left;
 }
-.splash-bienvenida-label {
-  display: block;
-  font-size: 11px;
-  color: #93b4ed;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  font-weight: 600;
-  margin-bottom: 8px;
-}
-.splash-bienvenida-input {
-  width: 100%;
-  padding: 14px 18px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1.5px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  color: #fff;
-  font-family: 'Inter', sans-serif;
-  font-size: 15px;
-  font-weight: 500;
-  outline: none;
-  transition: all 0.2s;
-  box-sizing: border-box;
-}
-.splash-bienvenida-input:focus {
-  border-color: #f5d77a;
-  background: rgba(245, 215, 122, 0.05);
-  box-shadow: 0 0 0 3px rgba(245, 215, 122, 0.1);
-}
-.splash-bienvenida-input::placeholder {
-  color: #5d7396;
-}
-.splash-bienvenida-hint {
-  font-size: 11.5px;
-  color: #93b4ed;
-  margin: 8px 0 0;
-  line-height: 1.5;
+
+/* ═══════════════════════════════════════════════════════════════════════
+   FIX VISUAL — Ultra-específico para vencer cualquier override de modo día.
+   Usa #splash-bienvenida (ID) + .splash-bienvenida-form (clase) para
+   subir la especificidad y ganarle a body.modo-dia .splash-bienvenida-form.
+   ═══════════════════════════════════════════════════════════════════════ */
+#splash-bienvenida .splash-bienvenida-form,
+body.modo-dia #splash-bienvenida .splash-bienvenida-form,
+html.modo-dia #splash-bienvenida .splash-bienvenida-form {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 0 1.5rem !important;
+  box-shadow: none !important;
+  text-align: left !important;
 }
 
-.splash-bienvenida-preview {
-  background: rgba(245, 215, 122, 0.05);
-  border: 1px solid rgba(245, 215, 122, 0.15);
-  border-radius: 8px;
-  padding: 12px;
-  margin-top: 12px;
-  text-align: center;
+/* Label "NOMBRE COMPLETO" - dorado claro, separado del input */
+#splash-bienvenida .splash-bienvenida-label,
+body.modo-dia #splash-bienvenida .splash-bienvenida-label {
+  display: block !important;
+  font-size: 10.5px !important;
+  color: rgba(245, 215, 122, 0.85) !important;
+  -webkit-text-fill-color: rgba(245, 215, 122, 0.85) !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+  margin: 0 0 10px 2px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
-.splash-bienvenida-preview-label {
-  display: block;
-  font-size: 10px;
-  color: #93b4ed;
-  letter-spacing: 0.14em;
+
+/* Input - oscuro translúcido, NO blanco */
+#splash-bienvenida .splash-bienvenida-input,
+body.modo-dia #splash-bienvenida .splash-bienvenida-input,
+html.modo-dia #splash-bienvenida .splash-bienvenida-input {
+  width: 100% !important;
+  padding: 16px 20px !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  background-image: none !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.14) !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  outline: none !important;
+  transition: all 0.25s ease !important;
+  box-sizing: border-box !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: none !important;
+}
+#splash-bienvenida .splash-bienvenida-input:hover {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+#splash-bienvenida .splash-bienvenida-input:focus {
+  border-color: #f5d77a !important;
+  background: rgba(245, 215, 122, 0.08) !important;
+  background-color: rgba(245, 215, 122, 0.08) !important;
+  box-shadow: 0 0 0 4px rgba(245, 215, 122, 0.15) !important;
+}
+#splash-bienvenida .splash-bienvenida-input::placeholder {
+  color: rgba(147, 180, 237, 0.5) !important;
+  -webkit-text-fill-color: rgba(147, 180, 237, 0.5) !important;
+  font-weight: 400 !important;
+}
+
+/* Hint "Aparecerá en MAYÚSCULAS..." - texto sutil con bombillo */
+#splash-bienvenida .splash-bienvenida-hint,
+body.modo-dia #splash-bienvenida .splash-bienvenida-hint {
+  font-size: 11.5px !important;
+  color: rgba(147, 180, 237, 0.7) !important;
+  -webkit-text-fill-color: rgba(147, 180, 237, 0.7) !important;
+  margin: 10px 2px 0 !important;
+  line-height: 1.5 !important;
+  font-style: italic !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  padding: 0 !important;
+  box-shadow: none !important;
+}
+#splash-bienvenida .splash-bienvenida-hint::before {
+  content: '💡' !important;
+  font-style: normal !important;
+  font-size: 13px !important;
+  opacity: 0.9 !important;
+}
+
+/* Vista previa - card dorada tenue, claramente separada */
+#splash-bienvenida .splash-bienvenida-preview,
+body.modo-dia #splash-bienvenida .splash-bienvenida-preview {
+  background: linear-gradient(135deg, rgba(245, 215, 122, 0.10) 0%, rgba(245, 215, 122, 0.04) 100%) !important;
+  background-color: rgba(245, 215, 122, 0.07) !important;
+  background-image: linear-gradient(135deg, rgba(245, 215, 122, 0.10) 0%, rgba(245, 215, 122, 0.04) 100%) !important;
+  border: 1px solid rgba(245, 215, 122, 0.28) !important;
+  border-radius: 10px !important;
+  padding: 14px 16px !important;
+  margin: 14px 0 0 !important;
+  text-align: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+#splash-bienvenida .splash-bienvenida-preview::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  height: 1px !important;
+  background: linear-gradient(90deg, transparent, rgba(245, 215, 122, 0.6), transparent) !important;
+}
+#splash-bienvenida .splash-bienvenida-preview-label,
+body.modo-dia #splash-bienvenida .splash-bienvenida-preview-label {
+  display: block !important;
+  font-size: 9.5px !important;
+  color: rgba(245, 215, 122, 0.75) !important;
+  -webkit-text-fill-color: rgba(245, 215, 122, 0.75) !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 8px !important;
+  font-weight: 600 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+#splash-bienvenida #splash-bienvenida-preview-text,
+body.modo-dia #splash-bienvenida #splash-bienvenida-preview-text {
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
   text-transform: uppercase;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  font-weight: 600;
+  background: transparent !important;
 }
 #splash-bienvenida-preview-text {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: #f5d77a;
-  letter-spacing: 0.06em;
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  background: transparent !important;
 }
 
 .splash-bienvenida-btn {
