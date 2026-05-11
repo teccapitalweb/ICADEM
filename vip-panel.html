@@ -4,6 +4,56 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <title>Panel VIP — ICADEM</title>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// STUB_TEMPRANO_v1 — Garantiza que openTemplateModal exista desde el inicio
+// Las cards de Plantillas Premium se renderizan ANTES que se defina la funcion
+// real. Este stub captura los clicks tempranos y los reproduce cuando la
+// funcion verdadera esta lista.
+// ═══════════════════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+  if (window.openTemplateModal) return;  // ya existe
+  
+  // Cola de clicks pendientes
+  window._pendingTemplateClicks = [];
+  
+  // Stub que captura clicks tempranos
+  window.openTemplateModal = function(id) {
+    console.log('%c[STUB_TEMPRANO_v1] click temprano capturado, encolando: ' + id, 'color:#f59e0b;font-weight:bold');
+    window._pendingTemplateClicks.push(id);
+    // Tambien mostrar feedback visual al usuario
+    if (window.notify) {
+      window.notify({tipo:'info', titulo:'Cargando…', mensaje:'Un momento, abriendo la plantilla.', duracion: 2500});
+    }
+  };
+  
+  // Cuando el openTemplateModal REAL se cargue, procesar los clicks en cola
+  Object.defineProperty(window, '_realOpenTemplateModal', {
+    configurable: true,
+    set: function(fn) {
+      console.log('%c[STUB_TEMPRANO_v1] funcion REAL recibida, procesando ' + (window._pendingTemplateClicks.length) + ' clicks en cola','color:#10b981;font-weight:bold');
+      // Reemplazar el stub con la funcion real
+      delete window.openTemplateModal;
+      window.openTemplateModal = fn;
+      // Procesar la cola con la ULTIMA llamada (no abrir 10 modales)
+      if (window._pendingTemplateClicks.length > 0) {
+        const lastId = window._pendingTemplateClicks[window._pendingTemplateClicks.length - 1];
+        window._pendingTemplateClicks = [];
+        try {
+          fn(lastId);
+        } catch(e) {
+          console.error('[STUB_TEMPRANO_v1] error procesando click en cola:', e);
+        }
+      }
+    },
+    get: function() { return undefined; }
+  });
+  
+  console.log('%c[STUB_TEMPRANO_v1] stub de openTemplateModal activo','color:#8b5cf6;font-weight:bold');
+})();
+</script>
+
   <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -10823,6 +10873,33 @@ buildVideoteca();
         </article>
       `;
     }).join('');
+
+    // [LISTENERS_DIRECTOS_v3] Adjuntar listeners directos a cada card
+    // En vez de depender del onclick inline (que puede fallar por diversas razones),
+    // agregamos un click listener real a cada elemento.
+    setTimeout(() => {
+      const cards = grid.querySelectorAll('.tpl-card-premium');
+      console.log('%c[LISTENERS_DIRECTOS_v3] Adjuntando listeners a ' + cards.length + ' cards','color:#8b5cf6;font-weight:bold');
+      cards.forEach((card, idx) => {
+        if (card.dataset.listenerAttached === '1') return;
+        card.dataset.listenerAttached = '1';
+        const id = card.dataset.id;
+        card.addEventListener('click', function(e) {
+          // Si el click es en un boton interno con onclick propio, no interferir
+          if (e.target.closest('button[onclick], a[onclick], a[href]:not([href=""]):not([href="#"])')) return;
+          e.preventDefault();
+          console.log('%c[LISTENERS_DIRECTOS_v3] CLICK DIRECTO en card: ' + id,'color:#10b981;font-weight:bold;font-size:13px');
+          if (typeof window.openTemplateModal === 'function') {
+            window.openTemplateModal(id);
+          } else if (typeof openTemplateModal === 'function') {
+            openTemplateModal(id);
+          } else {
+            console.error('[LISTENERS_DIRECTOS_v3] ✗ openTemplateModal NO ESTA DEFINIDO!');
+            if (window.notify) window.notify('Error: la función openTemplateModal no está disponible. Recarga la página (Ctrl+Shift+R).', 'error');
+          }
+        });
+      });
+    }, 100);
   }
 
   function actualizarContadores() {
@@ -27477,24 +27554,64 @@ window._icademLogros = {
     }, 250);
   }
   // Export to global scope for use in onclick handlers
-  window.openTemplateModal = openTemplateModal;
+  // [STUB_TEMPRANO_v1] Usar la API del stub para procesar la cola de clicks tempranos
+  window._realOpenTemplateModal = openTemplateModal;
   window.closeTemplateModal = closeTemplateModal;
+  console.log('%c[DEBUG_PROFUNDO_v2] openTemplateModal expuesto en window:','color:#10b981;font-weight:bold', typeof window.openTemplateModal);
 
   // [LISTENER_RESPALDO_v1] Event delegation defensivo para cards
-  // Garantiza que aunque el onclick inline falle, el click siempre funcione
   document.addEventListener('click', function(e) {
+    // Log SIEMPRE clicks que llegan a este nivel (filtrar para no spamear)
+    if (e.target.closest('.tpl-card')) {
+      console.log('%c[DEBUG_PROFUNDO_v2] click capturado en .tpl-card','color:#3b82f6;font-weight:bold', {
+        target: e.target,
+        tagName: e.target.tagName,
+        clases: e.target.className,
+        bodyClasses: document.body.className,
+        isGuest: document.body.classList.contains('is-guest'),
+        defaultPrevented: e.defaultPrevented,
+        propagationStopped: false,
+      });
+    }
+
     const card = e.target.closest('.tpl-card-premium');
     if (!card) return;
     if (card.classList.contains('tpl-card-soon')) return;
     const id = card.dataset.id;
-    if (!id) return;
-    // Solo activar si el onclick inline no manejo el evento
-    // (verificamos que el modal no este ya abierto)
+    if (!id) {
+      console.warn('[DEBUG_PROFUNDO_v2] card sin data-id:', card);
+      return;
+    }
     const overlay = document.getElementById('tpl-modal-overlay');
-    if (overlay && overlay.classList.contains('tpl-modal-visible')) return;
-    console.log('[Plantillas] click delegado en card:', id);
-    openTemplateModal(id);
+    if (overlay && overlay.classList.contains('tpl-modal-visible')) {
+      console.log('[DEBUG_PROFUNDO_v2] modal ya abierto, no hacer nada');
+      return;
+    }
+    console.log('%c[DEBUG_PROFUNDO_v2] llamando openTemplateModal(' + id + ')','color:#f59e0b;font-weight:bold');
+    try {
+      openTemplateModal(id);
+    } catch(err) {
+      console.error('[DEBUG_PROFUNDO_v2] ✗ Error al llamar openTemplateModal:', err);
+    }
   });
+
+  // [DEBUG_PROFUNDO_v2] Tambien intentar disparar manualmente sobre uno de los cards
+  // para verificar que la funcion completa funciona
+  setTimeout(() => {
+    console.log('%c[DEBUG_PROFUNDO_v2] DIAGNOSTICO ESTADO INICIAL','color:#8b5cf6;font-weight:bold;font-size:14px');
+    console.log('  - window.openTemplateModal:', typeof window.openTemplateModal);
+    console.log('  - window.PLANTILLAS:', typeof window.PLANTILLAS, window.PLANTILLAS && window.PLANTILLAS.length, 'items');
+    console.log('  - body.is-guest:', document.body.classList.contains('is-guest'));
+    console.log('  - body.classes:', document.body.className);
+    console.log('  - #tpl-modal-overlay existe:', !!document.getElementById('tpl-modal-overlay'));
+    console.log('  - #tpl-modal existe:', !!document.getElementById('tpl-modal'));
+    const cards = document.querySelectorAll('.tpl-card-premium');
+    console.log('  - .tpl-card-premium cards en DOM:', cards.length);
+    if (cards.length > 0) {
+      console.log('  - Primera card data-id:', cards[0].dataset.id);
+      console.log('  - Primera card onclick:', cards[0].getAttribute('onclick'));
+    }
+  }, 2000);
 
 
   // Close on overlay click
