@@ -25797,6 +25797,8 @@ window._icademLogros = {
       btn.disabled = true;
     }
 
+    // Declarar data ANTES del try para que sea visible en el catch (fix de scope)
+    let data = null;
     try {
       const { doc, setDoc, getDoc, serverTimestamp } =
         await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
@@ -25816,7 +25818,7 @@ window._icademLogros = {
       }
       if (!nombre) nombre = (user.email || '').split('@')[0];
 
-      const data = {
+      data = {
         uid: user.uid,
         nombre, cargo, empresa, industria, ciudad, experiencia,
         bio, ofrece, busca, contacto, visible,
