@@ -31169,5 +31169,267 @@ ${htmlImprimible}
 })();
 </script>
 
+
+<!-- SOLUCION_RADICAL_v4: Resolver bug de clicks en plantillas -->
+<script>
+(function(){
+  'use strict';
+  console.log('%c[SOLUCION_RADICAL_v4] Iniciando reparacion del modal','color:#dc2626;font-weight:bold;font-size:16px');
+  
+  // [INDICADOR_VISUAL_v1] Agregar un dot visual rojo que confirme que el script CORRIO
+  function agregarIndicador(texto, color) {
+    const old = document.getElementById('icadem-debug-dot');
+    if (old) old.remove();
+    const dot = document.createElement('div');
+    dot.id = 'icadem-debug-dot';
+    dot.style.cssText = 'position:fixed;bottom:10px;left:10px;z-index:2147483647;background:' + color + ';color:#fff;padding:6px 12px;border-radius:99px;font-family:monospace;font-size:11px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.4);pointer-events:none;letter-spacing:0.05em;';
+    dot.textContent = texto;
+    document.body.appendChild(dot);
+  }
+  
+  // Esperar a que el body exista
+  function cuandoBodyEste(fn) {
+    if (document.body) { fn(); }
+    else { document.addEventListener('DOMContentLoaded', fn); }
+  }
+  
+  cuandoBodyEste(() => {
+    agregarIndicador('● RADICAL_v4 ACTIVO', '#10b981');
+    setTimeout(() => {
+      const dot = document.getElementById('icadem-debug-dot');
+      if (dot) {
+        dot.style.transition = 'opacity 1s';
+        dot.style.opacity = '0';
+        setTimeout(() => dot.remove(), 1100);
+      }
+    }, 8000);  // se quita despues de 8 segundos
+  });
+
+  // Funcion auto-suficiente que abre el modal SIN depender del IIFE
+  function abrirModalDirecto(id) {
+    console.log('%c[SOLUCION_RADICAL_v4] abrirModalDirecto(' + id + ')','color:#10b981;font-weight:bold');
+    
+    if (!window.PLANTILLAS) {
+      console.error('[SOLUCION_RADICAL_v4] ✗ window.PLANTILLAS no existe');
+      alert('Error: la lista de plantillas no se cargo. Recarga la pagina.');
+      return;
+    }
+    
+    const p = window.PLANTILLAS.find(x => x.id === id);
+    if (!p) {
+      console.error('[SOLUCION_RADICAL_v4] ✗ Plantilla no encontrada:', id);
+      return;
+    }
+    if (p.proximamente) {
+      console.log('[SOLUCION_RADICAL_v4] Plantilla proximamente');
+      return;
+    }
+    
+    const overlay = document.getElementById('tpl-modal-overlay');
+    const modal = document.getElementById('tpl-modal');
+    if (!overlay || !modal) {
+      console.error('[SOLUCION_RADICAL_v4] ✗ Modal HTML no encontrado en DOM');
+      alert('Error: el modal no esta en el DOM.');
+      return;
+    }
+    
+    // Llenar el header
+    const setText = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.textContent = val;
+    };
+    setText('tpl-modal-icon', p.icono);
+    setText('tpl-modal-title-text', p.titulo);
+    setText('tpl-modal-desc', p.desc);
+    setText('tpl-modal-format', p.formato);
+    setText('tpl-modal-version', p.version || 'v1.0');
+    
+    const catLabels = {
+      'finanzas': 'Finanzas', 'rh': 'Capital Humano', 'ventas': 'Ventas',
+      'operaciones': 'Operaciones', 'marketing': 'Marketing', 'legal': 'Legal'
+    };
+    setText('tpl-modal-cat', catLabels[p.cat] || p.cat);
+    
+    // Configurar boton de descarga
+    const hasDownloadUrl = p.urlDownload && !p.urlDownload.startsWith('PENDIENTE');
+    const hasUrl = p.urlCopy && !p.urlCopy.startsWith('PENDIENTE');
+    const esDescargaDirecta = ['XLSX','DOCX','PPTX','PDF'].includes(p.formato) || p.urlDownload;
+    
+    const labels = {
+      'XLSX':'Descargar Excel',
+      'DOCX':'Descargar Word',
+      'PPTX':'Descargar PowerPoint',
+      'PDF':'Descargar PDF',
+      'SHEETS':'Hacer una copia',
+      'DOCS':'Hacer una copia',
+      'SLIDES':'Hacer una copia'
+    };
+    const label = labels[p.formato] || 'Descargar';
+    
+    const copyBtn = document.getElementById('tpl-btn-copy');
+    if (copyBtn) {
+      if (hasUrl || hasDownloadUrl) {
+        const targetUrl = hasDownloadUrl ? p.urlDownload : p.urlCopy;
+        copyBtn.href = targetUrl;
+        copyBtn.classList.remove('tpl-btn-disabled');
+        copyBtn.style.pointerEvents = '';
+        if (esDescargaDirecta) {
+          copyBtn.setAttribute('download', '');
+          copyBtn.removeAttribute('target');
+        } else {
+          copyBtn.removeAttribute('download');
+          copyBtn.setAttribute('target', '_blank');
+        }
+        copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span>' + label + '</span>';
+      } else {
+        copyBtn.href = '#';
+        copyBtn.classList.add('tpl-btn-disabled');
+        copyBtn.style.pointerEvents = 'none';
+      }
+    }
+    
+    // Drive button: ocultar siempre (solo Google Sheets lo usa)
+    const driveBtn = document.getElementById('tpl-btn-drive');
+    if (driveBtn) driveBtn.style.display = 'none';
+    
+    // Preview: mostrar el "pending" con preview premium
+    const loading = document.getElementById('tpl-modal-loading');
+    const iframe = document.getElementById('tpl-modal-iframe');
+    const pending = document.getElementById('tpl-modal-pending');
+    
+    if (loading) loading.style.display = 'none';
+    if (iframe) { iframe.style.display = 'none'; iframe.src = ''; }
+    
+    if (pending) {
+      pending.style.display = 'flex';
+      const titulos = {
+        'XLSX': 'Plantilla Excel premium',
+        'DOCX': 'Plantilla Word premium',
+        'PPTX': 'Plantilla PowerPoint premium',
+        'PDF': 'Plantilla PDF premium'
+      };
+      const descripciones = {
+        'XLSX': 'Descarga el archivo Excel con formulas y graficas preconfiguradas. Abrelo con Microsoft Excel, Numbers (Mac) o Google Sheets.',
+        'DOCX': 'Descarga el documento Word con formato profesional listo para editar. Abrelo con Microsoft Word, Pages (Mac) o Google Docs.',
+        'PPTX': 'Descarga la presentacion PowerPoint con 12 slides investor-ready. Abrela con Microsoft PowerPoint, Keynote (Mac) o Google Slides.',
+        'PDF': 'Descarga el PDF listo para imprimir o compartir.'
+      };
+      const tituloPreview = titulos[p.formato] || 'Plantilla premium';
+      const descPreview = descripciones[p.formato] || 'Descarga el archivo premium con formato profesional listo para usar.';
+      
+      pending.innerHTML = ''
+        + '<div style="text-align:center;padding:2rem 1.5rem;max-width:540px;margin:0 auto;">'
+        + '<div style="font-size:80px;line-height:1;margin-bottom:1.25rem;filter:drop-shadow(0 8px 24px rgba(201,169,97,0.30));">' + p.icono + '</div>'
+        + '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.7rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">' + tituloPreview + '</h3>'
+        + '<p style="font-family:Inter,sans-serif;font-size:14px;color:#475569;-webkit-text-fill-color:#475569;line-height:1.55;margin:0 0 1.5rem;">' + descPreview + '</p>'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 1.75rem;text-align:left;">'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + '<span style="font-size:20px;flex-shrink:0;">✨</span>'
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Listo para usar</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Formulas y formatos preconfigurados</div></div></div>'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + '<span style="font-size:20px;flex-shrink:0;">📊</span>'
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Graficas dinamicas</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Se actualizan automaticamente</div></div></div>'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + '<span style="font-size:20px;flex-shrink:0;">🎨</span>'
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Diseno premium</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Estilo profesional ICADEM</div></div></div>'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + '<span style="font-size:20px;flex-shrink:0;">🔓</span>'
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Sin proteccion</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Personalizable al 100%</div></div></div>'
+        + '</div>'
+        + '<p style="font-family:Inter,sans-serif;font-size:11px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;margin:0;">Version ' + (p.version || 'v1.0') + ' · ICADEM Panel VIP</p>'
+        + '</div>';
+    }
+    
+    // MOSTRAR el modal
+    overlay.classList.add('tpl-modal-visible');
+    document.body.style.overflow = 'hidden';
+    
+    console.log('%c[SOLUCION_RADICAL_v4] ✓ Modal abierto','color:#10b981;font-weight:bold');
+  }
+  
+  // Cerrar modal
+  function cerrarModalDirecto() {
+    const overlay = document.getElementById('tpl-modal-overlay');
+    if (overlay) {
+      overlay.classList.remove('tpl-modal-visible');
+      document.body.style.overflow = '';
+    }
+  }
+  
+  // EXPONER GLOBALMENTE (sobreescribir si ya existe)
+  window.openTemplateModal = abrirModalDirecto;
+  window.closeTemplateModal = cerrarModalDirecto;
+  console.log('[SOLUCION_RADICAL_v4] window.openTemplateModal sobreescrito:', typeof window.openTemplateModal);
+  
+  // FUNCION DE INICIALIZACION: agregar listeners a todas las cards Y al close del modal
+  function adjuntarListeners() {
+    const cards = document.querySelectorAll('.tpl-card-premium');
+    console.log('[SOLUCION_RADICAL_v4] Adjuntando listeners a ' + cards.length + ' cards');
+    
+    cards.forEach((card, idx) => {
+      if (card.dataset.radicalAttached === '1') return;
+      card.dataset.radicalAttached = '1';
+      
+      const id = card.dataset.id;
+      if (!id) return;
+      
+      // Remover el onclick inline para evitar duplicacion
+      card.removeAttribute('onclick');
+      
+      // Agregar listener directo
+      card.addEventListener('click', function(e) {
+        // Si el click es en un boton interno, no interferir
+        if (e.target.closest('button[onclick]')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('%c[SOLUCION_RADICAL_v4] CLICK RADICAL en card: ' + id,'color:#dc2626;font-weight:bold;font-size:14px');
+        abrirModalDirecto(id);
+      });
+    });
+    
+    // Listener para cerrar modal con overlay click
+    const overlay = document.getElementById('tpl-modal-overlay');
+    if (overlay && !overlay.dataset.radicalAttached) {
+      overlay.dataset.radicalAttached = '1';
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) cerrarModalDirecto();
+      });
+    }
+    
+    // Tambien boton X del modal
+    const closeBtn = document.querySelector('.tpl-modal-close, .tpl-btn-close-footer');
+    if (closeBtn && !closeBtn.dataset.radicalAttached) {
+      closeBtn.dataset.radicalAttached = '1';
+      closeBtn.addEventListener('click', cerrarModalDirecto);
+    }
+  }
+  
+  // Ejecutar listeners ya y cada vez que cambien las cards
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adjuntarListeners);
+  }
+  adjuntarListeners();
+  
+  // Watchdog: cada 1 segundo verificar si hay cards nuevas (por filtros que rehacen el grid)
+  setInterval(adjuntarListeners, 1000);
+  
+  // ESC cierra el modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const overlay = document.getElementById('tpl-modal-overlay');
+      if (overlay && overlay.classList.contains('tpl-modal-visible')) {
+        cerrarModalDirecto();
+      }
+    }
+  });
+  
+  console.log('%c[SOLUCION_RADICAL_v4] Sistema activo - los clicks ahora funcionan','color:#10b981;font-weight:bold;font-size:14px');
+})();
+</script>
+
 </body>
 </html>
