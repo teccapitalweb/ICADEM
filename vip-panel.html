@@ -1595,6 +1595,218 @@ body > .doc-legal-modal .doc-legal-modal-content {
   margin: 0;
 }
 
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FIX_VISIBILIDAD_DOCS_LEGALES — sobrescribe reglas globales que rompen
+   visibilidad de labels, headings, placeholders dentro del modal de docs legales
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── LABELS del formulario: oscuros y legibles (override global label color:#cbd5e1) ─── */
+.doc-legal-field label,
+#doc-legal-modal .doc-legal-field label,
+body > .doc-legal-modal .doc-legal-field label,
+.doc-legal-modal-content .doc-legal-field label {
+  color: #1E293B !important;
+  -webkit-text-fill-color: #1E293B !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: none !important;
+  opacity: 1 !important;
+}
+
+/* ─── INPUTS, TEXTAREAS, SELECTS: texto oscuro y legible ─── */
+.doc-legal-field input,
+.doc-legal-field textarea,
+.doc-legal-field select,
+#doc-legal-modal .doc-legal-field input,
+#doc-legal-modal .doc-legal-field textarea,
+#doc-legal-modal .doc-legal-field select,
+body > .doc-legal-modal input,
+body > .doc-legal-modal textarea,
+body > .doc-legal-modal select {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  background: #FFFFFF !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* ─── PLACEHOLDERS: gris claro + ITÁLICO para que se vean como "ejemplo" ─── */
+.doc-legal-field input::placeholder,
+.doc-legal-field textarea::placeholder,
+#doc-legal-modal input::placeholder,
+#doc-legal-modal textarea::placeholder,
+body > .doc-legal-modal input::placeholder,
+body > .doc-legal-modal textarea::placeholder {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-style: italic !important;
+  font-weight: 400 !important;
+  opacity: 0.75 !important;
+}
+
+/* ─── TITULO DE SECCION del formulario ("Datos del patrón", etc.) ─── */
+.doc-legal-form-section-title,
+#doc-legal-modal .doc-legal-form-section-title,
+body > .doc-legal-modal .doc-legal-form-section-title {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-weight: 700 !important;
+}
+
+/* ─── HEADER DEL MODAL: titulo principal del documento ─── */
+.doc-legal-modal-title,
+#doc-legal-modal-titulo,
+#doc-legal-modal .doc-legal-modal-title,
+body > .doc-legal-modal .doc-legal-modal-title {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+}
+.doc-legal-modal-eyebrow,
+#doc-legal-modal-cat {
+  color: #C9A961 !important;
+  -webkit-text-fill-color: #C9A961 !important;
+}
+.doc-legal-modal-desc,
+#doc-legal-modal-desc {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+
+/* ─── PREVIEW PAPER: el texto del documento en vivo ─── */
+.doc-legal-preview-paper,
+#doc-legal-preview,
+#doc-legal-modal .doc-legal-preview-paper,
+body > .doc-legal-modal .doc-legal-preview-paper {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  background: #FFFFFF !important;
+}
+
+/* Titulos h1/h2/h3 del preview */
+#doc-legal-preview h1,
+#doc-legal-preview h2,
+#doc-legal-preview h3,
+.doc-legal-preview-paper h1,
+.doc-legal-preview-paper h2,
+.doc-legal-preview-paper h3,
+body > .doc-legal-modal #doc-legal-preview h1,
+body > .doc-legal-modal #doc-legal-preview h2 {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  opacity: 1 !important;
+}
+
+/* Parrafos, strong, em del preview */
+#doc-legal-preview p,
+#doc-legal-preview li,
+#doc-legal-preview span,
+.doc-legal-preview-paper p,
+.doc-legal-preview-paper li,
+.doc-legal-preview-paper span {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+#doc-legal-preview strong,
+#doc-legal-preview b,
+.doc-legal-preview-paper strong,
+.doc-legal-preview-paper b {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  font-weight: 700 !important;
+}
+
+/* Logo y doctype del paper-header */
+.doc-legal-paper-header .doc-legal-paper-logo,
+#doc-legal-preview .doc-legal-paper-logo {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+}
+.doc-legal-paper-header .doc-legal-paper-doctype,
+#doc-legal-preview .doc-legal-paper-doctype {
+  color: #C9A961 !important;
+  -webkit-text-fill-color: #C9A961 !important;
+}
+
+/* Signatures del preview */
+.doc-legal-signature-name {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  font-weight: 700 !important;
+}
+.doc-legal-signature-role {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+}
+
+/* Disclaimer footer */
+.doc-legal-paper-footer,
+#doc-legal-preview .doc-legal-paper-footer {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+}
+
+/* ─── FIX VISIBILIDAD PROGRESO DEL FORMULARIO ─── */
+.doc-legal-form-progress-txt {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+}
+.doc-legal-form-progress-txt span {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+}
+
+/* ─── FIX VISIBILIDAD PREVIEW TOOLBAR (Vista Previa label) ─── */
+.doc-legal-preview-label {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+
+/* ─── FIX VISIBILIDAD FOOTER DEL MODAL ─── */
+.doc-legal-modal-footer-info,
+.doc-legal-modal-footer-info span {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+}
+
+/* ─── BOTON SECONDARY (Cancelar) ─── */
+.doc-legal-btn-secondary {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+
+/* ─── FIELD HELP (texto pequeño debajo de inputs) ─── */
+.doc-legal-field-help {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-style: italic !important;
+}
+
+/* ─── REQUIRED ASTERISK ─── */
+.doc-legal-req {
+  color: #DC2626 !important;
+  -webkit-text-fill-color: #DC2626 !important;
+}
+
+/* ─── BLANQUEADO PARA EL FILLED HIGHLIGHT EN PREVIEW ─── */
+#doc-legal-preview .doc-legal-filled,
+.doc-legal-preview-paper .doc-legal-filled {
+  background: linear-gradient(180deg, transparent 60%, rgba(201,169,97,0.25) 60%) !important;
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  font-weight: 600 !important;
+}
+#doc-legal-preview .doc-legal-empty,
+.doc-legal-preview-paper .doc-legal-empty {
+  background: rgba(220, 38, 38, 0.06) !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-style: italic !important;
+}
+
 </style>
 
 <style id="premium-vip-styles">
