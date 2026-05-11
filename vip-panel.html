@@ -2079,6 +2079,261 @@ body > .doc-legal-modal .doc-legal-form-panel {
   margin: 0 !important;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRINT_READY_v1 — Estilos editoriales premium para PDF (via html2canvas)
+   Se aplican SOLO al wrap fuera de pantalla, no al preview en chat
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.icadem-print-wrap {
+  font-family: 'Cambria', 'Georgia', 'Times New Roman', serif !important;
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  width: 816px !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.icadem-print-doc {
+  background: #FFFFFF !important;
+  padding: 96px 90px 80px 90px !important;  /* margenes carta: 1in arriba, 0.9375in laterales */
+  color: #000000 !important;
+  font-family: 'Cambria', 'Georgia', 'Times New Roman', serif !important;
+  font-size: 12pt !important;
+  line-height: 1.65 !important;
+  text-align: justify !important;
+  hyphens: auto !important;
+  -webkit-hyphens: auto !important;
+}
+
+/* Header del documento */
+.icadem-print-doc .doc-legal-paper-header {
+  text-align: center !important;
+  margin: 0 0 32px 0 !important;
+  padding: 0 0 18px 0 !important;
+  border-bottom: 2px solid #C9A961 !important;
+  background: transparent !important;
+}
+.icadem-print-doc .doc-legal-paper-logo {
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 24pt !important;
+  font-weight: 800 !important;
+  color: #0A1F44 !important;
+  letter-spacing: 4pt !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+.icadem-print-doc .doc-legal-paper-doctype {
+  font-family: 'Helvetica', 'Arial', sans-serif !important;
+  font-size: 8.5pt !important;
+  font-weight: 600 !important;
+  color: #64748B !important;
+  text-transform: uppercase !important;
+  letter-spacing: 2pt !important;
+  margin: 8px 0 0 0 !important;
+  background: transparent !important;
+}
+
+/* Titulos */
+.icadem-print-doc h1 {
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 26pt !important;
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5pt !important;
+  margin: 0 0 8px 0 !important;
+  line-height: 1.15 !important;
+  background: transparent !important;
+  border: none !important;
+}
+.icadem-print-doc h2 {
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 13pt !important;
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1pt !important;
+  margin: 26px 0 10px 0 !important;
+  padding: 0 0 5px 0 !important;
+  border-bottom: 0.75pt solid #C9A961 !important;
+  background: transparent !important;
+  page-break-after: avoid !important;
+}
+.icadem-print-doc h3 {
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 11.5pt !important;
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  margin: 16px 0 6px 0 !important;
+}
+
+/* Parrafos: justificacion + interlineado generoso */
+.icadem-print-doc p {
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 12pt !important;
+  line-height: 1.65 !important;
+  color: #000000 !important;
+  text-align: justify !important;
+  margin: 9pt 0 !important;
+  text-indent: 0 !important;
+  background: transparent !important;
+  orphans: 3 !important;
+  widows: 3 !important;
+}
+
+/* Strong en oscuro marino para destacar partes clave */
+.icadem-print-doc strong,
+.icadem-print-doc b {
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+}
+.icadem-print-doc em,
+.icadem-print-doc i {
+  font-style: italic !important;
+}
+
+/* Listas */
+.icadem-print-doc ul,
+.icadem-print-doc ol {
+  margin: 9pt 0 9pt 32pt !important;
+  padding: 0 !important;
+}
+.icadem-print-doc li {
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 12pt !important;
+  line-height: 1.55 !important;
+  color: #000000 !important;
+  margin: 4pt 0 !important;
+  text-align: justify !important;
+}
+
+/* Tablas (para recibo de honorarios) */
+.icadem-print-doc table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 14px 0 !important;
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 11pt !important;
+}
+.icadem-print-doc table th,
+.icadem-print-doc table td {
+  padding: 8pt 10pt !important;
+  border: 0.5pt solid #CBD5E1 !important;
+  text-align: left !important;
+}
+.icadem-print-doc table th {
+  background: #F1F5F9 !important;
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  text-transform: uppercase !important;
+  font-size: 9pt !important;
+  letter-spacing: 0.5pt !important;
+}
+
+/* Valores llenos: negrita marino, SIN highlight amarillo */
+.icadem-print-doc .print-value {
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  background: transparent !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* Campos vacios: linea horizontal con guion bajo */
+.icadem-print-doc .print-blank {
+  display: inline-block !important;
+  min-width: 180px !important;
+  border-bottom: 0.5pt solid #94A3B8 !important;
+  color: transparent !important;
+  padding: 0 4pt !important;
+  margin: 0 2pt !important;
+  background: transparent !important;
+  height: 14pt !important;
+  line-height: 14pt !important;
+  vertical-align: baseline !important;
+}
+
+/* Signatures: tabla con 2 columnas centradas */
+.icadem-print-doc .doc-legal-signatures {
+  display: table !important;
+  width: 100% !important;
+  margin: 56pt 0 0 0 !important;
+  page-break-inside: avoid !important;
+  background: transparent !important;
+}
+.icadem-print-doc .doc-legal-signature {
+  display: table-cell !important;
+  width: 50% !important;
+  text-align: center !important;
+  padding: 0 24pt !important;
+  vertical-align: top !important;
+  background: transparent !important;
+}
+.icadem-print-doc .doc-legal-signature-line {
+  border-top: 1pt solid #000000 !important;
+  margin: 48pt 0 6pt 0 !important;
+  padding: 0 !important;
+  height: 1pt !important;
+}
+.icadem-print-doc .doc-legal-signature-name {
+  font-family: 'Cambria', 'Georgia', serif !important;
+  font-size: 11pt !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  margin: 0 !important;
+  background: transparent !important;
+}
+.icadem-print-doc .doc-legal-signature-role {
+  font-family: 'Helvetica', 'Arial', sans-serif !important;
+  font-size: 8pt !important;
+  color: #64748B !important;
+  text-transform: uppercase !important;
+  letter-spacing: 1pt !important;
+  margin: 4pt 0 0 0 !important;
+  background: transparent !important;
+}
+
+/* Footer (disclaimer) */
+.icadem-print-doc .doc-legal-paper-footer {
+  font-family: 'Helvetica', 'Arial', sans-serif !important;
+  font-size: 7.5pt !important;
+  font-style: italic !important;
+  color: #94A3B8 !important;
+  text-align: center !important;
+  margin: 36pt 0 0 0 !important;
+  padding: 12pt 24pt 0 24pt !important;
+  border-top: 0.25pt solid #CBD5E1 !important;
+  background: transparent !important;
+  line-height: 1.4 !important;
+}
+
+
+
+/* ─── Mejora del preview en pantalla: highlights mas sutiles ─── */
+#doc-legal-preview .doc-legal-filled,
+.doc-legal-preview-paper .doc-legal-filled {
+  background: transparent !important;
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  font-weight: 700 !important;
+  border-bottom: 1px solid #C9A961 !important;
+  padding: 0 2px !important;
+}
+#doc-legal-preview .doc-legal-empty,
+.doc-legal-preview-paper .doc-legal-empty {
+  background: transparent !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-style: italic !important;
+  border-bottom: 1px dashed #CBD5E1 !important;
+  padding: 0 8px !important;
+}
+
 </style>
 
 <style id="premium-vip-styles">
@@ -29638,6 +29893,58 @@ window.loginDirecto = function() {
     };
   }
 
+  // ─── [PRINT_READY_v1] Generar HTML limpio para PDF/Word ───────────
+  // Sustituye {{vars}} con valores reales o lineas, SIN highlights,
+  // con estructura profesional editorial.
+  function generarHtmlImprimible() {
+    if (!_docActual) return '';
+    let html = _docActual.plantilla;
+
+    // Calcular derivados igual que el preview
+    const derivados = {};
+    Object.keys(_valoresForm).forEach(k => {
+      if (k.startsWith('fecha') && /^\d{4}-\d{2}-\d{2}$/.test(_valoresForm[k])) {
+        derivados[k + 'Texto'] = fechaATexto(_valoresForm[k]);
+      }
+    });
+    derivados.fechaHoyTexto = hoyTexto();
+
+    if (_docActual.id === 'recibo-honorarios') {
+      const calc = calcularRecibo(_valoresForm);
+      Object.assign(derivados, calc);
+      if (_valoresForm.subtotal) derivados.subtotal = formatMoneda(_valoresForm.subtotal);
+    }
+    if (_docActual.id === 'pagare' && _valoresForm.monto) derivados.monto = formatMoneda(_valoresForm.monto);
+    if (_docActual.id === 'compraventa-mueble' && _valoresForm.precioTotal) derivados.precioTotal = formatMoneda(_valoresForm.precioTotal);
+    if (_docActual.id === 'arrendamiento-habitacional') {
+      if (_valoresForm.rentaMensual) derivados.rentaMensual = formatMoneda(_valoresForm.rentaMensual);
+      if (_valoresForm.deposito) derivados.deposito = formatMoneda(_valoresForm.deposito);
+    }
+    if (_docActual.id === 'contrato-confidencialidad' && _valoresForm.montoPenalidad) derivados.montoPenalidad = formatMoneda(_valoresForm.montoPenalidad);
+    if (_docActual.id === 'carta-finiquito') {
+      ['salarioDiario','indemnizacion','aguinaldo','vacaciones','primaVacacional','totalFiniquito'].forEach(k => {
+        if (_valoresForm[k]) derivados[k] = formatMoneda(_valoresForm[k]);
+      });
+    }
+    if (_docActual.id.startsWith('contrato-laboral') && _valoresForm.salarioMensual) derivados.salarioMensual = formatMoneda(_valoresForm.salarioMensual);
+    if (_docActual.id === 'contrato-honorarios' && _valoresForm.contraprestacion) derivados.contraprestacion = formatMoneda(_valoresForm.contraprestacion);
+
+    const todos = Object.assign({}, _valoresForm, derivados);
+
+    // Sustituir variables: sin spans, sin highlights, solo texto
+    html = html.replace(/\{\{([a-zA-Z0-9_]+)\}\}/g, (m, k) => {
+      // Las clases dinamicas se reemplazan por strings vacios (no aplican en print)
+      if (k.startsWith('__clase')) return 'print-field';
+      const v = todos[k];
+      if (v === undefined || v === null || v === '') {
+        return '<span class="print-blank">______________________</span>';
+      }
+      return '<span class="print-value">' + String(v) + '</span>';
+    });
+
+    return html;
+  }
+
   // ─── Render del grid de cards (12 plantillas) ──────────────────────
   window.renderDocsLegales = function() {
     const grid = document.getElementById('doc-legal-grid');
@@ -29976,76 +30283,79 @@ window.loginDirecto = function() {
     return `ICADEM_${slug}_${fecha}.${ext}`;
   }
 
-  // ─── DESCARGAR PDF ─────────────────────────────────────────────────
+  // ─── [PRINT_READY_v1] DESCARGAR PDF EDITORIAL PREMIUM ──────────────
   window.descargarDocPDF = async function() {
     if (!validarCamposRequeridos()) return;
     if (!window.jspdf || !window.html2canvas) {
       alert('Cargando librerías… intenta de nuevo en unos segundos.');
       return;
     }
+    if (!_docActual) return;
 
-    const preview = document.getElementById('doc-legal-preview');
-    if (!preview) return;
-
-    // Mostrar loading
     const btn = document.querySelector('.doc-legal-btn-primary');
     const txtOrig = btn ? btn.innerHTML : '';
     if (btn) {
-      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg> Generando…';
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg> Generando PDF…';
       btn.disabled = true;
     }
 
     try {
-      // Clone del preview en alta resolución
-      const clone = preview.cloneNode(true);
-      clone.style.position = 'fixed';
-      clone.style.left = '-99999px';
-      clone.style.top = '0';
-      clone.style.width = '816px';  // ancho carta @ 96dpi
-      clone.style.padding = '60px 70px';
-      clone.style.background = '#FFFFFF';
-      clone.style.color = '#0F172A';
-      clone.style.fontFamily = "'Inter', 'Helvetica', sans-serif";
-      clone.style.fontSize = '13px';
-      clone.style.lineHeight = '1.55';
-      // Reemplazar valores doc-legal-empty/filled con texto plano para mejor render
-      clone.querySelectorAll('.doc-legal-empty, .doc-legal-filled').forEach(s => {
-        s.style.background = 'transparent';
-        s.style.color = '#0F172A';
-        s.style.padding = '0';
-        s.style.fontWeight = '500';
-      });
-      document.body.appendChild(clone);
+      // Generar HTML print-ready limpio
+      const htmlImprimible = generarHtmlImprimible();
 
-      const canvas = await window.html2canvas(clone, {
+      // Crear el container fuera de pantalla con estilos editoriales premium
+      const printWrap = document.createElement('div');
+      printWrap.className = 'icadem-print-wrap';
+      printWrap.innerHTML = `
+        <div class="icadem-print-doc">
+          ${htmlImprimible}
+        </div>
+      `;
+      printWrap.style.position = 'fixed';
+      printWrap.style.left = '-99999px';
+      printWrap.style.top = '0';
+      printWrap.style.width = '816px';
+      printWrap.style.background = '#FFFFFF';
+      printWrap.style.zIndex = '-1';
+      document.body.appendChild(printWrap);
+
+      // Esperar a que fuentes y layout esten listos
+      await new Promise(r => setTimeout(r, 250));
+
+      // Capturar
+      const canvas = await window.html2canvas(printWrap, {
         scale: 2,
         backgroundColor: '#FFFFFF',
         logging: false,
-        useCORS: true
+        useCORS: true,
+        windowWidth: 816,
+        scrollX: 0,
+        scrollY: 0
       });
 
-      document.body.removeChild(clone);
+      document.body.removeChild(printWrap);
 
-      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ unit: 'pt', format: 'letter' });
-      const pdfW = pdf.internal.pageSize.getWidth();
-      const pdfH = pdf.internal.pageSize.getHeight();
+      const pdf = new jsPDF({ unit: 'pt', format: 'letter', compress: true });
+      const pdfW = pdf.internal.pageSize.getWidth();   // 612
+      const pdfH = pdf.internal.pageSize.getHeight();  // 792
 
-      const imgW = pdfW - 40;
+      const margin = 0;   // El padding ya esta en el wrap
+      const imgW = pdfW - margin * 2;
       const imgH = (canvas.height * imgW) / canvas.width;
 
       let heightLeft = imgH;
-      let position = 20;
+      let position = 0;
 
-      pdf.addImage(imgData, 'JPEG', 20, position, imgW, imgH);
-      heightLeft -= (pdfH - 40);
+      pdf.addImage(imgData, 'JPEG', margin, position, imgW, imgH);
+      heightLeft -= pdfH;
 
       while (heightLeft > 0) {
-        position = -(imgH - heightLeft) + 20;
+        position = heightLeft - imgH;
         pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 20, position, imgW, imgH);
-        heightLeft -= (pdfH - 40);
+        pdf.addImage(imgData, 'JPEG', margin, position, imgW, imgH);
+        heightLeft -= pdfH;
       }
 
       pdf.save(nombreArchivo('pdf'));
@@ -30053,12 +30363,12 @@ window.loginDirecto = function() {
       mostrarToast({
         tipo: 'success',
         titulo: '¡PDF generado!',
-        mensaje: 'El documento se descargó correctamente.',
+        mensaje: 'Documento descargado con calidad editorial.',
         duracion: 4000
       });
     } catch(e) {
       console.error('[DocsLegales] Error PDF:', e);
-      alert('No se pudo generar el PDF. Revisa la consola.');
+      alert('No se pudo generar el PDF: ' + (e.message || e) + '\n\nRevisa la consola del browser (F12).');
     } finally {
       if (btn) {
         btn.innerHTML = txtOrig;
@@ -30067,11 +30377,10 @@ window.loginDirecto = function() {
     }
   };
 
-  // ─── DESCARGAR WORD (HTML con namespace MS Office) ─────────────────
+  // ─── [PRINT_READY_v1] DESCARGAR WORD EDITORIAL ─────────────────────
   window.descargarDocWord = function() {
     if (!validarCamposRequeridos()) return;
-    const preview = document.getElementById('doc-legal-preview');
-    if (!preview) return;
+    if (!_docActual) return;
 
     const btn = document.querySelector('.doc-legal-btn-word');
     const txtOrig = btn ? btn.innerHTML : '';
@@ -30081,14 +30390,8 @@ window.loginDirecto = function() {
     }
 
     try {
-      // Limpiar el HTML del preview para Word
-      const clone = preview.cloneNode(true);
-      // Eliminar clases para que Word no se confunda con CSS
-      clone.querySelectorAll('.doc-legal-empty, .doc-legal-filled').forEach(s => {
-        // Reemplazar span por texto plano
-        const text = document.createTextNode(s.textContent);
-        s.parentNode.replaceChild(text, s);
-      });
+      // Generar HTML print-ready limpio
+      const htmlImprimible = generarHtmlImprimible();
 
       const docHtml = `<!DOCTYPE html>
 <html xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -30109,29 +30412,31 @@ window.loginDirecto = function() {
   <![endif]-->
   <style>
     @page { size: 8.5in 11in; margin: 1in 1in 1in 1in; }
-    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #0F172A; }
-    h1 { font-size: 18pt; font-weight: 700; color: #0A1F44; text-align: center; margin: 0 0 12pt; letter-spacing: 0.5pt; }
-    h2 { font-size: 13pt; font-weight: 700; color: #0A1F44; margin: 16pt 0 6pt; border-bottom: 1pt solid #C9A961; padding-bottom: 4pt; }
-    p { margin: 6pt 0; text-align: justify; }
-    strong, b { font-weight: 700; }
+    body { font-family: 'Cambria', 'Georgia', 'Times New Roman', serif; font-size: 11.5pt; line-height: 1.65; color: #000000; }
+    h1 { font-family: 'Cambria', 'Georgia', serif; font-size: 22pt; font-weight: 700; color: #0A1F44; text-align: center; margin: 0 0 6pt; letter-spacing: -0.3pt; }
+    h2 { font-family: 'Cambria', 'Georgia', serif; font-size: 13pt; font-weight: 700; color: #0A1F44; margin: 22pt 0 8pt; padding-bottom: 5pt; border-bottom: 0.75pt solid #C9A961; text-transform: uppercase; letter-spacing: 0.5pt; }
+    p { margin: 7pt 0; text-align: justify; text-indent: 0; }
+    strong, b { font-weight: 700; color: #0A1F44; }
     em, i { font-style: italic; }
-    ul, ol { margin: 6pt 0 6pt 24pt; }
-    li { margin: 3pt 0; }
-    table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
-    th, td { padding: 6pt 8pt; border: 0.5pt solid #CBD5E1; }
-    .doc-legal-paper-header { text-align: center; margin-bottom: 18pt; padding-bottom: 12pt; border-bottom: 2pt solid #C9A961; }
-    .doc-legal-paper-logo { font-size: 16pt; font-weight: 800; color: #0A1F44; letter-spacing: 2pt; }
-    .doc-legal-paper-doctype { font-size: 9pt; color: #64748B; text-transform: uppercase; letter-spacing: 1pt; margin-top: 4pt; }
-    .doc-legal-signatures { display: table; width: 100%; margin-top: 36pt; }
-    .doc-legal-signature { display: table-cell; width: 50%; text-align: center; padding: 0 12pt; }
-    .doc-legal-signature-line { border-top: 1pt solid #0A1F44; margin-bottom: 4pt; padding-top: 30pt; }
-    .doc-legal-signature-name { font-weight: 700; font-size: 11pt; }
-    .doc-legal-signature-role { font-size: 9pt; color: #64748B; margin-top: 2pt; }
-    .doc-legal-paper-footer { margin-top: 24pt; padding-top: 12pt; border-top: 0.5pt solid #E2E8F0; font-size: 9pt; color: #94A3B8; font-style: italic; text-align: center; }
+    ul, ol { margin: 7pt 0 7pt 28pt; }
+    li { margin: 4pt 0; }
+    table { border-collapse: collapse; width: 100%; margin: 10pt 0; }
+    th, td { padding: 7pt 9pt; border: 0.5pt solid #CBD5E1; font-size: 10.5pt; }
+    .print-value { font-weight: 700; color: #0A1F44; }
+    .print-blank { display: inline-block; min-width: 140pt; border-bottom: 0.5pt solid #94A3B8; padding: 0 4pt; }
+    .doc-legal-paper-header { text-align: center; margin-bottom: 24pt; padding-bottom: 14pt; border-bottom: 1.5pt solid #C9A961; }
+    .doc-legal-paper-logo { font-family: 'Cambria', serif; font-size: 18pt; font-weight: 800; color: #0A1F44; letter-spacing: 3pt; }
+    .doc-legal-paper-doctype { font-family: 'Calibri', sans-serif; font-size: 8.5pt; color: #64748B; text-transform: uppercase; letter-spacing: 1.5pt; margin-top: 6pt; }
+    .doc-legal-signatures { display: table; width: 100%; margin-top: 48pt; page-break-inside: avoid; }
+    .doc-legal-signature { display: table-cell; width: 50%; text-align: center; padding: 0 18pt; vertical-align: top; }
+    .doc-legal-signature-line { border-top: 1pt solid #000000; margin-bottom: 6pt; padding-top: 36pt; }
+    .doc-legal-signature-name { font-weight: 700; font-size: 11pt; color: #000000; }
+    .doc-legal-signature-role { font-family: 'Calibri', sans-serif; font-size: 8.5pt; color: #64748B; margin-top: 3pt; letter-spacing: 0.5pt; }
+    .doc-legal-paper-footer { margin-top: 30pt; padding-top: 12pt; border-top: 0.5pt solid #E2E8F0; font-family: 'Calibri', sans-serif; font-size: 8pt; color: #94A3B8; font-style: italic; text-align: center; line-height: 1.4; }
   </style>
 </head>
 <body>
-${clone.innerHTML}
+${htmlImprimible}
 </body>
 </html>`;
 
