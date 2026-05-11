@@ -2413,6 +2413,174 @@ body > .doc-legal-modal .doc-legal-form-panel {
   }
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ICADEM_NOTIFY_v1 — Sistema de notificaciones premium (reemplaza window.notify())
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+#icadem-notify-container {
+  position: fixed !important;
+  top: 24px !important;
+  right: 24px !important;
+  z-index: 2147483647 !important;  /* maximo z-index */
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  pointer-events: none !important;
+  max-width: 420px !important;
+  width: calc(100% - 48px) !important;
+}
+
+@media (max-width: 600px) {
+  #icadem-notify-container {
+    top: 12px !important;
+    right: 12px !important;
+    left: 12px !important;
+    max-width: none !important;
+    width: auto !important;
+  }
+}
+
+.icadem-notify {
+  pointer-events: auto !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 14px !important;
+  padding: 16px 18px 16px 16px !important;
+  background: #FFFFFF !important;
+  border-radius: 14px !important;
+  box-shadow:
+    0 10px 32px rgba(10, 31, 68, 0.18),
+    0 4px 12px rgba(10, 31, 68, 0.08),
+    0 0 0 1px rgba(15, 23, 42, 0.04) !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  color: #0F172A !important;
+  overflow: hidden !important;
+  position: relative !important;
+  animation: icadem-notify-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  transform-origin: top right !important;
+}
+
+.icadem-notify.is-leaving {
+  animation: icadem-notify-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+}
+
+@keyframes icadem-notify-in {
+  from { opacity: 0; transform: translateX(420px) scale(0.85); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes icadem-notify-out {
+  to { opacity: 0; transform: translateX(120%) scale(0.92); }
+}
+
+/* Borde izquierdo según el tipo */
+.icadem-notify::before {
+  content: '' !important;
+  position: absolute !important;
+  left: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 4px !important;
+}
+.icadem-notify-success::before { background: linear-gradient(180deg, #10B981, #059669) !important; }
+.icadem-notify-error::before   { background: linear-gradient(180deg, #DC2626, #991B1B) !important; }
+.icadem-notify-warning::before { background: linear-gradient(180deg, #F59E0B, #D97706) !important; }
+.icadem-notify-info::before    { background: linear-gradient(180deg, #C9A961, #FBBF24) !important; }
+
+/* Barra de progreso (timer) */
+.icadem-notify::after {
+  content: '' !important;
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 4px !important;
+  right: 0 !important;
+  height: 2px !important;
+  background: currentColor !important;
+  opacity: 0.18 !important;
+  transform-origin: left !important;
+  animation: icadem-notify-progress var(--duration, 4500ms) linear forwards !important;
+}
+@keyframes icadem-notify-progress {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+.icadem-notify:hover::after {
+  animation-play-state: paused !important;
+}
+
+/* Icono circular con SVG */
+.icadem-notify-icon {
+  flex-shrink: 0 !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+.icadem-notify-success .icadem-notify-icon { background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important; }
+.icadem-notify-error .icadem-notify-icon   { background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%) !important; }
+.icadem-notify-warning .icadem-notify-icon { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important; }
+.icadem-notify-info .icadem-notify-icon    { background: linear-gradient(135deg, #C9A961 0%, #B8932F 100%) !important; }
+
+/* Body */
+.icadem-notify-body {
+  flex: 1 !important;
+  min-width: 0 !important;
+  padding-top: 1px !important;
+}
+.icadem-notify-title {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  margin: 0 0 3px 0 !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.25 !important;
+}
+.icadem-notify-msg {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  margin: 0 !important;
+  line-height: 1.45 !important;
+  white-space: pre-line !important;
+}
+
+/* Boton cerrar */
+.icadem-notify-close {
+  flex-shrink: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  width: 26px !important;
+  height: 26px !important;
+  border-radius: 6px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-size: 18px !important;
+  font-weight: 400 !important;
+  transition: all 0.15s !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  margin-top: -2px !important;
+}
+.icadem-notify-close:hover {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+
 </style>
 
 <style id="premium-vip-styles">
@@ -7756,7 +7924,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
                 btn.disabled = false;
                 btn.style.opacity = '1';
                 btn.textContent = 'Sí, cancelar';
-                alert('Ocurrió un error al cancelar. Intenta de nuevo.');
+                window.notify('Ocurrió un error al cancelar. Intenta de nuevo.');
               }
             };
           </script>
@@ -7836,7 +8004,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
       if (intentos >= maxIntentos) {
         clearInterval(interval);
         console.error('[Paywall] No se pudo cargar el módulo Stripe después de 2s');
-        alert('No se pudo abrir el formulario de inicio de sesión.\n\nPosibles causas:\n• Tu navegador bloqueó scripts externos\n• Problema de conexión a internet\n• Bloqueador de anuncios activo\n\nPor favor recarga la página (Ctrl+R) e intenta de nuevo.');
+        window.notify('No se pudo abrir el formulario de inicio de sesión.\n\nPosibles causas:\n• Tu navegador bloqueó scripts externos\n• Problema de conexión a internet\n• Bloqueador de anuncios activo\n\nPor favor recarga la página (Ctrl+R) e intenta de nuevo.');
       }
     }, 100);
   };
@@ -9109,7 +9277,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
         btn.style.color = '#0d47a1';
         btn.style.borderColor = '#e2e8f0';
       }, 2500);
-    }).catch(() => { alert('No se pudo copiar el enlace'); });
+    }).catch(() => { window.notify('No se pudo copiar el enlace'); });
   };
 
   function lanzarConfeti() {
@@ -10996,7 +11164,7 @@ buildVideoteca();
   window.cfDownloadPDF = function(cardId) {
     const data = window['_cfLastResult_' + cardId];
     if (!data || !window.jspdf) {
-      alert('Error: no se pudo generar el PDF. Recarga la página e intenta de nuevo.');
+      window.notify('Error: no se pudo generar el PDF. Recarga la página e intenta de nuevo.');
       return;
     }
     generarPDF(data);
@@ -11005,7 +11173,7 @@ buildVideoteca();
   window.cfDownloadXLS = function(cardId) {
     const data = window['_cfLastResult_' + cardId];
     if (!data || !window.XLSX) {
-      alert('Error: no se pudo generar el Excel. Recarga la página e intenta de nuevo.');
+      window.notify('Error: no se pudo generar el Excel. Recarga la página e intenta de nuevo.');
       return;
     }
     generarXLS(data);
@@ -11796,7 +11964,7 @@ buildVideoteca();
     const nombre = document.getElementById('isr-nombre').value.trim() || 'Sin nombre';
 
     if (bruto <= 0) {
-      alert('Ingresa un monto válido mayor a cero');
+      window.notify('Ingresa un monto válido mayor a cero');
       return;
     }
 
@@ -11898,7 +12066,7 @@ buildVideoteca();
     const nombre = document.getElementById('pm-nombre').value.trim() || 'Cálculo PM';
 
     if (ingresos <= 0) {
-      alert('Ingresa un monto de ingresos válido');
+      window.notify('Ingresa un monto de ingresos válido');
       return;
     }
 
@@ -11975,7 +12143,7 @@ buildVideoteca();
     const diasTrab = parseFloat(document.getElementById('ag-dias-trab').value) || 365;
     const nombre = document.getElementById('ag-nombre').value.trim() || 'Empleado';
 
-    if (sd <= 0) { alert('Ingresa el salario diario'); return; }
+    if (sd <= 0) { window.notify('Ingresa el salario diario'); return; }
 
     // Aguinaldo proporcional
     const aguinaldoCompleto = sd * dias;
@@ -12016,7 +12184,7 @@ buildVideoteca();
     const pct = parseFloat(document.getElementById('pv-porcentaje').value) || 25;
     const nombre = document.getElementById('pv-nombre').value.trim() || 'Empleado';
 
-    if (sd <= 0) { alert('Ingresa el salario diario'); return; }
+    if (sd <= 0) { window.notify('Ingresa el salario diario'); return; }
 
     const diasVac = diasVacacionesLFT(ant);
     const salarioVac = sd * diasVac;
@@ -12060,7 +12228,7 @@ buildVideoteca();
     const nombre = document.getElementById('ptu-nombre').value.trim() || 'Empleado';
 
     if (utilidad <= 0 || totalDias <= 0 || totalSalarios <= 0) {
-      alert('Completa los datos generales de la empresa (utilidad, días totales y salarios totales)');
+      window.notify('Completa los datos generales de la empresa (utilidad, días totales y salarios totales)');
       return;
     }
 
@@ -12124,7 +12292,7 @@ buildVideoteca();
     const primaPct = parseFloat(document.getElementById('fin-prima-vac').value) || 25;
     const nombre = document.getElementById('fin-nombre').value.trim() || 'Empleado';
 
-    if (sd <= 0) { alert('Ingresa el salario diario'); return; }
+    if (sd <= 0) { window.notify('Ingresa el salario diario'); return; }
 
     // Días pendientes
     const pagoPend = sd * diasPend;
@@ -12213,7 +12381,7 @@ buildVideoteca();
     const subtotal = parseFloat(document.getElementById('ret-subtotal').value) || 0;
     const nombre = document.getElementById('ret-nombre').value.trim() || 'Operación';
 
-    if (subtotal <= 0) { alert('Ingresa el subtotal'); return; }
+    if (subtotal <= 0) { window.notify('Ingresa el subtotal'); return; }
 
     const iva = subtotal * 0.16;
     const total = subtotal + iva;
@@ -13248,7 +13416,7 @@ buildVideoteca();
     if (typeof window._cfGenerarXLS === 'function') {
       window._cfGenerarXLS(data);
     } else {
-      alert('Generador Excel no disponible. Recarga la página.');
+      window.notify('Generador Excel no disponible. Recarga la página.');
     }
   };
 
@@ -13271,7 +13439,7 @@ buildVideoteca();
     const infonavitPct = parseFloat(document.getElementById('nm-rec-infonavit-pct').value) || 0;
 
     if (salarioDiario <= 0 || diasTrab <= 0) {
-      alert('Ingresa salario diario y días trabajados');
+      window.notify('Ingresa salario diario y días trabajados');
       return;
     }
 
@@ -13356,7 +13524,7 @@ buildVideoteca();
     const estado = document.getElementById('nm-pat-estado').value;
     const nombre = document.getElementById('nm-pat-nombre').value.trim() || 'Cuotas patronales';
 
-    if (sbc <= 0) { alert('Ingresa el SBC'); return; }
+    if (sbc <= 0) { window.notify('Ingresa el SBC'); return; }
     if (sbc > TOPE_SBC) {
       if (!confirm('El SBC excede el tope de 25 UMAs (' + fmt(TOPE_SBC) + '). Se aplicará el tope. ¿Continuar?')) return;
     }
@@ -13426,7 +13594,7 @@ buildVideoteca();
     const otras = parseFloat(document.getElementById('nm-sdi-otras').value) || 0;
     const nombre = document.getElementById('nm-sdi-nombre').value.trim() || 'SDI';
 
-    if (salarioDiario <= 0) { alert('Ingresa el salario diario'); return; }
+    if (salarioDiario <= 0) { window.notify('Ingresa el salario diario'); return; }
 
     const diasVac = diasVacacionesLFT(antiguedad);
     const factor = factorIntegracion(antiguedad, diasAguinaldo, primaVacPct);
@@ -13523,7 +13691,7 @@ buildVideoteca();
   function calcMulti() {
     const tbody = document.getElementById('nm-multi-tbody');
     if (!tbody || tbody.children.length === 0) {
-      alert('Agrega al menos un empleado');
+      window.notify('Agrega al menos un empleado');
       return;
     }
     const estado = document.getElementById('nm-multi-estado').value;
@@ -13578,7 +13746,7 @@ buildVideoteca();
       totalNeto += neto;
     });
 
-    if (rows.length === 0) { alert('Ningún empleado tiene salario válido'); return; }
+    if (rows.length === 0) { window.notify('Ningún empleado tiene salario válido'); return; }
 
     const costoTotalPatron = totalSueldos + totalIMSSPatronal + totalRCV + totalINFONAVIT + totalISN;
 
@@ -14087,7 +14255,7 @@ buildVideoteca();
     const nombre = document.getElementById('pt-am-nombre').value.trim() || 'Crédito';
 
     if (monto <= 0 || tasaAnual <= 0 || plazoNum <= 0) {
-      alert('Completa monto, tasa y plazo (todos mayores a cero)');
+      window.notify('Completa monto, tasa y plazo (todos mayores a cero)');
       return;
     }
 
@@ -14823,7 +14991,7 @@ buildVideoteca();
   function compAddOption(option) {
     const grid = document.getElementById('pt-comp-grid');
     if (!grid || grid.children.length >= 4) {
-      if (grid && grid.children.length >= 4) alert('Máximo 4 opciones para comparar');
+      if (grid && grid.children.length >= 4) window.notify('Máximo 4 opciones para comparar');
       return;
     }
     const id = compNextId++;
@@ -14914,7 +15082,7 @@ buildVideoteca();
   function calcComp() {
     const grid = document.getElementById('pt-comp-grid');
     if (!grid || grid.children.length === 0) {
-      alert('Agrega al menos una opción de crédito');
+      window.notify('Agrega al menos una opción de crédito');
       return;
     }
 
@@ -14934,7 +15102,7 @@ buildVideoteca();
     });
 
     if (opciones.length === 0) {
-      alert('Ninguna opción tiene datos válidos. Llena monto, tasa y plazo en al menos una.');
+      window.notify('Ninguna opción tiene datos válidos. Llena monto, tasa y plazo en al menos una.');
       return;
     }
 
@@ -15033,7 +15201,7 @@ buildVideoteca();
     const nombre = document.getElementById('pt-cat-nombre').value.trim() || 'CAT crédito';
 
     if (monto <= 0 || tasa <= 0 || plazo <= 0) {
-      alert('Completa monto, tasa y plazo (todos mayores a cero)');
+      window.notify('Completa monto, tasa y plazo (todos mayores a cero)');
       return;
     }
 
@@ -15152,9 +15320,9 @@ buildVideoteca();
     const flujosFuturos = [];
     flujosInputs.forEach(i => flujosFuturos.push(parseFloat(i.value) || 0));
 
-    if (inversion <= 0) { alert('Ingresa la inversión inicial'); return; }
+    if (inversion <= 0) { window.notify('Ingresa la inversión inicial'); return; }
     if (flujosFuturos.length === 0 || flujosFuturos.every(f => f === 0)) {
-      alert('Agrega al menos un flujo positivo esperado');
+      window.notify('Agrega al menos un flujo positivo esperado');
       return;
     }
 
@@ -21143,7 +21311,7 @@ window.loginConGoogle = function() {
     .then(function() { window.location.reload(); })
     .catch(function(e) {
       if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
-      alert('Error al iniciar sesión: ' + (e.message || e.code || 'Error desconocido'));
+      window.notify('Error al iniciar sesión: ' + (e.message || e.code || 'Error desconocido'));
     });
 };
 
@@ -26378,7 +26546,7 @@ window.copiarLinkCert = function() {
   if (!_certActivo) return;
   const url = `https://icademx.com/verificar?folio=${encodeURIComponent(_certActivo.folio || '')}`;
   navigator.clipboard.writeText(url).then(() => {
-    alert('✓ Link copiado al portapapeles\n\n' + url);
+    window.notify('✓ Link copiado al portapapeles\n\n' + url);
   }).catch(() => {
     prompt('Copia el link del certificado:', url);
   });
@@ -26490,7 +26658,7 @@ window.confirmarNombreBienvenida = async function() {
     console.log('[Bienvenida] Nombre confirmado:', nombre);
   } catch(e) {
     console.error('[Bienvenida] Error guardando:', e);
-    alert('No se pudo guardar el nombre. Intenta de nuevo.');
+    window.notify('No se pudo guardar el nombre. Intenta de nuevo.');
   }
 };
 
@@ -26756,11 +26924,11 @@ window.irACertificados = function() {
 window.descargarCertificadoPDF = async function() {
   if (!_certActivo) return;
   const docEl = document.getElementById('cert-doc');
-  if (!docEl) return alert('No se encontró el certificado a descargar');
+  if (!docEl) return window.notify('No se encontró el certificado a descargar');
 
   // Verificar librerías
   if (typeof html2canvas !== 'function' || typeof window.jspdf === 'undefined') {
-    return alert('Las librerías de PDF aún no han cargado. Espera 5 segundos e intenta de nuevo.');
+    return window.notify('Las librerías de PDF aún no han cargado. Espera 5 segundos e intenta de nuevo.');
   }
 
   // Botón con feedback visual
@@ -26813,7 +26981,7 @@ window.descargarCertificadoPDF = async function() {
 
   } catch(e) {
     console.error('[PDF] Error generando PDF:', e);
-    alert('No se pudo generar el PDF. Intenta usar el botón "Imprimir" y guardar como PDF desde ahí.');
+    window.notify('No se pudo generar el PDF. Intenta usar el botón "Imprimir" y guardar como PDF desde ahí.');
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -26898,7 +27066,7 @@ window.compartirEn = function(red) {
       break;
     case 'copiar':
       navigator.clipboard.writeText(url).then(() => {
-        alert('✓ Link copiado al portapapeles\n\n' + url);
+        window.notify('✓ Link copiado al portapapeles\n\n' + url);
       }).catch(() => {
         prompt('Copia el link del certificado:', url);
       });
@@ -28006,7 +28174,7 @@ window._icademLogros = {
       });
     } catch(e) {
       // ═══════════════════════════════════════════════════════════════════
-      // DIAGNOSTICO TOTAL — alert() inescapable + logs en consola
+      // DIAGNOSTICO TOTAL — window.notify() inescapable + logs en consola
       // ═══════════════════════════════════════════════════════════════════
       console.error('[Directorio] ✗ Error guardando:', e);
       console.error('[Directorio] e.code:', e && e.code);
@@ -28027,7 +28195,7 @@ window._icademLogros = {
       }
 
       // Alert nativo: imposible de ignorar
-      alert(
+      window.notify(
         '⚠️ ERROR AL GUARDAR PERFIL DEL DIRECTORIO\n' +
         '═══════════════════════════════════════════\n\n' +
         'CODIGO: ' + codigo + '\n\n' +
@@ -28453,11 +28621,11 @@ window.loginDirecto = function() {
 
   // Opción B: Google Sign-In directo (sincrónico desde el gesto del usuario)
   if (!_fbAuth) {
-    alert('Cargando autenticación, espera 2 segundos e intenta de nuevo.');
+    window.notify('Cargando autenticación, espera 2 segundos e intenta de nuevo.');
     return;
   }
   if (!window.auth) {
-    alert('Firebase no cargó. Recarga la página con Ctrl+R.');
+    window.notify('Firebase no cargó. Recarga la página con Ctrl+R.');
     return;
   }
 
@@ -28467,7 +28635,7 @@ window.loginDirecto = function() {
     .then(function() { window.location.reload(); })
     .catch(function(e) {
       if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
-      alert('Error al iniciar sesión:\n' + (e.message || e.code || 'Error desconocido') + '\n\nRecarga la página (Ctrl+R) e intenta de nuevo.');
+      window.notify('Error al iniciar sesión:\n' + (e.message || e.code || 'Error desconocido') + '\n\nRecarga la página (Ctrl+R) e intenta de nuevo.');
     });
 };
 </script>
@@ -30336,7 +30504,7 @@ window.loginDirecto = function() {
     if (faltan.length > 0) {
       const msg = 'Faltan los siguientes campos obligatorios:\n\n• ' + faltan.slice(0, 8).join('\n• ') +
                   (faltan.length > 8 ? `\n\n…y ${faltan.length - 8} más.` : '');
-      alert(msg);
+      window.notify(msg);
       // Hacer scroll al primer campo faltante
       const primer = _docActual.secciones.flatMap(s => s.fields).find(f =>
         f.required && (!_valoresForm[f.id] || String(_valoresForm[f.id]).trim() === '')
@@ -30366,7 +30534,7 @@ window.loginDirecto = function() {
   window.descargarDocPDF = async function() {
     if (!validarCamposRequeridos()) return;
     if (!window.jspdf || !window.html2canvas) {
-      alert('Cargando librerías… intenta de nuevo en unos segundos.');
+      window.notify('Cargando librerías… intenta de nuevo en unos segundos.');
       return;
     }
     if (!_docActual) return;
@@ -30447,7 +30615,7 @@ window.loginDirecto = function() {
       });
     } catch(e) {
       console.error('[DocsLegales] Error PDF:', e);
-      alert('No se pudo generar el PDF: ' + (e.message || e) + '\n\nRevisa la consola del browser (F12).');
+      window.notify('No se pudo generar el PDF: ' + (e.message || e) + '\n\nRevisa la consola del browser (F12).');
     } finally {
       if (btn) {
         btn.innerHTML = txtOrig;
@@ -30538,7 +30706,7 @@ ${htmlImprimible}
       });
     } catch(e) {
       console.error('[DocsLegales] Error Word:', e);
-      alert('No se pudo generar el Word. Revisa la consola.');
+      window.notify('No se pudo generar el Word. Revisa la consola.');
     } finally {
       if (btn) {
         btn.innerHTML = txtOrig;
@@ -30617,6 +30785,134 @@ ${htmlImprimible}
   });
 
 
+})();
+</script>
+
+
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// ICADEM_NOTIFY_v1 — Sistema de notificaciones premium global
+// Reemplaza window.notify() con notificaciones tipo toast elegantes
+// ═══════════════════════════════════════════════════════════════════════════
+(function(){
+  'use strict';
+
+  // Crear container al cargar
+  function asegurarContainer() {
+    let c = document.getElementById('icadem-notify-container');
+    if (!c) {
+      c = document.createElement('div');
+      c.id = 'icadem-notify-container';
+      document.body.appendChild(c);
+    }
+    return c;
+  }
+
+  // Detectar tipo segun el mensaje (heuristica simple)
+  function detectarTipo(mensaje) {
+    const m = String(mensaje || '').toLowerCase();
+    if (/error|no se pudo|no pudo|fall[oó]|problema|incorrecto/i.test(m)) return 'error';
+    if (/listo|exitos|correctamente|generado|guardado|copiad/i.test(m)) return 'success';
+    if (/ingresa|completa|falta|requerid|obligat|llena|agreg/i.test(m)) return 'warning';
+    return 'info';
+  }
+
+  // Detectar titulo segun el tipo
+  function tituloPorTipo(tipo) {
+    return {
+      success: 'Listo',
+      error: 'Atención',
+      warning: 'Verifica los datos',
+      info: 'Información'
+    }[tipo] || 'Aviso';
+  }
+
+  // Funcion principal
+  window.notify = function(arg1, arg2) {
+    let opts = {};
+
+    // Soporta varias firmas:
+    //   notify('mensaje')                         → warning con titulo default
+    //   notify('mensaje', 'success')              → success
+    //   notify({tipo, titulo, mensaje, duracion}) → completo
+    if (typeof arg1 === 'string') {
+      opts.mensaje = arg1;
+      opts.tipo = (typeof arg2 === 'string') ? arg2 : detectarTipo(arg1);
+    } else if (arg1 && typeof arg1 === 'object') {
+      opts = Object.assign({}, arg1);
+      if (!opts.tipo) opts.tipo = detectarTipo(opts.mensaje || '');
+    } else {
+      return;
+    }
+
+    const tipo = opts.tipo || 'info';
+    const titulo = opts.titulo || tituloPorTipo(tipo);
+    const mensaje = opts.mensaje || '';
+    const duracion = opts.duracion || (tipo === 'error' ? 6500 : 4500);
+
+    const container = asegurarContainer();
+
+    const iconos = { success: '✓', error: '✕', warning: '!', info: 'ℹ' };
+
+    const toast = document.createElement('div');
+    toast.className = 'icadem-notify icadem-notify-' + tipo;
+    toast.style.setProperty('--duration', duracion + 'ms');
+
+    toast.innerHTML = `
+      <div class="icadem-notify-icon">${iconos[tipo] || 'ℹ'}</div>
+      <div class="icadem-notify-body">
+        ${titulo ? '<p class="icadem-notify-title">' + escapeHtmlSafe(titulo) + '</p>' : ''}
+        ${mensaje ? '<p class="icadem-notify-msg">' + escapeHtmlSafe(mensaje) + '</p>' : ''}
+      </div>
+      <button class="icadem-notify-close" aria-label="Cerrar">×</button>
+    `;
+    container.appendChild(toast);
+
+    // Cerrar manual
+    const btnCerrar = toast.querySelector('.icadem-notify-close');
+    if (btnCerrar) {
+      btnCerrar.addEventListener('click', () => cerrarNotify(toast));
+    }
+    // Click en el toast tambien cierra (excepto al hacer click en boton)
+    toast.addEventListener('click', (e) => {
+      if (!e.target.closest('.icadem-notify-close')) {
+        cerrarNotify(toast);
+      }
+    });
+
+    // Auto-cerrar
+    if (duracion > 0) {
+      setTimeout(() => cerrarNotify(toast), duracion);
+    }
+
+    return toast;
+  };
+
+  function cerrarNotify(toast) {
+    if (!toast || !toast.parentNode || toast.classList.contains('is-leaving')) return;
+    toast.classList.add('is-leaving');
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 300);
+  }
+
+  function escapeHtmlSafe(str) {
+    if (typeof str !== 'string') return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  // Aliases para compatibilidad
+  window.notifySuccess = (msg, titulo) => window.notify({tipo:'success', mensaje:msg, titulo:titulo});
+  window.notifyError   = (msg, titulo) => window.notify({tipo:'error',   mensaje:msg, titulo:titulo});
+  window.notifyWarning = (msg, titulo) => window.notify({tipo:'warning', mensaje:msg, titulo:titulo});
+  window.notifyInfo    = (msg, titulo) => window.notify({tipo:'info',    mensaje:msg, titulo:titulo});
+
+  console.log('%c[ICADEM_NOTIFY_v1] Sistema de notificaciones premium activo','color:#10b981;font-weight:bold');
 })();
 </script>
 
