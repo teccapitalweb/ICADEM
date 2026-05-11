@@ -1914,6 +1914,66 @@ body.modo-dia .lg-card.is-unlocked .lg-card-xp {
   display: none !important;
   content: none !important;
 }
+
+/* ============================================================================
+   TOPBAR KILL WRAPPERS - Mata cualquier fondo de wrappers contenedores
+   ESTRATEGIA: solo el button#btn-modo-toggle y el div.topbar-plan tienen
+   fondo amarillo. TODO el resto del topbar es transparente o blanco.
+   ============================================================================ */
+
+/* TOPBAR mismo: fondo blanco glass, NUNCA amarillo */
+.topbar,
+body.modo-dia .topbar {
+  background: rgba(255,255,255,0.95) !important;
+  background-color: rgba(255,255,255,0.95) !important;
+  background-image: none !important;
+}
+
+/* TOPBAR-RIGHT (wrapper del toggle + badge): SIEMPRE transparente */
+.topbar-right,
+body.modo-dia .topbar-right,
+html.modo-dia .topbar-right {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* TOPBAR-LEFT (contenedor del titulo): tambien transparente */
+.topbar-left,
+.topbar > div:not(.topbar-right):not(.topbar-plan),
+body.modo-dia .topbar-left,
+body.modo-dia .topbar > div:not(.topbar-right):not(.topbar-plan) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Cualquier descendiente directo del topbar (excepto el button del toggle
+   y el div.topbar-plan): transparente forzosamente */
+.topbar > *:not(#btn-modo-toggle):not(.topbar-plan) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+.topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* Refuerzo final: SOLO el button y el badge VIP tienen amarillo,
+   nada mas en el topbar */
+.topbar #btn-modo-toggle {
+  /* mantiene amarillo */
+}
+.topbar .topbar-plan {
+  /* mantiene amarillo */
+}
 </style>
 </head>
 <body>
