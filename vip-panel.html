@@ -25836,8 +25836,31 @@ window._icademLogros = {
         duracion: 5000
       });
     } catch(e) {
-      console.error('[Directorio] Error guardando:', e);
-      mostrarToast({ tipo: 'error', titulo: 'Error al guardar', mensaje: 'No se pudo guardar. Intenta de nuevo.' });
+      // ─── Diagnostico detallado ───
+      console.error('[Directorio] ✗ Error guardando:', e);
+      console.error('[Directorio] e.code:', e && e.code);
+      console.error('[Directorio] e.message:', e && e.message);
+      console.error('[Directorio] data que se intentaba guardar:', data);
+      // Mensaje amigable para el usuario segun el codigo de Firebase
+      var msgUsuario = 'No se pudo guardar.';
+      var codigo = e && e.code ? e.code : '';
+      if (codigo === 'permission-denied') {
+        msgUsuario = 'Sin permisos para guardar. Las reglas de Firestore están bloqueando. Revisa Firebase Console > Firestore > Rules.';
+      } else if (codigo === 'unavailable' || codigo === 'failed-precondition') {
+        msgUsuario = 'Sin conexión a Firestore. Revisa tu internet o intenta en unos segundos.';
+      } else if (codigo === 'unauthenticated') {
+        msgUsuario = 'Tu sesión expiró. Cierra y vuelve a iniciar sesión.';
+      } else if (codigo === 'invalid-argument') {
+        msgUsuario = 'Datos inválidos: ' + (e.message || 'campo con formato incorrecto');
+      } else if (e && e.message) {
+        msgUsuario = e.message;
+      }
+      mostrarToast({
+        tipo: 'error',
+        titulo: 'Error al guardar' + (codigo ? ' (' + codigo + ')' : ''),
+        mensaje: msgUsuario,
+        duracion: 10000
+      });
     } finally {
       if (btn) {
         btn.textContent = txtOrig;
