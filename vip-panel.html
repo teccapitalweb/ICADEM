@@ -2222,6 +2222,165 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   border: none !important;
   box-shadow: none !important;
 }
+
+/* ============================================================================
+   MODAL CUSTOM PREMIUM: Confirmar eliminar perfil del Directorio VIP
+   Reemplaza el window.confirm() nativo del browser con un look premium
+   ============================================================================ */
+#dir-confirm-eliminar-modal {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  display: none;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 1rem !important;
+  font-family: 'Inter', 'Space Grotesk', sans-serif !important;
+  animation: dcm-fade-in 0.2s ease-out !important;
+}
+#dir-confirm-eliminar-modal .dcm-backdrop {
+  position: absolute !important;
+  inset: 0 !important;
+  background: rgba(15, 23, 42, 0.55) !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  cursor: pointer !important;
+}
+#dir-confirm-eliminar-modal .dcm-card {
+  position: relative !important;
+  z-index: 1 !important;
+  background: #FFFFFF !important;
+  border-radius: 18px !important;
+  padding: 2rem 2rem 1.5rem !important;
+  max-width: 460px !important;
+  width: 100% !important;
+  box-shadow:
+    0 24px 64px rgba(15, 23, 42, 0.20),
+    0 0 0 1px rgba(220, 38, 38, 0.10) !important;
+  border-top: 4px solid #DC2626 !important;
+  text-align: center !important;
+  animation: dcm-scale-in 0.25s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+#dir-confirm-eliminar-modal .dcm-icon-wrap {
+  width: 64px !important;
+  height: 64px !important;
+  margin: 0 auto 1.25rem !important;
+  background: linear-gradient(135deg, #FEE2E2 0%, #FECACA 100%) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #DC2626 !important;
+  box-shadow:
+    0 0 0 6px #FEF2F2,
+    0 8px 20px rgba(220, 38, 38, 0.20) !important;
+}
+#dir-confirm-eliminar-modal .dcm-icon-wrap svg {
+  width: 30px !important;
+  height: 30px !important;
+  stroke-width: 2.2 !important;
+}
+#dir-confirm-eliminar-modal .dcm-title {
+  color: #0F172A !important;
+  font-weight: 800 !important;
+  font-size: 19px !important;
+  margin: 0 0 0.75rem !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.3 !important;
+}
+#dir-confirm-eliminar-modal .dcm-body {
+  color: #475569 !important;
+  font-size: 14px !important;
+  line-height: 1.55 !important;
+  margin: 0 0 1rem !important;
+  font-weight: 500 !important;
+}
+#dir-confirm-eliminar-modal .dcm-note {
+  background: #EFF6FF !important;
+  border: 1px solid #DBEAFE !important;
+  color: #1E3A8A !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  margin: 0 0 1.5rem !important;
+  padding: 10px 14px !important;
+  border-radius: 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  text-align: left !important;
+  line-height: 1.4 !important;
+}
+#dir-confirm-eliminar-modal .dcm-note svg {
+  color: #2563EB !important;
+}
+#dir-confirm-eliminar-modal .dcm-actions {
+  display: flex !important;
+  gap: 10px !important;
+  justify-content: center !important;
+}
+#dir-confirm-eliminar-modal .dcm-btn {
+  font-family: inherit !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  letter-spacing: 0.01em !important;
+  padding: 12px 22px !important;
+  border-radius: 10px !important;
+  cursor: pointer !important;
+  border: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.18s ease !important;
+  min-width: 120px !important;
+  justify-content: center !important;
+}
+#dir-confirm-eliminar-modal .dcm-btn-cancel {
+  background: #FFFFFF !important;
+  color: #475569 !important;
+  border: 1.5px solid #E2E8F0 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+#dir-confirm-eliminar-modal .dcm-btn-cancel:hover {
+  background: #F8FAFC !important;
+  border-color: #CBD5E1 !important;
+  color: #0F172A !important;
+}
+#dir-confirm-eliminar-modal .dcm-btn-cancel:focus {
+  outline: none !important;
+  border-color: #1E3A8A !important;
+  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.10) !important;
+}
+#dir-confirm-eliminar-modal .dcm-btn-confirm {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.30) !important;
+}
+#dir-confirm-eliminar-modal .dcm-btn-confirm:hover {
+  background: linear-gradient(135deg, #B91C1C 0%, #991B1B 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.40) !important;
+}
+#dir-confirm-eliminar-modal .dcm-btn-confirm:focus {
+  outline: none !important;
+  box-shadow:
+    0 4px 12px rgba(220, 38, 38, 0.30),
+    0 0 0 4px rgba(220, 38, 38, 0.20) !important;
+}
+@keyframes dcm-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes dcm-scale-in {
+  from { opacity: 0; transform: scale(0.92) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+/* Mobile */
+@media (max-width: 540px) {
+  #dir-confirm-eliminar-modal .dcm-card { padding: 1.5rem 1.25rem 1.25rem !important; }
+  #dir-confirm-eliminar-modal .dcm-title { font-size: 17px !important; }
+  #dir-confirm-eliminar-modal .dcm-actions { flex-direction: column-reverse !important; }
+  #dir-confirm-eliminar-modal .dcm-btn { width: 100% !important; }
+}
 </style>
 </head>
 <body>
@@ -25421,7 +25580,10 @@ window._icademLogros = {
     // Mostrar botón "Eliminar perfil" SOLO si el perfil ya existe
     const btnDelete = document.getElementById('dir-edit-delete');
     if (btnDelete) {
-      btnDelete.style.display = (_miPerfil && _miPerfil.uid) ? 'inline-flex' : 'none';
+      // Mostrar SOLO si existe perfil REAL (con cargo o empresa guardados Y visible)
+      var tienePerfilReal = !!(_miPerfil && _miPerfil.uid && _miPerfil.visible !== false
+        && (_miPerfil.cargo || _miPerfil.empresa));
+      btnDelete.style.display = tienePerfilReal ? 'inline-flex' : 'none';
     }
 
     document.getElementById('dir-editor-modal').style.display = 'flex';
@@ -25682,14 +25844,8 @@ window._icademLogros = {
       return mostrarToast({ tipo: 'error', titulo: 'Sesión requerida' });
     }
 
-    // Confirmación con prompt amigable
-    const confirmacion = window.confirm(
-      '¿Eliminar tu perfil del Directorio VIP?\n\n' +
-      'Otros miembros ya no podrán encontrarte ni contactarte.\n' +
-      'Tus datos del Directorio se borrarán.\n\n' +
-      'Podrás crear un nuevo perfil cuando quieras.\n\n' +
-      '¿Estás seguro?'
-    );
+    // Confirmación con modal custom premium (no el confirm nativo feo del browser)
+    const confirmacion = await window.mostrarConfirmEliminarDir();
     if (!confirmacion) return;
 
     const btn = document.getElementById('dir-edit-delete');
@@ -26198,6 +26354,84 @@ window.loginDirecto = function() {
     init();
   }
 })();
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- MODAL CUSTOM: Confirmar eliminar perfil del Directorio VIP          -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div id="dir-confirm-eliminar-modal" style="display:none">
+  <div class="dcm-backdrop" onclick="window.cerrarConfirmEliminarDir(false)"></div>
+  <div class="dcm-card" role="dialog" aria-modal="true" aria-labelledby="dcm-title">
+    <div class="dcm-icon-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="3 6 5 6 21 6"/>
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        <line x1="10" y1="11" x2="10" y2="17"/>
+        <line x1="14" y1="11" x2="14" y2="17"/>
+      </svg>
+    </div>
+    <h3 id="dcm-title" class="dcm-title">¿Eliminar tu perfil del Directorio VIP?</h3>
+    <p class="dcm-body">
+      Otros miembros ya no podrán encontrarte ni contactarte.
+      Tus datos del Directorio se borrarán de forma permanente.
+    </p>
+    <p class="dcm-note">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;flex-shrink:0">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="16" x2="12" y2="12"/>
+        <line x1="12" y1="8" x2="12.01" y2="8"/>
+      </svg>
+      <span>Podrás crear un nuevo perfil cuando quieras.</span>
+    </p>
+    <div class="dcm-actions">
+      <button type="button" class="dcm-btn dcm-btn-cancel" onclick="window.cerrarConfirmEliminarDir(false)">
+        Cancelar
+      </button>
+      <button type="button" class="dcm-btn dcm-btn-confirm" onclick="window.cerrarConfirmEliminarDir(true)">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+        </svg>
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Funcion que muestra el modal y devuelve Promise<boolean>
+  window.mostrarConfirmEliminarDir = function() {
+    return new Promise(function(resolve) {
+      var modal = document.getElementById('dir-confirm-eliminar-modal');
+      if (!modal) return resolve(false);
+      window._dcmResolve = resolve;
+      modal.style.display = 'flex';
+      // Focus en cancelar por seguridad (evita destruccion accidental)
+      setTimeout(function() {
+        var cancelBtn = modal.querySelector('.dcm-btn-cancel');
+        if (cancelBtn) cancelBtn.focus();
+      }, 50);
+      // ESC = cancelar
+      window._dcmKeyHandler = function(e) {
+        if (e.key === 'Escape') window.cerrarConfirmEliminarDir(false);
+      };
+      document.addEventListener('keydown', window._dcmKeyHandler);
+    });
+  };
+  window.cerrarConfirmEliminarDir = function(confirmado) {
+    var modal = document.getElementById('dir-confirm-eliminar-modal');
+    if (modal) modal.style.display = 'none';
+    if (window._dcmKeyHandler) {
+      document.removeEventListener('keydown', window._dcmKeyHandler);
+      window._dcmKeyHandler = null;
+    }
+    if (typeof window._dcmResolve === 'function') {
+      var r = window._dcmResolve;
+      window._dcmResolve = null;
+      r(!!confirmado);
+    }
+  };
 </script>
 
 </body>
