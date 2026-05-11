@@ -1275,7 +1275,292 @@ body.modo-dia .lg-card.is-unlocked .lg-card-xp {
       .tpl-modal-footer-info { display: none; }
     }
 
-  </style>
+  
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DOC LEGAL — CSS COMPLEMENTARIO (estructura de card + form-section + filled)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Card body / footer (estructura del card) ─── */
+.doc-legal-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.doc-legal-card-cat {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: #C9A961;
+  text-transform: uppercase;
+  margin: 0;
+}
+.doc-legal-card-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0A1F44;
+  margin: 0;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.doc-legal-card-sub {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #475569;
+  margin: 0 0 4px;
+}
+.doc-legal-card-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.doc-legal-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.875rem;
+  margin-top: 4px;
+  border-top: 1px solid #F1F5F9;
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+}
+.doc-legal-card-time {
+  color: #64748B;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.doc-legal-card-formats {
+  background: linear-gradient(135deg, #F8F4ED 0%, #FEF3C7 100%);
+  color: #92400E;
+  padding: 4px 10px;
+  border-radius: 99px;
+  border: 1px solid #FDE68A;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+/* ─── Colores por categoría (iconos del card) ─── */
+.doc-legal-cat-color-laboral {
+  background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%);
+  color: #1E3A8A;
+  border: 1px solid #BFDBFE;
+}
+.doc-legal-cat-color-mercantil {
+  background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%);
+  color: #047857;
+  border: 1px solid #A7F3D0;
+}
+.doc-legal-cat-color-cartas {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  color: #92400E;
+  border: 1px solid #FDE68A;
+}
+.doc-legal-cat-color-privacidad {
+  background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%);
+  color: #9D174D;
+  border: 1px solid #FBCFE8;
+}
+
+/* Hover dorado en card (refuerza el dorado VIP) */
+.doc-legal-card:hover {
+  border-color: #C9A961;
+  box-shadow: 0 14px 36px rgba(201,169,97,0.18), 0 4px 12px rgba(15,23,42,0.06);
+}
+.doc-legal-card:hover .doc-legal-card-title {
+  color: #0A1F44;
+}
+
+/* ─── Form section (cada bloque del formulario) ─── */
+.doc-legal-form-section {
+  margin-bottom: 1.75rem;
+}
+.doc-legal-form-section-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid #F1F5F9;
+}
+.doc-legal-form-section-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0A1F44 0%, #1E3A8A 100%);
+  color: #FFFFFF;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(10,31,68,0.20);
+}
+.doc-legal-form-section-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0A1F44;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.doc-legal-form-section-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+/* ─── Campo individual del formulario ─── */
+.doc-legal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.doc-legal-field label {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1E293B;
+  letter-spacing: 0.01em;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.doc-legal-req {
+  color: #DC2626;
+  font-weight: 700;
+}
+.doc-legal-field input,
+.doc-legal-field select,
+.doc-legal-field textarea {
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1.5px solid #E5E9F2;
+  border-radius: 10px;
+  padding: 11px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13.5px;
+  width: 100%;
+  transition: all 0.15s;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+}
+.doc-legal-field input:hover,
+.doc-legal-field select:hover,
+.doc-legal-field textarea:hover {
+  border-color: #CBD5E1;
+}
+.doc-legal-field input:focus,
+.doc-legal-field select:focus,
+.doc-legal-field textarea:focus {
+  border-color: #C9A961;
+  box-shadow: 0 0 0 4px rgba(201,169,97,0.15);
+}
+.doc-legal-field textarea {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+}
+.doc-legal-field input::placeholder,
+.doc-legal-field textarea::placeholder {
+  color: #B8C2D1;
+  font-weight: 400;
+}
+.doc-legal-field-help {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #94A3B8;
+  font-style: italic;
+}
+
+/* ─── Highlights de campos en el preview ─── */
+.doc-legal-filled {
+  background: linear-gradient(180deg, transparent 60%, rgba(201,169,97,0.20) 60%);
+  color: #0A1F44;
+  font-weight: 600;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.doc-legal-empty {
+  background: rgba(220, 38, 38, 0.06);
+  color: #94A3B8;
+  font-style: italic;
+  padding: 0 4px;
+  border-radius: 2px;
+  border-bottom: 1px dashed #FCA5A5;
+}
+
+/* ─── Form panel progress ─── */
+.doc-legal-form-progress {
+  height: 6px;
+  background: #F1F5F9;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.doc-legal-form-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #C9A961 0%, #FBBF24 100%);
+  border-radius: 99px;
+  transition: width 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 8px rgba(201,169,97,0.50);
+}
+.doc-legal-form-progress-txt {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  color: #64748B;
+  font-weight: 600;
+  margin: 0 0 1.5rem;
+}
+.doc-legal-form-progress-txt #doc-legal-progress-filled,
+.doc-legal-form-progress-txt #doc-legal-progress-total {
+  color: #0A1F44;
+  font-weight: 800;
+}
+
+/* ─── Empty state del grid ─── */
+.doc-legal-empty {
+  /* Override para el estado vacío del grid (no aplica el highlight) */
+}
+#doc-legal-empty {
+  grid-column: 1 / -1;
+  background: #FFFFFF;
+  border: 2px dashed #E2E8F0;
+  border-radius: 16px;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+.doc-legal-empty-icon {
+  font-size: 56px;
+  margin-bottom: 1rem;
+}
+#doc-legal-empty h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.5rem;
+  color: #0A1F44;
+  margin: 0 0 0.5rem;
+}
+#doc-legal-empty p {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+}
+
+</style>
 
 <style id="premium-vip-styles">
 /* ============================================================================
@@ -2380,6 +2665,911 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   #dir-confirm-eliminar-modal .dcm-title { font-size: 17px !important; }
   #dir-confirm-eliminar-modal .dcm-actions { flex-direction: column-reverse !important; }
   #dir-confirm-eliminar-modal .dcm-btn { width: 100% !important; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   📄 GENERADOR DE DOCUMENTOS LEGALES — Look luxury legal
+   Paleta: marino #0A1F44 / dorado #C9A961 / crema #F8F4ED / serif elegante
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Stats banner premium ─── */
+#sec-docs-legales .doc-legal-stats {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+  align-items: center;
+  gap: 0;
+  background: linear-gradient(135deg, #0A1F44 0%, #1E3A8A 60%, #2563EB 100%);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  margin-bottom: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(10,31,68,0.25);
+}
+#sec-docs-legales .doc-legal-stats::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(201,169,97,0.18) 0%, transparent 60%);
+  pointer-events: none;
+}
+#sec-docs-legales .doc-legal-stat {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+#sec-docs-legales .doc-legal-stat-num {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: #C9A961;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  margin-bottom: 4px;
+}
+#sec-docs-legales .doc-legal-stat-lbl {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: rgba(255,255,255,0.75);
+  text-transform: uppercase;
+}
+#sec-docs-legales .doc-legal-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,0.15);
+}
+
+/* ─── Toolbar ─── */
+#sec-docs-legales .doc-legal-toolbar {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+#sec-docs-legales .doc-legal-search {
+  flex: 1;
+  min-width: 240px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 0 14px;
+  transition: all 0.15s;
+}
+#sec-docs-legales .doc-legal-search:focus-within {
+  border-color: #C9A961;
+  box-shadow: 0 0 0 4px rgba(201,169,97,0.15);
+}
+#sec-docs-legales .doc-legal-search svg {
+  color: #94A3B8;
+  flex-shrink: 0;
+}
+#sec-docs-legales .doc-legal-search input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 11px 12px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #0F172A;
+  outline: none;
+}
+#sec-docs-legales .doc-legal-search input::placeholder { color: #94A3B8; }
+
+#sec-docs-legales .doc-legal-cats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+#sec-docs-legales .doc-legal-cat {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 99px;
+  padding: 8px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+#sec-docs-legales .doc-legal-cat:hover {
+  background: #F8F4ED;
+  border-color: #C9A961;
+  color: #0A1F44;
+}
+#sec-docs-legales .doc-legal-cat.is-active {
+  background: linear-gradient(135deg, #0A1F44 0%, #1E3A8A 100%);
+  border-color: transparent;
+  color: #FFFFFF;
+  box-shadow: 0 2px 8px rgba(10,31,68,0.25);
+}
+#sec-docs-legales .doc-legal-cat-num {
+  background: rgba(15,23,42,0.06);
+  color: #475569;
+  border-radius: 99px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+}
+#sec-docs-legales .doc-legal-cat.is-active .doc-legal-cat-num {
+  background: rgba(201,169,97,0.30);
+  color: #FBBF24;
+}
+
+/* ─── Disclaimer legal ─── */
+#sec-docs-legales .doc-legal-disclaimer {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: #FEF3C7;
+  border: 1px solid #FCD34D;
+  border-left: 3px solid #B45309;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 1.5rem;
+}
+#sec-docs-legales .doc-legal-disclaimer svg {
+  color: #B45309;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+#sec-docs-legales .doc-legal-disclaimer p {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  color: #78350F;
+  line-height: 1.5;
+  margin: 0;
+}
+#sec-docs-legales .doc-legal-disclaimer strong { font-weight: 700; }
+
+/* ─── Grid de cards ─── */
+#sec-docs-legales .doc-legal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+/* ─── Card individual ─── */
+.doc-legal-card {
+  position: relative;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 1.5rem 1.5rem 1.25rem;
+  cursor: pointer;
+  transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1), box-shadow 0.25s, border-color 0.25s;
+  overflow: hidden;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+.doc-legal-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 0%, #C9A961 50%, transparent 100%);
+  background-size: 200% 100%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.doc-legal-card::after {
+  content: '';
+  position: absolute;
+  bottom: -40%;
+  right: -20%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(201,169,97,0.10) 0%, transparent 60%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.doc-legal-card:hover {
+  transform: translateY(-4px);
+  border-color: #C9A961;
+  box-shadow: 0 12px 32px rgba(10,31,68,0.12), 0 0 0 1px rgba(201,169,97,0.30);
+}
+.doc-legal-card:hover::before { opacity: 1; }
+.doc-legal-card:hover::after { opacity: 1; }
+
+.doc-legal-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.doc-legal-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, #F8F4ED 0%, #FEF3C7 100%);
+  border: 1px solid #E5D5B7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #B45309;
+  flex-shrink: 0;
+}
+.doc-legal-card-icon svg { width: 22px; height: 22px; }
+.doc-legal-card-cat {
+  font-family: 'Inter', sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #C9A961;
+  background: rgba(201,169,97,0.10);
+  border: 1px solid rgba(201,169,97,0.30);
+  padding: 4px 9px;
+  border-radius: 99px;
+}
+.doc-legal-card-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #0A1F44;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.doc-legal-card-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  color: #64748B;
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+.doc-legal-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.875rem;
+  border-top: 1px solid #F1F5F9;
+}
+.doc-legal-card-time {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #94A3B8;
+}
+.doc-legal-card-time svg { width: 13px; height: 13px; }
+.doc-legal-card-formats {
+  display: flex;
+  gap: 4px;
+}
+.doc-legal-card-format {
+  font-family: 'Inter', sans-serif;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: #EFF6FF;
+  color: #1E40AF;
+  border: 1px solid #BFDBFE;
+}
+.doc-legal-card-format.fmt-doc {
+  background: #ECFDF5;
+  color: #047857;
+  border-color: #A7F3D0;
+}
+
+/* ─── Estado vacío ─── */
+#sec-docs-legales .doc-legal-empty {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: #FFFFFF;
+  border: 1px dashed #E2E8F0;
+  border-radius: 14px;
+}
+#sec-docs-legales .doc-legal-empty-icon { font-size: 48px; margin-bottom: 1rem; }
+#sec-docs-legales .doc-legal-empty h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.5rem;
+  color: #0A1F44;
+  margin: 0 0 0.5rem;
+}
+#sec-docs-legales .doc-legal-empty p {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  color: #64748B;
+  margin: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MODAL DEL GENERADOR (formulario + preview lado a lado)
+   ═══════════════════════════════════════════════════════════════════════ */
+.doc-legal-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  animation: doc-legal-fade-in 0.2s ease-out;
+}
+.doc-legal-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(10,31,68,0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+.doc-legal-modal-content {
+  position: relative;
+  z-index: 1;
+  background: #FFFFFF;
+  width: 100%;
+  max-width: 1400px;
+  height: 100vh;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: doc-legal-scale-in 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 30px 80px rgba(10,31,68,0.30);
+}
+@media (min-width: 900px) {
+  .doc-legal-modal { padding: 2rem; }
+  .doc-legal-modal-content {
+    height: calc(100vh - 4rem);
+    max-height: 920px;
+    border-radius: 18px;
+    border-top: 4px solid #C9A961;
+  }
+}
+
+/* ─── Header del modal ─── */
+.doc-legal-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #F1F5F9;
+  background: linear-gradient(180deg, #F8F4ED 0%, #FFFFFF 100%);
+  flex-shrink: 0;
+}
+.doc-legal-modal-header-info { flex: 1; min-width: 0; }
+.doc-legal-modal-eyebrow {
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #C9A961;
+  margin: 0 0 6px;
+}
+.doc-legal-modal-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0A1F44;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
+  margin: 0 0 6px;
+}
+.doc-legal-modal-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #64748B;
+  margin: 0;
+  line-height: 1.45;
+}
+.doc-legal-modal-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid #E2E8F0;
+  background: #FFFFFF;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #64748B;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.doc-legal-modal-close:hover {
+  background: #F1F5F9;
+  color: #0A1F44;
+  border-color: #CBD5E1;
+}
+
+/* ─── Body: dos columnas ─── */
+.doc-legal-modal-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  overflow: hidden;
+  min-height: 0;
+}
+@media (min-width: 900px) {
+  .doc-legal-modal-body { grid-template-columns: 42% 58%; }
+}
+
+/* ─── Panel del formulario ─── */
+.doc-legal-form-panel {
+  padding: 1.5rem 2rem 1rem;
+  overflow-y: auto;
+  background: #FFFFFF;
+  border-right: 1px solid #F1F5F9;
+}
+.doc-legal-form-progress {
+  height: 4px;
+  background: #F1F5F9;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.doc-legal-form-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #C9A961 0%, #FBBF24 100%);
+  border-radius: 99px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+.doc-legal-form-progress-txt {
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  color: #94A3B8;
+  margin: 0 0 1.25rem;
+  text-align: right;
+}
+.doc-legal-form-progress-txt span { color: #0A1F44; font-weight: 700; }
+
+#doc-legal-form .doc-legal-section-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0A1F44;
+  letter-spacing: 0.01em;
+  margin: 1.25rem 0 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #F1F5F9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#doc-legal-form .doc-legal-section-title:first-child { margin-top: 0; }
+#doc-legal-form .doc-legal-section-title .doc-legal-section-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  background: #0A1F44;
+  color: #C9A961;
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#doc-legal-form .doc-legal-field {
+  margin-bottom: 0.875rem;
+}
+#doc-legal-form .doc-legal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.875rem;
+  margin-bottom: 0;
+}
+#doc-legal-form .doc-legal-row .doc-legal-field { margin-bottom: 0.875rem; }
+
+#doc-legal-form label {
+  display: block;
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #334155;
+  letter-spacing: 0.01em;
+  margin-bottom: 6px;
+}
+#doc-legal-form label .doc-legal-req {
+  color: #DC2626;
+  font-weight: 700;
+  margin-left: 2px;
+}
+#doc-legal-form label .doc-legal-help {
+  color: #94A3B8;
+  font-weight: 400;
+  font-size: 10.5px;
+  margin-left: 6px;
+  font-style: italic;
+}
+#doc-legal-form input,
+#doc-legal-form select,
+#doc-legal-form textarea {
+  width: 100%;
+  background: #FFFFFF;
+  border: 1px solid #E5E9F2;
+  border-radius: 9px;
+  padding: 10px 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: #0F172A;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+#doc-legal-form input:focus,
+#doc-legal-form select:focus,
+#doc-legal-form textarea:focus {
+  border-color: #C9A961;
+  box-shadow: 0 0 0 4px rgba(201,169,97,0.12);
+}
+#doc-legal-form input::placeholder,
+#doc-legal-form textarea::placeholder {
+  color: #B8C2D1;
+  font-style: italic;
+}
+#doc-legal-form textarea {
+  resize: vertical;
+  min-height: 70px;
+  line-height: 1.5;
+}
+#doc-legal-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2' stroke-linecap='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+/* Currency input con prefijo $ */
+#doc-legal-form .doc-legal-input-currency {
+  position: relative;
+}
+#doc-legal-form .doc-legal-input-currency::before {
+  content: '$';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #C9A961;
+  pointer-events: none;
+}
+#doc-legal-form .doc-legal-input-currency input {
+  padding-left: 28px;
+}
+
+/* ─── Panel del preview ─── */
+.doc-legal-preview-panel {
+  background: linear-gradient(180deg, #F8F4ED 0%, #EFE7D6 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.doc-legal-preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem 0.75rem;
+  flex-shrink: 0;
+}
+.doc-legal-preview-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  color: #78350F;
+  text-transform: uppercase;
+}
+.doc-legal-preview-zoom {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  background: rgba(255,255,255,0.7);
+  border: 1px solid rgba(120,53,15,0.20);
+  color: #78350F;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+.doc-legal-preview-zoom:hover {
+  background: #FFFFFF;
+  transform: scale(1.05);
+}
+
+/* Paper effect — el documento se ve como hoja de papel real */
+.doc-legal-preview-paper {
+  flex: 1;
+  margin: 0 1.5rem 1.5rem;
+  padding: 2.5rem 2.75rem;
+  background: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 
+    0 4px 16px rgba(10,31,68,0.08),
+    0 16px 40px rgba(10,31,68,0.10),
+    0 0 0 1px rgba(0,0,0,0.04);
+  overflow-y: auto;
+  font-family: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: #1A1A1A;
+  position: relative;
+}
+.doc-legal-preview-paper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0A1F44 0%, #C9A961 50%, #0A1F44 100%);
+  border-radius: 8px 8px 0 0;
+}
+
+/* Estilos del texto del documento dentro del paper */
+.doc-legal-paper-header {
+  text-align: center;
+  border-bottom: 1px solid #E5E5E5;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+.doc-legal-paper-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #C9A961;
+  letter-spacing: 0.15em;
+  margin-bottom: 0.25rem;
+}
+.doc-legal-paper-doctype {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: #888;
+  letter-spacing: 0.20em;
+  text-transform: uppercase;
+}
+.doc-legal-paper h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0A1F44;
+  margin: 0 0 1.25rem;
+  line-height: 1.2;
+}
+.doc-legal-paper h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0A1F44;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 1.25rem 0 0.5rem;
+}
+.doc-legal-paper p {
+  margin: 0 0 0.75rem;
+  text-align: justify;
+  text-justify: inter-word;
+}
+.doc-legal-paper .doc-legal-clause {
+  margin-bottom: 0.875rem;
+}
+.doc-legal-paper .doc-legal-clause-title {
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  color: #0A1F44;
+  margin-bottom: 0.25rem;
+  font-family: 'Inter', sans-serif;
+}
+.doc-legal-paper .doc-legal-field-filled {
+  color: #0A1F44;
+  font-weight: 600;
+  background: rgba(201,169,97,0.10);
+  padding: 0 3px;
+  border-radius: 2px;
+}
+.doc-legal-paper .doc-legal-field-empty {
+  color: #C25450;
+  font-weight: 500;
+  font-style: italic;
+  background: rgba(220,38,38,0.06);
+  padding: 0 4px;
+  border-radius: 2px;
+  border-bottom: 1px dashed #C25450;
+}
+.doc-legal-paper .doc-legal-signatures {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2.5rem;
+  margin-top: 3rem;
+  page-break-inside: avoid;
+}
+.doc-legal-paper .doc-legal-signature {
+  text-align: center;
+}
+.doc-legal-paper .doc-legal-signature-line {
+  border-top: 1px solid #1A1A1A;
+  margin-bottom: 6px;
+  height: 1px;
+}
+.doc-legal-paper .doc-legal-signature-name {
+  font-weight: 700;
+  font-size: 12.5px;
+  color: #0A1F44;
+  margin-bottom: 2px;
+}
+.doc-legal-paper .doc-legal-signature-role {
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  color: #64748B;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.doc-legal-paper .doc-legal-paper-footer {
+  margin-top: 2.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #E5E5E5;
+  font-family: 'Inter', sans-serif;
+  font-size: 9.5px;
+  color: #94A3B8;
+  text-align: center;
+  font-style: italic;
+}
+
+/* Modo zoom: preview a pantalla completa */
+.doc-legal-modal-body.is-zoom-preview .doc-legal-form-panel {
+  display: none;
+}
+.doc-legal-modal-body.is-zoom-preview {
+  grid-template-columns: 1fr;
+}
+.doc-legal-modal-body.is-zoom-preview .doc-legal-preview-paper {
+  max-width: 720px;
+  margin: 0 auto 1.5rem;
+}
+
+/* ─── Footer del modal ─── */
+.doc-legal-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 2rem;
+  background: #FAFBFC;
+  border-top: 1px solid #F1F5F9;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.doc-legal-modal-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: 'Inter', sans-serif;
+  font-size: 11.5px;
+  color: #64748B;
+}
+.doc-legal-modal-footer-info svg { color: #10B981; }
+.doc-legal-modal-footer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.doc-legal-btn {
+  font-family: 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  padding: 11px 20px;
+  border-radius: 9px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+  text-decoration: none;
+}
+.doc-legal-btn-secondary {
+  background: #FFFFFF;
+  color: #475569;
+  border-color: #E2E8F0;
+}
+.doc-legal-btn-secondary:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+  border-color: #CBD5E1;
+}
+.doc-legal-btn-word {
+  background: linear-gradient(135deg, #047857 0%, #059669 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(4,120,87,0.25);
+}
+.doc-legal-btn-word:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(4,120,87,0.35);
+}
+.doc-legal-btn-primary {
+  background: linear-gradient(135deg, #0A1F44 0%, #1E3A8A 100%);
+  color: #FFFFFF;
+  box-shadow: 0 3px 10px rgba(10,31,68,0.30);
+  position: relative;
+  overflow: hidden;
+}
+.doc-legal-btn-primary::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(201,169,97,0.20) 50%, transparent 100%);
+  background-size: 200% 100%;
+  background-position: -100% 0;
+  transition: background-position 0.4s;
+}
+.doc-legal-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(10,31,68,0.40);
+}
+.doc-legal-btn-primary:hover::before {
+  background-position: 100% 0;
+}
+.doc-legal-btn-primary > * { position: relative; z-index: 1; }
+
+/* Animaciones */
+@keyframes doc-legal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes doc-legal-scale-in {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Mobile */
+@media (max-width: 899px) {
+  #sec-docs-legales .doc-legal-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem 0;
+  }
+  #sec-docs-legales .doc-legal-stat-divider { display: none; }
+  .doc-legal-modal-footer-actions { width: 100%; }
+  .doc-legal-modal-footer-actions .doc-legal-btn {
+    flex: 1;
+    justify-content: center;
+  }
+  #doc-legal-form .doc-legal-row { grid-template-columns: 1fr; }
+  .doc-legal-preview-paper {
+    margin: 0 1rem 1rem;
+    padding: 1.75rem 1.5rem;
+  }
 }
 </style>
 </head>
@@ -4330,14 +5520,137 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     <div class="section" id="sec-docs-legales">
       <div class="page-header">
         <p class="page-tag">Herramienta · Legal</p>
-        <h1 class="page-title">Generador de Documentos Legales</h1>
-        <p class="page-sub">Contratos laborales, civiles, cartas poder, finiquitos, avisos de privacidad y más.</p>
+        <h1 class="page-title">Generador de <em>Documentos Legales</em></h1>
+        <p class="page-sub">12 plantillas profesionales listas para personalizar. Descarga en PDF o Word con tus datos prellenados.</p>
       </div>
-      <div class="tool-soon">
-        <div class="tool-soon-icon">📝</div>
-        <p class="tool-soon-eyebrow">Próximamente</p>
-        <h2 class="tool-soon-title">Generador de Documentos Legales</h2>
-        <p class="tool-soon-desc">En construcción. Pronto podrás generar contratos laborales, civiles, de prestación de servicios, cartas poder, cartas finiquito, avisos de privacidad y más, directamente en PDF o Word con tus datos.</p>
+
+      <!-- Stats banner premium -->
+      <div class="doc-legal-stats">
+        <div class="doc-legal-stat">
+          <div class="doc-legal-stat-num">12</div>
+          <div class="doc-legal-stat-lbl">Plantillas</div>
+        </div>
+        <div class="doc-legal-stat-divider"></div>
+        <div class="doc-legal-stat">
+          <div class="doc-legal-stat-num">4</div>
+          <div class="doc-legal-stat-lbl">Categorías</div>
+        </div>
+        <div class="doc-legal-stat-divider"></div>
+        <div class="doc-legal-stat">
+          <div class="doc-legal-stat-num">PDF + DOC</div>
+          <div class="doc-legal-stat-lbl">Formatos</div>
+        </div>
+        <div class="doc-legal-stat-divider"></div>
+        <div class="doc-legal-stat">
+          <div class="doc-legal-stat-num">∞</div>
+          <div class="doc-legal-stat-lbl">Descargas</div>
+        </div>
+      </div>
+
+      <!-- Toolbar: búsqueda + categorías -->
+      <div class="doc-legal-toolbar">
+        <div class="doc-legal-search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="doc-legal-search" placeholder="Buscar plantilla..." autocomplete="off" oninput="window.filtrarDocsLegales()">
+        </div>
+        <div class="doc-legal-cats" id="doc-legal-cats">
+          <button class="doc-legal-cat is-active" data-cat="" onclick="window.filtrarDocsLegales(this)">
+            Todas <span class="doc-legal-cat-num">12</span>
+          </button>
+          <button class="doc-legal-cat" data-cat="laboral" onclick="window.filtrarDocsLegales(this)">
+            Laboral <span class="doc-legal-cat-num">4</span>
+          </button>
+          <button class="doc-legal-cat" data-cat="mercantil" onclick="window.filtrarDocsLegales(this)">
+            Mercantil <span class="doc-legal-cat-num">4</span>
+          </button>
+          <button class="doc-legal-cat" data-cat="cartas" onclick="window.filtrarDocsLegales(this)">
+            Cartas <span class="doc-legal-cat-num">2</span>
+          </button>
+          <button class="doc-legal-cat" data-cat="privacidad" onclick="window.filtrarDocsLegales(this)">
+            Privacidad <span class="doc-legal-cat-num">2</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Disclaimer legal -->
+      <div class="doc-legal-disclaimer">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p><strong>Aviso legal:</strong> Estas plantillas son una herramienta de productividad. No constituyen asesoría jurídica. Recomendamos revisión por abogado titulado antes de su firma.</p>
+      </div>
+
+      <!-- Grid de 12 cards (se renderiza con JS) -->
+      <div class="doc-legal-grid" id="doc-legal-grid">
+        <!-- Cards generadas dinámicamente por renderDocsLegales() -->
+      </div>
+
+      <!-- Estado vacío de búsqueda -->
+      <div class="doc-legal-empty" id="doc-legal-empty" style="display:none">
+        <div class="doc-legal-empty-icon">🔍</div>
+        <h3>No encontramos plantillas</h3>
+        <p>Prueba con otro término o cambia de categoría.</p>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MODAL DEL GENERADOR (formulario + preview lado a lado)
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="doc-legal-modal" class="doc-legal-modal" style="display:none">
+      <div class="doc-legal-modal-backdrop" onclick="window.cerrarGeneradorDoc()"></div>
+      <div class="doc-legal-modal-content">
+        <!-- Header del modal -->
+        <div class="doc-legal-modal-header">
+          <div class="doc-legal-modal-header-info">
+            <p class="doc-legal-modal-eyebrow" id="doc-legal-modal-cat">CATEGORÍA</p>
+            <h2 class="doc-legal-modal-title" id="doc-legal-modal-titulo">Título del documento</h2>
+            <p class="doc-legal-modal-desc" id="doc-legal-modal-desc">Descripción</p>
+          </div>
+          <button class="doc-legal-modal-close" onclick="window.cerrarGeneradorDoc()" aria-label="Cerrar">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <!-- Body: form izquierda + preview derecha -->
+        <div class="doc-legal-modal-body">
+          <!-- Lado izquierdo: formulario dinámico -->
+          <div class="doc-legal-form-panel">
+            <div class="doc-legal-form-progress">
+              <div class="doc-legal-form-progress-bar" id="doc-legal-progress-bar"></div>
+            </div>
+            <p class="doc-legal-form-progress-txt"><span id="doc-legal-progress-filled">0</span> de <span id="doc-legal-progress-total">0</span> campos completados</p>
+            <form id="doc-legal-form" autocomplete="off" onsubmit="event.preventDefault()">
+              <!-- Campos generados dinámicamente -->
+            </form>
+          </div>
+          <!-- Lado derecho: preview en vivo -->
+          <div class="doc-legal-preview-panel">
+            <div class="doc-legal-preview-toolbar">
+              <span class="doc-legal-preview-label">📄 Vista previa</span>
+              <button class="doc-legal-preview-zoom" id="doc-legal-zoom-btn" onclick="window.toggleZoomPreview()" title="Ampliar preview">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+              </button>
+            </div>
+            <div class="doc-legal-preview-paper" id="doc-legal-preview">
+              <!-- Texto del documento generado dinámicamente -->
+            </div>
+          </div>
+        </div>
+        <!-- Footer del modal -->
+        <div class="doc-legal-modal-footer">
+          <div class="doc-legal-modal-footer-info">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>Tus datos no se guardan en ningún servidor</span>
+          </div>
+          <div class="doc-legal-modal-footer-actions">
+            <button class="doc-legal-btn doc-legal-btn-secondary" onclick="window.cerrarGeneradorDoc()">Cancelar</button>
+            <button class="doc-legal-btn doc-legal-btn-word" onclick="window.descargarDocWord()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              Descargar Word
+            </button>
+            <button class="doc-legal-btn doc-legal-btn-primary" onclick="window.descargarDocPDF()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Descargar PDF
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -26484,6 +27797,1878 @@ window.loginDirecto = function() {
       r(!!confirmado);
     }
   };
+</script>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     📄 GENERADOR DE DOCUMENTOS LEGALES — Schemas y plantillas
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function(){
+  'use strict';
+
+  // ─── Iconos SVG por categoría ───
+  const ICONS = {
+    laboral: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+    renuncia: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>',
+    finiquito: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>',
+    honorarios: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+    arrendamiento: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+    compraventa: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>',
+    pagare: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>',
+    poder: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="14 2 18 6 7 17 3 17 3 13 14 2"/><line x1="3" y1="22" x2="21" y2="22"/></svg>',
+    recibo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16l4-2 4 2 4-2 4 2V8z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="14" y2="14"/></svg>',
+    nda: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+    privacidad: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>',
+    determinado: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>'
+  };
+
+  // ─── Disclaimer común al pie de TODOS los documentos ───
+  const DISCLAIMER = `<p class="doc-legal-paper-footer">Documento generado mediante herramienta automatizada ICADEM Panel VIP. No constituye asesoría jurídica. Se recomienda revisión por abogado titulado antes de su firma. ICADEM no se responsabiliza por usos indebidos o adaptaciones incorrectas. · {{fechaHoyTexto}}</p>`;
+
+  // ─── Plantillas legales completas ───
+  window.DOCS_LEGALES = {
+
+    // ════════════════════════════════════════════════════════════════
+    // 1. CONTRATO INDIVIDUAL DE TRABAJO POR TIEMPO INDETERMINADO
+    // ════════════════════════════════════════════════════════════════
+    'contrato-laboral-indef': {
+      id: 'contrato-laboral-indef',
+      nombre: 'Contrato Individual de Trabajo',
+      subtitulo: 'Tiempo Indeterminado',
+      categoria: 'laboral',
+      catLabel: 'Laboral',
+      descripcion: 'Contrato laboral estándar conforme a la Ley Federal del Trabajo.',
+      tiempoEstimado: '8 min',
+      icono: ICONS.laboral,
+      secciones: [
+        { titulo: 'Datos del patrón', fields: [
+          { id: 'nombrePatron', label: 'Nombre / Razón social del patrón', tipo: 'text', required: true, placeholder: 'Ej: TEC CAPITAL GROUP S.A. de C.V.' },
+          { id: 'rfcPatron', label: 'RFC del patrón', tipo: 'text', placeholder: 'XAXX010101000', maxlength: 13 },
+          { id: 'domicilioPatron', label: 'Domicilio fiscal del patrón', tipo: 'text', required: true, placeholder: 'Calle, número, colonia, ciudad, estado, CP' },
+          { id: 'representantePatron', label: 'Representante legal (opcional)', tipo: 'text', placeholder: 'Si el patrón es persona moral' }
+        ]},
+        { titulo: 'Datos del trabajador', fields: [
+          { id: 'nombreTrabajador', label: 'Nombre completo del trabajador', tipo: 'text', required: true },
+          { id: 'nacionalidad', label: 'Nacionalidad', tipo: 'text', value: 'Mexicana' },
+          { id: 'edad', label: 'Edad', tipo: 'number', placeholder: '30' },
+          { id: 'estadoCivil', label: 'Estado civil', tipo: 'select', opciones: ['Soltero(a)','Casado(a)','Unión libre','Divorciado(a)','Viudo(a)'] },
+          { id: 'domicilioTrabajador', label: 'Domicilio del trabajador', tipo: 'text', required: true },
+          { id: 'curp', label: 'CURP', tipo: 'text', maxlength: 18, placeholder: 'AAAA000000HDFNNN00' },
+          { id: 'rfcTrabajador', label: 'RFC del trabajador', tipo: 'text', maxlength: 13 },
+          { id: 'nss', label: 'NSS (Número de Seguro Social)', tipo: 'text', maxlength: 11 }
+        ]},
+        { titulo: 'Condiciones laborales', fields: [
+          { id: 'puesto', label: 'Puesto / Categoría', tipo: 'text', required: true, placeholder: 'Ej: Auxiliar contable' },
+          { id: 'funciones', label: 'Descripción de funciones', tipo: 'textarea', placeholder: 'Detalle las actividades principales del puesto...' },
+          { id: 'lugarTrabajo', label: 'Lugar de trabajo', tipo: 'text', placeholder: 'Domicilio donde se prestará el servicio' },
+          { id: 'jornada', label: 'Tipo de jornada', tipo: 'select', opciones: ['Diurna (8 hrs)','Nocturna (7 hrs)','Mixta (7.5 hrs)'] },
+          { id: 'horarioEntrada', label: 'Horario de entrada', tipo: 'time', value: '09:00' },
+          { id: 'horarioSalida', label: 'Horario de salida', tipo: 'time', value: '18:00' },
+          { id: 'diasDescanso', label: 'Días de descanso semanal', tipo: 'text', value: 'Sábado y Domingo' }
+        ]},
+        { titulo: 'Salario', fields: [
+          { id: 'salarioMensual', label: 'Salario mensual bruto', tipo: 'currency', required: true, placeholder: '15000' },
+          { id: 'formaPago', label: 'Periodicidad de pago', tipo: 'select', opciones: ['Quincenal','Semanal','Mensual','Decenal'] },
+          { id: 'fechaInicio', label: 'Fecha de inicio de labores', tipo: 'date', required: true }
+        ]},
+        { titulo: 'Lugar y fecha del contrato', fields: [
+          { id: 'ciudad', label: 'Ciudad', tipo: 'text', required: true, placeholder: 'Tehuacán, Puebla' },
+          { id: 'fechaFirma', label: 'Fecha de firma', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Documento Legal · Material Profesional</div>
+</div>
+
+<h1>Contrato Individual de Trabajo<br><span style="font-size:0.75em;font-weight:600;letter-spacing:0.02em;">por Tiempo Indeterminado</span></h1>
+
+<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, siendo el día <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <span class="{{__claseNombrePatron}}">{{nombrePatron}}</span>, con domicilio en <span class="{{__claseDomicilioPatron}}">{{domicilioPatron}}</span> y RFC <span class="{{__claseRfcPatron}}">{{rfcPatron}}</span>{{__representanteFrase}}, a quien en lo sucesivo se le denominará <strong>"EL PATRÓN"</strong>; y por la otra parte el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, de nacionalidad <span class="{{__claseNacionalidad}}">{{nacionalidad}}</span>, de <span class="{{__claseEdad}}">{{edad}}</span> años de edad, de estado civil <span class="{{__claseEstadoCivil}}">{{estadoCivil}}</span>, con domicilio en <span class="{{__claseDomicilioTrabajador}}">{{domicilioTrabajador}}</span>, CURP <span class="{{__claseCurp}}">{{curp}}</span>, RFC <span class="{{__claseRfcTrabajador}}">{{rfcTrabajador}}</span> y NSS <span class="{{__claseNss}}">{{nss}}</span>, a quien en lo sucesivo se le denominará <strong>"EL TRABAJADOR"</strong>; quienes celebran el presente Contrato Individual de Trabajo al tenor de las siguientes:</p>
+
+<h2>Declaraciones</h2>
+<p><strong>I.</strong> Declara EL PATRÓN tener capacidad legal para celebrar el presente contrato y contar con el domicilio fiscal antes señalado.</p>
+<p><strong>II.</strong> Declara EL TRABAJADOR ser mayor de edad, con plenos derechos para celebrar el presente contrato y contar con la experiencia y conocimientos requeridos para el puesto.</p>
+
+<h2>Cláusulas</h2>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Primera · Objeto del Contrato</div>
+<p>EL TRABAJADOR se obliga a prestar sus servicios personales subordinados a EL PATRÓN en el puesto de <span class="{{__clasePuesto}}">{{puesto}}</span>, desempeñando las siguientes funciones: <span class="{{__claseFunciones}}">{{funciones}}</span>.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Segunda · Duración</div>
+<p>El presente contrato se celebra por <strong>tiempo indeterminado</strong>, iniciando labores el día <span class="{{__claseFechaInicio}}">{{fechaInicioTexto}}</span>, conforme a lo dispuesto por el artículo 35 de la Ley Federal del Trabajo.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Tercera · Lugar de Trabajo</div>
+<p>EL TRABAJADOR prestará sus servicios en <span class="{{__claseLugarTrabajo}}">{{lugarTrabajo}}</span>, sin perjuicio de los traslados que requiera la naturaleza del puesto.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Cuarta · Jornada de Trabajo</div>
+<p>La jornada será <span class="{{__claseJornada}}">{{jornada}}</span>, con horario de <span class="{{__claseHorarioEntrada}}">{{horarioEntrada}}</span> a <span class="{{__claseHorarioSalida}}">{{horarioSalida}}</span> horas, con día(s) de descanso: <span class="{{__claseDiasDescanso}}">{{diasDescanso}}</span>.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Quinta · Salario</div>
+<p>EL PATRÓN pagará a EL TRABAJADOR un salario mensual bruto de <span class="{{__claseSalario}}">$ {{salarioMensual}}</span> M.N. ({{salarioLetra}}), con periodicidad de pago <span class="{{__claseFormaPago}}">{{formaPago}}</span>, mediante depósito bancario o pago directo, libre de polvo y paja, con las deducciones de ley correspondientes.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Sexta · Prestaciones de Ley</div>
+<p>EL TRABAJADOR gozará de todas las prestaciones que establece la Ley Federal del Trabajo, incluyendo aguinaldo (artículo 87), vacaciones (artículo 76), prima vacacional del 25%, día de descanso semanal pagado, descansos obligatorios, así como inscripción al IMSS, INFONAVIT y SAR.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Séptima · Obligaciones del Trabajador</div>
+<p>EL TRABAJADOR se obliga a cumplir con el reglamento interior de trabajo, las instrucciones de sus superiores, guardar la debida confidencialidad sobre la información a la que tenga acceso, y desempeñar sus labores con la diligencia y cuidado apropiados.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Octava · Causales de Rescisión</div>
+<p>Serán causales de rescisión sin responsabilidad para EL PATRÓN las previstas en el artículo 47 de la Ley Federal del Trabajo. Asimismo serán causales sin responsabilidad para EL TRABAJADOR las previstas en el artículo 51 del mismo ordenamiento.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Novena · Jurisdicción</div>
+<p>Para la interpretación y cumplimiento del presente contrato, las partes se someten expresamente a la jurisdicción de los Tribunales Laborales competentes, renunciando a cualquier otro fuero que pudiera corresponderles por razón de su domicilio presente o futuro.</p>
+</div>
+
+<p style="margin-top:1.25rem;">Leído que fue por ambas partes el presente contrato y enteradas de su contenido, alcance y consecuencias legales, lo firman de conformidad por duplicado, quedando un ejemplar en poder de cada parte.</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombrePatron}}</div>
+<div class="doc-legal-signature-role">EL PATRÓN</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreTrabajador}}</div>
+<div class="doc-legal-signature-role">EL TRABAJADOR</div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 2. CONTRATO INDIVIDUAL DE TRABAJO POR TIEMPO DETERMINADO
+    // ════════════════════════════════════════════════════════════════
+    'contrato-laboral-det': {
+      id: 'contrato-laboral-det',
+      nombre: 'Contrato Individual de Trabajo',
+      subtitulo: 'Tiempo Determinado',
+      categoria: 'laboral',
+      catLabel: 'Laboral',
+      descripcion: 'Para proyectos, suplencias, obras específicas (Art. 37 LFT).',
+      tiempoEstimado: '8 min',
+      icono: ICONS.determinado,
+      secciones: [
+        { titulo: 'Datos del patrón', fields: [
+          { id: 'nombrePatron', label: 'Nombre / Razón social del patrón', tipo: 'text', required: true },
+          { id: 'rfcPatron', label: 'RFC del patrón', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioPatron', label: 'Domicilio del patrón', tipo: 'text', required: true }
+        ]},
+        { titulo: 'Datos del trabajador', fields: [
+          { id: 'nombreTrabajador', label: 'Nombre del trabajador', tipo: 'text', required: true },
+          { id: 'domicilioTrabajador', label: 'Domicilio del trabajador', tipo: 'text' },
+          { id: 'curp', label: 'CURP', tipo: 'text', maxlength: 18 },
+          { id: 'rfcTrabajador', label: 'RFC del trabajador', tipo: 'text', maxlength: 13 },
+          { id: 'nss', label: 'NSS', tipo: 'text', maxlength: 11 }
+        ]},
+        { titulo: 'Causa que justifica el tiempo determinado', fields: [
+          { id: 'motivoTiempoFijo', label: 'Motivo legal (Art. 37 LFT)', tipo: 'textarea', required: true, placeholder: 'Ej: La naturaleza del trabajo a desarrollar exige el cumplimiento de un proyecto específico denominado "X" con fecha de entrega comprometida...', helpText: 'Sin causa justificada el contrato se considera indeterminado.' }
+        ]},
+        { titulo: 'Condiciones laborales', fields: [
+          { id: 'puesto', label: 'Puesto', tipo: 'text', required: true },
+          { id: 'funciones', label: 'Descripción de funciones', tipo: 'textarea' },
+          { id: 'jornada', label: 'Jornada', tipo: 'select', opciones: ['Diurna (8 hrs)','Nocturna (7 hrs)','Mixta (7.5 hrs)'] },
+          { id: 'horarioEntrada', label: 'Entrada', tipo: 'time', value: '09:00' },
+          { id: 'horarioSalida', label: 'Salida', tipo: 'time', value: '18:00' },
+          { id: 'salarioMensual', label: 'Salario mensual', tipo: 'currency', required: true }
+        ]},
+        { titulo: 'Vigencia del contrato', fields: [
+          { id: 'fechaInicio', label: 'Fecha de inicio', tipo: 'date', required: true },
+          { id: 'fechaFin', label: 'Fecha de término', tipo: 'date', required: true },
+          { id: 'ciudad', label: 'Ciudad de firma', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha de firma', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Documento Legal · Material Profesional</div>
+</div>
+
+<h1>Contrato Individual de Trabajo<br><span style="font-size:0.75em;font-weight:600;">por Tiempo Determinado</span></h1>
+
+<p>En <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen <span class="{{__claseNombrePatron}}">{{nombrePatron}}</span>, RFC <span class="{{__claseRfcPatron}}">{{rfcPatron}}</span>, con domicilio en <span class="{{__claseDomicilioPatron}}">{{domicilioPatron}}</span>, en lo sucesivo <strong>"EL PATRÓN"</strong>; y el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, con domicilio en <span class="{{__claseDomicilioTrabajador}}">{{domicilioTrabajador}}</span>, CURP <span class="{{__claseCurp}}">{{curp}}</span>, RFC <span class="{{__claseRfcTrabajador}}">{{rfcTrabajador}}</span>, NSS <span class="{{__claseNss}}">{{nss}}</span>, en lo sucesivo <strong>"EL TRABAJADOR"</strong>, quienes celebran el presente contrato conforme a las siguientes:</p>
+
+<h2>Cláusulas</h2>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Primera · Objeto y causa del tiempo determinado</div>
+<p>EL TRABAJADOR prestará sus servicios subordinados en el puesto de <span class="{{__clasePuesto}}">{{puesto}}</span>, desempeñando: <span class="{{__claseFunciones}}">{{funciones}}</span>. En términos del artículo 37 de la Ley Federal del Trabajo, el presente contrato se celebra por tiempo determinado en virtud de que: <span class="{{__claseMotivo}}">{{motivoTiempoFijo}}</span></p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Segunda · Vigencia</div>
+<p>El contrato tendrá vigencia desde el <span class="{{__claseFechaInicio}}">{{fechaInicioTexto}}</span> hasta el <span class="{{__claseFechaFin}}">{{fechaFinTexto}}</span>, fecha en que terminará la relación laboral sin necesidad de aviso previo ni responsabilidad para ninguna de las partes, salvo el pago de partes proporcionales.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Tercera · Jornada y Salario</div>
+<p>La jornada será <span class="{{__claseJornada}}">{{jornada}}</span>, con horario de <span class="{{__claseHorarioEntrada}}">{{horarioEntrada}}</span> a <span class="{{__claseHorarioSalida}}">{{horarioSalida}}</span> horas. El salario mensual bruto pactado es de <span class="{{__claseSalario}}">$ {{salarioMensual}}</span> M.N., con las prestaciones de ley.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Cuarta · Prestaciones</div>
+<p>EL TRABAJADOR gozará de las prestaciones que la Ley Federal del Trabajo señala como mínimas, en proporción al tiempo trabajado: aguinaldo, vacaciones, prima vacacional, IMSS, INFONAVIT y SAR.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Quinta · Terminación</div>
+<p>Al concluir el plazo pactado, la relación laboral terminará sin responsabilidad para EL PATRÓN, quien únicamente cubrirá las partes proporcionales devengadas a esa fecha. Si subsiste la materia del trabajo, podrá prorrogarse por escrito.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Sexta · Jurisdicción</div>
+<p>Las partes se someten a los Tribunales Laborales competentes para la interpretación y cumplimiento del presente contrato.</p>
+</div>
+
+<p style="margin-top:1.25rem;">Leído y enterados de su contenido, firman por duplicado.</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombrePatron}}</div>
+<div class="doc-legal-signature-role">EL PATRÓN</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreTrabajador}}</div>
+<div class="doc-legal-signature-role">EL TRABAJADOR</div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 3. CARTA DE RENUNCIA VOLUNTARIA
+    // ════════════════════════════════════════════════════════════════
+    'carta-renuncia': {
+      id: 'carta-renuncia',
+      nombre: 'Carta de Renuncia',
+      subtitulo: 'Voluntaria',
+      categoria: 'laboral',
+      catLabel: 'Laboral',
+      descripcion: 'Carta de renuncia voluntaria con redacción profesional.',
+      tiempoEstimado: '3 min',
+      icono: ICONS.renuncia,
+      secciones: [
+        { titulo: 'Datos del trabajador (quien renuncia)', fields: [
+          { id: 'nombreTrabajador', label: 'Tu nombre completo', tipo: 'text', required: true },
+          { id: 'puesto', label: 'Puesto que desempeñas', tipo: 'text', required: true },
+          { id: 'fechaIngreso', label: 'Fecha de ingreso a la empresa', tipo: 'date' }
+        ]},
+        { titulo: 'Datos del patrón / empresa', fields: [
+          { id: 'razonSocialPatron', label: 'Razón social / Nombre del patrón', tipo: 'text', required: true },
+          { id: 'nombreResponsable', label: 'Nombre del responsable a quien diriges la carta', tipo: 'text', placeholder: 'Ej: Lic. María Pérez, Gerente de RH' },
+          { id: 'cargoResponsable', label: 'Cargo del responsable', tipo: 'text', placeholder: 'Gerente, Director, Recursos Humanos…' }
+        ]},
+        { titulo: 'Términos de la renuncia', fields: [
+          { id: 'fechaUltimoDia', label: 'Tu último día de trabajo', tipo: 'date', required: true },
+          { id: 'agradecimiento', label: 'Mensaje de cierre (opcional)', tipo: 'textarea', placeholder: 'Ej: Agradezco la oportunidad de haber formado parte del equipo…' }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha de la carta', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Carta · Renuncia Voluntaria</div>
+</div>
+
+<p style="text-align:right;margin-bottom:1.5rem;"><span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span></p>
+
+<p><strong>{{nombreResponsable}}</strong><br>
+<span class="{{__claseCargoResponsable}}">{{cargoResponsable}}</span><br>
+<span class="{{__claseRazonSocial}}">{{razonSocialPatron}}</span><br>
+<strong>P R E S E N T E.</strong></p>
+
+<p style="margin-top:1.25rem;">Por medio de la presente, el(la) que suscribe <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, hago de su conocimiento mi <strong>renuncia voluntaria e irrevocable</strong> al puesto de <span class="{{__clasePuesto}}">{{puesto}}</span> que vengo desempeñando en esta institución desde el día <span class="{{__claseFechaIngreso}}">{{fechaIngresoTexto}}</span>, siendo mi último día efectivo de labores el <span class="{{__claseFechaUltimoDia}}">{{fechaUltimoDiaTexto}}</span>.</p>
+
+<p>Mi decisión es <strong>libre, espontánea y sin presión alguna</strong>, motivada por razones estrictamente personales. Manifiesto que durante el tiempo que duró la relación laboral recibí íntegramente todos los pagos, salarios, prestaciones y demás conceptos a que tuve derecho, no quedando adeudo alguno por parte de la empresa en mi favor.</p>
+
+<p>En este acto solicito atentamente se tenga por terminada la relación laboral en los términos del artículo 53 fracción I de la Ley Federal del Trabajo, y se sirvan calcular y cubrir las partes proporcionales que pudieran corresponderme conforme a la ley (aguinaldo, vacaciones y prima vacacional devengadas).</p>
+
+<p><span class="{{__claseAgradecimiento}}">{{agradecimiento}}</span></p>
+
+<p style="margin-top:1.5rem;">Sin otro particular, agradezco la atención que se sirvan dar a la presente.</p>
+
+<p style="margin-top:1.5rem;">A T E N T A M E N T E,</p>
+
+<div class="doc-legal-signatures" style="grid-template-columns:1fr;margin-top:3rem;">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreTrabajador}}</div>
+<div class="doc-legal-signature-role">Nombre y firma del trabajador</div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 4. CARTA FINIQUITO
+    // ════════════════════════════════════════════════════════════════
+    'carta-finiquito': {
+      id: 'carta-finiquito',
+      nombre: 'Carta Finiquito',
+      subtitulo: 'Con desglose de prestaciones',
+      categoria: 'laboral',
+      catLabel: 'Laboral',
+      descripcion: 'Finiquito laboral con desglose de partes proporcionales.',
+      tiempoEstimado: '6 min',
+      icono: ICONS.finiquito,
+      secciones: [
+        { titulo: 'Datos del trabajador', fields: [
+          { id: 'nombreTrabajador', label: 'Nombre del trabajador', tipo: 'text', required: true },
+          { id: 'rfc', label: 'RFC', tipo: 'text', maxlength: 13 },
+          { id: 'nss', label: 'NSS', tipo: 'text', maxlength: 11 },
+          { id: 'puesto', label: 'Puesto que desempeñaba', tipo: 'text', required: true }
+        ]},
+        { titulo: 'Datos del patrón', fields: [
+          { id: 'razonSocialPatron', label: 'Razón social del patrón', tipo: 'text', required: true },
+          { id: 'rfcPatron', label: 'RFC del patrón', tipo: 'text', maxlength: 13 }
+        ]},
+        { titulo: 'Vigencia de la relación laboral', fields: [
+          { id: 'fechaIngreso', label: 'Fecha de ingreso', tipo: 'date', required: true },
+          { id: 'fechaSalida', label: 'Fecha de salida', tipo: 'date', required: true },
+          { id: 'causaSeparacion', label: 'Causa de separación', tipo: 'select', opciones: ['Renuncia voluntaria','Mutuo acuerdo','Terminación del contrato','Otra'] }
+        ]},
+        { titulo: 'Conceptos a pagar', fields: [
+          { id: 'salarioDiario', label: 'Salario diario integrado', tipo: 'currency', required: true, placeholder: '500' },
+          { id: 'sueldoPendiente', label: 'Sueldo pendiente del periodo', tipo: 'currency', placeholder: '0' },
+          { id: 'vacacionesPendientes', label: 'Días de vacaciones pendientes', tipo: 'number', placeholder: '6' },
+          { id: 'primaVacacional', label: 'Prima vacacional (25% de vacaciones)', tipo: 'currency', placeholder: 'Se calcula sobre los días arriba' },
+          { id: 'aguinaldo', label: 'Aguinaldo proporcional (días)', tipo: 'number', placeholder: '15' },
+          { id: 'otrasPercepciones', label: 'Otras percepciones (opcional)', tipo: 'currency', placeholder: '0' }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha del finiquito', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Carta · Finiquito Laboral</div>
+</div>
+
+<h1>Carta Finiquito</h1>
+
+<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <span class="{{__claseRazonSocial}}">{{razonSocialPatron}}</span>, con RFC <span class="{{__claseRfcPatron}}">{{rfcPatron}}</span>, en lo sucesivo <strong>"EL PATRÓN"</strong>; y por la otra parte el(la) C. <span class="{{__claseNombreTrabajador}}">{{nombreTrabajador}}</span>, con RFC <span class="{{__claseRfc}}">{{rfc}}</span> y NSS <span class="{{__claseNss}}">{{nss}}</span>, en lo sucesivo <strong>"EL TRABAJADOR"</strong>.</p>
+
+<h2>Antecedentes</h2>
+<p>EL TRABAJADOR prestó sus servicios subordinados para EL PATRÓN en el puesto de <span class="{{__clasePuesto}}">{{puesto}}</span>, del <span class="{{__claseFechaIngreso}}">{{fechaIngresoTexto}}</span> al <span class="{{__claseFechaSalida}}">{{fechaSalidaTexto}}</span>, concluyendo la relación laboral por causa de: <strong><span class="{{__claseCausa}}">{{causaSeparacion}}</span></strong>.</p>
+
+<h2>Liquidación de prestaciones</h2>
+<p>EL PATRÓN cubre en este acto a EL TRABAJADOR las siguientes partes proporcionales devengadas:</p>
+
+<table style="width:100%;border-collapse:collapse;margin:0.75rem 0;font-family:'Inter',sans-serif;font-size:12px;">
+<thead>
+<tr style="background:#F8F4ED;border-bottom:2px solid #C9A961;">
+<th style="padding:8px 10px;text-align:left;color:#0A1F44;">Concepto</th>
+<th style="padding:8px 10px;text-align:right;color:#0A1F44;">Importe</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding:6px 10px;border-bottom:1px solid #F1F5F9;">Sueldo pendiente</td><td style="padding:6px 10px;text-align:right;border-bottom:1px solid #F1F5F9;">$ {{sueldoPendiente}}</td></tr>
+<tr><td style="padding:6px 10px;border-bottom:1px solid #F1F5F9;">Vacaciones pendientes ({{vacacionesPendientes}} días × $ {{salarioDiario}})</td><td style="padding:6px 10px;text-align:right;border-bottom:1px solid #F1F5F9;">$ {{totalVacaciones}}</td></tr>
+<tr><td style="padding:6px 10px;border-bottom:1px solid #F1F5F9;">Prima vacacional (25%)</td><td style="padding:6px 10px;text-align:right;border-bottom:1px solid #F1F5F9;">$ {{primaVacacional}}</td></tr>
+<tr><td style="padding:6px 10px;border-bottom:1px solid #F1F5F9;">Aguinaldo proporcional ({{aguinaldo}} días)</td><td style="padding:6px 10px;text-align:right;border-bottom:1px solid #F1F5F9;">$ {{totalAguinaldo}}</td></tr>
+<tr><td style="padding:6px 10px;border-bottom:1px solid #F1F5F9;">Otras percepciones</td><td style="padding:6px 10px;text-align:right;border-bottom:1px solid #F1F5F9;">$ {{otrasPercepciones}}</td></tr>
+<tr style="background:#F8F4ED;border-top:2px solid #0A1F44;">
+<td style="padding:10px;font-weight:700;color:#0A1F44;">TOTAL FINIQUITO</td>
+<td style="padding:10px;text-align:right;font-weight:700;color:#0A1F44;font-size:14px;">$ {{totalFiniquito}} M.N.</td>
+</tr>
+</tbody>
+</table>
+
+<p>EL TRABAJADOR declara haber recibido en este acto, a su entera satisfacción, la cantidad total señalada, manifestando que <strong>no se reserva acción ni derecho alguno</strong> que ejercitar en contra de EL PATRÓN, ya sea de carácter laboral, civil, mercantil, penal o de cualquier otra índole, derivado o relacionado con la relación laboral que en este acto se da por terminada.</p>
+
+<p>Asimismo, EL TRABAJADOR otorga el más amplio finiquito que conforme a derecho proceda, declarando que no le adeuda EL PATRÓN cantidad alguna por concepto de salarios, vacaciones, aguinaldos, prima vacacional, primas de antigüedad, tiempo extraordinario, gratificaciones, comisiones, ni por ningún otro concepto.</p>
+
+<p style="margin-top:1.5rem;">Leído el presente finiquito por las partes y enteradas de su contenido y consecuencias legales, lo firman de conformidad por duplicado.</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{razonSocialPatron}}</div>
+<div class="doc-legal-signature-role">EL PATRÓN</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreTrabajador}}</div>
+<div class="doc-legal-signature-role">EL TRABAJADOR</div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 5. CONTRATO DE PRESTACIÓN DE SERVICIOS PROFESIONALES (HONORARIOS)
+    // ════════════════════════════════════════════════════════════════
+    'contrato-honorarios': {
+      id: 'contrato-honorarios',
+      nombre: 'Contrato de Prestación de Servicios',
+      subtitulo: 'Profesionales (Honorarios)',
+      categoria: 'mercantil',
+      catLabel: 'Mercantil',
+      descripcion: 'Contrato civil de honorarios, sin relación laboral subordinada.',
+      tiempoEstimado: '7 min',
+      icono: ICONS.honorarios,
+      secciones: [
+        { titulo: 'Datos del prestatario (cliente)', fields: [
+          { id: 'nombrePrestatario', label: 'Nombre / Razón social del cliente', tipo: 'text', required: true },
+          { id: 'rfcPrestatario', label: 'RFC del cliente', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioPrestatario', label: 'Domicilio del cliente', tipo: 'text', required: true }
+        ]},
+        { titulo: 'Datos del profesionista', fields: [
+          { id: 'nombreProfesionista', label: 'Tu nombre completo', tipo: 'text', required: true },
+          { id: 'rfcProfesionista', label: 'Tu RFC', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioProfesionista', label: 'Tu domicilio', tipo: 'text', required: true },
+          { id: 'cedulaProfesional', label: 'Cédula profesional (opcional)', tipo: 'text', placeholder: 'Si aplica' }
+        ]},
+        { titulo: 'Servicios contratados', fields: [
+          { id: 'objetoContrato', label: 'Descripción del servicio', tipo: 'textarea', required: true, placeholder: 'Detalla con precisión qué servicios prestarás...' },
+          { id: 'entregables', label: 'Entregables específicos', tipo: 'textarea', placeholder: 'Lista los entregables concretos: reporte, sitio web, etc.' }
+        ]},
+        { titulo: 'Honorarios y pago', fields: [
+          { id: 'honorarios', label: 'Honorarios totales', tipo: 'currency', required: true, placeholder: '25000' },
+          { id: 'formaPago', label: 'Forma de pago', tipo: 'select', opciones: ['Total al inicio','50% inicio - 50% entrega','Por entregables','Mensualidades iguales'] },
+          { id: 'plazoFactura', label: 'Plazo de facturación / pago', tipo: 'text', placeholder: 'Ej: 5 días después de entrega de CFDI' }
+        ]},
+        { titulo: 'Vigencia', fields: [
+          { id: 'fechaInicio', label: 'Fecha de inicio', tipo: 'date', required: true },
+          { id: 'fechaFin', label: 'Fecha de terminación', tipo: 'date', required: true },
+          { id: 'penalizacionRetraso', label: 'Penalización por retraso (opcional)', tipo: 'currency', placeholder: 'Si aplica, por día de atraso' }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha de firma', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Contrato Mercantil · Servicios Profesionales</div>
+</div>
+
+<h1>Contrato de Prestación de Servicios Profesionales</h1>
+
+<p>En <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <span class="{{__claseNombrePrestatario}}">{{nombrePrestatario}}</span>, con RFC <span class="{{__claseRfcPrestatario}}">{{rfcPrestatario}}</span> y domicilio en <span class="{{__claseDomicilioPrestatario}}">{{domicilioPrestatario}}</span>, en lo sucesivo <strong>"EL CLIENTE"</strong>; y por la otra parte <span class="{{__claseNombreProf}}">{{nombreProfesionista}}</span>, con RFC <span class="{{__claseRfcProf}}">{{rfcProfesionista}}</span>, domicilio en <span class="{{__claseDomicilioProf}}">{{domicilioProfesionista}}</span> y cédula profesional <span class="{{__claseCedula}}">{{cedulaProfesional}}</span>, en lo sucesivo <strong>"EL PROFESIONISTA"</strong>, celebran el presente contrato de prestación de servicios profesionales al tenor de las siguientes:</p>
+
+<h2>Declaraciones</h2>
+<p><strong>I.</strong> EL CLIENTE declara contar con capacidad legal para celebrar el presente contrato y requerir los servicios materia del mismo.</p>
+<p><strong>II.</strong> EL PROFESIONISTA declara contar con la experiencia, conocimientos técnicos y, en su caso, cédula profesional necesarios para prestar los servicios contratados, manifestando que NO existe relación laboral subordinada con EL CLIENTE.</p>
+
+<h2>Cláusulas</h2>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Primera · Objeto</div>
+<p>EL PROFESIONISTA se obliga a prestar a EL CLIENTE los siguientes servicios profesionales: <span class="{{__claseObjeto}}">{{objetoContrato}}</span></p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Segunda · Entregables</div>
+<p>Como parte de los servicios contratados, EL PROFESIONISTA entregará: <span class="{{__claseEntregables}}">{{entregables}}</span></p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Tercera · Honorarios</div>
+<p>EL CLIENTE pagará a EL PROFESIONISTA la cantidad total de <span class="{{__claseHonorarios}}">$ {{honorarios}}</span> M.N. ({{honorariosLetra}}) bajo la modalidad: <span class="{{__claseFormaPago}}">{{formaPago}}</span>. EL PROFESIONISTA emitirá el CFDI correspondiente con los conceptos y retenciones de ley aplicables. El plazo de pago será: <span class="{{__clasePlazoFactura}}">{{plazoFactura}}</span>.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Cuarta · Vigencia</div>
+<p>El presente contrato tendrá vigencia del <span class="{{__claseFechaInicio}}">{{fechaInicioTexto}}</span> al <span class="{{__claseFechaFin}}">{{fechaFinTexto}}</span>, y podrá prorrogarse por acuerdo escrito entre las partes.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Quinta · Independencia</div>
+<p>Las partes reconocen y aceptan que el presente contrato es de naturaleza estrictamente CIVIL, regido por el Código Civil aplicable, no existiendo relación laboral, de subordinación, dependencia económica o exclusividad entre EL PROFESIONISTA y EL CLIENTE. EL PROFESIONISTA prestará los servicios con sus propios medios, recursos y bajo su propia organización.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Sexta · Penalización por retraso</div>
+<p>En caso de retraso injustificado en la entrega, EL PROFESIONISTA cubrirá a EL CLIENTE la cantidad de <span class="{{__clasePenalizacion}}">$ {{penalizacionRetraso}}</span> M.N. por cada día natural de atraso, sin exceder del 20% del valor total del contrato.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Séptima · Confidencialidad</div>
+<p>EL PROFESIONISTA se obliga a guardar absoluta confidencialidad respecto de toda la información a la que tenga acceso durante la prestación de los servicios, obligación que subsistirá por 3 años posteriores a la terminación del contrato.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Octava · Propiedad intelectual</div>
+<p>Los entregables y resultados del trabajo serán propiedad exclusiva de EL CLIENTE una vez pagado el total de los honorarios. EL PROFESIONISTA cede los derechos patrimoniales sobre los entregables conforme a la Ley Federal del Derecho de Autor.</p>
+</div>
+
+<div class="doc-legal-clause">
+<div class="doc-legal-clause-title">Novena · Jurisdicción</div>
+<p>Para la interpretación y cumplimiento del presente contrato, las partes se someten a los tribunales civiles competentes del lugar donde se firma, renunciando a cualquier otro fuero.</p>
+</div>
+
+<p style="margin-top:1.25rem;">Leído por ambas partes y enteradas de su contenido y alcances, lo firman por duplicado.</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombrePrestatario}}</div>
+<div class="doc-legal-signature-role">EL CLIENTE</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreProfesionista}}</div>
+<div class="doc-legal-signature-role">EL PROFESIONISTA</div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 6. CARTA PODER SIMPLE
+    // ════════════════════════════════════════════════════════════════
+    'carta-poder': {
+      id: 'carta-poder',
+      nombre: 'Carta Poder',
+      subtitulo: 'Simple',
+      categoria: 'cartas',
+      catLabel: 'Cartas',
+      descripcion: 'Carta poder para trámites y representación legal con 2 testigos.',
+      tiempoEstimado: '4 min',
+      icono: ICONS.poder,
+      secciones: [
+        { titulo: 'Datos del otorgante', fields: [
+          { id: 'nombreOtorgante', label: 'Tu nombre completo (otorgante)', tipo: 'text', required: true },
+          { id: 'domicilioOtorgante', label: 'Tu domicilio', tipo: 'text', required: true },
+          { id: 'rfcOtorgante', label: 'Tu RFC (opcional)', tipo: 'text', maxlength: 13 },
+          { id: 'ineOtorgante', label: 'Tu identificación (INE / Pasaporte)', tipo: 'text', placeholder: 'Número de identificación' }
+        ]},
+        { titulo: 'Datos del apoderado', fields: [
+          { id: 'nombreApoderado', label: 'Nombre del apoderado', tipo: 'text', required: true },
+          { id: 'domicilioApoderado', label: 'Domicilio del apoderado', tipo: 'text' },
+          { id: 'ineApoderado', label: 'INE / Identificación del apoderado', tipo: 'text', required: true }
+        ]},
+        { titulo: 'Objeto del poder', fields: [
+          { id: 'objetoPoder', label: '¿Para qué se otorga el poder?', tipo: 'textarea', required: true, placeholder: 'Ej: Para realizar trámites de placas vehiculares en mi nombre y representación ante la Secretaría de Movilidad...' },
+          { id: 'vigencia', label: 'Vigencia del poder', tipo: 'date', helpText: 'Fecha hasta la cual es válido' }
+        ]},
+        { titulo: 'Testigos', fields: [
+          { id: 'testigo1', label: 'Nombre del primer testigo', tipo: 'text', required: true },
+          { id: 'testigo2', label: 'Nombre del segundo testigo', tipo: 'text', required: true }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha de firma', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Carta Poder · Simple</div>
+</div>
+
+<h1>Carta Poder</h1>
+
+<p style="text-align:right;margin-bottom:1.5rem;"><span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span></p>
+
+<p style="margin-top:1.5rem;">Por medio de la presente, el(la) que suscribe <strong><span class="{{__claseNombreOtorgante}}">{{nombreOtorgante}}</span></strong>, mayor de edad, con domicilio en <span class="{{__claseDomicilioOtorgante}}">{{domicilioOtorgante}}</span>, identificándome con <span class="{{__claseIneOtorgante}}">{{ineOtorgante}}</span> y RFC <span class="{{__claseRfcOtorgante}}">{{rfcOtorgante}}</span>, en lo sucesivo <strong>"EL OTORGANTE"</strong>;</p>
+
+<p>Por este conducto otorgo <strong>PODER AMPLIO, CUMPLIDO Y BASTANTE</strong> cuanto en derecho se requiera, a favor de:</p>
+
+<p style="text-align:center;font-size:14px;font-weight:700;margin:1.25rem 0;color:#0A1F44;"><span class="{{__claseNombreApoderado}}">{{nombreApoderado}}</span></p>
+
+<p>Mayor de edad, con domicilio en <span class="{{__claseDomicilioApoderado}}">{{domicilioApoderado}}</span>, identificándose con <span class="{{__claseIneApoderado}}">{{ineApoderado}}</span>, a quien en lo sucesivo se denominará <strong>"EL APODERADO"</strong>.</p>
+
+<p>Para que en mi nombre y representación realice los siguientes actos:</p>
+
+<p style="background:#F8F4ED;padding:12px 16px;border-left:3px solid #C9A961;margin:1rem 0;"><span class="{{__claseObjeto}}">{{objetoPoder}}</span></p>
+
+<p>EL APODERADO podrá realizar todos los actos, gestiones y trámites que sean necesarios para el debido cumplimiento del presente mandato, suscribir documentos, presentar y recibir notificaciones, así como cualquier otra diligencia inherente al objeto del poder.</p>
+
+<p>La presente Carta Poder tendrá vigencia hasta el <strong><span class="{{__claseVigencia}}">{{vigenciaTexto}}</span></strong>, salvo revocación expresa por escrito notificada en forma fehaciente a EL APODERADO.</p>
+
+<p style="margin-top:1.5rem;">Para constancia, firmamos al calce los que en ella intervenimos:</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreOtorgante}}</div>
+<div class="doc-legal-signature-role">EL OTORGANTE</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreApoderado}}</div>
+<div class="doc-legal-signature-role">EL APODERADO (acepta el cargo)</div>
+</div>
+</div>
+
+<div class="doc-legal-signatures" style="margin-top:2rem;">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{testigo1}}</div>
+<div class="doc-legal-signature-role">Testigo 1</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{testigo2}}</div>
+<div class="doc-legal-signature-role">Testigo 2</div>
+</div>
+</div>` + DISCLAIMER
+    }
+    // ════════════════════════════════════════════════════════════════
+    // 7. CONTRATO DE ARRENDAMIENTO HABITACIONAL
+    // ════════════════════════════════════════════════════════════════
+    'arrendamiento-habitacional': {
+      id: 'arrendamiento-habitacional',
+      nombre: 'Contrato de Arrendamiento',
+      subtitulo: 'Habitacional',
+      categoria: 'mercantil',
+      catLabel: 'Mercantil',
+      descripcion: 'Renta de inmueble para vivienda con fiador opcional.',
+      tiempoEstimado: '7 min',
+      icono: ICONS.arrendamiento,
+      secciones: [
+        { titulo: 'Datos del arrendador (propietario)', fields: [
+          { id: 'nombreArrendador', label: 'Nombre completo del arrendador', tipo: 'text', required: true },
+          { id: 'rfcArrendador', label: 'RFC del arrendador', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioArrendador', label: 'Domicilio del arrendador', tipo: 'text', required: true },
+          { id: 'telArrendador', label: 'Teléfono del arrendador', tipo: 'text' }
+        ]},
+        { titulo: 'Datos del arrendatario (inquilino)', fields: [
+          { id: 'nombreArrendatario', label: 'Nombre completo del arrendatario', tipo: 'text', required: true },
+          { id: 'rfcArrendatario', label: 'RFC del arrendatario', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioArrendatario', label: 'Domicilio actual del arrendatario', tipo: 'text' },
+          { id: 'telArrendatario', label: 'Teléfono del arrendatario', tipo: 'text', required: true }
+        ]},
+        { titulo: 'Inmueble arrendado', fields: [
+          { id: 'domicilioInmueble', label: 'Dirección completa del inmueble', tipo: 'textarea', required: true, placeholder: 'Calle, número, colonia, ciudad, estado, CP' },
+          { id: 'descripcionInmueble', label: 'Descripción del inmueble', tipo: 'textarea', placeholder: 'Ej: Casa habitación de dos plantas, con 3 recámaras, 2 baños, sala-comedor, cocina, patio y un cajón de estacionamiento.' }
+        ]},
+        { titulo: 'Condiciones económicas', fields: [
+          { id: 'rentaMensual', label: 'Renta mensual ($MXN)', tipo: 'number', required: true, placeholder: '12000' },
+          { id: 'deposito', label: 'Depósito en garantía ($MXN)', tipo: 'number', placeholder: '24000', helpText: 'Equivalente a 1-2 meses de renta' },
+          { id: 'diaPago', label: 'Día de pago mensual', tipo: 'select', opciones: ['1','5','10','15','20','25','Último día del mes'] },
+          { id: 'formaPago', label: 'Forma de pago', tipo: 'select', opciones: ['Transferencia bancaria','Depósito en cuenta','Efectivo','Cheque'] },
+          { id: 'cuentaPago', label: 'Cuenta / CLABE para depósito (opcional)', tipo: 'text', placeholder: '012345678901234567' }
+        ]},
+        { titulo: 'Vigencia', fields: [
+          { id: 'fechaInicio', label: 'Fecha de inicio', tipo: 'date', required: true },
+          { id: 'duracionMeses', label: 'Duración (meses)', tipo: 'select', opciones: ['6','12','18','24','36'], helpText: 'La LFT recomienda mínimo 12 meses para habitacional' }
+        ]},
+        { titulo: 'Fiador (opcional)', fields: [
+          { id: 'nombreFiador', label: 'Nombre completo del fiador', tipo: 'text', placeholder: 'Dejar vacío si no hay fiador' },
+          { id: 'domicilioFiador', label: 'Domicilio del fiador', tipo: 'text' },
+          { id: 'inmuebleFianza', label: 'Inmueble que da en garantía (opcional)', tipo: 'text', placeholder: 'Si el fiador respalda con un inmueble' }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad de celebración', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha de firma', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Contrato de Arrendamiento · Habitacional</div>
+</div>
+
+<h1>Contrato de Arrendamiento</h1>
+
+<p style="text-align:center;font-size:11px;color:#64748B;margin-bottom:1.5rem;">Habitacional · Sujeto al Código Civil aplicable y demás disposiciones</p>
+
+<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, las partes que adelante se identifican celebran el presente <strong>CONTRATO DE ARRENDAMIENTO HABITACIONAL</strong>, al tenor de las siguientes declaraciones y cláusulas:</p>
+
+<h2>DECLARACIONES</h2>
+
+<p><strong>I. Del arrendador.</strong> Declara llamarse <strong><span class="{{__claseNombreArrendador}}">{{nombreArrendador}}</span></strong>, con RFC <span class="{{__claseRfcArrendador}}">{{rfcArrendador}}</span>, con domicilio en <span class="{{__claseDomicilioArrendador}}">{{domicilioArrendador}}</span>, en lo sucesivo <strong>"EL ARRENDADOR"</strong>; ser legítimo propietario del inmueble objeto del presente contrato y contar con plena capacidad jurídica para celebrarlo.</p>
+
+<p><strong>II. Del arrendatario.</strong> Declara llamarse <strong><span class="{{__claseNombreArrendatario}}">{{nombreArrendatario}}</span></strong>, con RFC <span class="{{__claseRfcArrendatario}}">{{rfcArrendatario}}</span>, con domicilio actual en <span class="{{__claseDomicilioArrendatario}}">{{domicilioArrendatario}}</span>, en lo sucesivo <strong>"EL ARRENDATARIO"</strong>; contar con plena capacidad jurídica y voluntad libre para obligarse, así como con los recursos económicos suficientes para cubrir las contraprestaciones derivadas de este instrumento.</p>
+
+<p><strong>III. Del inmueble.</strong> El inmueble objeto de este contrato se ubica en <span class="{{__claseDomicilioInmueble}}">{{domicilioInmueble}}</span>, y se describe como sigue: <span class="{{__claseDescripcionInmueble}}">{{descripcionInmueble}}</span>.</p>
+
+<h2>CLÁUSULAS</h2>
+
+<p><strong>PRIMERA. Objeto.</strong> EL ARRENDADOR da en arrendamiento a EL ARRENDATARIO el inmueble descrito en la Declaración III, para ser destinado <strong>única y exclusivamente a uso habitacional</strong>.</p>
+
+<p><strong>SEGUNDA. Renta.</strong> EL ARRENDATARIO se obliga a pagar a EL ARRENDADOR la cantidad de <strong><span class="{{__claseRenta}}">$\{{rentaMensual}} MXN</span></strong> mensuales (más IVA cuando aplique), pagaderos por adelantado el día <span class="{{__claseDiaPago}}">{{diaPago}}</span> de cada mes, mediante <span class="{{__claseFormaPago}}">{{formaPago}}</span> a la cuenta <span class="{{__claseCuentaPago}}">{{cuentaPago}}</span>.</p>
+
+<p><strong>TERCERA. Depósito en garantía.</strong> EL ARRENDATARIO entrega en este acto la cantidad de <strong><span class="{{__claseDeposito}}">$\{{deposito}} MXN</span></strong> como depósito en garantía, la cual será restituida al término del contrato previa verificación del buen estado del inmueble y el pago de adeudos pendientes (servicios, daños, etc.).</p>
+
+<p><strong>CUARTA. Vigencia.</strong> El presente contrato tendrá una vigencia de <strong><span class="{{__claseDuracion}}">{{duracionMeses}} meses</span></strong>, iniciando el <span class="{{__claseFechaInicio}}">{{fechaInicioTexto}}</span>. Podrá renovarse por acuerdo expreso por escrito entre las partes con 30 días naturales de anticipación a su vencimiento.</p>
+
+<p><strong>QUINTA. Servicios.</strong> Serán por cuenta exclusiva de EL ARRENDATARIO los servicios de agua, luz, gas, internet, teléfono, predial, mantenimiento ordinario y cualquier otro derivado del uso del inmueble.</p>
+
+<p><strong>SEXTA. Conservación.</strong> EL ARRENDATARIO se obliga a usar el inmueble como buen padre de familia, conservarlo en buen estado y restituirlo al término del contrato en las mismas condiciones en que lo recibió, salvo el desgaste natural por uso normal.</p>
+
+<p><strong>SÉPTIMA. Prohibiciones.</strong> Queda expresamente prohibido a EL ARRENDATARIO subarrendar, ceder o transmitir parcial o totalmente los derechos derivados de este contrato; realizar modificaciones estructurales sin autorización por escrito; destinar el inmueble a actividades comerciales o ilícitas.</p>
+
+<p><strong>OCTAVA. Mascotas.</strong> Se permite la tenencia de mascotas pequeñas previo aviso por escrito a EL ARRENDADOR, asumiendo EL ARRENDATARIO la responsabilidad por cualquier daño que éstas ocasionen.</p>
+
+<p><strong>NOVENA. Fianza.</strong> <span class="{{__claseFiador}}">{{nombreFiador}}</span>, con domicilio en <span class="{{__claseDomicilioFiador}}">{{domicilioFiador}}</span>, se constituye en fiador solidario, mancomunado y principal pagador de las obligaciones contraídas por EL ARRENDATARIO en este contrato, hasta su total cumplimiento. Acompaña como garantía adicional el inmueble identificado como <span class="{{__claseInmuebleFianza}}">{{inmuebleFianza}}</span>.</p>
+
+<p><strong>DÉCIMA. Causales de rescisión.</strong> Son causales de rescisión del contrato sin necesidad de declaración judicial: (a) la falta de pago de dos o más mensualidades; (b) el uso distinto al pactado; (c) el subarrendamiento no autorizado; (d) los daños graves al inmueble; (e) el incumplimiento de cualquier otra cláusula del presente contrato.</p>
+
+<p><strong>DÉCIMA PRIMERA. Jurisdicción.</strong> Para la interpretación y cumplimiento del presente contrato, las partes se someten expresamente a los tribunales competentes de la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, renunciando a cualquier otro fuero que por sus domicilios actuales o futuros pudiera corresponderles.</p>
+
+<p style="margin-top:2rem;">Leído que fue el presente contrato, las partes lo firman por triplicado, recibiendo cada una un ejemplar:</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreArrendador}}</div>
+<div class="doc-legal-signature-role">EL ARRENDADOR</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreArrendatario}}</div>
+<div class="doc-legal-signature-role">EL ARRENDATARIO</div>
+</div>
+</div>
+
+<div class="doc-legal-signatures" style="margin-top:2rem;">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreFiador}}</div>
+<div class="doc-legal-signature-role">EL FIADOR (en su caso)</div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 8. CONTRATO DE COMPRAVENTA DE BIEN MUEBLE
+    // ════════════════════════════════════════════════════════════════
+    'compraventa-mueble': {
+      id: 'compraventa-mueble',
+      nombre: 'Contrato de Compraventa',
+      subtitulo: 'Bien mueble',
+      categoria: 'mercantil',
+      catLabel: 'Mercantil',
+      descripcion: 'Compraventa de vehículo, equipo, mobiliario u otro bien mueble.',
+      tiempoEstimado: '5 min',
+      icono: ICONS.compraventa,
+      secciones: [
+        { titulo: 'Datos del vendedor', fields: [
+          { id: 'nombreVendedor', label: 'Nombre completo del vendedor', tipo: 'text', required: true },
+          { id: 'rfcVendedor', label: 'RFC del vendedor', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioVendedor', label: 'Domicilio del vendedor', tipo: 'text', required: true },
+          { id: 'ineVendedor', label: 'INE / Identificación del vendedor', tipo: 'text' }
+        ]},
+        { titulo: 'Datos del comprador', fields: [
+          { id: 'nombreComprador', label: 'Nombre completo del comprador', tipo: 'text', required: true },
+          { id: 'rfcComprador', label: 'RFC del comprador', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioComprador', label: 'Domicilio del comprador', tipo: 'text', required: true },
+          { id: 'ineComprador', label: 'INE / Identificación del comprador', tipo: 'text' }
+        ]},
+        { titulo: 'Bien objeto de la venta', fields: [
+          { id: 'descripcionBien', label: 'Descripción detallada del bien', tipo: 'textarea', required: true, placeholder: 'Ej: Automóvil marca Nissan, modelo Versa, año 2022, color blanco, número de serie 3N1AB7AP5NL211234, motor HR16, kilometraje 28,000.' },
+          { id: 'estadoBien', label: 'Estado del bien', tipo: 'select', opciones: ['Nuevo','Seminuevo','Usado en buen estado','Usado regular','Para refacciones'] },
+          { id: 'accesoriosBien', label: 'Accesorios incluidos (opcional)', tipo: 'textarea', placeholder: 'Ej: Tarjeta de circulación, llaves duplicadas, factura original, manual del usuario.' }
+        ]},
+        { titulo: 'Condiciones económicas', fields: [
+          { id: 'precioTotal', label: 'Precio total ($MXN)', tipo: 'number', required: true, placeholder: '180000' },
+          { id: 'precioTexto', label: 'Precio en letra', tipo: 'text', required: true, placeholder: 'Ciento ochenta mil pesos 00/100 M.N.' },
+          { id: 'formaPagoCv', label: 'Forma de pago', tipo: 'select', opciones: ['Pago único de contado','Anticipo + saldo a 30 días','Anticipo + parcialidades','Transferencia electrónica','Cheque certificado'] },
+          { id: 'detallePago', label: 'Detalle del pago (opcional)', tipo: 'textarea', placeholder: 'Ej: Anticipo de $50,000 al firmar y saldo de $130,000 a 15 días contra entrega del bien.' }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad de celebración', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha de firma', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Contrato de Compraventa · Bien Mueble</div>
+</div>
+
+<h1>Contrato de Compraventa</h1>
+
+<p style="text-align:center;font-size:11px;color:#64748B;margin-bottom:1.5rem;">Sujeto al Código Civil aplicable</p>
+
+<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, comparecen por una parte <strong><span class="{{__claseNombreVendedor}}">{{nombreVendedor}}</span></strong>, con RFC <span class="{{__claseRfcVendedor}}">{{rfcVendedor}}</span>, domicilio en <span class="{{__claseDomicilioVendedor}}">{{domicilioVendedor}}</span>, identificado con <span class="{{__claseIneVendedor}}">{{ineVendedor}}</span>, a quien en lo sucesivo se le denominará <strong>"EL VENDEDOR"</strong>; y por la otra <strong><span class="{{__claseNombreComprador}}">{{nombreComprador}}</span></strong>, con RFC <span class="{{__claseRfcComprador}}">{{rfcComprador}}</span>, domicilio en <span class="{{__claseDomicilioComprador}}">{{domicilioComprador}}</span>, identificado con <span class="{{__claseIneComprador}}">{{ineComprador}}</span>, a quien en lo sucesivo se le denominará <strong>"EL COMPRADOR"</strong>; quienes manifiestan tener capacidad jurídica suficiente para celebrar el presente contrato, al tenor de las siguientes:</p>
+
+<h2>DECLARACIONES</h2>
+
+<p><strong>I.</strong> EL VENDEDOR declara ser legítimo propietario del bien mueble que se describe a continuación, encontrarse al corriente en el pago de impuestos y derechos relacionados (en su caso), y que el bien está libre de todo gravamen, embargo o limitación de dominio.</p>
+
+<p><strong>II.</strong> EL COMPRADOR declara conocer el bien y aceptarlo en el estado en que se encuentra, manifestar su voluntad libre de adquirirlo y contar con los recursos económicos para el pago del precio convenido.</p>
+
+<h2>CLÁUSULAS</h2>
+
+<p><strong>PRIMERA. Objeto.</strong> EL VENDEDOR transmite a EL COMPRADOR la propiedad del siguiente bien mueble, en el estado declarado de <em><span class="{{__claseEstado}}">{{estadoBien}}</span></em>:</p>
+
+<p style="background:#F8F4ED;padding:14px 18px;border-left:3px solid #C9A961;margin:1rem 0;"><span class="{{__claseDescripcionBien}}">{{descripcionBien}}</span></p>
+
+<p>Se incluyen como accesorios y documentación: <span class="{{__claseAccesorios}}">{{accesoriosBien}}</span>.</p>
+
+<p><strong>SEGUNDA. Precio y forma de pago.</strong> El precio total de la compraventa es de <strong><span class="{{__clasePrecio}}">$\{{precioTotal}} MXN</span></strong> (<span class="{{__clasePrecioTexto}}">{{precioTexto}}</span>), que EL COMPRADOR pagará a EL VENDEDOR mediante <span class="{{__claseFormaPago}}">{{formaPagoCv}}</span>, conforme al siguiente detalle: <span class="{{__claseDetallePago}}">{{detallePago}}</span>.</p>
+
+<p><strong>TERCERA. Entrega.</strong> EL VENDEDOR entrega en este acto el bien objeto del contrato, junto con la documentación que ampara su propiedad, sirviendo el presente como el más amplio recibo y carta de finiquito de la operación una vez cubierto el precio íntegro.</p>
+
+<p><strong>CUARTA. Saneamiento.</strong> EL VENDEDOR se obliga al saneamiento para el caso de evicción en términos de la legislación aplicable, así como a responder por vicios ocultos del bien transmitido conforme a derecho.</p>
+
+<p><strong>QUINTA. Gastos e impuestos.</strong> Los gastos derivados del cambio de propietario, trámites administrativos y cualquier impuesto que cause la operación serán por cuenta de EL COMPRADOR, salvo el ISR a cargo de EL VENDEDOR cuando proceda.</p>
+
+<p><strong>SEXTA. Causas de nulidad.</strong> Las partes manifiestan que en la celebración del presente contrato no existe dolo, mala fe, error, violencia, lesión o cualquier otro vicio del consentimiento, por lo que renuncian a invocar dichas causas con posterioridad.</p>
+
+<p><strong>SÉPTIMA. Jurisdicción.</strong> Para la interpretación y cumplimiento del presente contrato, las partes se someten a los tribunales competentes de la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, renunciando a cualquier otro fuero.</p>
+
+<p style="margin-top:2rem;">Leído que fue el presente contrato y enteradas las partes de su contenido, alcance y consecuencias legales, lo firman por duplicado:</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreVendedor}}</div>
+<div class="doc-legal-signature-role">EL VENDEDOR</div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreComprador}}</div>
+<div class="doc-legal-signature-role">EL COMPRADOR</div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 9. PAGARÉ CON AVAL
+    // ════════════════════════════════════════════════════════════════
+    'pagare': {
+      id: 'pagare',
+      nombre: 'Pagaré',
+      subtitulo: 'Con aval (opcional)',
+      categoria: 'mercantil',
+      catLabel: 'Mercantil',
+      descripcion: 'Título de crédito conforme a la Ley General de Títulos y Operaciones de Crédito.',
+      tiempoEstimado: '3 min',
+      icono: ICONS.pagare,
+      secciones: [
+        { titulo: 'Datos del deudor (suscriptor)', fields: [
+          { id: 'nombreDeudor', label: 'Nombre completo del deudor', tipo: 'text', required: true },
+          { id: 'domicilioDeudor', label: 'Domicilio del deudor', tipo: 'text', required: true },
+          { id: 'rfcDeudor', label: 'RFC del deudor (opcional)', tipo: 'text', maxlength: 13 }
+        ]},
+        { titulo: 'Datos del beneficiario (acreedor)', fields: [
+          { id: 'nombreBeneficiario', label: 'Nombre del beneficiario', tipo: 'text', required: true },
+          { id: 'domicilioBeneficiario', label: 'Domicilio del beneficiario', tipo: 'text' }
+        ]},
+        { titulo: 'Monto y vencimiento', fields: [
+          { id: 'monto', label: 'Monto en números ($MXN)', tipo: 'number', required: true, placeholder: '50000' },
+          { id: 'montoTexto', label: 'Monto en letra', tipo: 'text', required: true, placeholder: 'Cincuenta mil pesos 00/100 M.N.' },
+          { id: 'fechaEmision', label: 'Fecha de emisión', tipo: 'date', required: true },
+          { id: 'fechaVencimiento', label: 'Fecha de vencimiento', tipo: 'date', required: true },
+          { id: 'tasaInteres', label: 'Tasa de interés moratorio mensual (%)', tipo: 'number', placeholder: '5', helpText: 'Si no se pacta, se aplica el legal (6% anual)' },
+          { id: 'lugarPago', label: 'Lugar de pago', tipo: 'text', placeholder: 'Ciudad donde se exigirá el pago' }
+        ]},
+        { titulo: 'Aval (opcional)', fields: [
+          { id: 'nombreAval', label: 'Nombre del aval', tipo: 'text', placeholder: 'Dejar vacío si no hay aval' },
+          { id: 'domicilioAval', label: 'Domicilio del aval', tipo: 'text' }
+        ]},
+        { titulo: 'Lugar y fecha de suscripción', fields: [
+          { id: 'ciudadPagare', label: 'Lugar de suscripción', tipo: 'text', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Pagaré</div>
+</div>
+
+<h1 style="text-align:center;">PAGARÉ</h1>
+
+<p style="text-align:right;margin-bottom:1rem;font-size:13px;">
+<strong>Bueno por:</strong> <span class="{{__claseMonto}}">$\{{monto}} MXN</span><br>
+<strong>Lugar de suscripción:</strong> <span class="{{__claseCiudadPagare}}">{{ciudadPagare}}</span><br>
+<strong>Fecha de emisión:</strong> <span class="{{__claseFechaEmision}}">{{fechaEmisionTexto}}</span>
+</p>
+
+<p style="margin-top:2rem;">Por este <strong>PAGARÉ</strong> me(nos) obligo(amos) incondicionalmente a pagar a la orden de <strong><span class="{{__claseBeneficiario}}">{{nombreBeneficiario}}</span></strong>, con domicilio en <span class="{{__claseDomicilioBeneficiario}}">{{domicilioBeneficiario}}</span>, o a quien sus derechos represente, la cantidad de:</p>
+
+<p style="text-align:center;font-size:16px;font-weight:700;color:#0A1F44;margin:1.5rem 0;padding:14px;background:#F8F4ED;border:1px solid #C9A961;"><span class="{{__claseMontoTexto}}">{{montoTexto}}</span></p>
+
+<p>Misma cantidad que se cubrirá el día <strong><span class="{{__claseFechaVencimiento}}">{{fechaVencimientoTexto}}</span></strong>, en la plaza de <span class="{{__claseLugarPago}}">{{lugarPago}}</span>, sin necesidad de aviso, requerimiento, protesto o cobranza alguna.</p>
+
+<p><strong>Intereses moratorios.</strong> Las cantidades no pagadas a su vencimiento causarán intereses moratorios a razón del <strong><span class="{{__claseTasa}}">{{tasaInteres}}%</span> mensual</strong>, desde el día siguiente al vencimiento hasta su total liquidación.</p>
+
+<p><strong>Renuncia.</strong> El(los) suscriptor(es) renuncia(n) expresamente al beneficio de orden, división y excusión, así como al fuero de su domicilio actual o futuro, sometiéndose a los tribunales competentes del lugar de pago.</p>
+
+<p><strong>Aval.</strong> <span class="{{__claseAval}}">{{nombreAval}}</span>, con domicilio en <span class="{{__claseDomicilioAval}}">{{domicilioAval}}</span>, se constituye como <strong>AVAL</strong> de todas y cada una de las obligaciones derivadas del presente título, en términos del artículo 109 y demás aplicables de la Ley General de Títulos y Operaciones de Crédito.</p>
+
+<p style="margin-top:2rem;font-size:11px;color:#64748B;">Este documento se rige por la Ley General de Títulos y Operaciones de Crédito y constituye título ejecutivo conforme al artículo 170 de dicha ley.</p>
+
+<div class="doc-legal-signatures" style="margin-top:3rem;">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreDeudor}}</div>
+<div class="doc-legal-signature-role">EL SUSCRIPTOR (Deudor)<br><span style="font-weight:400;font-size:10px;">{{domicilioDeudor}}</span></div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreAval}}</div>
+<div class="doc-legal-signature-role">EL AVAL (en su caso)<br><span style="font-weight:400;font-size:10px;">{{domicilioAval}}</span></div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 10. RECIBO DE HONORARIOS
+    // ════════════════════════════════════════════════════════════════
+    'recibo-honorarios': {
+      id: 'recibo-honorarios',
+      nombre: 'Recibo de Honorarios',
+      subtitulo: 'Persona física con actividad profesional',
+      categoria: 'cartas',
+      catLabel: 'Cartas',
+      descripcion: 'Recibo de honorarios con cálculo automático de IVA, ISR e IVA retenido.',
+      tiempoEstimado: '3 min',
+      icono: ICONS.recibo,
+      secciones: [
+        { titulo: 'Datos del prestador (emisor)', fields: [
+          { id: 'nombreEmisor', label: 'Tu nombre completo', tipo: 'text', required: true },
+          { id: 'rfcEmisor', label: 'Tu RFC', tipo: 'text', required: true, maxlength: 13 },
+          { id: 'domicilioEmisor', label: 'Tu domicilio fiscal', tipo: 'text', required: true },
+          { id: 'reqFiscal', label: 'Régimen fiscal', tipo: 'select', opciones: ['612 - Personas Físicas con Actividades Empresariales y Profesionales','626 - Régimen Simplificado de Confianza (RESICO)','605 - Sueldos y Salarios e Ingresos Asimilados a Salarios'] }
+        ]},
+        { titulo: 'Datos del cliente (receptor)', fields: [
+          { id: 'nombreCliente', label: 'Nombre del cliente', tipo: 'text', required: true },
+          { id: 'rfcCliente', label: 'RFC del cliente', tipo: 'text', required: true, maxlength: 13 },
+          { id: 'domicilioCliente', label: 'Domicilio fiscal del cliente', tipo: 'text' },
+          { id: 'tipoCliente', label: 'Tipo de cliente', tipo: 'select', opciones: ['Persona moral (sí retiene)','Persona física (no retiene)'], helpText: 'Las personas morales retienen ISR e IVA' }
+        ]},
+        { titulo: 'Servicios prestados', fields: [
+          { id: 'descripcionServicios', label: 'Descripción detallada de los servicios', tipo: 'textarea', required: true, placeholder: 'Ej: Servicios de asesoría contable correspondientes al mes de julio 2026.' },
+          { id: 'periodoServicios', label: 'Periodo de los servicios (opcional)', tipo: 'text', placeholder: 'Ej: 1 al 31 de julio 2026' }
+        ]},
+        { titulo: 'Importe', fields: [
+          { id: 'subtotal', label: 'Subtotal sin IVA ($MXN)', tipo: 'number', required: true, placeholder: '15000' },
+          { id: 'aplicaIva', label: 'IVA', tipo: 'select', opciones: ['16% (general)','8% (frontera)','0% (exento)'] }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad', tipo: 'text', required: true },
+          { id: 'fechaEmision', label: 'Fecha de emisión', tipo: 'date', required: true },
+          { id: 'folio', label: 'Folio interno (opcional)', tipo: 'text', placeholder: 'Ej: H-2026-001' }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Recibo de Honorarios</div>
+</div>
+
+<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;">
+<div><h1 style="margin:0;">Recibo de Honorarios</h1>
+<p style="margin:6px 0 0;font-size:11px;color:#64748B;">Persona física con actividad profesional</p>
+</div>
+<div style="text-align:right;font-size:13px;">
+<p style="margin:0;"><strong>Folio:</strong> <span class="{{__claseFolio}}">{{folio}}</span></p>
+<p style="margin:4px 0 0;"><strong>Fecha:</strong> <span class="{{__claseFecha}}">{{fechaEmisionTexto}}</span></p>
+<p style="margin:4px 0 0;"><strong>Lugar:</strong> <span class="{{__claseCiudad}}">{{ciudad}}</span></p>
+</div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+<div style="border:1px solid #E5E9F2;border-radius:8px;padding:14px;">
+<p style="font-size:10px;color:#64748B;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px;">Emisor (Prestador)</p>
+<p style="margin:0;font-weight:700;font-size:14px;"><span class="{{__claseEmisor}}">{{nombreEmisor}}</span></p>
+<p style="margin:4px 0 0;font-size:12px;">RFC: <span class="{{__claseRfcEmisor}}">{{rfcEmisor}}</span></p>
+<p style="margin:2px 0 0;font-size:11px;color:#475569;"><span class="{{__claseDomicilioEmisor}}">{{domicilioEmisor}}</span></p>
+<p style="margin:2px 0 0;font-size:11px;color:#475569;"><span class="{{__claseRegimen}}">{{reqFiscal}}</span></p>
+</div>
+<div style="border:1px solid #E5E9F2;border-radius:8px;padding:14px;">
+<p style="font-size:10px;color:#64748B;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px;">Receptor (Cliente)</p>
+<p style="margin:0;font-weight:700;font-size:14px;"><span class="{{__claseCliente}}">{{nombreCliente}}</span></p>
+<p style="margin:4px 0 0;font-size:12px;">RFC: <span class="{{__claseRfcCliente}}">{{rfcCliente}}</span></p>
+<p style="margin:2px 0 0;font-size:11px;color:#475569;"><span class="{{__claseDomicilioCliente}}">{{domicilioCliente}}</span></p>
+</div>
+</div>
+
+<h2 style="font-size:13px;margin-top:1rem;">Descripción del servicio</h2>
+
+<p style="background:#F8F4ED;padding:14px 18px;border-left:3px solid #C9A961;margin:0.5rem 0 1rem;"><span class="{{__claseDescripcion}}">{{descripcionServicios}}</span></p>
+
+<p style="font-size:12px;color:#64748B;margin-bottom:1.5rem;"><strong>Periodo:</strong> <span class="{{__clasePeriodo}}">{{periodoServicios}}</span></p>
+
+<table style="width:100%;border-collapse:collapse;margin:1rem 0;">
+<thead>
+<tr style="background:#F1F5F9;border-bottom:2px solid #0A1F44;">
+<th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;color:#0A1F44;letter-spacing:0.04em;text-transform:uppercase;">Concepto</th>
+<th style="padding:10px 14px;text-align:right;font-size:11px;font-weight:700;color:#0A1F44;letter-spacing:0.04em;text-transform:uppercase;">Importe</th>
+</tr>
+</thead>
+<tbody>
+<tr><td style="padding:10px 14px;font-size:12px;">Subtotal</td><td style="padding:10px 14px;text-align:right;font-size:12px;"><span class="{{__claseSubtotal}}">$\{{subtotal}}</span></td></tr>
+<tr><td style="padding:10px 14px;font-size:12px;">IVA <span style="color:#64748B;">(<span class="{{__claseIvaAplicado}}">{{ivaAplicado}}</span>)</span></td><td style="padding:10px 14px;text-align:right;font-size:12px;"><span class="{{__claseIva}}">$\{{ivaCalc}}</span></td></tr>
+<tr><td style="padding:10px 14px;font-size:12px;color:#DC2626;">Retención ISR (10%)</td><td style="padding:10px 14px;text-align:right;font-size:12px;color:#DC2626;"><span class="{{__claseRetIsr}}">- $\{{retIsr}}</span></td></tr>
+<tr><td style="padding:10px 14px;font-size:12px;color:#DC2626;">Retención IVA (10.67%)</td><td style="padding:10px 14px;text-align:right;font-size:12px;color:#DC2626;"><span class="{{__claseRetIva}}">- $\{{retIva}}</span></td></tr>
+<tr style="background:#F8F4ED;border-top:2px solid #C9A961;"><td style="padding:14px;font-size:14px;font-weight:700;color:#0A1F44;">TOTAL A PAGAR</td><td style="padding:14px;text-align:right;font-size:16px;font-weight:800;color:#0A1F44;"><span class="{{__claseTotal}}">$\{{total}} MXN</span></td></tr>
+</tbody>
+</table>
+
+<p style="margin-top:1.5rem;font-size:11px;color:#475569;font-style:italic;">El presente recibo no sustituye al Comprobante Fiscal Digital por Internet (CFDI). Emite el CFDI correspondiente conforme al artículo 29 del Código Fiscal de la Federación.</p>
+
+<p style="margin-top:2rem;text-align:center;font-size:12px;">Recibí de conformidad la cantidad anteriormente señalada:</p>
+
+<div class="doc-legal-signature" style="margin:1.5rem auto 0;max-width:300px;">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreEmisor}}</div>
+<div class="doc-legal-signature-role">RFC: {{rfcEmisor}}</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 11. CONVENIO DE CONFIDENCIALIDAD (NDA)
+    // ════════════════════════════════════════════════════════════════
+    'contrato-confidencialidad': {
+      id: 'contrato-confidencialidad',
+      nombre: 'Convenio de Confidencialidad',
+      subtitulo: 'NDA - Non Disclosure Agreement',
+      categoria: 'privacidad',
+      catLabel: 'Privacidad',
+      descripcion: 'Acuerdo bilateral de confidencialidad para proteger información sensible.',
+      tiempoEstimado: '6 min',
+      icono: ICONS.nda,
+      secciones: [
+        { titulo: 'Parte A (revela información)', fields: [
+          { id: 'nombreParteA', label: 'Nombre / Razón social', tipo: 'text', required: true },
+          { id: 'rfcParteA', label: 'RFC', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioParteA', label: 'Domicilio', tipo: 'text', required: true },
+          { id: 'representanteA', label: 'Representante legal (si aplica)', tipo: 'text' }
+        ]},
+        { titulo: 'Parte B (recibe información)', fields: [
+          { id: 'nombreParteB', label: 'Nombre / Razón social', tipo: 'text', required: true },
+          { id: 'rfcParteB', label: 'RFC', tipo: 'text', maxlength: 13 },
+          { id: 'domicilioParteB', label: 'Domicilio', tipo: 'text', required: true },
+          { id: 'representanteB', label: 'Representante legal (si aplica)', tipo: 'text' }
+        ]},
+        { titulo: 'Propósito y alcance', fields: [
+          { id: 'proposito', label: '¿Para qué se comparte la información?', tipo: 'textarea', required: true, placeholder: 'Ej: Evaluar una posible colaboración para el desarrollo de un proyecto de software de gestión empresarial.' },
+          { id: 'tipoInformacion', label: 'Tipo de información protegida', tipo: 'textarea', placeholder: 'Ej: Código fuente, planes de negocio, listas de clientes, fórmulas, procesos, datos financieros, estrategias comerciales.' },
+          { id: 'vigenciaAnos', label: 'Vigencia de la confidencialidad (años)', tipo: 'select', opciones: ['2','3','5','10','Indefinida'], helpText: 'Recomendado: mínimo 3 años' }
+        ]},
+        { titulo: 'Penalidad por incumplimiento', fields: [
+          { id: 'tienePenalidad', label: '¿Incluir cláusula de penalidad?', tipo: 'select', opciones: ['Sí, con monto definido','No, solo daños y perjuicios'] },
+          { id: 'montoPenalidad', label: 'Monto de la penalidad ($MXN)', tipo: 'number', placeholder: '500000', helpText: 'Solo si elegiste "con monto definido"' }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad de celebración', tipo: 'text', required: true },
+          { id: 'fechaFirma', label: 'Fecha de firma', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Convenio de Confidencialidad · NDA</div>
+</div>
+
+<h1>Convenio de Confidencialidad</h1>
+
+<p style="text-align:center;font-size:11px;color:#64748B;margin-bottom:1.5rem;">Non Disclosure Agreement (NDA) — Bilateral</p>
+
+<p>En la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, a <span class="{{__claseFechaFirma}}">{{fechaFirmaTexto}}</span>, celebran el presente <strong>CONVENIO DE CONFIDENCIALIDAD</strong>, por una parte <strong><span class="{{__claseParteA}}">{{nombreParteA}}</span></strong>, con RFC <span class="{{__claseRfcParteA}}">{{rfcParteA}}</span>, domicilio en <span class="{{__claseDomicilioParteA}}">{{domicilioParteA}}</span>, representada en este acto por <span class="{{__claseRepA}}">{{representanteA}}</span>, en adelante <strong>"LA PARTE REVELADORA"</strong>; y por la otra <strong><span class="{{__claseParteB}}">{{nombreParteB}}</span></strong>, con RFC <span class="{{__claseRfcParteB}}">{{rfcParteB}}</span>, domicilio en <span class="{{__claseDomicilioParteB}}">{{domicilioParteB}}</span>, representada por <span class="{{__claseRepB}}">{{representanteB}}</span>, en adelante <strong>"LA PARTE RECEPTORA"</strong>; al tenor de las siguientes:</p>
+
+<h2>DECLARACIONES</h2>
+
+<p><strong>I.</strong> Las partes declaran tener interés en sostener una relación de colaboración para el siguiente propósito:</p>
+
+<p style="background:#F8F4ED;padding:14px 18px;border-left:3px solid #C9A961;margin:1rem 0;"><span class="{{__claseProposito}}">{{proposito}}</span></p>
+
+<p><strong>II.</strong> En el marco de dicha relación, LA PARTE REVELADORA compartirá con LA PARTE RECEPTORA información de carácter confidencial, propietaria y estratégica.</p>
+
+<h2>CLÁUSULAS</h2>
+
+<p><strong>PRIMERA. Información confidencial.</strong> Para efectos del presente convenio, se considera <em>Información Confidencial</em> toda aquella información técnica, comercial, financiera, operativa, estratégica o de cualquier otra naturaleza que sea divulgada por LA PARTE REVELADORA a LA PARTE RECEPTORA, ya sea de forma oral, escrita, electrónica o por cualquier otro medio, incluyendo enunciativamente:</p>
+
+<p style="margin-left:1rem;background:#F8FAFC;padding:12px 16px;border-radius:8px;"><span class="{{__claseTipoInfo}}">{{tipoInformacion}}</span></p>
+
+<p><strong>SEGUNDA. Obligaciones de LA PARTE RECEPTORA.</strong> LA PARTE RECEPTORA se obliga a:</p>
+<ol style="margin:0.5rem 0 1rem 1.5rem;">
+<li>Mantener la Información Confidencial en estricta reserva.</li>
+<li>Utilizarla únicamente para el propósito declarado en este convenio.</li>
+<li>No divulgarla a terceros sin consentimiento previo y por escrito.</li>
+<li>Implementar medidas de seguridad razonables para protegerla.</li>
+<li>Limitar el acceso a colaboradores que necesiten conocerla, previa firma de obligaciones equivalentes.</li>
+<li>Devolver o destruir la información al término del convenio, según se le indique.</li>
+</ol>
+
+<p><strong>TERCERA. Exclusiones.</strong> No se considerará Información Confidencial aquella que: (a) sea de dominio público al momento de su revelación; (b) se convierta en pública sin culpa de LA PARTE RECEPTORA; (c) ya estuviera legítimamente en posesión de LA PARTE RECEPTORA; (d) sea obtenida lícitamente de un tercero sin obligación de confidencialidad; (e) deba ser revelada por mandato de autoridad competente, en cuyo caso LA PARTE RECEPTORA notificará inmediatamente a LA PARTE REVELADORA.</p>
+
+<p><strong>CUARTA. Vigencia.</strong> Las obligaciones de confidencialidad subsistirán durante <strong><span class="{{__claseVigencia}}">{{vigenciaAnos}}</span> año(s)</strong> contados a partir de la fecha de firma del presente convenio, independientemente de la terminación de la relación comercial entre las partes.</p>
+
+<p><strong>QUINTA. Propiedad intelectual.</strong> La firma del presente convenio no transfiere ningún derecho de propiedad intelectual, industrial, secreto comercial, marca o patente sobre la Información Confidencial. Toda propiedad intelectual permanece como activo exclusivo de LA PARTE REVELADORA.</p>
+
+<p><strong>SEXTA. Penalidad.</strong> El incumplimiento de cualquier obligación derivada de este convenio dará lugar al pago de una pena convencional por <strong><span class="{{__clasePenalidad}}">$\{{montoPenalidad}} MXN</span></strong>, sin perjuicio del derecho a reclamar el pago de los daños y perjuicios adicionales que se acrediten conforme a derecho.</p>
+
+<p><strong>SÉPTIMA. Devolución.</strong> Al término del convenio o cuando lo solicite LA PARTE REVELADORA, LA PARTE RECEPTORA deberá devolver o destruir toda la Información Confidencial recibida, así como las copias o reproducciones que hubiere realizado, dentro de los <strong>10 (diez) días naturales</strong> siguientes a la solicitud.</p>
+
+<p><strong>OCTAVA. No exclusividad.</strong> El presente convenio no constituye un compromiso de exclusividad, asociación, sociedad de hecho, ni obliga a las partes a celebrar ningún contrato adicional.</p>
+
+<p><strong>NOVENA. Jurisdicción.</strong> Las partes se someten a la jurisdicción de los tribunales competentes de la ciudad de <span class="{{__claseCiudad}}">{{ciudad}}</span>, renunciando a cualquier otro fuero.</p>
+
+<p style="margin-top:2rem;">Leído que fue el presente convenio y enteradas las partes de su contenido y alcance, lo firman por duplicado:</p>
+
+<div class="doc-legal-signatures">
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreParteA}}</div>
+<div class="doc-legal-signature-role">LA PARTE REVELADORA<br><span style="font-weight:400;font-size:10px;">{{representanteA}}</span></div>
+</div>
+<div class="doc-legal-signature">
+<div class="doc-legal-signature-line"></div>
+<div class="doc-legal-signature-name">{{nombreParteB}}</div>
+<div class="doc-legal-signature-role">LA PARTE RECEPTORA<br><span style="font-weight:400;font-size:10px;">{{representanteB}}</span></div>
+</div>
+</div>` + DISCLAIMER
+    },
+
+    // ════════════════════════════════════════════════════════════════
+    // 12. AVISO DE PRIVACIDAD INTEGRAL
+    // ════════════════════════════════════════════════════════════════
+    'aviso-privacidad': {
+      id: 'aviso-privacidad',
+      nombre: 'Aviso de Privacidad',
+      subtitulo: 'Integral · LFPDPPP',
+      categoria: 'privacidad',
+      catLabel: 'Privacidad',
+      descripcion: 'Aviso conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares.',
+      tiempoEstimado: '8 min',
+      icono: ICONS.privacidad,
+      secciones: [
+        { titulo: 'Datos del responsable', fields: [
+          { id: 'nombreResponsable', label: 'Nombre / Razón social', tipo: 'text', required: true },
+          { id: 'domicilioResponsable', label: 'Domicilio fiscal completo', tipo: 'textarea', required: true },
+          { id: 'emailContacto', label: 'Email de contacto para protección de datos', tipo: 'email', required: true, placeholder: 'datos@miempresa.com' },
+          { id: 'telefonoContacto', label: 'Teléfono de contacto', tipo: 'text' },
+          { id: 'sitioWeb', label: 'Sitio web (opcional)', tipo: 'text', placeholder: 'www.miempresa.com' }
+        ]},
+        { titulo: 'Finalidades del tratamiento', fields: [
+          { id: 'finalidadesPrimarias', label: 'Finalidades PRIMARIAS (necesarias para la relación)', tipo: 'textarea', required: true, placeholder: 'Una por línea. Ej:
+- Identificar al titular
+- Facturar los servicios contratados
+- Emitir CFDI
+- Atender solicitudes y reclamaciones' },
+          { id: 'finalidadesSecundarias', label: 'Finalidades SECUNDARIAS (mercadotecnia, opcionales)', tipo: 'textarea', placeholder: 'Una por línea. Ej:
+- Envío de newsletter
+- Encuestas de satisfacción
+- Análisis estadísticos' }
+        ]},
+        { titulo: 'Datos personales recopilados', fields: [
+          { id: 'datosRecopilados', label: 'Datos personales que se recaban', tipo: 'textarea', required: true, placeholder: 'Ej: Nombre, RFC, CURP, domicilio, teléfono, email, datos bancarios para facturación, fecha de nacimiento.' },
+          { id: 'datosSensibles', label: 'Datos sensibles (si se recopilan)', tipo: 'textarea', placeholder: 'Solo si aplica: salud, religión, ideología, origen racial, datos biométricos.' }
+        ]},
+        { titulo: 'Transferencias', fields: [
+          { id: 'transferencias', label: 'Transferencias de datos a terceros (opcional)', tipo: 'textarea', placeholder: 'Ej: Datos fiscales al SAT, datos de empleados al IMSS, datos bancarios a procesadores de pago.' }
+        ]},
+        { titulo: 'Lugar y fecha', fields: [
+          { id: 'ciudad', label: 'Ciudad', tipo: 'text', required: true },
+          { id: 'fechaActualizacion', label: 'Fecha de última actualización', tipo: 'date', required: true }
+        ]}
+      ],
+      plantilla: `<div class="doc-legal-paper-header">
+<div class="doc-legal-paper-logo">ICADEM</div>
+<div class="doc-legal-paper-doctype">Aviso de Privacidad Integral</div>
+</div>
+
+<h1>Aviso de Privacidad</h1>
+
+<p style="text-align:center;font-size:11px;color:#64748B;margin-bottom:1.5rem;">Integral · Conforme a la LFPDPPP y su Reglamento</p>
+
+<p style="font-size:11px;color:#64748B;text-align:right;"><strong>Última actualización:</strong> <span class="{{__claseFecha}}">{{fechaActualizacionTexto}}</span></p>
+
+<h2>1. Identidad y domicilio del responsable</h2>
+
+<p><strong><span class="{{__claseResponsable}}">{{nombreResponsable}}</span></strong> (en adelante, "el Responsable"), con domicilio en <span class="{{__claseDomicilioResp}}">{{domicilioResponsable}}</span>, es responsable del tratamiento de sus datos personales conforme a lo establecido en la <strong>Ley Federal de Protección de Datos Personales en Posesión de los Particulares</strong> (LFPDPPP), su Reglamento y los Lineamientos del Aviso de Privacidad.</p>
+
+<p style="font-size:12px;">Para cualquier asunto relacionado con la protección de sus datos personales, puede contactarnos en:</p>
+<ul style="margin:0.25rem 0 1rem 1.5rem;font-size:12px;">
+<li>Correo electrónico: <strong><span class="{{__claseEmail}}">{{emailContacto}}</span></strong></li>
+<li>Teléfono: <span class="{{__claseTel}}">{{telefonoContacto}}</span></li>
+<li>Sitio web: <span class="{{__claseSitio}}">{{sitioWeb}}</span></li>
+</ul>
+
+<h2>2. Datos personales que recabamos</h2>
+
+<p>Para llevar a cabo las finalidades descritas en el presente Aviso, recabaremos los siguientes datos personales:</p>
+
+<p style="background:#F8FAFC;padding:12px 16px;border-radius:8px;font-size:12px;"><span class="{{__claseDatos}}">{{datosRecopilados}}</span></p>
+
+<p style="font-size:12px;"><strong>Datos sensibles:</strong> <span class="{{__claseSensibles}}">{{datosSensibles}}</span></p>
+
+<p style="font-size:11px;color:#64748B;font-style:italic;">Para el tratamiento de datos personales sensibles, se requerirá su consentimiento expreso y por escrito.</p>
+
+<h2>3. Finalidades del tratamiento</h2>
+
+<p><strong>3.1 Finalidades primarias (necesarias):</strong> Los datos personales serán utilizados para las siguientes finalidades, que dan origen y son necesarias para la relación jurídica entre el Responsable y el titular:</p>
+
+<p style="background:#F8FAFC;padding:12px 16px;border-radius:8px;font-size:12px;white-space:pre-line;"><span class="{{__claseFinPrim}}">{{finalidadesPrimarias}}</span></p>
+
+<p><strong>3.2 Finalidades secundarias (opcionales):</strong> De manera adicional, utilizaremos su información personal para las siguientes finalidades, que <em>no son necesarias</em> pero nos permiten brindarle un mejor servicio:</p>
+
+<p style="background:#F8FAFC;padding:12px 16px;border-radius:8px;font-size:12px;white-space:pre-line;"><span class="{{__claseFinSec}}">{{finalidadesSecundarias}}</span></p>
+
+<p style="font-size:11px;color:#64748B;font-style:italic;">En caso de no desear que sus datos sean tratados para las finalidades secundarias, puede manifestarlo enviando un correo a la dirección indicada en el punto 1, en un plazo de cinco días hábiles a partir de la fecha en que se ponga a su disposición el presente Aviso.</p>
+
+<h2>4. Transferencias de datos</h2>
+
+<p>Le informamos que sus datos personales podrán ser transferidos a las siguientes personas, empresas u organizaciones, dentro y fuera del país, distintas a esta organización, para los fines que se mencionan a continuación:</p>
+
+<p style="background:#F8FAFC;padding:12px 16px;border-radius:8px;font-size:12px;"><span class="{{__claseTransfer}}">{{transferencias}}</span></p>
+
+<p style="font-size:12px;">Conforme al artículo 37 de la LFPDPPP, las transferencias indicadas en este apartado no requieren de su consentimiento.</p>
+
+<h2>5. Derechos ARCO</h2>
+
+<p>Usted, como titular de los datos personales, tiene derecho a:</p>
+<ul style="margin:0.5rem 0 1rem 1.5rem;font-size:12px;">
+<li><strong>A</strong>cceder a sus datos personales en nuestro poder y conocer los detalles del tratamiento.</li>
+<li><strong>R</strong>ectificar los datos en caso de ser inexactos o incompletos.</li>
+<li><strong>C</strong>ancelar sus datos cuando considere que no se requieren para alguna de las finalidades.</li>
+<li><strong>O</strong>ponerse al tratamiento de los mismos para fines específicos.</li>
+</ul>
+
+<p style="font-size:12px;">Para ejercer cualquiera de los Derechos ARCO, deberá enviar una solicitud al correo <strong><span class="{{__claseEmail}}">{{emailContacto}}</span></strong>, acompañada de copia de su identificación oficial y los demás requisitos previstos en el artículo 29 de la LFPDPPP.</p>
+
+<h2>6. Revocación del consentimiento</h2>
+
+<p>Usted puede revocar el consentimiento que nos ha otorgado para el tratamiento de sus datos personales en cualquier momento, enviando una solicitud al correo previamente indicado. Es importante mencionar que la revocación no podrá tener efectos retroactivos.</p>
+
+<h2>7. Uso de cookies y tecnologías similares</h2>
+
+<p>Le informamos que en nuestro sitio web utilizamos cookies, web beacons y otras tecnologías mediante las cuales podemos monitorear su comportamiento como usuario, brindarle un mejor servicio y mejorar su experiencia.</p>
+
+<h2>8. Cambios al Aviso de Privacidad</h2>
+
+<p>Nos reservamos el derecho de efectuar en cualquier momento modificaciones o actualizaciones al presente Aviso de Privacidad, para la atención de novedades legislativas, políticas internas o nuevos requerimientos para la prestación de nuestros servicios. Las modificaciones estarán disponibles en nuestro sitio web o se las haremos llegar por correo electrónico.</p>
+
+<h2>9. Autoridad reguladora</h2>
+
+<p>Si usted considera que sus derechos han sido vulnerados, puede acudir ante el <strong>Instituto Nacional de Transparencia, Acceso a la Información y Protección de Datos Personales (INAI)</strong>, organismo facultado para conocer de las quejas y procedimientos de protección de derechos. Mayor información en: <em>www.inai.org.mx</em>.</p>
+
+<p style="margin-top:2rem;font-size:12px;text-align:center;color:#64748B;">Documento emitido en <span class="{{__claseCiudad}}">{{ciudad}}</span>, con vigencia a partir del <span class="{{__claseFecha}}">{{fechaActualizacionTexto}}</span>.</p>` + DISCLAIMER
+    }
+
+
+  }; // ← fin de window.DOCS_LEGALES (12 plantillas COMPLETAS)
+
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 📄 GENERADOR DE DOCUMENTOS LEGALES — LÓGICA COMPLETA
+  // ═══════════════════════════════════════════════════════════════════
+
+  // Estado interno
+  let _docActual = null;      // documento abierto actualmente
+  let _valoresForm = {};      // valores del formulario en vivo
+  let _zoomPreview = false;   // estado del zoom del preview
+
+  // ─── Utilidades: fechas en español ────────────────────────────────
+  const MESES_ES = ['enero','febrero','marzo','abril','mayo','junio',
+                    'julio','agosto','septiembre','octubre','noviembre','diciembre'];
+
+  function fechaATexto(isoDate) {
+    if (!isoDate) return '';
+    try {
+      const [y, m, d] = isoDate.split('-').map(Number);
+      if (!y || !m || !d) return isoDate;
+      return `${d} de ${MESES_ES[m-1]} de ${y}`;
+    } catch(e) { return isoDate; }
+  }
+
+  function hoyTexto() {
+    const d = new Date();
+    return `${d.getDate()} de ${MESES_ES[d.getMonth()]} de ${d.getFullYear()}`;
+  }
+
+  // ─── Formateo de monedas ──────────────────────────────────────────
+  function formatMoneda(n) {
+    if (n === null || n === undefined || n === '') return '';
+    const num = parseFloat(n);
+    if (isNaN(num)) return n;
+    return num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // ─── Cálculo automático del recibo de honorarios ───────────────────
+  function calcularRecibo(valores) {
+    const subtotal = parseFloat(valores.subtotal) || 0;
+    const aplica = valores.aplicaIva || '16% (general)';
+    let ivaPorc = 0.16;
+    if (aplica.includes('8%')) ivaPorc = 0.08;
+    else if (aplica.includes('0%')) ivaPorc = 0;
+    const esMoral = (valores.tipoCliente || '').includes('moral');
+
+    const iva = subtotal * ivaPorc;
+    const retIsr = esMoral ? subtotal * 0.10 : 0;
+    const retIva = esMoral ? iva * (2/3) : 0;  // retención de 2/3 de IVA
+    const total = subtotal + iva - retIsr - retIva;
+
+    return {
+      ivaCalc: formatMoneda(iva),
+      retIsr: formatMoneda(retIsr),
+      retIva: formatMoneda(retIva),
+      total: formatMoneda(total),
+      ivaAplicado: aplica
+    };
+  }
+
+  // ─── Render del grid de cards (12 plantillas) ──────────────────────
+  window.renderDocsLegales = function() {
+    const grid = document.getElementById('doc-legal-grid');
+    if (!grid) return;
+    const docs = Object.values(window.DOCS_LEGALES || {});
+
+    grid.innerHTML = docs.map(d => `
+      <button class="doc-legal-card" data-cat="${d.categoria}" data-search="${(d.nombre + ' ' + d.descripcion).toLowerCase()}" onclick="window.abrirGeneradorDoc('${d.id}')">
+        <div class="doc-legal-card-icon doc-legal-cat-color-${d.categoria}">${d.icono}</div>
+        <div class="doc-legal-card-body">
+          <p class="doc-legal-card-cat">${d.catLabel}</p>
+          <h3 class="doc-legal-card-title">${d.nombre}</h3>
+          <p class="doc-legal-card-sub">${d.subtitulo}</p>
+          <p class="doc-legal-card-desc">${d.descripcion}</p>
+        </div>
+        <div class="doc-legal-card-footer">
+          <span class="doc-legal-card-time">⏱ ${d.tiempoEstimado}</span>
+          <span class="doc-legal-card-formats">PDF · Word</span>
+        </div>
+      </button>
+    `).join('');
+  };
+
+  // ─── Filtrar grid por categoría + búsqueda ─────────────────────────
+  window.filtrarDocsLegales = function(btnCat) {
+    // Cambiar tab activo si se hizo click en una categoría
+    if (btnCat) {
+      document.querySelectorAll('.doc-legal-cat').forEach(b => b.classList.remove('is-active'));
+      btnCat.classList.add('is-active');
+    }
+    const catActiva = document.querySelector('.doc-legal-cat.is-active');
+    const cat = catActiva ? (catActiva.dataset.cat || '') : '';
+    const search = (document.getElementById('doc-legal-search')?.value || '').toLowerCase().trim();
+
+    const cards = document.querySelectorAll('.doc-legal-card');
+    let visibles = 0;
+    cards.forEach(c => {
+      const matchCat = !cat || c.dataset.cat === cat;
+      const matchSearch = !search || c.dataset.search.includes(search);
+      const show = matchCat && matchSearch;
+      c.style.display = show ? '' : 'none';
+      if (show) visibles++;
+    });
+
+    const empty = document.getElementById('doc-legal-empty');
+    if (empty) empty.style.display = visibles === 0 ? 'block' : 'none';
+  };
+
+  // ─── Abrir el modal generador con el documento elegido ─────────────
+  window.abrirGeneradorDoc = function(docId) {
+    const doc = window.DOCS_LEGALES[docId];
+    if (!doc) return;
+    _docActual = doc;
+    _valoresForm = {};
+
+    // Header del modal
+    document.getElementById('doc-legal-modal-cat').textContent = doc.catLabel.toUpperCase() + ' · ' + doc.tiempoEstimado;
+    document.getElementById('doc-legal-modal-titulo').innerHTML = doc.nombre + ' <span style="font-weight:400;color:#94A3B8;">· ' + doc.subtitulo + '</span>';
+    document.getElementById('doc-legal-modal-desc').textContent = doc.descripcion;
+
+    // Renderizar formulario
+    renderFormulario(doc);
+
+    // Total de campos para progreso
+    let total = 0;
+    doc.secciones.forEach(s => total += s.fields.length);
+    document.getElementById('doc-legal-progress-total').textContent = total;
+    document.getElementById('doc-legal-progress-filled').textContent = '0';
+    document.getElementById('doc-legal-progress-bar').style.width = '0%';
+
+    // Pre-llenar con datos del usuario actual si están disponibles
+    try {
+      const auth = (typeof getAuth === 'function') ? getAuth() : null;
+      const user = auth && auth.currentUser;
+      if (user) {
+        // Email común
+        const emailField = document.querySelector('[data-field-id="emailContacto"]');
+        if (emailField && !emailField.value) emailField.value = user.email || '';
+        // Ciudad si tenemos memoria
+        const ciudadField = document.querySelector('[data-field-id="ciudad"]');
+        if (ciudadField && !ciudadField.value) ciudadField.value = 'Tehuacán, Puebla';
+        // Fecha de firma: hoy por default
+        const fechaField = document.querySelector('[data-field-id="fechaFirma"]');
+        if (fechaField && !fechaField.value) {
+          fechaField.value = new Date().toISOString().split('T')[0];
+        }
+        // Fecha emisión: hoy
+        const fEmField = document.querySelector('[data-field-id="fechaEmision"]');
+        if (fEmField && !fEmField.value) fEmField.value = new Date().toISOString().split('T')[0];
+        const fActField = document.querySelector('[data-field-id="fechaActualizacion"]');
+        if (fActField && !fActField.value) fActField.value = new Date().toISOString().split('T')[0];
+
+        // Capturar valores iniciales
+        actualizarValoresForm();
+      }
+    } catch(e) {}
+
+    // Render preview inicial
+    actualizarPreview();
+    actualizarProgreso();
+
+    // Mostrar modal
+    document.getElementById('doc-legal-modal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    _zoomPreview = false;
+    document.querySelector('.doc-legal-modal-content')?.classList.remove('is-zoomed');
+  };
+
+  // ─── Cerrar modal ─────────────────────────────────────────────────
+  window.cerrarGeneradorDoc = function() {
+    document.getElementById('doc-legal-modal').style.display = 'none';
+    document.body.style.overflow = '';
+    _docActual = null;
+    _valoresForm = {};
+  };
+
+  // ─── Renderizar formulario dinámico ────────────────────────────────
+  function renderFormulario(doc) {
+    const form = document.getElementById('doc-legal-form');
+    if (!form) return;
+
+    form.innerHTML = doc.secciones.map((sec, idx) => `
+      <div class="doc-legal-form-section">
+        <div class="doc-legal-form-section-header">
+          <span class="doc-legal-form-section-num">${idx + 1}</span>
+          <h3 class="doc-legal-form-section-title">${sec.titulo}</h3>
+        </div>
+        <div class="doc-legal-form-section-fields">
+          ${sec.fields.map(f => renderField(f)).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    // Listeners en TODOS los inputs
+    form.querySelectorAll('input, select, textarea').forEach(inp => {
+      inp.addEventListener('input', () => {
+        actualizarValoresForm();
+        actualizarPreview();
+        actualizarProgreso();
+      });
+      inp.addEventListener('change', () => {
+        actualizarValoresForm();
+        actualizarPreview();
+        actualizarProgreso();
+      });
+    });
+  }
+
+  function renderField(f) {
+    const req = f.required ? '<span class="doc-legal-req">*</span>' : '';
+    const help = f.helpText ? `<small class="doc-legal-field-help">${f.helpText}</small>` : '';
+    const ph = f.placeholder ? `placeholder="${f.placeholder}"` : '';
+    const val = f.value || '';
+    const maxlen = f.maxlength ? `maxlength="${f.maxlength}"` : '';
+
+    let input = '';
+    if (f.tipo === 'textarea') {
+      input = `<textarea data-field-id="${f.id}" id="docleg-${f.id}" ${ph} rows="3">${val}</textarea>`;
+    } else if (f.tipo === 'select') {
+      const opts = (f.opciones || []).map(o => `<option value="${o}">${o}</option>`).join('');
+      input = `<select data-field-id="${f.id}" id="docleg-${f.id}"><option value="">Selecciona…</option>${opts}</select>`;
+    } else {
+      input = `<input type="${f.tipo}" data-field-id="${f.id}" id="docleg-${f.id}" ${ph} ${maxlen} value="${val}">`;
+    }
+
+    return `
+      <div class="doc-legal-field">
+        <label for="docleg-${f.id}">${f.label}${req}</label>
+        ${input}
+        ${help}
+      </div>
+    `;
+  }
+
+  // ─── Capturar valores del form en memoria ──────────────────────────
+  function actualizarValoresForm() {
+    const form = document.getElementById('doc-legal-form');
+    if (!form) return;
+    _valoresForm = {};
+    form.querySelectorAll('[data-field-id]').forEach(el => {
+      _valoresForm[el.dataset.fieldId] = el.value;
+    });
+  }
+
+  // ─── Actualizar preview con sustitución de variables ───────────────
+  function actualizarPreview() {
+    if (!_docActual) return;
+    const preview = document.getElementById('doc-legal-preview');
+    if (!preview) return;
+
+    let html = _docActual.plantilla;
+
+    // Calcular campos derivados (fechas en texto, recibo)
+    const derivados = {};
+    Object.keys(_valoresForm).forEach(k => {
+      // Si es fecha (formato YYYY-MM-DD), generar versión en texto
+      if (k.startsWith('fecha') && /^\d{4}-\d{2}-\d{2}$/.test(_valoresForm[k])) {
+        derivados[k + 'Texto'] = fechaATexto(_valoresForm[k]);
+      }
+    });
+    derivados.fechaHoyTexto = hoyTexto();
+
+    // Si el doc es recibo de honorarios, calcular IVA/retenciones
+    if (_docActual.id === 'recibo-honorarios') {
+      const calc = calcularRecibo(_valoresForm);
+      Object.assign(derivados, calc);
+      // Subtotal con formato
+      if (_valoresForm.subtotal) derivados.subtotal = formatMoneda(_valoresForm.subtotal);
+    }
+    // Para pagaré: monto formateado
+    if (_docActual.id === 'pagare' && _valoresForm.monto) {
+      derivados.monto = formatMoneda(_valoresForm.monto);
+    }
+    // Para compraventa: precio formateado
+    if (_docActual.id === 'compraventa-mueble' && _valoresForm.precioTotal) {
+      derivados.precioTotal = formatMoneda(_valoresForm.precioTotal);
+    }
+    // Para arrendamiento: renta y depósito formateados
+    if (_docActual.id === 'arrendamiento-habitacional') {
+      if (_valoresForm.rentaMensual) derivados.rentaMensual = formatMoneda(_valoresForm.rentaMensual);
+      if (_valoresForm.deposito) derivados.deposito = formatMoneda(_valoresForm.deposito);
+    }
+    // Para NDA: penalidad formateada
+    if (_docActual.id === 'contrato-confidencialidad' && _valoresForm.montoPenalidad) {
+      derivados.montoPenalidad = formatMoneda(_valoresForm.montoPenalidad);
+    }
+    // Para finiquito: si hay campos numéricos formatear
+    if (_docActual.id === 'carta-finiquito') {
+      ['salarioDiario','indemnizacion','aguinaldo','vacaciones','primaVacacional','totalFiniquito'].forEach(k => {
+        if (_valoresForm[k]) derivados[k] = formatMoneda(_valoresForm[k]);
+      });
+    }
+    // Para contratos laborales: salario formateado
+    if (_docActual.id.startsWith('contrato-laboral') && _valoresForm.salarioMensual) {
+      derivados.salarioMensual = formatMoneda(_valoresForm.salarioMensual);
+    }
+    if (_docActual.id === 'contrato-honorarios' && _valoresForm.contraprestacion) {
+      derivados.contraprestacion = formatMoneda(_valoresForm.contraprestacion);
+    }
+
+    const todos = Object.assign({}, _valoresForm, derivados);
+
+    // Reemplazar todas las {{variables}} y {{__claseX}}
+    html = html.replace(/\{\{([a-zA-Z0-9_]+)\}\}/g, (m, k) => {
+      // Clases dinámicas: __claseXxx → 'doc-legal-filled' si tiene valor, 'doc-legal-empty' si no
+      if (k.startsWith('__clase')) {
+        // Extraer el nombre del campo: __claseNombrePatron → nombrePatron
+        let fieldName = k.replace('__clase', '');
+        fieldName = fieldName.charAt(0).toLowerCase() + fieldName.slice(1);
+        // Buscar el primer campo que empiece con ese prefijo y tenga valor
+        const tieneValor = Object.keys(todos).some(key => {
+          if (key.toLowerCase() === fieldName.toLowerCase() ||
+              key.toLowerCase().startsWith(fieldName.toLowerCase())) {
+            return todos[key] && String(todos[key]).trim() !== '';
+          }
+          return false;
+        });
+        return tieneValor ? 'doc-legal-filled' : 'doc-legal-empty';
+      }
+      // Reemplazo normal de variable
+      const v = todos[k];
+      if (v === undefined || v === null || v === '') {
+        return '__________________';
+      }
+      return String(v);
+    });
+
+    preview.innerHTML = html;
+  }
+
+  // ─── Actualizar barra de progreso ──────────────────────────────────
+  function actualizarProgreso() {
+    if (!_docActual) return;
+    let total = 0;
+    let filled = 0;
+    _docActual.secciones.forEach(sec => {
+      sec.fields.forEach(f => {
+        total++;
+        const v = _valoresForm[f.id];
+        if (v && String(v).trim() !== '') filled++;
+      });
+    });
+    const pct = total > 0 ? Math.round((filled / total) * 100) : 0;
+    document.getElementById('doc-legal-progress-filled').textContent = filled;
+    document.getElementById('doc-legal-progress-bar').style.width = pct + '%';
+  }
+
+  // ─── Toggle zoom del preview ───────────────────────────────────────
+  window.toggleZoomPreview = function() {
+    _zoomPreview = !_zoomPreview;
+    document.querySelector('.doc-legal-modal-content')?.classList.toggle('is-zoomed', _zoomPreview);
+  };
+
+  // ─── Validar campos requeridos antes de descargar ──────────────────
+  function validarCamposRequeridos() {
+    if (!_docActual) return false;
+    const faltan = [];
+    _docActual.secciones.forEach(sec => {
+      sec.fields.forEach(f => {
+        if (f.required) {
+          const v = _valoresForm[f.id];
+          if (!v || String(v).trim() === '') {
+            faltan.push(f.label);
+          }
+        }
+      });
+    });
+    if (faltan.length > 0) {
+      const msg = 'Faltan los siguientes campos obligatorios:\n\n• ' + faltan.slice(0, 8).join('\n• ') +
+                  (faltan.length > 8 ? `\n\n…y ${faltan.length - 8} más.` : '');
+      alert(msg);
+      // Hacer scroll al primer campo faltante
+      const primer = _docActual.secciones.flatMap(s => s.fields).find(f =>
+        f.required && (!_valoresForm[f.id] || String(_valoresForm[f.id]).trim() === '')
+      );
+      if (primer) {
+        const el = document.querySelector(`[data-field-id="${primer.id}"]`);
+        if (el) {
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  // ─── Generar nombre de archivo ─────────────────────────────────────
+  function nombreArchivo(ext) {
+    const doc = _docActual;
+    if (!doc) return 'documento.' + ext;
+    const fecha = new Date().toISOString().split('T')[0];
+    const slug = doc.id.replace(/[^a-z0-9]/gi, '-');
+    return `ICADEM_${slug}_${fecha}.${ext}`;
+  }
+
+  // ─── DESCARGAR PDF ─────────────────────────────────────────────────
+  window.descargarDocPDF = async function() {
+    if (!validarCamposRequeridos()) return;
+    if (!window.jspdf || !window.html2canvas) {
+      alert('Cargando librerías… intenta de nuevo en unos segundos.');
+      return;
+    }
+
+    const preview = document.getElementById('doc-legal-preview');
+    if (!preview) return;
+
+    // Mostrar loading
+    const btn = document.querySelector('.doc-legal-btn-primary');
+    const txtOrig = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="0"><animateTransform attributeName="transform" type="rotate" from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite"/></circle></svg> Generando…';
+      btn.disabled = true;
+    }
+
+    try {
+      // Clone del preview en alta resolución
+      const clone = preview.cloneNode(true);
+      clone.style.position = 'fixed';
+      clone.style.left = '-99999px';
+      clone.style.top = '0';
+      clone.style.width = '816px';  // ancho carta @ 96dpi
+      clone.style.padding = '60px 70px';
+      clone.style.background = '#FFFFFF';
+      clone.style.color = '#0F172A';
+      clone.style.fontFamily = "'Inter', 'Helvetica', sans-serif";
+      clone.style.fontSize = '13px';
+      clone.style.lineHeight = '1.55';
+      // Reemplazar valores doc-legal-empty/filled con texto plano para mejor render
+      clone.querySelectorAll('.doc-legal-empty, .doc-legal-filled').forEach(s => {
+        s.style.background = 'transparent';
+        s.style.color = '#0F172A';
+        s.style.padding = '0';
+        s.style.fontWeight = '500';
+      });
+      document.body.appendChild(clone);
+
+      const canvas = await window.html2canvas(clone, {
+        scale: 2,
+        backgroundColor: '#FFFFFF',
+        logging: false,
+        useCORS: true
+      });
+
+      document.body.removeChild(clone);
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.92);
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ unit: 'pt', format: 'letter' });
+      const pdfW = pdf.internal.pageSize.getWidth();
+      const pdfH = pdf.internal.pageSize.getHeight();
+
+      const imgW = pdfW - 40;
+      const imgH = (canvas.height * imgW) / canvas.width;
+
+      let heightLeft = imgH;
+      let position = 20;
+
+      pdf.addImage(imgData, 'JPEG', 20, position, imgW, imgH);
+      heightLeft -= (pdfH - 40);
+
+      while (heightLeft > 0) {
+        position = -(imgH - heightLeft) + 20;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 20, position, imgW, imgH);
+        heightLeft -= (pdfH - 40);
+      }
+
+      pdf.save(nombreArchivo('pdf'));
+
+      mostrarToast({
+        tipo: 'success',
+        titulo: '¡PDF generado!',
+        mensaje: 'El documento se descargó correctamente.',
+        duracion: 4000
+      });
+    } catch(e) {
+      console.error('[DocsLegales] Error PDF:', e);
+      alert('No se pudo generar el PDF. Revisa la consola.');
+    } finally {
+      if (btn) {
+        btn.innerHTML = txtOrig;
+        btn.disabled = false;
+      }
+    }
+  };
+
+  // ─── DESCARGAR WORD (HTML con namespace MS Office) ─────────────────
+  window.descargarDocWord = function() {
+    if (!validarCamposRequeridos()) return;
+    const preview = document.getElementById('doc-legal-preview');
+    if (!preview) return;
+
+    const btn = document.querySelector('.doc-legal-btn-word');
+    const txtOrig = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg> Generando…';
+      btn.disabled = true;
+    }
+
+    try {
+      // Limpiar el HTML del preview para Word
+      const clone = preview.cloneNode(true);
+      // Eliminar clases para que Word no se confunda con CSS
+      clone.querySelectorAll('.doc-legal-empty, .doc-legal-filled').forEach(s => {
+        // Reemplazar span por texto plano
+        const text = document.createTextNode(s.textContent);
+        s.parentNode.replaceChild(text, s);
+      });
+
+      const docHtml = `<!DOCTYPE html>
+<html xmlns:o="urn:schemas-microsoft-com:office:office"
+      xmlns:w="urn:schemas-microsoft-com:office:word"
+      xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+  <meta charset="utf-8">
+  <title>${_docActual.nombre}</title>
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>90</w:Zoom>
+      <w:DoNotPromptForConvert/>
+      <w:DoNotShowInsertionsAndDeletions/>
+    </w:WordDocument>
+  </xml>
+  <![endif]-->
+  <style>
+    @page { size: 8.5in 11in; margin: 1in 1in 1in 1in; }
+    body { font-family: 'Calibri', 'Arial', sans-serif; font-size: 11pt; line-height: 1.5; color: #0F172A; }
+    h1 { font-size: 18pt; font-weight: 700; color: #0A1F44; text-align: center; margin: 0 0 12pt; letter-spacing: 0.5pt; }
+    h2 { font-size: 13pt; font-weight: 700; color: #0A1F44; margin: 16pt 0 6pt; border-bottom: 1pt solid #C9A961; padding-bottom: 4pt; }
+    p { margin: 6pt 0; text-align: justify; }
+    strong, b { font-weight: 700; }
+    em, i { font-style: italic; }
+    ul, ol { margin: 6pt 0 6pt 24pt; }
+    li { margin: 3pt 0; }
+    table { border-collapse: collapse; width: 100%; margin: 8pt 0; }
+    th, td { padding: 6pt 8pt; border: 0.5pt solid #CBD5E1; }
+    .doc-legal-paper-header { text-align: center; margin-bottom: 18pt; padding-bottom: 12pt; border-bottom: 2pt solid #C9A961; }
+    .doc-legal-paper-logo { font-size: 16pt; font-weight: 800; color: #0A1F44; letter-spacing: 2pt; }
+    .doc-legal-paper-doctype { font-size: 9pt; color: #64748B; text-transform: uppercase; letter-spacing: 1pt; margin-top: 4pt; }
+    .doc-legal-signatures { display: table; width: 100%; margin-top: 36pt; }
+    .doc-legal-signature { display: table-cell; width: 50%; text-align: center; padding: 0 12pt; }
+    .doc-legal-signature-line { border-top: 1pt solid #0A1F44; margin-bottom: 4pt; padding-top: 30pt; }
+    .doc-legal-signature-name { font-weight: 700; font-size: 11pt; }
+    .doc-legal-signature-role { font-size: 9pt; color: #64748B; margin-top: 2pt; }
+    .doc-legal-paper-footer { margin-top: 24pt; padding-top: 12pt; border-top: 0.5pt solid #E2E8F0; font-size: 9pt; color: #94A3B8; font-style: italic; text-align: center; }
+  </style>
+</head>
+<body>
+${clone.innerHTML}
+</body>
+</html>`;
+
+      // Generar blob y descargar
+      const blob = new Blob(['\ufeff' + docHtml], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nombreArchivo('doc');
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      mostrarToast({
+        tipo: 'success',
+        titulo: '¡Word generado!',
+        mensaje: 'El documento se descargó correctamente. Ábrelo con Microsoft Word o Google Docs.',
+        duracion: 5000
+      });
+    } catch(e) {
+      console.error('[DocsLegales] Error Word:', e);
+      alert('No se pudo generar el Word. Revisa la consola.');
+    } finally {
+      if (btn) {
+        btn.innerHTML = txtOrig;
+        btn.disabled = false;
+      }
+    }
+  };
+
+  // ─── INICIALIZACIÓN: render inicial al cargar la sección ───────────
+  // Hook al cambio de sección
+  function maybeRenderDocs() {
+    const section = document.getElementById('sec-docs-legales');
+    if (section && section.style.display !== 'none' && section.offsetParent !== null) {
+      // Si el grid está vacío, renderizar
+      const grid = document.getElementById('doc-legal-grid');
+      if (grid && grid.children.length === 0) {
+        window.renderDocsLegales();
+      }
+    }
+  }
+
+  // Render inicial al cargar
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      window.renderDocsLegales();
+      // Observar cambios en display de la sección
+      setInterval(maybeRenderDocs, 800);
+    });
+  } else {
+    window.renderDocsLegales();
+    setInterval(maybeRenderDocs, 800);
+  }
+
+  // ESC cierra el modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('doc-legal-modal');
+      if (modal && modal.style.display === 'flex') {
+        window.cerrarGeneradorDoc();
+      }
+    }
+  });
+
+
+})();
 </script>
 
 </body>
