@@ -2631,6 +2631,35 @@ body > .doc-legal-modal .doc-legal-form-panel {
   color: #0F172A !important;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   OFFICE_VIEWER_v1 — Skeleton loader con animacion shimmer
+   ═══════════════════════════════════════════════════════════════════════════ */
+.icadem-shimmer {
+  background: linear-gradient(90deg, #F1F5F9 0%, #E2E8F0 50%, #F1F5F9 100%) !important;
+  background-size: 200% 100% !important;
+  animation: icadem-shimmer-anim 1.4s ease-in-out infinite !important;
+}
+@keyframes icadem-shimmer-anim {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Hacer que el modal-pending tenga altura completa para el iframe */
+#tpl-modal-pending {
+  flex-direction: column !important;
+  padding: 0 !important;
+  height: 100% !important;
+  min-height: 540px !important;
+  overflow: hidden !important;
+}
+@media (max-width: 768px) {
+  #tpl-modal-pending {
+    min-height: 380px !important;
+  }
+}
+
 </style>
 
 <style id="premium-vip-styles">
@@ -31301,6 +31330,99 @@ ${htmlImprimible}
     if (iframe) { iframe.style.display = 'none'; iframe.src = ''; }
     
     if (pending) {
+      // [OFFICE_VIEWER_v1] Mostrar preview real con Microsoft Office Online Viewer
+      pending.style.display = 'flex';
+
+      // Detectar si estamos en local o produccion
+      const enLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname) || location.protocol === 'file:';
+
+      // Construir URL publica del archivo
+      const archivoUrl = location.origin + '/' + (p.urlDownload || p.urlCopy);
+      const archivoUrlEncoded = encodeURIComponent(archivoUrl);
+      const officeViewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + archivoUrlEncoded;
+
+      const tituloHeader = ({
+        'XLSX':'Vista previa - Excel',
+        'DOCX':'Vista previa - Word',
+        'PPTX':'Vista previa - PowerPoint',
+        'PDF':'Vista previa - PDF'
+      })[p.formato] || 'Vista previa';
+
+      if (enLocal) {
+        // En local mostrar mensaje (Microsoft no puede acceder a archivos locales)
+        pending.innerHTML = ''
+          + '<div style="text-align:center;padding:2rem 1.5rem;max-width:520px;margin:0 auto;">'
+          + '<div style="font-size:72px;line-height:1;margin-bottom:1rem;">' + p.icono + '</div>'
+          + '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.6rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Preview no disponible en local</h3>'
+          + '<p style="font-family:Inter,sans-serif;font-size:13.5px;color:#475569;-webkit-text-fill-color:#475569;line-height:1.55;margin:0 0 1rem;">El preview en vivo funciona cuando el sitio esta publicado en internet. Sube el archivo a GitHub Pages para verlo aqui.</p>'
+          + '<p style="font-family:Inter,sans-serif;font-size:12px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;margin:0;">Descarga el archivo abajo para verlo localmente.</p>'
+          + '</div>';
+        return;
+      }
+
+      // Inyectar skeleton loader + iframe oculto que se mostrara al cargar
+      pending.innerHTML = ''
+        // Header de preview
+        + '<div style="width:100%;padding:10px 14px;background:#F1F5F9;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">'
+        + '<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#475569;-webkit-text-fill-color:#475569;letter-spacing:0.08em;text-transform:uppercase;">'+ tituloHeader +'</span>'
+        + '<a href="' + archivoUrl + '" target="_blank" rel="noopener" style="font-family:Inter,sans-serif;font-size:11px;color:#C9A961;-webkit-text-fill-color:#C9A961;font-weight:700;text-decoration:none;">↗ Abrir en pestana nueva</a>'
+        + '</div>'
+        // Container del preview
+        + '<div style="position:relative;flex:1;width:100%;min-height:500px;background:#fff;overflow:hidden;">'
+          // SKELETON LOADER
+          + '<div id="icadem-office-skeleton" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:24px 28px;gap:14px;background:#fff;z-index:2;">'
+          + '<div style="display:flex;gap:10px;align-items:center;margin-bottom:8px;"><div class="icadem-shimmer" style="width:42px;height:42px;border-radius:8px;"></div><div class="icadem-shimmer" style="height:18px;flex:1;max-width:220px;border-radius:5px;"></div></div>'
+          + '<div class="icadem-shimmer" style="height:32px;width:100%;border-radius:5px;"></div>'
+          + '<div class="icadem-shimmer" style="height:14px;width:80%;border-radius:4px;"></div>'
+          + '<div class="icadem-shimmer" style="height:14px;width:90%;border-radius:4px;"></div>'
+          + '<div class="icadem-shimmer" style="height:14px;width:70%;border-radius:4px;"></div>'
+          + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px;">'
+            + '<div class="icadem-shimmer" style="height:48px;border-radius:5px;"></div>'
+            + '<div class="icadem-shimmer" style="height:48px;border-radius:5px;"></div>'
+            + '<div class="icadem-shimmer" style="height:48px;border-radius:5px;"></div>'
+            + '<div class="icadem-shimmer" style="height:48px;border-radius:5px;"></div>'
+          + '</div>'
+          + '<div class="icadem-shimmer" style="height:14px;width:60%;border-radius:4px;margin-top:8px;"></div>'
+          + '<div class="icadem-shimmer" style="height:14px;width:85%;border-radius:4px;"></div>'
+          + '<div class="icadem-shimmer" style="height:14px;width:75%;border-radius:4px;"></div>'
+          + '<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:auto;">'
+            + '<div class="icadem-shimmer" style="height:140px;border-radius:8px;"></div>'
+            + '<div class="icadem-shimmer" style="height:140px;border-radius:8px;"></div>'
+          + '</div>'
+          + '<div style="text-align:center;font-family:Inter,sans-serif;font-size:12px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;margin-top:14px;font-style:italic;">Cargando preview…</div>'
+          + '</div>'
+          // IFRAME real (oculto hasta cargar)
+          + '<iframe id="icadem-office-iframe" src="' + officeViewerUrl + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.5s;background:#fff;" allowfullscreen></iframe>'
+        + '</div>';
+
+      // Listener: cuando el iframe carga, ocultar skeleton y mostrar iframe
+      const iframeReal = document.getElementById('icadem-office-iframe');
+      const skeleton = document.getElementById('icadem-office-skeleton');
+      if (iframeReal && skeleton) {
+        let cargado = false;
+        iframeReal.onload = function() {
+          cargado = true;
+          iframeReal.style.opacity = '1';
+          setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, 500);
+        };
+        // Fallback: si tras 12 segundos no carga, mostrar mensaje de error
+        setTimeout(() => {
+          if (!cargado && skeleton) {
+            skeleton.innerHTML = ''
+              + '<div style="margin:auto;text-align:center;padding:2rem;max-width:480px;">'
+              + '<div style="font-size:48px;line-height:1;margin-bottom:1rem;">⚠️</div>'
+              + '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.4rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Preview no disponible</h3>'
+              + '<p style="font-family:Inter,sans-serif;font-size:13px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.55;margin:0;">El servicio de preview tardo mas de lo esperado. Descarga el archivo abajo para verlo directamente.</p>'
+              + '</div>';
+          }
+        }, 12000);
+      }
+      return;  // ya inyectamos el preview, no continuar con el viejo
+    }
+
+    // ─── BLOQUE VIEJO (ya no se ejecuta porque arriba hay return) ─────
+    // Mantenido por compatibilidad si algun otro flujo cae aqui
+    if (false && pending) {
       pending.style.display = 'flex';
       const titulos = {
         'XLSX': 'Plantilla Excel premium',
