@@ -27806,6 +27806,7 @@ window.loginDirecto = function() {
 <script>
 (function(){
   'use strict';
+  console.log('%c[DEBUG_DOCS_LEGALES_v1] Script de Documentos Legales cargado correctamente','color:#10b981;font-weight:bold;font-size:14px');
 
   // ─── Iconos SVG por categoría ───
   const ICONS = {
@@ -29632,18 +29633,52 @@ ${clone.innerHTML}
     }
   };
 
-  // ─── INICIALIZACIÓN: render inicial al cargar la sección ───────────
-  // Hook al cambio de sección
-  function maybeRenderDocs() {
-    const section = document.getElementById('sec-docs-legales');
-    if (section && section.style.display !== 'none' && section.offsetParent !== null) {
-      // Si el grid está vacío, renderizar
-      const grid = document.getElementById('doc-legal-grid');
-      if (grid && grid.children.length === 0) {
-        window.renderDocsLegales();
-      }
+  // ─── INICIALIZACIÓN AGRESIVA: render inmediato + multiples hooks ───
+  function forzarRenderDocs() {
+    const grid = document.getElementById('doc-legal-grid');
+    if (grid && grid.children.length === 0 && window.DOCS_LEGALES) {
+      console.log('[DocsLegales] Renderizando grid de 12 plantillas...');
+      window.renderDocsLegales();
+      console.log('[DocsLegales] Grid renderizado:', grid.children.length, 'cards');
     }
   }
+
+  function maybeRenderDocs() {
+    const section = document.getElementById('sec-docs-legales');
+    if (section) {
+      // Renderizar si la seccion esta activa o si simplemente esta visible
+      const visible = section.classList.contains('active') ||
+                      (section.style.display !== 'none' && section.offsetParent !== null);
+      if (visible) forzarRenderDocs();
+    }
+  }
+
+  // HOOK 1: Override showSection para forzar render al entrar a la seccion
+  setTimeout(() => {
+    if (typeof window.showSection === 'function' && !window.showSection._docsLegalesHooked) {
+      const original = window.showSection;
+      window.showSection = function(id) {
+        const r = original.apply(this, arguments);
+        if (id === 'docs-legales' || id === 'sec-docs-legales') {
+          console.log('[DocsLegales] showSection(' + id + ') -> forzando render');
+          setTimeout(forzarRenderDocs, 50);
+        }
+        return r;
+      };
+      window.showSection._docsLegalesHooked = true;
+      console.log('[DocsLegales] showSection hookeado correctamente');
+    }
+  }, 500);
+
+  // HOOK 2: Listener directo en cualquier nav-item que apunte a docs-legales
+  setTimeout(() => {
+    document.querySelectorAll('.nav-item').forEach(el => {
+      const onclick = el.getAttribute('onclick') || '';
+      if (onclick.includes('docs-legales')) {
+        el.addEventListener('click', () => setTimeout(forzarRenderDocs, 100));
+      }
+    });
+  }, 800);
 
   // Render inicial al cargar
   if (document.readyState === 'loading') {
