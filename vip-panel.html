@@ -1805,6 +1805,115 @@ body.modo-dia .lg-card.is-unlocked .lg-card-xp {
   border: none !important;
   outline: none !important;
 }
+
+/* ============================================================================
+   TOPBAR ELEGANT - Look minimalista profesional (sin estrellas, sin pulsos)
+   Sobrescribe el bloque "premium" anterior con algo mas sutil y refinado.
+   ============================================================================ */
+
+/* TOGGLE DEL SOL: circulo limpio sin animacion, sin pulse, sin glow exagerado */
+#btn-modo-toggle,
+[id*="modo-toggle"] {
+  background: #FEF3C7 !important;
+  background-color: #FEF3C7 !important;
+  background-image: none !important;
+  border: 1px solid rgba(217, 119, 6, 0.35) !important;
+  border-radius: 50% !important;
+  width: 34px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #B45309 !important;
+  -webkit-text-fill-color: #B45309 !important;
+  font-size: 14px !important;
+  transition: background 0.2s ease, transform 0.2s ease !important;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  animation: none !important;
+  position: relative !important;
+}
+#btn-modo-toggle:hover,
+[id*="modo-toggle"]:hover {
+  background: #FDE68A !important;
+  background-color: #FDE68A !important;
+  background-image: none !important;
+  transform: scale(1.05) rotate(0deg) !important;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+  animation: none !important;
+}
+#btn-modo-toggle svg,
+#btn-modo-toggle * {
+  color: #B45309 !important;
+  fill: #B45309 !important;
+  stroke: #B45309 !important;
+  -webkit-text-fill-color: #B45309 !important;
+}
+
+/* BADGE "VIP MENSUAL" DEL TOPBAR: minimalista elegante, sin estrella, sin shimmer */
+.topbar-plan,
+[class*="topbar-plan"] {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 6px 18px !important;
+  background: #FEF3C7 !important;
+  background-color: #FEF3C7 !important;
+  background-image: none !important;
+  background-size: auto !important;
+  border: 1px solid rgba(217, 119, 6, 0.45) !important;
+  border-radius: 999px !important;
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  text-shadow: none !important;
+  overflow: hidden !important;
+  transition: background 0.2s ease, border-color 0.2s ease !important;
+  animation: none !important;
+}
+/* QUITAR la estrella negra ::before */
+.topbar-plan::before,
+[class*="topbar-plan"]::before {
+  display: none !important;
+  content: none !important;
+}
+/* QUITAR el brillo animado ::after */
+.topbar-plan::after,
+[class*="topbar-plan"]::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+.topbar-plan:hover,
+[class*="topbar-plan"]:hover {
+  background: #FDE68A !important;
+  background-color: #FDE68A !important;
+  border-color: rgba(217, 119, 6, 0.60) !important;
+  transform: none !important;
+  box-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+/* SIDEBAR BADGE VIP MENSUAL: tambien quitar estrella ::before */
+.sidebar-user .user-plan::before,
+#sidebar-plan::before {
+  display: none !important;
+  content: none !important;
+}
 </style>
 </head>
 <body>
