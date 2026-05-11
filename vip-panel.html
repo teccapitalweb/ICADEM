@@ -3900,15 +3900,20 @@
      `notificacionPendiente` en el doc /membresias/{uid}.
      ============================================================ -->
 <style>
+  /* Por defecto OCULTO completamente (display:none).
+     Solo aparece cuando se le añade la clase .show desde JS. */
   .splash-activacion {
+    display: none;
     position: fixed; inset: 0; z-index: 99999;
-    display: flex; align-items: center; justify-content: center;
+    align-items: center; justify-content: center;
     padding: 20px;
     opacity: 0;
-    pointer-events: none;
     transition: opacity .35s;
   }
-  .splash-activacion.show { opacity: 1; pointer-events: auto; }
+  .splash-activacion.show {
+    display: flex;
+    opacity: 1;
+  }
   .splash-activacion-overlay {
     position: absolute; inset: 0;
     background: radial-gradient(ellipse at center, rgba(11,47,104,0.85), rgba(2,5,15,0.95));
@@ -4928,21 +4933,6 @@
         activarModoInvitado(user); return;
       }
       // Aún no vence — dejar pasar, mostrar banner de aviso
-    } else if (snapData.activadaManual === true && snapData.fechaVencimiento) {
-      // Activación manual del admin (mensual/anual/regalo): respetar fechaVencimiento.
-      // Si ya pasó la fecha, auto-expirar y mandar a modo invitado.
-      const ahora = new Date();
-      const vence = snapData.fechaVencimiento.toDate ? snapData.fechaVencimiento.toDate() : new Date(snapData.fechaVencimiento);
-      if (ahora > vence) {
-        const { setDoc: sd, doc: dd } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-        await sd(dd(db, 'membresias', user.uid), { activa: false, estado: 'expirado' }, { merge: true })
-          .catch(err => console.warn('No se pudo marcar como expirado:', err));
-        activarModoInvitado(user); return;
-      }
-      // Aún dentro del periodo: si activa es false (raro), forzar a true para mantener acceso
-      if (!snapData.activa) {
-        activarModoInvitado(user); return;
-      }
     } else if (!snapData.activa) {
       activarModoInvitado(user); return;
     }
@@ -5136,27 +5126,44 @@
     // ═══════════════════════════════════════════════════════════════════════
     try {
       const np = data.notificacionPendiente;
+      console.log('[notificacionPendiente] estado:', np ? `tipo=${np.tipo}, mostrada=${np.mostrada}` : 'no hay');
       if (np && np.tipo === 'activacion' && np.mostrada !== true) {
         // Decidir si mostrar al iniciar o después del splash de bienvenida
         const delay = necesitaSplashNombre ? 0 : 900;
-        setTimeout(() => {
-          if (typeof window.mostrarSplashActivacion === 'function') {
-            window.mostrarSplashActivacion({
-              plan: np.plan,
-              duracionDias: np.duracionDias,
-              esRegalo: np.esRegalo === true,
-              fechaVencimiento: np.fechaVencimiento
-            });
+        setTimeout(async () => {
+          try {
+            // 1) Mostrar splash (esto es lo importante)
+            if (typeof window.mostrarSplashActivacion === 'function') {
+              window.mostrarSplashActivacion({
+                plan: np.plan,
+                duracionDias: np.duracionDias,
+                esRegalo: np.esRegalo === true,
+                fechaVencimiento: np.fechaVencimiento
+              });
+              console.log('[notificacionPendiente] splash mostrado ✓');
+            } else {
+              console.warn('[notificacionPendiente] mostrarSplashActivacion no está disponible');
+            }
+          } catch (errSplash) {
+            console.warn('[notificacionPendiente] Error mostrando splash:', errSplash);
           }
-          // Marcar como mostrada (no bloquear si falla)
-          updateDoc(doc(db, 'membresias', user.uid), {
-            'notificacionPendiente.mostrada': true,
-            'notificacionPendiente.mostradaEn': serverTimestamp()
-          }).catch(err => console.warn('No se pudo marcar notificación como mostrada:', err));
+
+          // 2) Marcar como mostrada (importar serverTimestamp on-demand)
+          //    Si esto falla por permisos, no bloquea nada — el splash ya se mostró.
+          try {
+            const { serverTimestamp: stsLocal } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+            await updateDoc(doc(db, 'membresias', user.uid), {
+              'notificacionPendiente.mostrada': true,
+              'notificacionPendiente.mostradaEn': stsLocal()
+            });
+            console.log('[notificacionPendiente] marcada como mostrada ✓');
+          } catch (errMark) {
+            console.warn('[notificacionPendiente] No se pudo marcar como mostrada (no crítico):', errMark);
+          }
         }, delay);
       }
     } catch (e) {
-      console.warn('[notificacionPendiente] Error procesando:', e);
+      console.warn('[notificacionPendiente] Error procesando (no bloqueante):', e);
     }
 
     // Guardar perfil
@@ -23071,10 +23078,10 @@ window.mostrarSplashActivacion = function(opts) {
   }
 
   // ── Mostrar con animación ──
-  splash.style.display = 'flex';
-  document.body.style.overflow = 'hidden';
-  // Force reflow para que la animación arranque
-  void splash.offsetWidth;
+  // Ya NO ponemos display:flex manualmente ni tocamos body.overflow:
+  // la clase .show del CSS ya pone display:flex + opacity:1.
+  // Eso evita el bug de scroll bloqueado si el popup falla a medio camino.
+  void splash.offsetWidth; // force reflow
   splash.classList.add('show');
 };
 
@@ -23082,11 +23089,34 @@ window.cerrarSplashActivacion = function() {
   const splash = document.getElementById('splash-activacion');
   if (!splash) return;
   splash.classList.remove('show');
-  setTimeout(() => {
-    splash.style.display = 'none';
-    document.body.style.overflow = '';
-  }, 350);
+  // No tocamos body.overflow porque mostrarSplashActivacion tampoco lo toca.
 };
+
+// ─── FAILSAFE GLOBAL ───────────────────────────────────────────────
+// Si por alguna razón el body queda con overflow:hidden de un modal
+// anterior que falló a la mitad, este watchdog restaura el scroll
+// cuando no hay ningún modal visible.
+(function instalarFailsafeScroll() {
+  function hayModalVisible() {
+    const ids = [
+      'splash-bienvenida', 'splash-activacion', 'splash-cert',
+      'modal-cancel-sub', 'modal-logout'
+    ];
+    return ids.some(id => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const style = window.getComputedStyle(el);
+      return style.display !== 'none' && style.visibility !== 'hidden' && parseFloat(style.opacity) > 0;
+    });
+  }
+  // Cada 2 segundos, si no hay modal visible y body está bloqueado, liberar.
+  setInterval(() => {
+    if (document.body.style.overflow === 'hidden' && !hayModalVisible()) {
+      document.body.style.overflow = '';
+      console.log('[failsafe] body.overflow liberado (no había modal visible)');
+    }
+  }, 2000);
+})();
 
 // ═══════════════════════════════════════════════════════════════
 // 🔄 ACTUALIZAR NOMBRE EN CERTIFICADOS (cuando user cambia el nombre)
