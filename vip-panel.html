@@ -25735,6 +25735,7 @@ window._icademLogros = {
   // GUARDAR perfil
   // ═══════════════════════════════════════════════════════════
   window.guardarPerfilDirectorio = async function() {
+    console.log('%c[DEBUG_v3_DIAGNOSTICO_DIR] guardarPerfilDirectorio() iniciado','color:#10b981;font-weight:bold');
     const auth = (typeof getAuth === 'function') ? getAuth() : null;
     if (!auth || !auth.currentUser) {
       return mostrarToast({ tipo: 'error', titulo: 'Sesión requerida' });
@@ -25836,31 +25837,46 @@ window._icademLogros = {
         duracion: 5000
       });
     } catch(e) {
-      // ─── Diagnostico detallado ───
+      // ═══════════════════════════════════════════════════════════════════
+      // DIAGNOSTICO TOTAL — alert() inescapable + logs en consola
+      // ═══════════════════════════════════════════════════════════════════
       console.error('[Directorio] ✗ Error guardando:', e);
       console.error('[Directorio] e.code:', e && e.code);
       console.error('[Directorio] e.message:', e && e.message);
       console.error('[Directorio] data que se intentaba guardar:', data);
-      // Mensaje amigable para el usuario segun el codigo de Firebase
-      var msgUsuario = 'No se pudo guardar.';
-      var codigo = e && e.code ? e.code : '';
+
+      var codigo = (e && e.code) ? e.code : 'sin-codigo';
+      var msgError = (e && e.message) ? e.message : String(e);
+      var pista = '';
       if (codigo === 'permission-denied') {
-        msgUsuario = 'Sin permisos para guardar. Las reglas de Firestore están bloqueando. Revisa Firebase Console > Firestore > Rules.';
-      } else if (codigo === 'unavailable' || codigo === 'failed-precondition') {
-        msgUsuario = 'Sin conexión a Firestore. Revisa tu internet o intenta en unos segundos.';
+        pista = '\n\n>>> CAUSA: Las Firestore RULES bloquean el write.\n>>> SOLUCION: Ir a Firebase Console > Firestore > Rules y permitir write en /directorio/{uid} para el usuario autenticado.';
       } else if (codigo === 'unauthenticated') {
-        msgUsuario = 'Tu sesión expiró. Cierra y vuelve a iniciar sesión.';
+        pista = '\n\n>>> CAUSA: Tu sesion expiro.\n>>> SOLUCION: Cierra sesion y vuelve a iniciar.';
       } else if (codigo === 'invalid-argument') {
-        msgUsuario = 'Datos inválidos: ' + (e.message || 'campo con formato incorrecto');
-      } else if (e && e.message) {
-        msgUsuario = e.message;
+        pista = '\n\n>>> CAUSA: Algun campo tiene formato invalido o es undefined.';
+      } else if (codigo === 'unavailable') {
+        pista = '\n\n>>> CAUSA: Sin conexion a Firestore.';
       }
-      mostrarToast({
-        tipo: 'error',
-        titulo: 'Error al guardar' + (codigo ? ' (' + codigo + ')' : ''),
-        mensaje: msgUsuario,
-        duracion: 10000
-      });
+
+      // Alert nativo: imposible de ignorar
+      alert(
+        '⚠️ ERROR AL GUARDAR PERFIL DEL DIRECTORIO\n' +
+        '═══════════════════════════════════════════\n\n' +
+        'CODIGO: ' + codigo + '\n\n' +
+        'MENSAJE: ' + msgError +
+        pista +
+        '\n\n(Tambien revisa la consola del browser: F12 > Console)'
+      );
+
+      // Toast tambien por si acaso
+      try {
+        mostrarToast({
+          tipo: 'error',
+          titulo: 'Error: ' + codigo,
+          mensaje: msgError.substring(0, 80),
+          duracion: 12000
+        });
+      } catch(_){}
     } finally {
       if (btn) {
         btn.textContent = txtOrig;
