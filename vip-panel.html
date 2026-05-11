@@ -1597,6 +1597,91 @@ body.modo-dia .lg-card.is-unlocked .lg-card-xp {
     0 8px 22px rgba(245, 158, 11, 0.30),
     inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
 }
+
+/* ============================================================================
+   SIDEBAR CLEAN - sin recuadros ni lineas alrededor del avatar/nombre/badge
+   Limpia el contenedor cuadrado y todos los outlines residuales.
+   ============================================================================ */
+
+/* CONTENEDOR del sidebar-user: SIN borde, SIN gradiente, SIN margin lateral */
+.sidebar-user {
+  position: relative !important;
+  padding: 14px 18px !important;
+  margin: 0 !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  transition: background 0.2s ease !important;
+}
+/* Quitar la linea decorativa superior */
+.sidebar-user::before {
+  display: none !important;
+  content: none !important;
+}
+.sidebar-user::after {
+  display: none !important;
+  content: none !important;
+}
+/* Hover muy sutil sin borde */
+.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  background-image: none !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* OUTLINES de TODO el sidebar-user y descendientes: NUNCA mostrar */
+.sidebar-user,
+.sidebar-user *,
+.sidebar-user:focus,
+.sidebar-user:focus-within,
+.sidebar-user:focus-visible,
+.sidebar-user *:focus,
+.sidebar-user *:focus-visible,
+.sidebar-user *:active {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  text-decoration: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Asegurar que ni el <p> del nombre ni el <p> del plan tengan border */
+.sidebar-user p,
+.sidebar-user .user-name,
+.sidebar-user #sidebar-name,
+.sidebar-user > div {
+  border: none !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Badge VIP MENSUAL: mantener pill dorado, SIN outline raro */
+.sidebar-user .user-plan,
+#sidebar-plan {
+  outline: none !important;
+  text-decoration: none !important;
+}
+
+/* Si hay un chevron > a la derecha, sin outline tampoco */
+.sidebar-user .sidebar-chevron,
+.sidebar-user > svg:last-child,
+.sidebar-user [class*="chevron"] {
+  outline: none !important;
+  border: none !important;
+  background: transparent !important;
+}
 </style>
 </head>
 <body>
