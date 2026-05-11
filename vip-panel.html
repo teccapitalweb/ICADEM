@@ -1903,6 +1903,182 @@ body > .doc-legal-modal .doc-legal-form-panel {
   padding-top: 0 !important;
 }
 
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   DISEÑO_MINIMALISTA_v3 — Limpio, sin rectángulos, solo tipografía y espacio
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. Quitar TODO lo que envuelve cada sección ─── */
+#doc-legal-form .doc-legal-form-section,
+#doc-legal-modal #doc-legal-form .doc-legal-form-section,
+body > .doc-legal-modal #doc-legal-form .doc-legal-form-section {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 0 2.75rem 0 !important;
+  outline: none !important;
+}
+
+/* ─── 2. Header de seccion: SIN border-bottom, SIN ::after, solo tipografia ─── */
+#doc-legal-form .doc-legal-form-section-header,
+#doc-legal-modal #doc-legal-form .doc-legal-form-section-header,
+body > .doc-legal-modal .doc-legal-form-section-header {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 0 1rem 0 !important;
+  outline: none !important;
+  position: static !important;
+  display: block !important;
+}
+
+/* Eliminar el acento dorado decorativo (::after) del header */
+#doc-legal-form .doc-legal-form-section-header::after,
+#doc-legal-form .doc-legal-form-section-header::before {
+  display: none !important;
+  content: none !important;
+}
+
+/* ─── 3. Eyebrow "PASO 01 · DE 5" minimalista ─── */
+#doc-legal-form .doc-legal-form-section-eyebrow,
+#doc-legal-modal .doc-legal-form-section-eyebrow,
+body > .doc-legal-modal .doc-legal-form-section-eyebrow {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: #C9A961 !important;
+  -webkit-text-fill-color: #C9A961 !important;
+  margin: 0 0 8px 0 !important;
+  display: block !important;
+  opacity: 0.9 !important;
+}
+
+/* ─── 4. Título de seccion limpio ─── */
+#doc-legal-form .doc-legal-form-section-title,
+#doc-legal-modal .doc-legal-form-section-title,
+body > .doc-legal-modal .doc-legal-form-section-title {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  font-family: 'Cormorant Garamond', Georgia, serif !important;
+  font-size: 1.65rem !important;
+  font-weight: 700 !important;
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+  margin: 0 0 1.25rem 0 !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.1 !important;
+  text-transform: none !important;
+  font-style: normal !important;
+  opacity: 1 !important;
+  position: relative !important;
+}
+
+/* Acento dorado SUTIL solo bajo el título (más elegante) */
+#doc-legal-form .doc-legal-form-section-title::after {
+  content: '' !important;
+  display: block !important;
+  width: 32px !important;
+  height: 2px !important;
+  background: #C9A961 !important;
+  margin-top: 8px !important;
+  border-radius: 0 !important;
+}
+
+/* ─── 5. Container de fields: sin rectangulo, solo espacio ─── */
+#doc-legal-form .doc-legal-form-section-fields,
+#doc-legal-modal .doc-legal-form-section-fields,
+body > .doc-legal-modal .doc-legal-form-section-fields {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.875rem !important;
+}
+
+/* ─── 6. Cada field (div que envuelve label + input) sin rectangulo ─── */
+#doc-legal-form .doc-legal-field,
+#doc-legal-modal .doc-legal-field,
+body > .doc-legal-modal .doc-legal-field {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 5px !important;
+}
+
+/* ─── 7. Inputs con borde sutil y limpio ─── */
+#doc-legal-form .doc-legal-field input,
+#doc-legal-form .doc-legal-field textarea,
+#doc-legal-form .doc-legal-field select,
+#doc-legal-modal .doc-legal-field input,
+#doc-legal-modal .doc-legal-field textarea,
+#doc-legal-modal .doc-legal-field select,
+body > .doc-legal-modal .doc-legal-field input,
+body > .doc-legal-modal .doc-legal-field textarea,
+body > .doc-legal-modal .doc-legal-field select {
+  background: #FFFFFF !important;
+  border: 1px solid #E5E9F2 !important;
+  border-radius: 8px !important;
+  box-shadow: none !important;
+  padding: 10px 14px !important;
+}
+#doc-legal-form .doc-legal-field input:focus,
+#doc-legal-form .doc-legal-field textarea:focus,
+#doc-legal-form .doc-legal-field select:focus,
+body > .doc-legal-modal .doc-legal-field input:focus,
+body > .doc-legal-modal .doc-legal-field textarea:focus,
+body > .doc-legal-modal .doc-legal-field select:focus {
+  border-color: #C9A961 !important;
+  box-shadow: 0 0 0 3px rgba(201,169,97,0.15) !important;
+  outline: none !important;
+}
+
+/* ─── 8. Form panel mejor padding y scroll suave ─── */
+.doc-legal-form-panel,
+#doc-legal-modal .doc-legal-form-panel,
+body > .doc-legal-modal .doc-legal-form-panel {
+  padding: 1.75rem 2.25rem 2rem !important;
+  scroll-behavior: smooth !important;
+}
+
+/* ─── 9. Primera seccion: sin margen extra arriba ─── */
+#doc-legal-form .doc-legal-form-section:first-child,
+#doc-legal-form .doc-legal-form-section:first-of-type {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+/* ─── 10. Forma del formulario: sin border ─── */
+#doc-legal-form {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
 </style>
 
 <style id="premium-vip-styles">
