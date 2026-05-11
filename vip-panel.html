@@ -2122,6 +2122,106 @@ button[onclick*="guardarPerfil"]:hover {
   box-shadow: 0 4px 12px rgba(11, 37, 84, 0.35) !important;
   opacity: 1 !important;
 }
+
+/* ============================================================================
+   PERFIL INPUTS OVERRIDE FINAL - Mata la regla #sec-perfil input negra
+   Usamos mayor especificidad: body #sec-perfil input + html body
+   ============================================================================ */
+
+/* TODOS los inputs/passwords/textareas dentro de #sec-perfil + #sec-suscripcion:
+   forzar BLANCO con borde sutil, look premium */
+html body #sec-perfil input,
+html body #sec-perfil input[type="text"],
+html body #sec-perfil input[type="password"],
+html body #sec-perfil input[type="email"],
+html body #sec-suscripcion input,
+html body #sec-suscripcion input[type="text"],
+html body #sec-suscripcion input[type="password"],
+html body #sec-suscripcion input[type="email"] {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  border: 1.5px solid #E5E9F2 !important;
+  border-radius: 10px !important;
+  padding: 12px 16px !important;
+  font-family: 'Inter', 'Space Grotesk', sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  width: 100% !important;
+  outline: none !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease !important;
+  letter-spacing: 0.005em !important;
+}
+
+html body #sec-perfil input:hover,
+html body #sec-suscripcion input:hover {
+  border-color: #CBD5E1 !important;
+  background: #FAFBFC !important;
+  background-color: #FAFBFC !important;
+}
+
+html body #sec-perfil input:focus,
+html body #sec-suscripcion input:focus {
+  border-color: #1E3A8A !important;
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  box-shadow: 0 0 0 4px rgba(30,58,138,0.10), 0 1px 2px rgba(15,23,42,0.04) !important;
+  outline: none !important;
+}
+
+html body #sec-perfil input::placeholder,
+html body #sec-suscripcion input::placeholder {
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  opacity: 1 !important;
+}
+
+/* ============================================================================
+   TOPBAR FINAL - SIN wrappers visibles, solo button y badge tienen color
+   ============================================================================ */
+
+/* TOPBAR: 100% blanco SIN nada extra */
+html body .topbar {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid #E5E9F2 !important;
+  box-shadow: none !important;
+}
+
+/* TOPBAR-RIGHT (wrapper que envuelve sol+badge): 100% TRANSPARENTE,
+   sin borde, sin sombra, sin background */
+html body .topbar .topbar-right,
+html body .topbar > div:last-child {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* Asegurar que SOLO el button del sol y el div.topbar-plan tienen
+   estilizado, los wrappers son transparentes */
+html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
 </style>
 </head>
 <body>
