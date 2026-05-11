@@ -1682,6 +1682,129 @@ body.modo-dia .lg-card.is-unlocked .lg-card-xp {
   border: none !important;
   background: transparent !important;
 }
+
+/* ============================================================================
+   SIDEBAR NUCLEAR - mata TODOS los outlines, bordes, lineas dashed y focus rings
+   alrededor de avatar, nombre, badge VIP y chevron. Sin compromisos.
+   ============================================================================ */
+
+/* CONTENEDOR del sidebar-user - SIN border-bottom, SIN nada visible */
+.sidebar-user,
+.sidebar-user:hover,
+.sidebar-user:focus,
+.sidebar-user:focus-within,
+.sidebar-user:focus-visible,
+.sidebar-user:active {
+  border: 0 none transparent !important;
+  border-top: 0 none transparent !important;
+  border-right: 0 none transparent !important;
+  border-bottom: 0 none transparent !important;
+  border-left: 0 none transparent !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  outline: 0 none transparent !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  text-decoration: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* TODOS los descendientes del sidebar-user: sin bordes, sin outlines, NUNCA */
+.sidebar-user > *,
+.sidebar-user > *::before,
+.sidebar-user > *::after,
+.sidebar-user p,
+.sidebar-user span,
+.sidebar-user div:not(.user-avatar),
+.sidebar-user .user-name,
+.sidebar-user .user-plan,
+.sidebar-user #sidebar-name,
+.sidebar-user #sidebar-plan {
+  border: 0 none transparent !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  outline: 0 none transparent !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-offset: 0 !important;
+  text-decoration: none !important;
+  text-decoration-line: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Estados focus/active/hover de cualquier descendiente */
+.sidebar-user > *:focus,
+.sidebar-user > *:focus-visible,
+.sidebar-user > *:focus-within,
+.sidebar-user > *:active,
+.sidebar-user > *:hover,
+.sidebar-user p:focus,
+.sidebar-user p:focus-visible,
+.sidebar-user p:active,
+.sidebar-user p:hover {
+  outline: 0 none transparent !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-offset: 0 !important;
+  border: 0 none transparent !important;
+  border-width: 0 !important;
+  border-style: none !important;
+  text-decoration: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* Avatar dorado: mantener su sombra premium pero sin outline */
+.sidebar-user .user-avatar,
+.sidebar-user #sidebar-avatar {
+  outline: 0 none transparent !important;
+  border: none !important;
+  /* preservamos el box-shadow del bloque anterior porque es el anillo del avatar */
+}
+.sidebar-user .user-avatar:focus,
+.sidebar-user .user-avatar:hover,
+.sidebar-user #sidebar-avatar:focus,
+.sidebar-user #sidebar-avatar:hover {
+  outline: 0 none transparent !important;
+  border: none !important;
+}
+
+/* Badge VIP MENSUAL: mantener gradiente y sombra pero sin lineas dashed */
+.sidebar-user .user-plan,
+.sidebar-user #sidebar-plan,
+.sidebar-user .user-plan:focus,
+.sidebar-user .user-plan:hover,
+.sidebar-user .user-plan:active,
+.sidebar-user #sidebar-plan:focus,
+.sidebar-user #sidebar-plan:hover {
+  outline: 0 none transparent !important;
+  outline-offset: 0 !important;
+  text-decoration: none !important;
+  /* preservamos border y box-shadow del estilo premium previo */
+}
+
+/* Chevron / SVG si lo hay */
+.sidebar-user svg,
+.sidebar-user [class*="chevron"] {
+  outline: 0 none transparent !important;
+  border: 0 none transparent !important;
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+/* Eliminar pseudo-elements decorativos si quedaron del bloque premium previo */
+.sidebar-user::before,
+.sidebar-user::after {
+  display: none !important;
+  content: none !important;
+  border: none !important;
+  outline: none !important;
+}
 </style>
 </head>
 <body>
