@@ -9033,7 +9033,30 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
               <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
             </div>
           </div>`;
-        if (m.link) el.onclick = () => window.open(m.link, '_blank');
+        // ┌─ FIX_MATERIAL_NUEVO_VIEWER_INTERNO_v1 ───────────────────────────
+        // │ Material nuevo subido desde panel admin: abrir en visor INTERNO
+        // │ (mismo que abrirPDF para materiales estaticos) en lugar de abrir
+        // │ nueva pestana de Google Drive. Extrae driveId del link y llama
+        // │ a window.abrirPDF(). Si no es un link de Drive valido, fallback
+        // │ a window.open() (mismo comportamiento que antes).
+        // └─────────────────────────────────────────────────────────────────
+        if (m.link) {
+          el.onclick = () => {
+            // Soporta los 3 formatos tipicos de URL de Drive:
+            //   https://drive.google.com/file/d/{ID}/view
+            //   https://drive.google.com/file/d/{ID}/preview
+            //   https://drive.google.com/open?id={ID}
+            //   https://drive.google.com/uc?id={ID}
+            const match = m.link.match(/\/file\/d\/([a-zA-Z0-9_-]+)|[?&]id=([a-zA-Z0-9_-]+)/);
+            const driveId = match ? (match[1] || match[2]) : null;
+            if (driveId && typeof window.abrirPDF === 'function') {
+              window.abrirPDF(m.nombre || 'Material VIP', driveId);
+            } else {
+              // Fallback: no es link de Drive o abrirPDF no disponible
+              window.open(m.link, '_blank');
+            }
+          };
+        }
         container.appendChild(el);
       });
     } catch(e) { console.warn('Error cargando badge material:', e); }
