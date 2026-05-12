@@ -33316,5 +33316,136 @@ html body:not(.modo-dia) .dir-card.dir-card-v2 .dir-card-footer > span {
 }
 </style>
 
+
+<style data-marker="DIRECTORIO_VIP_NIGHT_v2">
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECTORIO_VIP_NIGHT_v2 — Refuerzo de specificity con ID #sec-directorio
+   para vencer la regla "limpiadora" de linea 22053 en modo noche.
+
+   Diagnostico: la regla en linea 22053:
+     body:not(.modo-dia) .section [class*="-card"]:not(.tpl-card)
+       :not(.material-item):not(.is-plan) {
+         background: #0d1117 !important;
+         border: 1px solid rgba(255,255,255,0.07) !important;
+         box-shadow: none !important;
+       }
+   tiene specificity (0,0,6,1) y aplica fondo oscuro liso a TODO elemento
+   con "-card" dentro de .section. Eso barre el background del banner,
+   avatar, premium y footer del card v2.
+
+   El parche v1 (specificity 0,0,4,2) perdio contra 0,0,6,1. Los textos
+   funcionaron porque la 22053 NO toca color, solo background/border/shadow.
+
+   Solucion: sumar #sec-directorio al selector -> specificity (0,1,X,Y)
+   vence cualquier (0,0,X,Y). Restauro las propiedades que 22053 limpia.
+
+   Modo dia: 100% INTACTO. Layout/textos del v1: intactos (no compitieron).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. CARD container: restaurar fondo y border ───────────────────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 {
+  background: #0a1828 !important;
+  background-color: #0a1828 !important;
+  background-image: none !important;
+  border: 1.5px solid var(--card-accent-glow, rgba(245,215,122,0.28)) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.06) inset,
+    0 6px 28px rgba(0,0,0,0.55),
+    0 0 18px var(--card-accent-glow, rgba(245,215,122,0.14)) !important;
+}
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2:hover {
+  border-color: var(--card-accent, #f5d77a) !important;
+  box-shadow:
+    0 1px 0 rgba(255,255,255,0.10) inset,
+    0 20px 60px rgba(0,0,0,0.65),
+    0 0 0 1px var(--card-accent, #f5d77a),
+    0 0 40px var(--card-accent-glow, rgba(245,215,122,0.40)) !important;
+}
+
+/* ─── 2. BANNER: restaurar gradient del color del usuario ───────────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-banner {
+  background: linear-gradient(135deg,
+    var(--card-accent, #f5d77a) 0%,
+    rgba(5, 18, 50, 0.85) 100%) !important;
+  background-image: linear-gradient(135deg,
+    var(--card-accent, #f5d77a) 0%,
+    rgba(5, 18, 50, 0.85) 100%) !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── 3. AVATAR-WRAP: transparente para no tapar el banner ──────────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-avatar-wrap {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── 4. AVATAR: restaurar gradient circular ────────────────────────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-avatar {
+  background: linear-gradient(135deg,
+    var(--card-accent, #f5d77a) 0%,
+    rgba(11, 31, 74, 0.85) 100%) !important;
+  background-image: linear-gradient(135deg,
+    var(--card-accent, #f5d77a) 0%,
+    rgba(11, 31, 74, 0.85) 100%) !important;
+  background-color: transparent !important;
+  border: 4px solid #0a1828 !important;
+  box-shadow:
+    0 0 0 2px var(--card-accent, #f5d77a),
+    0 6px 22px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.35) !important;
+}
+
+/* Avatar con foto: respetar el background-image inline del usuario */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-avatar.has-img {
+  background-color: #0a1828 !important;
+  /* No tocamos background-image aqui — el inline del JS pone la foto */
+}
+
+/* ─── 5. BADGE VIP (premium): restaurar gradient dorado ─────────────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-premium {
+  background: linear-gradient(135deg, #fffbe8 0%, var(--card-accent, #f5d77a) 100%) !important;
+  background-image: linear-gradient(135deg, #fffbe8 0%, var(--card-accent, #f5d77a) 100%) !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow:
+    0 3px 10px rgba(0,0,0,0.30),
+    inset 0 1px 0 rgba(255,255,255,0.45) !important;
+}
+
+/* ─── 6. BODY del card: transparente ────────────────────────────────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-body {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── 7. FOOTER: fondo sutil restaurado ─────────────────────────────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-footer {
+  background: rgba(255,255,255,0.025) !important;
+  background-color: rgba(255,255,255,0.025) !important;
+  background-image: none !important;
+  border: none !important;
+  border-top: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: none !important;
+}
+
+/* ─── 8. TAGS: restaurar fondo y border con color del usuario ───────── */
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-tag,
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-footer > span {
+  background: var(--card-accent-soft, rgba(245,215,122,0.15)) !important;
+  background-color: var(--card-accent-soft, rgba(245,215,122,0.15)) !important;
+  background-image: none !important;
+  border: 1px solid var(--card-accent-glow, rgba(245,215,122,0.25)) !important;
+  box-shadow: none !important;
+}
+</style>
+
 </body>
 </html>
