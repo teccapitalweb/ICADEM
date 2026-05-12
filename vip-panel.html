@@ -33447,5 +33447,135 @@ html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-footer 
 }
 </style>
 
+
+<style data-marker="TOPBAR_VIP_BADGE_NIGHT_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   TOPBAR_VIP_BADGE_NIGHT_v1 — Rediseno premium VIP MENSUAL en modo noche.
+
+   Estructura HTML real (linea 4837):
+     <div class="topbar-plan">                       <- DIV contenedor flex
+       <span class="status-dot"></span>              <- punto dorado izquierdo
+       <span id="topbar-plan">VIP Mensual</span>     <- SPAN con el texto
+     </div>
+
+   Problema diagnosticado:
+   - Linea 16488 (.topbar-plan, 0,0,1,0): fondo dorado 10% + border 30% al DIV
+   - Linea 22303 (#topbar-plan, 0,1,0,0): fondo dorado 10% + border 30% al SPAN
+   Resultado: dos pills tenues anidadas, aspecto "IA generica" sin profundidad.
+
+   Solucion correcta segun estructura:
+   - DIV .topbar-plan: SOLO flex container transparente (sin pill propia)
+   - SPAN #topbar-plan: pill premium con 3 capas de luz, glow y text-shadow
+   - .status-dot: NO se toca (queda dorado con glow original)
+
+   Specificity:
+   - SPAN: html body:not(.modo-dia) #topbar-plan = (0,1,1,2)
+     vence #topbar-plan (0,1,0,0) por b=1>0
+   - DIV:  html body:not(.modo-dia) .topbar-plan = (0,0,2,2)
+     vence .topbar-plan (0,0,1,0) por b=2>1
+
+   Modo dia: 100% INTACTO (aislado con :not(.modo-dia)).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. DIV .topbar-plan: flex container transparente, SIN pill propia ── */
+html body:not(.modo-dia) .topbar-plan {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: inherit !important;
+  letter-spacing: 0 !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  text-transform: none !important;
+  transition: none !important;
+}
+
+/* Hover del DIV: NO transformar, el hover real va en el SPAN */
+html body:not(.modo-dia) .topbar-plan:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* ─── 2. SPAN #topbar-plan: pill premium con 3 capas de luz ────────────── */
+html body:not(.modo-dia) #topbar-plan {
+  display: inline-block !important;
+  padding: 5px 14px !important;
+  background: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.18) 0%,
+    rgba(245, 158, 11, 0.10) 50%,
+    rgba(251, 191, 36, 0.16) 100%) !important;
+  background-image: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.18) 0%,
+    rgba(245, 158, 11, 0.10) 50%,
+    rgba(251, 191, 36, 0.16) 100%) !important;
+  background-color: transparent !important;
+  border: 1px solid rgba(251, 191, 36, 0.45) !important;
+  border-radius: 999px !important;
+  color: #fde68a !important;
+  -webkit-text-fill-color: #fde68a !important;
+  font-family: 'Inter', 'JetBrains Mono', sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.30) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(251, 191, 36, 0.18),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.30),
+    0 0 14px rgba(251, 191, 36, 0.15) !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  transition: background 0.25s ease,
+              border-color 0.25s ease,
+              box-shadow 0.25s ease,
+              color 0.25s ease,
+              transform 0.25s ease !important;
+}
+
+/* Hover en el SPAN: gradient más intenso + glow más fuerte + lift sutil */
+html body:not(.modo-dia) #topbar-plan:hover {
+  background: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.28) 0%,
+    rgba(245, 158, 11, 0.18) 50%,
+    rgba(251, 191, 36, 0.26) 100%) !important;
+  background-image: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.28) 0%,
+    rgba(245, 158, 11, 0.18) 50%,
+    rgba(251, 191, 36, 0.26) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.65) !important;
+  color: #fef3c7 !important;
+  -webkit-text-fill-color: #fef3c7 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(251, 191, 36, 0.28),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.35),
+    0 0 22px rgba(251, 191, 36, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ─── 3. Pseudoelementos OFF: sin estrella ni shimmer (minimal premium) ── */
+html body:not(.modo-dia) #topbar-plan::before,
+html body:not(.modo-dia) #topbar-plan::after,
+html body:not(.modo-dia) .topbar-plan::before,
+html body:not(.modo-dia) .topbar-plan::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  animation: none !important;
+}
+</style>
+
 </body>
 </html>
