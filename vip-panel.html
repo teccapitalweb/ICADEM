@@ -26224,6 +26224,23 @@ async function cargarDatosUsuario() {
       _userData.cursosCompletados   = data.cursosCompletados || 0;
       _userData.certificados        = data.certificados || [];
     }
+
+    // 🌱 FIX_PRIMER_PASO_v1: Desbloqueo automático al entrar al Panel VIP
+    // El logro "primer-paso" se desbloquea simplemente por iniciar sesión en el panel.
+    if (!_userData.logrosDesbloqueados.includes('primer-paso')) {
+      const logroPrimerPaso = LOGROS.find(l => l.id === 'primer-paso');
+      _userData.logrosDesbloqueados.push('primer-paso');
+      if (logroPrimerPaso) _userData.xp += logroPrimerPaso.xp;
+      // Guardar en Firestore en background (sin bloquear el render)
+      setDoc(doc(db, 'membresias', user.uid), {
+        xp: _userData.xp,
+        logrosDesbloqueados: _userData.logrosDesbloqueados,
+        [`fechaLogros.primer-paso`]: serverTimestamp(),
+        actualizadoEn: serverTimestamp()
+      }, { merge: true }).catch(e => console.warn('[FIX_PRIMER_PASO_v1] No se pudo guardar:', e));
+      console.log('%c[FIX_PRIMER_PASO_v1] ✓ Logro "Primer paso" desbloqueado (+' + (logroPrimerPaso?.xp || 20) + ' XP)', 'color:#10b981;font-weight:bold');
+    }
+
     renderLogros();
     renderCertificados();
 
