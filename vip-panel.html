@@ -32288,5 +32288,282 @@ body.modo-dia #sidebar-plan::before {
 }
 </style>
 
+
+<style data-marker="SIDEBAR_USER_MINIMAL_v2">
+/* ═══════════════════════════════════════════════════════════════════════
+   SIDEBAR_USER_MINIMAL_v2 — Eliminación definitiva del recuadro
+
+   PROBLEMA RESUELTO:
+   La regla estatica .sidebar-user (linea 2688) pintaba:
+   - border dorado tenue (rgba 245,215,122,0.22)
+   - background gradiente dorado (rgba 245,215,122,0.08)
+   - box-shadow inset BLANCO (rgba 255,255,255,0.06)  <- este era el recuadro
+   - ::before con linea brillante dorada decorativa
+
+   La v1 cubria background/border pero NO mataba el box-shadow inset
+   ni tenia specificity para vencer reglas con !important en cascada.
+
+   SOLUCION:
+   Specificity ultra-alta (html body aside.sidebar div.sidebar-user) +
+   reset COMPLETO de todas las propiedades visuales del contenedor.
+
+   Solo CSS, ZERO HTML, ZERO JS.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* --- CONTENEDOR: cero lineas, cero recuadros, cero sombras --- */
+html body aside.sidebar div.sidebar-user,
+html body aside#sidebar div.sidebar-user,
+html body div.sidebar-user {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 none transparent !important;
+  border-top: 0 none transparent !important;
+  border-bottom: 0 none transparent !important;
+  border-left: 0 none transparent !important;
+  border-right: 0 none transparent !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 10px 14px !important;
+  margin: 4px 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 11px !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: visible !important;
+  transition: background-color 0.18s ease !important;
+}
+
+/* --- PSEUDO-ELEMENTOS: matar TODO (linea brillante, glow, etc.) --- */
+html body aside.sidebar div.sidebar-user::before,
+html body aside.sidebar div.sidebar-user::after,
+html body aside#sidebar div.sidebar-user::before,
+html body aside#sidebar div.sidebar-user::after,
+html body div.sidebar-user::before,
+html body div.sidebar-user::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 none transparent !important;
+  box-shadow: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  opacity: 0 !important;
+}
+
+/* --- HOVER: solo background tenue, sin bordes ni sombras --- */
+html body aside.sidebar div.sidebar-user:hover,
+html body aside#sidebar div.sidebar-user:hover,
+html body div.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.035) !important;
+  background-color: rgba(255, 255, 255, 0.035) !important;
+  background-image: none !important;
+  border: 0 none transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transform: none !important;
+}
+
+/* --- AVATAR dorado: limpio, sin anillos extra --- */
+html body aside.sidebar div.sidebar-user .user-avatar,
+html body aside.sidebar div.sidebar-user #sidebar-avatar,
+html body div.sidebar-user .user-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #f5d77a 0%, #d4a72c 100%) !important;
+  background-image: linear-gradient(135deg, #f5d77a 0%, #d4a72c 100%) !important;
+  background-color: #d4a72c !important;
+  color: #0a1428 !important;
+  -webkit-text-fill-color: #0a1428 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  font-family: 'Inter Tight', 'Inter', sans-serif !important;
+  letter-spacing: -0.01em !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+  text-shadow: none !important;
+  animation: none !important;
+}
+
+html body aside.sidebar div.sidebar-user:hover .user-avatar,
+html body aside.sidebar div.sidebar-user:hover #sidebar-avatar,
+html body div.sidebar-user:hover .user-avatar {
+  animation: none !important;
+  box-shadow: 0 0 0 3px rgba(245, 215, 122, 0.10) !important;
+}
+
+/* --- Contenedor interno .user-info --- */
+html body aside.sidebar div.sidebar-user > .user-info,
+html body aside.sidebar div.sidebar-user > div:not(.user-avatar),
+html body div.sidebar-user > .user-info {
+  flex: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  border: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+
+/* --- NOMBRE: tipografia limpia --- */
+html body aside.sidebar div.sidebar-user .user-name,
+html body aside.sidebar div.sidebar-user #sidebar-name,
+html body div.sidebar-user .user-name {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  letter-spacing: -0.005em !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  margin: 0 0 1px 0 !important;
+  text-transform: none !important;
+  background: none !important;
+  background-color: transparent !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  text-shadow: none !important;
+}
+
+/* --- BADGE "vip mensual": texto sutil sin pill --- */
+html body aside.sidebar div.sidebar-user .user-plan,
+html body aside.sidebar div.sidebar-user #sidebar-plan,
+html body div.sidebar-user .user-plan {
+  display: block !important;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: rgba(245, 215, 122, 0.82) !important;
+  -webkit-text-fill-color: rgba(245, 215, 122, 0.82) !important;
+  font-family: 'Inter', system-ui, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.01em !important;
+  text-transform: lowercase !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: auto !important;
+  max-width: 100% !important;
+  text-shadow: none !important;
+  animation: none !important;
+  overflow: visible !important;
+  white-space: nowrap !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+}
+
+html body aside.sidebar div.sidebar-user .user-plan::before,
+html body aside.sidebar div.sidebar-user .user-plan::after,
+html body aside.sidebar div.sidebar-user #sidebar-plan::before,
+html body aside.sidebar div.sidebar-user #sidebar-plan::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+html body aside.sidebar div.sidebar-user:hover .user-plan,
+html body aside.sidebar div.sidebar-user:hover #sidebar-plan,
+html body div.sidebar-user:hover .user-plan {
+  animation: none !important;
+  color: rgba(245, 215, 122, 1) !important;
+  -webkit-text-fill-color: rgba(245, 215, 122, 1) !important;
+}
+
+/* --- CHEVRON sutil --- */
+html body aside.sidebar div.sidebar-user > svg:last-child,
+html body div.sidebar-user > svg:last-child {
+  color: rgba(255, 255, 255, 0.28) !important;
+  fill: none !important;
+  stroke: rgba(255, 255, 255, 0.38) !important;
+  background: none !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  opacity: 1 !important;
+  flex-shrink: 0 !important;
+  margin-left: auto !important;
+  transition: stroke 0.2s ease, transform 0.2s ease !important;
+}
+
+html body aside.sidebar div.sidebar-user:hover > svg:last-child,
+html body div.sidebar-user:hover > svg:last-child {
+  stroke: rgba(245, 215, 122, 0.80) !important;
+  transform: translateX(2px) !important;
+}
+
+/* --- MODO DIA: mismo tratamiento --- */
+html body.modo-dia aside.sidebar div.sidebar-user,
+html body.modo-dia aside#sidebar div.sidebar-user,
+html body.modo-dia div.sidebar-user {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: 0 none transparent !important;
+  border-top: 0 none transparent !important;
+  border-bottom: 0 none transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+html body.modo-dia aside.sidebar div.sidebar-user::before,
+html body.modo-dia aside.sidebar div.sidebar-user::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  box-shadow: none !important;
+}
+
+html body.modo-dia aside.sidebar div.sidebar-user:hover,
+html body.modo-dia div.sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border: 0 none transparent !important;
+  box-shadow: none !important;
+}
+
+html body.modo-dia aside.sidebar div.sidebar-user .user-name,
+html body.modo-dia div.sidebar-user #sidebar-name {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+html body.modo-dia aside.sidebar div.sidebar-user .user-plan,
+html body.modo-dia div.sidebar-user #sidebar-plan {
+  color: rgba(251, 191, 36, 0.88) !important;
+  -webkit-text-fill-color: rgba(251, 191, 36, 0.88) !important;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+html body.modo-dia aside.sidebar div.sidebar-user .user-plan::before,
+html body.modo-dia div.sidebar-user #sidebar-plan::before {
+  display: none !important;
+  content: none !important;
+}
+</style>
+
 </body>
 </html>
