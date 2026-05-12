@@ -4720,7 +4720,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     <div class="logo-mark" style="background:none;padding:0;overflow:hidden"><img src="https://i.ibb.co/BVJQqb0X/ICADEM.jpg" alt="ICADEM" style="width:32px;height:32px;object-fit:cover;border-radius:6px"></div>
     <div class="logo-text"><strong>ICADEM</strong><span>Panel VIP</span></div>
   </div>
-  <div class="sidebar-user" onclick="showSection('perfil')" style="cursor:pointer;transition:background .2s" onmouseover="this.style.background='rgba(255,255,255,0.08)'" onmouseout="this.style.background='transparent'">
+  <div class="sidebar-user" onclick="showSection('perfil')">
     <div class="user-avatar" id="sidebar-avatar">?</div>
     <div class="user-info">
       <p class="user-name" id="sidebar-name">Cargando...</p>
@@ -31965,21 +31965,9 @@ body:not(.modo-dia) .webinar-empty-pulse {
 <style data-marker="DOCS_LEGALES_CONTRAST_v1">
 /* ═══════════════════════════════════════════════════════════════════════
    DOCS_LEGALES_CONTRAST_v1 — Letras legibles en cards de Documentos Legales
-
-   PROBLEMA DIAGNOSTICADO:
-   Las cards son <button class="doc-legal-card"> y los títulos son
-   <h3 class="doc-legal-card-title">. El CSS base define `color: #0A1F44`
-   pero NO `-webkit-text-fill-color`, y como existen reglas globales que
-   afectan a `[class*="-title"]` y heredan -webkit-text-fill-color desde
-   ancestros, el browser pinta los títulos casi invisibles.
-
-   SOLUCIÓN:
-   Forzar `color` + `-webkit-text-fill-color` para cada elemento de las
-   cards, en AMBOS modos (día y noche), con specificity alta para vencer
-   las reglas heredadas. Solo CSS, sin tocar HTML ni JS.
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ─── MODO DÍA (fondo blanco-azulado #F8FAFC) ────────────────────────── */
+/* ─── MODO DÍA ──────────────────────────────────────────────────────── */
 body.modo-dia .doc-legal-card,
 body.modo-dia button.doc-legal-card {
   background: #FFFFFF !important;
@@ -32029,7 +32017,7 @@ body.modo-dia .doc-legal-card .doc-legal-card-formats {
   font-weight: 700 !important;
 }
 
-/* ─── MODO NOCHE (fondo oscuro #08090b — default sin clase modo-dia) ─── */
+/* ─── MODO NOCHE ────────────────────────────────────────────────────── */
 body:not(.modo-dia) .doc-legal-card,
 body:not(.modo-dia) button.doc-legal-card {
   color: #f5d77a !important;
@@ -32076,7 +32064,7 @@ body:not(.modo-dia) .doc-legal-card .doc-legal-card-formats {
   font-weight: 700 !important;
 }
 
-/* ─── HOVER (refuerzo para ambos modos) ──────────────────────────────── */
+/* ─── HOVER ─────────────────────────────────────────────────────────── */
 body.modo-dia .doc-legal-card:hover .doc-legal-card-title {
   color: #0A1F44 !important;
   -webkit-text-fill-color: #0A1F44 !important;
@@ -32093,22 +32081,12 @@ body:not(.modo-dia) .doc-legal-card:hover .doc-legal-card-title {
    SIDEBAR_USER_MINIMAL_v1 — Rediseño minimal del sidebar-user
    Look objetivo: Linear / Vercel / Notion — SIN líneas duras, SIN recuadros
 
-   PROBLEMA RESUELTO:
-   El componente tenia 5 capas de bordes/lineas apiladas (2 anillos del
-   avatar + pill brillante del badge + estrella decorativa + border-bottom
-   del contenedor + mayusculas con letter-spacing alto) que se veian
-   "muy IA" / over-designed.
-
-   SOLUCION:
-   Disolver todas las lineas y bordes. Avatar limpio, badge se vuelve
-   texto sutil dorado debajo del nombre, contenedor invisible (parte del
-   sidebar). Hover sutil con background tenue.
-
-   Solo CSS, sin tocar HTML ni JS. Mantiene 100% la funcionalidad de
-   click → abre "Mi Perfil".
+   Trabaja en conjunto con la limpieza del HTML inline en la línea 4723
+   (se quitaron style="..." onmouseover/onmouseout para que NO se pinte
+   el recuadro semitransparente al hacer hover).
    ═══════════════════════════════════════════════════════════════════════ */
 
-/* ─── CONTENEDOR: invisible, sin bordes, parte del sidebar ─────────── */
+/* ─── CONTENEDOR: invisible, sin bordes ─────────────────────────────── */
 body .sidebar-user,
 body aside.sidebar .sidebar-user {
   background: transparent !important;
@@ -32141,18 +32119,18 @@ body aside.sidebar .sidebar-user::after {
   border: none !important;
 }
 
-/* Hover: solo un background ligeramente más visible, sin bordes */
+/* Hover: background MUY tenue, sin bordes — el recuadro desapareció */
 body .sidebar-user:hover,
 body aside.sidebar .sidebar-user:hover {
-  background: rgba(255, 255, 255, 0.045) !important;
-  background-color: rgba(255, 255, 255, 0.045) !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  background-color: rgba(255, 255, 255, 0.025) !important;
   background-image: none !important;
   border: none !important;
   box-shadow: none !important;
   transform: none !important;
 }
 
-/* ─── AVATAR: círculo dorado limpio, SIN anillos apilados ──────────── */
+/* ─── AVATAR: círculo dorado limpio, SIN anillos ────────────────────── */
 body .sidebar-user .user-avatar,
 body #sidebar-avatar,
 body aside.sidebar #sidebar-avatar {
@@ -32172,20 +32150,18 @@ body aside.sidebar #sidebar-avatar {
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0 !important;
-  /* CRÍTICO: sin anillos apilados, solo sombra muy sutil */
   box-shadow: none !important;
   border: none !important;
   text-shadow: none !important;
 }
 
-/* Hover del avatar: sin animación pulse, solo brillo muy leve */
 body .sidebar-user:hover .user-avatar,
 body .sidebar-user:hover #sidebar-avatar {
   animation: none !important;
-  box-shadow: 0 0 0 3px rgba(245, 215, 122, 0.10) !important;
+  box-shadow: 0 0 0 3px rgba(245, 215, 122, 0.08) !important;
 }
 
-/* ─── NOMBRE: texto blanco limpio, sin tracking exagerado ─────────── */
+/* ─── NOMBRE: limpio, sin tracking exagerado ────────────────────────── */
 body .sidebar-user .user-name,
 body #sidebar-name {
   font-family: 'Inter', system-ui, sans-serif !important;
@@ -32202,7 +32178,7 @@ body #sidebar-name {
   text-transform: none !important;
 }
 
-/* ─── BADGE "VIP MENSUAL": texto sutil, SIN pill, SIN borde, SIN fondo ─ */
+/* ─── BADGE "vip mensual": texto sutil, SIN pill ────────────────────── */
 body .sidebar-user .user-plan,
 body #sidebar-plan,
 body aside.sidebar #sidebar-plan {
@@ -32229,14 +32205,12 @@ body aside.sidebar #sidebar-plan {
   white-space: nowrap !important;
 }
 
-/* Quitar la estrella decorativa antes del texto */
 body .sidebar-user .user-plan::before,
 body #sidebar-plan::before {
   display: none !important;
   content: none !important;
 }
 
-/* Sin animación shimmer al hover (era parte del "look IA") */
 body .sidebar-user:hover .user-plan,
 body .sidebar-user:hover #sidebar-plan {
   animation: none !important;
@@ -32244,32 +32218,30 @@ body .sidebar-user:hover #sidebar-plan {
   -webkit-text-fill-color: rgba(245, 215, 122, 1) !important;
 }
 
-/* ─── CHEVRON `›`: muy sutil, sin caja ──────────────────────────── */
-body .sidebar-user .sidebar-chevron,
+/* ─── CHEVRON: sutil, sin caja ──────────────────────────────────────── */
 body .sidebar-user > svg:last-child,
 body .sidebar-user [class*="chevron"] {
   color: rgba(255, 255, 255, 0.25) !important;
-  fill: rgba(255, 255, 255, 0.25) !important;
-  stroke: rgba(255, 255, 255, 0.25) !important;
+  fill: none !important;
+  stroke: rgba(255, 255, 255, 0.35) !important;
   background: none !important;
   background-color: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  transition: color 0.2s ease, transform 0.2s ease !important;
+  transition: stroke 0.2s ease, transform 0.2s ease !important;
   flex-shrink: 0 !important;
   margin-left: auto !important;
+  opacity: 1 !important;
 }
 
-body .sidebar-user:hover .sidebar-chevron,
 body .sidebar-user:hover > svg:last-child,
 body .sidebar-user:hover [class*="chevron"] {
-  color: rgba(245, 215, 122, 0.7) !important;
-  fill: rgba(245, 215, 122, 0.7) !important;
-  stroke: rgba(245, 215, 122, 0.7) !important;
+  stroke: rgba(245, 215, 122, 0.75) !important;
   transform: translateX(2px) !important;
 }
 
-/* ─── Contenedor del texto (nombre + plan apilados) ─────────────── */
+/* ─── Contenedor interno (.user-info) ───────────────────────────────── */
+body .sidebar-user > .user-info,
 body .sidebar-user > p,
 body .sidebar-user > div:not(.user-avatar) {
   flex: 1 !important;
@@ -32280,9 +32252,10 @@ body .sidebar-user > div:not(.user-avatar) {
   background-color: transparent !important;
   padding: 0 !important;
   margin: 0 !important;
+  box-shadow: none !important;
 }
 
-/* ─── MODO DÍA: mismo tratamiento pero ajustando colores al fondo claro ─ */
+/* ─── MODO DÍA: mismo tratamiento ──────────────────────────────────── */
 body.modo-dia .sidebar-user,
 body.modo-dia aside.sidebar .sidebar-user {
   background: transparent !important;
@@ -32291,8 +32264,8 @@ body.modo-dia aside.sidebar .sidebar-user {
   box-shadow: none !important;
 }
 body.modo-dia .sidebar-user:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
-  background-color: rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
 }
 body.modo-dia .sidebar-user .user-name,
 body.modo-dia #sidebar-name {
