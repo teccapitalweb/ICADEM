@@ -32856,5 +32856,113 @@ html body.modo-dia .cert-info-desc {
 }
 </style>
 
+
+<style data-marker="DOCS_LEGALES_BADGES_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   DOCS_LEGALES_BADGES_v1 — Diferenciacion cromatica por categoria
+   en cards de Documentos Legales (MODO DIA exclusivamente)
+
+   Problema: en modo dia, todos los iconos y pills se ven dorado uniforme
+   porque .doc-legal-card-icon (linea 3998) y el v1 de cat aplican el mismo
+   tratamiento a las 4 categorias. Resultado: aspecto "IA generica".
+
+   Solucion: usar el atributo data-cat (ya presente en el <button> del card)
+   para aplicar paleta diferenciada por categoria:
+     - laboral    -> azul institucional
+     - mercantil  -> verde esmeralda
+     - cartas     -> ambar/dorado (mantiene identidad VIP)
+     - privacidad -> rosa magenta
+
+   Specificity: html body.modo-dia .doc-legal-card[data-cat="X"] .Y
+   vence al parche v1 y a las reglas base (linea 1440, 3998, 4011).
+
+   Modo noche: INTACTO (validado en captura - se ve bien en su tema dorado).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── LABORAL — Azul institucional ──────────────────────────────────── */
+html body.modo-dia .doc-legal-card[data-cat="laboral"] .doc-legal-card-icon {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%) !important;
+  background-color: #DBEAFE !important;
+  color: #1E40AF !important;
+  -webkit-text-fill-color: #1E40AF !important;
+  border: 1px solid #BFDBFE !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="laboral"] .doc-legal-card-icon svg {
+  color: #1E40AF !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="laboral"] .doc-legal-card-cat {
+  background: linear-gradient(135deg, #DBEAFE 0%, #BFDBFE 100%) !important;
+  background-color: #DBEAFE !important;
+  color: #1E3A8A !important;
+  -webkit-text-fill-color: #1E3A8A !important;
+  border: 1px solid #93C5FD !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+/* ─── MERCANTIL — Verde esmeralda ───────────────────────────────────── */
+html body.modo-dia .doc-legal-card[data-cat="mercantil"] .doc-legal-card-icon {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%) !important;
+  background-color: #D1FAE5 !important;
+  color: #047857 !important;
+  -webkit-text-fill-color: #047857 !important;
+  border: 1px solid #A7F3D0 !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="mercantil"] .doc-legal-card-icon svg {
+  color: #047857 !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="mercantil"] .doc-legal-card-cat {
+  background: linear-gradient(135deg, #D1FAE5 0%, #A7F3D0 100%) !important;
+  background-color: #D1FAE5 !important;
+  color: #065F46 !important;
+  -webkit-text-fill-color: #065F46 !important;
+  border: 1px solid #6EE7B7 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+/* ─── CARTAS — Ambar/dorado (mantiene identidad VIP) ────────────────── */
+html body.modo-dia .doc-legal-card[data-cat="cartas"] .doc-legal-card-icon {
+  background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+  background-color: #FEF3C7 !important;
+  color: #B45309 !important;
+  -webkit-text-fill-color: #B45309 !important;
+  border: 1px solid #FDE68A !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="cartas"] .doc-legal-card-icon svg {
+  color: #B45309 !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="cartas"] .doc-legal-card-cat {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%) !important;
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  border: 1px solid #FCD34D !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+/* ─── PRIVACIDAD — Rosa magenta ─────────────────────────────────────── */
+html body.modo-dia .doc-legal-card[data-cat="privacidad"] .doc-legal-card-icon {
+  background: linear-gradient(135deg, #FDF2F8 0%, #FCE7F3 100%) !important;
+  background-color: #FCE7F3 !important;
+  color: #BE185D !important;
+  -webkit-text-fill-color: #BE185D !important;
+  border: 1px solid #FBCFE8 !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="privacidad"] .doc-legal-card-icon svg {
+  color: #BE185D !important;
+}
+html body.modo-dia .doc-legal-card[data-cat="privacidad"] .doc-legal-card-cat {
+  background: linear-gradient(135deg, #FCE7F3 0%, #FBCFE8 100%) !important;
+  background-color: #FCE7F3 !important;
+  color: #9D174D !important;
+  -webkit-text-fill-color: #9D174D !important;
+  border: 1px solid #F9A8D4 !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+</style>
+
 </body>
 </html>
