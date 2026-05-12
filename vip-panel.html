@@ -33773,5 +33773,70 @@ html #sec-docs-legales .doc-legal-search input[type="text"]:focus {
 }
 </style>
 
+
+<style data-marker="SELECT_OPTIONS_DAY_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   SELECT_OPTIONS_DAY_v1 — Corregir el styling AZUL OSCURO de los <option>
+   nativos de los <select> en MODO DÍA.
+
+   Problema: linea 16586 tiene esta regla SIN selector de modo:
+     select option {
+       background: #0a1f4a !important;  ← azul marino oscuro
+       color: #fff !important;
+     }
+   Eso aplica a TODOS los <option> en TODA la pagina, incluido modo dia.
+   Resultado: dropdowns nativos (Calculadora Fiscal, Nomina IMSS,
+   Prestamo & TIR) se ven con fondo azul oscuro y texto blanco en modo
+   dia, lo cual rompe la estetica clara/blanca del modo dia.
+
+   Solucion: sobreescribir SOLO en modo dia con paleta clara consistente.
+   Specificity body.modo-dia select option = (0,0,2,2)
+   vence linea 16586 (0,0,0,2) por b=2>0.
+
+   Aplica SOLO a modo dia (.modo-dia). Modo noche: 100% INTACTO.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── Option normal: fondo blanco, texto oscuro ───────────────────────── */
+body.modo-dia select option,
+html body.modo-dia select option {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 500 !important;
+  padding: 8px 12px !important;
+}
+
+/* ─── Option seleccionada (la activa actualmente): azul tenue ─────────── */
+body.modo-dia select option:checked,
+body.modo-dia select option:focus,
+html body.modo-dia select option:checked {
+  background: #DBEAFE !important;
+  background-color: #DBEAFE !important;
+  color: #1E3A8A !important;
+  -webkit-text-fill-color: #1E3A8A !important;
+  font-weight: 700 !important;
+}
+
+/* ─── Option hover (cuando el cursor está encima): gris muy claro ─────── */
+body.modo-dia select option:hover,
+html body.modo-dia select option:hover {
+  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+
+/* ─── Option deshabilitada: gris claro ────────────────────────────────── */
+body.modo-dia select option:disabled,
+html body.modo-dia select option:disabled {
+  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  font-style: italic !important;
+}
+</style>
+
 </body>
 </html>
