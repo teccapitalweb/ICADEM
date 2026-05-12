@@ -31960,5 +31960,132 @@ body:not(.modo-dia) .webinar-empty-pulse {
   white-space: nowrap !important;
 }
 </style>
+
+
+<style data-marker="DOCS_LEGALES_CONTRAST_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   DOCS_LEGALES_CONTRAST_v1 — Letras legibles en cards de Documentos Legales
+
+   PROBLEMA DIAGNOSTICADO:
+   Las cards son <button class="doc-legal-card"> y los títulos son
+   <h3 class="doc-legal-card-title">. El CSS base define `color: #0A1F44`
+   pero NO `-webkit-text-fill-color`, y como existen reglas globales que
+   afectan a `[class*="-title"]` y heredan -webkit-text-fill-color desde
+   ancestros, el browser pinta los títulos casi invisibles.
+
+   SOLUCIÓN:
+   Forzar `color` + `-webkit-text-fill-color` para cada elemento de las
+   cards, en AMBOS modos (día y noche), con specificity alta para vencer
+   las reglas heredadas. Solo CSS, sin tocar HTML ni JS.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── MODO DÍA (fondo blanco-azulado #F8FAFC) ────────────────────────── */
+body.modo-dia .doc-legal-card,
+body.modo-dia button.doc-legal-card {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+}
+body.modo-dia .doc-legal-card .doc-legal-card-title,
+body.modo-dia button.doc-legal-card .doc-legal-card-title {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+body.modo-dia .doc-legal-card .doc-legal-card-cat {
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%) !important;
+  background-color: #FDE68A !important;
+  border: 1px solid #F59E0B !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+body.modo-dia .doc-legal-card .doc-legal-card-sub {
+  color: #1E3A8A !important;
+  -webkit-text-fill-color: #1E3A8A !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+body.modo-dia .doc-legal-card .doc-legal-card-desc {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  opacity: 1 !important;
+}
+body.modo-dia .doc-legal-card .doc-legal-card-time {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+  font-weight: 600 !important;
+}
+body.modo-dia .doc-legal-card .doc-legal-card-formats {
+  background: linear-gradient(135deg, #F8F4ED 0%, #FEF3C7 100%) !important;
+  background-color: #FEF3C7 !important;
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  border: 1px solid #FDE68A !important;
+  font-weight: 700 !important;
+}
+
+/* ─── MODO NOCHE (fondo oscuro #08090b — default sin clase modo-dia) ─── */
+body:not(.modo-dia) .doc-legal-card,
+body:not(.modo-dia) button.doc-legal-card {
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+}
+body:not(.modo-dia) .doc-legal-card .doc-legal-card-title,
+body:not(.modo-dia) button.doc-legal-card .doc-legal-card-title {
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+body:not(.modo-dia) .doc-legal-card .doc-legal-card-cat {
+  color: #fef3c7 !important;
+  -webkit-text-fill-color: #fef3c7 !important;
+  background: rgba(245,215,122,0.12) !important;
+  background-color: rgba(245,215,122,0.12) !important;
+  border: 1px solid rgba(245,215,122,0.35) !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+body:not(.modo-dia) .doc-legal-card .doc-legal-card-sub {
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+body:not(.modo-dia) .doc-legal-card .doc-legal-card-desc {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  opacity: 1 !important;
+}
+body:not(.modo-dia) .doc-legal-card .doc-legal-card-time {
+  color: #94a3b8 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
+  font-weight: 600 !important;
+}
+body:not(.modo-dia) .doc-legal-card .doc-legal-card-formats {
+  background: rgba(245,215,122,0.12) !important;
+  background-color: rgba(245,215,122,0.12) !important;
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  border: 1px solid rgba(245,215,122,0.35) !important;
+  font-weight: 700 !important;
+}
+
+/* ─── HOVER (refuerzo para ambos modos) ──────────────────────────────── */
+body.modo-dia .doc-legal-card:hover .doc-legal-card-title {
+  color: #0A1F44 !important;
+  -webkit-text-fill-color: #0A1F44 !important;
+}
+body:not(.modo-dia) .doc-legal-card:hover .doc-legal-card-title {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+</style>
+
 </body>
 </html>
