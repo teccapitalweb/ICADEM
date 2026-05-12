@@ -33567,5 +33567,105 @@ html body:not(.modo-dia) .topbar-plan::after {
 }
 </style>
 
+
+<style data-marker="DOC_LEGAL_SEARCH_NIGHT_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   DOC_LEGAL_SEARCH_NIGHT_v1 — Rediseno premium del buscador de
+   Documentos Legales en modo noche.
+
+   Problema: el buscador en modo noche se ve gris plano sin profundidad
+   ni accent ("aspecto IA"). El CSS base (linea 3835) define fondo blanco
+   para modo dia; en modo noche queda con fondo gris generico.
+
+   Solucion: paleta marino-dorado consistente con la estetica del panel
+   en modo noche (mismo dorado #f5d77a que el resto del panel).
+   - Gradient marino sutil de fondo
+   - Border dorado tenue
+   - Relieve interior con shadows inset
+   - Icono lupa con accent dorado
+   - Focus state premium con anillo dorado y mayor intensidad
+
+   Specificity: html body:not(.modo-dia) #sec-docs-legales .doc-legal-search
+   = (0,1,2,2). Vence cualquier regla limpiadora sin ID.
+
+   Modo dia: 100% INTACTO (aislado con :not(.modo-dia)).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 1. Contenedor del buscador: gradient marino premium ───────────── */
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  background-image: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+  background-color: #0f172a !important;
+  border: 1px solid rgba(245, 215, 122, 0.20) !important;
+  border-radius: 12px !important;
+  padding: 0 14px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+    0 1px 3px rgba(0, 0, 0, 0.30) !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+/* ─── 2. Focus state premium con anillo dorado ──────────────────────── */
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search:focus-within {
+  border-color: rgba(245, 215, 122, 0.60) !important;
+  box-shadow:
+    0 0 0 4px rgba(245, 215, 122, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.20),
+    0 1px 3px rgba(0, 0, 0, 0.30) !important;
+}
+
+/* ─── 3. Icono lupa: dorado tenue, mas intenso en focus ─────────────── */
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search svg {
+  color: rgba(245, 215, 122, 0.55) !important;
+  stroke: rgba(245, 215, 122, 0.55) !important;
+  transition: color 0.2s ease, stroke 0.2s ease !important;
+}
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search:focus-within svg {
+  color: rgba(245, 215, 122, 0.85) !important;
+  stroke: rgba(245, 215, 122, 0.85) !important;
+}
+
+/* ─── 4. Input: texto off-white nitido, caret dorado ────────────────── */
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search input {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  color: #F1F5F9 !important;
+  -webkit-text-fill-color: #F1F5F9 !important;
+  caret-color: #fbbf24 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  outline: none !important;
+  padding: 11px 12px !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  box-shadow: none !important;
+}
+
+/* ─── 5. Placeholder sutil para no competir con texto real ──────────── */
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search input::placeholder {
+  color: rgba(148, 163, 184, 0.55) !important;
+  opacity: 1 !important;
+  font-weight: 400 !important;
+}
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search input:focus::placeholder {
+  color: rgba(148, 163, 184, 0.35) !important;
+}
+
+/* ─── 6. Autofill: evitar background amarillo del navegador en focus ── */
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search input:-webkit-autofill,
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search input:-webkit-autofill:hover,
+html body:not(.modo-dia) #sec-docs-legales .doc-legal-search input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: #F1F5F9 !important;
+  caret-color: #fbbf24 !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+</style>
+
 </body>
 </html>
