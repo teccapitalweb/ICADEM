@@ -33667,5 +33667,65 @@ html body:not(.modo-dia) #sec-docs-legales .doc-legal-search input:-webkit-autof
 }
 </style>
 
+
+<style data-marker="DOC_LEGAL_SEARCH_INPUT_CLEAN_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   DOC_LEGAL_SEARCH_INPUT_CLEAN_v1 — Limpiar el "recuadro dentro del
+   recuadro" del input del buscador de Documentos Legales (ambos modos).
+
+   Problema: la regla generica (linea 16566) aplica a TODO input del panel:
+     input:not([type="checkbox"]):not([type="radio"]) {
+       background: rgba(36,58,94,0.85) !important;
+       border: 1px solid rgba(147,197,253,0.18) !important;
+       border-radius: 12px !important;
+       padding: 12px 16px !important;
+     }
+   Y la regla focus (linea 16579) añade box-shadow + border dorado al focus.
+   
+   Resultado: dentro del contenedor .doc-legal-search aparece OTRO recuadro
+   (el del propio input). Caja dentro de caja.
+
+   En modo noche el parche DOC_LEGAL_SEARCH_NIGHT_v1 ya vence esto (specificity
+   0,1,2,3 > 0,0,2,1). Pero en modo dia, esas reglas siguen aplicando.
+
+   Solucion: regla UNIVERSAL (sin :not(.modo-dia) ni .modo-dia) que limpia
+   el chrome del input dentro de #sec-docs-legales .doc-legal-search.
+   
+   Specificity: html #sec-docs-legales .doc-legal-search input = (0,1,1,2)
+   Vence linea 16566 (0,0,2,1) por a=1>0
+   Vence linea 16579 (0,0,1,1) por a=1>0
+   
+   Modo noche: mi parche v1 sigue mandando (specificity 0,1,2,3 mayor).
+   Modo dia: este nuevo limpia el chrome del input (problema resuelto).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Input del buscador: solo padding y font; SIN chrome propio
+   (el contenedor .doc-legal-search es quien tiene el border y fondo) */
+html #sec-docs-legales .doc-legal-search input,
+html #sec-docs-legales .doc-legal-search input[type="text"] {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  padding: 11px 12px !important;
+  margin: 0 !important;
+}
+
+/* Mismo estado en focus: cero chrome anadido por el input mismo
+   (el anillo de focus va en el contenedor .doc-legal-search) */
+html #sec-docs-legales .doc-legal-search input:focus,
+html #sec-docs-legales .doc-legal-search input:focus-visible,
+html #sec-docs-legales .doc-legal-search input[type="text"]:focus {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+</style>
+
 </body>
 </html>
