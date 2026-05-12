@@ -33577,5 +33577,123 @@ html body:not(.modo-dia) .topbar-plan::after {
 }
 </style>
 
+
+<style data-marker="TOPBAR_VIP_BADGE_NIGHT_v2">
+/* ═══════════════════════════════════════════════════════════════════════
+   TOPBAR_VIP_BADGE_NIGHT_v2 — Ajuste tras feedback: badge se veia
+   difuminado en modo noche e inconsistente con modo dia.
+
+   Problemas detectados en v1:
+   - Padding 5px 14px ≠ modo dia (6px 18px) → tamano inconsistente
+   - Letter-spacing 0.14em ≠ modo dia (0.10em) → letras mas dispersas
+   - Text-shadow blur 2px sobre texto 10.5px → letras DIFUMINADAS
+   - Color #fde68a tenue contra gradient → bajo contraste
+
+   Solucion v2: replicar dimensiones/tipografia EXACTAS del modo dia,
+   solo cambiar la paleta a tonos noche. Eliminar text-shadow (causa
+   raiz de la difuminacion). Anadir font-smoothing antialiased.
+
+   Mismo selector que v1 (html body:not(.modo-dia) #topbar-plan,
+   specificity 0,1,1,2), v2 esta DESPUES en el documento -> gana por orden.
+
+   Modo dia: 100% INTACTO.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* DIV: flex container transparente (igual que v1, sin cambios) */
+html body:not(.modo-dia) .topbar-plan {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: none !important;
+}
+html body:not(.modo-dia) .topbar-plan:hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* SPAN #topbar-plan: pill premium con MATCH AL MODO DIA + texto nitido */
+html body:not(.modo-dia) #topbar-plan {
+  display: inline-block !important;
+  /* Dimensiones IGUALES al modo dia */
+  padding: 6px 18px !important;
+  border-radius: 999px !important;
+  /* Tipografia IGUAL al modo dia */
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  line-height: 1.2 !important;
+  white-space: nowrap !important;
+  /* Paleta NOCHE: gradient dorado tenue + border definido + texto cremoso brillante */
+  background: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.20) 0%,
+    rgba(245, 158, 11, 0.12) 50%,
+    rgba(251, 191, 36, 0.18) 100%) !important;
+  background-image: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.20) 0%,
+    rgba(245, 158, 11, 0.12) 50%,
+    rgba(251, 191, 36, 0.18) 100%) !important;
+  background-color: transparent !important;
+  border: 1px solid rgba(251, 191, 36, 0.50) !important;
+  color: #fef3c7 !important;
+  -webkit-text-fill-color: #fef3c7 !important;
+  /* CRITICO: texto nitido, SIN shadow que difumine */
+  text-shadow: none !important;
+  -webkit-font-smoothing: antialiased !important;
+  -moz-osx-font-smoothing: grayscale !important;
+  text-rendering: optimizeLegibility !important;
+  /* Sombras suaves para profundidad SIN tapar el texto */
+  box-shadow:
+    inset 0 1px 0 rgba(251, 191, 36, 0.20),
+    0 2px 6px rgba(0, 0, 0, 0.25),
+    0 0 12px rgba(251, 191, 36, 0.12) !important;
+  transition: background 0.2s ease,
+              border-color 0.2s ease,
+              box-shadow 0.2s ease,
+              color 0.2s ease !important;
+}
+
+html body:not(.modo-dia) #topbar-plan:hover {
+  background: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.30) 0%,
+    rgba(245, 158, 11, 0.20) 50%,
+    rgba(251, 191, 36, 0.28) 100%) !important;
+  background-image: linear-gradient(135deg,
+    rgba(251, 191, 36, 0.30) 0%,
+    rgba(245, 158, 11, 0.20) 50%,
+    rgba(251, 191, 36, 0.28) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.70) !important;
+  color: #fffbeb !important;
+  -webkit-text-fill-color: #fffbeb !important;
+  box-shadow:
+    inset 0 1px 0 rgba(251, 191, 36, 0.30),
+    0 4px 10px rgba(0, 0, 0, 0.30),
+    0 0 18px rgba(251, 191, 36, 0.22) !important;
+  transform: none !important;
+}
+
+/* Pseudoelementos OFF en ambos */
+html body:not(.modo-dia) #topbar-plan::before,
+html body:not(.modo-dia) #topbar-plan::after,
+html body:not(.modo-dia) .topbar-plan::before,
+html body:not(.modo-dia) .topbar-plan::after {
+  display: none !important;
+  content: none !important;
+  background: none !important;
+  animation: none !important;
+}
+</style>
+
 </body>
 </html>
