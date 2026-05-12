@@ -32713,5 +32713,148 @@ html body.modo-dia .ic-hello-line {
 }
 </style>
 
+
+<style data-marker="CERT_EMPTY_CONTRAST_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   CERT_EMPTY_CONTRAST_v1 — Letras legibles en estado vacio de Certificados
+
+   PROBLEMA RESUELTO (SOLO MODO DIA):
+   El CSS estatico tiene color: #fafafa (blanco) y rgba(168,184,209,0.7)
+   (gris claro) para los textos del estado vacio (.cert-empty-*) y el card
+   de validacion QR (.cert-info-*). En modo noche son visibles, pero en
+   modo dia el fondo es claro y las letras blancas se vuelven invisibles.
+
+   El modo-dia v7 NO tiene reglas para estas clases (confirmado).
+
+   SOLUCION:
+   Inyectar reglas modo-dia con specificity alta + colores oscuros para:
+   - Titulos: #0F172A (slate-900, alta legibilidad)
+   - Descripciones: #475569 (slate-600, secundario)
+   - Icono: #2563EB (azul brand, no blanco)
+   - Contenedor cert-empty: fondo blanco con borde discontinuo elegante
+   - Contenedor cert-info-card: fondo azul tenue con borde sutil
+
+   Modo noche NO se toca (ya funciona perfecto).
+
+   Solo CSS, ZERO HTML, ZERO JS.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* --- CONTENEDOR cert-empty: fondo blanco con borde discontinuo --- */
+html body.modo-dia .cert-empty {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border: 1.5px dashed #BFDBFE !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* --- ICONO MEDALLA: azul brand sobre fondo azul tenue --- */
+html body.modo-dia .cert-empty .cert-empty-icon,
+html body.modo-dia .cert-empty-icon {
+  background: #DBEAFE !important;
+  background-color: #DBEAFE !important;
+  background-image: none !important;
+  border: 1.5px solid #BFDBFE !important;
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+}
+html body.modo-dia .cert-empty .cert-empty-icon svg,
+html body.modo-dia .cert-empty-icon svg {
+  stroke: #2563EB !important;
+  color: #2563EB !important;
+}
+
+/* --- TITULO "Aun no tienes certificados" --- */
+html body.modo-dia .cert-empty .cert-empty-title,
+html body.modo-dia .cert-empty-title {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+  background: none !important;
+  background-color: transparent !important;
+  text-shadow: none !important;
+}
+
+/* --- DESCRIPCION "Completa tu primer curso..." --- */
+html body.modo-dia .cert-empty .cert-empty-desc,
+html body.modo-dia .cert-empty-desc {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  opacity: 1 !important;
+  background: none !important;
+  background-color: transparent !important;
+  font-weight: 500 !important;
+}
+
+/* --- Boton "Explorar Videoteca" (ya se ve bien, solo refuerzo) --- */
+html body.modo-dia .cert-empty .cert-empty-btn,
+html body.modo-dia .cert-empty-btn {
+  background: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%) !important;
+  background-image: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%) !important;
+  color: #78350F !important;
+  -webkit-text-fill-color: #78350F !important;
+  border: none !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.30) !important;
+}
+html body.modo-dia .cert-empty .cert-empty-btn:hover,
+html body.modo-dia .cert-empty-btn:hover {
+  background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%) !important;
+  background-image: linear-gradient(135deg, #D97706 0%, #F59E0B 100%) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 16px rgba(245, 158, 11, 0.40) !important;
+}
+
+/* --- CARD "Validacion oficial con QR" --- */
+html body.modo-dia .cert-info-card {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border: 1px solid #E2E8F0 !important;
+  border-left: 3px solid #2563EB !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* --- Icono info circulo azul --- */
+html body.modo-dia .cert-info-card .cert-info-icon,
+html body.modo-dia .cert-info-icon {
+  color: #2563EB !important;
+  -webkit-text-fill-color: #2563EB !important;
+  background: none !important;
+  background-color: transparent !important;
+}
+html body.modo-dia .cert-info-card .cert-info-icon svg,
+html body.modo-dia .cert-info-icon svg {
+  stroke: #2563EB !important;
+  color: #2563EB !important;
+}
+
+/* --- Titulo "Validacion oficial con QR" --- */
+html body.modo-dia .cert-info-card .cert-info-title,
+html body.modo-dia .cert-info-title {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+  background: none !important;
+  background-color: transparent !important;
+  text-shadow: none !important;
+}
+
+/* --- Descripcion del QR --- */
+html body.modo-dia .cert-info-card .cert-info-desc,
+html body.modo-dia .cert-info-desc {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  opacity: 1 !important;
+  background: none !important;
+  background-color: transparent !important;
+  font-weight: 500 !important;
+}
+</style>
+
 </body>
 </html>
