@@ -34275,5 +34275,32 @@ html body.modo-dia select:hover:not(:focus):not(.dir-toolbar select):not([class*
   })();
 </script>
 
+<style data-marker="PAGE_TAG_DIAMOND_DAY_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   PAGE_TAG_DIAMOND_DAY_v1 — Separar el diamante (◆) del texto en el
+   badge .page-tag (ej: "BIBLIOTECA MULTIMEDIA") en modo DIA.
+
+   Diagnostico:
+   - El simbolo ◆ es un pseudo-elemento .page-tag::before (linea 16328)
+   - En modo noche, .page-tag tiene display:inline-flex + gap:8px
+     → eso separa el ::before del texto con 8px de espacio
+   - En modo dia, la regla del DAY var (linea 28994+) sobrescribe el
+     display a inline-block, y gap NO funciona en inline-block
+     → resultado: el ◆ queda pegado a las letras
+
+   Fix: Restaurar display:inline-flex y gap:8px en modo dia, manteniendo
+   la paleta clara (azul/blanco) intacta.
+
+   Specificity: html body.modo-dia .page-tag = (0,0,1,3) → vence al DAY
+   var (0,0,1,2) y a .page-tag base (0,0,1,0).
+   Aislamiento: solo body.modo-dia, modo noche intacto.
+   ═══════════════════════════════════════════════════════════════════════ */
+html body.modo-dia .page-tag {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+</style>
+
 </body>
 </html>
