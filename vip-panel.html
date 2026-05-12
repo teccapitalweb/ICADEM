@@ -32565,5 +32565,72 @@ html body.modo-dia div.sidebar-user #sidebar-plan::before {
 }
 </style>
 
+
+<style data-marker="NOTICIAS_BADGE_CONTRAST_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   NOTICIAS_BADGE_CONTRAST_v1 — Letras blancas en badges de noticias (MODO DIA)
+
+   PROBLEMA RESUELTO:
+   El JS genera badges con style inline: background:${info.grad}; color:#fff
+   En modo noche se ven bien (texto blanco sobre gradiente).
+   En modo dia: alguna regla CSS estatica pisa el color inline #fff con
+   un color oscuro (#0F172A), dejando texto negro sobre fondo negro/oscuro
+   = invisible (solo se ve cuando seleccionas el texto con el mouse).
+
+   SOLUCION:
+   Forzar color blanco + -webkit-text-fill-color blanco SOLO en los badges
+   de las cards de noticias en modo dia, con specificity ultra-alta.
+   Modo noche NO se toca (ya funciona perfecto).
+
+   Solo CSS, ZERO HTML, ZERO JS.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* --- BADGE DE CATEGORIA en noticia-card (MODO DIA) --- */
+/* El badge es el primer <span> dentro del div de imagen de cada noticia-card */
+html body.modo-dia .noticia-card > div:first-child > span:first-child,
+html body.modo-dia article.noticia-card > div:first-child > span:first-child,
+html body.modo-dia .noticia-card span[style*="text-transform:uppercase"],
+html body.modo-dia article.noticia-card span[style*="text-transform:uppercase"] {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25) !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+/* El icono emoji dentro del badge (icono, etc.) tambien blanco */
+html body.modo-dia .noticia-card > div:first-child > span:first-child > span,
+html body.modo-dia article.noticia-card > div:first-child > span:first-child > span,
+html body.modo-dia .noticia-card span[style*="text-transform:uppercase"] > span,
+html body.modo-dia article.noticia-card span[style*="text-transform:uppercase"] > span {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  filter: brightness(1.1) saturate(1.1) !important;
+}
+
+/* --- BADGE DE FECHA "Ayer", "Hace 2 dias" (MODO DIA) --- */
+/* El segundo span dentro del div de imagen tambien queda visible */
+html body.modo-dia .noticia-card > div:first-child > span:nth-child(3),
+html body.modo-dia article.noticia-card > div:first-child > span:nth-child(3),
+html body.modo-dia .noticia-card span[style*="backdrop-filter:blur"],
+html body.modo-dia article.noticia-card span[style*="backdrop-filter:blur"] {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25) !important;
+  font-weight: 600 !important;
+  opacity: 1 !important;
+}
+
+/* --- Refuerzo extra: cualquier span con style inline color:#fff dentro
+       de noticia-card debe mantenerlo en modo dia --- */
+html body.modo-dia .noticia-card span[style*="color:#fff"],
+html body.modo-dia .noticia-card span[style*="color: #fff"],
+html body.modo-dia .noticia-card span[style*="color:#FFFFFF"],
+html body.modo-dia article.noticia-card span[style*="color:#fff"] {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+</style>
+
 </body>
 </html>
