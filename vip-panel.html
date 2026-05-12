@@ -10060,6 +10060,28 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
           Ver todas las clases
         </button>
         <iframe id="modal-iframe" src="" allowfullscreen style="flex:1;width:100%;height:100%;border:none;display:none"></iframe>
+        <!-- ┌─ VIDEO_FULLSCREEN_BTN_v1 ─────────────────────────────────────
+             │ Boton de pantalla completa para videos. Tapa el icono nativo
+             │ "abrir en Drive" del iframe (esquina sup. derecha) y ofrece
+             │ funcionalidad real: entrar/salir de fullscreen via Fullscreen
+             │ API. El CSS al final del archivo controla visibilidad (solo
+             │ se muestra cuando hay video reproduciendose) y el cambio de
+             │ icono segun estado.
+             └─────────────────────────────────────────────────────────── -->
+        <button id="btn-fullscreen-video" type="button" onclick="window.toggleVideoFullscreen && window.toggleVideoFullscreen()" aria-label="Pantalla completa" title="Pantalla completa">
+          <svg class="icon-fs-enter" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3H5a2 2 0 0 0-2 2v3"/>
+            <path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+            <path d="M3 16v3a2 2 0 0 0 2 2h3"/>
+            <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+          </svg>
+          <svg class="icon-fs-exit" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 3v3a2 2 0 0 1-2 2H3"/>
+            <path d="M21 8h-3a2 2 0 0 1-2-2V3"/>
+            <path d="M3 16h3a2 2 0 0 1 2 2v3"/>
+            <path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
+          </svg>
+        </button>
         <div id="modal-placeholder" style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:rgba(255,255,255,0.3);gap:.75rem;padding:2rem">
           <div style="width:72px;height:72px;background:rgba(255,255,255,0.06);border-radius:50%;display:flex;align-items:center;justify-content:center">
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.3)" stroke-width="1.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
@@ -34048,34 +34070,210 @@ html body.modo-dia select:hover:not(:focus):not(.dir-toolbar select):not([class*
   }
 }
 
-/* ─── COVER 2: Tapar icono "abrir en Drive" del visor de Video ────────── */
-/* IMPORTANTE: En DESKTOP (>=768px) el back button .modal-back-btn esta
-   OCULTO (linea 10022: #btn-volver-lista{ display:none !important; }).
-   Por eso el iframe empieza desde top:0 del #modal-video-area.
-   En MOBILE (<768px) el back button SI esta visible y mide ~45px.
-   La posicion base apunta a desktop; el @media revierte para mobile. */
-#modal-video-area::after {
-  content: '' !important;
+/* ─── COVER 2: REEMPLAZADO en parche VIDEO_FULLSCREEN_BTN_v1 ──────────── */
+/* El cover del visor de video ya no es un pseudo-elemento pasivo. Ahora
+   es un boton interactivo de pantalla completa (#btn-fullscreen-video).
+   Ver el bloque <style data-marker="VIDEO_FULLSCREEN_BTN_v1"> al final. */
+</style>
+
+
+<style data-marker="VIDEO_FULLSCREEN_BTN_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   VIDEO_FULLSCREEN_BTN_v1 — Boton de pantalla completa para videos.
+
+   Reemplaza al pseudo-elemento ::after pasivo del parche
+   HIDE_DRIVE_BUTTONS_v1 con un boton REAL que:
+   - Tapa el icono nativo "abrir en Drive" del iframe /preview
+   - Permite al usuario ver el video en pantalla completa
+   - Cambia automaticamente entre icono "entrar" y "salir" segun estado
+
+   Estrategia tecnica:
+   - El boton es sibling del iframe dentro de #modal-video-area
+   - Posicion absolute en top:0 right:0 (desktop sin back button) o
+     top:45px right:0 (mobile con back button visible)
+   - z-index alto para estar encima del iframe
+   - Visibilidad controlada por CSS: solo se muestra cuando el iframe
+     tiene display:block (truco con selector [style*=...])
+   - Pseudo-clase :fullscreen alterna los iconos automaticamente
+
+   Compatibilidad: Chrome, Edge, Firefox, Safari (con prefijo -webkit-).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── BOTON BASE ──────────────────────────────────────────────────────── */
+#btn-fullscreen-video {
   position: absolute !important;
   top: 0 !important;
   right: 0 !important;
   width: 60px !important;
   height: 56px !important;
   background: #292a2d !important;
-  z-index: 5 !important;
-  pointer-events: auto !important;
+  background-color: #292a2d !important;
+  border: none !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  z-index: 10 !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #FFFFFF !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  transition: background-color 0.15s, transform 0.1s !important;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+
+/* ─── MOSTRAR EL BOTON SOLO CUANDO HAY VIDEO REPRODUCIENDOSE ──────────── */
+#modal-iframe[style*="display: block"] ~ #btn-fullscreen-video,
+#modal-iframe[style*="display:block"] ~ #btn-fullscreen-video {
+  display: flex !important;
+}
+
+/* ─── HOVER Y ACTIVE ──────────────────────────────────────────────────── */
+#btn-fullscreen-video:hover {
+  background: #3a3b3e !important;
+  background-color: #3a3b3e !important;
+}
+#btn-fullscreen-video:active {
+  background: #1a1a1a !important;
+  background-color: #1a1a1a !important;
+  transform: scale(0.96) !important;
+}
+#btn-fullscreen-video:focus-visible {
+  outline: 2px solid #6b8fc4 !important;
+  outline-offset: -2px !important;
+}
+
+/* ─── ICONOS SVG: toggle automatico segun estado fullscreen ───────────── */
+#btn-fullscreen-video .icon-fs-enter,
+#btn-fullscreen-video .icon-fs-exit {
+  pointer-events: none !important;
+  flex-shrink: 0 !important;
+}
+#btn-fullscreen-video .icon-fs-enter { display: block !important; }
+#btn-fullscreen-video .icon-fs-exit  { display: none !important; }
+
+#modal-video-area:fullscreen #btn-fullscreen-video .icon-fs-enter,
+#modal-video-area:-webkit-full-screen #btn-fullscreen-video .icon-fs-enter {
+  display: none !important;
+}
+#modal-video-area:fullscreen #btn-fullscreen-video .icon-fs-exit,
+#modal-video-area:-webkit-full-screen #btn-fullscreen-video .icon-fs-exit {
   display: block !important;
 }
 
-/* Mobile: back button visible (~45px alto), cover se desplaza hacia abajo */
+/* ─── CONTAINER EN FULLSCREEN ─────────────────────────────────────────── */
+#modal-video-area:fullscreen,
+#modal-video-area:-webkit-full-screen {
+  background: #000 !important;
+  background-color: #000 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  display: flex !important;
+}
+
+#modal-video-area:fullscreen #modal-iframe,
+#modal-video-area:-webkit-full-screen #modal-iframe {
+  width: 100vw !important;
+  height: 100vh !important;
+  flex: 1 !important;
+  display: block !important;
+}
+
+#modal-video-area:fullscreen .modal-back-btn,
+#modal-video-area:-webkit-full-screen .modal-back-btn {
+  display: none !important;
+}
+
+/* En fullscreen, el boton se reubica con look "flotante" premium */
+#modal-video-area:fullscreen #btn-fullscreen-video,
+#modal-video-area:-webkit-full-screen #btn-fullscreen-video {
+  top: 16px !important;
+  right: 16px !important;
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 8px !important;
+  background: rgba(0,0,0,0.55) !important;
+  background-color: rgba(0,0,0,0.55) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  opacity: 0.85 !important;
+}
+#modal-video-area:fullscreen #btn-fullscreen-video:hover,
+#modal-video-area:-webkit-full-screen #btn-fullscreen-video:hover {
+  opacity: 1 !important;
+  background: rgba(0,0,0,0.75) !important;
+  background-color: rgba(0,0,0,0.75) !important;
+}
+
+/* ─── RESPONSIVE MOBILE ───────────────────────────────────────────────── */
 @media (max-width: 767px) {
-  #modal-video-area::after {
+  #btn-fullscreen-video {
     top: 45px !important;
     width: 56px !important;
     height: 50px !important;
   }
 }
 </style>
+
+<script>
+  // ┌─ VIDEO_FULLSCREEN_BTN_v1 — Logica de toggle de pantalla completa ──
+  // │ Usa la Fullscreen API nativa del navegador. Compatible con:
+  // │   - Chrome / Edge / Firefox (estandar requestFullscreen)
+  // │   - Safari / iOS Safari (prefijo webkit)
+  // │ Aplica fullscreen al #modal-video-area para que el boton de salir
+  // │ siga siendo accesible dentro del fullscreen.
+  // └────────────────────────────────────────────────────────────────────
+  (function() {
+    'use strict';
+
+    function getFullscreenElement() {
+      return document.fullscreenElement
+          || document.webkitFullscreenElement
+          || document.mozFullScreenElement
+          || document.msFullscreenElement
+          || null;
+    }
+
+    function requestFs(el) {
+      if (el.requestFullscreen)        return el.requestFullscreen();
+      if (el.webkitRequestFullscreen)  return el.webkitRequestFullscreen();
+      if (el.mozRequestFullScreen)     return el.mozRequestFullScreen();
+      if (el.msRequestFullscreen)      return el.msRequestFullscreen();
+      return null;
+    }
+
+    function exitFs() {
+      if (document.exitFullscreen)        return document.exitFullscreen();
+      if (document.webkitExitFullscreen)  return document.webkitExitFullscreen();
+      if (document.mozCancelFullScreen)   return document.mozCancelFullScreen();
+      if (document.msExitFullscreen)      return document.msExitFullscreen();
+      return null;
+    }
+
+    window.toggleVideoFullscreen = function() {
+      var area = document.getElementById('modal-video-area');
+      if (!area) return;
+      var current = getFullscreenElement();
+      try {
+        if (!current) {
+          var p = requestFs(area);
+          if (p && p.catch) p.catch(function(err) {
+            console.warn('No se pudo entrar a pantalla completa:', err);
+          });
+        } else {
+          var p2 = exitFs();
+          if (p2 && p2.catch) p2.catch(function(err) {
+            console.warn('No se pudo salir de pantalla completa:', err);
+          });
+        }
+      } catch(e) {
+        console.warn('Fullscreen error:', e);
+      }
+    };
+  })();
+</script>
 
 </body>
 </html>
