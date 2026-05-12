@@ -13507,6 +13507,87 @@ buildVideoteca();
   <div class="pie">Generado por ICADEM Panel VIP · icademx.com</div>
 
   <script>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); }<\/script>
+
+<!-- DIR_MODAL_AUTOCLOSE_v1: Cerrar modales del directorio al cambiar de seccion -->
+<script>
+(function() {
+  'use strict';
+  
+  // Funcion que cierra TODOS los modales del directorio
+  function cerrarModalesDirectorio() {
+    const modalPerfil = document.getElementById('dir-perfil-modal');
+    const modalEditor = document.getElementById('dir-editor-modal');
+    
+    let algoCerrado = false;
+    
+    if (modalPerfil && modalPerfil.style.display !== 'none' && modalPerfil.style.display !== '') {
+      modalPerfil.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    if (modalEditor && modalEditor.style.display !== 'none' && modalEditor.style.display !== '') {
+      modalEditor.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    // Restaurar overflow del body
+    if (algoCerrado) {
+      document.body.style.overflow = '';
+      console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Modal(es) del directorio cerrado(s) al cambiar de seccion', 'color:#10b981;font-weight:bold');
+    }
+  }
+  
+  // Hookear window.showSection cuando este disponible
+  function hookearShowSection() {
+    if (typeof window.showSection !== 'function') {
+      // Aun no disponible, esperar
+      setTimeout(hookearShowSection, 200);
+      return;
+    }
+    
+    // Evitar doble hook (si este script se ejecuta dos veces)
+    if (window.showSection.__dirModalAutoCloseHooked) return;
+    
+    const _originalShow = window.showSection;
+    window.showSection = function(name) {
+      // ANTES de cambiar de seccion, cerrar modales del directorio
+      cerrarModalesDirectorio();
+      // Llamar al showSection original (mantiene toda la logica existente)
+      return _originalShow.apply(this, arguments);
+    };
+    window.showSection.__dirModalAutoCloseHooked = true;
+    console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Hook activo sobre window.showSection', 'color:#10b981;font-weight:bold;font-size:13px');
+  }
+  
+  // Tambien interceptar clicks directos en los nav-items del sidebar
+  // (defensive: por si showSection se llama desde otro lado)
+  function interceptarSidebarClicks() {
+    document.querySelectorAll('.nav-item').forEach(navItem => {
+      if (navItem.dataset.dirCloseHooked === '1') return;
+      navItem.dataset.dirCloseHooked = '1';
+      navItem.addEventListener('click', function() {
+        // Pequeno delay para que showSection se ejecute primero
+        setTimeout(cerrarModalesDirectorio, 10);
+      }, true); // capture phase para que se ejecute antes
+    });
+  }
+  
+  // Iniciar cuando el DOM este listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      hookearShowSection();
+      interceptarSidebarClicks();
+    });
+  } else {
+    hookearShowSection();
+    interceptarSidebarClicks();
+  }
+  
+  // Re-interceptar nav-items cada 2 segundos (por si se rehacen dinamicamente)
+  setInterval(interceptarSidebarClicks, 2000);
+})();
+</script>
+
 </body>
 </html>`;
     const win = window.open('', '_blank');
@@ -26654,7 +26735,88 @@ body.modo-dia .topbar {
 }
 
 </style>
-    </head><body>${docEl.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script></body></html>`);
+    </head><body>${docEl.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script>
+<!-- DIR_MODAL_AUTOCLOSE_v1: Cerrar modales del directorio al cambiar de seccion -->
+<script>
+(function() {
+  'use strict';
+  
+  // Funcion que cierra TODOS los modales del directorio
+  function cerrarModalesDirectorio() {
+    const modalPerfil = document.getElementById('dir-perfil-modal');
+    const modalEditor = document.getElementById('dir-editor-modal');
+    
+    let algoCerrado = false;
+    
+    if (modalPerfil && modalPerfil.style.display !== 'none' && modalPerfil.style.display !== '') {
+      modalPerfil.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    if (modalEditor && modalEditor.style.display !== 'none' && modalEditor.style.display !== '') {
+      modalEditor.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    // Restaurar overflow del body
+    if (algoCerrado) {
+      document.body.style.overflow = '';
+      console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Modal(es) del directorio cerrado(s) al cambiar de seccion', 'color:#10b981;font-weight:bold');
+    }
+  }
+  
+  // Hookear window.showSection cuando este disponible
+  function hookearShowSection() {
+    if (typeof window.showSection !== 'function') {
+      // Aun no disponible, esperar
+      setTimeout(hookearShowSection, 200);
+      return;
+    }
+    
+    // Evitar doble hook (si este script se ejecuta dos veces)
+    if (window.showSection.__dirModalAutoCloseHooked) return;
+    
+    const _originalShow = window.showSection;
+    window.showSection = function(name) {
+      // ANTES de cambiar de seccion, cerrar modales del directorio
+      cerrarModalesDirectorio();
+      // Llamar al showSection original (mantiene toda la logica existente)
+      return _originalShow.apply(this, arguments);
+    };
+    window.showSection.__dirModalAutoCloseHooked = true;
+    console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Hook activo sobre window.showSection', 'color:#10b981;font-weight:bold;font-size:13px');
+  }
+  
+  // Tambien interceptar clicks directos en los nav-items del sidebar
+  // (defensive: por si showSection se llama desde otro lado)
+  function interceptarSidebarClicks() {
+    document.querySelectorAll('.nav-item').forEach(navItem => {
+      if (navItem.dataset.dirCloseHooked === '1') return;
+      navItem.dataset.dirCloseHooked = '1';
+      navItem.addEventListener('click', function() {
+        // Pequeno delay para que showSection se ejecute primero
+        setTimeout(cerrarModalesDirectorio, 10);
+      }, true); // capture phase para que se ejecute antes
+    });
+  }
+  
+  // Iniciar cuando el DOM este listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      hookearShowSection();
+      interceptarSidebarClicks();
+    });
+  } else {
+    hookearShowSection();
+    interceptarSidebarClicks();
+  }
+  
+  // Re-interceptar nav-items cada 2 segundos (por si se rehacen dinamicamente)
+  setInterval(interceptarSidebarClicks, 2000);
+})();
+</script>
+
+</body></html>`);
   w.document.close();
 };
 
@@ -30966,6 +31128,87 @@ window.loginDirecto = function() {
 </head>
 <body>
 ${htmlImprimible}
+
+<!-- DIR_MODAL_AUTOCLOSE_v1: Cerrar modales del directorio al cambiar de seccion -->
+<script>
+(function() {
+  'use strict';
+  
+  // Funcion que cierra TODOS los modales del directorio
+  function cerrarModalesDirectorio() {
+    const modalPerfil = document.getElementById('dir-perfil-modal');
+    const modalEditor = document.getElementById('dir-editor-modal');
+    
+    let algoCerrado = false;
+    
+    if (modalPerfil && modalPerfil.style.display !== 'none' && modalPerfil.style.display !== '') {
+      modalPerfil.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    if (modalEditor && modalEditor.style.display !== 'none' && modalEditor.style.display !== '') {
+      modalEditor.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    // Restaurar overflow del body
+    if (algoCerrado) {
+      document.body.style.overflow = '';
+      console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Modal(es) del directorio cerrado(s) al cambiar de seccion', 'color:#10b981;font-weight:bold');
+    }
+  }
+  
+  // Hookear window.showSection cuando este disponible
+  function hookearShowSection() {
+    if (typeof window.showSection !== 'function') {
+      // Aun no disponible, esperar
+      setTimeout(hookearShowSection, 200);
+      return;
+    }
+    
+    // Evitar doble hook (si este script se ejecuta dos veces)
+    if (window.showSection.__dirModalAutoCloseHooked) return;
+    
+    const _originalShow = window.showSection;
+    window.showSection = function(name) {
+      // ANTES de cambiar de seccion, cerrar modales del directorio
+      cerrarModalesDirectorio();
+      // Llamar al showSection original (mantiene toda la logica existente)
+      return _originalShow.apply(this, arguments);
+    };
+    window.showSection.__dirModalAutoCloseHooked = true;
+    console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Hook activo sobre window.showSection', 'color:#10b981;font-weight:bold;font-size:13px');
+  }
+  
+  // Tambien interceptar clicks directos en los nav-items del sidebar
+  // (defensive: por si showSection se llama desde otro lado)
+  function interceptarSidebarClicks() {
+    document.querySelectorAll('.nav-item').forEach(navItem => {
+      if (navItem.dataset.dirCloseHooked === '1') return;
+      navItem.dataset.dirCloseHooked = '1';
+      navItem.addEventListener('click', function() {
+        // Pequeno delay para que showSection se ejecute primero
+        setTimeout(cerrarModalesDirectorio, 10);
+      }, true); // capture phase para que se ejecute antes
+    });
+  }
+  
+  // Iniciar cuando el DOM este listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      hookearShowSection();
+      interceptarSidebarClicks();
+    });
+  } else {
+    hookearShowSection();
+    interceptarSidebarClicks();
+  }
+  
+  // Re-interceptar nav-items cada 2 segundos (por si se rehacen dinamicamente)
+  setInterval(interceptarSidebarClicks, 2000);
+})();
+</script>
+
 </body>
 </html>`;
 
@@ -31658,6 +31901,87 @@ ${htmlImprimible}
   });
   
   console.log('%c[SOLUCION_RADICAL_v4] Sistema activo - los clicks ahora funcionan','color:#10b981;font-weight:bold;font-size:14px');
+})();
+</script>
+
+
+<!-- DIR_MODAL_AUTOCLOSE_v1: Cerrar modales del directorio al cambiar de seccion -->
+<script>
+(function() {
+  'use strict';
+  
+  // Funcion que cierra TODOS los modales del directorio
+  function cerrarModalesDirectorio() {
+    const modalPerfil = document.getElementById('dir-perfil-modal');
+    const modalEditor = document.getElementById('dir-editor-modal');
+    
+    let algoCerrado = false;
+    
+    if (modalPerfil && modalPerfil.style.display !== 'none' && modalPerfil.style.display !== '') {
+      modalPerfil.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    if (modalEditor && modalEditor.style.display !== 'none' && modalEditor.style.display !== '') {
+      modalEditor.style.display = 'none';
+      algoCerrado = true;
+    }
+    
+    // Restaurar overflow del body
+    if (algoCerrado) {
+      document.body.style.overflow = '';
+      console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Modal(es) del directorio cerrado(s) al cambiar de seccion', 'color:#10b981;font-weight:bold');
+    }
+  }
+  
+  // Hookear window.showSection cuando este disponible
+  function hookearShowSection() {
+    if (typeof window.showSection !== 'function') {
+      // Aun no disponible, esperar
+      setTimeout(hookearShowSection, 200);
+      return;
+    }
+    
+    // Evitar doble hook (si este script se ejecuta dos veces)
+    if (window.showSection.__dirModalAutoCloseHooked) return;
+    
+    const _originalShow = window.showSection;
+    window.showSection = function(name) {
+      // ANTES de cambiar de seccion, cerrar modales del directorio
+      cerrarModalesDirectorio();
+      // Llamar al showSection original (mantiene toda la logica existente)
+      return _originalShow.apply(this, arguments);
+    };
+    window.showSection.__dirModalAutoCloseHooked = true;
+    console.log('%c[DIR_MODAL_AUTOCLOSE_v1] ✓ Hook activo sobre window.showSection', 'color:#10b981;font-weight:bold;font-size:13px');
+  }
+  
+  // Tambien interceptar clicks directos en los nav-items del sidebar
+  // (defensive: por si showSection se llama desde otro lado)
+  function interceptarSidebarClicks() {
+    document.querySelectorAll('.nav-item').forEach(navItem => {
+      if (navItem.dataset.dirCloseHooked === '1') return;
+      navItem.dataset.dirCloseHooked = '1';
+      navItem.addEventListener('click', function() {
+        // Pequeno delay para que showSection se ejecute primero
+        setTimeout(cerrarModalesDirectorio, 10);
+      }, true); // capture phase para que se ejecute antes
+    });
+  }
+  
+  // Iniciar cuando el DOM este listo
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      hookearShowSection();
+      interceptarSidebarClicks();
+    });
+  } else {
+    hookearShowSection();
+    interceptarSidebarClicks();
+  }
+  
+  // Re-interceptar nav-items cada 2 segundos (por si se rehacen dinamicamente)
+  setInterval(interceptarSidebarClicks, 2000);
 })();
 </script>
 
