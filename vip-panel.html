@@ -8031,6 +8031,17 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   const db = getFirestore(app);
   window.auth = auth;
   window.db   = db;
+  
+  // [FIX_SETDOC_GLOBAL_v1] Exponer funciones Firestore en window para scripts normales
+  window.setDoc = setDoc;
+  window.doc = doc;
+  window.getDoc = getDoc;
+  window.updateDoc = updateDoc;
+  window.getDocs = getDocs;
+  window.collection = collection;
+  window.query = query;
+  window.orderBy = orderBy;
+  console.log('%c[FIX_SETDOC_GLOBAL_v1] ✓ Firestore expuesto globalmente (setDoc, doc, etc.)', 'color:#10b981;font-weight:bold');
 
   // ✅ FIX: Forzar persistencia local — la sesión sobrevive a recargas y cambios de pestaña
   setPersistence(auth, browserLocalPersistence).catch(e => console.warn('No se pudo fijar persistencia:', e));
