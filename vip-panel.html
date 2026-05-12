@@ -31901,5 +31901,64 @@ body:not(.modo-dia) .webinar-empty-pulse {
   console.log('%c[WEBINAR_EMPTY_v1] ✓ Estado vacio del webinar activo', 'color:#F59E0B;font-weight:bold');
 })();
 </script>
+<style data-marker="AVISO_LEGAL_CONTRAST_v1">
+/* AVISO_LEGAL_CONTRAST_v1 — Letras legibles en avisos de calculadoras
+   Aplica a: Calculadora Fiscal, Nomina IMSS, Prestamo & TIR
+   Solo cambia colores de texto y el icono. NO toca fondo, borde, ni layout. */
+
+/* Contenedor: refuerzo de fondo dorado tenue y borde elegante */
+.cf-disclaimer {
+  background: linear-gradient(135deg, rgba(254,243,199,0.95) 0%, rgba(253,230,138,0.85) 100%) !important;
+  border: 1px solid rgba(245,158,11,0.45) !important;
+  border-radius: 14px !important;
+  padding: 1rem 1.25rem !important;
+  display: flex !important;
+  gap: 0.875rem !important;
+  align-items: flex-start !important;
+  box-shadow: 0 1px 2px rgba(146,64,14,0.05), 0 4px 12px rgba(146,64,14,0.06) !important;
+}
+
+/* Icono triangulo - color ambar oscuro (no crema) */
+.cf-disclaimer > svg {
+  stroke: #92400E !important;
+  fill: none !important;
+  flex-shrink: 0 !important;
+  margin-top: 2px !important;
+}
+
+/* Titulo "Aviso legal" - color ambar oscuro, peso 700, mayusculas */
+.cf-disclaimer .cf-disclaimer-title {
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  font-weight: 700 !important;
+  font-size: 11px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  margin: 0 0 4px 0 !important;
+  opacity: 1 !important;
+}
+
+/* Texto principal del aviso - color marron oscuro legible */
+.cf-disclaimer .cf-disclaimer-text {
+  color: #78350F !important;
+  -webkit-text-fill-color: #78350F !important;
+  font-size: 13px !important;
+  line-height: 1.55 !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+}
+
+/* Palabras destacadas (orientativos, documentos informativos) - mas oscuras + bold */
+.cf-disclaimer .cf-disclaimer-text strong {
+  color: #451A03 !important;
+  -webkit-text-fill-color: #451A03 !important;
+  font-weight: 700 !important;
+  background: rgba(245,158,11,0.18) !important;
+  padding: 1px 6px !important;
+  border-radius: 4px !important;
+  white-space: nowrap !important;
+}
+</style>
 </body>
 </html>
