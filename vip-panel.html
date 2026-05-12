@@ -4980,6 +4980,21 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
                 <div class="ic-countdown-label">seg</div>
               </div>
             </div>
+            <!-- WEBINAR_EMPTY_v1: Estado vacio elegante (oculto por defecto) -->
+            <div id="webinar-empty-state" class="webinar-empty" style="display:none">
+              <div class="webinar-empty-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <polyline points="12 6 12 12 16 14"/>
+                </svg>
+              </div>
+              <div class="webinar-empty-title">Estamos preparando el siguiente</div>
+              <div class="webinar-empty-sub">Te avisaremos por correo cuando esté programado</div>
+              <div class="webinar-empty-pulse">
+                <span class="webinar-pulse-dot"></span>
+                <span>EN PREPARACIÓN</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -31757,5 +31772,134 @@ ${htmlImprimible}
 })();
 </script>
 
+<style data-marker="WEBINAR_EMPTY_v1">
+/* ═══════════════════════════════════════════════════════════════
+   WEBINAR_EMPTY_v1 — Estado vacio elegante del webinar
+   ═══════════════════════════════════════════════════════════════ */
+.webinar-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1.25rem 1rem 0.5rem;
+  animation: webinarFadeUp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.webinar-empty-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(251,191,36,0.18) 0%, rgba(245,158,11,0.10) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #F59E0B;
+  margin-bottom: 0.9rem;
+  position: relative;
+  box-shadow: 0 0 0 6px rgba(251,191,36,0.06), 0 4px 16px rgba(245,158,11,0.10);
+  animation: webinarPulseRing 2.6s ease-in-out infinite;
+}
+@keyframes webinarPulseRing {
+  0%, 100% { box-shadow: 0 0 0 6px rgba(251,191,36,0.06), 0 4px 16px rgba(245,158,11,0.10); }
+  50%      { box-shadow: 0 0 0 12px rgba(251,191,36,0.02), 0 4px 16px rgba(245,158,11,0.06); }
+}
+.webinar-empty-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #0F172A;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+.webinar-empty-sub {
+  font-size: 12px;
+  color: #64748B;
+  margin-bottom: 14px;
+  max-width: 240px;
+  line-height: 1.45;
+  font-weight: 500;
+}
+.webinar-empty-pulse {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, rgba(251,191,36,0.10) 0%, rgba(245,158,11,0.06) 100%);
+  border: 1px solid rgba(251,191,36,0.30);
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #B45309;
+  letter-spacing: 0.10em;
+}
+.webinar-pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: #F59E0B;
+  border-radius: 50%;
+  animation: webinarPulseDot 1.5s ease-in-out infinite;
+  box-shadow: 0 0 0 2px rgba(245,158,11,0.20);
+}
+@keyframes webinarPulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.4; transform: scale(0.75); }
+}
+@keyframes webinarFadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Modo NOCHE (default) */
+body:not(.modo-dia) .webinar-empty-title {
+  color: #F1F5F9;
+}
+body:not(.modo-dia) .webinar-empty-sub {
+  color: #94A3B8;
+}
+body:not(.modo-dia) .webinar-empty-icon {
+  background: linear-gradient(135deg, rgba(251,191,36,0.22) 0%, rgba(245,158,11,0.14) 100%);
+}
+body:not(.modo-dia) .webinar-empty-pulse {
+  background: linear-gradient(135deg, rgba(251,191,36,0.15) 0%, rgba(245,158,11,0.10) 100%);
+  border-color: rgba(251,191,36,0.40);
+  color: #FBBF24;
+}
+</style>
+
+<!-- WEBINAR_EMPTY_v1: Observador que muestra estado vacio cuando countdown se oculta -->
+<script>
+(function() {
+  'use strict';
+  function syncWebinarEmptyState() {
+    const countdown = document.getElementById('countdown-home');
+    const empty = document.getElementById('webinar-empty-state');
+    const titulo = document.getElementById('webinar-titulo-home');
+    if (!countdown || !empty) return;
+    // Si countdown esta oculto O el titulo dice "Proximamente"/"Cargando"
+    const countdownOculto = countdown.style.display === 'none';
+    const tituloVacio = titulo && /pr.ximamente|cargando/i.test(titulo.textContent || '');
+    if (countdownOculto || tituloVacio) {
+      empty.style.display = 'flex';
+      if (tituloVacio && !countdownOculto) {
+        countdown.style.display = 'none';
+      }
+      // Tambien actualizar el titulo principal para que se vea mejor
+      if (titulo && /cargando/i.test(titulo.textContent || '')) {
+        titulo.textContent = 'Próximo webinar VIP';
+      }
+    } else {
+      empty.style.display = 'none';
+    }
+  }
+  // Ejecutar al cargar
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(syncWebinarEmptyState, 100));
+  } else {
+    setTimeout(syncWebinarEmptyState, 100);
+  }
+  // Re-sincronizar cada 1.5 seg para detectar cambios del JS de Firebase
+  setInterval(syncWebinarEmptyState, 1500);
+  console.log('%c[WEBINAR_EMPTY_v1] ✓ Estado vacio del webinar activo', 'color:#F59E0B;font-weight:bold');
+})();
+</script>
 </body>
 </html>
