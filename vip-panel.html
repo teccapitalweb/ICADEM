@@ -4754,6 +4754,12 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
       Comunidad
     </div>
 
+    <!-- FORO_VIP_v1: nuevo nav-item del foro -->
+    <div class="nav-item" onclick="showSection('foro')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Foro VIP
+    </div>
+
     <p class="nav-section-label">Herramientas</p>
     <div class="nav-item nav-tool" onclick="showSection('plantillas')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
@@ -5336,6 +5342,141 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
         </a>
 
       </div>
+    </div>
+
+    <!-- ============================================================
+         💬 FORO VIP — Comunidad ICADEM (FORO_VIP_v1)
+         Posts en tiempo real, likes, comentarios, fotos base64.
+         Auto-borrado a los 15 días. Paywall para invitados.
+         ============================================================ -->
+    <div class="section" id="sec-foro">
+      <div class="page-header">
+        <p class="page-tag">Comunidad VIP</p>
+        <h1 class="page-title">Foro <em>ICADEM</em></h1>
+        <p class="page-sub">Conecta con otros miembros, comparte conocimiento jurídico y aporta a la comunidad profesional.</p>
+      </div>
+
+      <!-- Aviso de expiración -->
+      <div class="foro-aviso">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <span>Las publicaciones estarán disponibles durante <strong>15 días</strong>. Después se archivan automáticamente.</span>
+      </div>
+
+      <!-- Compositor (visible solo para miembros VIP) -->
+      <div class="foro-composer" id="foro-composer">
+        <div class="foro-composer-row">
+          <div class="foro-avatar foro-avatar-mio" id="foro-mi-avatar">··</div>
+          <div class="foro-composer-body">
+            <textarea
+              id="foro-input"
+              class="foro-textarea"
+              placeholder="Comparte una reflexión, un caso, una duda jurídica..."
+              maxlength="500"
+              rows="3"></textarea>
+            <div id="foro-imagen-preview" class="foro-imagen-preview" style="display:none">
+              <img id="foro-imagen-preview-img" alt="Vista previa">
+              <button type="button" class="foro-imagen-quitar" onclick="window.foroQuitarImagen()" aria-label="Quitar imagen">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div class="foro-composer-bottom">
+              <div class="foro-composer-actions">
+                <label class="foro-btn-secundario" title="Adjuntar imagen">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <span>Foto</span>
+                  <input type="file" accept="image/*" onchange="window.foroPreviewImagen(event)" hidden id="foro-input-imagen">
+                </label>
+                <span id="foro-char-counter" class="foro-char-counter">0 / 500</span>
+              </div>
+              <button id="foro-btn-publicar" type="button" class="foro-btn-publicar" disabled onclick="window.foroPublicar()">
+                <span class="foro-btn-publicar-text">Publicar</span>
+                <span class="foro-btn-publicar-loader" style="display:none">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation:foro-spin 0.8s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paywall del compositor (visible solo en modo invitado) -->
+      <div class="foro-paywall-card" id="foro-paywall-composer" style="display:none">
+        <div class="foro-paywall-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <div class="foro-paywall-body">
+          <strong>Únete para participar en el foro</strong>
+          <p>Los miembros <em>VIP</em> pueden publicar, dar like, comentar y compartir.</p>
+        </div>
+        <button type="button" class="foro-paywall-btn" onclick="window.mostrarPaywall && window.mostrarPaywall()">
+          Volverme VIP →
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="foro-filtros">
+        <button type="button" class="foro-filtro is-active" data-filtro="recientes" onclick="window.foroCambiarFiltro('recientes', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Recientes
+        </button>
+        <button type="button" class="foro-filtro" data-filtro="populares" onclick="window.foroCambiarFiltro('populares', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+          Populares
+        </button>
+        <button type="button" class="foro-filtro" data-filtro="mios" onclick="window.foroCambiarFiltro('mios', this)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Mis posts
+        </button>
+      </div>
+
+      <!-- Feed -->
+      <div id="foro-feed" class="foro-feed">
+        <!-- Skeleton loading -->
+        <div class="foro-skel-post">
+          <div class="foro-skel-header">
+            <div class="foro-skel-avatar"></div>
+            <div class="foro-skel-meta">
+              <div class="foro-skel-line w-40"></div>
+              <div class="foro-skel-line w-20"></div>
+            </div>
+          </div>
+          <div class="foro-skel-body">
+            <div class="foro-skel-line w-90"></div>
+            <div class="foro-skel-line w-70"></div>
+            <div class="foro-skel-line w-50"></div>
+          </div>
+        </div>
+        <div class="foro-skel-post">
+          <div class="foro-skel-header">
+            <div class="foro-skel-avatar"></div>
+            <div class="foro-skel-meta">
+              <div class="foro-skel-line w-40"></div>
+              <div class="foro-skel-line w-20"></div>
+            </div>
+          </div>
+          <div class="foro-skel-body">
+            <div class="foro-skel-line w-80"></div>
+            <div class="foro-skel-line w-60"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div id="foro-empty" class="foro-empty" style="display:none">
+        <div class="foro-empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <h3>Aún no hay publicaciones</h3>
+        <p id="foro-empty-text">Sé el primero en compartir algo con la comunidad ICADEM.</p>
+      </div>
+    </div>
+
+    <!-- Lightbox de imágenes del foro -->
+    <div id="foro-lightbox" class="foro-lightbox" onclick="window.foroLightboxCerrar()">
+      <button type="button" class="foro-lightbox-close" onclick="window.foroLightboxCerrar(event)" aria-label="Cerrar">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      <img id="foro-lightbox-img" alt="Imagen completa" onclick="event.stopPropagation()">
     </div>
 
     <!-- ============================================================
@@ -9902,7 +10043,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 </script>
 
 <script>
-  const sectionTitles = {inicio:'Inicio',novedades:'Novedades',cursos:'Clases en Vivo',videos:'Videoteca',material:'Material Premium',comunidad:'Comunidad','cursos-vivo':'Cursos en Vivo',perfil:'Mi Perfil',suscripcion:'Mi Suscripción',soporte:'Soporte',configuracion:'Configuración',logros:'Mis Logros',certificados:'Certificados',plantillas:'Plantillas Premium','calc-fiscal':'Calculadora Fiscal','calc-nomina':'Nómina IMSS','calc-credito':'Préstamo & TIR','docs-legales':'Documentos Legales',directorio:'Directorio VIP'};
+  const sectionTitles = {inicio:'Inicio',novedades:'Novedades',cursos:'Clases en Vivo',videos:'Videoteca',material:'Material Premium',comunidad:'Comunidad',foro:'Foro VIP','cursos-vivo':'Cursos en Vivo',perfil:'Mi Perfil',suscripcion:'Mi Suscripción',soporte:'Soporte',configuracion:'Configuración',logros:'Mis Logros',certificados:'Certificados',plantillas:'Plantillas Premium','calc-fiscal':'Calculadora Fiscal','calc-nomina':'Nómina IMSS','calc-credito':'Préstamo & TIR','docs-legales':'Documentos Legales',directorio:'Directorio VIP'};
   window.showSection = function(id) {
     document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -34301,6 +34442,1484 @@ html body.modo-dia .page-tag {
   gap: 8px !important;
 }
 </style>
+
+
+<style data-marker="FORO_VIP_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   FORO_VIP_v1 — Comunidad ICADEM (estilo formal/ejecutivo)
+   Posts en tiempo real con Firestore, fotos base64, comentarios, likes.
+   Auto-borrado a los 15 dias. Paywall para invitados.
+   Paleta: azul marino #0b2554 + dorado VIP #f5d77a + slate.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+@keyframes foro-spin { from { transform: rotate(0); } to { transform: rotate(360deg); } }
+@keyframes foro-bounce { 0%,100% { transform: scale(1); } 30% { transform: scale(1.3); } 60% { transform: scale(0.9); } }
+@keyframes foro-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+@keyframes foro-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ─── Aviso de expiracion (15 dias) ──────────────────────────────────── */
+#sec-foro .foro-aviso {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, rgba(245,215,122,0.12), rgba(200,150,42,0.06));
+  border: 1px solid rgba(245,215,122,0.28);
+  border-left: 3px solid #c8962a;
+  border-radius: 10px;
+  margin-bottom: 1.5rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: #e8c96a;
+  line-height: 1.5;
+}
+#sec-foro .foro-aviso strong { color: #f5d77a; font-weight: 700; }
+#sec-foro .foro-aviso svg { color: #c8962a; }
+
+/* ─── Composer (caja para crear post) ────────────────────────────────── */
+#sec-foro .foro-composer {
+  background: rgba(11,37,84,0.45);
+  border: 1px solid rgba(147,197,253,0.12);
+  border-radius: 14px;
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(8px);
+}
+#sec-foro .foro-composer-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+#sec-foro .foro-composer-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Avatar (iniciales con gradient unico por usuario) */
+#sec-foro .foro-avatar {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  background: linear-gradient(135deg, #1565c0 0%, #0b2554 100%);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+#sec-foro .foro-avatar-mio {
+  background: linear-gradient(135deg, #c8962a 0%, #f5d77a 60%, #c8962a 100%);
+  color: #0b2554;
+  box-shadow: 0 2px 8px rgba(245,215,122,0.25);
+}
+
+/* Textarea del composer */
+#sec-foro .foro-textarea {
+  width: 100%;
+  background: rgba(2,13,48,0.5) !important;
+  border: 1px solid rgba(147,197,253,0.15) !important;
+  border-radius: 10px !important;
+  padding: 11px 14px !important;
+  color: #e8edf5 !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  resize: none !important;
+  transition: border-color 0.15s, background 0.15s !important;
+  min-height: 80px !important;
+}
+#sec-foro .foro-textarea::placeholder { color: rgba(147,197,253,0.45) !important; }
+#sec-foro .foro-textarea:focus {
+  outline: none !important;
+  border-color: rgba(245,215,122,0.45) !important;
+  background: rgba(2,13,48,0.65) !important;
+  box-shadow: 0 0 0 3px rgba(245,215,122,0.08) !important;
+}
+
+/* Preview de imagen */
+#sec-foro .foro-imagen-preview {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 360px;
+  border: 1px solid rgba(147,197,253,0.18);
+  background: rgba(2,13,48,0.4);
+}
+#sec-foro .foro-imagen-preview img {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+}
+#sec-foro .foro-imagen-quitar {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  padding: 0;
+}
+#sec-foro .foro-imagen-quitar:hover { background: rgba(239,68,68,0.9); }
+
+/* Bottom del composer (botones + contador) */
+#sec-foro .foro-composer-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+#sec-foro .foro-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#sec-foro .foro-btn-secundario {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  background: rgba(147,197,253,0.08);
+  border: 1px solid rgba(147,197,253,0.2);
+  border-radius: 8px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+#sec-foro .foro-btn-secundario:hover {
+  background: rgba(147,197,253,0.15);
+  color: #ffffff;
+}
+#sec-foro .foro-char-counter {
+  font-size: 11px;
+  color: rgba(147,197,253,0.55);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+#sec-foro .foro-char-counter.near-limit { color: #f59e0b; }
+#sec-foro .foro-char-counter.at-limit { color: #ef4444; font-weight: 700; }
+
+/* Boton Publicar (dorado VIP) */
+#sec-foro .foro-btn-publicar {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 22px;
+  background: linear-gradient(135deg, #c8962a 0%, #f5d77a 60%, #c8962a 100%);
+  border: 1px solid #c8962a;
+  border-radius: 8px;
+  color: #0b2554;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: transform 0.1s, box-shadow 0.15s, opacity 0.15s;
+  box-shadow: 0 2px 8px rgba(200,150,42,0.25);
+}
+#sec-foro .foro-btn-publicar:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(200,150,42,0.4);
+}
+#sec-foro .foro-btn-publicar:active:not(:disabled) { transform: translateY(0); }
+#sec-foro .foro-btn-publicar:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #5a5a5a 0%, #8a8a8a 60%, #5a5a5a 100%);
+  border-color: #5a5a5a;
+  box-shadow: none;
+}
+
+/* Paywall card (visible solo en modo invitado) */
+#sec-foro .foro-paywall-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(245,215,122,0.08), rgba(200,150,42,0.04));
+  border: 1px solid rgba(245,215,122,0.22);
+  border-left: 3px solid #c8962a;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+#sec-foro .foro-paywall-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(245,215,122,0.14);
+  border: 1px solid rgba(245,215,122,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #f5d77a;
+  flex-shrink: 0;
+}
+#sec-foro .foro-paywall-body {
+  flex: 1;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+#sec-foro .foro-paywall-body strong {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+}
+#sec-foro .foro-paywall-body em {
+  color: #f5d77a;
+  font-style: normal;
+  font-weight: 700;
+}
+#sec-foro .foro-paywall-body p {
+  color: #cbd5e1;
+  font-size: 12.5px;
+  margin: 0;
+}
+#sec-foro .foro-paywall-btn {
+  background: linear-gradient(135deg, #c8962a 0%, #f5d77a 60%, #c8962a 100%);
+  border: 1px solid #c8962a;
+  border-radius: 8px;
+  color: #0b2554;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 10px 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(200,150,42,0.25);
+  transition: transform 0.1s, box-shadow 0.15s;
+}
+#sec-foro .foro-paywall-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(200,150,42,0.4);
+}
+
+/* ─── Filtros (tabs) ─────────────────────────────────────────────────── */
+#sec-foro .foro-filtros {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+#sec-foro .foro-filtro {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: rgba(11,37,84,0.4);
+  border: 1px solid rgba(147,197,253,0.15);
+  border-radius: 99px;
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#sec-foro .foro-filtro:hover {
+  background: rgba(147,197,253,0.1);
+  color: #ffffff;
+}
+#sec-foro .foro-filtro.is-active {
+  background: linear-gradient(135deg, rgba(245,215,122,0.18), rgba(200,150,42,0.08));
+  border-color: rgba(245,215,122,0.4);
+  color: #f5d77a;
+}
+
+/* ─── Feed ───────────────────────────────────────────────────────────── */
+#sec-foro .foro-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Skeleton loading */
+#sec-foro .foro-skel-post {
+  background: rgba(11,37,84,0.35);
+  border: 1px solid rgba(147,197,253,0.1);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+#sec-foro .foro-skel-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+#sec-foro .foro-skel-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, rgba(147,197,253,0.06) 0%, rgba(147,197,253,0.18) 50%, rgba(147,197,253,0.06) 100%);
+  background-size: 200% 100%;
+  animation: foro-shimmer 1.6s linear infinite;
+  flex-shrink: 0;
+}
+#sec-foro .foro-skel-meta { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+#sec-foro .foro-skel-body { display: flex; flex-direction: column; gap: 8px; }
+#sec-foro .foro-skel-line {
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, rgba(147,197,253,0.06) 0%, rgba(147,197,253,0.18) 50%, rgba(147,197,253,0.06) 100%);
+  background-size: 200% 100%;
+  animation: foro-shimmer 1.6s linear infinite;
+}
+#sec-foro .foro-skel-line.w-20 { width: 20%; }
+#sec-foro .foro-skel-line.w-40 { width: 40%; }
+#sec-foro .foro-skel-line.w-50 { width: 50%; }
+#sec-foro .foro-skel-line.w-60 { width: 60%; }
+#sec-foro .foro-skel-line.w-70 { width: 70%; }
+#sec-foro .foro-skel-line.w-80 { width: 80%; }
+#sec-foro .foro-skel-line.w-90 { width: 90%; }
+
+/* ─── Post Card ──────────────────────────────────────────────────────── */
+#sec-foro .foro-post {
+  background: rgba(11,37,84,0.45);
+  border: 1px solid rgba(147,197,253,0.12);
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  animation: foro-fade-in 0.3s ease both;
+  transition: border-color 0.2s;
+}
+#sec-foro .foro-post:hover { border-color: rgba(147,197,253,0.2); }
+
+#sec-foro .foro-post-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+#sec-foro .foro-post-meta {
+  flex: 1;
+  min-width: 0;
+}
+#sec-foro .foro-post-autor-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+#sec-foro .foro-post-autor {
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.2;
+}
+#sec-foro .foro-post-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+#sec-foro .foro-post-badge.vip {
+  background: rgba(20,166,176,0.18);
+  border: 1px solid rgba(20,166,176,0.45);
+  color: #5eead4;
+}
+#sec-foro .foro-post-badge.admin {
+  background: linear-gradient(135deg, rgba(245,215,122,0.22), rgba(200,150,42,0.1));
+  border: 1px solid rgba(245,215,122,0.55);
+  color: #f5d77a;
+}
+#sec-foro .foro-post-fecha {
+  font-size: 11.5px;
+  color: rgba(147,197,253,0.55);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+
+/* Boton eliminar (mini) */
+#sec-foro .foro-post-eliminar {
+  background: none;
+  border: none;
+  color: rgba(147,197,253,0.4);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#sec-foro .foro-post-eliminar:hover {
+  color: #ef4444;
+  background: rgba(239,68,68,0.1);
+}
+
+#sec-foro .foro-post-body {
+  margin-bottom: 12px;
+  color: #e8edf5;
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+#sec-foro .foro-post-imagen {
+  width: 100%;
+  max-height: 480px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  cursor: zoom-in;
+  border: 1px solid rgba(147,197,253,0.12);
+  transition: opacity 0.15s;
+}
+#sec-foro .foro-post-imagen:hover { opacity: 0.92; }
+
+/* Acciones (like, comentar, compartir) */
+#sec-foro .foro-post-acciones {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(147,197,253,0.08);
+}
+#sec-foro .foro-accion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: none;
+  border: none;
+  border-radius: 8px;
+  color: rgba(147,197,253,0.65);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+#sec-foro .foro-accion:hover { background: rgba(147,197,253,0.08); color: #ffffff; }
+#sec-foro .foro-accion svg { width: 16px; height: 16px; transition: transform 0.15s; }
+#sec-foro .foro-accion.like.liked { color: #f87171; }
+#sec-foro .foro-accion.like.liked svg { fill: currentColor; animation: foro-bounce 0.5s; }
+#sec-foro .foro-accion-count { font-variant-numeric: tabular-nums; }
+
+/* Compartir tooltip */
+#sec-foro .foro-share-feedback {
+  position: absolute;
+  background: #0b2554;
+  border: 1px solid rgba(245,215,122,0.4);
+  color: #f5d77a;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 6px;
+  white-space: nowrap;
+  animation: foro-fade-in 0.2s;
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ─── Comentarios ────────────────────────────────────────────────────── */
+#sec-foro .foro-comentarios-wrap {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(147,197,253,0.1);
+  display: none;
+}
+#sec-foro .foro-comentarios-wrap.is-open { display: block; }
+
+#sec-foro .foro-comentario-input-wrap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+#sec-foro .foro-comentario-input-wrap .foro-avatar { width: 32px; height: 32px; font-size: 11px; }
+#sec-foro .foro-comentario-input {
+  flex: 1;
+  background: rgba(2,13,48,0.5) !important;
+  border: 1px solid rgba(147,197,253,0.15) !important;
+  border-radius: 99px !important;
+  padding: 8px 16px !important;
+  color: #e8edf5 !important;
+  font-size: 13px !important;
+  font-family: inherit !important;
+  outline: none !important;
+}
+#sec-foro .foro-comentario-input:focus {
+  border-color: rgba(245,215,122,0.4) !important;
+  background: rgba(2,13,48,0.7) !important;
+}
+#sec-foro .foro-comentario-input::placeholder { color: rgba(147,197,253,0.4) !important; }
+
+#sec-foro .foro-comentario-btn {
+  background: linear-gradient(135deg, #1565c0 0%, #0b2554 100%);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  cursor: pointer;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s, transform 0.1s;
+}
+#sec-foro .foro-comentario-btn:hover:not(:disabled) { transform: scale(1.05); }
+#sec-foro .foro-comentario-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+#sec-foro .foro-comentarios-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+#sec-foro .foro-comentario {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  animation: foro-fade-in 0.25s both;
+}
+#sec-foro .foro-comentario .foro-avatar { width: 32px; height: 32px; font-size: 11px; }
+#sec-foro .foro-comentario-body {
+  flex: 1;
+  background: rgba(2,13,48,0.4);
+  border-radius: 12px;
+  padding: 8px 14px;
+}
+#sec-foro .foro-comentario-autor {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  margin-bottom: 2px;
+}
+#sec-foro .foro-comentario-texto {
+  font-size: 13px;
+  color: #cbd5e1;
+  line-height: 1.5;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+#sec-foro .foro-comentario-fecha {
+  font-size: 10px;
+  color: rgba(147,197,253,0.4);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+/* ─── Estado vacio ───────────────────────────────────────────────────── */
+#sec-foro .foro-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: rgba(11,37,84,0.35);
+  border: 1px dashed rgba(147,197,253,0.18);
+  border-radius: 14px;
+}
+#sec-foro .foro-empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(245,215,122,0.08);
+  border: 1px solid rgba(245,215,122,0.18);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(245,215,122,0.55);
+  margin-bottom: 1.25rem;
+}
+#sec-foro .foro-empty h3 {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.01em;
+}
+#sec-foro .foro-empty p {
+  color: #94a3b8;
+  font-size: 13.5px;
+  max-width: 380px;
+  margin: 0 auto;
+  line-height: 1.55;
+}
+
+/* ─── Lightbox ───────────────────────────────────────────────────────── */
+.foro-lightbox {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(2,8,28,0.92);
+  backdrop-filter: blur(8px);
+  z-index: 500;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  cursor: zoom-out;
+}
+.foro-lightbox.is-open { display: flex; animation: foro-fade-in 0.2s; }
+.foro-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  cursor: default;
+}
+.foro-lightbox-close {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 501;
+  transition: background 0.15s;
+}
+.foro-lightbox-close:hover { background: rgba(0,0,0,0.8); }
+
+/* ─── Modo INVITADO: ocultar composer y mostrar paywall ──────────────── */
+body.is-guest #sec-foro #foro-composer { display: none; }
+body.is-guest #sec-foro #foro-paywall-composer { display: flex; }
+/* Tambien deshabilitar las acciones */
+body.is-guest #sec-foro .foro-accion { opacity: 0.55; pointer-events: none; }
+body.is-guest #sec-foro .foro-post-eliminar { display: none; }
+body.is-guest #sec-foro .foro-filtro[data-filtro="mios"] { opacity: 0.4; pointer-events: none; }
+body.is-guest #sec-foro .foro-comentarios-wrap .foro-comentario-input-wrap { display: none; }
+
+/* ─── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  #sec-foro .foro-composer,
+  #sec-foro .foro-post { padding: 1rem; }
+  #sec-foro .foro-composer-bottom { gap: 8px; }
+  #sec-foro .foro-paywall-card { flex-direction: column; align-items: flex-start; }
+  #sec-foro .foro-paywall-btn { width: 100%; text-align: center; }
+  #sec-foro .foro-post-acciones { gap: 0; }
+  #sec-foro .foro-accion { padding: 8px 10px; font-size: 11px; }
+}
+
+/* ─── MODO DIA (override paleta) ─────────────────────────────────────── */
+html body.modo-dia #sec-foro .foro-aviso {
+  background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+  border: 1px solid #f59e0b !important;
+  border-left: 3px solid #f59e0b !important;
+  color: #78350f !important;
+}
+html body.modo-dia #sec-foro .foro-aviso strong { color: #92400e !important; }
+html body.modo-dia #sec-foro .foro-aviso svg { color: #b45309 !important; }
+
+html body.modo-dia #sec-foro .foro-composer,
+html body.modo-dia #sec-foro .foro-post,
+html body.modo-dia #sec-foro .foro-skel-post {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.04) !important;
+}
+html body.modo-dia #sec-foro .foro-textarea {
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+html body.modo-dia #sec-foro .foro-textarea::placeholder { color: #94a3b8 !important; -webkit-text-fill-color: #94a3b8 !important; }
+html body.modo-dia #sec-foro .foro-textarea:focus {
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.12) !important;
+  background: #ffffff !important;
+}
+html body.modo-dia #sec-foro .foro-imagen-preview {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+html body.modo-dia #sec-foro .foro-char-counter { color: #64748b !important; -webkit-text-fill-color: #64748b !important; }
+html body.modo-dia #sec-foro .foro-btn-secundario {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+html body.modo-dia #sec-foro .foro-btn-secundario:hover {
+  background: #dbeafe !important;
+  color: #1e3a8a !important;
+  -webkit-text-fill-color: #1e3a8a !important;
+}
+html body.modo-dia #sec-foro .foro-filtro {
+  background: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+}
+html body.modo-dia #sec-foro .foro-filtro:hover {
+  background: #f8fafc !important;
+  border-color: #bfdbfe !important;
+  color: #1e3a8a !important;
+  -webkit-text-fill-color: #1e3a8a !important;
+}
+html body.modo-dia #sec-foro .foro-filtro.is-active {
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+html body.modo-dia #sec-foro .foro-post-autor { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
+html body.modo-dia #sec-foro .foro-post-fecha { color: #94a3b8 !important; -webkit-text-fill-color: #94a3b8 !important; }
+html body.modo-dia #sec-foro .foro-post-body { color: #1e293b !important; -webkit-text-fill-color: #1e293b !important; }
+html body.modo-dia #sec-foro .foro-post-acciones { border-top-color: #e2e8f0 !important; }
+html body.modo-dia #sec-foro .foro-accion { color: #64748b !important; -webkit-text-fill-color: #64748b !important; }
+html body.modo-dia #sec-foro .foro-accion:hover { background: #f1f5f9 !important; color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
+html body.modo-dia #sec-foro .foro-accion.like.liked { color: #ef4444 !important; -webkit-text-fill-color: #ef4444 !important; }
+html body.modo-dia #sec-foro .foro-comentarios-wrap { border-top-color: #e2e8f0 !important; }
+html body.modo-dia #sec-foro .foro-comentario-input {
+  background: #f8fafc !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+html body.modo-dia #sec-foro .foro-comentario-input::placeholder { color: #94a3b8 !important; -webkit-text-fill-color: #94a3b8 !important; }
+html body.modo-dia #sec-foro .foro-comentario-body { background: #f8fafc !important; }
+html body.modo-dia #sec-foro .foro-comentario-autor { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
+html body.modo-dia #sec-foro .foro-comentario-texto { color: #475569 !important; -webkit-text-fill-color: #475569 !important; }
+html body.modo-dia #sec-foro .foro-comentario-fecha { color: #94a3b8 !important; -webkit-text-fill-color: #94a3b8 !important; }
+html body.modo-dia #sec-foro .foro-empty {
+  background: #ffffff !important;
+  border: 1px dashed #bfdbfe !important;
+}
+html body.modo-dia #sec-foro .foro-empty-icon { background: #fef3c7 !important; border-color: #fde68a !important; color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
+html body.modo-dia #sec-foro .foro-empty h3 { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
+html body.modo-dia #sec-foro .foro-empty p { color: #475569 !important; -webkit-text-fill-color: #475569 !important; }
+html body.modo-dia #sec-foro .foro-paywall-card {
+  background: #ffffff !important;
+  border: 1px solid #fde68a !important;
+  border-left: 3px solid #f59e0b !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(245,158,11,0.08) !important;
+}
+html body.modo-dia #sec-foro .foro-paywall-icon { background: #fef3c7 !important; border-color: #fde68a !important; color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
+html body.modo-dia #sec-foro .foro-paywall-body strong { color: #0f172a !important; -webkit-text-fill-color: #0f172a !important; }
+html body.modo-dia #sec-foro .foro-paywall-body em { color: #b45309 !important; -webkit-text-fill-color: #b45309 !important; }
+html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -webkit-text-fill-color: #475569 !important; }
+</style>
+
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════════
+   FORO_VIP_v1 — Logica del Foro VIP ICADEM
+   ═══════════════════════════════════════════════════════════════════════ */
+(function() {
+  'use strict';
+
+  // ─── Constantes ────────────────────────────────────────────────────
+  const DIAS_EXPIRACION = 15;
+  const MS_EXPIRACION = DIAS_EXPIRACION * 24 * 60 * 60 * 1000;
+  const MAX_CHARS_POST = 500;
+  const MAX_CHARS_COMENTARIO = 300;
+  const MAX_RESOLUCION = 1600;
+  const CALIDAD_JPEG = 0.90;
+  const MAX_IMAGEN_BYTES = 780000; // ~750 KB
+
+  // ─── Estado ────────────────────────────────────────────────────────
+  let foroInicializado = false;
+  let posts = [];
+  let postsUnsub = null;
+  let imagenesUnsub = new Map(); // postId -> unsubscribe
+  let comentariosUnsub = new Map(); // postId -> unsubscribe
+  let filtroActual = 'recientes';
+  let imagenComposerB64 = null;
+  let esAdmin = false;
+  let publicandoLock = false;
+  let fbApi = null; // Firestore API dinamica
+  let imagenesCache = new Map(); // postId -> dataURL base64
+
+  // ─── Util: escape HTML para evitar XSS ─────────────────────────────
+  function esc(s) {
+    if (s == null) return '';
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // ─── Util: tiempo relativo ─────────────────────────────────────────
+  function tiempoRelativo(fecha) {
+    if (!fecha) return '';
+    const ahora = Date.now();
+    const t = fecha instanceof Date ? fecha.getTime() : (fecha.toDate ? fecha.toDate().getTime() : fecha);
+    const diff = ahora - t;
+    if (diff < 60000) return 'Justo ahora';
+    if (diff < 3600000) return 'Hace ' + Math.floor(diff / 60000) + ' min';
+    if (diff < 86400000) return 'Hace ' + Math.floor(diff / 3600000) + ' h';
+    if (diff < 172800000) return 'Ayer';
+    const dias = Math.floor(diff / 86400000);
+    if (dias < 30) return 'Hace ' + dias + ' d';
+    const d = new Date(t);
+    return d.toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+  }
+
+  // ─── Util: hash deterministico para gradient de avatar ─────────────
+  function gradientPorUid(uid) {
+    if (!uid) return 'linear-gradient(135deg, #1565c0 0%, #0b2554 100%)';
+    let h = 0;
+    for (let i = 0; i < uid.length; i++) h = ((h << 5) - h) + uid.charCodeAt(i);
+    const hue1 = Math.abs(h) % 360;
+    const hue2 = (hue1 + 40) % 360;
+    return `linear-gradient(135deg, hsl(${hue1},55%,42%) 0%, hsl(${hue2},65%,28%) 100%)`;
+  }
+
+  function iniciales(nombre) {
+    if (!nombre) return '··';
+    const partes = nombre.trim().split(/\s+/);
+    if (partes.length === 1) return partes[0].substring(0, 2).toUpperCase();
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+  }
+
+  // ─── Util: obtener datos del usuario actual ────────────────────────
+  function getUsuarioActual() {
+    const u = (window.auth && window.auth.currentUser) || window._currentUser || null;
+    if (!u) return null;
+    return {
+      uid: u.uid,
+      nombre: u.displayName || (u.email ? u.email.split('@')[0] : 'Miembro VIP'),
+      email: u.email || ''
+    };
+  }
+
+  // ─── Detectar admin (por email, igual que las reglas Firestore) ───
+  // Los admins se identifican por email para coincidir con las reglas
+  // del proyecto icadem-vip (no por campo "rol" en Firestore).
+  const EMAILS_ADMIN = [
+    'teccapitalweb@gmail.com',
+    'icademconsultoria2024@gmail.com',
+    'sinergiaagricola789@gmail.com',
+    'ipcilinstituto@gmail.com'
+  ];
+  async function detectarAdmin() {
+    const u = getUsuarioActual();
+    if (!u || !u.email) { esAdmin = false; return; }
+    esAdmin = EMAILS_ADMIN.includes(u.email.toLowerCase());
+  }
+
+  // ─── Pintar avatar propio en composer ──────────────────────────────
+  function pintarMiAvatar() {
+    const u = getUsuarioActual();
+    const el = document.getElementById('foro-mi-avatar');
+    if (!el) return;
+    if (!u) { el.textContent = '··'; return; }
+    el.textContent = iniciales(u.nombre);
+    // Avatar propio mantiene gradient dorado (CSS .foro-avatar-mio)
+  }
+
+  // ─── Comprimir imagen ──────────────────────────────────────────────
+  function comprimirImagen(file) {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('El archivo debe ser una imagen.'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          let w = img.width, h = img.height;
+          // Redimensionar manteniendo aspect ratio
+          if (w > MAX_RESOLUCION || h > MAX_RESOLUCION) {
+            if (w >= h) { h = Math.round(h * MAX_RESOLUCION / w); w = MAX_RESOLUCION; }
+            else { w = Math.round(w * MAX_RESOLUCION / h); h = MAX_RESOLUCION; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          let calidad = CALIDAD_JPEG;
+          let dataURL = canvas.toDataURL('image/jpeg', calidad);
+          // Si supera el limite, bajar calidad iterativamente
+          while (dataURL.length > MAX_IMAGEN_BYTES && calidad > 0.4) {
+            calidad -= 0.08;
+            dataURL = canvas.toDataURL('image/jpeg', calidad);
+          }
+          if (dataURL.length > MAX_IMAGEN_BYTES) {
+            reject(new Error('La imagen es demasiado grande aun comprimida. Prueba con una más pequeña.'));
+            return;
+          }
+          resolve(dataURL);
+        };
+        img.onerror = () => reject(new Error('No se pudo cargar la imagen.'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('No se pudo leer el archivo.'));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // ─── Preview imagen en composer ────────────────────────────────────
+  window.foroPreviewImagen = async function(event) {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    try {
+      const preview = document.getElementById('foro-imagen-preview');
+      const previewImg = document.getElementById('foro-imagen-preview-img');
+      preview.style.display = 'block';
+      previewImg.src = ''; // limpiar
+      // Mientras comprime, mostrar un placeholder
+      const dataURL = await comprimirImagen(file);
+      imagenComposerB64 = dataURL;
+      previewImg.src = dataURL;
+      actualizarBotonPublicar();
+    } catch (e) {
+      alert(e.message || 'Error al procesar la imagen.');
+      imagenComposerB64 = null;
+      document.getElementById('foro-imagen-preview').style.display = 'none';
+    } finally {
+      event.target.value = ''; // permitir resubir misma imagen
+    }
+  };
+
+  window.foroQuitarImagen = function() {
+    imagenComposerB64 = null;
+    document.getElementById('foro-imagen-preview').style.display = 'none';
+    document.getElementById('foro-imagen-preview-img').src = '';
+    actualizarBotonPublicar();
+  };
+
+  // ─── Boton Publicar: habilitar/deshabilitar ────────────────────────
+  function actualizarBotonPublicar() {
+    const input = document.getElementById('foro-input');
+    const btn = document.getElementById('foro-btn-publicar');
+    if (!input || !btn) return;
+    const tieneTexto = input.value.trim().length > 0;
+    const tieneImagen = !!imagenComposerB64;
+    btn.disabled = !(tieneTexto || tieneImagen) || publicandoLock;
+  }
+
+  // ─── Contador de caracteres ────────────────────────────────────────
+  function actualizarContador() {
+    const input = document.getElementById('foro-input');
+    const cnt = document.getElementById('foro-char-counter');
+    if (!input || !cnt) return;
+    const n = input.value.length;
+    cnt.textContent = n + ' / ' + MAX_CHARS_POST;
+    cnt.classList.remove('near-limit', 'at-limit');
+    if (n >= MAX_CHARS_POST) cnt.classList.add('at-limit');
+    else if (n > MAX_CHARS_POST * 0.85) cnt.classList.add('near-limit');
+  }
+
+  // ─── Publicar ──────────────────────────────────────────────────────
+  window.foroPublicar = async function() {
+    if (publicandoLock) return;
+    const u = getUsuarioActual();
+    if (!u) {
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
+    const input = document.getElementById('foro-input');
+    const btn = document.getElementById('foro-btn-publicar');
+    const texto = input.value.trim();
+    if (!texto && !imagenComposerB64) return;
+    if (texto.length > MAX_CHARS_POST) {
+      alert('El post excede ' + MAX_CHARS_POST + ' caracteres.');
+      return;
+    }
+
+    publicandoLock = true;
+    btn.disabled = true;
+    btn.querySelector('.foro-btn-publicar-text').style.display = 'none';
+    btn.querySelector('.foro-btn-publicar-loader').style.display = 'inline-flex';
+
+    try {
+      // 1. Crear el post
+      const ahora = fbApi.serverTimestamp();
+      const postData = {
+        autorUid: u.uid,
+        autorNombre: u.nombre,
+        autorEmail: u.email,
+        autorEsAdmin: esAdmin,
+        texto: texto,
+        creadoEn: ahora,
+        tieneImagen: !!imagenComposerB64,
+        likesCount: 0,
+        comentariosCount: 0,
+        likesPor: []
+      };
+      const postRef = await fbApi.addDoc(fbApi.collection(window.db, 'foro_posts'), postData);
+
+      // 2. Si hay imagen, guardarla en doc aparte (foro_imagenes/{postId})
+      if (imagenComposerB64) {
+        await fbApi.setDoc(fbApi.doc(window.db, 'foro_imagenes', postRef.id), {
+          imagen: imagenComposerB64,
+          autorUid: u.uid,
+          creadoEn: ahora
+        });
+      }
+
+      // Limpiar composer
+      input.value = '';
+      window.foroQuitarImagen();
+      actualizarContador();
+      actualizarBotonPublicar();
+    } catch (e) {
+      console.error('[foro] Error publicando:', e);
+      alert('No se pudo publicar. Verifica tu conexión e intenta de nuevo.');
+    } finally {
+      publicandoLock = false;
+      btn.querySelector('.foro-btn-publicar-text').style.display = 'inline';
+      btn.querySelector('.foro-btn-publicar-loader').style.display = 'none';
+      actualizarBotonPublicar();
+    }
+  };
+
+  // ─── Eliminar post ─────────────────────────────────────────────────
+  window.foroEliminarPost = async function(postId) {
+    const u = getUsuarioActual();
+    if (!u) return;
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    if (post.autorUid !== u.uid && !esAdmin) return;
+    if (!confirm('¿Eliminar esta publicación? Esta acción no se puede deshacer.')) return;
+    try {
+      await fbApi.deleteDoc(fbApi.doc(window.db, 'foro_posts', postId));
+      // Eliminar imagen si existe
+      if (post.tieneImagen) {
+        try { await fbApi.deleteDoc(fbApi.doc(window.db, 'foro_imagenes', postId)); } catch (e) {}
+      }
+    } catch (e) {
+      console.error('[foro] Error eliminando post:', e);
+      alert('No se pudo eliminar la publicación.');
+    }
+  };
+
+  // ─── Like ──────────────────────────────────────────────────────────
+  window.foroToggleLike = async function(postId) {
+    const u = getUsuarioActual();
+    if (!u) {
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
+    if (document.body.classList.contains('is-guest')) {
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
+    const post = posts.find(p => p.id === postId);
+    if (!post) return;
+    const yaLikeo = (post.likesPor || []).includes(u.uid);
+    try {
+      const ref = fbApi.doc(window.db, 'foro_posts', postId);
+      await fbApi.updateDoc(ref, {
+        likesPor: yaLikeo ? fbApi.arrayRemove(u.uid) : fbApi.arrayUnion(u.uid),
+        likesCount: fbApi.increment(yaLikeo ? -1 : 1)
+      });
+    } catch (e) {
+      console.error('[foro] Error al dar like:', e);
+    }
+  };
+
+  // ─── Compartir (copiar link al portapapeles) ───────────────────────
+  window.foroCompartir = async function(postId, btnEl) {
+    const url = window.location.origin + window.location.pathname + '#foro-post-' + postId;
+    try {
+      await navigator.clipboard.writeText(url);
+      mostrarFeedback(btnEl, '¡Link copiado!');
+    } catch (e) {
+      try {
+        // Fallback antiguo
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        mostrarFeedback(btnEl, '¡Link copiado!');
+      } catch (e2) {
+        mostrarFeedback(btnEl, 'No se pudo copiar');
+      }
+    }
+  };
+
+  function mostrarFeedback(targetBtn, texto) {
+    if (!targetBtn) return;
+    const fb = document.createElement('div');
+    fb.className = 'foro-share-feedback';
+    fb.textContent = texto;
+    const rect = targetBtn.getBoundingClientRect();
+    fb.style.top = (rect.top + window.scrollY - 36) + 'px';
+    fb.style.left = (rect.left + window.scrollX + rect.width / 2 - 50) + 'px';
+    document.body.appendChild(fb);
+    setTimeout(() => fb.remove(), 1800);
+  }
+
+  // ─── Toggle comentarios (abrir/cerrar) ─────────────────────────────
+  window.foroToggleComentarios = function(postId) {
+    const wrap = document.getElementById('foro-coms-' + postId);
+    if (!wrap) return;
+    const yaAbierto = wrap.classList.contains('is-open');
+    if (yaAbierto) {
+      wrap.classList.remove('is-open');
+      const unsub = comentariosUnsub.get(postId);
+      if (unsub) { unsub(); comentariosUnsub.delete(postId); }
+    } else {
+      wrap.classList.add('is-open');
+      iniciarListenerComentarios(postId);
+      // focus en input
+      setTimeout(() => {
+        const inp = document.getElementById('foro-cominput-' + postId);
+        if (inp) inp.focus();
+      }, 50);
+    }
+  };
+
+  // ─── Enviar comentario ─────────────────────────────────────────────
+  window.foroEnviarComentario = async function(postId) {
+    const u = getUsuarioActual();
+    if (!u || document.body.classList.contains('is-guest')) {
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
+    const input = document.getElementById('foro-cominput-' + postId);
+    if (!input) return;
+    const texto = input.value.trim();
+    if (!texto) return;
+    if (texto.length > MAX_CHARS_COMENTARIO) {
+      alert('El comentario excede ' + MAX_CHARS_COMENTARIO + ' caracteres.');
+      return;
+    }
+    const btn = document.getElementById('foro-combtn-' + postId);
+    if (btn) btn.disabled = true;
+    try {
+      await fbApi.addDoc(fbApi.collection(window.db, 'foro_posts', postId, 'comentarios'), {
+        autorUid: u.uid,
+        autorNombre: u.nombre,
+        autorEsAdmin: esAdmin,
+        texto: texto,
+        creadoEn: fbApi.serverTimestamp()
+      });
+      // Incrementar contador
+      await fbApi.updateDoc(fbApi.doc(window.db, 'foro_posts', postId), {
+        comentariosCount: fbApi.increment(1)
+      });
+      input.value = '';
+    } catch (e) {
+      console.error('[foro] Error comentando:', e);
+      alert('No se pudo enviar el comentario.');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  // ─── Cargar imagen de post on-demand ───────────────────────────────
+  async function cargarImagenPost(postId, imgElement) {
+    if (imagenesCache.has(postId)) {
+      imgElement.src = imagenesCache.get(postId);
+      return;
+    }
+    try {
+      const snap = await fbApi.getDoc(fbApi.doc(window.db, 'foro_imagenes', postId));
+      if (snap.exists()) {
+        const url = snap.data().imagen;
+        imagenesCache.set(postId, url);
+        imgElement.src = url;
+      }
+    } catch (e) {
+      console.warn('[foro] No se pudo cargar imagen del post:', postId, e);
+    }
+  }
+
+  // ─── Listener de comentarios ───────────────────────────────────────
+  function iniciarListenerComentarios(postId) {
+    if (comentariosUnsub.has(postId)) return;
+    const q = fbApi.query(
+      fbApi.collection(window.db, 'foro_posts', postId, 'comentarios'),
+      fbApi.orderBy('creadoEn', 'asc')
+    );
+    const unsub = fbApi.onSnapshot(q, snap => {
+      const lista = document.getElementById('foro-coms-lista-' + postId);
+      if (!lista) return;
+      lista.innerHTML = '';
+      snap.forEach(d => {
+        const c = d.data();
+        const div = document.createElement('div');
+        div.className = 'foro-comentario';
+        div.innerHTML = `
+          <div class="foro-avatar" style="background:${gradientPorUid(c.autorUid)}">${esc(iniciales(c.autorNombre))}</div>
+          <div class="foro-comentario-body">
+            <div class="foro-comentario-autor">${esc(c.autorNombre || 'Miembro')}${c.autorEsAdmin ? ' <span class="foro-post-badge admin" style="margin-left:6px">Admin</span>' : ''}</div>
+            <div class="foro-comentario-texto">${esc(c.texto)}</div>
+            <div class="foro-comentario-fecha">${esc(tiempoRelativo(c.creadoEn))}</div>
+          </div>
+        `;
+        lista.appendChild(div);
+      });
+    }, err => {
+      console.warn('[foro] Listener comentarios error:', err);
+    });
+    comentariosUnsub.set(postId, unsub);
+  }
+
+  // ─── Cambiar filtro ────────────────────────────────────────────────
+  window.foroCambiarFiltro = function(filtro, btnEl) {
+    filtroActual = filtro;
+    document.querySelectorAll('#sec-foro .foro-filtro').forEach(b => b.classList.remove('is-active'));
+    if (btnEl) btnEl.classList.add('is-active');
+    renderFeed();
+  };
+
+  // ─── Render feed ───────────────────────────────────────────────────
+  function renderFeed() {
+    const feed = document.getElementById('foro-feed');
+    const empty = document.getElementById('foro-empty');
+    const emptyText = document.getElementById('foro-empty-text');
+    if (!feed) return;
+
+    const u = getUsuarioActual();
+    let lista = posts.slice();
+
+    // Filtrar
+    if (filtroActual === 'mios') {
+      if (!u) lista = [];
+      else lista = lista.filter(p => p.autorUid === u.uid);
+    }
+    // Ordenar
+    if (filtroActual === 'populares') {
+      lista.sort((a, b) => (b.likesCount || 0) - (a.likesCount || 0) || ((b.creadoEnMs || 0) - (a.creadoEnMs || 0)));
+    } else {
+      lista.sort((a, b) => (b.creadoEnMs || 0) - (a.creadoEnMs || 0));
+    }
+
+    if (lista.length === 0) {
+      feed.innerHTML = '';
+      empty.style.display = 'block';
+      if (filtroActual === 'mios') emptyText.textContent = 'Aún no has publicado nada.';
+      else if (filtroActual === 'populares') emptyText.textContent = 'Aún no hay publicaciones populares.';
+      else emptyText.textContent = 'Sé el primero en compartir algo con la comunidad ICADEM.';
+      return;
+    }
+    empty.style.display = 'none';
+
+    feed.innerHTML = '';
+    lista.forEach(p => feed.appendChild(crearTarjetaPost(p, u)));
+  }
+
+  function crearTarjetaPost(p, u) {
+    const post = document.createElement('article');
+    post.className = 'foro-post';
+    post.id = 'foro-post-' + p.id;
+
+    const puedeEliminar = u && (p.autorUid === u.uid || esAdmin);
+    const yaLikeo = u && (p.likesPor || []).includes(u.uid);
+
+    const badge = p.autorEsAdmin
+      ? '<span class="foro-post-badge admin">Admin</span>'
+      : '<span class="foro-post-badge vip">VIP</span>';
+
+    post.innerHTML = `
+      <div class="foro-post-header">
+        <div class="foro-avatar" style="background:${gradientPorUid(p.autorUid)}">${esc(iniciales(p.autorNombre))}</div>
+        <div class="foro-post-meta">
+          <div class="foro-post-autor-row">
+            <span class="foro-post-autor">${esc(p.autorNombre || 'Miembro')}</span>
+            ${badge}
+          </div>
+          <div class="foro-post-fecha">${esc(tiempoRelativo(p.creadoEn))}</div>
+        </div>
+        ${puedeEliminar ? `
+          <button type="button" class="foro-post-eliminar" onclick="window.foroEliminarPost('${p.id}')" aria-label="Eliminar publicación" title="Eliminar">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+          </button>
+        ` : ''}
+      </div>
+      ${p.texto ? `<div class="foro-post-body">${esc(p.texto)}</div>` : ''}
+      ${p.tieneImagen ? `<img class="foro-post-imagen" alt="Imagen del post" data-post-id="${p.id}" onclick="window.foroLightboxAbrir('${p.id}')">` : ''}
+      <div class="foro-post-acciones">
+        <button type="button" class="foro-accion like ${yaLikeo ? 'liked' : ''}" onclick="window.foroToggleLike('${p.id}')">
+          <svg viewBox="0 0 24 24" fill="${yaLikeo ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          <span class="foro-accion-count">${p.likesCount || 0}</span>
+        </button>
+        <button type="button" class="foro-accion" onclick="window.foroToggleComentarios('${p.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="foro-accion-count">${p.comentariosCount || 0}</span>
+        </button>
+        <button type="button" class="foro-accion" onclick="window.foroCompartir('${p.id}', this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span>Compartir</span>
+        </button>
+      </div>
+      <div class="foro-comentarios-wrap" id="foro-coms-${p.id}">
+        <div class="foro-comentario-input-wrap">
+          <div class="foro-avatar foro-avatar-mio">${u ? esc(iniciales(u.nombre)) : '··'}</div>
+          <input type="text" class="foro-comentario-input" id="foro-cominput-${p.id}" placeholder="Escribe un comentario..." maxlength="${MAX_CHARS_COMENTARIO}" onkeydown="if(event.key==='Enter'){event.preventDefault();window.foroEnviarComentario('${p.id}')}">
+          <button type="button" class="foro-comentario-btn" id="foro-combtn-${p.id}" onclick="window.foroEnviarComentario('${p.id}')" aria-label="Enviar comentario">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+        <div class="foro-comentarios-lista" id="foro-coms-lista-${p.id}"></div>
+      </div>
+    `;
+
+    // Cargar imagen on-demand
+    if (p.tieneImagen) {
+      const img = post.querySelector('.foro-post-imagen');
+      cargarImagenPost(p.id, img);
+    }
+    return post;
+  }
+
+  // ─── Lightbox ──────────────────────────────────────────────────────
+  window.foroLightboxAbrir = function(postId) {
+    const url = imagenesCache.get(postId);
+    if (!url) return;
+    const lb = document.getElementById('foro-lightbox');
+    const img = document.getElementById('foro-lightbox-img');
+    img.src = url;
+    lb.classList.add('is-open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.foroLightboxCerrar = function(ev) {
+    if (ev) ev.stopPropagation();
+    const lb = document.getElementById('foro-lightbox');
+    const img = document.getElementById('foro-lightbox-img');
+    lb.classList.remove('is-open');
+    img.src = '';
+    document.body.style.overflow = '';
+  };
+
+  // ─── Listener principal de posts (real-time) ───────────────────────
+  function iniciarFeedRealtime() {
+    if (postsUnsub) postsUnsub();
+    const q = fbApi.query(
+      fbApi.collection(window.db, 'foro_posts'),
+      fbApi.orderBy('creadoEn', 'desc'),
+      fbApi.limit(100)
+    );
+    postsUnsub = fbApi.onSnapshot(q, snap => {
+      posts = [];
+      snap.forEach(d => {
+        const data = d.data();
+        let ms = 0;
+        if (data.creadoEn) {
+          if (data.creadoEn.toDate) ms = data.creadoEn.toDate().getTime();
+          else if (data.creadoEn instanceof Date) ms = data.creadoEn.getTime();
+        }
+        posts.push({ id: d.id, ...data, creadoEnMs: ms });
+      });
+      renderFeed();
+    }, err => {
+      console.error('[foro] Listener posts error:', err);
+      const feed = document.getElementById('foro-feed');
+      if (feed) {
+        feed.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:13px">No se pudo cargar el foro. Verifica tu conexión.</div>';
+      }
+    });
+  }
+
+  // ─── Auto-eliminar posts viejos (>15 días) ─────────────────────────
+  async function autoEliminarPostsViejos() {
+    try {
+      const cutoffMs = Date.now() - MS_EXPIRACION;
+      const cutoff = new Date(cutoffMs);
+      const q = fbApi.query(
+        fbApi.collection(window.db, 'foro_posts'),
+        fbApi.where('creadoEn', '<', cutoff),
+        fbApi.limit(20)
+      );
+      const snap = await fbApi.getDocs(q);
+      if (snap.empty) return;
+      const promesas = [];
+      snap.forEach(d => {
+        promesas.push(fbApi.deleteDoc(fbApi.doc(window.db, 'foro_posts', d.id)));
+        const data = d.data();
+        if (data.tieneImagen) {
+          promesas.push(fbApi.deleteDoc(fbApi.doc(window.db, 'foro_imagenes', d.id)).catch(() => {}));
+        }
+      });
+      await Promise.all(promesas);
+      console.log('[foro] Eliminados', snap.size, 'posts antiguos.');
+    } catch (e) {
+      console.warn('[foro] Auto-delete no se pudo ejecutar:', e);
+    }
+  }
+
+  // ─── Inicializar composer ──────────────────────────────────────────
+  function inicializarComposer() {
+    const input = document.getElementById('foro-input');
+    if (!input) return;
+    input.addEventListener('input', () => {
+      actualizarContador();
+      actualizarBotonPublicar();
+      // Auto-resize
+      input.style.height = 'auto';
+      input.style.height = Math.min(200, input.scrollHeight) + 'px';
+    });
+    actualizarContador();
+    actualizarBotonPublicar();
+  }
+
+  // ─── Init (lazy, llamado al entrar a la sección) ───────────────────
+  window.foroInit = async function() {
+    if (foroInicializado) return;
+    foroInicializado = true;
+    try {
+      // Import dinamico de Firestore API extendida
+      fbApi = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      await detectarAdmin();
+      pintarMiAvatar();
+      inicializarComposer();
+      iniciarFeedRealtime();
+      // Auto-delete en background (no bloquea)
+      setTimeout(() => autoEliminarPostsViejos(), 2000);
+    } catch (e) {
+      console.error('[foro] Init error:', e);
+      foroInicializado = false;
+    }
+  };
+
+  // ─── Wrap showSection para inicializar el foro on-demand ──────────
+  function wrapShowSection() {
+    if (typeof window.showSection !== 'function') return false;
+    const _origShow = window.showSection;
+    window.showSection = function(id) {
+      const r = _origShow.apply(this, arguments);
+      if (id === 'foro') {
+        // Espera un tick para que la sección esté visible
+        setTimeout(() => { window.foroInit(); }, 0);
+      }
+      return r;
+    };
+    return true;
+  }
+  // Intentar wrap (puede que showSection aún no exista al cargar este script)
+  if (!wrapShowSection()) {
+    // Polling breve hasta que showSection esté disponible
+    let intentos = 0;
+    const interval = setInterval(() => {
+      intentos++;
+      if (wrapShowSection() || intentos > 30) clearInterval(interval);
+    }, 200);
+  }
+})();
+</script>
 
 </body>
 </html>
