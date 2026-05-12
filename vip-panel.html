@@ -35101,14 +35101,12 @@ html body.modo-dia .page-tag {
 }
 .foro-lightbox-close:hover { background: rgba(0,0,0,0.8); }
 
-/* ─── Modo INVITADO: ocultar composer y mostrar paywall ──────────────── */
-body.is-guest #sec-foro #foro-composer { display: none; }
-body.is-guest #sec-foro #foro-paywall-composer { display: flex; }
-/* Tambien deshabilitar las acciones */
-body.is-guest #sec-foro .foro-accion { opacity: 0.55; pointer-events: none; }
-body.is-guest #sec-foro .foro-post-eliminar { display: none; }
-body.is-guest #sec-foro .foro-filtro[data-filtro="mios"] { opacity: 0.4; pointer-events: none; }
-body.is-guest #sec-foro .foro-comentarios-wrap .foro-comentario-input-wrap { display: none; }
+/* ─── Modo INVITADO: deja TODO visible y la lógica JS dispara paywall ──── */
+/* Patron: ver para querer. Las acciones (publicar, like, comentar,        */
+/* compartir, foto, filtro "mios") muestran paywall al intentar usarlas.   */
+/* Solo se oculta el boton de eliminar (que ni aplica para invitados).     */
+body.is-guest #sec-foro #foro-paywall-composer { display: none !important; }
+body.is-guest #sec-foro .foro-post-eliminar { display: none !important; }
 
 /* ─── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
@@ -35378,6 +35376,12 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
 
   // ─── Preview imagen en composer ────────────────────────────────────
   window.foroPreviewImagen = async function(event) {
+    // Si es invitado → paywall y reset del input
+    if (document.body.classList.contains('is-guest')) {
+      event.target.value = '';
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
     const file = event.target.files && event.target.files[0];
     if (!file) return;
     try {
@@ -35431,6 +35435,11 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
   // ─── Publicar ──────────────────────────────────────────────────────
   window.foroPublicar = async function() {
     if (publicandoLock) return;
+    // Si es invitado → paywall (incluso si tiene texto/foto)
+    if (document.body.classList.contains('is-guest')) {
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
     const u = getUsuarioActual();
     if (!u) {
       if (window.mostrarPaywall) window.mostrarPaywall();
@@ -35539,6 +35548,11 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
 
   // ─── Compartir (copiar link al portapapeles) ───────────────────────
   window.foroCompartir = async function(postId, btnEl) {
+    // Si es invitado → paywall
+    if (document.body.classList.contains('is-guest')) {
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
     const url = window.location.origin + window.location.pathname + '#foro-post-' + postId;
     try {
       await navigator.clipboard.writeText(url);
@@ -35680,6 +35694,11 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
 
   // ─── Cambiar filtro ────────────────────────────────────────────────
   window.foroCambiarFiltro = function(filtro, btnEl) {
+    // Si es invitado intentando ver "Mis posts" → paywall
+    if (filtro === 'mios' && document.body.classList.contains('is-guest')) {
+      if (window.mostrarPaywall) window.mostrarPaywall();
+      return;
+    }
     filtroActual = filtro;
     document.querySelectorAll('#sec-foro .foro-filtro').forEach(b => b.classList.remove('is-active'));
     if (btnEl) btnEl.classList.add('is-active');
