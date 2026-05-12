@@ -33838,5 +33838,69 @@ html body.modo-dia select option:disabled {
 }
 </style>
 
+
+<style data-marker="SELECT_OPTION_CHECKED_DAY_v2">
+/* ═══════════════════════════════════════════════════════════════════════
+   SELECT_OPTION_CHECKED_DAY_v2 — Refuerzo de legibilidad para la
+   opcion :checked del select nativo en MODO DIA.
+
+   Diagnostico: el dropdown abierto de un <select> nativo lo renderiza
+   el SISTEMA OPERATIVO, no el navegador. Por eso CSS tiene control
+   muy limitado sobre la opcion seleccionada (la que aparece con
+   highlight cuando se abre el dropdown). Mi v1 logro que las opciones
+   normales (no seleccionadas) se vean blancas con texto oscuro, pero
+   la opcion :checked todavia se pintaba con el highlight nativo azul
+   brillante con texto blanco poco legible.
+
+   Estrategia de 3 capas para maxima compatibilidad:
+
+   1) accent-color en el <select>: navegadores modernos (Chrome 93+,
+      Firefox 92+, Safari 15.4+) respetan este color para el highlight
+      de option seleccionada. En navegadores que lo soportan, el azul
+      brillante cambia a azul marino oscuro elegante.
+
+   2) box-shadow: inset 0 0 0 100vh: truco para forzar el background
+      sobre el highlight nativo. Funciona en algunos casos.
+
+   3) Color + font-weight + text-shadow: si los 2 trucos anteriores
+      fallan y el OS sigue pintando su highlight, al menos el TEXTO
+      blanco BOLD con sombra queda perfectamente legible sobre
+      cualquier fondo azul que pinte el sistema.
+
+   Specificity body.modo-dia select option:checked = (0,0,2,3)
+   vence linea 16586 select option (0,0,0,2) por b=2>0.
+
+   SOLO afecta modo dia. Modo noche INTACTO.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── CAPA 1: accent-color del select ─────────────────────────────────── */
+body.modo-dia select,
+html body.modo-dia select {
+  accent-color: #1E3A8A !important;
+}
+
+/* ─── CAPA 2+3: forzar background y legibilidad de :checked ───────────── */
+body.modo-dia select option:checked,
+body.modo-dia select option[selected],
+body.modo-dia select option:checked:hover,
+body.modo-dia select option:checked:focus,
+html body.modo-dia select option:checked,
+html body.modo-dia select option[selected] {
+  /* Forzar background con multiple metodos para maxima compatibilidad */
+  background: #1E3A8A !important;
+  background-color: #1E3A8A !important;
+  background-image: linear-gradient(0deg, #1E3A8A 0%, #1E3A8A 100%) !important;
+
+  /* Truco box-shadow inset: cubre el highlight nativo en muchos browsers */
+  box-shadow: inset 0 0 0 100vh #1E3A8A !important;
+
+  /* Texto blanco bold con sombra → legible siempre */
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.30) !important;
+}
+</style>
+
 </body>
 </html>
