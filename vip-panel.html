@@ -34049,28 +34049,30 @@ html body.modo-dia select:hover:not(:focus):not(.dir-toolbar select):not([class*
 }
 
 /* ─── COVER 2: Tapar icono "abrir en Drive" del visor de Video ────────── */
-/* El #modal-video-area contiene al .modal-back-btn (altura ~45px) y luego
-   al iframe. El icono nativo de Drive aparece en top:5px right:5px DEL
-   IFRAME, lo que equivale a top:50px right:5px del #modal-video-area. */
+/* IMPORTANTE: En DESKTOP (>=768px) el back button .modal-back-btn esta
+   OCULTO (linea 10022: #btn-volver-lista{ display:none !important; }).
+   Por eso el iframe empieza desde top:0 del #modal-video-area.
+   En MOBILE (<768px) el back button SI esta visible y mide ~45px.
+   La posicion base apunta a desktop; el @media revierte para mobile. */
 #modal-video-area::after {
   content: '' !important;
   position: absolute !important;
-  top: 50px !important;
+  top: 0 !important;
   right: 0 !important;
   width: 60px !important;
-  height: 54px !important;
+  height: 56px !important;
   background: #292a2d !important;
   z-index: 5 !important;
   pointer-events: auto !important;
   display: block !important;
 }
 
-/* Mobile: el back button puede ser un poco mas pequeño */
+/* Mobile: back button visible (~45px alto), cover se desplaza hacia abajo */
 @media (max-width: 767px) {
   #modal-video-area::after {
-    top: 44px !important;
-    width: 54px !important;
-    height: 48px !important;
+    top: 45px !important;
+    width: 56px !important;
+    height: 50px !important;
   }
 }
 </style>
