@@ -33744,5 +33744,34 @@ html #sec-docs-legales .doc-legal-search input[type="text"]:focus {
 }
 </style>
 
+
+<style data-marker="COMUNIDAD_CARD_DECORATIVE_CIRCLE_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   COMUNIDAD_CARD_DECORATIVE_CIRCLE_v1 — Ocultar el "recuadro difuminado"
+   en la esquina superior derecha de los 3 cards de Comunidad.
+
+   Problema: cada card tiene un div decorativo absoluto:
+     <div style="position:absolute;top:-25px;right:-25px;
+                 width:110px;height:110px;border-radius:50%;
+                 background:rgba(255,255,255,0.08)"></div>
+   La intencion era un "glow circular sutil" en la esquina, pero por el
+   overflow:hidden del contenedor + border-radius del card, el circulo se
+   recorta en una forma rara: parece un cuadrado con esquina diagonal
+   curva ("recuadro difuminado"), no un glow elegante.
+
+   Solucion: ocultarlo con display:none. Selector basado en los atributos
+   inline del style para apuntar exactamente a esos 3 elementos y nada mas.
+
+   Specificity: 1 clase (.comunidad-card) + 3 attr selectors + 1 elem (div)
+   = (0, 0, 4, 1). Solo aplica a esos 3 divs decorativos.
+
+   Aplica a AMBOS modos (sin :not(.modo-dia) ni .modo-dia).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.comunidad-card div[style*="top:-25px"][style*="right:-25px"][style*="border-radius:50%"] {
+  display: none !important;
+}
+</style>
+
 </body>
 </html>
