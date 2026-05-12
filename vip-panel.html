@@ -10584,9 +10584,7 @@ buildVideoteca();
       <div class="pdf-modal-header">
         <span class="pdf-modal-title" id="pdf-titulo">Documento</span>
         <div class="pdf-modal-actions">
-          <a class="pdf-btn-dl" id="pdf-dl-btn" href="#" target="_blank" download>
-            ⬇ Descargar
-          </a>
+          <!-- HIDE_DRIVE_BUTTONS_v1: botón Descargar eliminado intencionalmente -->
           <button class="pdf-close" onclick="cerrarPDF()">&#x2715;</button>
         </div>
       </div>
@@ -10600,7 +10598,7 @@ buildVideoteca();
       const dlUrl = 'https://drive.google.com/uc?export=download&id=' + driveId;
       document.getElementById('pdf-titulo').textContent = titulo;
       document.getElementById('pdf-frame').src = previewUrl;
-      document.getElementById('pdf-dl-btn').href = dlUrl;
+      // HIDE_DRIVE_BUTTONS_v1: linea de pdf-dl-btn.href eliminada (boton ya no existe)
       document.getElementById('pdf-overlay').classList.add('visible');
       document.body.style.overflow = 'hidden';
     };
@@ -33984,6 +33982,96 @@ html body.modo-dia select:hover:not(:focus):not(.dir-toolbar select):not([class*
   background: #FFFFFF !important;
   background-color: #FFFFFF !important;
   border-color: #CBD5E1 !important;
+}
+</style>
+
+
+<style data-marker="HIDE_DRIVE_BUTTONS_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   HIDE_DRIVE_BUTTONS_v1 — Ocultar 2 elementos no deseados de los
+   visores PDF y video:
+
+   1) Boton "Descargar" del overlay PDF: ELIMINADO del HTML directamente
+      (lineas 10587-10589 originales). Esta regla CSS es solo redundancia
+      defensiva por si en el futuro se vuelve a agregar.
+
+   2) Icono nativo "abrir en Drive" (flecha en cuadrado) que Google Drive
+      muestra en la esquina superior derecha del iframe /preview. NO se
+      puede ocultar con CSS dentro del iframe (cross-origin policy), pero
+      SI se puede TAPAR con un div absoluto encima.
+
+   Estrategia: usar pseudo-elementos ::after en los contenedores que
+   envuelven a los iframes, con color identico al toolbar de Drive
+   (#292a2d) para que se vea como parte del visor.
+
+   Aplica a AMBOS modos (dia y noche). No afecta los demas iframes
+   (plantillas, etc.) porque selecciona contenedores especificos.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── REDUNDANCIA: ocultar boton Descargar si reaparece ───────────────── */
+#pdf-dl-btn {
+  display: none !important;
+}
+
+/* ─── Position: relative en contenedores (necesario para ::after) ─────── */
+.pdf-modal {
+  position: relative !important;
+}
+#modal-video-area {
+  position: relative !important;
+}
+
+/* ─── COVER 1: Tapar icono "abrir en Drive" del visor PDF ─────────────── */
+/* El header del pdf-modal tiene altura ~64px (padding 1rem + texto 14px).
+   El iframe empieza despues del header. El icono nativo de Drive aparece
+   en top:5px right:5px DEL IFRAME, lo que equivale a top:69px right:5px
+   del .pdf-modal. Cover oversized para margen de error en responsive. */
+.pdf-modal::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 64px !important;
+  right: 0 !important;
+  width: 64px !important;
+  height: 56px !important;
+  background: #292a2d !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+  display: block !important;
+}
+
+/* Mobile: el header del PDF es ligeramente mas bajo */
+@media (max-width: 767px) {
+  .pdf-modal::after {
+    top: 54px !important;
+    width: 56px !important;
+    height: 52px !important;
+  }
+}
+
+/* ─── COVER 2: Tapar icono "abrir en Drive" del visor de Video ────────── */
+/* El #modal-video-area contiene al .modal-back-btn (altura ~45px) y luego
+   al iframe. El icono nativo de Drive aparece en top:5px right:5px DEL
+   IFRAME, lo que equivale a top:50px right:5px del #modal-video-area. */
+#modal-video-area::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 50px !important;
+  right: 0 !important;
+  width: 60px !important;
+  height: 54px !important;
+  background: #292a2d !important;
+  z-index: 5 !important;
+  pointer-events: auto !important;
+  display: block !important;
+}
+
+/* Mobile: el back button puede ser un poco mas pequeño */
+@media (max-width: 767px) {
+  #modal-video-area::after {
+    top: 44px !important;
+    width: 54px !important;
+    height: 48px !important;
+  }
 }
 </style>
 
