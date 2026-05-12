@@ -32632,5 +32632,86 @@ html body.modo-dia article.noticia-card span[style*="color:#fff"] {
 }
 </style>
 
+
+<style data-marker="HELLO_TITLE_CONTRAST_v1">
+/* ═══════════════════════════════════════════════════════════════════════
+   HELLO_TITLE_CONTRAST_v1 — "Hola" legible en modo dia
+
+   PROBLEMA RESUELTO:
+   El h1.ic-hello-title tiene gradient "blanco -> azul claro" + text-fill-color
+   transparent. En modo noche contrasta perfecto sobre fondo oscuro, pero en
+   modo dia el fondo es blanco-azulado (#F8FAFC) y el gradient blanco-a-azul
+   se mimetiza con el fondo = "Hola" casi invisible.
+
+   El span#user-nombre tiene gradient dorado propio que SI contrasta en ambos
+   modos (no se toca).
+
+   SOLUCION:
+   Solo en modo dia, cambiar el gradient del "Hola" a uno marino-oscuro ->
+   azul brand que contraste bien sobre fondo blanco-azulado.
+   Specificity ultra-alta para vencer las 2 reglas duplicadas existentes
+   (lineas 17327 y 25874) que tienen !important.
+
+   Mantiene el efecto premium "texto con gradiente", solo cambia los colores.
+   Modo noche NO se toca (funciona perfecto).
+
+   Solo CSS, ZERO HTML, ZERO JS.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* --- "Hola" en modo dia: gradient marino oscuro -> azul brand --- */
+html body.modo-dia h1.ic-hello-title,
+html body.modo-dia .ic-hello h1.ic-hello-title,
+html body.modo-dia .ic-hello-content h1.ic-hello-title {
+  background: linear-gradient(180deg, #0A1F44 0%, #1E3A8A 50%, #2563EB 100%) !important;
+  background-image: linear-gradient(180deg, #0A1F44 0%, #1E3A8A 50%, #2563EB 100%) !important;
+  background-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 2px 8px rgba(30, 58, 138, 0.18)) !important;
+}
+
+/* --- "Correo" (span#user-nombre): mantener dorado vibrante --- */
+/* Specificity alta para que el dorado no sea heredado por el padre */
+html body.modo-dia h1.ic-hello-title #user-nombre,
+html body.modo-dia .ic-hello-title #user-nombre,
+html body.modo-dia #user-nombre {
+  background: linear-gradient(135deg, #B45309 0%, #D97706 30%, #F59E0B 60%, #FBBF24 100%) !important;
+  background-image: linear-gradient(135deg, #B45309 0%, #D97706 30%, #F59E0B 60%, #FBBF24 100%) !important;
+  background-color: transparent !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  font-weight: 900 !important;
+  filter: drop-shadow(0 2px 8px rgba(245, 158, 11, 0.28)) !important;
+}
+
+/* --- Eyebrow "PANEL VIP · EXCLUSIVO PARA MIEMBROS" en modo dia --- */
+/* Para que tambien se vea legible sobre fondo claro */
+html body.modo-dia .ic-hello-eyebrow,
+html body.modo-dia .ic-hello p.ic-hello-eyebrow {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  background: none !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  text-shadow: none !important;
+  opacity: 0.85 !important;
+}
+
+/* --- Linea decorativa debajo del titulo --- */
+html body.modo-dia .ic-hello-line {
+  background: linear-gradient(90deg, #2563EB 0%, #F59E0B 100%) !important;
+  background-image: linear-gradient(90deg, #2563EB 0%, #F59E0B 100%) !important;
+  height: 3px !important;
+  border-radius: 2px !important;
+  opacity: 0.9 !important;
+}
+</style>
+
 </body>
 </html>
