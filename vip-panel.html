@@ -9449,13 +9449,16 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
     if (nuevosLogros.length === 0) return;
 
-    // Mostrar toast por cada logro nuevo, luego popup con el último
-    for (let i = 0; i < nuevosLogros.length; i++) {
-      setTimeout(() => mostrarToastLogro(nuevosLogros[i]), i * 1200);
+    // ⚡ INMEDIATO: mostrar popup del último logro YA, sin esperar
+    mostrarPopupCompartir(nuevosLogros[nuevosLogros.length - 1]);
+
+    // Si hay más de 1 logro, mostrar toasts secundarios rápidos (150ms entre cada uno)
+    // para que el usuario vea los logros adicionales sin esperas largas
+    if (nuevosLogros.length > 1) {
+      for (let i = 0; i < nuevosLogros.length - 1; i++) {
+        setTimeout(() => mostrarToastLogro(nuevosLogros[i]), i * 150);
+      }
     }
-    setTimeout(() => {
-      mostrarPopupCompartir(nuevosLogros[nuevosLogros.length - 1]);
-    }, nuevosLogros.length * 1200 + 3500);
 
     if (window.renderMisLogros) window.renderMisLogros();
   };
@@ -10494,20 +10497,27 @@ function marcarClaseVista(idx, cursoId) {
 
   // 🎓 EMITIR CERTIFICADO + verificar logros DESPUÉS del re-render
   if (cursoCompletoAhora) {
-    setTimeout(async () => {
+    // ⚡ INMEDIATO: mostrar splash YA con "Generando..." y actualizar folio cuando termine
+    if (window.mostrarSplashCertificado) {
+      window.mostrarSplashCertificado(cursoDataParaCert, null);
+    }
+    // En paralelo: crear el certificado real y actualizar el folio en el splash cuando esté listo
+    (async () => {
       console.log('🎉 Curso completado! Emitiendo certificado...');
       let certEmitido = null;
-      // 1. Crear certificado
       if (cursoDataParaCert && window._icademLogros && window._icademLogros.crearCertificado) {
         certEmitido = await window._icademLogros.crearCertificado(cursoDataParaCert);
       }
-      // 2. Verificar logros
+      // Verificar logros (esto dispara el popup INMEDIATO si hay nuevos)
       window.verificarLogros(progreso);
-      // 3. 🎊 SPLASH SCREEN ÉPICO con confeti
-      if (window.mostrarSplashCertificado) {
-        window.mostrarSplashCertificado(cursoDataParaCert, certEmitido);
+      // Actualizar el folio en el splash cuando el cert ya esté emitido
+      if (certEmitido && certEmitido.folio) {
+        const folioEl = document.getElementById('splash-cert-folio');
+        const folioBox = document.querySelector('#splash-cert .splash-cert-folio-box');
+        if (folioEl) folioEl.textContent = certEmitido.folio;
+        if (folioBox) folioBox.style.display = '';
       }
-    }, 800);
+    })();
   }
 };
 
@@ -26450,7 +26460,7 @@ async function cargarDatosUsuario() {
 
     // 🔁 Chequeo retroactivo: emitir certificados para cursos ya completados
     // que aún no tienen su certificado (ej: cursos completados antes de que existiera esta lógica)
-    setTimeout(verificarCertificadosPendientes, 1500);
+    setTimeout(verificarCertificadosPendientes, 300);
   } catch(e) {
     console.warn('[Logros] Error cargando datos:', e);
     renderLogros();
@@ -26466,7 +26476,7 @@ async function verificarCertificadosPendientes() {
     if (!user) return;
     if (!window._cursosNuevos || !window._cursosNuevos.length) {
       // Esperar a que cargen los cursos y reintentar
-      setTimeout(verificarCertificadosPendientes, 1500);
+      setTimeout(verificarCertificadosPendientes, 500);
       return;
     }
 
@@ -27230,7 +27240,7 @@ window.mostrarSplashCertificado = function(cursoData, certEmitido) {
       spread: 70,
       origin: { x: 0.5, y: 0.5 }
     });
-    // Ráfaga 2: izquierda (delay)
+    // Ráfaga 2: izquierda (delay corto)
     setTimeout(() => {
       confetti({
         ...opts,
@@ -27239,8 +27249,8 @@ window.mostrarSplashCertificado = function(cursoData, certEmitido) {
         angle: 60,
         origin: { x: 0, y: 0.6 }
       });
-    }, 250);
-    // Ráfaga 3: derecha (delay)
+    }, 100);
+    // Ráfaga 3: derecha (delay corto)
     setTimeout(() => {
       confetti({
         ...opts,
@@ -27249,7 +27259,7 @@ window.mostrarSplashCertificado = function(cursoData, certEmitido) {
         angle: 120,
         origin: { x: 1, y: 0.6 }
       });
-    }, 400);
+    }, 200);
     // Ráfaga 4: lluvia desde arriba
     setTimeout(() => {
       confetti({
@@ -27260,7 +27270,7 @@ window.mostrarSplashCertificado = function(cursoData, certEmitido) {
         gravity: 0.6,
         origin: { x: 0.5, y: 0 }
       });
-    }, 700);
+    }, 350);
   }
 };
 
