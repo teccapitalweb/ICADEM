@@ -7909,7 +7909,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
         </div>
 
         <div class="splash-cert-actions">
-          <button class="splash-cert-btn splash-cert-btn-primary" onclick="window.irACertificados()">
+          <button class="splash-cert-btn splash-cert-btn-primary" onclick="window.verMiCertificadoEmitido()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="m9 14-1.5 8 4.5-3 4.5 3-1.5-8"/></svg>
             Ver mi certificado
           </button>
@@ -10497,33 +10497,54 @@ function marcarClaseVista(idx, cursoId) {
     }
   }
 
-  // Reabrir el curso para reflejar el progreso actualizado
-  const cursoRef = window._cursoActual;
-  if (cursoRef) openCourse(cursoRef.id);
-
-  // 🎓 EMITIR CERTIFICADO + verificar logros DESPUÉS del re-render
+  // ════════════════════════════════════════════════════════════════
+  // 🎓 FLUJO AL COMPLETAR UN CURSO (última clase marcada como vista)
+  // ════════════════════════════════════════════════════════════════
   if (cursoCompletoAhora) {
-    // ⚡ INMEDIATO: mostrar splash YA con "Generando..." y actualizar folio cuando termine
-    if (window.mostrarSplashCertificado) {
-      window.mostrarSplashCertificado(cursoDataParaCert, null);
+    // ⚡ 1. CERRAR el modal del curso inmediato (no reabrirlo)
+    if (typeof window.closeCourse === 'function') {
+      try { window.closeCourse(); } catch(e) {}
     }
-    // En paralelo: crear el certificado real y actualizar el folio en el splash cuando esté listo
+    const courseModal = document.getElementById('course-modal');
+    if (courseModal) courseModal.style.display = 'none';
+    document.body.style.overflow = '';
+
+    // 🎉 2. SPLASH GIGANTE de felicitaciones con confeti masivo
+    if (window.mostrarSplashFelicidades) {
+      window.mostrarSplashFelicidades(cursoDataParaCert);
+    }
+
+    // En paralelo: emitir certificado real + verificar logros
     (async () => {
       console.log('🎉 Curso completado! Emitiendo certificado...');
       let certEmitido = null;
       if (cursoDataParaCert && window._icademLogros && window._icademLogros.crearCertificado) {
         certEmitido = await window._icademLogros.crearCertificado(cursoDataParaCert);
       }
-      // Verificar logros (esto dispara el popup INMEDIATO si hay nuevos)
-      window.verificarLogros(progreso);
-      // Actualizar el folio en el splash cuando el cert ya esté emitido
-      if (certEmitido && certEmitido.folio) {
+      // Guardar el cert emitido en una variable global para uso posterior
+      if (certEmitido) {
+        window._ultimoCertEmitido = certEmitido;
+        // Actualizar folio en el splash de cert si ya está visible
         const folioEl = document.getElementById('splash-cert-folio');
         const folioBox = document.querySelector('#splash-cert .splash-cert-folio-box');
-        if (folioEl) folioEl.textContent = certEmitido.folio;
+        if (folioEl) folioEl.textContent = certEmitido.folio || '—';
         if (folioBox) folioBox.style.display = '';
       }
+      // Verificar logros (esto dispara el popup INMEDIATO si hay nuevos)
+      window.verificarLogros(progreso);
     })();
+
+    // ⏱️ 3. Después de 2.5s: cerrar splash gigante y mostrar splash de cert emitido
+    setTimeout(() => {
+      if (window.cerrarSplashFelicidades) window.cerrarSplashFelicidades();
+      if (window.mostrarSplashCertificado) {
+        window.mostrarSplashCertificado(cursoDataParaCert, window._ultimoCertEmitido || null);
+      }
+    }, 2500);
+  } else {
+    // Si NO está completo: reabrir el curso para reflejar el progreso actualizado
+    const cursoRef = window._cursoActual;
+    if (cursoRef) openCourse(cursoRef.id);
   }
 };
 
@@ -27300,6 +27321,95 @@ window.irACertificados = function() {
   if (typeof window.showSection === 'function') {
     window.showSection('certificados');
   }
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 🎉 SPLASH GIGANTE de FELICITACIONES (aparece ANTES del splash de cert)
+// ═══════════════════════════════════════════════════════════════
+window.mostrarSplashFelicidades = function(cursoData) {
+  let splash = document.getElementById('splash-felicidades');
+  if (!splash) {
+    splash = document.createElement('div');
+    splash.id = 'splash-felicidades';
+    splash.style.cssText = 'position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;flex-direction:column;padding:2rem;text-align:center;background:linear-gradient(135deg,#0a1f44 0%,#1e3a8a 45%,#0d4737 100%);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);animation:splashFelIn .55s cubic-bezier(.34,1.56,.64,1)';
+    document.body.appendChild(splash);
+    // Inyectar keyframes una sola vez
+    if (!document.getElementById('splash-felicidades-anim')) {
+      const style = document.createElement('style');
+      style.id = 'splash-felicidades-anim';
+      style.textContent = '@keyframes splashFelIn{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}@keyframes splashFelOut{from{opacity:1;transform:scale(1)}to{opacity:0;transform:scale(1.08)}}@keyframes felTrophyBob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-14px) rotate(3deg)}}@keyframes felStarPulse{0%,100%{transform:scale(1);opacity:.65}50%{transform:scale(1.18);opacity:1}}@keyframes felTitleSlide{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}@keyframes felSubFade{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}#splash-felicidades .fel-trophy{animation:felTrophyBob 2.4s ease-in-out infinite}#splash-felicidades .fel-star{animation:felStarPulse 1.6s ease-in-out infinite}#splash-felicidades .fel-title{animation:felTitleSlide .85s .25s cubic-bezier(.34,1.56,.64,1) backwards}#splash-felicidades .fel-sub{animation:felSubFade .7s .55s ease-out backwards}#splash-felicidades.cerrando{animation:splashFelOut .4s ease-in forwards}@media(max-width:640px){#splash-felicidades .fel-title{font-size:48px !important}#splash-felicidades .fel-trophy{font-size:90px !important}}';
+      document.head.appendChild(style);
+    }
+  } else {
+    splash.style.display = 'flex';
+    splash.classList.remove('cerrando');
+  }
+  const tituloCurso = (cursoData && cursoData.titulo) || 'tu curso';
+  splash.innerHTML = `
+    <div class="fel-trophy" style="font-size:140px;filter:drop-shadow(0 14px 44px rgba(245,215,122,.55));margin-bottom:1.25rem;line-height:1">🏆</div>
+    <div style="display:flex;gap:18px;align-items:center;justify-content:center;margin-bottom:1.5rem">
+      <span class="fel-star" style="font-size:30px;filter:drop-shadow(0 4px 10px rgba(245,215,122,.5))">⭐</span>
+      <h1 class="fel-title" style="font-family:'Cormorant Garamond',Georgia,serif;font-size:82px;font-weight:700;color:#fff;line-height:1;letter-spacing:-.02em;margin:0;text-shadow:0 10px 38px rgba(0,0,0,.45);background:linear-gradient(135deg,#fff 0%,#f5d77a 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">¡FELICIDADES!</h1>
+      <span class="fel-star" style="font-size:30px;filter:drop-shadow(0 4px 10px rgba(245,215,122,.5));animation-delay:.8s">⭐</span>
+    </div>
+    <p class="fel-sub" style="font-size:20px;color:rgba(255,255,255,.92);max-width:640px;line-height:1.5;margin:0;font-weight:500;text-shadow:0 2px 10px rgba(0,0,0,.3)">
+      Completaste el curso<br><strong style="font-family:'Cormorant Garamond',Georgia,serif;color:#f5d77a;font-size:28px;font-weight:600;font-style:italic;display:inline-block;margin-top:8px">${tituloCurso}</strong>
+    </p>
+    <p class="fel-sub" style="font-size:14px;color:rgba(255,255,255,.65);margin:1.25rem 0 0;font-weight:500;letter-spacing:.04em;animation-delay:.85s">✨ Generando tu certificado oficial...</p>
+  `;
+  document.body.style.overflow = 'hidden';
+
+  // 🎊 CONFETI MASIVO en ráfagas escalonadas
+  if (typeof confetti === 'function') {
+    const colors = ['#f5d77a', '#c8962a', '#93b4ed', '#ffffff', '#0d4737', '#1e3a8a', '#fbbf24'];
+    // Ráfaga 1: explosión central masiva
+    confetti({ particleCount: 200, spread: 130, origin: { x: 0.5, y: 0.55 }, colors, ticks: 280, startVelocity: 50, gravity: 0.85 });
+    // Ráfaga 2: izquierda
+    setTimeout(() => confetti({ particleCount: 90, spread: 75, angle: 60, origin: { x: 0, y: 0.65 }, colors, startVelocity: 55 }), 130);
+    // Ráfaga 3: derecha
+    setTimeout(() => confetti({ particleCount: 90, spread: 75, angle: 120, origin: { x: 1, y: 0.65 }, colors, startVelocity: 55 }), 250);
+    // Ráfaga 4: lluvia desde arriba
+    setTimeout(() => confetti({ particleCount: 120, spread: 110, gravity: 0.55, startVelocity: 28, origin: { x: 0.5, y: 0 }, colors, ticks: 320 }), 420);
+    // Ráfaga 5: lluvia secundaria
+    setTimeout(() => confetti({ particleCount: 80, spread: 100, gravity: 0.45, startVelocity: 22, origin: { x: 0.3, y: 0 }, colors }), 900);
+    setTimeout(() => confetti({ particleCount: 80, spread: 100, gravity: 0.45, startVelocity: 22, origin: { x: 0.7, y: 0 }, colors }), 1100);
+  }
+};
+
+window.cerrarSplashFelicidades = function() {
+  const splash = document.getElementById('splash-felicidades');
+  if (!splash) return;
+  splash.classList.add('cerrando');
+  setTimeout(() => {
+    splash.style.display = 'none';
+    splash.classList.remove('cerrando');
+  }, 400);
+};
+
+// ═══════════════════════════════════════════════════════════════
+// 🎫 VER MI CERTIFICADO RECIÉN EMITIDO
+// (cierra el splash y abre el modal del certificado completo con QR)
+// ═══════════════════════════════════════════════════════════════
+window.verMiCertificadoEmitido = function() {
+  // Cerrar el splash de cert emitido
+  if (window.cerrarSplashCertificado) window.cerrarSplashCertificado();
+
+  // Si tenemos el cert emitido en memoria, asegurar que esté en _userData y abrirlo
+  if (window._ultimoCertEmitido && window._ultimoCertEmitido.id) {
+    // Asegurar que _userData.certificados exista
+    if (window._userData && Array.isArray(window._userData.certificados)) {
+      const yaExiste = window._userData.certificados.some(c => c.id === window._ultimoCertEmitido.id);
+      if (!yaExiste) window._userData.certificados.unshift(window._ultimoCertEmitido);
+    }
+    if (window.abrirCertificado) {
+      window.abrirCertificado(window._ultimoCertEmitido.id);
+      return;
+    }
+  }
+
+  // Fallback: si por alguna razón no tenemos el cert en memoria,
+  // ir a la sección de certificados (comportamiento previo)
+  if (window.irACertificados) window.irACertificados();
 };
 
 window.descargarCertificadoPDF = async function() {
