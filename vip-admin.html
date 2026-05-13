@@ -814,7 +814,7 @@
       <div class="page-header">
         <p class="page-tag">Retención de usuarios</p>
         <h1 class="page-title">Desbloqueo progresivo</h1>
-        <p class="page-sub">Los cursos se desbloquean gradualmente para cada usuario. Configura el ritmo y marca cursos como "Próximamente" para generar expectativa.</p>
+        <p class="page-sub">Los cursos se desbloquean gradualmente para cada usuario. Configura el ritmo, marca cursos como "Próximamente" para generar expectativa, o ponlos "Disponible siempre" para probarlos sin esperar al timeline.</p>
       </div>
 
       <div class="form-card" style="margin-bottom:1.5rem">
@@ -850,8 +850,8 @@
           <span style="font-size:11px;color:#94a3b8;font-weight:500">Se ordenan por fecha de creación — los más antiguos se desbloquean primero</span>
         </div>
         <table>
-          <thead><tr><th style="width:50px">#</th><th>Curso</th><th>Categoría</th><th>Fecha creación</th><th>Día de desbloqueo</th><th style="width:140px">Próximamente</th></tr></thead>
-          <tbody id="tabla-desbloqueo"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando cursos...</td></tr></tbody>
+          <thead><tr><th style="width:50px">#</th><th>Curso</th><th>Categoría</th><th>Fecha creación</th><th>Día de desbloqueo</th><th style="width:140px">Próximamente</th><th style="width:160px">Disponible siempre</th></tr></thead>
+          <tbody id="tabla-desbloqueo"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando cursos...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -2168,7 +2168,7 @@ match /databases/{database}/documents {
 
       const snap = await getDocs(query(collection(db, 'cursos-nuevos'), orderBy('creadoEn', 'asc')));
       if (snap.empty) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:2rem">Aún no hay cursos publicados</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:2rem">Aún no hay cursos publicados</td></tr>';
         return;
       }
       let html = '';
@@ -2179,6 +2179,7 @@ match /databases/{database}/documents {
         const diaDesbloqueo = (orden - 1) * dias + 1;
         const fechaStr = c.creadoEn?.toDate ? c.creadoEn.toDate().toLocaleDateString('es-MX', {day:'2-digit',month:'short',year:'numeric'}) : '—';
         const checked = c.marcarProximamente ? 'checked' : '';
+        const checkedSiempre = c.disponibleSiempre ? 'checked' : '';
         html += `<tr>
           <td><strong>${orden}</strong></td>
           <td><strong style="color:#0d47a1">${c.titulo || 'Sin título'}</strong></td>
@@ -2191,12 +2192,18 @@ match /databases/{database}/documents {
               <span>Próximamente</span>
             </label>
           </td>
+          <td>
+            <label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:#475569" title="Marca para que el curso se vea inmediatamente sin esperar al desbloqueo progresivo (útil para probar)">
+              <input type="checkbox" ${checkedSiempre} onchange="toggleDisponibleSiempre('${d.id}', this.checked)" style="width:16px;height:16px;cursor:pointer;accent-color:#059669">
+              <span>🔓 Siempre visible</span>
+            </label>
+          </td>
         </tr>`;
         i++;
       });
       tbody.innerHTML = html;
     } catch(e) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#dc2626;padding:2rem">Error: ' + e.message + '</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#dc2626;padding:2rem">Error: ' + e.message + '</td></tr>';
     }
   };
 
@@ -2204,6 +2211,15 @@ match /databases/{database}/documents {
     try {
       const { db, doc, updateDoc } = window._fb;
       await updateDoc(doc(db, 'cursos-nuevos', cursoId), { marcarProximamente: activo });
+    } catch(e) {
+      alert('Error al actualizar: ' + e.message);
+    }
+  };
+
+  window.toggleDisponibleSiempre = async function(cursoId, activo) {
+    try {
+      const { db, doc, updateDoc } = window._fb;
+      await updateDoc(doc(db, 'cursos-nuevos', cursoId), { disponibleSiempre: activo });
     } catch(e) {
       alert('Error al actualizar: ' + e.message);
     }
