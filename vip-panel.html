@@ -8507,7 +8507,10 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
       if (!document.body.classList.contains('is-guest')) return;
 
       // Verificar si el click es dentro de una sección de herramienta
-      const HERRAMIENTAS = ['sec-plantillas','sec-calc-fiscal','sec-calc-nomina','sec-calc-credito','sec-docs-legales','sec-directorio'];
+      // NOTA: sec-directorio EXCLUIDO a propósito — el directorio NO es herramienta paga,
+      // es sección de promoción donde invitados ven info completa de miembros VIP.
+      // El paywall del botón "Crear mi perfil VIP" se maneja en wrapAbrirEditorDirectorio.
+      const HERRAMIENTAS = ['sec-plantillas','sec-calc-fiscal','sec-calc-nomina','sec-calc-credito','sec-docs-legales'];
       const seccion = e.target.closest('.section');
       if (!seccion || !HERRAMIENTAS.includes(seccion.id)) return;
 
@@ -35108,21 +35111,12 @@ html body.modo-dia .page-tag {
 body.is-guest #sec-foro #foro-paywall-composer { display: none !important; }
 body.is-guest #sec-foro .foro-post-eliminar { display: none !important; }
 
-/* ─── Modo INVITADO en DIRECTORIO VIP (specificity nuclear) ────────────── */
-/* Los invitados ven las cards de miembros activos, pero NO pueden        */
-/* activar su propio perfil. Se oculta el banner "Tu perfil esta oculto"  */
-/* (no aplica) y se intercepta abrirEditorDirectorio para mostrar paywall.*/
-/* Specificity = (0,2,2,1): html body.is-guest #sec #dir-priv-banner      */
-/* Esto vence al CSS dinamico de modo dia que tiene (0,0,2,0).            */
-html body.is-guest #sec-directorio #dir-privacy-banner,
-html body.is-guest.modo-dia #sec-directorio #dir-privacy-banner,
-html body.is-guest #sec-directorio .dir-privacy-banner {
-  display: none !important;
-}
-html body.is-guest #sec-directorio .dir-empty-btn-primary,
-html body.is-guest.modo-dia #sec-directorio .dir-empty-btn-primary {
-  display: none !important;
-}
+/* ─── Modo INVITADO en DIRECTORIO VIP ──────────────────────────────────── */
+/* Los invitados VEN el banner "Tu perfil está oculto" con su boton       */
+/* "Crear mi perfil VIP", pero al hacer click se dispara el paywall.      */
+/* Tambien pueden VER las cards y abrirlas para ver TODA la info de cada  */
+/* miembro (esto les conviene a los miembros VIP para promocionarse).     */
+/* La interceptacion del click en "Crear perfil" se hace en el JS abajo. */
 
 /* ─── Responsive ─────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
@@ -35977,44 +35971,6 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
     const interval2 = setInterval(() => {
       intentos2++;
       if (wrapAbrirEditorDirectorio() || intentos2 > 30) clearInterval(interval2);
-    }, 200);
-  }
-
-  // ─── Refuerzo: ocultar inline el banner del directorio en modo invitado ──
-  // El CSS de modo dia se inyecta dinamicamente con specificity alta y
-  // a veces gana. Aplicar style inline garantiza ocultar el banner
-  // independientemente de las reglas CSS.
-  function ocultarBannerDirectorioSiInvitado() {
-    if (!document.body.classList.contains('is-guest')) return;
-    const banner = document.getElementById('dir-privacy-banner');
-    if (banner) banner.style.setProperty('display', 'none', 'important');
-    const btnPrim = document.querySelector('#sec-directorio .dir-empty-btn-primary');
-    if (btnPrim) btnPrim.style.setProperty('display', 'none', 'important');
-  }
-  // Ejecutar al inicio + observar cambios de seccion
-  setTimeout(ocultarBannerDirectorioSiInvitado, 500);
-  setTimeout(ocultarBannerDirectorioSiInvitado, 1500);
-  setTimeout(ocultarBannerDirectorioSiInvitado, 3000);
-  // Tambien al wrap showSection: cuando entra a directorio, ocultar banner
-  function wrapShowSectionDirectorio() {
-    if (typeof window.showSection !== 'function') return false;
-    const _origShow2 = window.showSection;
-    window.showSection = function(id) {
-      const r = _origShow2.apply(this, arguments);
-      if (id === 'directorio') {
-        setTimeout(ocultarBannerDirectorioSiInvitado, 50);
-        setTimeout(ocultarBannerDirectorioSiInvitado, 300);
-        setTimeout(ocultarBannerDirectorioSiInvitado, 1000);
-      }
-      return r;
-    };
-    return true;
-  }
-  if (!wrapShowSectionDirectorio()) {
-    let intentos3 = 0;
-    const interval3 = setInterval(() => {
-      intentos3++;
-      if (wrapShowSectionDirectorio() || intentos3 > 30) clearInterval(interval3);
     }, 200);
   }
 })();
