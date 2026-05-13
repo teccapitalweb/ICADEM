@@ -27233,84 +27233,23 @@ window.cerrarCertificado = function() {
 
 window.imprimirCertificado = function() {
   if (!_certActivo) return;
+  const modal = document.getElementById('cert-modal');
   const docEl = document.getElementById('cert-doc');
-  if (!docEl) return;
-  const w = window.open('', '_blank');
-  w.document.write(`<!DOCTYPE html><html><head><title>Certificado ${_certActivo.folio || ''}</title>
-    <meta charset="UTF-8">
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
-    <style>
-      * { box-sizing: border-box; }
-      @page {
-        size: A4 landscape;
-        margin: 0;
-      }
-      html, body {
-        margin: 0;
-        padding: 0;
-        background: #fff;
-        font-family: 'Inter', sans-serif;
-        color: #0d1f4a;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-      body {
-        width: 297mm;
-        height: 210mm;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 8mm;
-      }
-      .cert-doc {
-        background: #fff !important;
-        background-image: none !important;
-        padding: 18mm 22mm !important;
-        border: 6px double #0d4737 !important;
-        border-radius: 6px !important;
-        text-align: center !important;
-        color: #0d1f4a !important;
-        position: relative !important;
-        width: 100% !important;
-        height: 100% !important;
-        max-width: none !important;
-        max-height: none !important;
-        margin: 0 !important;
-        box-shadow: none !important;
-        page-break-inside: avoid !important;
-        page-break-after: avoid !important;
-        page-break-before: avoid !important;
-        break-inside: avoid !important;
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: space-between !important;
-        overflow: hidden !important;
-        font-size: 12pt !important;
-      }
-      .cert-doc::before {
-        content: '';
-        position: absolute;
-        inset: 8px;
-        border: 1px solid rgba(13,71,55,0.25);
-        pointer-events: none;
-        border-radius: 3px;
-      }
-      .cert-doc > * { position: relative; z-index: 1; }
-      h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif !important; margin: 0 !important; }
-      .cert-doc-title { font-size: 22pt !important; color: #0d4737 !important; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px !important; font-weight: 600; }
-      .cert-doc-nombre { font-size: 28pt !important; color: #0d4737 !important; text-transform: uppercase; letter-spacing: .06em; margin: 6px 0 4px !important; font-weight: 700; }
-      .cert-doc-curso { font-size: 16pt !important; color: #0d4737 !important; margin: 8px 0 12px !important; font-style: italic; font-weight: 600; }
-      .cert-doc-firmas { display: grid !important; grid-template-columns: auto 1fr 1fr; gap: 18px !important; align-items: end !important; margin-top: 12px !important; }
-      .cert-doc-qr-img { width: 80px !important; height: 80px !important; }
-      hr { border: 0; border-top: 1px solid #0d4737 !important; margin: 6px 0 !important; }
-      p { margin: 4px 0 !important; line-height: 1.4 !important; }
-      img { max-width: 100% !important; height: auto !important; }
-      /* No transitions ni animaciones en print */
-      *, *::before, *::after { transition: none !important; animation: none !important; }
-    </style>
-    </head><body>${docEl.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close()},800)},400)}<\/script>
-</body></html>`);
-  w.document.close();
+  if (!docEl || !modal) return;
+
+  // CERT_PRINT_FIX_v2: Marcar body en modo print y aprovechar el cert
+  // que ya está renderizado en pantalla. NO abrir ventana nueva.
+  // El CSS @media print del panel se encargará de ocultar todo lo demás.
+  document.body.classList.add('printing-cert');
+
+  // Imprimir después de un frame
+  setTimeout(() => {
+    window.print();
+    // Quitar la clase después de imprimir (con un retraso para que el diálogo de print no se cuelgue)
+    setTimeout(() => {
+      document.body.classList.remove('printing-cert');
+    }, 500);
+  }, 100);
 };
 
 window.copiarLinkCert = function() {
@@ -27786,10 +27725,9 @@ window.descargarCertificadoPDF = async function() {
   const docEl = document.getElementById('cert-doc');
   if (!docEl) return window.notify('No se encontró el certificado a descargar');
 
-  // CERT_PDF_FIX_v1: Esperar a que carguen las librerías si aún no están
+  // CERT_PDF_FIX_v2: Esperar a que carguen las librerías si aún no están
   if (typeof html2canvas !== 'function' || typeof window.jspdf === 'undefined') {
     window.notify('⏳ Cargando librerías de PDF, intenta de nuevo en 3 segundos...');
-    // Intentar cargar dinámicamente
     if (typeof html2canvas !== 'function') {
       await new Promise((resolve, reject) => {
         const s = document.createElement('script');
@@ -27821,6 +27759,36 @@ window.descargarCertificadoPDF = async function() {
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Generando…';
   }
 
+  // CERT_PDF_FIX_v2: Inyectar CSS temporal que neutraliza los gradients problemáticos
+  // El error "addColorStop: non-finite value" viene de gradients con keyword 'transparent'
+  // que html2canvas no parsea bien. Forzamos colores explícitos rgba(0,0,0,0).
+  const styleOverride = document.createElement('style');
+  styleOverride.id = '__cert-pdf-override';
+  styleOverride.textContent = `
+    #cert-doc .cert-doc-divider::before,
+    #cert-doc .cert-doc-divider::after {
+      background: #0d4737 !important;
+      background-image: none !important;
+      opacity: 0.6 !important;
+    }
+    #cert-doc *,
+    #cert-doc *::before,
+    #cert-doc *::after {
+      background-image: none !important;
+    }
+    #cert-doc {
+      background: #ffffff !important;
+      background-image: none !important;
+    }
+    #cert-doc .cert-doc-title-line,
+    #cert-doc .cert-doc-nombre-line {
+      background: #0d4737 !important;
+      background-image: none !important;
+    }
+  `;
+  document.head.appendChild(styleOverride);
+  await new Promise(r => setTimeout(r, 100));
+
   try {
     // Convertir QR externo a base64 ANTES de capturar (evita problemas CORS de html2canvas)
     const qrImgs = docEl.querySelectorAll('img[src*="qrserver.com"], img.cert-doc-qr-img');
@@ -27848,7 +27816,11 @@ window.descargarCertificadoPDF = async function() {
       useCORS: true,
       allowTaint: true,
       imageTimeout: 15000,
-      removeContainer: true
+      removeContainer: true,
+      ignoreElements: function(el) {
+        // Ignorar pseudoelementos que puedan tener gradients
+        return false;
+      }
     });
 
     // Dimensiones del PDF (landscape, A4)
@@ -27863,7 +27835,6 @@ window.descargarCertificadoPDF = async function() {
     const imgW = canvas.width;
     const imgH = canvas.height;
 
-    // Calcular escala manteniendo proporción y centrar
     const ratio = Math.min(pdfW / imgW, pdfH / imgH);
     const renderW = imgW * ratio;
     const renderH = imgH * ratio;
@@ -27873,7 +27844,6 @@ window.descargarCertificadoPDF = async function() {
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     pdf.addImage(imgData, 'JPEG', offsetX, offsetY, renderW, renderH);
 
-    // Nombre archivo: Certificado-NombreCurso-Folio.pdf
     const cursoSlug = (_certActivo.curso || 'Curso')
       .replace(/[^a-zA-Z0-9áéíóúñ\s]/g, '')
       .replace(/\s+/g, '-')
@@ -27886,6 +27856,9 @@ window.descargarCertificadoPDF = async function() {
     console.error('[PDF] Error generando PDF:', e);
     window.notify('No se pudo generar el PDF: ' + (e.message || 'error desconocido') + '. Intenta usar el botón "Imprimir" y guardar como PDF desde ahí.');
   } finally {
+    // Limpiar el override temporal
+    const ovr = document.getElementById('__cert-pdf-override');
+    if (ovr) ovr.remove();
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = txtOrig;
@@ -27897,27 +27870,27 @@ window.descargarCertificadoPDF = async function() {
 // 🔗 COMPARTIR EN REDES SOCIALES
 // ═══════════════════════════════════════════════════════════════
 window.toggleCompartirMenu = function(ev) {
-  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
+  if (ev) ev.stopPropagation();
   const menu = document.getElementById('cert-share-menu');
-  if (!menu) {
-    console.warn('[Cert] No se encontró el menú #cert-share-menu');
-    return;
-  }
-  const visible = menu.style.display && menu.style.display !== 'none';
+  if (!menu) return;
+  const visible = menu.style.display !== 'none';
 
   if (visible) {
     menu.style.display = 'none';
     return;
   }
 
-  // CERT_SHARE_FIX_v1: Posicionamiento robusto + estilos inline para vencer overrides
+  // Posicionar el menú justo encima del botón Compartir
+  const btn = ev && ev.currentTarget;
+  if (btn) {
+    const rect = btn.getBoundingClientRect();
+    const parentRect = btn.closest('.cert-actions').getBoundingClientRect();
+    menu.style.right = (parentRect.right - rect.right) + 'px';
+    menu.style.bottom = (parentRect.height + 8) + 'px';
+    menu.style.left = 'auto';
+    menu.style.top = 'auto';
+  }
   menu.style.display = 'grid';
-  menu.style.position = 'absolute';
-  menu.style.right = '0';
-  menu.style.bottom = 'calc(100% + 8px)';
-  menu.style.left = 'auto';
-  menu.style.top = 'auto';
-  menu.style.zIndex = '10001';
 
   // Cerrar al hacer click fuera
   setTimeout(() => {
@@ -36725,6 +36698,111 @@ html body.modo-dia .dir-perfil-content {
     radial-gradient(ellipse 35% 25% at -10% 110%,
       color-mix(in srgb, var(--card-accent, #FBBF24) 5%, transparent) 0%,
       transparent 70%) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CERT_PRINT_FIX_v2 — Imprimir certificado en 1 sola hoja A4 horizontal
+   Solo se aplica cuando body tiene la clase .printing-cert
+   ═══════════════════════════════════════════════════════════════ */
+@media print {
+  /* Solo cuando body tiene .printing-cert: ocultar TODO excepto el cert */
+  body.printing-cert {
+    background: #fff !important;
+    background-image: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+  }
+  body.printing-cert > *:not(#cert-modal) {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  body.printing-cert .sidebar,
+  body.printing-cert .topbar,
+  body.printing-cert .main,
+  body.printing-cert .content,
+  body.printing-cert .nav-item {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  /* Modal del cert: limpiar todo el chrome del modal */
+  body.printing-cert #cert-modal {
+    position: static !important;
+    display: block !important;
+    visibility: visible !important;
+    background: #fff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    inset: auto !important;
+    overflow: visible !important;
+  }
+  body.printing-cert .cert-modal-overlay,
+  body.printing-cert .cert-modal-close,
+  body.printing-cert .cert-actions,
+  body.printing-cert .cert-share-menu,
+  body.printing-cert .cert-folio-info,
+  body.printing-cert #cert-folio-display {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  body.printing-cert .cert-modal-content {
+    display: block !important;
+    visibility: visible !important;
+    background: #fff !important;
+    background-image: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-width: none !important;
+    max-height: none !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+  /* El certificado en sí: ajustar para 1 página A4 landscape */
+  body.printing-cert .cert-doc,
+  body.printing-cert #cert-doc {
+    display: block !important;
+    visibility: visible !important;
+    background: #fff !important;
+    background-image: none !important;
+    color: #0d1f4a !important;
+    padding: 14mm 18mm !important;
+    margin: 0 auto !important;
+    border: 6px double #0d4737 !important;
+    border-radius: 4px !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: none !important;
+    page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+    break-inside: avoid !important;
+    position: relative !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    transform: none !important;
+    font-size: 11pt !important;
+  }
+  body.printing-cert .cert-doc * {
+    visibility: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  /* Quitar transitions / animaciones */
+  body.printing-cert *,
+  body.printing-cert *::before,
+  body.printing-cert *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+  /* Tamaño de hoja */
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
 }
 </style>
 
