@@ -57,6 +57,17 @@
   <link rel="icon" type="image/jpeg" href="assets/logo/logo-icadem.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- PERF_BOOST_v1: preconnect a CDNs críticos para ahorrar handshakes TCP/TLS
+       (cada uno ahorra ~100-300ms en la primera conexión, hasta ~800ms total) -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://securetoken.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://js.stripe.com" crossorigin>
+  <link rel="preconnect" href="https://i.ibb.co" crossorigin>
+  <link rel="dns-prefetch" href="https://icadem-webhook-production.up.railway.app">
+  <link rel="dns-prefetch" href="https://api.qrserver.com">
+  <link rel="dns-prefetch" href="https://newsdata.io">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -4710,8 +4721,38 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
-  <p class="loading-text">Cargando panel VIP...</p>
+  <p class="loading-text">Cargando panel VIP…</p>
 </div>
+<script>
+// PERF_LOADER_MSG_v1: rotar mensajes del loader inicial para bajar la
+// percepción de espera. NO acelera Firebase, solo da feedback de progreso.
+// Se desactiva solo cuando #loading se oculta. Respeta el mensaje
+// post-pago "Activando tu membresía VIP..." (no lo pisa).
+(function(){
+  var msgs = [
+    'Cargando panel VIP…',
+    'Conectando con Firebase…',
+    'Verificando tu sesión…',
+    'Cargando tu membresía…',
+    'Casi listo…'
+  ];
+  var POST_PAGO = 'Activando tu membresía';
+  var i = 0;
+  var el = document.querySelector('#loading .loading-text');
+  if (!el) return;
+  var id = setInterval(function(){
+    var loading = document.getElementById('loading');
+    if (!loading || loading.classList.contains('hidden') || loading.style.display === 'none') {
+      clearInterval(id);
+      return;
+    }
+    // Si el código post-pago tomó control del texto, no rotar (respetar su mensaje)
+    if (el.textContent.indexOf(POST_PAGO) !== -1) return;
+    i = (i + 1) % msgs.length;
+    el.textContent = msgs[i];
+  }, 1800);
+})();
+</script>
 
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
