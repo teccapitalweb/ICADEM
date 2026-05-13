@@ -8264,6 +8264,37 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
   function activarModoInvitado(user) {
     if (_modoInvitadoActivado) return;
+
+    // AUTH_GUARD_v1: Si hay flag de sesión VIP previa, NO activar invitado nunca.
+    // Esto protege contra todos los casos donde Firestore o Firebase pueden fallar
+    // tras un Ctrl+Shift+R (sesión, membresía, etc.). Mejor esperar y reintentar
+    // que tirar al usuario VIP a modo invitado.
+    // PROTECCIÓN ANTI-LOOP: máximo 2 reintentos automáticos. Si después de eso
+    // sigue fallando, dejamos pasar a modo invitado (puede que sí perdió membresía).
+    let uidPrevio = null;
+    let reintentos = 0;
+    try {
+      uidPrevio = localStorage.getItem('icadem_session_uid');
+      reintentos = parseInt(localStorage.getItem('icadem_auth_retries') || '0', 10);
+    } catch(e) {}
+    if (uidPrevio && reintentos < 2) {
+      console.log('[Auth] 🛡 AUTH_GUARD_v1: Sesión VIP previa (UID:' + uidPrevio.slice(0,8) + '). BLOQUEANDO modo invitado. Reintento ' + (reintentos+1) + '/2 en 3s...');
+      try { localStorage.setItem('icadem_auth_retries', String(reintentos + 1)); } catch(e) {}
+      // Mostrar mensaje breve y recargar
+      const loading = document.getElementById('loading');
+      if (loading) {
+        loading.classList.remove('hidden');
+        loading.style.display = 'flex';
+        const txt = loading.querySelector('.loading-text');
+        if (txt) txt.textContent = 'Restaurando tu sesión VIP...';
+      }
+      setTimeout(() => { window.location.reload(); }, 3000);
+      return;
+    }
+    // Si llegamos aquí: o no había flag, o ya agotamos los 2 reintentos
+    // → realmente activar invitado y limpiar el contador
+    try { localStorage.removeItem('icadem_auth_retries'); } catch(e) {}
+
     _modoInvitadoActivado = true;
     _authHandled = true;
 
@@ -8724,7 +8755,10 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     // AUTH_PERSIST_FLAG_v1: Guardar UID en localStorage para saber en próximas recargas
     // que este navegador ya tenía sesión VIP. Si volvemos a entrar y onAuthStateChanged
     // demora en restaurar (Ctrl+Shift+R), NO activamos modo invitado prematuramente.
-    try { localStorage.setItem('icadem_session_uid', user.uid); } catch(e) {}
+    try {
+      localStorage.setItem('icadem_session_uid', user.uid);
+      localStorage.removeItem('icadem_auth_retries'); // limpiar contador al loguear bien
+    } catch(e) {}
 
     // Limpiar ticket de pago ya que entró exitosamente
     if (ticketPago || vieneDePago) {
