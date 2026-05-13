@@ -8754,6 +8754,12 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
     // Solo redirigir si definitivamente no tiene membresía activa
     if (!snap || !snap.exists()) {
+      // AUTH_DIAG_v1: log para diagnosticar por qué llega aquí
+      console.log('[Auth] ⚠ snap=' + (snap === null ? 'NULL' : 'exists:' + snap.exists()) + ' para user.uid=' + user.uid.slice(0,8));
+      try {
+        const uidPrevio = localStorage.getItem('icadem_session_uid');
+        console.log('[Auth] icadem_session_uid en localStorage:', uidPrevio ? uidPrevio.slice(0,8) : 'NO HAY');
+      } catch(e) {}
       // FLUJO NUEVO: sin membresía → MODO INVITADO (puede ver pero no usar)
       activarModoInvitado(user); return;
     }
