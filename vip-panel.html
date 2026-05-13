@@ -35976,5 +35976,85 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
 })();
 </script>
 
+<style data-marker="DIR_MODAL_DETAIL_LEGIBLE_v1">
+/* ══════════════════════════════════════════════════════════════════════════
+   FIX FINAL — Legibilidad en MODAL DETALLE del Directorio VIP
+   ──────────────────────────────────────────────────────────────────────────
+   Garantiza que el nombre del miembro, ciudad y años de experiencia se vean
+   con colores SÓLIDOS oscuros sobre el fondo del modal (que tiene un radial-
+   gradient tintado con el color del usuario).
+   Specificity nuclear: html body.modo-dia + body (sin modo) para vencer
+   cualquier regla base con color-mix(), background-clip:text, opacity, etc.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── NOMBRE del miembro (ej: "Tec Capital") — SIEMPRE oscuro y sólido ─── */
+html body .dir-perfil-name,
+html body.modo-dia .dir-perfil-name,
+html body.modo-dia .dir-perfil-content .dir-perfil-name,
+html body.modo-dia .dir-perfil-header .dir-perfil-name,
+html body.modo-dia .dir-perfil-info .dir-perfil-name {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  font-weight: 800 !important;
+  font-size: 22px !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.2 !important;
+}
+
+/* ─── EMPRESA bajo el cargo (ej: "Tec Capital Web") — color medio sólido ─── */
+html body.modo-dia .dir-perfil-content .dir-perfil-empresa,
+html body.modo-dia .dir-perfil-info .dir-perfil-empresa {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+/* ─── CHIPS de META (📍 Ciudad, ⏱ Años) — fondo opaco + texto oscuro ─── */
+html body.modo-dia .dir-perfil-meta > span,
+html body.modo-dia .dir-perfil-content .dir-perfil-meta > span,
+html body.modo-dia .dir-perfil-header .dir-perfil-meta > span,
+html body.modo-dia .dir-perfil-info .dir-perfil-meta > span {
+  background: #F1F5F9 !important;
+  background-color: #F1F5F9 !important;
+  background-image: none !important;
+  color: #1E293B !important;
+  -webkit-text-fill-color: #1E293B !important;
+  border: 1px solid #CBD5E1 !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  border-radius: 99px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+/* ─── Asegurar que el radial-gradient del modal NO blanquee el header ─── */
+/* El radial sale de la esquina superior derecha. Lo movemos un poco más  */
+/* lejos para que no cubra el área del nombre, y le bajamos opacidad.    */
+html body.modo-dia .dir-perfil-content {
+  background-image:
+    radial-gradient(ellipse 45% 35% at 110% -10%,
+      color-mix(in srgb, var(--card-accent, #FBBF24) 8%, transparent) 0%,
+      transparent 70%),
+    radial-gradient(ellipse 35% 25% at -10% 110%,
+      color-mix(in srgb, var(--card-accent, #FBBF24) 5%, transparent) 0%,
+      transparent 70%) !important;
+}
+</style>
+
 </body>
 </html>
