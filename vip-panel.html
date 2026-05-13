@@ -8264,37 +8264,6 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
   function activarModoInvitado(user) {
     if (_modoInvitadoActivado) return;
-
-    // AUTH_GUARD_v1: Si hay flag de sesión VIP previa, NO activar invitado nunca.
-    // Esto protege contra todos los casos donde Firestore o Firebase pueden fallar
-    // tras un Ctrl+Shift+R (sesión, membresía, etc.). Mejor esperar y reintentar
-    // que tirar al usuario VIP a modo invitado.
-    // PROTECCIÓN ANTI-LOOP: máximo 2 reintentos automáticos. Si después de eso
-    // sigue fallando, dejamos pasar a modo invitado (puede que sí perdió membresía).
-    let uidPrevio = null;
-    let reintentos = 0;
-    try {
-      uidPrevio = localStorage.getItem('icadem_session_uid');
-      reintentos = parseInt(localStorage.getItem('icadem_auth_retries') || '0', 10);
-    } catch(e) {}
-    if (uidPrevio && reintentos < 2) {
-      console.log('[Auth] 🛡 AUTH_GUARD_v1: Sesión VIP previa (UID:' + uidPrevio.slice(0,8) + '). BLOQUEANDO modo invitado. Reintento ' + (reintentos+1) + '/2 en 3s...');
-      try { localStorage.setItem('icadem_auth_retries', String(reintentos + 1)); } catch(e) {}
-      // Mostrar mensaje breve y recargar
-      const loading = document.getElementById('loading');
-      if (loading) {
-        loading.classList.remove('hidden');
-        loading.style.display = 'flex';
-        const txt = loading.querySelector('.loading-text');
-        if (txt) txt.textContent = 'Restaurando tu sesión VIP...';
-      }
-      setTimeout(() => { window.location.reload(); }, 3000);
-      return;
-    }
-    // Si llegamos aquí: o no había flag, o ya agotamos los 2 reintentos
-    // → realmente activar invitado y limpiar el contador
-    try { localStorage.removeItem('icadem_auth_retries'); } catch(e) {}
-
     _modoInvitadoActivado = true;
     _authHandled = true;
 
@@ -8725,17 +8694,6 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
         }
         // Si llegamos al máximo de intentos SIN sesión, redirigir
         if (intentos >= maxIntentos && !_yaRedirigio && !_authHandled) {
-          // AUTH_PERSIST_FLAG_v1: Si tenemos un UID guardado en localStorage,
-          // significa que este navegador YA tenía sesión VIP. NO activar invitado.
-          // Mejor seguir esperando indefinidamente (Firebase eventualmente responde
-          // o el usuario hace login manual).
-          let uidPrevio = null;
-          try { uidPrevio = localStorage.getItem('icadem_session_uid'); } catch(e) {}
-          if (uidPrevio) {
-            console.log('[Auth] Hay sesión previa (UID:' + uidPrevio.slice(0,8) + '...). Sigo esperando, NO activo invitado.');
-            // Seguir intentando cada 2s indefinidamente
-            return;
-          }
           clearInterval(intervalo);
           console.log('[Auth] Sin sesión después de ' + (tiempoMaxEspera/1000) + 's. Activando modo invitado.');
           _yaRedirigio = true;
@@ -8751,14 +8709,6 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     // ¡Usuario confirmado! Marcar flag y NO volver a ejecutar toda la lógica.
     if (_usuarioConfirmado) return;
     _usuarioConfirmado = true;
-
-    // AUTH_PERSIST_FLAG_v1: Guardar UID en localStorage para saber en próximas recargas
-    // que este navegador ya tenía sesión VIP. Si volvemos a entrar y onAuthStateChanged
-    // demora en restaurar (Ctrl+Shift+R), NO activamos modo invitado prematuramente.
-    try {
-      localStorage.setItem('icadem_session_uid', user.uid);
-      localStorage.removeItem('icadem_auth_retries'); // limpiar contador al loguear bien
-    } catch(e) {}
 
     // Limpiar ticket de pago ya que entró exitosamente
     if (ticketPago || vieneDePago) {
@@ -8788,12 +8738,6 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
     // Solo redirigir si definitivamente no tiene membresía activa
     if (!snap || !snap.exists()) {
-      // AUTH_DIAG_v1: log para diagnosticar por qué llega aquí
-      console.log('[Auth] ⚠ snap=' + (snap === null ? 'NULL' : 'exists:' + snap.exists()) + ' para user.uid=' + user.uid.slice(0,8));
-      try {
-        const uidPrevio = localStorage.getItem('icadem_session_uid');
-        console.log('[Auth] icadem_session_uid en localStorage:', uidPrevio ? uidPrevio.slice(0,8) : 'NO HAY');
-      } catch(e) {}
       // FLUJO NUEVO: sin membresía → MODO INVITADO (puede ver pero no usar)
       activarModoInvitado(user); return;
     }
@@ -9205,8 +9149,6 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   document.getElementById('btn-logout-confirm').addEventListener('click', async () => {
     await signOut(auth);
     localStorage.removeItem('icadem_plan');
-    // AUTH_PERSIST_FLAG_v1: limpiar flag de sesión persistente al cerrar sesión voluntariamente
-    try { localStorage.removeItem('icadem_session_uid'); } catch(e) {}
     window.location.href = 'index.html';
   });
 
