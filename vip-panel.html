@@ -22465,12 +22465,27 @@ async function iniciarStripeCheckout(plan) {
   } catch(e) {
     stopMsgRotator();
     console.error('[Stripe] Error iniciando checkout:', e);
+    // ERROR_UI_v1: traducir errores técnicos crudos a mensajes amigables para el usuario.
+    // El detalle técnico queda en console.error para debugging interno.
+    var rawMsg = (e && e.message) ? String(e.message) : '';
+    var userMsg;
+    if (rawMsg.indexOf('No such customer') !== -1) {
+      userMsg = 'Tu sesión tiene datos antiguos que ya no son válidos. Por favor cierra esta ventana, cierra sesión completamente y vuelve a iniciar sesión.';
+    } else if (rawMsg.indexOf('No such price') !== -1 || rawMsg.indexOf('No such product') !== -1) {
+      userMsg = 'El plan seleccionado no está disponible en este momento. Por favor contacta a soporte.';
+    } else if (rawMsg.indexOf('Sesión perdida') !== -1) {
+      userMsg = 'Tu sesión expiró. Por favor vuelve a iniciar sesión.';
+    } else if (rawMsg.indexOf('Failed to fetch') !== -1 || rawMsg.indexOf('NetworkError') !== -1) {
+      userMsg = 'Problema de conexión. Verifica tu internet e intenta de nuevo.';
+    } else {
+      userMsg = 'Hubo un problema al iniciar el pago. Cierra esta ventana e inténtalo de nuevo.';
+    }
     mount.innerHTML = `
-      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.30);color:#fca5a5;padding:1.5rem;border-radius:12px;font-size:13px;text-align:center;line-height:1.6">
-        <div style="font-size:32px;margin-bottom:8px">⚠️</div>
-        <strong style="color:#fee2e2;display:block;margin-bottom:6px">No se pudo cargar el pago</strong>
-        <span style="opacity:.85">${(e.message || 'Error desconocido').replace(/[<>]/g,'')}</span>
-        <small style="display:block;margin-top:.75rem;opacity:.7">Intenta cerrar y abrir de nuevo, o contacta soporte.</small>
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.30);color:#fca5a5;padding:1.75rem 1.5rem;border-radius:12px;font-size:13.5px;text-align:center;line-height:1.65;max-width:480px;margin:0 auto">
+        <div style="font-size:36px;margin-bottom:10px">⚠️</div>
+        <strong style="color:#fee2e2;display:block;margin-bottom:10px;font-size:15px">No se pudo iniciar el pago</strong>
+        <span style="opacity:.92;color:#fecaca">${userMsg}</span>
+        <small style="display:block;margin-top:1rem;opacity:.6;font-size:11px">Si el problema continúa, contacta soporte mencionando esta hora.</small>
       </div>`;
   }
 }
