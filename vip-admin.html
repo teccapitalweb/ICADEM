@@ -759,6 +759,16 @@
           <label class="form-label">Temario del curso <span style="font-weight:400;color:#94a3b8">(opcional — describe los temas que se abordarán)</span></label>
           <textarea class="form-textarea" id="vid-temario" rows="5" placeholder="Ej:&#10;• Módulo 1: Introducción al derecho laboral&#10;• Módulo 2: Contratos y obligaciones&#10;• Módulo 3: Resolución de conflictos&#10;• Módulo 4: Casos prácticos" style="min-height:120px"></textarea>
         </div>
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <label class="form-label">⚙️ Disponibilidad para los alumnos</label>
+          <label id="vid-disp-wrap" style="display:flex;align-items:flex-start;gap:.75rem;padding:.875rem 1rem;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;cursor:pointer;transition:all .2s">
+            <input type="checkbox" id="vid-disp-siempre" checked style="width:18px;height:18px;cursor:pointer;accent-color:#059669;flex-shrink:0;margin-top:2px" onchange="document.getElementById('vid-disp-wrap').style.background=this.checked?'#f0fdf4':'#f8fafc';document.getElementById('vid-disp-wrap').style.borderColor=this.checked?'#86efac':'#e2e8f0';document.getElementById('vid-disp-label').textContent=this.checked?'🔓 Disponible siempre (visible para todos al instante)':'⏰ Sigue desbloqueo progresivo (timeline de 10 días)';">
+            <div style="flex:1">
+              <div id="vid-disp-label" style="font-size:13px;font-weight:700;color:#0d47a1">🔓 Disponible siempre (visible para todos al instante)</div>
+              <div style="font-size:11px;color:#475569;margin-top:3px;line-height:1.4">Por defecto el curso se publica como <strong>disponible siempre</strong> para que puedas <strong>verificar que las clases se vean correctamente</strong>. Cuando termines de probar, edítalo y desactiva esta opción para que siga el ritmo de <strong>desbloqueo progresivo</strong> (10 días entre cursos).</div>
+            </div>
+          </label>
+        </div>
         <p style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#64748b;margin-bottom:.75rem">Enlaces de clases (pega el link de Google Drive de cada clase)</p>
         <div id="vid-clases-container">
           <div class="form-group vid-clase-row" style="display:flex;align-items:center;gap:.5rem">
@@ -1472,14 +1482,24 @@ match /databases/{database}/documents {
         }
       }
       const temario = document.getElementById('vid-temario').value.trim();
-      const ref = await addDoc(collection(db, 'cursos-nuevos'), { titulo, categoria, videos, portada, temario, creadoEn: serverTimestamp() });
-      const nuevo = { id: ref.id, titulo, categoria, videos, creadoEn: { toDate: () => new Date() } };
+      const disponibleSiempre = !!document.getElementById('vid-disp-siempre')?.checked;
+      const ref = await addDoc(collection(db, 'cursos-nuevos'), { titulo, categoria, videos, portada, temario, disponibleSiempre, creadoEn: serverTimestamp() });
+      const nuevo = { id: ref.id, titulo, categoria, videos, portada, temario, disponibleSiempre, creadoEn: { toDate: () => new Date() } };
       window._videoCursos = [nuevo, ...(window._videoCursos || [])];
       renderVideos(window._videoCursos);
       document.getElementById('vid-titulo').value = '';
       document.getElementById('vid-portada').value = '';
       document.getElementById('vid-portada-preview').style.display = 'none';
       document.getElementById('vid-temario').value = '';
+      // Resetear el toggle al estado por defecto (marcado / "Disponible siempre")
+      const vidDispChk = document.getElementById('vid-disp-siempre');
+      if (vidDispChk) {
+        vidDispChk.checked = true;
+        const vidDispWrap = document.getElementById('vid-disp-wrap');
+        const vidDispLabel = document.getElementById('vid-disp-label');
+        if (vidDispWrap) { vidDispWrap.style.background = '#f0fdf4'; vidDispWrap.style.borderColor = '#86efac'; }
+        if (vidDispLabel) vidDispLabel.textContent = '🔓 Disponible siempre (visible para todos al instante)';
+      }
       document.getElementById('vid-clases-container').innerHTML = `<div class="form-group vid-clase-row" style="display:flex;align-items:center;gap:.5rem"><span style="font-size:11px;font-weight:700;color:#94a3b8;width:54px;flex-shrink:0">Clase 1</span><input class="form-input" type="url" placeholder="https://drive.google.com/file/d/..." style="flex:1"></div>`;
       claseCount = 1;
       document.getElementById('btn-agregar-clase').style.display = 'inline-flex';
@@ -1990,6 +2010,23 @@ match /databases/{database}/documents {
     const portadaInput = document.getElementById('edit-curso-portada');
     portadaInput.value = curso.portada || '';
     document.getElementById('edit-curso-temario').value = curso.temario || '';
+    // Cargar el toggle "Disponible siempre" según el valor guardado en Firestore
+    const dispCheckbox = document.getElementById('edit-curso-disp-siempre');
+    const dispWrap = document.getElementById('edit-disp-wrap');
+    const dispLabel = document.getElementById('edit-disp-label');
+    if (dispCheckbox) {
+      const esSiempre = curso.disponibleSiempre === true;
+      dispCheckbox.checked = esSiempre;
+      if (dispWrap) {
+        dispWrap.style.background = esSiempre ? '#f0fdf4' : '#f8fafc';
+        dispWrap.style.borderColor = esSiempre ? '#86efac' : '#e2e8f0';
+      }
+      if (dispLabel) {
+        dispLabel.textContent = esSiempre
+          ? '🔓 Disponible siempre (visible para todos al instante)'
+          : '⏰ Sigue desbloqueo progresivo (timeline de 10 días)';
+      }
+    }
     const preview = document.getElementById('edit-portada-preview');
     const previewImg = document.getElementById('edit-portada-img');
     if (curso.portada) {
@@ -2045,6 +2082,7 @@ match /databases/{database}/documents {
     const categoria= document.getElementById('edit-curso-categoria').value;
     const portadaRaw = document.getElementById('edit-curso-portada').value.trim();
     const temario = document.getElementById('edit-curso-temario').value.trim();
+    const disponibleSiempre = !!document.getElementById('edit-curso-disp-siempre')?.checked;
     const msg      = document.getElementById('edit-curso-msg');
 
     if (!titulo) {
@@ -2078,10 +2116,10 @@ match /databases/{database}/documents {
         msg.textContent = '✕ Firebase no está listo. Recarga la página (Ctrl+Shift+R).';
         msg.style.color = '#dc2626'; msg.style.display = 'block'; return;
       }
-      await updateDoc(doc(db, 'cursos-nuevos', id), { titulo, categoria, videos, portada, temario });
+      await updateDoc(doc(db, 'cursos-nuevos', id), { titulo, categoria, videos, portada, temario, disponibleSiempre });
       // Actualizar lista local
       const idx = (window._videoCursos || []).findIndex(c => c.id === id);
-      if (idx !== -1) window._videoCursos[idx] = { ...window._videoCursos[idx], titulo, categoria, videos, portada, temario };
+      if (idx !== -1) window._videoCursos[idx] = { ...window._videoCursos[idx], titulo, categoria, videos, portada, temario, disponibleSiempre };
       if (typeof window.renderVideos === 'function') window.renderVideos(window._videoCursos);
       msg.textContent = '✓ Curso actualizado correctamente.';
       msg.style.color = '#10b981'; msg.style.display = 'block';
@@ -2295,6 +2333,16 @@ match /databases/{database}/documents {
       <div class="form-group">
         <label class="form-label">Temario del curso <span style="font-weight:400;color:#94a3b8">(opcional)</span></label>
         <textarea class="form-textarea" id="edit-curso-temario" rows="5" style="min-height:120px" placeholder="Describe los temas que se abordarán..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">⚙️ Disponibilidad para los alumnos</label>
+        <label id="edit-disp-wrap" style="display:flex;align-items:flex-start;gap:.75rem;padding:.875rem 1rem;background:#f0fdf4;border:1.5px solid #86efac;border-radius:8px;cursor:pointer;transition:all .2s">
+          <input type="checkbox" id="edit-curso-disp-siempre" style="width:18px;height:18px;cursor:pointer;accent-color:#059669;flex-shrink:0;margin-top:2px" onchange="document.getElementById('edit-disp-wrap').style.background=this.checked?'#f0fdf4':'#f8fafc';document.getElementById('edit-disp-wrap').style.borderColor=this.checked?'#86efac':'#e2e8f0';document.getElementById('edit-disp-label').textContent=this.checked?'🔓 Disponible siempre (visible para todos al instante)':'⏰ Sigue desbloqueo progresivo (timeline de 10 días)';">
+          <div style="flex:1">
+            <div id="edit-disp-label" style="font-size:13px;font-weight:700;color:#0d47a1">🔓 Disponible siempre (visible para todos al instante)</div>
+            <div style="font-size:11px;color:#475569;margin-top:3px;line-height:1.4">Si está activado, el curso aparece <strong>DESBLOQUEADO al instante</strong> para todos los alumnos. Útil para <strong>verificar que las clases se vean correctamente</strong>. Cuando termines de probar, desactívalo para que siga el ritmo de <strong>desbloqueo progresivo</strong> (10 días entre cursos).</div>
+          </div>
+        </label>
       </div>
       <div>
         <label class="form-label" style="margin-bottom:.75rem;display:block">Clases</label>
