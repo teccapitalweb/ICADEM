@@ -9274,6 +9274,9 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   // Función auxiliar: determinar si un curso está desbloqueado según timeline del usuario
   // EXPUESTA EN WINDOW para que buildVideoteca (script clásico) pueda usarla
   window.cursoEstaDesbloqueado = function(curso, indice) {
+    // 🔓 NUEVO: si el admin marcó "Disponible siempre" → DESBLOQUEADO inmediato
+    // (útil para probar que las clases se vean correctamente sin esperar al timeline)
+    if (curso && curso.disponibleSiempre === true) return true;
     // Si está marcado como "Próximamente" manualmente desde admin → BLOQUEADO
     if (curso.marcarProximamente === true) return false;
     // Calcular según timeline
@@ -9294,6 +9297,9 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
   // Función auxiliar: calcular días hasta que se desbloquee un curso
   window.diasHastaDesbloqueo = function(indice) {
+    // 🔓 NUEVO: si el curso tiene disponibleSiempre, no hay espera
+    const curso = (window._cursosNuevos || [])[indice];
+    if (curso && curso.disponibleSiempre === true) return 0;
     const cfg = window._cfgDesbloqueo || { diasPorDesbloqueo: 10, cursosAlInicio: 1 };
     const fechaSus = window._fechaSuscripcion || new Date();
     const diasTranscurridos = Math.floor((Date.now() - fechaSus.getTime()) / 86400000);
