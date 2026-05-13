@@ -4724,16 +4724,17 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   <p class="loading-text">Cargando panel VIP…</p>
 </div>
 <script>
-// PERF_LOADER_MSG_v1: rotar mensajes del loader inicial para bajar la
+// PERF_LOADER_MSG_v2: rotar mensajes del loader inicial para bajar la
 // percepción de espera. NO acelera Firebase, solo da feedback de progreso.
+// v2: textos user-facing sin mencionar tecnología (no "Firebase", "sesión", etc.)
 // Se desactiva solo cuando #loading se oculta. Respeta el mensaje
 // post-pago "Activando tu membresía VIP..." (no lo pisa).
 (function(){
   var msgs = [
     'Cargando panel VIP…',
-    'Conectando con Firebase…',
-    'Verificando tu sesión…',
-    'Cargando tu membresía…',
+    'Preparando tu espacio…',
+    'Verificando tu acceso…',
+    'Cargando contenidos exclusivos…',
     'Casi listo…'
   ];
   var POST_PAGO = 'Activando tu membresía';
@@ -11341,10 +11342,11 @@ buildVideoteca();
      - Descarga PDF (jsPDF) y Excel (SheetJS) cliente-side
      ============================================================ -->
 <!-- Cargar librerías para PDF y Excel -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js"></script>
+<!-- PERF_DEFER_v1: defer (no bloquea parseo HTML; usos solo en handlers click/onclick) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.0/jspdf.plugin.autotable.min.js" defer></script>
 <!-- xlsx-js-style: fork con soporte de estilos (colores, fonts, bordes) -->
-<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js" defer></script>
 
 <script>
 (function(){
@@ -14479,7 +14481,8 @@ buildVideoteca();
      - Historial 7 días + PDF + Excel
      ============================================================ -->
 <!-- Cargar Chart.js -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<!-- PERF_DEFER_v1: defer (Chart solo se usa al ver sección de logros/gráficos) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" defer></script>
 
 <script>
 (function(){
@@ -20693,11 +20696,12 @@ input#tpl-search-input {
      ═══════════════════════════════════════════════════════════════════ -->
 
 <!-- Stripe.js + canvas-confetti -->
-<script src="https://js.stripe.com/v3/"></script>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<!-- PERF_DEFER_v1: defer (Stripe se carga al abrir modal de pago; confetti solo en logros desbloqueados;
+     html2canvas solo al descargar cert PDF). jspdf duplicado eliminado (ya cargado arriba en línea 11344). -->
+<script src="https://js.stripe.com/v3/" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
 <!-- Para descarga de certificados como PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
 
 <!-- ═══════════════════════════════════════════════════════════════════
      ESTILOS — Modal de 3 vistas + Onboarding
