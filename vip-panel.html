@@ -33201,6 +33201,88 @@ html body.modo-dia .cert-info-desc {
   background-color: transparent !important;
   font-weight: 500 !important;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   CERT_ITEM_DAY_v1 — Cards de certificados acumulados (modo dia)
+   ─────────────────────────────────────────────────────────────────────
+   Las cards .cert-item heredaban el fondo #0d1117 (negro) del modo
+   oscuro porque no habia reglas especificas para modo dia.
+   Aqui aplicamos paleta azul brand para que combine con la pagina:
+     - Card: blanco con borde sutil
+     - Badge "CERTIFICADO VALIDO": verde (semantico, se mantiene)
+     - Titulo: slate 900
+     - Meta (fecha + horas): slate 600
+     - Badge FOLIO: azul brand #1E3A8A sobre #DBEAFE
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* --- Card de certificado: fondo blanco, borde sutil --- */
+html body.modo-dia .cert-item {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  background-image: none !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 1px 2px rgba(15,23,42,0.04), 0 4px 12px rgba(15,23,42,0.04) !important;
+  transition: all 0.2s !important;
+}
+
+html body.modo-dia .cert-item:hover {
+  transform: translateY(-2px) !important;
+  border-color: #BFDBFE !important;
+  background: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%) !important;
+  background-image: linear-gradient(135deg, #EFF6FF 0%, #FFFFFF 100%) !important;
+  box-shadow: 0 4px 16px rgba(30,58,138,0.12), 0 12px 28px rgba(15,23,42,0.06) !important;
+}
+
+/* --- Badge "✓ CERTIFICADO VALIDO" (verde semantico) --- */
+html body.modo-dia .cert-item .cert-item-tag,
+html body.modo-dia .cert-item-tag {
+  color: #047857 !important;
+  -webkit-text-fill-color: #047857 !important;
+  background: #D1FAE5 !important;
+  background-color: #D1FAE5 !important;
+  border: 1px solid #A7F3D0 !important;
+  font-weight: 700 !important;
+}
+
+/* --- Titulo del curso (slate 900) --- */
+html body.modo-dia .cert-item .cert-item-title,
+html body.modo-dia .cert-item-title {
+  color: #0F172A !important;
+  -webkit-text-fill-color: #0F172A !important;
+  font-weight: 700 !important;
+}
+
+/* --- Meta (fecha + horas) --- */
+html body.modo-dia .cert-item .cert-item-meta,
+html body.modo-dia .cert-item-meta {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+}
+
+html body.modo-dia .cert-item .cert-item-meta > span,
+html body.modo-dia .cert-item-meta > span {
+  color: #64748B !important;
+  -webkit-text-fill-color: #64748B !important;
+}
+
+/* --- Badge FOLIO a la derecha: azul brand (el mismo azul que aparece arriba) --- */
+html body.modo-dia .cert-item .cert-item-folio,
+html body.modo-dia .cert-item-folio {
+  color: #1E3A8A !important;
+  -webkit-text-fill-color: #1E3A8A !important;
+  background: #DBEAFE !important;
+  background-color: #DBEAFE !important;
+  border: 1px solid #BFDBFE !important;
+  font-weight: 600 !important;
+}
+
+html body.modo-dia .cert-item:hover .cert-item-folio {
+  background: linear-gradient(135deg, #BFDBFE 0%, #DBEAFE 100%) !important;
+  background-image: linear-gradient(135deg, #BFDBFE 0%, #DBEAFE 100%) !important;
+  border-color: #93C5FD !important;
+}
 </style>
 
 
