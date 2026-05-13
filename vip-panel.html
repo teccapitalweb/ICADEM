@@ -8387,7 +8387,24 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     if (videoCourseList) {
       (async function cargarCursosParaInvitado() {
         try {
-          // Importar dinámicamente Firestore (ya está inicializado arriba)
+          // PASO 1: Autenticar al invitado como ANÓNIMO para que Firestore le
+          // permita leer 'cursos-nuevos'. Requiere Anonymous Auth habilitado en
+          // Firebase Console (Authentication > Sign-in method > Anonymous).
+          // Si falla, intentamos leer de todos modos (por si las rules son públicas).
+          try {
+            const { getAuth, signInAnonymously } =
+              await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+            const authInv = getAuth();
+            if (!authInv.currentUser) {
+              await signInAnonymously(authInv);
+              console.log('[Invitado] Autenticado como anónimo para leer catálogo.');
+            }
+          } catch (authErr) {
+            console.warn('[Invitado] Auth anónima falló (intentando leer sin auth):', authErr.code || authErr.message);
+            // Continuamos sin auth - quizás las rules permiten lectura pública
+          }
+
+          // PASO 2: Importar Firestore y leer cursos
           const { collection, query, orderBy, getDocs, getFirestore } =
             await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
           const dbInv = getFirestore();
@@ -8411,8 +8428,8 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
           }
         } catch (e) {
           console.warn('[Invitado] No se pudieron cargar cursos reales:', e);
-          // Fallback: mostrar mensaje suave
-          videoCourseList.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8"><p style="font-size:14px">Cursos disponibles para miembros VIP</p><p style="font-size:12px;margin-top:.5rem">Vuélvete miembro para ver el catálogo completo.</p></div>';
+          // Fallback: mostrar mensaje suave con CTA al paywall
+          videoCourseList.innerHTML = '<div style="text-align:center;padding:3rem;color:#94a3b8"><p style="font-size:14px">Cursos disponibles para miembros VIP</p><p style="font-size:12px;margin-top:.5rem">Vuélvete miembro para ver el catálogo completo.</p><button onclick="window.mostrarPaywall&&window.mostrarPaywall()" style="margin-top:1rem;background:linear-gradient(135deg,#f59e0b 0%,#fbbf24 100%);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(245,158,11,0.30)">Volverme miembro VIP →</button></div>';
         }
       })();
     }
