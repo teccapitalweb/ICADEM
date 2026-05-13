@@ -4753,6 +4753,66 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     el.textContent = msgs[i];
   }, 1800);
 })();
+
+// ═══════════════════════════════════════════════════════════════════
+// PERF_DIAG_v1: DIAGNÓSTICO DE TIEMPOS (TEMPORAL, REMOVIBLE)
+// Quitar todo este bloque cuando ya no se necesite medir.
+// No toca ningún flujo — solo loggea timestamps en consola.
+// ═══════════════════════════════════════════════════════════════════
+(function(){
+  var t0 = performance.now();
+  var marks = [];
+  var navStart = performance.timing ? performance.timing.navigationStart : 0;
+  var sinceNav = function() {
+    return navStart ? (Date.now() - navStart) : Math.round(performance.now());
+  };
+
+  function log(label) {
+    var fromScript = (performance.now() - t0).toFixed(0);
+    var fromNav = sinceNav();
+    var line = '[PERF +' + fromNav + 'ms / step ' + fromScript + 'ms] ' + label;
+    console.log('%c' + line, 'color:#1976d2;font-weight:bold');
+    marks.push({ label: label, fromNav: fromNav, fromScript: parseFloat(fromScript) });
+    window.__perfMarks = marks;
+  }
+
+  log('▶️ Script diagnóstico arrancó (HTML parseado hasta este punto)');
+
+  // Cuando todo el HTML termine de parsearse
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      log('📄 DOMContentLoaded — HTML completo parseado');
+    });
+  } else {
+    log('📄 DOMContentLoaded — ya había ocurrido al inicializar');
+  }
+
+  // Cuando todos los recursos terminen (scripts defer, imágenes, etc.)
+  window.addEventListener('load', function() {
+    log('🌐 window.load — todos los recursos descargados');
+  });
+
+  // Detectar Firebase Auth inicializado
+  var checkFirebase = setInterval(function() {
+    if (window.firebase || (window._authUser !== undefined)) {
+      log('🔥 Firebase detectado en window');
+      clearInterval(checkFirebase);
+    }
+  }, 100);
+  setTimeout(function() { clearInterval(checkFirebase); }, 30000);
+
+  // Detectar cuando el loader se oculte (panel listo)
+  var checkLoader = setInterval(function() {
+    var l = document.getElementById('loading');
+    if (l && (l.classList.contains('hidden') || l.style.display === 'none')) {
+      log('🎉 LOADER OCULTO — usuario ve el panel');
+      console.log('%c═══ RESUMEN DE TIEMPOS ═══', 'color:#10b981;font-size:14px;font-weight:bold');
+      console.table(window.__perfMarks);
+      clearInterval(checkLoader);
+    }
+  }, 200);
+  setTimeout(function() { clearInterval(checkLoader); }, 60000);
+})();
 </script>
 
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
