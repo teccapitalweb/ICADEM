@@ -9524,9 +9524,9 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${logro.svg}</svg>
         </div>
 
-        <span style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#c8962a;background:#fdf4e3;padding:5px 14px;border-radius:20px;margin-bottom:.75rem">🎉 ¡Felicidades!</span>
-        <h3 style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#0d47a1;margin-bottom:.5rem;line-height:1.2">Desbloqueaste "${logro.nombre}"</h3>
-        <p style="font-size:13px;color:#64748b;line-height:1.55;margin-bottom:1.5rem">${logro.desc}. Comparte este logro con tus conocidos y muéstrales tu progreso profesional.</p>
+        <span class="logro-pop-badge" style="display:inline-block;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:#c8962a !important;-webkit-text-fill-color:#c8962a !important;background:#fdf4e3;padding:5px 14px;border-radius:20px;margin-bottom:.75rem">🎉 ¡Felicidades!</span>
+        <h3 class="logro-pop-title" style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#0d47a1 !important;-webkit-text-fill-color:#0d47a1 !important;margin-bottom:.5rem;line-height:1.2;background:transparent !important;background-image:none !important;opacity:1 !important">Desbloqueaste "${logro.nombre}"</h3>
+        <p class="logro-pop-desc" style="font-size:13px;color:#64748b !important;-webkit-text-fill-color:#64748b !important;line-height:1.55;margin-bottom:1.5rem;opacity:1 !important">${logro.desc}. Comparte este logro con tus conocidos y muéstrales tu progreso profesional.</p>
 
         <p style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#94a3b8;margin-bottom:.75rem">Compartir en</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
@@ -27094,10 +27094,49 @@ function formatearFecha(fecha) {
 // ═══════════════════════════════════════════════════════════════
 let _certActivo = null;
 
+// CERT_AUTOSYNC_v1: Si el cert ya existe pero no está en la colección pública /certificados/
+// (caso de certs viejos antes de la lógica de guardado público), lo sincronizamos aquí
+async function _syncCertPublico(cert) {
+  if (!cert || !cert.folio) return;
+  try {
+    const db = getFirestore();
+    const ref = doc(db, 'certificados', cert.folio);
+    const snap = await getDoc(ref);
+    if (snap.exists()) return; // ya existe, nada que hacer
+
+    // No existe → crearlo ahora
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) return;
+
+    await setDoc(ref, {
+      folio: cert.folio,
+      cursoId: cert.cursoId || '',
+      curso: cert.curso || 'Curso ICADEM',
+      area: cert.area || 'Capacitación empresarial',
+      horas: cert.horas || 1,
+      sesiones: cert.sesiones || cert.horas || 1,
+      fecha: cert.fecha || new Date().toISOString(),
+      nombreAlumno: cert.nombreAlumno || user.displayName || user.email || 'Alumno ICADEM',
+      emitidoPor: 'ICADEM',
+      instituto: 'IPCI Latinoamericano',
+      uid: user.uid,
+      emitidoEn: serverTimestamp(),
+      sincronizadoDesde: 'auto-sync-v1'
+    });
+    console.log('[Cert] ✓ Auto-sincronizado en /certificados/' + cert.folio);
+  } catch(e) {
+    console.warn('[Cert] No se pudo auto-sincronizar:', e);
+  }
+}
+
 window.abrirCertificado = function(certId) {
   const cert = _userData.certificados.find(c => c.id === certId);
   if (!cert) return;
   _certActivo = cert;
+
+  // CERT_AUTOSYNC_v1: disparar sync en background (no bloquea la apertura del modal)
+  _syncCertPublico(cert);
 
   const auth = getAuth();
   const user = auth.currentUser;
@@ -27198,66 +27237,78 @@ window.imprimirCertificado = function() {
   if (!docEl) return;
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><title>Certificado ${_certActivo.folio || ''}</title>
+    <meta charset="UTF-8">
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
     <style>
-      body{margin:0;padding:24px;background:#f8f9fb;font-family:'Inter',sans-serif}
-      .cert-doc{background:#fff;padding:48px;border:8px double #0d4737;border-radius:8px;text-align:center;color:#0d1f4a;position:relative;max-width:900px;margin:0 auto}
-      .cert-doc::before{content:'';position:absolute;inset:14px;border:1px solid rgba(13,71,55,0.2);pointer-events:none;border-radius:4px}
-      h1,h2,h3{font-family:'Cormorant Garamond',Georgia,serif}
-      .cert-doc-title{font-size:36px;color:#0d4737;text-transform:uppercase;letter-spacing:.04em;margin:0 0 8px;font-weight:600}
-      .cert-doc-nombre{font-size:42px;color:#0d4737;text-transform:uppercase;letter-spacing:.06em;margin:0 0 4px;font-weight:700}
-      .cert-doc-curso{font-size:24px;color:#0d4737;margin:0 0 1.5rem;font-style:italic;font-weight:600}
-      .cert-doc-firmas{display:grid;grid-template-columns:auto 1fr 1fr;gap:32px;align-items:end;margin-top:24px}
-      .cert-doc-qr-img{width:110px;height:110px}
-      hr{border:0;border-top:1.2px solid #0d4737}
-      @media print{body{background:#fff;padding:0}.cert-doc{box-shadow:none}}
-    
-/* ═══════════════════════════════════════════════════════════
-   🌙☀️ MODO DÍA / NOCHE — ICADEM VIP PANEL v6
-   Día (default desde primera visita): #F8FAFC + cards blancas
-   Noche: azul profundo #020d30 (mega-override)
-   Usamos selectores directos con !important para pisar el mega-override
-   ═══════════════════════════════════════════════════════════ */
-
-/* Transición global suave al cambiar modo */
-html, .sidebar, .topbar, .main, .content {
-  transition:
-    background 0.45s cubic-bezier(0.4,0,0.2,1),
-    background-image 0.45s cubic-bezier(0.4,0,0.2,1),
-    border-color 0.45s ease !important;
-}
-
-/* ══════════════════════════════════════════════════════
-   MODO DÍA v6 — ICADEM Elegant Pro
-   Paleta: azules profundos + blanco puro
-   Tipografía con contraste WCAG AA mínimo en TODOS los pares
-   ══════════════════════════════════════════════════════ */
-body.modo-dia html,
-html:has(body.modo-dia) {
-  background: #F8FAFC !important;
-  background-image:
-    radial-gradient(ellipse 90% 70% at 50% -10%, rgba(37,99,235,0.05) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 50% at 90% 100%, rgba(30,58,138,0.04) 0%, transparent 55%),
-    linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%) !important;
-}
-
-body.modo-dia .sidebar {
-  background: linear-gradient(180deg, #0A1F44 0%, #0B2554 100%) !important;
-  background-image: linear-gradient(180deg, #0A1F44 0%, #0B2554 100%) !important;
-  border-right: 1px solid rgba(15, 44, 109, 0.4) !important;
-  box-shadow: 2px 0 24px rgba(15, 23, 42, 0.08) !important;
-}
-
-body.modo-dia .topbar {
-  background: rgba(255, 255, 255, 0.85) !important;
-  backdrop-filter: blur(12px) saturate(1.2) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(1.2) !important;
-  border-bottom: 1px solid #E2E8F0 !important;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
-}
-
-</style>
-    </head><body>${docEl.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print()},500)}<\/script>
+      * { box-sizing: border-box; }
+      @page {
+        size: A4 landscape;
+        margin: 0;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-family: 'Inter', sans-serif;
+        color: #0d1f4a;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body {
+        width: 297mm;
+        height: 210mm;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8mm;
+      }
+      .cert-doc {
+        background: #fff !important;
+        background-image: none !important;
+        padding: 18mm 22mm !important;
+        border: 6px double #0d4737 !important;
+        border-radius: 6px !important;
+        text-align: center !important;
+        color: #0d1f4a !important;
+        position: relative !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+        break-inside: avoid !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        overflow: hidden !important;
+        font-size: 12pt !important;
+      }
+      .cert-doc::before {
+        content: '';
+        position: absolute;
+        inset: 8px;
+        border: 1px solid rgba(13,71,55,0.25);
+        pointer-events: none;
+        border-radius: 3px;
+      }
+      .cert-doc > * { position: relative; z-index: 1; }
+      h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif !important; margin: 0 !important; }
+      .cert-doc-title { font-size: 22pt !important; color: #0d4737 !important; text-transform: uppercase; letter-spacing: .04em; margin: 0 0 6px !important; font-weight: 600; }
+      .cert-doc-nombre { font-size: 28pt !important; color: #0d4737 !important; text-transform: uppercase; letter-spacing: .06em; margin: 6px 0 4px !important; font-weight: 700; }
+      .cert-doc-curso { font-size: 16pt !important; color: #0d4737 !important; margin: 8px 0 12px !important; font-style: italic; font-weight: 600; }
+      .cert-doc-firmas { display: grid !important; grid-template-columns: auto 1fr 1fr; gap: 18px !important; align-items: end !important; margin-top: 12px !important; }
+      .cert-doc-qr-img { width: 80px !important; height: 80px !important; }
+      hr { border: 0; border-top: 1px solid #0d4737 !important; margin: 6px 0 !important; }
+      p { margin: 4px 0 !important; line-height: 1.4 !important; }
+      img { max-width: 100% !important; height: auto !important; }
+      /* No transitions ni animaciones en print */
+      *, *::before, *::after { transition: none !important; animation: none !important; }
+    </style>
+    </head><body>${docEl.outerHTML}<script>window.onload=function(){setTimeout(function(){window.print();setTimeout(function(){window.close()},800)},400)}<\/script>
 </body></html>`);
   w.document.close();
 };
@@ -27735,9 +27786,31 @@ window.descargarCertificadoPDF = async function() {
   const docEl = document.getElementById('cert-doc');
   if (!docEl) return window.notify('No se encontró el certificado a descargar');
 
-  // Verificar librerías
+  // CERT_PDF_FIX_v1: Esperar a que carguen las librerías si aún no están
   if (typeof html2canvas !== 'function' || typeof window.jspdf === 'undefined') {
-    return window.notify('Las librerías de PDF aún no han cargado. Espera 5 segundos e intenta de nuevo.');
+    window.notify('⏳ Cargando librerías de PDF, intenta de nuevo en 3 segundos...');
+    // Intentar cargar dinámicamente
+    if (typeof html2canvas !== 'function') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      }).catch(() => {});
+    }
+    if (typeof window.jspdf === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+        s.onload = resolve;
+        s.onerror = reject;
+        document.head.appendChild(s);
+      }).catch(() => {});
+    }
+    if (typeof html2canvas !== 'function' || typeof window.jspdf === 'undefined') {
+      return window.notify('No se pudieron cargar las librerías de PDF. Usa el botón "Imprimir" y guarda como PDF desde ahí.');
+    }
   }
 
   // Botón con feedback visual
@@ -27749,13 +27822,33 @@ window.descargarCertificadoPDF = async function() {
   }
 
   try {
+    // Convertir QR externo a base64 ANTES de capturar (evita problemas CORS de html2canvas)
+    const qrImgs = docEl.querySelectorAll('img[src*="qrserver.com"], img.cert-doc-qr-img');
+    for (const img of qrImgs) {
+      try {
+        const resp = await fetch(img.src, { mode: 'cors' });
+        const blob = await resp.blob();
+        const dataUrl = await new Promise(res => {
+          const r = new FileReader();
+          r.onload = () => res(r.result);
+          r.readAsDataURL(blob);
+        });
+        img.src = dataUrl;
+      } catch(e) { console.warn('[PDF] No se pudo convertir QR a base64:', e); }
+    }
+
+    // Esperar 200ms para que las imágenes se renderen con el nuevo src
+    await new Promise(r => setTimeout(r, 200));
+
     // Renderizar el certificado a canvas (alta resolución)
     const canvas = await html2canvas(docEl, {
-      scale: 2,            // 2x para alta calidad
+      scale: 2,
       backgroundColor: '#ffffff',
       logging: false,
       useCORS: true,
-      allowTaint: true
+      allowTaint: true,
+      imageTimeout: 15000,
+      removeContainer: true
     });
 
     // Dimensiones del PDF (landscape, A4)
@@ -27766,7 +27859,7 @@ window.descargarCertificadoPDF = async function() {
       format: 'a4'
     });
 
-    const pdfW = 297, pdfH = 210;  // A4 landscape
+    const pdfW = 297, pdfH = 210;
     const imgW = canvas.width;
     const imgH = canvas.height;
 
@@ -27788,9 +27881,10 @@ window.descargarCertificadoPDF = async function() {
     const folio = _certActivo.folio || 'sin-folio';
     pdf.save(`Certificado-${cursoSlug}-${folio}.pdf`);
 
+    window.notify('✓ PDF descargado correctamente');
   } catch(e) {
     console.error('[PDF] Error generando PDF:', e);
-    window.notify('No se pudo generar el PDF. Intenta usar el botón "Imprimir" y guardar como PDF desde ahí.');
+    window.notify('No se pudo generar el PDF: ' + (e.message || 'error desconocido') + '. Intenta usar el botón "Imprimir" y guardar como PDF desde ahí.');
   } finally {
     if (btn) {
       btn.disabled = false;
@@ -27803,27 +27897,27 @@ window.descargarCertificadoPDF = async function() {
 // 🔗 COMPARTIR EN REDES SOCIALES
 // ═══════════════════════════════════════════════════════════════
 window.toggleCompartirMenu = function(ev) {
-  if (ev) ev.stopPropagation();
+  if (ev) { ev.stopPropagation(); ev.preventDefault(); }
   const menu = document.getElementById('cert-share-menu');
-  if (!menu) return;
-  const visible = menu.style.display !== 'none';
+  if (!menu) {
+    console.warn('[Cert] No se encontró el menú #cert-share-menu');
+    return;
+  }
+  const visible = menu.style.display && menu.style.display !== 'none';
 
   if (visible) {
     menu.style.display = 'none';
     return;
   }
 
-  // Posicionar el menú justo encima del botón Compartir
-  const btn = ev && ev.currentTarget;
-  if (btn) {
-    const rect = btn.getBoundingClientRect();
-    const parentRect = btn.closest('.cert-actions').getBoundingClientRect();
-    menu.style.right = (parentRect.right - rect.right) + 'px';
-    menu.style.bottom = (parentRect.height + 8) + 'px';
-    menu.style.left = 'auto';
-    menu.style.top = 'auto';
-  }
+  // CERT_SHARE_FIX_v1: Posicionamiento robusto + estilos inline para vencer overrides
   menu.style.display = 'grid';
+  menu.style.position = 'absolute';
+  menu.style.right = '0';
+  menu.style.bottom = 'calc(100% + 8px)';
+  menu.style.left = 'auto';
+  menu.style.top = 'auto';
+  menu.style.zIndex = '10001';
 
   // Cerrar al hacer click fuera
   setTimeout(() => {
