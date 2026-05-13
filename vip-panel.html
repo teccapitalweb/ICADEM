@@ -21053,6 +21053,157 @@ input#tpl-search-input {
   box-shadow: 0 0 0 3px rgba(245,215,122,0.15) !important;
 }
 
+/* ─────────── PREMIUM_STRIPE_LOADING_v1 — Spinner cinematográfico ─────────── */
+.is-stripe-loader {
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 16px;
+  padding: 2.5rem 1.75rem;
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+/* Orbe dorado pulsante (foco visual) */
+.is-stripe-loader-orb {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #f5d77a 0%, #c8962a 60%, #8a6815 100%);
+  position: relative;
+  box-shadow:
+    0 0 0 0 rgba(245,215,122,0.6),
+    0 8px 24px rgba(200,150,42,0.35),
+    inset 0 -2px 6px rgba(0,0,0,0.20);
+  animation: isStripePulse 2s ease-out infinite;
+}
+.is-stripe-loader-orb::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 2px solid rgba(245,215,122,0.4);
+  border-top-color: transparent;
+  border-right-color: transparent;
+  animation: isStripeSpin 1.2s linear infinite;
+}
+@keyframes isStripePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,215,122,0.5), 0 8px 24px rgba(200,150,42,0.35), inset 0 -2px 6px rgba(0,0,0,0.20); }
+  50%      { box-shadow: 0 0 0 18px rgba(245,215,122,0), 0 8px 24px rgba(200,150,42,0.35), inset 0 -2px 6px rgba(0,0,0,0.20); }
+}
+@keyframes isStripeSpin {
+  to { transform: rotate(360deg); }
+}
+
+.is-stripe-loader-content {
+  text-align: center;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.is-stripe-loader-msg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #FFFFFF;
+  letter-spacing: 0.01em;
+  margin-bottom: 1rem;
+  transition: opacity 0.2s ease;
+  min-height: 22px;
+}
+.is-stripe-loader-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.is-stripe-loader-text {
+  color: rgba(255,255,255,0.92);
+}
+
+/* Barra de progreso indeterminada */
+.is-stripe-loader-bar {
+  width: 100%;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+}
+.is-stripe-loader-bar-fill {
+  height: 100%;
+  width: 35%;
+  background: linear-gradient(90deg, transparent 0%, #f5d77a 50%, transparent 100%);
+  border-radius: 99px;
+  animation: isStripeBar 1.6s ease-in-out infinite;
+}
+@keyframes isStripeBar {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(285%); }
+}
+
+/* Skeleton del checkout (líneas grises animadas) */
+.is-stripe-loader-skel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+  padding: 0 0.5rem;
+}
+.is-stripe-loader-skel-line {
+  height: 12px;
+  background: linear-gradient(90deg,
+    rgba(255,255,255,0.04) 0%,
+    rgba(255,255,255,0.10) 50%,
+    rgba(255,255,255,0.04) 100%);
+  background-size: 200% 100%;
+  border-radius: 6px;
+  animation: isStripeShimmer 1.4s linear infinite;
+}
+.is-skel-w1 { width: 92%; animation-delay: 0s; }
+.is-skel-w2 { width: 78%; animation-delay: 0.15s; }
+.is-skel-w3 { width: 60%; animation-delay: 0.30s; }
+@keyframes isStripeShimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Trust indicators */
+.is-stripe-loader-trust {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(255,255,255,0.50);
+  letter-spacing: 0.02em;
+  font-weight: 500;
+}
+
+/* Decoración: gradient ambient en el fondo */
+.is-stripe-loader::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -25%;
+  width: 150%;
+  height: 200%;
+  background: radial-gradient(ellipse at center, rgba(245,215,122,0.06) 0%, transparent 50%);
+  pointer-events: none;
+  animation: isStripeAmbient 8s ease-in-out infinite;
+}
+@keyframes isStripeAmbient {
+  0%, 100% { transform: scale(1) translateY(0); opacity: 0.7; }
+  50%      { transform: scale(1.1) translateY(-20px); opacity: 1; }
+}
+
 .is-btn-primary {
   width: 100%;
   padding: 0.95rem;
@@ -21643,6 +21794,17 @@ function setVista(nombre) {
 
   // Limpiar errores
   modal.querySelectorAll('.is-error').forEach(e => { e.classList.remove('is-show'); e.textContent = ''; });
+
+  // PREMIUM_STRIPE_LOADING_v1: Precarga inteligente
+  // Cuando el usuario llega al paso "cuenta", precalentamos Stripe en paralelo
+  // mientras escribe sus credenciales. Cuando llegue al paso "pago", ya está listo.
+  if (nombre === 'cuenta') {
+    try {
+      if (typeof window._precargarStripe === 'function') {
+        window._precargarStripe();
+      }
+    } catch(e) { /* silencioso */ }
+  }
 }
 
 function abrirModal(opciones) {
@@ -21952,40 +22114,155 @@ function actualizarResumenPago(plan) {
   document.getElementById('is-pay-plan-amount').textContent = info.amount;
 }
 
-// ── Inicializar Stripe Embedded Checkout ─────────────────────
+// ── Inicializar Stripe Embedded Checkout (PREMIUM_STRIPE_LOADING_v1) ─────
+// Mejora 1: precarga del clientSecret en paralelo mientras el user escribe password
+// Mejora 2: spinner cinematográfico con mensajes que cambian (mejor UX percibida)
+// Mejora 3: skeleton visual del checkout (que se sienta que YA está cargando)
+
+let _precargaPromise = null;
+let _precargaPlan = null;
+
+// Precarga: dispara el fetch a Railway sin esperar el resultado
+window._precargarStripe = function() {
+  if (!_planSeleccionado) return;
+  if (_precargaPlan === _planSeleccionado && _precargaPromise) return; // ya precargando
+
+  const auth = getAuth();
+  if (!auth.currentUser) return; // sin sesión aún, no precargamos
+
+  _precargaPlan = _planSeleccionado;
+  _precargaPromise = (async () => {
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const resp = await fetch(RAILWAY_BASE + '/crear-checkout-stripe', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+        body:    JSON.stringify({ plan: _planSeleccionado })
+      });
+      if (!resp.ok) throw new Error((await resp.json().catch(()=>({}))).error || 'Error creando sesión');
+      return await resp.json();
+    } catch(e) {
+      _precargaPromise = null; // permite reintento
+      throw e;
+    }
+  })();
+};
+
+// Spinner cinematográfico: mensajes que cambian para que se sienta más rápido
+const _stripeLoadingMsgs = [
+  { icon: '🔐', text: 'Verificando tu cuenta...' },
+  { icon: '💳', text: 'Conectando con Stripe...' },
+  { icon: '✨', text: 'Preparando tu pago seguro...' },
+  { icon: '🛡️', text: 'Activando protección SSL...' }
+];
+
+function renderStripeSkeleton() {
+  return `
+    <div class="is-stripe-loader">
+      <div class="is-stripe-loader-orb"></div>
+      <div class="is-stripe-loader-content">
+        <div class="is-stripe-loader-msg" id="is-stripe-loader-msg">
+          <span class="is-stripe-loader-icon">🔐</span>
+          <span class="is-stripe-loader-text">Verificando tu cuenta...</span>
+        </div>
+        <div class="is-stripe-loader-bar"><div class="is-stripe-loader-bar-fill"></div></div>
+        <div class="is-stripe-loader-skel">
+          <div class="is-stripe-loader-skel-line is-skel-w1"></div>
+          <div class="is-stripe-loader-skel-line is-skel-w2"></div>
+          <div class="is-stripe-loader-skel-line is-skel-w3"></div>
+        </div>
+        <div class="is-stripe-loader-trust">
+          <span>🔒 Cifrado de extremo a extremo</span>
+          <span>·</span>
+          <span>Powered by Stripe</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+let _msgRotatorInterval = null;
+function startMsgRotator() {
+  stopMsgRotator();
+  let i = 0;
+  _msgRotatorInterval = setInterval(() => {
+    i = (i + 1) % _stripeLoadingMsgs.length;
+    const el = document.getElementById('is-stripe-loader-msg');
+    if (!el) { stopMsgRotator(); return; }
+    el.style.opacity = '0';
+    setTimeout(() => {
+      const m = _stripeLoadingMsgs[i];
+      el.innerHTML = `<span class="is-stripe-loader-icon">${m.icon}</span><span class="is-stripe-loader-text">${m.text}</span>`;
+      el.style.opacity = '1';
+    }, 200);
+  }, 1100);
+}
+function stopMsgRotator() {
+  if (_msgRotatorInterval) {
+    clearInterval(_msgRotatorInterval);
+    _msgRotatorInterval = null;
+  }
+}
+
 async function iniciarStripeCheckout(plan) {
   const mount = document.getElementById('is-stripe-mount');
-  mount.innerHTML = '<div class="is-loading"><div class="is-spinner"></div>Cargando pago seguro de Stripe…</div>';
+  mount.innerHTML = renderStripeSkeleton();
+  startMsgRotator();
 
   try {
     const auth = getAuth();
     if (!auth.currentUser) throw new Error('Sesión perdida. Vuelve a iniciar sesión.');
 
-    const idToken = await auth.currentUser.getIdToken();
-    const resp = await fetch(RAILWAY_BASE + '/crear-checkout-stripe', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
-      body:    JSON.stringify({ plan })
-    });
+    let clientSecret;
 
-    if (!resp.ok) {
-      const errData = await resp.json().catch(() => ({}));
-      throw new Error(errData.error || 'Error creando sesión de pago');
+    // ✨ Si ya precargamos para este plan, reusamos la promise (ahorra 1-2s)
+    if (_precargaPromise && _precargaPlan === plan) {
+      try {
+        const data = await _precargaPromise;
+        clientSecret = data.clientSecret;
+      } catch(e) {
+        // Si falló la precarga, fallback a fetch directo
+        _precargaPromise = null;
+      }
     }
 
-    const { clientSecret } = await resp.json();
+    // Si no hubo precarga (o falló), pedirlo ahora
+    if (!clientSecret) {
+      const idToken = await auth.currentUser.getIdToken();
+      const resp = await fetch(RAILWAY_BASE + '/crear-checkout-stripe', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + idToken },
+        body:    JSON.stringify({ plan })
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || 'Error creando sesión de pago');
+      }
+
+      const data = await resp.json();
+      clientSecret = data.clientSecret;
+    }
+
     if (!clientSecret) throw new Error('No se recibió clientSecret de Stripe');
 
+    // Reset precarga para próxima vez
+    _precargaPromise = null;
+    _precargaPlan = null;
+
+    stopMsgRotator();
     mount.innerHTML = '';
     _embeddedCheckout = await getStripe().initEmbeddedCheckout({ clientSecret });
     _embeddedCheckout.mount('#is-stripe-mount');
   } catch(e) {
+    stopMsgRotator();
     console.error('[Stripe] Error iniciando checkout:', e);
     mount.innerHTML = `
-      <div style="background:#fef2f2;border:1px solid #fecaca;color:#991b1b;padding:1.25rem;border-radius:10px;font-size:13px;text-align:center">
-        <strong>No se pudo cargar el pago</strong><br>
-        ${(e.message || 'Error desconocido').replace(/[<>]/g,'')}<br>
-        <small style="display:inline-block;margin-top:.5rem;opacity:.8">Intenta cerrar y abrir de nuevo, o contacta soporte.</small>
+      <div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.30);color:#fca5a5;padding:1.5rem;border-radius:12px;font-size:13px;text-align:center;line-height:1.6">
+        <div style="font-size:32px;margin-bottom:8px">⚠️</div>
+        <strong style="color:#fee2e2;display:block;margin-bottom:6px">No se pudo cargar el pago</strong>
+        <span style="opacity:.85">${(e.message || 'Error desconocido').replace(/[<>]/g,'')}</span>
+        <small style="display:block;margin-top:.75rem;opacity:.7">Intenta cerrar y abrir de nuevo, o contacta soporte.</small>
       </div>`;
   }
 }
