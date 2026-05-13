@@ -27233,23 +27233,43 @@ window.cerrarCertificado = function() {
 
 window.imprimirCertificado = function() {
   if (!_certActivo) return;
-  const modal = document.getElementById('cert-modal');
   const docEl = document.getElementById('cert-doc');
-  if (!docEl || !modal) return;
+  if (!docEl) return;
 
-  // CERT_PRINT_FIX_v2: Marcar body en modo print y aprovechar el cert
-  // que ya está renderizado en pantalla. NO abrir ventana nueva.
-  // El CSS @media print del panel se encargará de ocultar todo lo demás.
+  // CERT_PRINT_FIX_v3: Clonar el cert a un contenedor dedicado en <body>
+  // (hijo directo) para que el @media print pueda mostrarlo aislado del resto.
+  // Eliminar contenedor previo si existe
+  let printContainer = document.getElementById('__cert-print-container');
+  if (printContainer) printContainer.remove();
+
+  // Crear contenedor nuevo como hijo directo de <body>
+  printContainer = document.createElement('div');
+  printContainer.id = '__cert-print-container';
+  printContainer.setAttribute('aria-hidden', 'true');
+  // Por default invisible en pantalla, solo se muestra en print
+  printContainer.style.cssText = 'position:fixed;left:-99999px;top:0;width:auto;height:auto;visibility:hidden;pointer-events:none;z-index:-1';
+
+  // Clonar el cert (incluido innerHTML)
+  const clone = docEl.cloneNode(true);
+  clone.id = '__cert-print-doc';
+  clone.removeAttribute('id'); // No duplicar ID
+  clone.className = 'cert-doc __cert-print-doc';
+  printContainer.appendChild(clone);
+  document.body.appendChild(printContainer);
+
+  // Marcar body
   document.body.classList.add('printing-cert');
 
-  // Imprimir después de un frame
+  // Imprimir
   setTimeout(() => {
     window.print();
-    // Quitar la clase después de imprimir (con un retraso para que el diálogo de print no se cuelgue)
+    // Limpiar después de imprimir
     setTimeout(() => {
       document.body.classList.remove('printing-cert');
+      const c = document.getElementById('__cert-print-container');
+      if (c) c.remove();
     }, 500);
-  }, 100);
+  }, 150);
 };
 
 window.copiarLinkCert = function() {
@@ -27725,7 +27745,7 @@ window.descargarCertificadoPDF = async function() {
   const docEl = document.getElementById('cert-doc');
   if (!docEl) return window.notify('No se encontró el certificado a descargar');
 
-  // CERT_PDF_FIX_v2: Esperar a que carguen las librerías si aún no están
+  // CERT_PDF_FIX_v3: Esperar a que carguen las librerías si aún no están
   if (typeof html2canvas !== 'function' || typeof window.jspdf === 'undefined') {
     window.notify('⏳ Cargando librerías de PDF, intenta de nuevo en 3 segundos...');
     if (typeof html2canvas !== 'function') {
@@ -27759,39 +27779,60 @@ window.descargarCertificadoPDF = async function() {
     btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> Generando…';
   }
 
-  // CERT_PDF_FIX_v2: Inyectar CSS temporal que neutraliza los gradients problemáticos
-  // El error "addColorStop: non-finite value" viene de gradients con keyword 'transparent'
-  // que html2canvas no parsea bien. Forzamos colores explícitos rgba(0,0,0,0).
+  // CERT_PDF_FIX_v3: Clonar el cert a un contenedor fuera de pantalla pero VISIBLE
+  // (off-screen pero con dimensiones reales) para que html2canvas pueda capturarlo
+  // bien aunque el modal original tenga animaciones o estado raro.
+  let pdfContainer = document.getElementById('__cert-pdf-container');
+  if (pdfContainer) pdfContainer.remove();
+
+  pdfContainer = document.createElement('div');
+  pdfContainer.id = '__cert-pdf-container';
+  pdfContainer.style.cssText = 'position:fixed;left:-99999px;top:0;width:1100px;background:#fff;padding:30px;z-index:-1;visibility:visible;opacity:1';
+
+  const clone = docEl.cloneNode(true);
+  clone.id = '__cert-pdf-doc';
+  clone.style.background = '#ffffff';
+  clone.style.backgroundImage = 'none';
+  clone.style.width = '100%';
+  clone.style.maxWidth = 'none';
+  clone.style.margin = '0';
+  clone.style.boxShadow = 'none';
+  pdfContainer.appendChild(clone);
+  document.body.appendChild(pdfContainer);
+
+  // Inyectar CSS temporal que neutraliza gradients problemáticos en el clon
   const styleOverride = document.createElement('style');
   styleOverride.id = '__cert-pdf-override';
   styleOverride.textContent = `
-    #cert-doc .cert-doc-divider::before,
-    #cert-doc .cert-doc-divider::after {
+    #__cert-pdf-doc .cert-doc-divider::before,
+    #__cert-pdf-doc .cert-doc-divider::after {
       background: #0d4737 !important;
       background-image: none !important;
       opacity: 0.6 !important;
     }
-    #cert-doc *,
-    #cert-doc *::before,
-    #cert-doc *::after {
+    #__cert-pdf-doc *,
+    #__cert-pdf-doc *::before,
+    #__cert-pdf-doc *::after {
       background-image: none !important;
     }
-    #cert-doc {
+    #__cert-pdf-doc {
       background: #ffffff !important;
       background-image: none !important;
     }
-    #cert-doc .cert-doc-title-line,
-    #cert-doc .cert-doc-nombre-line {
+    #__cert-pdf-doc .cert-doc-title-line,
+    #__cert-pdf-doc .cert-doc-nombre-line {
       background: #0d4737 !important;
       background-image: none !important;
     }
   `;
   document.head.appendChild(styleOverride);
-  await new Promise(r => setTimeout(r, 100));
+
+  // Esperar a que el DOM se renderice
+  await new Promise(r => setTimeout(r, 200));
 
   try {
-    // Convertir QR externo a base64 ANTES de capturar (evita problemas CORS de html2canvas)
-    const qrImgs = docEl.querySelectorAll('img[src*="qrserver.com"], img.cert-doc-qr-img');
+    // Convertir QR externo a base64 en el CLON (no en el original)
+    const qrImgs = clone.querySelectorAll('img[src*="qrserver.com"], img.cert-doc-qr-img');
     for (const img of qrImgs) {
       try {
         const resp = await fetch(img.src, { mode: 'cors' });
@@ -27805,25 +27846,38 @@ window.descargarCertificadoPDF = async function() {
       } catch(e) { console.warn('[PDF] No se pudo convertir QR a base64:', e); }
     }
 
-    // Esperar 200ms para que las imágenes se renderen con el nuevo src
-    await new Promise(r => setTimeout(r, 200));
+    // Esperar otros 300ms para que las imágenes carguen
+    await new Promise(r => setTimeout(r, 300));
 
-    // Renderizar el certificado a canvas (alta resolución)
-    const canvas = await html2canvas(docEl, {
+    // Validar que el clon tiene dimensiones reales
+    const rect = clone.getBoundingClientRect();
+    console.log('[PDF] Dimensiones del clon:', rect.width, 'x', rect.height);
+    if (rect.width < 10 || rect.height < 10) {
+      throw new Error('El certificado clonado no tiene dimensiones válidas');
+    }
+
+    // Renderizar a canvas
+    const canvas = await html2canvas(clone, {
       scale: 2,
       backgroundColor: '#ffffff',
       logging: false,
       useCORS: true,
       allowTaint: true,
       imageTimeout: 15000,
-      removeContainer: true,
-      ignoreElements: function(el) {
-        // Ignorar pseudoelementos que puedan tener gradients
-        return false;
-      }
+      removeContainer: false,
+      width: clone.offsetWidth,
+      height: clone.offsetHeight,
+      windowWidth: 1200,
+      windowHeight: 900
     });
 
-    // Dimensiones del PDF (landscape, A4)
+    // CRÍTICO: validar que canvas tiene dimensiones válidas
+    if (!canvas || !canvas.width || !canvas.height || !isFinite(canvas.width) || !isFinite(canvas.height)) {
+      throw new Error('Canvas inválido: ' + canvas?.width + 'x' + canvas?.height);
+    }
+    console.log('[PDF] Canvas generado:', canvas.width, 'x', canvas.height);
+
+    // Crear PDF
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({
       orientation: 'landscape',
@@ -27835,11 +27889,21 @@ window.descargarCertificadoPDF = async function() {
     const imgW = canvas.width;
     const imgH = canvas.height;
 
+    // Validar valores antes de calcular ratio (evitar division por 0)
+    if (imgW === 0 || imgH === 0) {
+      throw new Error('Canvas con dimensiones cero');
+    }
+
     const ratio = Math.min(pdfW / imgW, pdfH / imgH);
     const renderW = imgW * ratio;
     const renderH = imgH * ratio;
     const offsetX = (pdfW - renderW) / 2;
     const offsetY = (pdfH - renderH) / 2;
+
+    // Validar todos los valores finitos
+    if (!isFinite(renderW) || !isFinite(renderH) || !isFinite(offsetX) || !isFinite(offsetY)) {
+      throw new Error('Coordenadas no finitas: ' + offsetX + ',' + offsetY + ' ' + renderW + 'x' + renderH);
+    }
 
     const imgData = canvas.toDataURL('image/jpeg', 0.95);
     pdf.addImage(imgData, 'JPEG', offsetX, offsetY, renderW, renderH);
@@ -27854,11 +27918,13 @@ window.descargarCertificadoPDF = async function() {
     window.notify('✓ PDF descargado correctamente');
   } catch(e) {
     console.error('[PDF] Error generando PDF:', e);
-    window.notify('No se pudo generar el PDF: ' + (e.message || 'error desconocido') + '. Intenta usar el botón "Imprimir" y guardar como PDF desde ahí.');
+    window.notify('No se pudo generar el PDF: ' + (e.message || 'error desconocido') + '. Intenta usar "Imprimir" y guardar como PDF desde ahí.');
   } finally {
-    // Limpiar el override temporal
+    // Limpiar todo lo temporal
     const ovr = document.getElementById('__cert-pdf-override');
     if (ovr) ovr.remove();
+    const cont = document.getElementById('__cert-pdf-container');
+    if (cont) cont.remove();
     if (btn) {
       btn.disabled = false;
       btn.innerHTML = txtOrig;
@@ -36701,76 +36767,52 @@ html body.modo-dia .dir-perfil-content {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CERT_PRINT_FIX_v2 — Imprimir certificado en 1 sola hoja A4 horizontal
-   Solo se aplica cuando body tiene la clase .printing-cert
+   CERT_PRINT_FIX_v3 — Imprimir certificado clonado a contenedor
+   dedicado (#__cert-print-container) que es hijo directo de <body>
+   Solo se muestra cuando body.printing-cert está activo
    ═══════════════════════════════════════════════════════════════ */
 @media print {
-  /* Solo cuando body tiene .printing-cert: ocultar TODO excepto el cert */
+  /* Por defecto NO se muestra (queda oculto fuera de pantalla) */
+  #__cert-print-container {
+    display: none;
+  }
+
+  /* Cuando body.printing-cert: ocultar TODO menos el contenedor de print */
   body.printing-cert {
     background: #fff !important;
     background-image: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: visible !important;
   }
-  body.printing-cert > *:not(#cert-modal) {
-    display: none !important;
+  /* Ocultar absolutamente TODOS los descendientes del body */
+  body.printing-cert * {
     visibility: hidden !important;
   }
-  body.printing-cert .sidebar,
-  body.printing-cert .topbar,
-  body.printing-cert .main,
-  body.printing-cert .content,
-  body.printing-cert .nav-item {
-    display: none !important;
-    visibility: hidden !important;
-  }
-  /* Modal del cert: limpiar todo el chrome del modal */
-  body.printing-cert #cert-modal {
-    position: static !important;
-    display: block !important;
+  /* EXCEPTO el contenedor de print y sus hijos */
+  body.printing-cert #__cert-print-container,
+  body.printing-cert #__cert-print-container * {
     visibility: visible !important;
-    background: #fff !important;
-    padding: 0 !important;
-    margin: 0 !important;
+  }
+  /* Reposicionar el contenedor al inicio de la página */
+  body.printing-cert #__cert-print-container {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
     width: 100% !important;
     height: auto !important;
-    inset: auto !important;
-    overflow: visible !important;
-  }
-  body.printing-cert .cert-modal-overlay,
-  body.printing-cert .cert-modal-close,
-  body.printing-cert .cert-actions,
-  body.printing-cert .cert-share-menu,
-  body.printing-cert .cert-folio-info,
-  body.printing-cert #cert-folio-display {
-    display: none !important;
-    visibility: hidden !important;
-  }
-  body.printing-cert .cert-modal-content {
-    display: block !important;
-    visibility: visible !important;
-    background: #fff !important;
-    background-image: none !important;
-    padding: 0 !important;
     margin: 0 !important;
-    border: none !important;
-    box-shadow: none !important;
-    max-width: none !important;
-    max-height: none !important;
-    width: 100% !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-  /* El certificado en sí: ajustar para 1 página A4 landscape */
-  body.printing-cert .cert-doc,
-  body.printing-cert #cert-doc {
-    display: block !important;
+    padding: 0 !important;
+    z-index: 99999 !important;
     visibility: visible !important;
+    pointer-events: auto !important;
+  }
+  /* El certificado clonado */
+  body.printing-cert .__cert-print-doc {
     background: #fff !important;
     background-image: none !important;
     color: #0d1f4a !important;
-    padding: 14mm 18mm !important;
+    padding: 12mm 16mm !important;
     margin: 0 auto !important;
     border: 6px double #0d4737 !important;
     border-radius: 4px !important;
@@ -36784,14 +36826,13 @@ html body.modo-dia .dir-perfil-content {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     transform: none !important;
-    font-size: 11pt !important;
+    font-size: 10.5pt !important;
   }
-  body.printing-cert .cert-doc * {
-    visibility: visible !important;
+  body.printing-cert .__cert-print-doc * {
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  /* Quitar transitions / animaciones */
+  /* Quitar animaciones para no romper layout en print */
   body.printing-cert *,
   body.printing-cert *::before,
   body.printing-cert *::after {
@@ -36801,7 +36842,7 @@ html body.modo-dia .dir-perfil-content {
   /* Tamaño de hoja */
   @page {
     size: A4 landscape;
-    margin: 8mm;
+    margin: 6mm;
   }
 }
 </style>
