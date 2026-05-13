@@ -9224,6 +9224,8 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   }
 
   async function cargarCursosNuevos() {
+    // Exponer globalmente para auto-refresh desde showSection
+    window.cargarCursosNuevos = cargarCursosNuevos;
     try {
       // Los cursos antiguos primero (asc) para aplicar correctamente el desbloqueo progresivo
       const snap = await getDocs(query(collection(db, 'cursos-nuevos'), orderBy('creadoEn', 'asc')));
@@ -36315,6 +36317,50 @@ html body.modo-dia .dir-perfil-content {
       transparent 70%) !important;
 }
 </style>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// AUTO-REFRESH VIDEOTECA al entrar a la sección
+// (Para que admins/coords vean cambios sin recargar la página)
+// ═══════════════════════════════════════════════════════════════
+(function() {
+  // Esperar a que showSection esté disponible
+  function setupAutoRefresh() {
+    if (typeof window.showSection !== 'function') {
+      setTimeout(setupAutoRefresh, 500);
+      return;
+    }
+    const _origShowSection = window.showSection;
+    let _ultimaRecarga = 0;
+
+    window.showSection = function(id) {
+      _origShowSection(id);
+
+      // Si entra a Videoteca, recargar cursos (max 1 vez cada 3 segundos)
+      if (id === 'videos') {
+        const ahora = Date.now();
+        if (ahora - _ultimaRecarga < 3000) return; // Throttle
+        _ultimaRecarga = ahora;
+
+        try {
+          if (document.body.classList.contains('is-guest')) {
+            // Invitado: no refrescar (su flujo es distinto)
+            return;
+          }
+          if (typeof window.cargarCursosNuevos === 'function') {
+            console.log('🔄 Auto-refresh videoteca...');
+            window.cargarCursosNuevos();
+          }
+        } catch(e) {
+          console.warn('No se pudo refrescar videoteca:', e);
+        }
+      }
+    };
+    console.log('✓ Auto-refresh videoteca activo');
+  }
+  setupAutoRefresh();
+})();
+</script>
 
 </body>
 </html>
