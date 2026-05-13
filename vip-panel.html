@@ -21054,14 +21054,21 @@ input#tpl-search-input {
 }
 
 /* ─────────── PREMIUM_STRIPE_LOADING_v1 — Spinner cinematográfico ─────────── */
+/* STRIPE_LOADER_DARK_v1: fondo sólido oscuro (el mount tiene #fff, antes los
+   textos/skeleton blancos translúcidos eran invisibles sobre el fondo blanco;
+   solo se veían los emojis y elementos dorados). Ahora el loader trae su propio
+   fondo oscuro estilo modal ICADEM, y al montar Stripe se limpia con innerHTML=''
+   dejando el #fff del mount para el iframe. */
 .is-stripe-loader {
-  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%);
-  border: 1px solid rgba(255,255,255,0.10);
-  border-radius: 16px;
+  background: linear-gradient(160deg, #0a2552 0%, #1a3a6b 60%, #1976d2 100%);
+  border: 1px solid rgba(245,215,122,0.18);
+  border-radius: 12px;
   padding: 2.5rem 1.75rem;
   position: relative;
   overflow: hidden;
-  min-height: 280px;
+  min-height: 380px;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
