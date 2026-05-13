@@ -20952,41 +20952,49 @@ input#tpl-search-input {
   color: #fff;
 }
 
-/* ─────────── Vista 2: Cuenta (login/registro) ─────────── */
+/* ─────────── Vista 2: Cuenta (login/registro) — IS_CUENTA_LAYOUT_FIX_v1 ─────────── */
+/* Tabs estilo pill segmented (más claras visualmente) */
 .is-tabs {
   display: flex;
-  border-bottom: 1px solid rgba(255,255,255,0.1);
-  margin-bottom: 1.5rem;
+  gap: 6px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 4px;
+  margin: 0 auto 2.25rem;
   max-width: 420px;
-  margin-left: auto;
-  margin-right: auto;
 }
 .is-tab {
   flex: 1;
-  padding: 0.85rem 1rem;
-  background: none;
+  padding: 0.75rem 1rem;
+  background: transparent;
   border: none;
-  color: var(--is-muted);
+  color: rgba(255,255,255,0.55);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
+  border-radius: 9px;
   transition: all .2s;
 }
+.is-tab:hover {
+  color: rgba(255,255,255,0.85);
+}
 .is-tab.is-active {
+  background: rgba(255,255,255,0.10);
   color: var(--is-gold);
-  border-bottom-color: var(--is-gold);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.08);
 }
 
 .is-form {
   max-width: 420px;
   margin: 0 auto;
+  padding-top: 0.25rem;
 }
 
 .is-field {
-  margin-bottom: 1rem;
+  margin-bottom: 1.125rem;
 }
 .is-field label {
   display: block;
@@ -20994,8 +21002,9 @@ input#tpl-search-input {
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--is-muted);
-  margin-bottom: 6px;
+  color: rgba(255,255,255,0.55);
+  margin-bottom: 8px;
+  padding-left: 2px;
 }
 .is-field input {
   width: 100%;
@@ -21007,6 +21016,9 @@ input#tpl-search-input {
   font-family: inherit;
   font-size: 14px;
   transition: border-color .2s, background .2s;
+}
+.is-field input::placeholder {
+  color: rgba(255,255,255,0.30);
 }
 .is-field input:focus {
   outline: none;
