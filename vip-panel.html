@@ -35981,18 +35981,24 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
    FIX FINAL — Legibilidad en MODAL DETALLE del Directorio VIP
    ──────────────────────────────────────────────────────────────────────────
    Garantiza que el nombre del miembro, ciudad y años de experiencia se vean
-   con colores SÓLIDOS oscuros sobre el fondo del modal (que tiene un radial-
+   con colores SOLIDOS oscuros sobre el fondo del modal (que tiene un radial-
    gradient tintado con el color del usuario).
-   Specificity nuclear: html body.modo-dia + body (sin modo) para vencer
-   cualquier regla base con color-mix(), background-clip:text, opacity, etc.
+
+   SELECTORES REALES del HTML:
+   - <h2 id="dir-perfil-nombre">  ← el NOMBRE (no usa clase .dir-perfil-name)
+   - <p id="dir-perfil-cargo" class="dir-perfil-cargo">
+   - <p id="dir-perfil-empresa" class="dir-perfil-empresa">
+   - <span id="dir-perfil-industria" class="dir-perfil-tag dir-perfil-tag-industria">
+   - <span id="dir-perfil-ciudad" class="dir-perfil-tag dir-perfil-tag-ciudad">
+   - <span id="dir-perfil-experiencia" class="dir-perfil-tag">
+
+   Specificity con ID = (1,0,0) → vence a TODO el resto del CSS.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── NOMBRE del miembro (ej: "Tec Capital") — SIEMPRE oscuro y sólido ─── */
-html body .dir-perfil-name,
-html body.modo-dia .dir-perfil-name,
-html body.modo-dia .dir-perfil-content .dir-perfil-name,
-html body.modo-dia .dir-perfil-header .dir-perfil-name,
-html body.modo-dia .dir-perfil-info .dir-perfil-name {
+/* ─── NOMBRE del miembro (#dir-perfil-nombre) ─────────────────────────── */
+#dir-perfil-nombre,
+body.modo-dia #dir-perfil-nombre,
+html body.modo-dia #dir-perfil-nombre {
   color: #0F172A !important;
   -webkit-text-fill-color: #0F172A !important;
   background: none !important;
@@ -36006,11 +36012,13 @@ html body.modo-dia .dir-perfil-info .dir-perfil-name {
   filter: none !important;
   letter-spacing: -0.01em !important;
   line-height: 1.2 !important;
+  margin: 0 0 4px !important;
 }
 
-/* ─── EMPRESA bajo el cargo (ej: "Tec Capital Web") — color medio sólido ─── */
-html body.modo-dia .dir-perfil-content .dir-perfil-empresa,
-html body.modo-dia .dir-perfil-info .dir-perfil-empresa {
+/* ─── EMPRESA (#dir-perfil-empresa) ──────────────────────────────────── */
+#dir-perfil-empresa,
+body.modo-dia #dir-perfil-empresa,
+html body.modo-dia #dir-perfil-empresa {
   color: #475569 !important;
   -webkit-text-fill-color: #475569 !important;
   background: none !important;
@@ -36019,13 +36027,27 @@ html body.modo-dia .dir-perfil-info .dir-perfil-empresa {
   -webkit-background-clip: initial !important;
   opacity: 1 !important;
   font-weight: 500 !important;
+  font-size: 13px !important;
 }
 
-/* ─── CHIPS de META (📍 Ciudad, ⏱ Años) — fondo opaco + texto oscuro ─── */
-html body.modo-dia .dir-perfil-meta > span,
-html body.modo-dia .dir-perfil-content .dir-perfil-meta > span,
-html body.modo-dia .dir-perfil-header .dir-perfil-meta > span,
-html body.modo-dia .dir-perfil-info .dir-perfil-meta > span {
+/* ─── CHIPS de tags (.dir-perfil-tag con IDs específicos) ────────────── */
+/* Contenedor */
+body.modo-dia .dir-perfil-tags,
+html body.modo-dia .dir-perfil-tags {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  margin-top: 12px !important;
+}
+/* Chips individuales — fondo opaco con borde sólido y texto oscuro */
+#dir-perfil-industria,
+#dir-perfil-ciudad,
+#dir-perfil-experiencia,
+body.modo-dia #dir-perfil-industria,
+body.modo-dia #dir-perfil-ciudad,
+body.modo-dia #dir-perfil-experiencia,
+body.modo-dia .dir-perfil-tag,
+html body.modo-dia .dir-perfil-tag {
   background: #F1F5F9 !important;
   background-color: #F1F5F9 !important;
   background-image: none !important;
@@ -36040,11 +36062,24 @@ html body.modo-dia .dir-perfil-info .dir-perfil-meta > span {
   display: inline-flex !important;
   align-items: center !important;
   gap: 4px !important;
+  text-shadow: none !important;
+  filter: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
 }
 
-/* ─── Asegurar que el radial-gradient del modal NO blanquee el header ─── */
-/* El radial sale de la esquina superior derecha. Lo movemos un poco más  */
-/* lejos para que no cubra el área del nombre, y le bajamos opacidad.    */
+/* Chip industria — distintivo en azul para que destaque sutilmente */
+#dir-perfil-industria,
+body.modo-dia #dir-perfil-industria,
+html body.modo-dia #dir-perfil-industria {
+  background: #DBEAFE !important;
+  background-color: #DBEAFE !important;
+  color: #1E3A8A !important;
+  -webkit-text-fill-color: #1E3A8A !important;
+  border: 1px solid #BFDBFE !important;
+}
+
+/* ─── Reducir el radial-gradient del modal para no blanquear el header ─── */
 html body.modo-dia .dir-perfil-content {
   background-image:
     radial-gradient(ellipse 45% 35% at 110% -10%,
