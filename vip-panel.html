@@ -8654,7 +8654,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
   } catch(e) {}
 
   // Si viene de un pago reciente, dar más tiempo a Firebase (hasta 30 segundos)
-  const tiempoMaxEspera = (vieneDePago || ticketPago) ? 30000 : 4000; // 30s si pagó, 4s si no (modo invitado rápido)
+  const tiempoMaxEspera = (vieneDePago || ticketPago) ? 30000 : 12000; // AUTH_REHYDRATE_TIMEOUT_v1: 30s si pagó, 12s si no (antes 4s era muy poco para Ctrl+Shift+R)
   const intervaloVerificacion = 1000;
   const maxIntentos = Math.floor(tiempoMaxEspera / intervaloVerificacion);
 
