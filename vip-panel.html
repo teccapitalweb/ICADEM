@@ -21107,6 +21107,21 @@ input#tpl-search-input {
   to { transform: rotate(360deg); }
 }
 
+/* STRIPE_LOADER_SOBRIO_v1: spinner ring discreto dorado profesional
+   (reemplaza al orbe gigante que se veía poco serio). */
+.is-stripe-ring {
+  width: 38px;
+  height: 38px;
+  border: 2.5px solid rgba(245,215,122,0.18);
+  border-top-color: #f5d77a;
+  border-right-color: rgba(245,215,122,0.6);
+  border-radius: 50%;
+  animation: isStripeRingSpin 0.85s linear infinite;
+}
+@keyframes isStripeRingSpin {
+  to { transform: rotate(360deg); }
+}
+
 .is-stripe-loader-content {
   text-align: center;
   width: 100%;
@@ -22164,24 +22179,18 @@ const _stripeLoadingMsgs = [
 ];
 
 function renderStripeSkeleton() {
+  // STRIPE_LOADER_SOBRIO_v1: versión sobria/profesional (sin orbe gigante,
+  // sin skeleton lines fake que daban sensación de "roto", sin emojis chillones).
+  // Spinner discreto dorado + texto limpio. Estilo checkout de e-commerce serio.
   return `
     <div class="is-stripe-loader">
-      <div class="is-stripe-loader-orb"></div>
+      <div class="is-stripe-ring"></div>
       <div class="is-stripe-loader-content">
-        <div class="is-stripe-loader-msg" id="is-stripe-loader-msg">
-          <span class="is-stripe-loader-icon">🔐</span>
-          <span class="is-stripe-loader-text">Verificando tu cuenta...</span>
-        </div>
-        <div class="is-stripe-loader-bar"><div class="is-stripe-loader-bar-fill"></div></div>
-        <div class="is-stripe-loader-skel">
-          <div class="is-stripe-loader-skel-line is-skel-w1"></div>
-          <div class="is-stripe-loader-skel-line is-skel-w2"></div>
-          <div class="is-stripe-loader-skel-line is-skel-w3"></div>
+        <div class="is-stripe-loader-msg">
+          <span class="is-stripe-loader-text">Conectando con Stripe…</span>
         </div>
         <div class="is-stripe-loader-trust">
-          <span>🔒 Cifrado de extremo a extremo</span>
-          <span>·</span>
-          <span>Powered by Stripe</span>
+          <span>Conexión cifrada · Pago procesado por Stripe</span>
         </div>
       </div>
     </div>
