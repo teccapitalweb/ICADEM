@@ -21053,6 +21053,68 @@ input#tpl-search-input {
   box-shadow: 0 0 0 3px rgba(245,215,122,0.15) !important;
 }
 
+/* AUTOFILL_DARK_v1: pisa el fondo amarillo/blanco que Chrome/Edge/Safari
+   inyectan vía -webkit-autofill cuando el navegador autorellena email/pass.
+   El truco del box-shadow inset 1000px tapa el background nativo del browser
+   (que no se puede sobreescribir directo). El transition 5000s evita el flash
+   amarillo inicial. Mantiene el look oscuro coherente con el modal. */
+#is-modal .is-field input:-webkit-autofill,
+#is-modal .is-field input:-webkit-autofill:hover,
+#is-modal .is-field input:-webkit-autofill:focus,
+#is-modal .is-field input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #1a345e inset !important;
+          box-shadow: 0 0 0 1000px #1a345e inset !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  caret-color: #FFFFFF !important;
+  border: 1px solid rgba(245,215,122,0.30) !important;
+  background-image: none !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* PASS_TOGGLE_v1: ojito para mostrar/ocultar contraseña en inputs de password.
+   Botón flotante absoluto dentro de .is-pass-wrap. tabindex=-1 en HTML para
+   no interrumpir el flujo normal de Tab del formulario. */
+#is-modal .is-pass-wrap {
+  position: relative;
+}
+#is-modal .is-pass-wrap input {
+  padding-right: 2.85rem !important;
+}
+#is-modal .is-pass-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  padding: 8px;
+  margin: 0;
+  cursor: pointer;
+  color: rgba(255,255,255,0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color .15s, background .15s;
+}
+#is-modal .is-pass-toggle:hover {
+  color: rgba(255,255,255,0.95);
+  background: rgba(255,255,255,0.07);
+}
+#is-modal .is-pass-toggle:focus-visible {
+  outline: 2px solid rgba(245,215,122,0.45);
+  outline-offset: 2px;
+}
+#is-modal .is-pass-toggle svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+  display: block;
+}
+#is-modal .is-pass-toggle .is-eye-hide { display: none; }
+#is-modal .is-pass-toggle.is-showing .is-eye-show { display: none; }
+#is-modal .is-pass-toggle.is-showing .is-eye-hide { display: block; }
+
 /* ─────────── PREMIUM_STRIPE_LOADING_v1 — Spinner cinematográfico ─────────── */
 /* STRIPE_LOADER_DARK_v1: fondo sólido oscuro (el mount tiene #fff, antes los
    textos/skeleton blancos translúcidos eran invisibles sobre el fondo blanco;
@@ -21682,7 +21744,13 @@ input#tpl-search-input {
           </div>
           <div class="is-field">
             <label for="is-login-pass">Contraseña</label>
-            <input type="password" id="is-login-pass" autocomplete="current-password" placeholder="••••••••">
+            <div class="is-pass-wrap">
+              <input type="password" id="is-login-pass" autocomplete="current-password" placeholder="••••••••">
+              <button type="button" class="is-pass-toggle" data-target="is-login-pass" aria-label="Mostrar contraseña" tabindex="-1">
+                <svg class="is-eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="is-eye-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <button class="is-btn-primary" id="is-btn-login">Iniciar sesión</button>
           <div class="is-error" id="is-error-login"></div>
@@ -21705,7 +21773,13 @@ input#tpl-search-input {
           </div>
           <div class="is-field">
             <label for="is-reg-pass">Contraseña</label>
-            <input type="password" id="is-reg-pass" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+            <div class="is-pass-wrap">
+              <input type="password" id="is-reg-pass" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+              <button type="button" class="is-pass-toggle" data-target="is-reg-pass" aria-label="Mostrar contraseña" tabindex="-1">
+                <svg class="is-eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="is-eye-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+              </button>
+            </div>
           </div>
           <button class="is-btn-primary" id="is-btn-registro">Crear cuenta</button>
           <div class="is-error" id="is-error-registro"></div>
@@ -21978,6 +22052,18 @@ modal.querySelectorAll('.is-tab').forEach(tab => {
     const tipo = tab.dataset.tab;
     document.getElementById('is-form-login').style.display    = tipo === 'login'    ? '' : 'none';
     document.getElementById('is-form-registro').style.display = tipo === 'registro' ? '' : 'none';
+  });
+});
+
+// PASS_TOGGLE_v1: ojito para mostrar/ocultar contraseña
+modal.querySelectorAll('.is-pass-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.target);
+    if (!input) return;
+    const isPass = input.type === 'password';
+    input.type = isPass ? 'text' : 'password';
+    btn.classList.toggle('is-showing', isPass);
+    btn.setAttribute('aria-label', isPass ? 'Ocultar contraseña' : 'Mostrar contraseña');
   });
 });
 
