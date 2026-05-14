@@ -8924,7 +8924,14 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     const nombreReal = user.displayName || data.nombre || '';
     const nombre = (nombreReal || user.email || 'miembro').split(' ')[0];
     const inicial = nombre[0].toUpperCase();
-    const planLabel = data.plan === 'anual' ? 'VIP Anual' : 'VIP Mensual';
+    // PLAN_REGALO_LABEL_v1: si el admin activó acceso temporal (plan='regalo' o
+    // tipoMembresia='regalo'), mostrar "Acceso Temporal" en lugar de "VIP Mensual".
+    // El cliente verá la duración y fecha de vencimiento en el splash de bienvenida
+    // (notificacionPendiente) y en la sección Mi Suscripción.
+    const esAccesoRegalo = data.plan === 'regalo' || data.tipoMembresia === 'regalo' || data.esRegalo === true;
+    const planLabel = esAccesoRegalo
+      ? 'Acceso Temporal'
+      : (data.plan === 'anual' ? 'VIP Anual' : 'VIP Mensual');
     document.getElementById('sidebar-avatar').textContent = inicial;
     document.getElementById('sidebar-name').textContent = nombreReal || user.email;
     document.getElementById('sidebar-plan').textContent = planLabel;
@@ -9018,7 +9025,17 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
     if (perfilEmail) perfilEmail.textContent = user.email || '';
     if (perfilPlan) perfilPlan.textContent = planLabel;
     if (susPlan) susPlan.textContent = planLabel;
-    if (susPrecio) susPrecio.innerHTML = data.plan === 'anual' ? '$2,400 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / año</span>' : '$250 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / mes</span>';
+    if (susPrecio) {
+      // PLAN_REGALO_LABEL_v1: el regalo no tiene precio - mostrar "Gratis"
+      if (esAccesoRegalo) {
+        const diasRegalo = Number(data.duracionDias) || 0;
+        susPrecio.innerHTML = diasRegalo > 0
+          ? `Gratis <span style="font-size:1rem;font-weight:300;opacity:.8">${diasRegalo} día${diasRegalo!==1?'s':''} de regalo</span>`
+          : 'Gratis <span style="font-size:1rem;font-weight:300;opacity:.8">acceso de regalo</span>';
+      } else {
+        susPrecio.innerHTML = data.plan === 'anual' ? '$2,400 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / año</span>' : '$250 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / mes</span>';
+      }
+    }
 
     // Botón cambiar plan
     const btnCambiar = document.getElementById('btn-cambiar-plan');
