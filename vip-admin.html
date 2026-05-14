@@ -1628,17 +1628,45 @@ match /databases/{database}/documents {
   } catch(e) { console.warn('Error cargando cursos video:', e); }
 
   window.publicarNovedad = async () => {
+    // DEBUG_PUBLICAR_NOVEDAD_v1: log detallado para diagnosticar errores
+    // (rules de Firestore, auth expirada, campos vacíos, etc.)
     const titulo = document.getElementById('nov-titulo').value.trim();
     const tipo   = document.getElementById('nov-tipo').value;
     const desc   = document.getElementById('nov-desc').value.trim();
     const msg    = document.getElementById('nov-msg');
     if (!titulo || !desc) { msg.textContent = '⚠ Completa todos los campos.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; return; }
     try {
+      // Log diagnóstico ANTES de escribir
+      console.log('[publicarNovedad] Intentando publicar:', { titulo, tipo, desc: desc.substring(0, 50) + '...' });
+      const authCheck = (typeof getAuth === 'function') ? getAuth() : null;
+      const userCheck = authCheck && authCheck.currentUser;
+      console.log('[publicarNovedad] Usuario actual:', userCheck ? userCheck.email : 'NO AUTENTICADO');
+
       await addDoc(collection(db, 'novedades'), { titulo, tipo, descripcion: desc, creadoEn: serverTimestamp() });
       msg.textContent = '✓ Novedad publicada correctamente.'; msg.style.color = '#10b981'; msg.style.display = 'block';
       document.getElementById('nov-titulo').value = '';
       document.getElementById('nov-desc').value = '';
-    } catch(e) { msg.textContent = 'Error al publicar. Intenta de nuevo.'; msg.style.color = '#dc2626'; msg.style.display = 'block'; }
+      // Recargar la lista de novedades publicadas
+      try {
+        const novSnap = await getDocs(query(collection(db, 'novedades'), orderBy('creadoEn', 'desc'), limit(20)));
+        window._novedades = [];
+        novSnap.forEach(d => window._novedades.push({ id: d.id, ...d.data() }));
+        renderNovedades(window._novedades);
+      } catch(eRecarga) { console.warn('[publicarNovedad] Error recargando lista:', eRecarga); }
+    } catch(e) {
+      // Mostrar error REAL para poder diagnosticar
+      console.error('[publicarNovedad] ❌ Error completo:', e);
+      console.error('[publicarNovedad] Código:', e?.code, 'Mensaje:', e?.message);
+      let mensajeUI = 'Error al publicar. Intenta de nuevo.';
+      if (e?.code === 'permission-denied' || /permission|denied|insufficient/i.test(e?.message || '')) {
+        mensajeUI = '⚠ Sin permisos para publicar. Verifica que estés logueado como admin o coordinador autorizado.';
+      } else if (e?.code === 'unauthenticated' || /auth/i.test(e?.message || '')) {
+        mensajeUI = '⚠ Sesión expirada. Cierra sesión y vuelve a iniciar.';
+      } else if (e?.message) {
+        mensajeUI = 'Error: ' + e.message.substring(0, 120);
+      }
+      msg.textContent = mensajeUI; msg.style.color = '#dc2626'; msg.style.display = 'block';
+    }
   };
 
   // ── VIDEOS ──────────────────────────────────────────
