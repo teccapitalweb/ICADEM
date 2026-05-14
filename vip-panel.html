@@ -8499,16 +8499,104 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
       }
     }
 
-    // 6) Noticias (si existen)
-    const noticiasGrid = document.getElementById('noticias-grid');
-    if (noticiasGrid) {
-      noticiasGrid.innerHTML = ['Cambios al SAT en 2026','Nueva ley laboral aplicable','Tendencias empresariales LatAm','Actualización fiscal mensual'].map(titulo => `
-        <div class="guest-lock-wrap" style="background:#fff;border:1px solid rgba(20,104,177,0.1);border-radius:14px;overflow:hidden;height:240px">
-          <div style="aspect-ratio:16/9;background:linear-gradient(135deg,#0b2554,#1468b1)"></div>
-          <div style="padding:1rem"><p style="font-size:14px;font-weight:700;color:#0b2554;margin-bottom:0.25rem">${titulo}</p><p style="font-size:12px;color:#94a3b8">Noticias ICADEM</p></div>
-        </div>
-      `).join('');
-    }
+    // 6) Noticias - NOTICIAS_PUBLICAS_v1: cargar las noticias REALES desde Firestore
+    //    para los invitados. Antes mostrábamos 4 cards mock con guest-lock-wrap
+    //    (paywall). Ahora los invitados ven las mismas noticias frescas que los VIP,
+    //    como estrategia de marketing: demostrar que el contenido es real, no fake.
+    //    Al hacer clic, abren la URL externa de la fuente (sin paywall ni candado).
+    //    Reutiliza la auth anónima que ya se hizo arriba para cursos-nuevos.
+    (async function cargarNoticiasParaInvitado() {
+      const container = document.getElementById('novedades-container');
+      if (!container) return;
+      try {
+        const { collection, query, orderBy, getDocs, getFirestore } =
+          await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const dbInv = getFirestore();
+        const noticiasSnap = await getDocs(query(collection(dbInv, 'noticias-icadem'), orderBy('creadoEn', 'desc')));
+        if (noticiasSnap.empty) {
+          container.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:13px">No hay noticias disponibles en este momento.</div>';
+          return;
+        }
+        const gradPorCategoria = {
+          'fiscal':    { grad: 'linear-gradient(135deg,#10b981 0%,#059669 100%)', color: '#059669', icono: '📊', nombre: 'Fiscal' },
+          'finanzas':  { grad: 'linear-gradient(135deg,#f59e0b 0%,#d97706 100%)', color: '#d97706', icono: '💰', nombre: 'Finanzas' },
+          'marketing': { grad: 'linear-gradient(135deg,#ec4899 0%,#db2777 100%)', color: '#db2777', icono: '📣', nombre: 'Marketing' },
+          'liderazgo': { grad: 'linear-gradient(135deg,#8b5cf6 0%,#7c3aed 100%)', color: '#7c3aed', icono: '🚀', nombre: 'Liderazgo' }
+        };
+        const noticias = [];
+        noticiasSnap.forEach(d => noticias.push({ id: d.id, ...d.data() }));
+        const categoriasPresentes = [...new Set(noticias.map(n => n.categoria))];
+
+        let filtrosHtml = `<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:1.5rem">
+          <button class="filtro-noticia-inv" data-cat="todas" onclick="window.filtrarNoticiasInvitado('todas')" style="padding:7px 16px;background:#0d47a1;color:#fff;border:none;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s">Todas (${noticias.length})</button>`;
+        for (const cat of categoriasPresentes) {
+          const info = gradPorCategoria[cat] || { color: '#64748b', icono: '📰', nombre: cat };
+          const count = noticias.filter(n => n.categoria === cat).length;
+          filtrosHtml += `<button class="filtro-noticia-inv" data-cat="${cat}" onclick="window.filtrarNoticiasInvitado('${cat}')" style="padding:7px 14px;background:#fff;color:${info.color};border:1.5px solid ${info.color};border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;display:inline-flex;align-items:center;gap:6px"><span>${info.icono}</span>${info.nombre} (${count})</button>`;
+        }
+        filtrosHtml += `</div>`;
+
+        let gridHtml = '<div id="noticias-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.25rem">';
+        noticias.forEach(n => {
+          const info = gradPorCategoria[n.categoria] || { grad: 'linear-gradient(135deg,#64748b,#475569)', color: '#64748b', icono: '📰', nombre: n.categoriaNombre || 'General' };
+          const fecha = n.publicadoEn?.toDate ? n.publicadoEn.toDate() : (n.creadoEn?.toDate ? n.creadoEn.toDate() : new Date());
+          const ahora = new Date();
+          const diffHoras = Math.floor((ahora - fecha) / 3600000);
+          const diffDias = Math.floor((ahora - fecha) / 86400000);
+          let fechaTexto;
+          if (diffHoras < 1) fechaTexto = 'Hace unos minutos';
+          else if (diffHoras < 24) fechaTexto = `Hace ${diffHoras} h`;
+          else if (diffDias === 1) fechaTexto = 'Ayer';
+          else if (diffDias < 7) fechaTexto = `Hace ${diffDias} días`;
+          else fechaTexto = fecha.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+          const imagenBg = n.imagen
+            ? `background-image:url('${n.imagen}');background-size:cover;background-position:center`
+            : `background:${info.grad}`;
+          // IMPORTANTE: la card NO tiene clase 'material-item' ni 'guest-lock-wrap'
+          // (esas disparan paywall). Es un elemento article con onclick que abre la URL externa.
+          gridHtml += `<article class="noticia-card-inv" data-cat="${n.categoria}" onclick="window.open('${n.url}', '_blank')" style="background:linear-gradient(135deg,#1a3a6b 0%,#122b54 50%,#0c1e4a 100%);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,0.4),inset 0 1px 0 rgba(107,143,196,0.18);border:1px solid rgba(107,143,196,0.3);display:flex;flex-direction:column" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 14px 36px rgba(0,0,0,0.5),0 0 32px ${info.color}55';this.style.borderColor='${info.color}'" onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4),inset 0 1px 0 rgba(107,143,196,0.18)';this.style.borderColor='rgba(107,143,196,0.3)'">
+            <div style="height:170px;${imagenBg};position:relative;overflow:hidden">
+              <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.55) 100%)"></div>
+              <span style="position:absolute;top:12px;left:12px;padding:5px 12px;background:${info.grad};color:#fff;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;box-shadow:0 4px 12px rgba(0,0,0,0.2)"><span style="font-size:12px">${info.icono}</span>${info.nombre}</span>
+              <span style="position:absolute;bottom:12px;left:12px;color:#fff;font-size:11px;font-weight:600;background:rgba(0,0,0,0.4);backdrop-filter:blur(8px);padding:4px 10px;border-radius:20px">${fechaTexto}</span>
+            </div>
+            <div style="padding:1.1rem 1.25rem 1.25rem;flex:1;display:flex;flex-direction:column">
+              <h3 style="font-size:15px;font-weight:700;color:#ffffff;line-height:1.35;margin-bottom:.6rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.titulo}</h3>
+              <p style="font-size:12.5px;color:rgba(220,232,234,0.78);line-height:1.55;margin-bottom:.85rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;flex:1">${n.descripcion || ''}</p>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-top:.75rem;border-top:1px solid rgba(107,143,196,0.18)">
+                <span style="font-size:11px;color:rgba(168,184,209,0.7);font-weight:600;display:inline-flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>${n.fuente || 'Fuente externa'}</span>
+                <span style="font-size:11px;color:${info.color};font-weight:700;display:inline-flex;align-items:center;gap:4px">Leer nota<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></span>
+              </div>
+            </div>
+          </article>`;
+        });
+        gridHtml += '</div>';
+        container.innerHTML = filtrosHtml + gridHtml;
+
+        // Filtro por categoría (versión invitado)
+        window.filtrarNoticiasInvitado = function(cat) {
+          document.querySelectorAll('.filtro-noticia-inv').forEach(btn => {
+            const btnCat = btn.getAttribute('data-cat');
+            if (btnCat === cat) {
+              const info = gradPorCategoria[btnCat];
+              if (btnCat === 'todas') { btn.style.background = '#0d47a1'; btn.style.color = '#fff'; btn.style.border = 'none'; }
+              else if (info) { btn.style.background = info.color; btn.style.color = '#fff'; btn.style.border = `1.5px solid ${info.color}`; }
+            } else {
+              const info = gradPorCategoria[btnCat];
+              if (btnCat === 'todas') { btn.style.background = '#fff'; btn.style.color = '#0d47a1'; btn.style.border = '1.5px solid #0d47a1'; }
+              else if (info) { btn.style.background = '#fff'; btn.style.color = info.color; btn.style.border = `1.5px solid ${info.color}`; }
+            }
+          });
+          document.querySelectorAll('.noticia-card-inv').forEach(card => {
+            card.style.display = (cat === 'todas' || card.getAttribute('data-cat') === cat) ? 'flex' : 'none';
+          });
+        };
+        console.log(`[Invitado] ${noticias.length} noticias reales cargadas (público, sin paywall).`);
+      } catch (e) {
+        console.warn('[Invitado] No se pudieron cargar noticias:', e);
+        container.innerHTML = '<div style="text-align:center;padding:2rem;color:#94a3b8;font-size:13px">No se pudieron cargar las noticias.</div>';
+      }
+    })();
 
     // 7) Mis logros (si existe contenedor)
     const logrosContainer = document.getElementById('mis-logros-container');
