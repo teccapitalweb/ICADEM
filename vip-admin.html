@@ -430,6 +430,44 @@
   </div>
 </div>
 
+<!-- MATERIAL_EDIT_v1: modal de edición de material (nombre, tipo, descripción, link) -->
+<div id="modal-editar-material" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(11,47,104,0.45);backdrop-filter:blur(4px)">
+  <div style="background:#ffffff;border-radius:12px;padding:2rem;width:90%;max-width:520px;box-shadow:0 20px 60px rgba(11,47,104,0.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <p style="font-size:15px;font-weight:700;color:#0b2554">Editar material</p>
+      <button onclick="cerrarEditarMaterial()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1">✕</button>
+    </div>
+    <input type="hidden" id="edit-mat-id">
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Nombre del material</label>
+      <input id="edit-mat-nombre" type="text" placeholder="Ej: Guía de deducciones fiscales 2026" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Tipo</label>
+      <select id="edit-mat-tipo" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none">
+        <option>PDF</option>
+        <option>Excel</option>
+        <option>PowerPoint</option>
+        <option>Word</option>
+        <option>ZIP</option>
+      </select>
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Descripción breve</label>
+      <input id="edit-mat-desc" type="text" placeholder="Ej: 42 páginas · 3.2 MB" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Link de Google Drive</label>
+      <input id="edit-mat-link" type="url" placeholder="https://drive.google.com/file/d/..." style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+      <p style="font-size:11px;color:#94a3b8;margin-top:6px">El archivo debe estar configurado como "Cualquiera con el enlace puede ver".</p>
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="cerrarEditarMaterial()" style="flex:1;padding:10px;border-radius:7px;border:1px solid rgba(11,47,104,0.2);background:#ffffff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#475569;cursor:pointer">Cancelar</button>
+      <button onclick="guardarEditarMaterial()" style="flex:1;padding:10px;border-radius:7px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#ffffff;cursor:pointer">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <div class="loading-overlay" id="loading">
   <div class="spinner"></div>
   <p class="loading-text">Verificando acceso...</p>
@@ -645,7 +683,7 @@
       <div class="table-wrap">
         <div class="table-header"><h3>Material publicado</h3></div>
         <table>
-          <thead><tr><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Estado</th><th>Acción</th></tr></thead>
+          <thead><tr><th style="width:60px">Orden</th><th>Nombre</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr></thead>
           <tbody id="tabla-material"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando material...</td></tr></tbody>
         </table>
       </div>
@@ -1374,39 +1412,124 @@ match /databases/{database}/documents {
     if (!lista.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:2rem">Sin material publicado.</td></tr>'; return; }
     // MATERIAL_TOGGLE_v1: agregar columna de estado (Visible/Bloqueado) y botón toggle.
     // El campo "bloqueado" es opcional en Firestore — si no existe, se asume false (visible).
-    tbody.innerHTML = lista.map(m => {
+    // MATERIAL_ORDEN_v1: ordenar visibles primero por 'orden', bloqueados después por 'orden'.
+    //                    Flechas ↑ ↓ permiten reordenar dentro de cada grupo.
+    const items = lista.slice().sort((a, b) => {
+      const aBloq = a.bloqueado === true ? 1 : 0;
+      const bBloq = b.bloqueado === true ? 1 : 0;
+      if (aBloq !== bBloq) return aBloq - bBloq;
+      const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+      const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+      return aOrd - bOrd;
+    });
+    // Identificar primero/último de cada grupo para deshabilitar flechas
+    const visibles = items.filter(m => m.bloqueado !== true);
+    const bloqueados = items.filter(m => m.bloqueado === true);
+    let html = '';
+    items.forEach((m, idx) => {
       const bloqueado = m.bloqueado === true;
+      // Separador visual entre visibles y bloqueados (solo si hay de ambos)
+      if (bloqueado && idx > 0 && items[idx-1].bloqueado !== true) {
+        html += `<tr style="background:#f1f5f9"><td colspan="5" style="padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748b">— Bloqueados ${bloqueados.length > 0 ? `(${bloqueados.length})` : ''} —</td></tr>`;
+      } else if (!bloqueado && idx === 0 && visibles.length > 0) {
+        html += `<tr style="background:#ecfdf5"><td colspan="5" style="padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#065f46">— Visibles (${visibles.length}) —</td></tr>`;
+      }
+      const grupo = bloqueado ? bloqueados : visibles;
+      const posEnGrupo = grupo.findIndex(x => x.id === m.id);
+      const esPrimero = posEnGrupo === 0;
+      const esUltimo = posEnGrupo === grupo.length - 1;
       const badge = bloqueado
         ? '<span class="badge badge-red">🔒 Bloqueado</span>'
         : '<span class="badge badge-green">🟢 Visible</span>';
       const btnToggle = bloqueado
         ? `<button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#059669,#10b981)" onclick="toggleBloqueoMaterial('${m.id}', false)">Hacer visible</button>`
         : `<button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#92400e,#d97706)" onclick="toggleBloqueoMaterial('${m.id}', true)">Bloquear</button>`;
-      return `<tr>
+      const btnUp = esPrimero
+        ? `<button style="padding:3px 6px;font-size:11px;background:#f1f5f9;color:#cbd5e1;border:none;border-radius:4px;cursor:not-allowed" disabled>▲</button>`
+        : `<button style="padding:3px 6px;font-size:11px;background:#e0e7ff;color:#3730a3;border:none;border-radius:4px;cursor:pointer" onclick="moverMaterial('${m.id}', -1)" title="Subir">▲</button>`;
+      const btnDown = esUltimo
+        ? `<button style="padding:3px 6px;font-size:11px;background:#f1f5f9;color:#cbd5e1;border:none;border-radius:4px;cursor:not-allowed" disabled>▼</button>`
+        : `<button style="padding:3px 6px;font-size:11px;background:#e0e7ff;color:#3730a3;border:none;border-radius:4px;cursor:pointer" onclick="moverMaterial('${m.id}', 1)" title="Bajar">▼</button>`;
+      html += `<tr>
+        <td style="white-space:nowrap;width:60px">${btnUp} ${btnDown}</td>
         <td style="font-weight:600;color:#0d47a1">${m.nombre}</td>
         <td><span class="badge badge-blue">${m.tipo}</span></td>
-        <td style="color:#64748b">${m.descripcion || '—'}</td>
         <td>${badge}</td>
         <td style="white-space:nowrap">
+          <button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#0b2554,#1565c0);margin-right:4px" onclick="abrirEditarMaterial('${m.id}')">Editar</button>
           ${btnToggle}
           <button class="btn-danger" style="padding:4px 10px;font-size:10px;margin-left:4px" onclick="eliminarMaterial('${m.id}')">Eliminar</button>
         </td>
       </tr>`;
-    }).join('');
+    });
+    tbody.innerHTML = html;
   }
 
-  // MATERIAL_TOGGLE_v1: cambiar visibilidad de un material
+  // MATERIAL_TOGGLE_v1 + MATERIAL_ORDEN_v1: cambiar visibilidad de un material.
+  // Al cambiar de estado, el material se reposiciona automáticamente:
+  // - Si pasa de bloqueado → visible: va al FINAL de los visibles.
+  // - Si pasa de visible → bloqueado: va al INICIO de los bloqueados.
   window.toggleBloqueoMaterial = async (id, bloqueado) => {
     try {
       const { db, doc, updateDoc } = window._fb;
-      await updateDoc(doc(db, 'material', id), { bloqueado });
-      // Refrescar la lista local
-      const item = (window._material || []).find(m => m.id === id);
-      if (item) item.bloqueado = bloqueado;
-      renderMaterial(window._material || []);
+      // Calcular nueva posición (orden) en el grupo destino
+      const lista = window._material || [];
+      let nuevoOrden;
+      if (bloqueado) {
+        // Va al inicio de bloqueados: orden = (min de bloqueados) - 1
+        const ordenesBloqueados = lista.filter(m => m.bloqueado === true && m.id !== id).map(m => typeof m.orden === 'number' ? m.orden : 9999);
+        nuevoOrden = ordenesBloqueados.length > 0 ? Math.min(...ordenesBloqueados) - 1 : 0;
+      } else {
+        // Va al final de visibles: orden = (max de visibles) + 1
+        const ordenesVisibles = lista.filter(m => m.bloqueado !== true && m.id !== id).map(m => typeof m.orden === 'number' ? m.orden : 0);
+        nuevoOrden = ordenesVisibles.length > 0 ? Math.max(...ordenesVisibles) + 1 : 0;
+      }
+      await updateDoc(doc(db, 'material', id), { bloqueado, orden: nuevoOrden });
+      const item = lista.find(m => m.id === id);
+      if (item) { item.bloqueado = bloqueado; item.orden = nuevoOrden; }
+      renderMaterial(lista);
     } catch(e) {
       alert('No se pudo actualizar el estado del material. Intenta de nuevo.');
       console.error('Error toggleBloqueoMaterial:', e);
+    }
+  };
+
+  // MATERIAL_ORDEN_v1: mover un material arriba (delta=-1) o abajo (delta=+1)
+  // dentro de su grupo (visibles o bloqueados). Intercambia el campo 'orden'
+  // con el material vecino.
+  window.moverMaterial = async (id, delta) => {
+    try {
+      const { db, doc, updateDoc } = window._fb;
+      const lista = window._material || [];
+      const item = lista.find(m => m.id === id);
+      if (!item) return;
+      // Ordenar el grupo igual que la tabla
+      const grupo = lista.filter(m => (m.bloqueado === true) === (item.bloqueado === true))
+        .sort((a, b) => {
+          const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+          const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+          return aOrd - bOrd;
+        });
+      const idx = grupo.findIndex(m => m.id === id);
+      const idxVecino = idx + delta;
+      if (idxVecino < 0 || idxVecino >= grupo.length) return; // borde
+      const vecino = grupo[idxVecino];
+      // Intercambiar campos 'orden'
+      const ordenItem = typeof item.orden === 'number' ? item.orden : 9999;
+      const ordenVecino = typeof vecino.orden === 'number' ? vecino.orden : 9999;
+      // Si alguno no tenía orden definido, asignamos basado en su posición actual
+      const ordenItemFinal = ordenVecino;
+      const ordenVecinoFinal = ordenItem;
+      await Promise.all([
+        updateDoc(doc(db, 'material', item.id), { orden: ordenItemFinal }),
+        updateDoc(doc(db, 'material', vecino.id), { orden: ordenVecinoFinal })
+      ]);
+      item.orden = ordenItemFinal;
+      vecino.orden = ordenVecinoFinal;
+      renderMaterial(lista);
+    } catch(e) {
+      alert('No se pudo mover el material. Intenta de nuevo.');
+      console.error('Error moverMaterial:', e);
     }
   };
 
@@ -1421,6 +1544,48 @@ match /databases/{database}/documents {
     } catch(e) {
       alert('No se pudo eliminar. Intenta de nuevo.');
       console.error('Error eliminarMaterial:', e);
+    }
+  };
+
+  // MATERIAL_EDIT_v1: abrir modal de edición con datos del material seleccionado
+  window.abrirEditarMaterial = (id) => {
+    const m = (window._material || []).find(x => x.id === id);
+    if (!m) { alert('Material no encontrado.'); return; }
+    document.getElementById('edit-mat-id').value      = m.id;
+    document.getElementById('edit-mat-nombre').value  = m.nombre || '';
+    document.getElementById('edit-mat-tipo').value    = m.tipo || 'PDF';
+    document.getElementById('edit-mat-desc').value    = m.descripcion || '';
+    document.getElementById('edit-mat-link').value    = m.link || '';
+    document.getElementById('modal-editar-material').style.display = 'flex';
+  };
+
+  // MATERIAL_EDIT_v1: cerrar modal sin guardar
+  window.cerrarEditarMaterial = () => {
+    document.getElementById('modal-editar-material').style.display = 'none';
+  };
+
+  // MATERIAL_EDIT_v1: guardar cambios del material editado
+  window.guardarEditarMaterial = async () => {
+    const id     = document.getElementById('edit-mat-id').value;
+    const nombre = document.getElementById('edit-mat-nombre').value.trim();
+    const tipo   = document.getElementById('edit-mat-tipo').value;
+    const desc   = document.getElementById('edit-mat-desc').value.trim();
+    const link   = document.getElementById('edit-mat-link').value.trim();
+
+    if (!id || !nombre || !link) {
+      alert('Nombre y link son obligatorios.');
+      return;
+    }
+    try {
+      const { db, doc, updateDoc } = window._fb;
+      await updateDoc(doc(db, 'material', id), { nombre, tipo, descripcion: desc, link });
+      const item = (window._material || []).find(m => m.id === id);
+      if (item) { item.nombre = nombre; item.tipo = tipo; item.descripcion = desc; item.link = link; }
+      renderMaterial(window._material || []);
+      window.cerrarEditarMaterial();
+    } catch(e) {
+      alert('No se pudo guardar. Intenta de nuevo.');
+      console.error('Error guardarEditarMaterial:', e);
     }
   };
 

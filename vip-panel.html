@@ -8413,14 +8413,66 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
       })();
     }
 
-    // 4) Material - NO modificamos el HTML (ya tiene 18 cards reales con
-    //    diseño profesional). Solo interceptamos abrirPDF() para que en modo
-    //    invitado dispare paywall en lugar de abrir el PDF.
-    //    El listener general en .material-item se agrega por CSS hover.
-    //
-    //    Importante: la función abrirPDF original se sobrescribe abajo
-    //    (después del setTimeout) porque a este punto del modo invitado,
-    //    abrirPDF aún no está definida.
+    // 4) Material - MATERIAL_INVITADO_v1: cargar dinámicamente desde Firestore
+    //    (igual que hacemos con cursos-nuevos arriba). Antes había 18 cards
+    //    hardcoded, pero las migramos a Firestore. Ahora invitados también
+    //    leen la colección 'material' y ven las cards con candado.
+    //    El listener global en línea ~8474 ya intercepta cliks en .material-item
+    //    para disparar paywall. Solo necesitamos renderizar.
+    (async function cargarMaterialParaInvitado() {
+      try {
+        // Reutiliza la auth anónima que ya se hizo arriba para cursos-nuevos
+        const { collection, query, orderBy, getDocs, getFirestore } =
+          await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+        const dbInv = getFirestore();
+        const snapMat = await getDocs(query(collection(dbInv, 'material'), orderBy('creadoEn', 'desc')));
+
+        const container = document.getElementById('material-dinamico');
+        if (!container) return;
+
+        // Ordenar igual que en modo VIP: visibles primero (por campo "orden"),
+        // luego bloqueados (por campo "orden"). Si no tienen "orden", usar 9999.
+        const items = [];
+        snapMat.forEach(d => items.push({ id: d.id, ...d.data() }));
+        items.sort((a, b) => {
+          const aBloq = a.bloqueado === true ? 1 : 0;
+          const bBloq = b.bloqueado === true ? 1 : 0;
+          if (aBloq !== bBloq) return aBloq - bBloq; // visibles primero
+          const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+          const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+          return aOrd - bOrd;
+        });
+
+        items.forEach(m => {
+          const el = document.createElement('div');
+          el.className = 'material-item'; // ← clase clave: el listener global captura el click
+          el.style.cursor = 'pointer';
+          // El gradient usa los colores guardados o un default
+          const c1 = m.color1 || '#0b2554';
+          const c2 = m.color2 || '#1565c0';
+          el.innerHTML = `
+            <div style="height:110px;background:linear-gradient(135deg,${c1} 0%,${c2} 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+              <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
+              <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <span style="position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;letter-spacing:.08em;background:rgba(0,0,0,0.3);color:#fff;padding:2px 8px;border-radius:20px;z-index:1">${m.tipo || 'PDF'}</span>
+            </div>
+            <div style="padding:.85rem 1rem 1rem">
+              <p style="font-size:12px;font-weight:700;color:#0d47a1;line-height:1.4;margin-bottom:.6rem">${m.nombre || 'Material VIP'}</p>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <span style="font-size:10px;color:#94a3b8">Material VIP</span>
+                <span style="font-size:11px;font-weight:700;color:#1468b1">Abrir →</span>
+              </div>
+            </div>`;
+          container.appendChild(el);
+        });
+        console.log(`[Invitado] ${items.length} materiales renderizados con paywall.`);
+      } catch (e) {
+        console.warn('[Invitado] No se pudo cargar material:', e);
+      }
+    })();
+
     setTimeout(function() {
       // Sobrescribir abrirPDF para invitados
       window.abrirPDF = function() {
@@ -9152,13 +9204,28 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
       const snap = await getDocs(query(collection(db, 'material'), orderBy('creadoEn', 'desc')));
       // MATERIAL_BLOQUEADO_v1: el badge solo cuenta material VISIBLE (no el bloqueado).
       // Los items bloqueados sí se renderizan pero con candado y sin clic.
+      // MATERIAL_ORDEN_v1: ordenar visibles primero (por campo 'orden'), bloqueados después (por 'orden').
       let visiblesCount = 0;
-      snap.forEach(d => { if (d.data().bloqueado !== true) visiblesCount++; });
-      actualizarBadge('material', visiblesCount);
-      const container = document.getElementById('material-dinamico');
-      if (!container || snap.empty) return;
+      const items = [];
       snap.forEach(d => {
         const m = d.data();
+        items.push({ id: d.id, ...m });
+        if (m.bloqueado !== true) visiblesCount++;
+      });
+      // Orden: visibles primero (bloqueado=false), luego bloqueados.
+      // Dentro de cada grupo, ascendente por 'orden' (default 9999 si no existe).
+      items.sort((a, b) => {
+        const aBloq = a.bloqueado === true ? 1 : 0;
+        const bBloq = b.bloqueado === true ? 1 : 0;
+        if (aBloq !== bBloq) return aBloq - bBloq;
+        const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+        const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+        return aOrd - bOrd;
+      });
+      actualizarBadge('material', visiblesCount);
+      const container = document.getElementById('material-dinamico');
+      if (!container || items.length === 0) return;
+      items.forEach(m => {
         const bloqueado = m.bloqueado === true;
         const el = document.createElement('div');
         el.className = 'material-item item-nuevo' + (bloqueado ? ' item-bloqueado' : '');
@@ -9173,8 +9240,11 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
           : '';
         const ctaText = bloqueado ? 'Próximamente' : 'Abrir →';
         const ctaColor = bloqueado ? '#94a3b8' : '#1468b1';
+        // MATERIAL_ORDEN_v1: usar colores guardados en Firestore (color1, color2) o defaults
+        const c1 = m.color1 || '#0b2554';
+        const c2 = m.color2 || '#1565c0';
         el.innerHTML = `
-          <div style="height:110px;background:linear-gradient(135deg,#0b2554 0%,#1565c0 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+          <div style="height:110px;background:linear-gradient(135deg,${c1} 0%,${c2} 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
             <div style="position:absolute;top:-20px;right:-20px;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,0.06)"></div>
             <div style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:16px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1">
               <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.85)" stroke-width="1.6" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
