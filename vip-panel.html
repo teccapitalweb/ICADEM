@@ -16704,25 +16704,37 @@ body:not(.modo-dia) .sidebar {
   border-bottom: 1px solid rgba(147,197,253,0.1) !important;
   padding: 1.6rem 1.5rem 1.3rem !important;
 }
+/* LOGO_SOBRIO_v1: cuadrito limpio sin gradient/glow amarillo (se veía IA).
+   Borde sutil, sin sombras llamativas. La imagen del logo (i.ibb.co/.../ICADEM.jpg)
+   se renderiza dentro sin overlays. */
 .logo-mark {
-  background: linear-gradient(135deg, rgba(245,215,122,0.25), rgba(200,150,42,0.12)) !important;
-  border: 1.5px solid rgba(245,215,122,0.5) !important;
-  color: #f5d77a !important;
-  box-shadow: 0 0 20px rgba(245,215,122,0.35), inset 0 1px 0 rgba(255,255,255,0.2) !important;
-  text-shadow: 0 0 12px rgba(245,215,122,0.5);
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.10) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
 }
+/* LOGO_SOBRIO_v1: "ICADEM" blanco limpio, sin gradient ni shadow amarillo */
 .logo-text strong {
   font-family: 'Plus Jakarta Sans', sans-serif !important;
-  font-weight: 800 !important;
-  letter-spacing: 0.06em !important;
-  background: linear-gradient(180deg, #fff, #f5d77a) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  letter-spacing: 0.08em !important;
+  background: none !important;
+  -webkit-background-clip: initial !important;
+  background-clip: initial !important;
+  -webkit-text-fill-color: #ffffff !important;
+  color: #ffffff !important;
+  text-shadow: none !important;
 }
+/* LOGO_SOBRIO_v1: "Panel VIP" balanceado con ICADEM (misma fuente, color blanco con opacidad) */
 .logo-text span {
-  color: #94a3b8 !important;
-  font-family: 'JetBrains Mono', monospace !important;
+  color: rgba(255,255,255,0.55) !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
 }
 
 #sidebar-avatar {
