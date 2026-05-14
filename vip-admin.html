@@ -645,8 +645,8 @@
       <div class="table-wrap">
         <div class="table-header"><h3>Material publicado</h3></div>
         <table>
-          <thead><tr><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Acción</th></tr></thead>
-          <tbody id="tabla-material"><tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando material...</td></tr></tbody>
+          <thead><tr><th>Nombre</th><th>Tipo</th><th>Descripción</th><th>Estado</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-material"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando material...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1371,9 +1371,58 @@ match /databases/{database}/documents {
 
   function renderMaterial(lista) {
     const tbody = document.getElementById('tabla-material');
-    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#64748b;padding:2rem">Sin material publicado.</td></tr>'; return; }
-    tbody.innerHTML = lista.map(m => `<tr><td style="font-weight:600;color:#0d47a1">${m.nombre}</td><td><span class="badge badge-blue">${m.tipo}</span></td><td style="color:#64748b">${m.descripcion || '—'}</td><td><button class="btn-danger" style="padding:4px 10px;font-size:10px">Eliminar</button></td></tr>`).join('');
+    if (!lista.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#64748b;padding:2rem">Sin material publicado.</td></tr>'; return; }
+    // MATERIAL_TOGGLE_v1: agregar columna de estado (Visible/Bloqueado) y botón toggle.
+    // El campo "bloqueado" es opcional en Firestore — si no existe, se asume false (visible).
+    tbody.innerHTML = lista.map(m => {
+      const bloqueado = m.bloqueado === true;
+      const badge = bloqueado
+        ? '<span class="badge badge-red">🔒 Bloqueado</span>'
+        : '<span class="badge badge-green">🟢 Visible</span>';
+      const btnToggle = bloqueado
+        ? `<button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#059669,#10b981)" onclick="toggleBloqueoMaterial('${m.id}', false)">Hacer visible</button>`
+        : `<button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#92400e,#d97706)" onclick="toggleBloqueoMaterial('${m.id}', true)">Bloquear</button>`;
+      return `<tr>
+        <td style="font-weight:600;color:#0d47a1">${m.nombre}</td>
+        <td><span class="badge badge-blue">${m.tipo}</span></td>
+        <td style="color:#64748b">${m.descripcion || '—'}</td>
+        <td>${badge}</td>
+        <td style="white-space:nowrap">
+          ${btnToggle}
+          <button class="btn-danger" style="padding:4px 10px;font-size:10px;margin-left:4px" onclick="eliminarMaterial('${m.id}')">Eliminar</button>
+        </td>
+      </tr>`;
+    }).join('');
   }
+
+  // MATERIAL_TOGGLE_v1: cambiar visibilidad de un material
+  window.toggleBloqueoMaterial = async (id, bloqueado) => {
+    try {
+      const { db, doc, updateDoc } = window._fb;
+      await updateDoc(doc(db, 'material', id), { bloqueado });
+      // Refrescar la lista local
+      const item = (window._material || []).find(m => m.id === id);
+      if (item) item.bloqueado = bloqueado;
+      renderMaterial(window._material || []);
+    } catch(e) {
+      alert('No se pudo actualizar el estado del material. Intenta de nuevo.');
+      console.error('Error toggleBloqueoMaterial:', e);
+    }
+  };
+
+  // MATERIAL_TOGGLE_v1: eliminar un material (faltaba)
+  window.eliminarMaterial = async (id) => {
+    if (!confirm('¿Eliminar este material? Esta acción no se puede deshacer.')) return;
+    try {
+      const { db, doc, deleteDoc } = window._fb;
+      await deleteDoc(doc(db, 'material', id));
+      window._material = (window._material || []).filter(m => m.id !== id);
+      renderMaterial(window._material);
+    } catch(e) {
+      alert('No se pudo eliminar. Intenta de nuevo.');
+      console.error('Error eliminarMaterial:', e);
+    }
+  };
 
   function renderVivo(lista) {
     const tbody = document.getElementById('tabla-vivo');
