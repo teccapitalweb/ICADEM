@@ -120,6 +120,52 @@
     .topbar-title{font-size:14px;font-weight:600;color:#0d47a1}
     .topbar-right{display:flex;align-items:center;gap:12px}
     .topbar-plan{display:flex;align-items:center;gap:6px;background:rgba(11,47,104,0.08);border:1px solid rgba(11,47,104,0.2);border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#0b2f68}
+    /* NOTIF_BELL_v1: campanita de notificaciones */
+    .notif-bell{position:relative;width:36px;height:36px;border-radius:50%;background:rgba(11,47,104,0.08);border:1px solid rgba(11,47,104,0.2);color:#0b2f68;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;transition:all .2s}
+    .notif-bell:hover{background:rgba(11,47,104,0.14);transform:scale(1.05)}
+    .notif-bell.has-new{animation:notif-bell-shake 1s ease-in-out 0s 2}
+    .notif-bell-icon{width:18px;height:18px}
+    .notif-bell-badge{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(239,68,68,0.4);line-height:1}
+    @keyframes notif-bell-shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}50%{transform:rotate(0)}75%{transform:rotate(12deg)}}
+    .notif-panel{position:absolute;top:62px;right:120px;width:360px;max-height:480px;background:#fff;border:1px solid rgba(11,47,104,0.15);border-radius:12px;box-shadow:0 12px 40px rgba(11,47,104,0.18),0 4px 12px rgba(11,47,104,0.08);z-index:99;overflow:hidden;display:flex;flex-direction:column}
+    .notif-panel-header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid rgba(11,47,104,0.1);background:#f8fafc}
+    .notif-panel-title{font-size:14px;font-weight:700;color:#0b2554;letter-spacing:-0.01em}
+    .notif-panel-close{background:none;border:none;cursor:pointer;color:#94a3b8;font-size:16px;font-weight:600;line-height:1;padding:4px;border-radius:4px}
+    .notif-panel-close:hover{background:rgba(11,47,104,0.08);color:#0b2554}
+    .notif-panel-list{flex:1;overflow-y:auto;padding:6px 0;max-height:400px}
+    .notif-panel-empty{padding:32px 24px;text-align:center;color:#94a3b8;font-size:13px}
+    .notif-item{padding:12px 18px;border-bottom:1px solid #f1f5f9;cursor:default;transition:background .15s}
+    .notif-item:last-child{border-bottom:none}
+    .notif-item:hover{background:#f8fafc}
+    .notif-item.is-unread{background:#fffbeb}
+    .notif-item.is-unread:hover{background:#fef3c7}
+    .notif-item-tipo{display:inline-block;font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:6px}
+    .notif-item-tipo.tipo-curso{background:#dbeafe;color:#1e3a8a}
+    .notif-item-tipo.tipo-evento{background:#fce7f3;color:#9d174d}
+    .notif-item-tipo.tipo-recurso{background:#dcfce7;color:#166534}
+    .notif-item-tipo.tipo-anuncio{background:#fef3c7;color:#92400e}
+    .notif-item-tipo.tipo-default{background:#f1f5f9;color:#475569}
+    .notif-item-titulo{font-size:13px;font-weight:600;color:#0b2554;line-height:1.35;margin-bottom:4px}
+    .notif-item-desc{font-size:12px;color:#475569;line-height:1.45;margin-bottom:6px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+    .notif-item-fecha{font-size:10px;color:#94a3b8;font-weight:500}
+    /* Modo noche para la campanita */
+    body:not(.modo-dia) .notif-bell{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.15);color:#e2e8f0}
+    body:not(.modo-dia) .notif-bell:hover{background:rgba(255,255,255,0.14)}
+    body:not(.modo-dia) .notif-panel{background:#0b1f3d;border-color:rgba(255,255,255,0.1);box-shadow:0 12px 40px rgba(0,0,0,0.5)}
+    body:not(.modo-dia) .notif-panel-header{background:rgba(255,255,255,0.04);border-bottom-color:rgba(255,255,255,0.08)}
+    body:not(.modo-dia) .notif-panel-title{color:#f1f5f9}
+    body:not(.modo-dia) .notif-panel-close{color:#94a3b8}
+    body:not(.modo-dia) .notif-panel-close:hover{background:rgba(255,255,255,0.08);color:#fff}
+    body:not(.modo-dia) .notif-item{border-bottom-color:rgba(255,255,255,0.06)}
+    body:not(.modo-dia) .notif-item:hover{background:rgba(255,255,255,0.04)}
+    body:not(.modo-dia) .notif-item.is-unread{background:rgba(251,191,36,0.08)}
+    body:not(.modo-dia) .notif-item-titulo{color:#f1f5f9}
+    body:not(.modo-dia) .notif-item-desc{color:#cbd5e1}
+    body:not(.modo-dia) .notif-item-fecha{color:#64748b}
+    /* Móvil: panel responsive */
+    @media (max-width:520px){
+      .notif-panel{position:fixed;top:62px;right:8px;left:8px;width:auto;max-height:70vh}
+    }
     .status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s ease infinite}
     .menu-btn{display:none;background:none;border:none;color:#1468b1;cursor:pointer;padding:4px}
     .content{flex:1;padding:2rem;width:100%}
@@ -4925,6 +4971,24 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
       <span class="topbar-title" id="topbar-title">Inicio</span>
     </div>
     <div class="topbar-right">
+      <!-- NOTIF_BELL_v1: Campanita de notificaciones (novedades del admin) -->
+      <button id="notif-bell-btn" class="notif-bell" title="Notificaciones" aria-label="Ver notificaciones" onclick="window.toggleNotifPanel()">
+        <svg class="notif-bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+        </svg>
+        <span id="notif-bell-badge" class="notif-bell-badge" style="display:none">0</span>
+      </button>
+      <div id="notif-panel" class="notif-panel" style="display:none" onclick="event.stopPropagation()">
+        <div class="notif-panel-header">
+          <span class="notif-panel-title">Notificaciones</span>
+          <button class="notif-panel-close" onclick="window.toggleNotifPanel()" aria-label="Cerrar">✕</button>
+        </div>
+        <div id="notif-panel-list" class="notif-panel-list">
+          <div class="notif-panel-empty">Cargando…</div>
+        </div>
+      </div>
+
       <!-- MODIFICADO: Toggle modo día/noche — al lado del badge VIP -->
       <button id="btn-modo-toggle" title="Modo día / noche" aria-label="Cambiar modo de color">
         <svg class="modo-icon-svg icon-luna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -27714,6 +27778,179 @@ window.cerrarSplashBienvenida = function() {
   splash.style.display = 'none';
   document.body.style.overflow = '';
 };
+
+// ═══════════════════════════════════════════════════════════════════════════
+// 🔔 NOTIF_BELL_v1 — Campanita de notificaciones (novedades del admin)
+// ═══════════════════════════════════════════════════════════════════════════
+// Lee colección 'novedades' de Firestore, filtra las >15 días, muestra
+// contador de no-leídas (basado en localStorage 'icadem_notif_last_read').
+// Al abrir el panel, se marca el timestamp actual como "última lectura" → 
+// contador a 0. Sigue el patrón del foro de Sinergia (filtrado client-side).
+window._notifData = { lista: [], ultimaLectura: 0, abierto: false };
+
+window.cargarNotificaciones = async function() {
+  try {
+    // Importar Firestore con el patrón estándar del panel
+    const { collection, query, orderBy, limit: fbLimit, getDocs, getFirestore } =
+      await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const dbNotif = getFirestore();
+    let snap;
+    try {
+      snap = await getDocs(query(collection(dbNotif, 'novedades'), orderBy('creadoEn', 'desc'), fbLimit(50)));
+    } catch (e) {
+      // Fallback sin orderBy (por si no hay índice)
+      snap = await getDocs(collection(dbNotif, 'novedades'));
+    }
+    const ahora = Date.now();
+    const QUINCE_DIAS_MS = 15 * 24 * 60 * 60 * 1000;
+    const lista = [];
+    snap.forEach(d => {
+      const data = d.data();
+      let ts = 0;
+      if (data.creadoEn && typeof data.creadoEn.toDate === 'function') {
+        ts = data.creadoEn.toDate().getTime();
+      } else if (data.creadoEn && data.creadoEn.seconds) {
+        ts = data.creadoEn.seconds * 1000;
+      } else if (typeof data.creadoEn === 'number') {
+        ts = data.creadoEn;
+      } else if (typeof data.creadoEn === 'string') {
+        ts = new Date(data.creadoEn).getTime();
+      }
+      // Filtrar las > 15 días (igual que Sinergia con su FIFTEEN_DAYS)
+      if (ts && (ahora - ts) <= QUINCE_DIAS_MS) {
+        lista.push({
+          id: d.id,
+          titulo: data.titulo || 'Sin título',
+          descripcion: data.descripcion || '',
+          tipo: (data.tipo || 'anuncio').toLowerCase(),
+          timestamp: ts
+        });
+      }
+    });
+    // Ordenar por timestamp descendente
+    lista.sort((a, b) => b.timestamp - a.timestamp);
+    window._notifData.lista = lista;
+    // Cargar última lectura desde localStorage
+    try {
+      const lr = localStorage.getItem('icadem_notif_last_read');
+      window._notifData.ultimaLectura = lr ? parseInt(lr, 10) : 0;
+    } catch(e) {
+      window._notifData.ultimaLectura = 0;
+    }
+    window._actualizarContadorNotif();
+    window._renderListaNotif();
+    console.log('[notif-bell] ' + lista.length + ' notificaciones cargadas (filtradas ≤15 días)');
+  } catch(e) {
+    console.warn('[notif-bell] Error cargando notificaciones:', e);
+  }
+};
+
+window._actualizarContadorNotif = function() {
+  const badge = document.getElementById('notif-bell-badge');
+  const btn = document.getElementById('notif-bell-btn');
+  if (!badge || !btn) return;
+  const noLeidas = window._notifData.lista.filter(n => n.timestamp > window._notifData.ultimaLectura).length;
+  if (noLeidas > 0) {
+    badge.textContent = noLeidas > 9 ? '9+' : String(noLeidas);
+    badge.style.display = 'flex';
+    btn.classList.add('has-new');
+    // Quitar animación después de 2s
+    setTimeout(() => btn.classList.remove('has-new'), 2200);
+  } else {
+    badge.style.display = 'none';
+    btn.classList.remove('has-new');
+  }
+};
+
+window._renderListaNotif = function() {
+  const cont = document.getElementById('notif-panel-list');
+  if (!cont) return;
+  const lista = window._notifData.lista;
+  if (!lista.length) {
+    cont.innerHTML = '<div class="notif-panel-empty">No tienes notificaciones nuevas</div>';
+    return;
+  }
+  const ultimaLectura = window._notifData.ultimaLectura;
+  const formatearFecha = (ts) => {
+    const diff = Date.now() - ts;
+    const min = Math.floor(diff / 60000);
+    const horas = Math.floor(diff / 3600000);
+    const dias = Math.floor(diff / 86400000);
+    if (min < 1) return 'Hace un momento';
+    if (min < 60) return 'Hace ' + min + ' min';
+    if (horas < 24) return 'Hace ' + horas + ' h';
+    if (dias === 1) return 'Ayer';
+    if (dias < 7) return 'Hace ' + dias + ' días';
+    return new Date(ts).toLocaleDateString('es-MX', { day:'numeric', month:'short' });
+  };
+  const escapeHtml = (s) => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const tiposValidos = ['curso','evento','recurso','anuncio'];
+  cont.innerHTML = lista.map(n => {
+    const esNueva = n.timestamp > ultimaLectura;
+    const tipoSafe = tiposValidos.indexOf(n.tipo) !== -1 ? n.tipo : 'default';
+    const tipoLabel = n.tipo === 'curso' ? 'Curso' : n.tipo === 'evento' ? 'Evento' : n.tipo === 'recurso' ? 'Recurso' : n.tipo === 'anuncio' ? 'Anuncio' : 'Aviso';
+    return '<div class="notif-item ' + (esNueva ? 'is-unread' : '') + '">' +
+      '<span class="notif-item-tipo tipo-' + tipoSafe + '">' + escapeHtml(tipoLabel) + '</span>' +
+      '<div class="notif-item-titulo">' + escapeHtml(n.titulo) + '</div>' +
+      (n.descripcion ? '<div class="notif-item-desc">' + escapeHtml(n.descripcion) + '</div>' : '') +
+      '<div class="notif-item-fecha">' + formatearFecha(n.timestamp) + '</div>' +
+    '</div>';
+  }).join('');
+};
+
+window.toggleNotifPanel = function() {
+  const panel = document.getElementById('notif-panel');
+  if (!panel) return;
+  const estaAbierto = panel.style.display !== 'none';
+  if (estaAbierto) {
+    panel.style.display = 'none';
+    window._notifData.abierto = false;
+  } else {
+    panel.style.display = 'flex';
+    window._notifData.abierto = true;
+    // Al abrir, marcar todo como leído: guardar timestamp actual en localStorage
+    const ahora = Date.now();
+    try {
+      localStorage.setItem('icadem_notif_last_read', String(ahora));
+    } catch(e) { /* localStorage podría estar bloqueado */ }
+    window._notifData.ultimaLectura = ahora;
+    // Refrescar visual del contador y los items (quitar highlight de "no leído")
+    setTimeout(() => {
+      window._actualizarContadorNotif();
+      window._renderListaNotif();
+    }, 300);
+  }
+};
+
+// Cerrar el panel si el usuario hace click fuera de él
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('notif-panel');
+  const btn = document.getElementById('notif-bell-btn');
+  if (!panel || !btn) return;
+  if (panel.style.display === 'none') return;
+  if (btn.contains(e.target) || panel.contains(e.target)) return;
+  panel.style.display = 'none';
+  window._notifData.abierto = false;
+});
+
+// Disparar la carga inicial cuando la app de Firebase ya esté inicializada.
+// Como Firebase se inicializa al cargar el módulo principal, basta con esperar
+// a que el DOM esté listo y luego intentar (con import dinámico interno).
+(function iniciarNotifBell() {
+  const arrancar = () => {
+    // Pequeño delay para asegurar que initializeApp() ya se ejecutó
+    setTimeout(() => {
+      window.cargarNotificaciones().catch(e => {
+        console.warn('[notif-bell] No se pudo cargar (no bloqueante):', e);
+      });
+    }, 1500);
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', arrancar);
+  } else {
+    arrancar();
+  }
+})();
 
 // ═══════════════════════════════════════════════════════════════════════════
 // 🎉 SPLASH DE ACTIVACIÓN — popup que ve el miembro cuando el admin lo activa
