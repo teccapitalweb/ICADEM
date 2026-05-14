@@ -8554,11 +8554,14 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
             : `background:${info.grad}`;
           // IMPORTANTE: la card NO tiene clase 'material-item' ni 'guest-lock-wrap'
           // (esas disparan paywall). Es un elemento article con onclick que abre la URL externa.
+          // FIX_BADGE_INVITADO_v2: el overlay oscuro del header puede tapar el badge
+          // en algunos navegadores/zoom. Lo quitamos y aplicamos sombra DIRECTA al texto
+          // para que sea visible sobre cualquier fondo (incluso imágenes claras).
           gridHtml += `<article class="noticia-card-inv" data-cat="${n.categoria}" onclick="window.open('${n.url}', '_blank')" style="background:linear-gradient(135deg,#1a3a6b 0%,#122b54 50%,#0c1e4a 100%);border-radius:16px;overflow:hidden;cursor:pointer;transition:all .3s;box-shadow:0 8px 24px rgba(0,0,0,0.4),inset 0 1px 0 rgba(107,143,196,0.18);border:1px solid rgba(107,143,196,0.3);display:flex;flex-direction:column" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 14px 36px rgba(0,0,0,0.5),0 0 32px ${info.color}55';this.style.borderColor='${info.color}'" onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(0,0,0,0.4),inset 0 1px 0 rgba(107,143,196,0.18)';this.style.borderColor='rgba(107,143,196,0.3)'">
             <div style="height:170px;${imagenBg};position:relative;overflow:hidden">
-              <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,0.55) 100%)"></div>
-              <span style="position:absolute;top:12px;left:12px;padding:5px 12px;background:${info.grad};color:#ffffff !important;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;align-items:center;gap:5px;box-shadow:0 4px 12px rgba(0,0,0,0.2);text-shadow:0 1px 2px rgba(0,0,0,0.4)"><span style="font-size:12px;color:#ffffff">${info.icono}</span><span style="color:#ffffff">${info.nombre}</span></span>
-              <span style="position:absolute;bottom:12px;left:12px;color:#fff;font-size:11px;font-weight:600;background:rgba(0,0,0,0.4);backdrop-filter:blur(8px);padding:4px 10px;border-radius:20px">${fechaTexto}</span>
+              <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 60%,rgba(0,0,0,0.45) 100%);z-index:1;pointer-events:none"></div>
+              <span style="position:absolute;top:12px;left:12px;padding:6px 14px;background:${info.grad};color:#ffffff;border-radius:20px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;display:inline-flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3),0 0 0 1.5px rgba(255,255,255,0.25);text-shadow:0 1px 3px rgba(0,0,0,0.6);z-index:5"><span style="color:#ffffff;font-size:13px;line-height:1;text-shadow:0 1px 2px rgba(0,0,0,0.5)">${info.icono}</span><span style="color:#ffffff;line-height:1;white-space:nowrap">${info.nombre}</span></span>
+              <span style="position:absolute;bottom:12px;left:12px;color:#fff;font-size:11px;font-weight:600;background:rgba(0,0,0,0.55);backdrop-filter:blur(8px);padding:4px 10px;border-radius:20px;z-index:5">${fechaTexto}</span>
             </div>
             <div style="padding:1.1rem 1.25rem 1.25rem;flex:1;display:flex;flex-direction:column">
               <h3 style="font-size:15px;font-weight:700;color:#ffffff;line-height:1.35;margin-bottom:.6rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${n.titulo}</h3>
