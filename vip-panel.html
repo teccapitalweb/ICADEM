@@ -68,7 +68,7 @@
   <link rel="dns-prefetch" href="https://icadem-webhook-production.up.railway.app">
   <link rel="dns-prefetch" href="https://api.qrserver.com">
   <link rel="dns-prefetch" href="https://newsdata.io">
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700;800&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Montserrat:wght@900&display=swap" rel="stylesheet">
   <style>
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     :root{
@@ -4868,7 +4868,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <div class="logo-mark" style="background:none;padding:0;overflow:hidden"><img src="https://i.ibb.co/BVJQqb0X/ICADEM.jpg" alt="ICADEM" style="width:32px;height:32px;object-fit:cover;border-radius:6px"></div>
-    <div class="logo-text"><strong>ICADEM</strong><span>Panel VIP</span></div>
+    <div class="logo-text"><strong>ICADEM</strong></div>
   </div>
   <div class="sidebar-user" onclick="showSection('perfil')">
     <div class="user-avatar" id="sidebar-avatar">?</div>
@@ -16861,17 +16861,24 @@ body:not(.modo-dia) .sidebar {
   text-shadow: none !important;
 }
 /* LOGO_SOBRIO_v1: "ICADEM" blanco limpio, sin gradient ni shadow amarillo */
+/* LOGO_MONTSERRAT_v1: jefe pidió quitar "Panel VIP" y usar Montserrat Black alineado con la imagen */
+.logo-text {
+  display: flex !important;
+  align-items: center !important;
+  height: 32px !important;
+}
 .logo-text strong {
-  font-family: 'Plus Jakarta Sans', sans-serif !important;
-  font-weight: 700 !important;
-  font-size: 15px !important;
-  letter-spacing: 0.08em !important;
+  font-family: 'Montserrat', 'Plus Jakarta Sans', sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 18px !important;
+  letter-spacing: 0.04em !important;
   background: none !important;
   -webkit-background-clip: initial !important;
   background-clip: initial !important;
   -webkit-text-fill-color: #ffffff !important;
   color: #ffffff !important;
   text-shadow: none !important;
+  line-height: 1 !important;
 }
 /* LOGO_SOBRIO_v1: "Panel VIP" balanceado con ICADEM (misma fuente, color blanco con opacidad) */
 .logo-text span {
