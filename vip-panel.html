@@ -8801,12 +8801,12 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
           <span style="position:absolute;top:-14px;right:1.5rem;background:linear-gradient(135deg,#f5d77a,#c8962a);color:#0b1f4a;font-size:10px;font-weight:800;padding:5px 14px;border-radius:999px;letter-spacing:.1em;text-transform:uppercase;box-shadow:0 4px 12px rgba(200,150,42,0.4)">★ Recomendado</span>
           <div>
             <p style="font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:#c8962a;margin-bottom:.5rem">Plan Anual</p>
-            <p style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:700;color:#0b2554;line-height:1;margin-bottom:.25rem">$2,400 <span style="font-size:1rem;font-weight:300;color:#64748b">MXN/año</span></p>
-            <p style="font-size:12px;color:#10b981;font-weight:700">💰 Ahorras $600 al año (2 meses gratis)</p>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:2.5rem;font-weight:700;color:#0b2554;line-height:1;margin-bottom:.25rem">$1,999 <span style="font-size:1rem;font-weight:300;color:#64748b">MXN/año</span></p>
+            <p style="font-size:12px;color:#10b981;font-weight:700">💰 Ahorras $1,001 al año (4 meses gratis)</p>
           </div>
           <ul style="list-style:none;padding:0;margin:0.75rem 0;font-size:13.5px;color:#1e293b;line-height:1.9;flex:1">
             <li>✓ Todos los beneficios mensuales</li>
-            <li>✓ <strong>2 meses gratis</strong></li>
+            <li>✓ <strong>4 meses gratis</strong></li>
             <li>✓ Acceso prioritario a nuevos cursos</li>
             <li>✓ Sesión 1-a-1 con asesor</li>
             <li>✓ Insignia "Miembro Anual"</li>
@@ -9112,7 +9112,7 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
           ? `Gratis <span style="font-size:1rem;font-weight:300;opacity:.8">${diasRegalo} día${diasRegalo!==1?'s':''} de regalo</span>`
           : 'Gratis <span style="font-size:1rem;font-weight:300;opacity:.8">acceso de regalo</span>';
       } else {
-        susPrecio.innerHTML = data.plan === 'anual' ? '$2,400 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / año</span>' : '$250 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / mes</span>';
+        susPrecio.innerHTML = data.plan === 'anual' ? '$1,999 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / año</span>' : '$250 <span style="font-size:1rem;font-weight:300;opacity:.8">MXN / mes</span>';
       }
     }
 
@@ -21953,11 +21953,11 @@ input#tpl-search-input {
           <div class="is-plan is-recommended" data-plan="anual">
             <span class="is-plan-badge">★ Más popular</span>
             <span class="is-plan-tag">Anual</span>
-            <div class="is-plan-price">$2,400<small>MXN/año</small></div>
-            <div class="is-plan-extra">Ahorras $600 al año — 20% descuento</div>
+            <div class="is-plan-price">$1,999<small>MXN/año</small></div>
+            <div class="is-plan-extra">Ahorras $1,001 al año — 33% descuento</div>
             <ul class="is-plan-features">
               <li>Todos los beneficios mensuales</li>
-              <li>2 meses gratis</li>
+              <li>4 meses gratis</li>
               <li>Acceso prioritario a nuevos cursos</li>
               <li>Sesión 1-a-1 con asesor</li>
               <li>Insignia "Miembro Anual"</li>
@@ -22107,7 +22107,7 @@ const RAILWAY_BASE = 'https://icadem-webhook-production.up.railway.app';
 
 const PLAN_INFO = {
   mensual: { name: 'Membresía VIP Mensual', period: 'Cobro mensual',  amount: '$250 MXN',   amountFmt: '$250'   },
-  anual:   { name: 'Membresía VIP Anual',   period: 'Cobro anual',    amount: '$2,400 MXN', amountFmt: '$2,400' }
+  anual:   { name: 'Membresía VIP Anual',   period: 'Cobro anual',    amount: '$1,999 MXN', amountFmt: '$1,999' }
 };
 
 // ── Stripe ────────────────────────────────────────────────────
