@@ -11090,189 +11090,57 @@ buildVideoteca();
 (function(){
   'use strict';
 
-  // === CATÁLOGO DE PLANTILLAS ===
-  // Para agregar nuevas plantillas: simplemente añade un objeto al array.
-  // url debe apuntar al archivo descargable (Google Drive, Dropbox, etc.)
-  // Si aún no tienes el archivo, deja url:'' y aparecerá como "Próximamente"
-  const PLANTILLAS = [
-    // ===== 10 PLANTILLAS PREMIUM ICADEM =====
-    {
-      id: 'flujo-caja-mensual',
-      titulo: 'Flujo de Caja Mensual',
-      desc: 'Controla ingresos, egresos y saldo final mes a mes. Identifica meses críticos, planifica capital de trabajo y toma decisiones con datos reales.',
-      cat: 'finanzas',
-      icono: '💰',
-      formato: 'XLSX',
-      urlDownload: 'flujo-caja-mensual-icadem.xlsx',
-      urlCopy: 'flujo-caja-mensual-icadem.xlsx',
-      urlEdit: '',
-      premium: true,
-      destacada: true,
-      version: 'v1.0',
-      tags: ['finanzas', 'flujo', 'caja', 'ingresos', 'egresos']
-    },
-    {
-      id: 'kpi-ejecutivo-dashboard',
-      titulo: 'KPIs Ejecutivo Dashboard',
-      desc: 'Panel visual con los 15 indicadores clave de tu negocio: ventas, rentabilidad, eficiencia operativa y crecimiento. Actualización automática.',
-      cat: 'finanzas',
-      icono: '📊',
-      formato: 'XLSX',
-      urlDownload: 'kpis-ejecutivo-dashboard-icadem.xlsx',
-      urlCopy: 'kpis-ejecutivo-dashboard-icadem.xlsx',
-      urlEdit: '',
-      premium: true,
-      destacada: true,
-      version: 'v1.0',
-      tags: ['kpi', 'dashboard', 'indicadores', 'métricas']
-    },
-    {
-      id: 'presupuesto-anual-pyme',
-      titulo: 'Presupuesto Anual PYME',
-      desc: 'Planifica ingresos y gastos anuales por categoría. Incluye comparativa real vs presupuesto, gráficas automáticas y análisis de variaciones.',
-      cat: 'finanzas',
-      icono: '📋',
-      formato: 'XLSX',
-      urlDownload: 'presupuesto-anual-pyme-icadem.xlsx',
-      urlCopy: 'presupuesto-anual-pyme-icadem.xlsx',
-      urlEdit: '',
-      premium: true,
-      destacada: false,
-      version: 'v1.0',
-      tags: ['presupuesto', 'anual', 'gastos', 'planificación']
-    },
-    {
-      id: 'inventario-pyme',
-      titulo: 'Inventario PYME',
-      desc: 'Control completo de entradas y salidas, stock mínimo y máximo, alertas automáticas de reposición y valoración por método PEPS o promedio.',
-      cat: 'operaciones',
-      icono: '📦',
-      formato: 'XLSX',
-      urlDownload: 'inventario-pyme-icadem.xlsx',
-      urlCopy: 'inventario-pyme-icadem.xlsx',
-      urlEdit: '',
-      premium: true,
-      destacada: false,
-      version: 'v1.0',
-      tags: ['inventario', 'stock', 'almacén', 'control']
-    },
-    {
-      id: 'crm-basico-clientes',
-      titulo: 'CRM Básico de Clientes',
-      desc: 'Gestiona tu cartera de clientes: historial de contacto, oportunidades activas, seguimiento de propuestas y fechas de cierre proyectadas.',
-      cat: 'ventas',
-      icono: '🤝',
-      formato: 'XLSX',
-      urlDownload: 'crm-basico-clientes-icadem.xlsx',
-      urlCopy: 'crm-basico-clientes-icadem.xlsx',
-      urlEdit: '',
-      premium: true,
-      destacada: true,
-      version: 'v1.0',
-      tags: ['crm', 'clientes', 'ventas', 'seguimiento']
-    },
-    {
-      id: 'pipeline-ventas',
-      titulo: 'Pipeline de Ventas',
-      desc: 'Embudo de ventas con etapas, probabilidad de cierre, valor estimado por prospecto y proyección mensual de ingresos. Toma el control de tu proceso comercial.',
-      cat: 'ventas',
-      icono: '🎯',
-      formato: 'XLSX',
-      urlDownload: 'pipeline-ventas-icadem.xlsx',
-      urlCopy: 'pipeline-ventas-icadem.xlsx',
-      urlEdit: '',
-      premium: true,
-      destacada: true,
-      version: 'v1.0',
-      tags: ['pipeline', 'ventas', 'forecast', 'prospectos']
-    },
-    {
-      id: 'acta-junta-directiva',
-      titulo: 'Acta de Junta Directiva',
-      desc: 'Formato profesional para documentar acuerdos, asistentes, puntos de agenda y compromisos de tu empresa. Cumple con buenas prácticas de gobierno corporativo.',
-      cat: 'legal',
-      icono: '📝',
-      formato: 'DOCX',
-      urlDownload: 'acta-junta-directiva-icadem.docx',
-      urlCopy: 'acta-junta-directiva-icadem.docx',
-      urlEdit: '',
-      premium: true,
-      destacada: false,
-      version: 'v1.0',
-      tags: ['acta', 'junta', 'reunión', 'directiva', 'gobierno']
-    },
-    {
-      id: 'analisis-foda',
-      titulo: 'Análisis FODA Estratégico',
-      desc: 'Matriz FODA profesional con cuadrantes editables, guía paso a paso para identificar fortalezas, oportunidades, debilidades y amenazas de tu negocio.',
-      cat: 'operaciones',
-      icono: '🔲',
-      formato: 'XLSX',
-      urlDownload: 'analisis-foda-icadem.xlsx',
-      urlCopy: 'analisis-foda-icadem.xlsx',
-      urlEdit: '',
-      premium: true,
-      destacada: false,
-      version: 'v1.0',
-      tags: ['foda', 'estrategia', 'análisis', 'planeación']
-    },
-    {
-      id: 'briefing-creativo',
-      titulo: 'Briefing Creativo',
-      desc: 'Formato para briefar agencias o equipos de diseño: objetivos, audiencia objetivo, mensaje clave, tono de comunicación, entregables y KPIs de campaña.',
-      cat: 'marketing',
-      icono: '🎨',
-      formato: 'DOCX',
-      urlDownload: 'briefing-creativo-icadem.docx',
-      urlCopy: 'briefing-creativo-icadem.docx',
-      urlEdit: '',
-      premium: true,
-      destacada: false,
-      version: 'v1.0',
-      tags: ['briefing', 'marketing', 'agencia', 'campaña', 'creatividad']
-    },
-    {
-      id: 'pitch-deck-basico',
-      titulo: 'Pitch Deck Básico',
-      desc: 'Presentación de 12 slides investor-ready: problema, solución, mercado objetivo, modelo de negocio, tracción, equipo y ronda de inversión.',
-      cat: 'marketing',
-      icono: '🚀',
-      formato: 'PPTX',
-      urlDownload: 'pitch-deck-basico-icadem.pptx',
-      urlCopy: 'pitch-deck-basico-icadem.pptx',
-      urlEdit: '',
-      premium: true,
-      destacada: true,
-      version: 'v1.0',
-      tags: ['pitch', 'inversores', 'startup', 'presentación', 'deck']
-    },
-
-    // ===== 23 PLANTILLAS PRÓXIMAMENTE (Mayo 2026) =====
-    { id: 'estado-resultados', titulo: 'Estado de Resultados Mensual', desc: 'Reporta utilidad bruta, operativa y neta con fórmulas automáticas.', cat: 'finanzas', icono: '📈', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'control-cobranza', titulo: 'Control de Cobranza', desc: 'Antigüedad de saldos, días vencidos y gestión de cobros.', cat: 'finanzas', icono: '💳', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'control-asistencia', titulo: 'Control de Asistencia Mensual', desc: 'Registra entradas, salidas, retardos y horas extra.', cat: 'rh', icono: '⏰', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'evaluacion-360', titulo: 'Evaluación 360° de Desempeño', desc: 'Evaluación integral por competencias. Auto-evaluación y jefes.', cat: 'rh', icono: '🎯', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'plan-carrera', titulo: 'Plan de Carrera Individual', desc: 'Mapea desarrollo profesional a 1, 3 y 5 años con KPIs.', cat: 'rh', icono: '📚', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'descripcion-puesto', titulo: 'Descripción de Puesto', desc: 'Formato con responsabilidades, perfil, competencias y KPIs.', cat: 'rh', icono: '👤', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'cotizacion-pro', titulo: 'Cotización Profesional', desc: 'Cotización con marca, productos, descuentos e IVA.', cat: 'ventas', icono: '📄', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'pronostico-ventas', titulo: 'Pronóstico de Ventas Trimestral', desc: 'Proyección por vendedor, producto y región con tendencias.', cat: 'ventas', icono: '📉', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'gantt-proyecto', titulo: 'Diagrama de Gantt', desc: 'Cronograma visual con tareas, dependencias y % de avance.', cat: 'operaciones', icono: '📅', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'matriz-riesgos', titulo: 'Matriz de Riesgos Operativos', desc: 'Evalúa riesgos con probabilidad e impacto. Plan de mitigación.', cat: 'operaciones', icono: '⚠️', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'plan-marketing', titulo: 'Plan de Marketing Digital Anual', desc: 'Objetivos SMART, canales, presupuesto, calendario y KPIs.', cat: 'marketing', icono: '📣', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'calendario-contenido', titulo: 'Calendario Editorial de Contenido', desc: 'Planifica posts para redes sociales con copy y hashtags.', cat: 'marketing', icono: '📱', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'roi-campanas', titulo: 'Tracker ROI de Campañas', desc: 'Inversión vs resultado: CPL, CPA, ROAS y rentabilidad.', cat: 'marketing', icono: '💹', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'aviso-privacidad', titulo: 'Aviso de Privacidad LFPDPPP', desc: 'Aviso integral compliant con ley mexicana de datos personales.', cat: 'legal', icono: '🔒', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'terminos-condiciones', titulo: 'Términos y Condiciones Web', desc: 'Plantilla legal para sitios web, ecommerce y apps.', cat: 'legal', icono: '📜', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'reglamento-interior', titulo: 'Reglamento Interior de Trabajo', desc: 'RIT conforme a la Ley Federal del Trabajo. Listo para STPS.', cat: 'legal', icono: '⚖️', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'organigrama-empresa', titulo: 'Organigrama Empresarial', desc: 'Estructura organizacional con departamentos y datos de contacto.', cat: 'rh', icono: '🏢', formato: 'SLIDES', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'orden-compra', titulo: 'Orden de Compra Profesional', desc: 'Formato con datos del proveedor, productos y condiciones de pago.', cat: 'operaciones', icono: '🧾', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'contrato-confidencialidad', titulo: 'Acuerdo de Confidencialidad (NDA)', desc: 'NDA bilateral en español con cláusulas bajo ley mexicana.', cat: 'legal', icono: '🔐', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'analisis-competencia', titulo: 'Análisis de Competencia', desc: 'Matriz comparativa de competidores: precios, fortalezas y brechas.', cat: 'operaciones', icono: '🔍', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'plan-negocio', titulo: 'Plan de Negocio Básico', desc: 'Estructura completa para tu plan de negocios. Ideal para financiamiento.', cat: 'operaciones', icono: '💼', formato: 'DOCS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'balance-general', titulo: 'Balance General Simplificado', desc: 'Activos, pasivos y capital. Snapshot financiero de tu empresa.', cat: 'finanzas', icono: '⚖️', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' },
-    { id: 'encuesta-satisfaccion', titulo: 'Encuesta de Satisfacción de Clientes', desc: 'NPS y CSAT con análisis automático de resultados.', cat: 'ventas', icono: '⭐', formato: 'SHEETS', proximamente: true, fechaEst: 'Mayo 2026' }
-  ];
+  // ╔═══════════════════════════════════════════════════════════════╗
+  // ║ PLANTILLAS_DINAMICAS_v1 — CATÁLOGO DESDE FIRESTORE             ║
+  // ║                                                                 ║
+  // ║ Las plantillas se cargan dinámicamente desde Firestore          ║
+  // ║ /plantillas (Rules v12: read público, write solo admin).        ║
+  // ║                                                                 ║
+  // ║ Estado por plantilla:                                           ║
+  // ║   • visible: true + bloqueada: false → card normal, clic abre   ║
+  // ║   • bloqueada: true → card GRISADA con candado, clic NO abre    ║
+  // ║                                                                 ║
+  // ║ Para invitados (no autenticados): TODAS las cards se tratan     ║
+  // ║ como bloqueadas (ven el contenido pero no descargan).           ║
+  // ╚═══════════════════════════════════════════════════════════════╝
+  const PLANTILLAS = [];  // se llena dinámicamente desde Firestore
   window.PLANTILLAS = PLANTILLAS;
+
+  // Cargar plantillas desde Firestore en cuanto Firebase esté listo
+  async function cargarPlantillasDesdeFirestore() {
+    try {
+      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+      const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      let app = getApps()[0];
+      if (!app) {
+        app = initializeApp({
+          apiKey: 'AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA',
+          authDomain: 'icadem-vip.firebaseapp.com',
+          projectId: 'icadem-vip',
+          storageBucket: 'icadem-vip.firebasestorage.app',
+          messagingSenderId: '12508983783',
+          appId: '1:12508983783:web:b12be6f1fab9bb91fb8d42'
+        });
+      }
+      const db = getFirestore(app);
+      const snap = await getDocs(collection(db, 'plantillas'));
+      const lista = [];
+      snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
+      // Limpiar y rellenar el array compartido
+      PLANTILLAS.length = 0;
+      lista.forEach(p => PLANTILLAS.push(p));
+      console.log('[PLANTILLAS_DINAMICAS_v1] Cargadas', lista.length, 'plantillas desde Firestore');
+      // Re-render
+      if (typeof renderPlantillas === 'function') renderPlantillas();
+      // Actualizar contadores de categoría
+      if (typeof actualizarContadores === 'function') actualizarContadores();
+    } catch(e) {
+      console.error('[PLANTILLAS_DINAMICAS_v1] Error cargando plantillas:', e);
+    }
+  }
+  // Disparar al cargar el módulo
+  cargarPlantillasDesdeFirestore();
+
   const grid = document.getElementById('plantillas-grid');
   const empty = document.getElementById('tpl-empty');
   const filterBtns = document.querySelectorAll('.tpl-filter');
@@ -11334,8 +11202,21 @@ buildVideoteca();
     }
     if (empty) empty.style.display = 'none';
 
-    // Ordenar: destacadas primero
-    const ordenadas = [...lista].sort((a, b) => (b.destacada ? 1 : 0) - (a.destacada ? 1 : 0));
+    // PLANTILLAS_DINAMICAS_v1: Ordenamiento de 3 niveles:
+    //   1) Visibles ANTES que bloqueadas (las bloqueadas siempre al final)
+    //   2) Destacadas primero dentro de cada grupo
+    //   3) Por campo 'orden' ascendente (que asigna el admin)
+    const ordenadas = [...lista].sort((a, b) => {
+      const aBloq = (a.bloqueada === true || a.proximamente === true) ? 1 : 0;
+      const bBloq = (b.bloqueada === true || b.proximamente === true) ? 1 : 0;
+      if (aBloq !== bBloq) return aBloq - bBloq;  // visibles primero
+      const aDest = a.destacada ? 0 : 1;
+      const bDest = b.destacada ? 0 : 1;
+      if (aDest !== bDest) return aDest - bDest;  // destacadas primero
+      const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+      const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+      return aOrd - bOrd;  // por orden ascendente
+    });
 
     // Aplicar clase de vista
     if (_currentView === 'list') {
@@ -11345,10 +11226,16 @@ buildVideoteca();
     }
 
     grid.innerHTML = ordenadas.map(p => {
-      // Determinar estado de la plantilla
-      const esPremium = p.premium && !p.proximamente;
-      const esProximamente = p.proximamente;
-      const tieneUrl = esPremium && p.urlCopy && !p.urlCopy.startsWith('PENDIENTE');
+      // ╔═════════════════════════════════════════════════════════════════╗
+      // ║ PLANTILLAS_DINAMICAS_v1: estado de la plantilla                 ║
+      // ║                                                                  ║
+      // ║ • bloqueada === true → card GRISADA con candado, sin click      ║
+      // ║ • bloqueada !== true → card normal, click abre modal            ║
+      // ║                                                                  ║
+      // ║ Compatibilidad: si una plantilla vieja tiene proximamente:true, ║
+      // ║ también se trata como bloqueada (fallback de seguridad).        ║
+      // ╚═════════════════════════════════════════════════════════════════╝
+      const esBloqueada = p.bloqueada === true || p.proximamente === true;
 
       const formatColor = {
         'SHEETS': '#10b981',  // verde Google Sheets
@@ -11369,30 +11256,36 @@ buildVideoteca();
         'legal': 'Legal'
       }[p.cat] || p.cat;
 
-      if (esProximamente) {
+      // ─── CASO 1: Plantilla BLOQUEADA ─────────────────────────────
+      // Se muestra grisada con candado. NO tiene data-id ni clase
+      // tpl-card-premium (para que SOLUCION_RADICAL_v4 NO le adjunte
+      // listener). NO tiene onclick. NO se puede abrir modal.
+      if (esBloqueada) {
         return `
-          <article class="tpl-card tpl-card-soon" data-cat="${p.cat}" aria-disabled="true">
-            <div class="tpl-soon-badge">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              Próximamente · ${p.fechaEst || 'Mayo 2026'}
+          <article class="tpl-card tpl-card-locked" data-cat="${p.cat}" aria-disabled="true" style="cursor:not-allowed;opacity:0.65;position:relative">
+            <div class="tpl-locked-overlay" style="position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(11,37,84,0.92);padding:5px 11px;border-radius:99px;z-index:5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:.06em">BLOQUEADA</span>
             </div>
-            <div class="tpl-card-icon" style="opacity:0.4">${p.icono}</div>
+            <div class="tpl-card-icon" style="opacity:0.5">${p.icono || '📄'}</div>
             <div class="tpl-card-body">
               <div class="tpl-card-meta">
                 <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15;opacity:0.5">${p.formato}</span>
                 <span class="tpl-card-cat" style="opacity:0.5">${catLabel}</span>
               </div>
-              <h3 class="tpl-card-title" style="opacity:0.45">${p.titulo}</h3>
-              <p class="tpl-card-desc" style="opacity:0.35">${p.desc}</p>
+              <h3 class="tpl-card-title" style="opacity:0.55">${p.titulo}</h3>
+              <p class="tpl-card-desc" style="opacity:0.45">${p.desc || ''}</p>
             </div>
-            <span class="tpl-card-cta tpl-card-cta-soon" style="opacity:0.5">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              En desarrollo
+            <span class="tpl-card-cta tpl-card-cta-soon" style="opacity:0.5;pointer-events:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              No disponible
             </span>
           </article>
         `;
       }
 
+      // ─── CASO 2: Plantilla VISIBLE ───────────────────────────────
+      // Card normal con click que abre modal
       return `
         <article class="tpl-card tpl-card-premium ${p.destacada ? 'tpl-card-feat' : ''}" 
                  data-cat="${p.cat}" 
@@ -11404,14 +11297,14 @@ buildVideoteca();
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
             PREMIUM
           </span>
-          <div class="tpl-card-icon">${p.icono}</div>
+          <div class="tpl-card-icon">${p.icono || '📄'}</div>
           <div class="tpl-card-body">
             <div class="tpl-card-meta">
               <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15">${p.formato}</span>
               <span class="tpl-card-cat">${catLabel}</span>
             </div>
             <h3 class="tpl-card-title">${p.titulo}</h3>
-            <p class="tpl-card-desc">${p.desc}</p>
+            <p class="tpl-card-desc">${p.desc || ''}</p>
           </div>
           <div class="tpl-card-cta tpl-card-cta-modal">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
@@ -32643,6 +32536,12 @@ ${htmlImprimible}
     }
     if (p.proximamente) {
       console.log('[SOLUCION_RADICAL_v4] Plantilla proximamente');
+      return;
+    }
+    // PLANTILLAS_DINAMICAS_v1: bloqueo defensivo — si la plantilla está bloqueada,
+    // NO abrir el modal aunque algo intente llamar a esta función directamente.
+    if (p.bloqueada === true) {
+      console.log('[PLANTILLAS_DINAMICAS_v1] Plantilla bloqueada, modal NO se abre');
       return;
     }
     
