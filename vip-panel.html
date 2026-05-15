@@ -11206,10 +11206,16 @@ buildVideoteca();
     //   1) Visibles ANTES que bloqueadas (las bloqueadas siempre al final)
     //   2) Destacadas primero dentro de cada grupo
     //   3) Por campo 'orden' ascendente (que asigna el admin)
+    //
+    // PLANTILLAS_INVITADO_v1: para invitados, el bloqueo NO mueve al final
+    // (porque todas se ven iguales). Solo destacadas + orden.
+    const esInvitadoOrden = document.body.classList.contains('is-guest');
     const ordenadas = [...lista].sort((a, b) => {
-      const aBloq = (a.bloqueada === true || a.proximamente === true) ? 1 : 0;
-      const bBloq = (b.bloqueada === true || b.proximamente === true) ? 1 : 0;
-      if (aBloq !== bBloq) return aBloq - bBloq;  // visibles primero
+      if (!esInvitadoOrden) {
+        const aBloq = (a.bloqueada === true || a.proximamente === true) ? 1 : 0;
+        const bBloq = (b.bloqueada === true || b.proximamente === true) ? 1 : 0;
+        if (aBloq !== bBloq) return aBloq - bBloq;  // visibles primero
+      }
       const aDest = a.destacada ? 0 : 1;
       const bDest = b.destacada ? 0 : 1;
       if (aDest !== bDest) return aDest - bDest;  // destacadas primero
@@ -11234,8 +11240,16 @@ buildVideoteca();
       // ║                                                                  ║
       // ║ Compatibilidad: si una plantilla vieja tiene proximamente:true, ║
       // ║ también se trata como bloqueada (fallback de seguridad).        ║
+      // ║                                                                  ║
+      // ║ PLANTILLAS_INVITADO_v1: si el usuario es INVITADO (body tiene   ║
+      // ║ clase 'is-guest'), TODAS las plantillas se muestran como        ║
+      // ║ visibles (a color, sin candado). El paywall ya se encarga de    ║
+      // ║ bloquear el modal/descarga cuando dan click. Solo los VIPs      ║
+      // ║ autenticados ven cards bloqueadas grisadas.                     ║
       // ╚═════════════════════════════════════════════════════════════════╝
-      const esBloqueada = p.bloqueada === true || p.proximamente === true;
+      const esInvitado = document.body.classList.contains('is-guest');
+      const esBloqueadaReal = p.bloqueada === true || p.proximamente === true;
+      const esBloqueada = esBloqueadaReal && !esInvitado;
 
       const formatColor = {
         'SHEETS': '#10b981',  // verde Google Sheets
@@ -32540,8 +32554,12 @@ ${htmlImprimible}
     }
     // PLANTILLAS_DINAMICAS_v1: bloqueo defensivo — si la plantilla está bloqueada,
     // NO abrir el modal aunque algo intente llamar a esta función directamente.
-    if (p.bloqueada === true) {
-      console.log('[PLANTILLAS_DINAMICAS_v1] Plantilla bloqueada, modal NO se abre');
+    //
+    // PLANTILLAS_INVITADO_v1: pero si el usuario es INVITADO, dejar que el flujo
+    // normal continúe — el paywall se encarga de pedirle suscripción (no tiene
+    // sentido bloquear plantillas a alguien que ya está bloqueado del todo).
+    if (p.bloqueada === true && !document.body.classList.contains('is-guest')) {
+      console.log('[PLANTILLAS_DINAMICAS_v1] Plantilla bloqueada, modal NO se abre (usuario VIP)');
       return;
     }
     
