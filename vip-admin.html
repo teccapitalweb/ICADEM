@@ -522,6 +522,12 @@
       <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Link de descarga (Google Drive)</label>
       <input id="edit-tpl-link" type="url" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
     </div>
+    <!-- PLANTILLAS_PREVIEW_v1: campo opcional para preview embebido -->
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Link de preview embebido <span style="text-transform:none;letter-spacing:0;color:#94a3b8;font-weight:400">(opcional)</span></label>
+      <input id="edit-tpl-link-preview" type="url" placeholder="https://docs.google.com/spreadsheets/d/.../edit" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+      <p style="font-size:11px;color:#94a3b8;margin-top:6px">Si el link de descarga ya es de Google, se detecta automático. Déjalo vacío en ese caso.</p>
+    </div>
     <div style="margin-bottom:1.5rem">
       <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#475569">
         <input type="checkbox" id="edit-tpl-destacada" style="width:16px;height:16px;cursor:pointer">
@@ -805,6 +811,12 @@
           <label class="form-label">Link de descarga (Google Drive)</label>
           <input class="form-input" type="url" id="tpl-link" placeholder="https://drive.google.com/file/d/...">
           <p style="font-size:11px;color:#94a3b8;margin-top:6px">El archivo debe estar configurado como "Cualquiera con el enlace puede ver".</p>
+        </div>
+        <!-- PLANTILLAS_PREVIEW_v1: campo opcional para preview embebido -->
+        <div class="form-group" style="margin-bottom:1rem">
+          <label class="form-label">Link de preview embebido <span style="color:#94a3b8;font-weight:400">(opcional, recomendado)</span></label>
+          <input class="form-input" type="url" id="tpl-link-preview" placeholder="https://docs.google.com/spreadsheets/d/.../edit  o  https://drive.google.com/file/d/.../view">
+          <p style="font-size:11px;color:#94a3b8;margin-top:6px">Si lo dejas vacío y el link de descarga ya es de Google (Sheets/Docs/Slides/Drive), el preview se detecta automático. Si quieres un Google Sheets distinto para el preview, pégalo aquí.</p>
         </div>
         <div class="form-group" style="margin-bottom:1rem">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#475569">
@@ -1820,6 +1832,9 @@ match /databases/{database}/documents {
     const icono     = document.getElementById('tpl-icono').value.trim() || '📄';
     const desc      = document.getElementById('tpl-desc').value.trim();
     const link      = document.getElementById('tpl-link').value.trim();
+    // PLANTILLAS_PREVIEW_v1: link opcional para preview embebido
+    const linkPreview = (document.getElementById('tpl-link-preview') || {}).value
+                          ? document.getElementById('tpl-link-preview').value.trim() : '';
     const destacada = document.getElementById('tpl-destacada').checked;
     const msg       = document.getElementById('tpl-msg');
 
@@ -1834,20 +1849,26 @@ match /databases/{database}/documents {
       const ordenesVisibles = lista.filter(p => p.bloqueada !== true).map(p => typeof p.orden === 'number' ? p.orden : 0);
       const nuevoOrden = ordenesVisibles.length > 0 ? Math.max(...ordenesVisibles) + 1 : 1;
 
-      const docRef = await addDoc(collection(db, 'plantillas'), {
+      // PLANTILLAS_PREVIEW_v1: payload con urlEdit solo si se llenó
+      const payload = {
         titulo, cat, formato, icono,
         desc, urlDownload: link,
         destacada, visible: true, bloqueada: false,
         orden: nuevoOrden,
         creadoEn: serverTimestamp(),
         actualizadoEn: serverTimestamp()
-      });
+      };
+      if (linkPreview) payload.urlEdit = linkPreview;
+
+      const docRef = await addDoc(collection(db, 'plantillas'), payload);
       // Agregar al cache local
-      window._plantillas.push({
+      const cacheItem = {
         id: docRef.id, titulo, cat, formato, icono,
         desc, urlDownload: link, destacada,
         visible: true, bloqueada: false, orden: nuevoOrden
-      });
+      };
+      if (linkPreview) cacheItem.urlEdit = linkPreview;
+      window._plantillas.push(cacheItem);
       renderPlantillas(window._plantillas);
       msg.textContent = '✓ Plantilla agregada correctamente.';
       msg.style.color = '#10b981'; msg.style.display = 'block';
@@ -1856,6 +1877,7 @@ match /databases/{database}/documents {
       document.getElementById('tpl-icono').value = '';
       document.getElementById('tpl-desc').value = '';
       document.getElementById('tpl-link').value = '';
+      if (document.getElementById('tpl-link-preview')) document.getElementById('tpl-link-preview').value = '';
       document.getElementById('tpl-destacada').checked = false;
       setTimeout(() => { msg.style.display = 'none'; }, 4000);
     } catch(e) {
@@ -1953,6 +1975,10 @@ match /databases/{database}/documents {
     document.getElementById('edit-tpl-icono').value     = p.icono || '';
     document.getElementById('edit-tpl-desc').value      = p.desc || '';
     document.getElementById('edit-tpl-link').value      = p.urlDownload || '';
+    // PLANTILLAS_PREVIEW_v1: cargar urlEdit si existe
+    if (document.getElementById('edit-tpl-link-preview')) {
+      document.getElementById('edit-tpl-link-preview').value = p.urlEdit || '';
+    }
     document.getElementById('edit-tpl-destacada').checked = p.destacada === true;
     document.getElementById('modal-editar-plantilla').style.display = 'flex';
   };
@@ -1971,6 +1997,9 @@ match /databases/{database}/documents {
     const icono     = document.getElementById('edit-tpl-icono').value.trim() || '📄';
     const desc      = document.getElementById('edit-tpl-desc').value.trim();
     const link      = document.getElementById('edit-tpl-link').value.trim();
+    // PLANTILLAS_PREVIEW_v1: leer urlEdit opcional
+    const linkPreview = (document.getElementById('edit-tpl-link-preview') || {}).value
+                          ? document.getElementById('edit-tpl-link-preview').value.trim() : '';
     const destacada = document.getElementById('edit-tpl-destacada').checked;
 
     if (!id || !titulo || !link) {
@@ -1979,16 +2008,31 @@ match /databases/{database}/documents {
     }
     try {
       const { db, doc, updateDoc } = window._fb;
-      await updateDoc(doc(db, 'plantillas', id), {
+      // PLANTILLAS_PREVIEW_v1: construir payload condicional
+      const payload = {
         titulo, cat, formato, icono, desc,
         urlDownload: link, destacada,
         actualizadoEn: new Date()
-      });
+      };
+      if (linkPreview) {
+        payload.urlEdit = linkPreview;
+      } else {
+        // Si se vaciaba el campo, borrar urlEdit de Firestore
+        try {
+          const { deleteField } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+          payload.urlEdit = deleteField();
+        } catch(e) {
+          console.warn('[PLANTILLAS_PREVIEW_v1] deleteField no disponible, urlEdit no se borrará:', e);
+        }
+      }
+      await updateDoc(doc(db, 'plantillas', id), payload);
       const item = (window._plantillas || []).find(p => p.id === id);
       if (item) {
         item.titulo = titulo; item.cat = cat; item.formato = formato;
         item.icono = icono; item.desc = desc; item.urlDownload = link;
         item.destacada = destacada;
+        if (linkPreview) item.urlEdit = linkPreview;
+        else delete item.urlEdit;
       }
       renderPlantillas(window._plantillas || []);
       window.cerrarEditarPlantilla();
