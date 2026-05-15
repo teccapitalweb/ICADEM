@@ -473,6 +473,68 @@
   <p class="loading-text">Verificando acceso...</p>
 </div>
 
+<!-- PLANTILLAS_v1: modal de edición de plantilla -->
+<div id="modal-editar-plantilla" style="display:none;position:fixed;inset:0;z-index:300;align-items:center;justify-content:center;background:rgba(11,47,104,0.45);backdrop-filter:blur(4px)">
+  <div style="background:#ffffff;border-radius:12px;padding:2rem;width:90%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(11,47,104,0.25)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem">
+      <p style="font-size:15px;font-weight:700;color:#0b2554">Editar plantilla</p>
+      <button onclick="cerrarEditarPlantilla()" style="background:none;border:none;cursor:pointer;color:#94a3b8;font-size:20px;line-height:1">✕</button>
+    </div>
+    <input type="hidden" id="edit-tpl-id">
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Título</label>
+      <input id="edit-tpl-titulo" type="text" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem">
+      <div>
+        <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Categoría</label>
+        <select id="edit-tpl-cat" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none">
+          <option value="finanzas">Finanzas</option>
+          <option value="rh">RH</option>
+          <option value="ventas">Ventas</option>
+          <option value="operaciones">Operaciones</option>
+          <option value="marketing">Marketing</option>
+          <option value="legal">Legal</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Tipo</label>
+        <select id="edit-tpl-formato" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none">
+          <option>XLSX</option>
+          <option>DOCX</option>
+          <option>PPTX</option>
+          <option>PDF</option>
+          <option>SHEETS</option>
+          <option>DOCS</option>
+          <option>SLIDES</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Emoji / Icono</label>
+      <input id="edit-tpl-icono" type="text" maxlength="4" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Descripción</label>
+      <textarea id="edit-tpl-desc" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none;min-height:80px;resize:vertical" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'"></textarea>
+    </div>
+    <div style="margin-bottom:1rem">
+      <label style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#64748b;display:block;margin-bottom:.4rem">Link de descarga (Google Drive)</label>
+      <input id="edit-tpl-link" type="url" style="width:100%;padding:10px 12px;border:1px solid rgba(11,47,104,0.2);border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;color:#0b2554;outline:none" onfocus="this.style.borderColor='#1976d2'" onblur="this.style.borderColor='rgba(11,47,104,0.2)'" />
+    </div>
+    <div style="margin-bottom:1.5rem">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#475569">
+        <input type="checkbox" id="edit-tpl-destacada" style="width:16px;height:16px;cursor:pointer">
+        <span>⭐ Marcar como destacada</span>
+      </label>
+    </div>
+    <div style="display:flex;gap:.75rem">
+      <button onclick="cerrarEditarPlantilla()" style="flex:1;padding:10px;border-radius:7px;border:1px solid rgba(11,47,104,0.2);background:#ffffff;font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#475569;cursor:pointer">Cancelar</button>
+      <button onclick="guardarEditarPlantilla()" style="flex:1;padding:10px;border-radius:7px;border:none;background:linear-gradient(135deg,#0b2554,#1976d2);font-family:'Space Grotesk',sans-serif;font-size:12px;font-weight:600;color:#ffffff;cursor:pointer">Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <aside class="sidebar" id="sidebar">
@@ -505,6 +567,10 @@
     <div class="nav-item" onclick="showSection('material')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
       Material
+    </div>
+    <div class="nav-item" onclick="showSection('plantillas')">
+      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Plantillas <span class="nav-badge red">Nuevo</span>
     </div>
     <div class="nav-item" onclick="showSection('videos-admin')">
       <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
@@ -685,6 +751,79 @@
         <table>
           <thead><tr><th style="width:60px">Orden</th><th>Nombre</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr></thead>
           <tbody id="tabla-material"><tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando material...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PLANTILLAS_v1: gestión de plantillas premium (CRUD completo) -->
+    <div class="section" id="sec-plantillas">
+      <div class="page-header">
+        <p class="page-tag">Recursos</p>
+        <h1 class="page-title">Gestión de plantillas</h1>
+        <p class="page-sub">Administra las plantillas premium descargables. Las plantillas bloqueadas se muestran grisadas con candado para invitados.</p>
+      </div>
+      <div class="form-card">
+        <h3>Agregar nueva plantilla</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Título de la plantilla</label>
+            <input class="form-input" type="text" id="tpl-titulo" placeholder="Ej: Calendario Editorial 2026">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Categoría</label>
+            <select class="form-select" id="tpl-cat">
+              <option value="finanzas">Finanzas</option>
+              <option value="rh">RH</option>
+              <option value="ventas">Ventas</option>
+              <option value="operaciones">Operaciones</option>
+              <option value="marketing">Marketing</option>
+              <option value="legal">Legal</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tipo de archivo</label>
+            <select class="form-select" id="tpl-formato">
+              <option>XLSX</option>
+              <option>DOCX</option>
+              <option>PPTX</option>
+              <option>PDF</option>
+              <option>SHEETS</option>
+              <option>DOCS</option>
+              <option>SLIDES</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Emoji / Icono</label>
+            <input class="form-input" type="text" id="tpl-icono" placeholder="Ej: 📅 (opcional)" maxlength="4">
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label class="form-label">Descripción</label>
+          <textarea class="form-input" id="tpl-desc" placeholder="Ej: Plantilla mensual para planificar contenido en redes sociales con automatización." style="min-height:60px;resize:vertical;font-family:inherit"></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label class="form-label">Link de descarga (Google Drive)</label>
+          <input class="form-input" type="url" id="tpl-link" placeholder="https://drive.google.com/file/d/...">
+          <p style="font-size:11px;color:#94a3b8;margin-top:6px">El archivo debe estar configurado como "Cualquiera con el enlace puede ver".</p>
+        </div>
+        <div class="form-group" style="margin-bottom:1rem">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#475569">
+            <input type="checkbox" id="tpl-destacada" style="width:16px;height:16px;cursor:pointer">
+            <span>⭐ Marcar como destacada (aparece arriba con badge dorado)</span>
+          </label>
+        </div>
+        <button class="btn-primary" onclick="agregarPlantilla()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Agregar plantilla
+        </button>
+        <p id="tpl-msg" style="font-size:12px;margin-top:.75rem;display:none"></p>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-header"><h3>Plantillas publicadas</h3></div>
+        <table>
+          <thead><tr><th style="width:60px">Orden</th><th>Nombre</th><th>Cat.</th><th>Tipo</th><th>Estado</th><th>Acción</th></tr></thead>
+          <tbody id="tabla-plantillas"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:2rem">Cargando plantillas...</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1102,6 +1241,14 @@
       matSnap.forEach(d => window._material.push({ id: d.id, ...d.data() }));
       renderMaterial(window._material);
     } catch(e) { console.warn('Error cargando material:', e); }
+
+    // PLANTILLAS_v1: Cargar plantillas premium
+    try {
+      const tplSnap = await getDocs(collection(db, 'plantillas'));
+      window._plantillas = [];
+      tplSnap.forEach(d => window._plantillas.push({ id: d.id, ...d.data() }));
+      renderPlantillas(window._plantillas);
+    } catch(e) { console.warn('Error cargando plantillas:', e); }
 
     // Cargar cursos en vivo
     try {
@@ -1586,6 +1733,268 @@ match /databases/{database}/documents {
     } catch(e) {
       alert('No se pudo guardar. Intenta de nuevo.');
       console.error('Error guardarEditarMaterial:', e);
+    }
+  };
+
+  // ════════════════════════════════════════════════════════════════════
+  // PLANTILLAS_v1: CRUD COMPLETO DE PLANTILLAS PREMIUM
+  // Misma lógica que Material: visible/bloqueada + flechas ↑↓ + editar
+  // Colección: /plantillas en Firestore (Rules v12)
+  // ════════════════════════════════════════════════════════════════════
+
+  // Mapa de categorías para mostrar en la tabla
+  const TPL_CAT_LABELS = {
+    finanzas: 'Finanzas', rh: 'RH', ventas: 'Ventas',
+    operaciones: 'Operaciones', marketing: 'Marketing', legal: 'Legal'
+  };
+
+  function renderPlantillas(lista) {
+    const tbody = document.getElementById('tabla-plantillas');
+    if (!tbody) return;
+    if (!lista.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#64748b;padding:2rem">Sin plantillas publicadas. Agrega la primera arriba.</td></tr>';
+      return;
+    }
+    // Ordenar: visibles primero por 'orden', bloqueadas después por 'orden'
+    const items = lista.slice().sort((a, b) => {
+      const aBloq = a.bloqueada === true ? 1 : 0;
+      const bBloq = b.bloqueada === true ? 1 : 0;
+      if (aBloq !== bBloq) return aBloq - bBloq;
+      const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+      const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+      return aOrd - bOrd;
+    });
+    const visibles = items.filter(p => p.bloqueada !== true);
+    const bloqueadas = items.filter(p => p.bloqueada === true);
+    let html = '';
+    items.forEach((p, idx) => {
+      const bloqueada = p.bloqueada === true;
+      // Separadores de grupos
+      if (bloqueada && idx > 0 && items[idx-1].bloqueada !== true) {
+        html += `<tr style="background:#f1f5f9"><td colspan="6" style="padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#64748b">— Bloqueadas (${bloqueadas.length}) —</td></tr>`;
+      } else if (!bloqueada && idx === 0 && visibles.length > 0) {
+        html += `<tr style="background:#ecfdf5"><td colspan="6" style="padding:6px 14px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:#065f46">— Visibles (${visibles.length}) —</td></tr>`;
+      }
+      const grupo = bloqueada ? bloqueadas : visibles;
+      const posEnGrupo = grupo.findIndex(x => x.id === p.id);
+      const esPrimero = posEnGrupo === 0;
+      const esUltimo = posEnGrupo === grupo.length - 1;
+      const destacadaBadge = p.destacada === true
+        ? '<span style="background:linear-gradient(135deg,#fef3c7,#fde68a);color:#78350f;border:1px solid #f59e0b;font-size:9px;font-weight:700;padding:2px 6px;border-radius:99px;margin-left:6px">⭐ DESTACADA</span>'
+        : '';
+      const badge = bloqueada
+        ? '<span class="badge badge-red">🔒 Bloqueada</span>'
+        : '<span class="badge badge-green">🟢 Visible</span>';
+      const btnToggle = bloqueada
+        ? `<button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#059669,#10b981)" onclick="togglePlantilla('${p.id}', false)">Hacer visible</button>`
+        : `<button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#92400e,#d97706)" onclick="togglePlantilla('${p.id}', true)">Bloquear</button>`;
+      const btnUp = esPrimero
+        ? `<button style="padding:3px 6px;font-size:11px;background:#f1f5f9;color:#cbd5e1;border:none;border-radius:4px;cursor:not-allowed" disabled>▲</button>`
+        : `<button style="padding:3px 6px;font-size:11px;background:#e0e7ff;color:#3730a3;border:none;border-radius:4px;cursor:pointer" onclick="moverPlantilla('${p.id}', -1)" title="Subir">▲</button>`;
+      const btnDown = esUltimo
+        ? `<button style="padding:3px 6px;font-size:11px;background:#f1f5f9;color:#cbd5e1;border:none;border-radius:4px;cursor:not-allowed" disabled>▼</button>`
+        : `<button style="padding:3px 6px;font-size:11px;background:#e0e7ff;color:#3730a3;border:none;border-radius:4px;cursor:pointer" onclick="moverPlantilla('${p.id}', 1)" title="Bajar">▼</button>`;
+      const catLabel = TPL_CAT_LABELS[p.cat] || p.cat || '—';
+      const iconoTxt = p.icono || '📄';
+      html += `<tr>
+        <td style="white-space:nowrap;width:60px">${btnUp} ${btnDown}</td>
+        <td style="font-weight:600;color:#0d47a1">${iconoTxt} ${p.titulo || '(sin título)'}${destacadaBadge}</td>
+        <td style="font-size:11px;color:#475569">${catLabel}</td>
+        <td><span class="badge badge-blue">${p.formato || '—'}</span></td>
+        <td>${badge}</td>
+        <td style="white-space:nowrap">
+          <button class="btn-primary" style="padding:4px 10px;font-size:10px;background:linear-gradient(135deg,#0b2554,#1565c0);margin-right:4px" onclick="abrirEditarPlantilla('${p.id}')">Editar</button>
+          ${btnToggle}
+          <button class="btn-danger" style="padding:4px 10px;font-size:10px;margin-left:4px" onclick="eliminarPlantilla('${p.id}')">Eliminar</button>
+        </td>
+      </tr>`;
+    });
+    tbody.innerHTML = html;
+  }
+
+  // Agregar nueva plantilla
+  window.agregarPlantilla = async () => {
+    const titulo    = document.getElementById('tpl-titulo').value.trim();
+    const cat       = document.getElementById('tpl-cat').value;
+    const formato   = document.getElementById('tpl-formato').value;
+    const icono     = document.getElementById('tpl-icono').value.trim() || '📄';
+    const desc      = document.getElementById('tpl-desc').value.trim();
+    const link      = document.getElementById('tpl-link').value.trim();
+    const destacada = document.getElementById('tpl-destacada').checked;
+    const msg       = document.getElementById('tpl-msg');
+
+    if (!titulo || !link) {
+      msg.textContent = '⚠ Título y link son requeridos.';
+      msg.style.color = '#dc2626'; msg.style.display = 'block';
+      return;
+    }
+    try {
+      // Calcular orden: va al final de los visibles
+      const lista = window._plantillas || [];
+      const ordenesVisibles = lista.filter(p => p.bloqueada !== true).map(p => typeof p.orden === 'number' ? p.orden : 0);
+      const nuevoOrden = ordenesVisibles.length > 0 ? Math.max(...ordenesVisibles) + 1 : 1;
+
+      const docRef = await addDoc(collection(db, 'plantillas'), {
+        titulo, cat, formato, icono,
+        desc, urlDownload: link,
+        destacada, visible: true, bloqueada: false,
+        orden: nuevoOrden,
+        creadoEn: serverTimestamp(),
+        actualizadoEn: serverTimestamp()
+      });
+      // Agregar al cache local
+      window._plantillas.push({
+        id: docRef.id, titulo, cat, formato, icono,
+        desc, urlDownload: link, destacada,
+        visible: true, bloqueada: false, orden: nuevoOrden
+      });
+      renderPlantillas(window._plantillas);
+      msg.textContent = '✓ Plantilla agregada correctamente.';
+      msg.style.color = '#10b981'; msg.style.display = 'block';
+      // Limpiar form
+      document.getElementById('tpl-titulo').value = '';
+      document.getElementById('tpl-icono').value = '';
+      document.getElementById('tpl-desc').value = '';
+      document.getElementById('tpl-link').value = '';
+      document.getElementById('tpl-destacada').checked = false;
+      setTimeout(() => { msg.style.display = 'none'; }, 4000);
+    } catch(e) {
+      console.error('Error agregarPlantilla:', e);
+      let detalle = e.message || 'Error desconocido';
+      if (e.code === 'permission-denied') detalle = 'Sin permisos. Verifica que tu cuenta sea admin y las Rules v12 estén aplicadas.';
+      msg.textContent = '❌ ' + detalle;
+      msg.style.color = '#dc2626'; msg.style.display = 'block';
+    }
+  };
+
+  // Toggle visible/bloqueada
+  window.togglePlantilla = async (id, bloqueada) => {
+    try {
+      const { db, doc, updateDoc } = window._fb;
+      const lista = window._plantillas || [];
+      let nuevoOrden;
+      if (bloqueada) {
+        // Va al inicio de bloqueadas
+        const ordenes = lista.filter(p => p.bloqueada === true && p.id !== id).map(p => typeof p.orden === 'number' ? p.orden : 9999);
+        nuevoOrden = ordenes.length > 0 ? Math.min(...ordenes) - 1 : 0;
+      } else {
+        // Va al final de visibles
+        const ordenes = lista.filter(p => p.bloqueada !== true && p.id !== id).map(p => typeof p.orden === 'number' ? p.orden : 0);
+        nuevoOrden = ordenes.length > 0 ? Math.max(...ordenes) + 1 : 0;
+      }
+      await updateDoc(doc(db, 'plantillas', id), { bloqueada, orden: nuevoOrden, actualizadoEn: new Date() });
+      const item = lista.find(p => p.id === id);
+      if (item) { item.bloqueada = bloqueada; item.orden = nuevoOrden; }
+      renderPlantillas(lista);
+    } catch(e) {
+      alert('No se pudo cambiar el estado de la plantilla.');
+      console.error('Error togglePlantilla:', e);
+    }
+  };
+
+  // Mover arriba/abajo dentro de su grupo
+  window.moverPlantilla = async (id, delta) => {
+    try {
+      const { db, doc, updateDoc } = window._fb;
+      const lista = window._plantillas || [];
+      const item = lista.find(p => p.id === id);
+      if (!item) return;
+      const grupo = lista.filter(p => (p.bloqueada === true) === (item.bloqueada === true))
+        .sort((a, b) => {
+          const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+          const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+          return aOrd - bOrd;
+        });
+      const idx = grupo.findIndex(p => p.id === id);
+      const idxVecino = idx + delta;
+      if (idxVecino < 0 || idxVecino >= grupo.length) return;
+      const vecino = grupo[idxVecino];
+      const ordenItem = typeof item.orden === 'number' ? item.orden : 9999;
+      const ordenVecino = typeof vecino.orden === 'number' ? vecino.orden : 9999;
+      const ordenItemFinal = ordenVecino;
+      const ordenVecinoFinal = ordenItem;
+      await Promise.all([
+        updateDoc(doc(db, 'plantillas', item.id), { orden: ordenItemFinal }),
+        updateDoc(doc(db, 'plantillas', vecino.id), { orden: ordenVecinoFinal })
+      ]);
+      item.orden = ordenItemFinal;
+      vecino.orden = ordenVecinoFinal;
+      renderPlantillas(lista);
+    } catch(e) {
+      alert('No se pudo mover la plantilla.');
+      console.error('Error moverPlantilla:', e);
+    }
+  };
+
+  // Eliminar plantilla (con confirmación)
+  window.eliminarPlantilla = async (id) => {
+    const item = (window._plantillas || []).find(p => p.id === id);
+    const nombre = item ? item.titulo : 'esta plantilla';
+    if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
+    try {
+      const { db, doc, deleteDoc } = window._fb;
+      await deleteDoc(doc(db, 'plantillas', id));
+      window._plantillas = (window._plantillas || []).filter(p => p.id !== id);
+      renderPlantillas(window._plantillas);
+    } catch(e) {
+      alert('No se pudo eliminar la plantilla.');
+      console.error('Error eliminarPlantilla:', e);
+    }
+  };
+
+  // Abrir modal de edición
+  window.abrirEditarPlantilla = (id) => {
+    const p = (window._plantillas || []).find(x => x.id === id);
+    if (!p) { alert('Plantilla no encontrada.'); return; }
+    document.getElementById('edit-tpl-id').value        = p.id;
+    document.getElementById('edit-tpl-titulo').value    = p.titulo || '';
+    document.getElementById('edit-tpl-cat').value       = p.cat || 'finanzas';
+    document.getElementById('edit-tpl-formato').value   = p.formato || 'XLSX';
+    document.getElementById('edit-tpl-icono').value     = p.icono || '';
+    document.getElementById('edit-tpl-desc').value      = p.desc || '';
+    document.getElementById('edit-tpl-link').value      = p.urlDownload || '';
+    document.getElementById('edit-tpl-destacada').checked = p.destacada === true;
+    document.getElementById('modal-editar-plantilla').style.display = 'flex';
+  };
+
+  // Cerrar modal sin guardar
+  window.cerrarEditarPlantilla = () => {
+    document.getElementById('modal-editar-plantilla').style.display = 'none';
+  };
+
+  // Guardar cambios del modal
+  window.guardarEditarPlantilla = async () => {
+    const id        = document.getElementById('edit-tpl-id').value;
+    const titulo    = document.getElementById('edit-tpl-titulo').value.trim();
+    const cat       = document.getElementById('edit-tpl-cat').value;
+    const formato   = document.getElementById('edit-tpl-formato').value;
+    const icono     = document.getElementById('edit-tpl-icono').value.trim() || '📄';
+    const desc      = document.getElementById('edit-tpl-desc').value.trim();
+    const link      = document.getElementById('edit-tpl-link').value.trim();
+    const destacada = document.getElementById('edit-tpl-destacada').checked;
+
+    if (!id || !titulo || !link) {
+      alert('Título y link son obligatorios.');
+      return;
+    }
+    try {
+      const { db, doc, updateDoc } = window._fb;
+      await updateDoc(doc(db, 'plantillas', id), {
+        titulo, cat, formato, icono, desc,
+        urlDownload: link, destacada,
+        actualizadoEn: new Date()
+      });
+      const item = (window._plantillas || []).find(p => p.id === id);
+      if (item) {
+        item.titulo = titulo; item.cat = cat; item.formato = formato;
+        item.icono = icono; item.desc = desc; item.urlDownload = link;
+        item.destacada = destacada;
+      }
+      renderPlantillas(window._plantillas || []);
+      window.cerrarEditarPlantilla();
+    } catch(e) {
+      alert('No se pudo guardar. Intenta de nuevo.');
+      console.error('Error guardarEditarPlantilla:', e);
     }
   };
 
