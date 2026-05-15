@@ -8746,6 +8746,19 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
 
 
     console.log('[Auth] Modo INVITADO activado.');
+
+    // PLANTILLAS_INVITADO_v2: las plantillas se renderizan ANTES de saber que el
+    // usuario es invitado (carga asíncrona de Firestore vs auth). Aquí forzamos
+    // un re-render para que las plantillas bloqueadas se muestren a color como
+    // las demás (el paywall ya intercepta cualquier clic).
+    if (typeof window.renderPlantillas === 'function') {
+      try {
+        window.renderPlantillas();
+        console.log('[PLANTILLAS_INVITADO_v2] Re-render disparado tras activar invitado');
+      } catch(e) {
+        console.warn('[PLANTILLAS_INVITADO_v2] No se pudo re-renderizar plantillas:', e);
+      }
+    }
   }
 
   function reemplazarSuscripcionInvitado() {
@@ -11445,6 +11458,11 @@ buildVideoteca();
   // Render inicial
   actualizarContadores();
   renderPlantillas();
+
+  // PLANTILLAS_INVITADO_v2: exponer renderPlantillas en window para que el
+  // flujo de auth (activarModoInvitado / detectarVIP) pueda forzar re-render
+  // cuando cambie el modo (invitado ↔ VIP).
+  window.renderPlantillas = renderPlantillas;
 })();
 </script>
 
