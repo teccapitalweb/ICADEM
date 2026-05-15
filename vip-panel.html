@@ -21607,6 +21607,50 @@ input#tpl-search-input {
 }
 @keyframes is-spin { to { transform: rotate(360deg); } }
 
+/* ICADEM_ACCOUNT_LINK_v1: footer "Ya tengo cuenta / Cambiar de cuenta" */
+.is-account-link-footer {
+  margin-top: 1.5rem;
+  padding: 0.9rem 1.25rem;
+  background: rgba(11,37,84,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  text-align: center;
+}
+.is-account-link-footer p {
+  margin: 0;
+  font-size: 12.5px;
+  color: rgba(255,255,255,0.7);
+  font-family: 'Inter', sans-serif;
+}
+.is-account-link-footer p strong {
+  color: var(--is-gold);
+  font-weight: 600;
+}
+.is-account-link-footer button {
+  background: none;
+  border: none;
+  color: var(--is-gold);
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color .2s;
+}
+.is-account-link-footer button:hover { color: var(--is-gold-lt); }
+.is-account-link-footer button:disabled { opacity: 0.5; cursor: not-allowed; }
+@media (max-width: 540px) {
+  .is-account-link-footer { flex-direction: column; gap: 0.3rem; padding: 0.85rem 1rem; }
+  .is-account-link-footer p, .is-account-link-footer button { font-size: 12px; }
+}
+
 .is-back-link {
   display: inline-flex;
   align-items: center;
@@ -21921,6 +21965,11 @@ input#tpl-search-input {
             <button class="is-plan-cta" data-plan="anual">Adquirir anual</button>
           </div>
         </div>
+        <!-- ICADEM_ACCOUNT_LINK_v1: link "Ya tengo cuenta" (texto dinámico según sesión) -->
+        <div class="is-account-link-footer" id="is-account-link-planes">
+          <p id="is-account-link-planes-text">¿Ya tienes una cuenta ICADEM?</p>
+          <button type="button" id="is-btn-ir-login-planes">Iniciar sesión →</button>
+        </div>
       </div>
 
       <!-- VISTA 2: CUENTA -->
@@ -22008,6 +22057,11 @@ input#tpl-search-input {
             <div class="is-spinner"></div>
             Cargando pago seguro de Stripe…
           </div>
+        </div>
+        <!-- ICADEM_ACCOUNT_LINK_v1: link "Cambiar de cuenta" en paso pago -->
+        <div class="is-account-link-footer" id="is-account-link-pago">
+          <p id="is-account-link-pago-text">¿No es tu cuenta?</p>
+          <button type="button" id="is-btn-cambiar-cuenta-pago">Cambiar de cuenta →</button>
         </div>
       </div>
 
@@ -22100,6 +22154,10 @@ function setVista(nombre) {
       }
     } catch(e) { /* silencioso */ }
   }
+
+  // ICADEM_ACCOUNT_LINK_v1: actualizar texto del footer "Ya tengo cuenta / Cambiar de cuenta"
+  if (nombre === 'planes' && typeof _icademActualizarFooterPlanes === 'function') _icademActualizarFooterPlanes();
+  if (nombre === 'pago' && typeof _icademActualizarFooterPago === 'function') _icademActualizarFooterPago();
 }
 
 function abrirModal(opciones) {
@@ -22183,6 +22241,80 @@ function cerrarModal() {
 }
 
 window.icademStripe = { abrir: abrirModal, cerrar: cerrarModal };
+
+// ─── ICADEM_ACCOUNT_LINK_v1 ────────────────────────────────────
+// Botones "Ya tengo cuenta" (paso 1) y "Cambiar de cuenta" (paso 3).
+// Ambos llevan al paso 2 (cuenta). Si hay sesión activa, la cierra primero.
+async function _icademIrACuentaConLogout() {
+  const auth = getAuth();
+  if (auth.currentUser) {
+    try {
+      const { signOut } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js');
+      await signOut(auth);
+      console.log('%c[ICADEM_ACCOUNT_LINK_v1] Sesión cerrada para cambiar de cuenta','color:#f5d77a;font-weight:bold');
+    } catch(e) {
+      console.warn('[ICADEM_ACCOUNT_LINK_v1] Error al cerrar sesión:', e);
+    }
+  }
+  // Destruir Stripe Embedded si está montado (para evitar checkout fantasma)
+  if (_embeddedCheckout) {
+    try { _embeddedCheckout.destroy(); } catch(e) {}
+    _embeddedCheckout = null;
+    const mount = document.getElementById('is-stripe-mount');
+    if (mount) mount.innerHTML = '<div class="is-loading"><div class="is-spinner"></div>Cargando pago seguro de Stripe…</div>';
+  }
+  setVista('cuenta');
+  _icademActualizarFooterPlanes();
+}
+
+// Texto dinámico del footer del paso 1 según sesión
+function _icademActualizarFooterPlanes() {
+  const auth = getAuth();
+  const text = document.getElementById('is-account-link-planes-text');
+  const btn = document.getElementById('is-btn-ir-login-planes');
+  if (!text || !btn) return;
+  if (auth.currentUser && auth.currentUser.email) {
+    text.innerHTML = 'Sesión iniciada como <strong>' + auth.currentUser.email + '</strong>';
+    btn.textContent = '¿Usar otra cuenta? →';
+  } else {
+    text.textContent = '¿Ya tienes una cuenta ICADEM?';
+    btn.textContent = 'Iniciar sesión →';
+  }
+}
+
+// Texto dinámico del footer del paso 3
+function _icademActualizarFooterPago() {
+  const auth = getAuth();
+  const text = document.getElementById('is-account-link-pago-text');
+  if (!text) return;
+  if (auth.currentUser && auth.currentUser.email) {
+    text.innerHTML = 'Pagando con <strong>' + auth.currentUser.email + '</strong>';
+  } else {
+    text.textContent = '¿No es tu cuenta?';
+  }
+}
+
+// Listeners de los botones
+const _btnIrLoginPlanes = document.getElementById('is-btn-ir-login-planes');
+if (_btnIrLoginPlanes) _btnIrLoginPlanes.addEventListener('click', _icademIrACuentaConLogout);
+const _btnCambiarCuentaPago = document.getElementById('is-btn-cambiar-cuenta-pago');
+if (_btnCambiarCuentaPago) _btnCambiarCuentaPago.addEventListener('click', _icademIrACuentaConLogout);
+
+// Actualizar al cargar el módulo (por si el modal se abre directo a planes con vista_inicial)
+_icademActualizarFooterPlanes();
+_icademActualizarFooterPago();
+
+// Refrescar textos cuando Firebase confirma la sesión (carga async después del DOM)
+try {
+  const _authForFooter = getAuth();
+  if (_authForFooter && typeof _authForFooter.onAuthStateChanged === 'function') {
+    _authForFooter.onAuthStateChanged(() => {
+      _icademActualizarFooterPlanes();
+      _icademActualizarFooterPago();
+    });
+  }
+} catch(e) { /* silencioso, no es crítico */ }
+// ─── FIN ICADEM_ACCOUNT_LINK_v1 ────────────────────────────────
 
 // MODIFICADO: login directo con Google — expuesto desde este módulo que ya tiene
 // GoogleAuthProvider y signInWithPopup importados. El botón "Iniciar sesión" lo usa.
