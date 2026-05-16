@@ -38042,31 +38042,42 @@ html body:not(.modo-dia) [class*="topbar-plan"]:hover {
   box-shadow: none !important;
 }
 
-/* ═══════════════════ CAMPANA (.notif-bell) — refuerzo modo noche v3 ═════ */
-/* v3: subimos a 0.22 fondo / 0.62 borde / icono blanco puro + stroke 2.2.
-   Razón: la campana usa BLANCO contra fondo oscuro casi-negro. A diferencia
-   del sol/luna y el banner (que usan DORADO sobre oscuro = contraste de
-   color), la campana solo tiene contraste por OPACIDAD. Necesita valores
-   más altos para verse con peso visual equivalente. */
+/* ═══════════════════ CAMPANA (.notif-bell) — refuerzo modo noche v4 ═════ */
+/* v4 - ENFOQUE CORRECTO (outline button):
+   El problema de v3 era que subí el FONDO blanco a 0.22, lo que hacía el
+   círculo claro POR DENTRO. Eso compite con el icono blanco → blanco sobre
+   blanco translúcido = invisible.
+
+   CORRECCIÓN: fondo casi transparente (0.04, casi invisible) + borde sólido
+   muy visible (0.70) + icono blanco PURO con stroke grueso. Así el icono
+   se ve sobre el FONDO OSCURO REAL (no sobre nuestro fondo blanco),
+   maximizando contraste. */
 html body:not(.modo-dia) .notif-bell {
-  background: rgba(255, 255, 255, 0.22) !important;
-  background-color: rgba(255, 255, 255, 0.22) !important;
-  border: 1px solid rgba(255, 255, 255, 0.62) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.70) !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20) !important;
+  box-shadow: none !important;
 }
 html body:not(.modo-dia) .notif-bell:hover {
-  background: rgba(255, 255, 255, 0.32) !important;
-  background-color: rgba(255, 255, 255, 0.32) !important;
-  border-color: rgba(255, 255, 255, 0.85) !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+  background: rgba(255, 255, 255, 0.10) !important;
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  border-color: rgba(255, 255, 255, 0.95) !important;
 }
 html body:not(.modo-dia) .notif-bell .notif-bell-icon,
-html body:not(.modo-dia) .notif-bell svg {
+html body:not(.modo-dia) .notif-bell svg,
+html body:not(.modo-dia) #notif-bell-btn .notif-bell-icon,
+html body:not(.modo-dia) #notif-bell-btn svg {
   color: #ffffff !important;
   stroke: #ffffff !important;
-  stroke-width: 2.2 !important;
+  stroke-width: 2 !important;
+  fill: none !important;
+  opacity: 1 !important;
+}
+html body:not(.modo-dia) .notif-bell svg path,
+html body:not(.modo-dia) #notif-bell-btn svg path {
+  stroke: #ffffff !important;
   fill: none !important;
 }
 
