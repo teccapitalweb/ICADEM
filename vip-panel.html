@@ -38043,25 +38043,28 @@ html body:not(.modo-dia) [class*="topbar-plan"]:hover {
 }
 
 /* ═══════════════════ CAMPANA (.notif-bell) — refuerzo modo noche ═════════ */
-/* La campana original tenía rgba(255,255,255,0.08) que se transparenta.
-   La reforzamos para que matchee con el sol/luna y el banner. */
+/* La campana original tenía rgba(255,255,255,0.08)/0.15 que se transparenta.
+   v2: subimos a 0.14/0.45 para igualar el peso visual del sol/luna y banner.
+   El icono interno también se refuerza a #f1f5f9 (casi blanco) y stroke 2px. */
 html body:not(.modo-dia) .notif-bell {
-  background: rgba(255, 255, 255, 0.10) !important;
-  background-color: rgba(255, 255, 255, 0.10) !important;
-  border: 1px solid rgba(255, 255, 255, 0.28) !important;
-  color: #e2e8f0 !important;
-  -webkit-text-fill-color: #e2e8f0 !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  background-color: rgba(255, 255, 255, 0.14) !important;
+  border: 1px solid rgba(255, 255, 255, 0.45) !important;
+  color: #f1f5f9 !important;
+  -webkit-text-fill-color: #f1f5f9 !important;
   box-shadow: none !important;
 }
 html body:not(.modo-dia) .notif-bell:hover {
-  background: rgba(255, 255, 255, 0.18) !important;
-  background-color: rgba(255, 255, 255, 0.18) !important;
-  border-color: rgba(255, 255, 255, 0.42) !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  background-color: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(255, 255, 255, 0.65) !important;
 }
 html body:not(.modo-dia) .notif-bell .notif-bell-icon,
 html body:not(.modo-dia) .notif-bell svg {
-  color: #e2e8f0 !important;
-  stroke: #e2e8f0 !important;
+  color: #f1f5f9 !important;
+  stroke: #f1f5f9 !important;
+  stroke-width: 2 !important;
+  fill: none !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
