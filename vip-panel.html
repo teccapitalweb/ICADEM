@@ -37832,6 +37832,238 @@ html body.modo-dia .docs-coming-soon {
   -webkit-backdrop-filter: none !important;
 }
 
+/* ══════════════════════════════════════════════════════════════════════════
+   TOPBAR_ICONS_ELEGANT_v1 — Sol/luna y banner "Modo" estilo CAMPANA
+   ──────────────────────────────────────────────────────────────────────────
+   OBJETIVO: Que el botón de modo (#btn-modo-toggle) y el banner del plan
+   (.topbar-plan) usen el mismo lenguaje visual que la campana de
+   notificaciones (.notif-bell): outline sutil con fondo translúcido y
+   borde fino — elegante y minimalista, no llamativo.
+
+   Patrón base de la campana (línea 125):
+     background: rgba(11,47,104,0.08);
+     border: 1px solid rgba(11,47,104,0.2);
+     color: #0b2f68;
+     border-radius: 50%;
+
+   Aquí usamos tonos DORADOS sutiles para mantener la identidad visual de
+   estos dos elementos (relacionados con VIP/modo), pero con la misma
+   discreción y elegancia.
+
+   Specificity (0,1,1,2-3) + !important → vence al CSS modo día gigante
+   (que usa body.modo-dia #btn-modo-toggle con specificity 0,1,1,1).
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════ SOL / LUNA (#btn-modo-toggle) ═══════════════════════ */
+
+/* ──── MODO DÍA ──── */
+html body.modo-dia #btn-modo-toggle,
+html body.modo-dia button#btn-modo-toggle {
+  background: rgba(217, 119, 6, 0.08) !important;
+  background-color: rgba(217, 119, 6, 0.08) !important;
+  background-image: none !important;
+  border: 1px solid rgba(217, 119, 6, 0.22) !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #B45309 !important;
+  -webkit-text-fill-color: #B45309 !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  animation: none !important;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease !important;
+  position: relative !important;
+}
+html body.modo-dia #btn-modo-toggle:hover,
+html body.modo-dia button#btn-modo-toggle:hover {
+  background: rgba(217, 119, 6, 0.14) !important;
+  background-color: rgba(217, 119, 6, 0.14) !important;
+  background-image: none !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
+  transform: scale(1.05) !important;
+  box-shadow: none !important;
+}
+html body.modo-dia #btn-modo-toggle svg,
+html body.modo-dia #btn-modo-toggle svg * {
+  width: 18px !important;
+  height: 18px !important;
+  color: #B45309 !important;
+  fill: none !important;
+  stroke: #B45309 !important;
+  -webkit-text-fill-color: #B45309 !important;
+}
+/* Algunos íconos pueden venir con fill="currentColor" o paths sólidos */
+html body.modo-dia #btn-modo-toggle svg path[fill]:not([fill="none"]),
+html body.modo-dia #btn-modo-toggle svg circle[fill]:not([fill="none"]) {
+  fill: #B45309 !important;
+}
+
+/* ──── MODO NOCHE ──── */
+/* Opacidades reforzadas para que el ícono se vea bien sobre el fondo oscuro,
+   superando la sutileza de la campana que se transparenta un poco. */
+html body:not(.modo-dia) #btn-modo-toggle,
+html body:not(.modo-dia) button#btn-modo-toggle {
+  background: rgba(245, 215, 122, 0.10) !important;
+  background-color: rgba(245, 215, 122, 0.10) !important;
+  background-image: none !important;
+  border: 1px solid rgba(245, 215, 122, 0.45) !important;
+  border-radius: 50% !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  animation: none !important;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease !important;
+  position: relative !important;
+}
+html body:not(.modo-dia) #btn-modo-toggle:hover,
+html body:not(.modo-dia) button#btn-modo-toggle:hover {
+  background: rgba(245, 215, 122, 0.18) !important;
+  background-color: rgba(245, 215, 122, 0.18) !important;
+  background-image: none !important;
+  border-color: rgba(245, 215, 122, 0.65) !important;
+  transform: scale(1.05) !important;
+  box-shadow: none !important;
+}
+html body:not(.modo-dia) #btn-modo-toggle svg,
+html body:not(.modo-dia) #btn-modo-toggle svg * {
+  width: 18px !important;
+  height: 18px !important;
+  color: #f5d77a !important;
+  fill: none !important;
+  stroke: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+}
+html body:not(.modo-dia) #btn-modo-toggle svg path[fill]:not([fill="none"]),
+html body:not(.modo-dia) #btn-modo-toggle svg circle[fill]:not([fill="none"]) {
+  fill: #f5d77a !important;
+}
+
+/* ═══════════════════ BANNER PLAN (.topbar-plan "MODO INVITADO") ═════════ */
+
+/* ──── MODO DÍA ──── */
+html body.modo-dia .topbar-plan,
+html body.modo-dia [class*="topbar-plan"] {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 7px 16px !important;
+  background: rgba(217, 119, 6, 0.06) !important;
+  background-color: rgba(217, 119, 6, 0.06) !important;
+  background-image: none !important;
+  border: 1px solid rgba(217, 119, 6, 0.22) !important;
+  border-radius: 999px !important;
+  color: #92400E !important;
+  -webkit-text-fill-color: #92400E !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  overflow: hidden !important;
+  transition: background 0.2s ease, border-color 0.2s ease !important;
+  animation: none !important;
+}
+html body.modo-dia .topbar-plan::before,
+html body.modo-dia .topbar-plan::after,
+html body.modo-dia [class*="topbar-plan"]::before,
+html body.modo-dia [class*="topbar-plan"]::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+html body.modo-dia .topbar-plan:hover,
+html body.modo-dia [class*="topbar-plan"]:hover {
+  background: rgba(217, 119, 6, 0.12) !important;
+  background-color: rgba(217, 119, 6, 0.12) !important;
+  border-color: rgba(217, 119, 6, 0.35) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ──── MODO NOCHE ──── */
+/* Opacidades reforzadas para legibilidad sólida sobre fondo oscuro */
+html body:not(.modo-dia) .topbar-plan,
+html body:not(.modo-dia) [class*="topbar-plan"] {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 7px 16px !important;
+  background: rgba(245, 215, 122, 0.10) !important;
+  background-color: rgba(245, 215, 122, 0.10) !important;
+  background-image: none !important;
+  border: 1px solid rgba(245, 215, 122, 0.45) !important;
+  border-radius: 999px !important;
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.10em !important;
+  text-transform: uppercase !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  overflow: hidden !important;
+  transition: background 0.2s ease, border-color 0.2s ease !important;
+  animation: none !important;
+}
+html body:not(.modo-dia) .topbar-plan::before,
+html body:not(.modo-dia) .topbar-plan::after,
+html body:not(.modo-dia) [class*="topbar-plan"]::before,
+html body:not(.modo-dia) [class*="topbar-plan"]::after {
+  display: none !important;
+  content: none !important;
+  animation: none !important;
+}
+html body:not(.modo-dia) .topbar-plan:hover,
+html body:not(.modo-dia) [class*="topbar-plan"]:hover {
+  background: rgba(245, 215, 122, 0.18) !important;
+  background-color: rgba(245, 215, 122, 0.18) !important;
+  border-color: rgba(245, 215, 122, 0.65) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ═══════════════════ CAMPANA (.notif-bell) — refuerzo modo noche ═════════ */
+/* La campana original tenía rgba(255,255,255,0.08) que se transparenta.
+   La reforzamos para que matchee con el sol/luna y el banner. */
+html body:not(.modo-dia) .notif-bell {
+  background: rgba(255, 255, 255, 0.10) !important;
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  color: #e2e8f0 !important;
+  -webkit-text-fill-color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+html body:not(.modo-dia) .notif-bell:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  background-color: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(255, 255, 255, 0.42) !important;
+}
+html body:not(.modo-dia) .notif-bell .notif-bell-icon,
+html body:not(.modo-dia) .notif-bell svg {
+  color: #e2e8f0 !important;
+  stroke: #e2e8f0 !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════
    CERT_PRINT_FIX_v3 — Imprimir certificado clonado a contenedor
    dedicado (#__cert-print-container) que es hijo directo de <body>
