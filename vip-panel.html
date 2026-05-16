@@ -38042,42 +38042,58 @@ html body:not(.modo-dia) [class*="topbar-plan"]:hover {
   box-shadow: none !important;
 }
 
-/* ═══════════════════ CAMPANA (.notif-bell) — refuerzo modo noche v4 ═════ */
-/* v4 - ENFOQUE CORRECTO (outline button):
-   El problema de v3 era que subí el FONDO blanco a 0.22, lo que hacía el
-   círculo claro POR DENTRO. Eso compite con el icono blanco → blanco sobre
-   blanco translúcido = invisible.
+/* ═══════════════════ CAMPANA (.notif-bell) — fix DEFINITIVO modo noche v5 */
+/* ──── RAÍZ DEL PROBLEMA DESCUBIERTA ────
+   El topbar SIEMPRE tiene fondo BLANCO (#FFFFFF !important en línea 3432),
+   en TODOS los modos. El topbar NO cambia entre día/noche, solo cambia el
+   CONTENIDO debajo del topbar.
 
-   CORRECCIÓN: fondo casi transparente (0.04, casi invisible) + borde sólido
-   muy visible (0.70) + icono blanco PURO con stroke grueso. Así el icono
-   se ve sobre el FONDO OSCURO REAL (no sobre nuestro fondo blanco),
-   maximizando contraste. */
-html body:not(.modo-dia) .notif-bell {
-  background: rgba(255, 255, 255, 0.04) !important;
-  background-color: rgba(255, 255, 255, 0.04) !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.70) !important;
-  color: #ffffff !important;
-  -webkit-text-fill-color: #ffffff !important;
+   Las versiones v1-v4 fallaban porque aplicaban estilos BLANCOS al icono y
+   borde de la campana — asumiendo que el topbar era oscuro en modo noche.
+   Pero blanco sobre blanco = invisible. Cuanto más subía la opacidad
+   blanca, más invisible se volvía la campana (precisamente el síntoma).
+
+   ──── SOLUCIÓN ────
+   En modo noche usar EXACTAMENTE los mismos tonos OSCUROS (azul ICADEM)
+   que el modo día. Así la campana se ve igual de bien en ambos modos
+   porque el topbar es idéntico en ambos modos.
+
+   También sobreescribimos la regla de línea 154 que era el origen del bug
+   (body:not(.modo-dia) .notif-bell con blanco translúcido). */
+
+html body:not(.modo-dia) .notif-bell,
+html body:not(.modo-dia) #notif-bell-btn,
+html body:not(.modo-dia) button.notif-bell {
+  background: rgba(11, 47, 104, 0.08) !important;
+  background-color: rgba(11, 47, 104, 0.08) !important;
+  background-image: none !important;
+  border: 1px solid rgba(11, 47, 104, 0.30) !important;
+  color: #0b2f68 !important;
+  -webkit-text-fill-color: #0b2f68 !important;
   box-shadow: none !important;
+  opacity: 1 !important;
 }
-html body:not(.modo-dia) .notif-bell:hover {
-  background: rgba(255, 255, 255, 0.10) !important;
-  background-color: rgba(255, 255, 255, 0.10) !important;
-  border-color: rgba(255, 255, 255, 0.95) !important;
+html body:not(.modo-dia) .notif-bell:hover,
+html body:not(.modo-dia) #notif-bell-btn:hover,
+html body:not(.modo-dia) button.notif-bell:hover {
+  background: rgba(11, 47, 104, 0.14) !important;
+  background-color: rgba(11, 47, 104, 0.14) !important;
+  border-color: rgba(11, 47, 104, 0.50) !important;
+  transform: scale(1.05) !important;
 }
 html body:not(.modo-dia) .notif-bell .notif-bell-icon,
 html body:not(.modo-dia) .notif-bell svg,
 html body:not(.modo-dia) #notif-bell-btn .notif-bell-icon,
 html body:not(.modo-dia) #notif-bell-btn svg {
-  color: #ffffff !important;
-  stroke: #ffffff !important;
-  stroke-width: 2 !important;
+  color: #0b2f68 !important;
+  stroke: #0b2f68 !important;
+  stroke-width: 1.8 !important;
   fill: none !important;
   opacity: 1 !important;
 }
 html body:not(.modo-dia) .notif-bell svg path,
 html body:not(.modo-dia) #notif-bell-btn svg path {
-  stroke: #ffffff !important;
+  stroke: #0b2f68 !important;
   fill: none !important;
 }
 
