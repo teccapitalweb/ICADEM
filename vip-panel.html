@@ -38042,28 +38042,31 @@ html body:not(.modo-dia) [class*="topbar-plan"]:hover {
   box-shadow: none !important;
 }
 
-/* ═══════════════════ CAMPANA (.notif-bell) — refuerzo modo noche ═════════ */
-/* La campana original tenía rgba(255,255,255,0.08)/0.15 que se transparenta.
-   v2: subimos a 0.14/0.45 para igualar el peso visual del sol/luna y banner.
-   El icono interno también se refuerza a #f1f5f9 (casi blanco) y stroke 2px. */
+/* ═══════════════════ CAMPANA (.notif-bell) — refuerzo modo noche v3 ═════ */
+/* v3: subimos a 0.22 fondo / 0.62 borde / icono blanco puro + stroke 2.2.
+   Razón: la campana usa BLANCO contra fondo oscuro casi-negro. A diferencia
+   del sol/luna y el banner (que usan DORADO sobre oscuro = contraste de
+   color), la campana solo tiene contraste por OPACIDAD. Necesita valores
+   más altos para verse con peso visual equivalente. */
 html body:not(.modo-dia) .notif-bell {
-  background: rgba(255, 255, 255, 0.14) !important;
-  background-color: rgba(255, 255, 255, 0.14) !important;
-  border: 1px solid rgba(255, 255, 255, 0.45) !important;
-  color: #f1f5f9 !important;
-  -webkit-text-fill-color: #f1f5f9 !important;
-  box-shadow: none !important;
-}
-html body:not(.modo-dia) .notif-bell:hover {
   background: rgba(255, 255, 255, 0.22) !important;
   background-color: rgba(255, 255, 255, 0.22) !important;
-  border-color: rgba(255, 255, 255, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.62) !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20) !important;
+}
+html body:not(.modo-dia) .notif-bell:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+  background-color: rgba(255, 255, 255, 0.32) !important;
+  border-color: rgba(255, 255, 255, 0.85) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
 }
 html body:not(.modo-dia) .notif-bell .notif-bell-icon,
 html body:not(.modo-dia) .notif-bell svg {
-  color: #f1f5f9 !important;
-  stroke: #f1f5f9 !important;
-  stroke-width: 2 !important;
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  stroke-width: 2.2 !important;
   fill: none !important;
 }
 
