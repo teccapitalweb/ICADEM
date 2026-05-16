@@ -37545,13 +37545,15 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
 })();
 </script>
 
-<style data-marker="DIR_MODAL_DETAIL_LEGIBLE_v1">
+<style data-marker="DIR_MODAL_DETAIL_LEGIBLE_v2">
 /* ══════════════════════════════════════════════════════════════════════════
-   FIX FINAL — Legibilidad en MODAL DETALLE del Directorio VIP
+   FIX v2 — Legibilidad en MODAL DETALLE del Directorio VIP
    ──────────────────────────────────────────────────────────────────────────
-   Garantiza que el nombre del miembro, ciudad y años de experiencia se vean
-   con colores SOLIDOS oscuros sobre el fondo del modal (que tiene un radial-
-   gradient tintado con el color del usuario).
+   v2 CHANGES (Bug fix Jorge 2026-05-15):
+   • v1 aplicaba color OSCURO al nombre y empresa SIN distinguir modo
+     → invisible en modo noche (texto oscuro sobre fondo oscuro).
+   • v2 separa explícitamente modo día (texto oscuro) vs modo noche (texto
+     blanco/claro) usando html:not(.modo-dia) y html body.modo-dia.
 
    SELECTORES REALES del HTML:
    - <h2 id="dir-perfil-nombre">  ← el NOMBRE (no usa clase .dir-perfil-name)
@@ -37561,12 +37563,12 @@ html body.modo-dia #sec-foro .foro-paywall-body p { color: #475569 !important; -
    - <span id="dir-perfil-ciudad" class="dir-perfil-tag dir-perfil-tag-ciudad">
    - <span id="dir-perfil-experiencia" class="dir-perfil-tag">
 
-   Specificity con ID = (1,0,0) → vence a TODO el resto del CSS.
+   Specificity con ID + html body = (1,0,1,1)+!important → vence a todo.
    ══════════════════════════════════════════════════════════════════════════ */
 
-/* ─── NOMBRE del miembro (#dir-perfil-nombre) ─────────────────────────── */
-#dir-perfil-nombre,
-body.modo-dia #dir-perfil-nombre,
+/* ═══════════════════ MODO DÍA — texto OSCURO sobre blanco ═══════════════════ */
+
+/* NOMBRE del miembro */
 html body.modo-dia #dir-perfil-nombre {
   color: #0F172A !important;
   -webkit-text-fill-color: #0F172A !important;
@@ -37584,9 +37586,7 @@ html body.modo-dia #dir-perfil-nombre {
   margin: 0 0 4px !important;
 }
 
-/* ─── EMPRESA (#dir-perfil-empresa) ──────────────────────────────────── */
-#dir-perfil-empresa,
-body.modo-dia #dir-perfil-empresa,
+/* EMPRESA */
 html body.modo-dia #dir-perfil-empresa {
   color: #475569 !important;
   -webkit-text-fill-color: #475569 !important;
@@ -37599,23 +37599,10 @@ html body.modo-dia #dir-perfil-empresa {
   font-size: 13px !important;
 }
 
-/* ─── CHIPS de tags (.dir-perfil-tag con IDs específicos) ────────────── */
-/* Contenedor */
-body.modo-dia .dir-perfil-tags,
-html body.modo-dia .dir-perfil-tags {
-  display: flex !important;
-  flex-wrap: wrap !important;
-  gap: 8px !important;
-  margin-top: 12px !important;
-}
-/* Chips individuales — fondo opaco con borde sólido y texto oscuro */
-#dir-perfil-industria,
-#dir-perfil-ciudad,
-#dir-perfil-experiencia,
-body.modo-dia #dir-perfil-industria,
-body.modo-dia #dir-perfil-ciudad,
-body.modo-dia #dir-perfil-experiencia,
-body.modo-dia .dir-perfil-tag,
+/* CHIPS de tags — fondo claro con texto oscuro */
+html body.modo-dia #dir-perfil-industria,
+html body.modo-dia #dir-perfil-ciudad,
+html body.modo-dia #dir-perfil-experiencia,
 html body.modo-dia .dir-perfil-tag {
   background: #F1F5F9 !important;
   background-color: #F1F5F9 !important;
@@ -37636,10 +37623,7 @@ html body.modo-dia .dir-perfil-tag {
   background-clip: initial !important;
   -webkit-background-clip: initial !important;
 }
-
-/* Chip industria — distintivo en azul para que destaque sutilmente */
-#dir-perfil-industria,
-body.modo-dia #dir-perfil-industria,
+/* Chip industria — azul tenue distintivo */
 html body.modo-dia #dir-perfil-industria {
   background: #DBEAFE !important;
   background-color: #DBEAFE !important;
@@ -37648,7 +37632,7 @@ html body.modo-dia #dir-perfil-industria {
   border: 1px solid #BFDBFE !important;
 }
 
-/* ─── Reducir el radial-gradient del modal para no blanquear el header ─── */
+/* Reducir radial-gradient del modal en modo día */
 html body.modo-dia .dir-perfil-content {
   background-image:
     radial-gradient(ellipse 45% 35% at 110% -10%,
@@ -37657,6 +37641,195 @@ html body.modo-dia .dir-perfil-content {
     radial-gradient(ellipse 35% 25% at -10% 110%,
       color-mix(in srgb, var(--card-accent, #FBBF24) 5%, transparent) 0%,
       transparent 70%) !important;
+}
+
+/* ═══════════════════ MODO NOCHE — texto CLARO sobre oscuro ═══════════════════ */
+/* html:not(.modo-dia) body.no-tiene-clase = modo noche.
+   Usamos html body:not(.modo-dia) para specificity (0,0,1,2) + !important. */
+
+/* NOMBRE del miembro — blanco brillante */
+html body:not(.modo-dia) #dir-perfil-nombre {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  font-weight: 800 !important;
+  font-size: 22px !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  letter-spacing: -0.01em !important;
+  line-height: 1.2 !important;
+  margin: 0 0 4px !important;
+}
+
+/* EMPRESA — gris claro legible */
+html body:not(.modo-dia) #dir-perfil-empresa {
+  color: rgba(255,255,255,0.78) !important;
+  -webkit-text-fill-color: rgba(255,255,255,0.78) !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+}
+
+/* CARGO — dorado en modo noche */
+html body:not(.modo-dia) #dir-perfil-cargo {
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+}
+
+/* CHIPS de tags en modo noche — fondo oscuro translúcido con texto claro */
+html body:not(.modo-dia) #dir-perfil-industria,
+html body:not(.modo-dia) #dir-perfil-ciudad,
+html body:not(.modo-dia) #dir-perfil-experiencia,
+html body:not(.modo-dia) .dir-perfil-tag {
+  background: rgba(255,255,255,0.08) !important;
+  background-color: rgba(255,255,255,0.08) !important;
+  background-image: none !important;
+  color: rgba(255,255,255,0.92) !important;
+  -webkit-text-fill-color: rgba(255,255,255,0.92) !important;
+  border: 1px solid rgba(255,255,255,0.18) !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
+  padding: 5px 12px !important;
+  border-radius: 99px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  text-shadow: none !important;
+  filter: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+}
+/* Chip industria en modo noche — dorado distintivo */
+html body:not(.modo-dia) #dir-perfil-industria {
+  background: rgba(245,215,122,0.12) !important;
+  background-color: rgba(245,215,122,0.12) !important;
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  border: 1px solid rgba(245,215,122,0.35) !important;
+}
+
+/* Texto del bio y secciones del perfil en modo noche */
+html body:not(.modo-dia) #dir-perfil-bio,
+html body:not(.modo-dia) .dir-perfil-section p {
+  color: rgba(255,255,255,0.82) !important;
+  -webkit-text-fill-color: rgba(255,255,255,0.82) !important;
+  opacity: 1 !important;
+}
+html body:not(.modo-dia) .dir-perfil-section h3 {
+  color: #f5d77a !important;
+  -webkit-text-fill-color: #f5d77a !important;
+  opacity: 1 !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DOCS_LEGALES_DIA_FIX_v3 — Vencer reglas globales h1/h2/h3/h4 + .section p
+   ──────────────────────────────────────────────────────────────────────────
+   PROBLEMA: Líneas 23252-23260 del archivo tienen reglas globales con
+   !important que pintan TODOS los h2/h3/h4 con #fafafa y .section p con
+   #d4d4d8 — sin distinguir modo. En modo noche se ve bien, pero en modo
+   día estos colores claros son INVISIBLES sobre fondo blanco.
+
+   SOLUCIÓN: html body.modo-dia + descendant selector → specificity (0,0,2,2)
+   con !important, vence a las reglas h2{}/h3{}/.section p{}.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* TÍTULO "Próximamente disponible" — azul ICADEM oscuro */
+html body.modo-dia .docs-coming-title,
+html body.modo-dia h2.docs-coming-title {
+  color: #0b2f68 !important;
+  -webkit-text-fill-color: #0b2f68 !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+  font-weight: 800 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* SUBTÍTULO "Estamos preparando un generador..." — gris oscuro legible */
+html body.modo-dia .docs-coming-sub,
+html body.modo-dia p.docs-coming-sub {
+  color: #475569 !important;
+  -webkit-text-fill-color: #475569 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* MENSAJE FINAL "Te avisaremos en cuanto esté listo..." — gris medio */
+html body.modo-dia .docs-coming-msg,
+html body.modo-dia p.docs-coming-msg {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+  font-style: italic !important;
+}
+
+/* NÚMEROS de features "12+", "100%", "PDF · DOC" — azul brand */
+html body.modo-dia .docs-coming-feature-num {
+  color: #1976d2 !important;
+  -webkit-text-fill-color: #1976d2 !important;
+  opacity: 1 !important;
+  font-weight: 800 !important;
+  background: none !important;
+  background-image: none !important;
+  background-clip: initial !important;
+  -webkit-background-clip: initial !important;
+}
+
+/* LABELS "PLANTILLAS", "EDITABLES", "FORMATOS" — gris medio */
+html body.modo-dia .docs-coming-feature-lbl {
+  color: #64748b !important;
+  -webkit-text-fill-color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 600 !important;
+}
+
+/* BADGE "EN DESARROLLO" — color azul brand legible */
+html body.modo-dia .docs-coming-badge {
+  background: rgba(20,104,177,0.08) !important;
+  background-color: rgba(20,104,177,0.08) !important;
+  border: 1px solid rgba(20,104,177,0.20) !important;
+  color: #0b2f68 !important;
+  -webkit-text-fill-color: #0b2f68 !important;
+  opacity: 1 !important;
+}
+
+/* Feature cards (fondo blanco con borde) */
+html body.modo-dia .docs-coming-feature {
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  border: 1px solid rgba(20,104,177,0.10) !important;
+  box-shadow: 0 1px 2px rgba(20,104,177,0.04) !important;
+}
+html body.modo-dia .docs-coming-feature:hover {
+  background: #F8FAFC !important;
+  background-color: #F8FAFC !important;
+  border-color: rgba(20,104,177,0.25) !important;
+}
+
+/* Card contenedor: fondo claro suave */
+html body.modo-dia .docs-coming-soon {
+  background: linear-gradient(160deg, #FFFFFF 0%, #F8FAFC 100%) !important;
+  background-image: linear-gradient(160deg, #FFFFFF 0%, #F8FAFC 100%) !important;
+  border: 1px solid rgba(20,104,177,0.12) !important;
+  box-shadow: 0 4px 24px rgba(20,104,177,0.05) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════
