@@ -6757,19 +6757,19 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
         <p class="page-sub">Próximamente: 12 plantillas profesionales editables, descargables en PDF y Word.</p>
       </div>
 
-      <!-- DOCS_LEGALES_PROXIMAMENTE_v1: estado "Próximamente" profesional.
+      <!-- DOCS_LEGALES_PROXIMAMENTE_v2: estado "Próximamente" con soporte modo oscuro.
            El contenido funcional original está oculto debajo (display:none).
            Para reactivar: quitar este bloque y el style="display:none" del wrapper de abajo. -->
-      <div class="docs-legales-coming-soon" style="background:linear-gradient(160deg,#ffffff 0%,#f8fafc 100%);border:1px solid rgba(20,104,177,0.10);border-radius:20px;padding:4rem 2.5rem;margin:2rem 0;text-align:center;box-shadow:0 4px 24px rgba(20,104,177,0.04);max-width:780px;margin-left:auto;margin-right:auto">
+      <div class="docs-coming-soon">
 
         <!-- Badge superior -->
-        <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(20,104,177,0.06);border:1px solid rgba(20,104,177,0.15);border-radius:999px;padding:6px 14px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#0b2f68;margin-bottom:1.5rem">
+        <div class="docs-coming-badge">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           En desarrollo
         </div>
 
         <!-- Icono central -->
-        <div style="width:88px;height:88px;background:linear-gradient(135deg,#1976d2 0%,#0b2f68 100%);border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.75rem;box-shadow:0 12px 36px rgba(20,104,177,0.25)">
+        <div class="docs-coming-icon">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
@@ -6780,37 +6780,35 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
         </div>
 
         <!-- Título -->
-        <h2 style="font-size:28px;font-weight:800;color:#0b2f68;margin:0 0 .75rem;letter-spacing:-.01em;line-height:1.2">
-          Próximamente disponible
-        </h2>
+        <h2 class="docs-coming-title">Próximamente disponible</h2>
 
         <!-- Subtítulo -->
-        <p style="font-size:15.5px;color:#475569;max-width:520px;margin:0 auto 2rem;line-height:1.65">
+        <p class="docs-coming-sub">
           Estamos preparando un generador de documentos legales profesionales con plantillas editables, validadas por abogados y listas para descargar en PDF y Word.
         </p>
 
         <!-- Features grid -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1rem;max-width:640px;margin:0 auto 2rem">
+        <div class="docs-coming-grid">
 
-          <div style="background:#fff;border:1px solid rgba(20,104,177,0.08);border-radius:14px;padding:1.25rem .75rem;text-align:center">
-            <div style="font-size:24px;font-weight:800;color:#1976d2;margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif">12+</div>
-            <div style="font-size:11px;color:#64748b;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Plantillas</div>
+          <div class="docs-coming-feature">
+            <div class="docs-coming-feature-num">12+</div>
+            <div class="docs-coming-feature-lbl">Plantillas</div>
           </div>
 
-          <div style="background:#fff;border:1px solid rgba(20,104,177,0.08);border-radius:14px;padding:1.25rem .75rem;text-align:center">
-            <div style="font-size:24px;font-weight:800;color:#1976d2;margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif">100%</div>
-            <div style="font-size:11px;color:#64748b;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Editables</div>
+          <div class="docs-coming-feature">
+            <div class="docs-coming-feature-num">100%</div>
+            <div class="docs-coming-feature-lbl">Editables</div>
           </div>
 
-          <div style="background:#fff;border:1px solid rgba(20,104,177,0.08);border-radius:14px;padding:1.25rem .75rem;text-align:center">
-            <div style="font-size:24px;font-weight:800;color:#1976d2;margin-bottom:4px;font-family:'Plus Jakarta Sans',sans-serif">PDF · DOC</div>
-            <div style="font-size:11px;color:#64748b;font-weight:600;letter-spacing:.06em;text-transform:uppercase">Formatos</div>
+          <div class="docs-coming-feature">
+            <div class="docs-coming-feature-num">PDF · DOC</div>
+            <div class="docs-coming-feature-lbl">Formatos</div>
           </div>
 
         </div>
 
         <!-- Mensaje final -->
-        <p style="font-size:13px;color:#94a3b8;margin:0;font-style:italic">
+        <p class="docs-coming-msg">
           Te avisaremos en cuanto esté listo para usar.
         </p>
 
@@ -17892,6 +17890,134 @@ body .section > div[style*="#ffffff"], body:not(.modo-dia) .section > div[style*
   letter-spacing: 0.18em !important;
   color: rgba(245,215,122,0.85) !important;
 }
+
+/* DOCS_LEGALES_PROXIMAMENTE_v2: card "Próximamente" con soporte modo oscuro/día.
+   En modo OSCURO (default, sin .modo-dia): glassmorphism navy + texto claro.
+   En modo DÍA (body.modo-dia): look blanco premium con tipografía navy. */
+
+/* ── MODO OSCURO (default) ── */
+.docs-coming-soon {
+  background: linear-gradient(160deg, rgba(11,47,104,0.55) 0%, rgba(11,37,84,0.65) 100%);
+  border: 1px solid rgba(245,215,122,0.18);
+  border-radius: 20px;
+  padding: 4rem 2.5rem;
+  margin: 2rem auto;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04);
+  max-width: 780px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+.docs-coming-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(245,215,122,0.10);
+  border: 1px solid rgba(245,215,122,0.30);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: #f5d77a;
+  margin-bottom: 1.5rem;
+}
+.docs-coming-icon {
+  width: 88px;
+  height: 88px;
+  background: linear-gradient(135deg, #1976d2 0%, #0b2f68 100%);
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.75rem;
+  box-shadow: 0 12px 36px rgba(20,104,177,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.docs-coming-title {
+  font-size: 28px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 .75rem;
+  letter-spacing: -.01em;
+  line-height: 1.2;
+}
+.docs-coming-sub {
+  font-size: 15.5px;
+  color: rgba(255,255,255,0.78);
+  max-width: 520px;
+  margin: 0 auto 2rem;
+  line-height: 1.65;
+}
+.docs-coming-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  max-width: 640px;
+  margin: 0 auto 2rem;
+}
+.docs-coming-feature {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(245,215,122,0.12);
+  border-radius: 14px;
+  padding: 1.25rem .75rem;
+  text-align: center;
+  transition: border-color .2s, background .2s;
+}
+.docs-coming-feature:hover {
+  border-color: rgba(245,215,122,0.30);
+  background: rgba(255,255,255,0.06);
+}
+.docs-coming-feature-num {
+  font-size: 24px;
+  font-weight: 800;
+  color: #f5d77a;
+  margin-bottom: 4px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.docs-coming-feature-lbl {
+  font-size: 11px;
+  color: rgba(255,255,255,0.65);
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+.docs-coming-msg {
+  font-size: 13px;
+  color: rgba(255,255,255,0.55);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ── MODO DÍA (body.modo-dia) — mantiene el look blanco original ── */
+body.modo-dia .docs-coming-soon {
+  background: linear-gradient(160deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid rgba(20,104,177,0.10);
+  box-shadow: 0 4px 24px rgba(20,104,177,0.04);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+body.modo-dia .docs-coming-badge {
+  background: rgba(20,104,177,0.06);
+  border-color: rgba(20,104,177,0.15);
+  color: #0b2f68;
+}
+body.modo-dia .docs-coming-icon {
+  box-shadow: 0 12px 36px rgba(20,104,177,0.25);
+}
+body.modo-dia .docs-coming-title { color: #0b2f68; }
+body.modo-dia .docs-coming-sub { color: #475569; }
+body.modo-dia .docs-coming-feature {
+  background: #fff;
+  border-color: rgba(20,104,177,0.08);
+}
+body.modo-dia .docs-coming-feature:hover {
+  background: #fff;
+  border-color: rgba(20,104,177,0.20);
+}
+body.modo-dia .docs-coming-feature-num { color: #1976d2; }
+body.modo-dia .docs-coming-feature-lbl { color: #64748b; }
+body.modo-dia .docs-coming-msg { color: #94a3b8; }
 
 /* === BANNER CTA "20% descuento" === */
 .ic-cta-banner {
@@ -35053,6 +35179,44 @@ html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-footer 
   background-image: none !important;
   border: 1px solid var(--card-accent-glow, rgba(245,215,122,0.25)) !important;
   box-shadow: none !important;
+}
+</style>
+
+
+<style data-marker="DIRECTORIO_CARD_TEXTOS_NIGHT_v3">
+/* ═══════════════════════════════════════════════════════════════════════
+   DIRECTORIO_CARD_TEXTOS_NIGHT_v3 — Mejorar legibilidad de los textos
+   "nombre" y "empresa" del card del directorio SOLO en modo noche.
+
+   Problema (feedback Britney): Tec Capital y Tec Capital Web se ven
+   tenues/borrosos en modo oscuro porque:
+   - dir-card-name tenía text-shadow blur 4px que difumina letras pequeñas
+   - dir-card-empresa color #7da0d4 (azul tenue) sin contraste suficiente
+   - Modo día: se ve perfecto, NO se toca
+
+   Solución: subir contraste (blanco puro para nombre, blanco 80% para
+   empresa), quitar el text-shadow blur que difuminaba, sumar
+   #sec-directorio + html body para specificity ganadora (0,1,5,Y).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* NOMBRE del card (ej. "Tec Capital") — blanco puro, nítido */
+html body:not(.modo-dia) #sec-directorio .dir-card .dir-card-name,
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-name {
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
+
+/* EMPRESA del card (ej. "Tec Capital Web") — blanco 80%, sin shadow */
+html body:not(.modo-dia) #sec-directorio .dir-card .dir-card-empresa,
+html body:not(.modo-dia) #sec-directorio .dir-card.dir-card-v2 .dir-card-empresa {
+  color: rgba(255,255,255,0.78) !important;
+  -webkit-text-fill-color: rgba(255,255,255,0.78) !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
 }
 </style>
 
