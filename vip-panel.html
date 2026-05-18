@@ -8911,6 +8911,50 @@ html body .topbar .topbar-right > *:not(#btn-modo-toggle):not(.topbar-plan) {
           activarModoInvitado(null);
         }
       }, intervaloVerificacion);
+
+      // ═══════════════════════════════════════════════════════════════════════
+      // PERF_INVITADO_FAST_BOOT_v1 — Carga rápida para invitados
+      // ───────────────────────────────────────────────────────────────────────
+      // PROBLEMA QUE ARREGLA:
+      //   Los invitados (sin sesión) esperaban hasta 12 SEGUNDOS al loader
+      //   "Cargando panel VIP..." porque el polling de arriba checaba cada 1s
+      //   por si Firebase rehidrataba una sesión. Para alguien que NUNCA tuvo
+      //   cuenta o cerró sesión, esa espera era completamente inútil.
+      //
+      // CÓMO LO ARREGLA:
+      //   Firebase 9.7+ expone auth.authStateReady() — Promise que resuelve
+      //   cuando Firebase termina de leer storage (típico: 100-500ms). Una
+      //   vez resuelta, auth.currentUser refleja el estado FINAL inicial.
+      //   Si después de authStateReady auth.currentUser es null, sabemos con
+      //   certeza que no hay sesión que rehidratar → activar modo invitado
+      //   inmediatamente sin esperar el polling de 12s.
+      //
+      // SEGURIDAD (qué NO toca):
+      //   • Flujo post-pago (vieneDePago || ticketPago): preserva los 30s
+      //     porque después de Stripe Embedded Checkout la sesión sí puede
+      //     tardar en rehidratarse y NO queremos romper ese flujo.
+      //   • El polling original sigue activo como fallback: si authStateReady
+      //     no existe o falla, el polling cubre el caso como antes.
+      //   • Los flags _authHandled / _yaRedirigio / _modoInvitadoActivado
+      //     previenen doble activación si llega user después.
+      // ═══════════════════════════════════════════════════════════════════════
+      if (!vieneDePago && !ticketPago && typeof auth.authStateReady === 'function') {
+        auth.authStateReady().then(function(){
+          // Re-verificar todos los flags justo antes de actuar (puede haber
+          // cambiado entre el momento de programar el .then y ahora)
+          if (auth.currentUser || _usuarioConfirmado || _authHandled || _yaRedirigio) {
+            return; // Ya hay user o ya se manejó por otro lado
+          }
+          // Sin sesión confirmado por authStateReady → activar invitado YA
+          console.log('[Auth] FAST_BOOT_v1: authStateReady confirmó sin sesión. Modo invitado inmediato.');
+          clearInterval(intervalo); // detener el polling de 12s, ya no se necesita
+          _yaRedirigio = true;
+          activarModoInvitado(null);
+        }).catch(function(e){
+          // Si falla authStateReady, no pasa nada: el polling original sigue corriendo
+          console.warn('[Auth] FAST_BOOT_v1: authStateReady falló, usando polling de fallback:', e);
+        });
+      }
       return;
     }
 
