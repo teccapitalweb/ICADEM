@@ -3994,6 +3994,16 @@ function toolRequiereVIP(nombreHerramienta){
   .bn-field--full{grid-column:1/-1}
   .bn-actions{grid-column:1/-1;display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}
   .bn-tool .btn{min-height:46px}
+  /* Banner de candado VIP de las herramientas */
+  .bn-viplock{display:flex;gap:14px;align-items:center;background:color-mix(in srgb,var(--primary) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border-2));border-radius:14px;padding:14px 16px;margin-bottom:16px}
+  .bn-viplock__txt{flex:1;min-width:0}
+  .bn-viplock__t{font-weight:700;color:var(--text);font-size:13.5px;line-height:1.4}
+  .bn-viplock__d{color:var(--text-2);font-size:12px;margin-top:3px;line-height:1.55}
+  .bn-viplock .bn-viplock-btn{flex-shrink:0;white-space:nowrap}
+  @media(max-width:640px){
+    .bn-viplock{flex-direction:column;align-items:stretch;gap:12px;padding:16px;text-align:left}
+    .bn-viplock .bn-viplock-btn{width:100%;justify-content:center;min-height:46px}
+  }
   @media(max-width:640px){
     .bn-grid{grid-template-columns:1fr;gap:13px}
     .bn-field>label{min-height:0}
@@ -4115,7 +4125,7 @@ const Tools = {
 /* Shell común de cada herramienta-sección */
 function bnToolShell(container, cfg){
   const lock = (typeof toolEsVIP==='function' && !toolEsVIP())
-    ? '<div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap;background:color-mix(in srgb,var(--primary) 10%,var(--surface));border:1px solid color-mix(in srgb,var(--primary) 35%,var(--border-2));border-radius:14px;padding:14px 16px;margin-bottom:16px"><div style="flex:1;min-width:200px"><div style="font-weight:700;color:var(--text);font-size:13.5px">Herramienta Pro · exclusiva para miembros VIP</div><div style="color:var(--text-2);font-size:12px;margin-top:3px">Puedes explorarla y capturar datos, pero el resultado y el reporte PDF requieren una membresía activa.</div></div><button class="btn btn--primary btn--sm bn-viplock-btn">Hazte VIP</button></div>'
+    ? '<div class="bn-viplock"><div class="bn-viplock__txt"><div class="bn-viplock__t">Herramienta Pro · exclusiva para miembros VIP</div><div class="bn-viplock__d">Puedes explorarla y capturar datos, pero el resultado y el reporte PDF requieren una membresía activa.</div></div><button class="btn btn--primary btn--sm bn-viplock-btn">Hazte VIP</button></div>'
     : '';
   container.innerHTML = `
     <div class="bn-tool fade-up">
