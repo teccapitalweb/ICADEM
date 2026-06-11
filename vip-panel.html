@@ -8414,6 +8414,7 @@ const Sections = (function(){
       'tool-calc-nomina':(c)=>window.ToolCalcNomina.mount(c),
       'tool-calc-credito':(c)=>window.ToolCalcCredito.mount(c),
       'tool-docs-legales':(c)=>window.ToolDocsLegales.mount(c),
+      'tool-plantillas':(c)=>window.ToolPlantillas.mount(c),
       'tool-diluciones':(c)=>ToolDiluciones.mount(c),
       'tool-ufc':(c)=>ToolUFC.mount(c),
       'tool-conversor':(c)=>ToolConversor.mount(c),
@@ -9070,7 +9071,7 @@ function initNav(){
         cerrarDrawerMovil();
       }
       // Herramientas con sección propia (se abren dentro del panel, no como popup)
-      const toolSections = { 'calc-fiscal':'tool-calc-fiscal', 'calc-nomina':'tool-calc-nomina', 'calc-credito':'tool-calc-credito', 'docs-legales':'tool-docs-legales', diluciones:'tool-diluciones', ufc:'tool-ufc', conversor:'tool-conversor', dosis:'tool-dosis', tfg:'tool-tfg', molaridad:'tool-molaridad', beer:'tool-beer', reporte:'tool-reporte' };
+      const toolSections = { 'calc-fiscal':'tool-calc-fiscal', 'calc-nomina':'tool-calc-nomina', 'calc-credito':'tool-calc-credito', 'docs-legales':'tool-docs-legales', plantillas:'tool-plantillas', diluciones:'tool-diluciones', ufc:'tool-ufc', conversor:'tool-conversor', dosis:'tool-dosis', tfg:'tool-tfg', molaridad:'tool-molaridad', beer:'tool-beer', reporte:'tool-reporte' };
       if(it.dataset.tool){
         if(toolSections[it.dataset.tool]){ navigateToSection(toolSections[it.dataset.tool]); return; }
         if(Tools[it.dataset.tool]){ Tools[it.dataset.tool].open(); return; }
@@ -18563,6 +18564,1992 @@ window.ToolDocsLegales = {
         window[fn] = wrapped;
       }
     });
+  }
+};
+</script>
+
+
+<!-- ════════ PLANTILLAS DE NEGOCIO · catálogo Firestore + visor ════════ -->
+<style id="css-plantillas">
+    .tpl-premium-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      background: linear-gradient(135deg, rgba(200,150,42,0.25), rgba(232,201,106,0.15));
+      border: 1px solid rgba(200,150,42,0.4);
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 0.1em;
+      color: #e8c96a;
+      text-transform: uppercase;
+    }
+    .tpl-soon-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 9px;
+      background: rgba(100,116,139,0.2);
+      border: 1px solid rgba(100,116,139,0.3);
+      border-radius: 20px;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.4);
+    }
+    .tpl-card-premium {
+      position: relative;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .tpl-card-premium:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(11,43,104,0.35), 0 0 0 1px rgba(200,150,42,0.25);
+    }
+    .tpl-card-soon {
+      position: relative;
+      opacity: 0.7;
+      pointer-events: none;
+      user-select: none;
+      filter: grayscale(0.3);
+    }
+    .tpl-card-cta-modal {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, rgba(11,43,104,0.6), rgba(26,83,232,0.3));
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.9);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: auto;
+    }
+    .tpl-card-premium:hover .tpl-card-cta-modal {
+      background: linear-gradient(135deg, rgba(200,150,42,0.25), rgba(200,150,42,0.15));
+      border-color: rgba(200,150,42,0.5);
+      color: #e8c96a;
+    }
+    .tpl-modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+      background: rgba(11,43,104,0.3);
+    }
+    .tpl-modal-header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+    .tpl-modal-icon {
+      font-size: 32px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+    .tpl-modal-title-block {
+      min-width: 0;
+    }
+    .tpl-modal-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      background: rgba(200,150,42,0.15);
+      border: 1px solid rgba(200,150,42,0.3);
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #e8c96a;
+      margin-bottom: 6px;
+    }
+    .tpl-modal-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1.2;
+      margin: 0 0 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .tpl-modal-subtitle {
+      font-size: 13px;
+      color: rgba(255,255,255,0.55);
+      margin: 0;
+      line-height: 1.4;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+    .tpl-modal-close {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.5);
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      transition: all 0.2s;
+      padding: 8px 10px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+    }
+    .tpl-modal-close:hover {
+      background: rgba(255,255,255,0.12);
+      color: #ffffff;
+      border-color: rgba(255,255,255,0.25);
+    }
+
+    /* ===== MODAL BODY (iframe + actions) ===== */
+    .tpl-modal-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .tpl-modal-preview {
+      flex: 1;
+      position: relative;
+      background: #f8fafc;
+      overflow: hidden;
+    }
+    .tpl-modal-iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+    .tpl-modal-iframe-loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: linear-gradient(160deg, #071a4a, #091f55);
+      z-index: 2;
+    }
+    .tpl-modal-iframe-loading .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: #3e6fa8;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .tpl-modal-iframe-loading p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      margin: 0;
+    }
+    .tpl-modal-preview-pending {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 16px;
+      padding: 40px 24px;
+      text-align: center;
+    }
+    .tpl-modal-preview-pending .preview-icon {
+      font-size: 64px;
+      opacity: 0.5;
+    }
+    .tpl-modal-preview-pending h3 {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 20px;
+      color: rgba(255,255,255,0.6);
+      margin: 0;
+    }
+    .tpl-modal-preview-pending p {
+      font-size: 13px;
+      color: rgba(255,255,255,0.35);
+      margin: 0;
+      max-width: 360px;
+    }
+    .tpl-modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 14px 24px;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      flex-shrink: 0;
+      background: rgba(11,43,104,0.2);
+      flex-wrap: wrap;
+    }
+    .tpl-modal-footer-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+    }
+    .tpl-modal-footer-info span {
+      padding: 2px 8px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .tpl-modal-footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .tpl-btn-copy {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #3e6fa8, #e8c96a);
+      border: none;
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #212e48;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      letter-spacing: 0.01em;
+    }
+    .tpl-btn-copy:hover {
+      background: linear-gradient(135deg, #e8c96a, #8fbce6);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(200,150,42,0.4);
+    }
+    .tpl-btn-drive {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.75);
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .tpl-btn-drive:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(255,255,255,0.3);
+      color: #ffffff;
+    }
+    .tpl-btn-close-footer {
+      padding: 10px 16px;
+      background: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 12px;
+      color: rgba(255,255,255,0.4);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tpl-btn-close-footer:hover {
+      background: rgba(255,255,255,0.06);
+      color: rgba(255,255,255,0.7);
+      border-color: rgba(255,255,255,0.2);
+    }
+    .tpl-btn-copy.tpl-btn-disabled {
+      background: rgba(100,116,139,0.25);
+      border: 1px solid rgba(100,116,139,0.3);
+      color: rgba(255,255,255,0.4);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    @media (max-width: 767px) {
+      .tpl-modal-title { font-size: 17px; }
+      .tpl-modal-footer { padding: 12px 16px; }
+      .tpl-btn-copy { padding: 9px 14px; font-size: 12px; }
+      .tpl-btn-drive, .tpl-btn-close-footer { padding: 9px 12px; font-size: 11px; }
+      .tpl-modal-footer-info { display: none; }
+    }
+.tpl-filters {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.75rem;
+}
+.tpl-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: rgba(10,15,28,0.45);
+  border: 1px solid rgba(147,197,253,0.18);
+  border-radius: 999px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(209,230,232,0.8);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
+  backdrop-filter: blur(10px);
+  white-space: nowrap;
+}
+.tpl-filter:hover {
+  background: rgba(143,188,230,0.08);
+  border-color: rgba(143,188,230,0.4);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.tpl-filter.is-active {
+  background: linear-gradient(135deg, rgba(143,188,230,0.25), rgba(91,146,200,0.12));
+  border-color: rgba(143,188,230,0.55);
+  color: #fff;
+  box-shadow: 0 4px 18px rgba(91,146,200,0.3), inset 0 1px 0 rgba(143,188,230,0.25);
+}
+.tpl-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  background: rgba(2,5,15,0.5);
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(168,184,209,0.7);
+}
+.tpl-filter.is-active .tpl-count {
+  background: rgba(143,188,230,0.2);
+  color: #8fbce6;
+}
+
+/* Grid */
+.tpl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+/* Card de plantilla */
+.tpl-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background:
+    linear-gradient(180deg, rgba(33,46,72,0.45), rgba(24,35,58,0.7)),
+    radial-gradient(circle at 100% 0%, rgba(143,188,230,0.12), transparent 60%);
+  border: 1px solid rgba(91,146,200,0.28);
+  border-radius: 18px;
+  padding: 1.5rem 1.5rem 1.25rem;
+  backdrop-filter: blur(16px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(143,188,230,0.18);
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+}
+.tpl-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(90deg, #8fbce6, #6b8fc4);
+  opacity: 0.7;
+}
+.tpl-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(143,188,230,0.55);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.5),
+    0 0 32px rgba(143,188,230,0.2),
+    inset 0 1px 0 rgba(143,188,230,0.3);
+}
+
+/* Card destacada (con corona dorada) */
+.tpl-card-feat {
+  background:
+    linear-gradient(180deg, rgba(80,60,15,0.3), rgba(24,35,58,0.7)),
+    radial-gradient(circle at 100% 0%, rgba(143,188,230,0.18), transparent 60%);
+  border-color: rgba(143,188,230,0.35);
+}
+.tpl-card-feat::before {
+  background: linear-gradient(90deg, #8fbce6, #8fbce6, #3e6fa8);
+  opacity: 1;
+}
+.tpl-card-feat:hover {
+  border-color: rgba(143,188,230,0.65);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.5),
+    0 0 32px rgba(143,188,230,0.25),
+    inset 0 1px 0 rgba(143,188,230,0.3);
+}
+
+.tpl-badge-feat {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg, #8fbce6, #8fbce6);
+  color: #212e48;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: 0 4px 14px rgba(143,188,230,0.4);
+  z-index: 2;
+}
+
+.tpl-card-icon {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, rgba(143,188,230,0.2), rgba(91,146,200,0.08));
+  border: 1px solid rgba(143,188,230,0.35);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  flex-shrink: 0;
+  box-shadow: 0 0 18px rgba(143,188,230,0.15);
+}
+.tpl-card-feat .tpl-card-icon {
+  background: linear-gradient(135deg, rgba(143,188,230,0.22), rgba(200,150,42,0.08));
+  border-color: rgba(143,188,230,0.5);
+  box-shadow: 0 0 18px rgba(143,188,230,0.25);
+}
+
+.tpl-card-body { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.tpl-card-format {
+  display: inline-block;
+  width: fit-content;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  padding: 3px 9px;
+  border-radius: 6px;
+  border: 1px solid;
+}
+.tpl-card-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.3;
+  margin: 0;
+  letter-spacing: -0.005em;
+}
+.tpl-card-desc {
+  font-family: 'Inter', sans-serif;
+  font-size: 12.5px;
+  color: rgba(209,230,232,0.78);
+  line-height: 1.55;
+  margin: 0;
+}
+.tpl-card-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 16px;
+  background: linear-gradient(135deg, rgba(143,188,230,0.22), rgba(91,146,200,0.1));
+  border: 1px solid rgba(143,188,230,0.45);
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #8fbce6;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: all 0.25s;
+  box-shadow: inset 0 1px 0 rgba(143,188,230,0.25);
+}
+.tpl-card:hover .tpl-card-cta {
+  background: linear-gradient(135deg, rgba(143,188,230,0.4), rgba(91,146,200,0.2));
+  color: #fff;
+  border-color: rgba(143,188,230,0.7);
+  box-shadow: 0 6px 20px rgba(143,188,230,0.35), inset 0 1px 0 rgba(143,188,230,0.4);
+}
+.tpl-card-feat .tpl-card-cta {
+  background: linear-gradient(135deg, #8fbce6 0%, #8fbce6 35%, #3e6fa8 100%);
+  background-size: 200% 100%;
+  color: #212e48 !important;
+  border-color: rgba(254,243,199,0.5);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow: 0 6px 22px rgba(143,188,230,0.45), inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.tpl-card-feat:hover .tpl-card-cta {
+  background-position: right center;
+  color: #212e48 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 30px rgba(143,188,230,0.6), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.tpl-card-cta-soon {
+  background: rgba(10,15,28,0.5) !important;
+  border-color: rgba(147,197,253,0.18) !important;
+  color: rgba(168,184,209,0.6) !important;
+  cursor: default !important;
+  pointer-events: none;
+}
+
+/* Footer info de plantillas */
+.tpl-footer-note {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 1rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(180deg, rgba(143,188,230,0.06), rgba(26,58,107,0.15));
+  border: 1px solid rgba(143,188,230,0.2);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+}
+.tpl-footer-note > svg { flex-shrink: 0; }
+
+/* ====================================================================
+   📊 STATS BANNER — Plantillas Premium
+   ==================================================================== */
+.tpl-stats {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 1.25rem 1.75rem;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(135deg, #1a3a6b 0%, #122b54 50%, #0c1e4a 100%);
+  border: 1px solid rgba(143,188,230,0.18);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+.tpl-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 110px;
+}
+.tpl-stat-num {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: #fafafa;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.tpl-stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(168,184,209,0.7);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tpl-stat-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(143,188,230,0.2);
+  flex-shrink: 0;
+}
+@media (max-width: 768px) {
+  .tpl-stats { gap: 1rem; padding: 1rem; }
+  .tpl-stat-divider { display: none; }
+  .tpl-stat { min-width: 100px; }
+  .tpl-stat-num { font-size: 22px; }
+}
+
+/* ====================================================================
+   🔍 SEARCH BAR + VIEW TOGGLE — Plantillas
+   ==================================================================== */
+.tpl-toolbar {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.tpl-search {
+  position: relative;
+  flex: 1;
+  min-width: 240px;
+}
+/* Ocultar SVG: usamos background-image en el input */
+.tpl-search > svg {
+  display: none !important;
+}
+.tpl-search input,
+.tpl-search input[type="text"],
+input#tpl-search-input {
+  width: 100% !important;
+  padding-left: 40px !important;
+  padding-right: 38px !important;
+  padding-top: 11px !important;
+  padding-bottom: 11px !important;
+  background-color: rgba(11,31,74,0.5) !important;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23a8b8d1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: 14px center !important;
+  background-size: 16px 16px !important;
+  border: 1px solid rgba(143,188,230,0.18) !important;
+  border-radius: 8px !important;
+  color: #fafafa !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  transition: border-color 0.15s, background-color 0.15s;
+  box-sizing: border-box !important;
+  text-indent: 0 !important;
+  margin: 0 !important;
+}
+.tpl-search input::placeholder { color: rgba(168,184,209,0.5); }
+.tpl-search input:focus {
+  outline: none !important;
+  border-color: rgba(143,188,230,0.5) !important;
+  background-color: rgba(11,31,74,0.7) !important;
+}
+.tpl-search-clear {
+  position: absolute;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border: none;
+  background: rgba(168,184,209,0.1);
+  color: rgba(168,184,209,0.7);
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.tpl-search-clear:hover {
+  background: rgba(168,184,209,0.2);
+  color: #fafafa;
+}
+
+.tpl-view-toggle {
+  display: flex;
+  background: rgba(11,31,74,0.5);
+  border: 1px solid rgba(143,188,230,0.18);
+  border-radius: 8px;
+  padding: 3px;
+  gap: 2px;
+}
+.tpl-view-btn {
+  background: transparent;
+  border: none;
+  color: rgba(168,184,209,0.6);
+  width: 36px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+.tpl-view-btn:hover {
+  color: rgba(168,184,209,0.9);
+  background: rgba(143,188,230,0.08);
+}
+.tpl-view-btn.is-active {
+  background: rgba(143,188,230,0.15);
+  color: #8fbce6;
+}
+
+/* ====================================================================
+   ⭐ FILTRO DESTACADAS + RESULTADOS INFO
+   ==================================================================== */
+.tpl-filter-feat {
+  background: linear-gradient(135deg, rgba(143,188,230,0.08), rgba(200,150,42,0.05)) !important;
+  border-color: rgba(143,188,230,0.25) !important;
+  color: #8fbce6 !important;
+}
+.tpl-filter-feat.is-active {
+  background: linear-gradient(135deg, rgba(143,188,230,0.18), rgba(200,150,42,0.12)) !important;
+  border-color: rgba(143,188,230,0.5) !important;
+  color: #8fbce6 !important;
+}
+
+.tpl-results-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  background: rgba(143,188,230,0.06);
+  border: 1px solid rgba(143,188,230,0.15);
+  border-radius: 8px;
+  font-size: 13px;
+  color: rgba(168,184,209,0.85);
+}
+.tpl-results-info strong { color: #fafafa; font-weight: 600; }
+.tpl-results-info em { color: #8fbce6; font-style: normal; font-weight: 500; }
+.tpl-clear-search {
+  background: transparent;
+  border: 1px solid rgba(143,188,230,0.3);
+  color: #8fbce6;
+  padding: 5px 11px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tpl-clear-search:hover {
+  background: rgba(143,188,230,0.1);
+  border-color: rgba(143,188,230,0.5);
+}
+
+/* ====================================================================
+   🪶 ESTADO VACÍO MEJORADO
+   ==================================================================== */
+#tpl-empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: linear-gradient(180deg, rgba(11,31,74,0.3), transparent);
+  border: 1px dashed rgba(143,188,230,0.2);
+  border-radius: 16px;
+  margin: 1rem 0 2rem;
+}
+.tpl-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: rgba(143,188,230,0.06);
+  border: 1px solid rgba(143,188,230,0.15);
+  border-radius: 50%;
+  color: rgba(143,188,230,0.5);
+  margin-bottom: 1.25rem;
+}
+.tpl-empty-title {
+  font-family: 'Inter Tight', 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  color: #fafafa;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+}
+.tpl-empty-desc {
+  font-size: 13px;
+  color: rgba(168,184,209,0.7);
+  margin: 0;
+  max-width: 360px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* ====================================================================
+   📋 VISTA LISTA — tpl-grid-list
+   ==================================================================== */
+.tpl-grid-list {
+  display: flex !important;
+  flex-direction: column;
+  gap: 8px !important;
+}
+
+.tpl-grid-list .tpl-card {
+  display: grid !important;
+  grid-template-columns: auto 1fr auto !important;
+  align-items: center;
+  gap: 16px !important;
+  padding: 14px 18px !important;
+  border-radius: 10px !important;
+  flex-direction: row !important;
+}
+
+.tpl-grid-list .tpl-card-icon {
+  width: 42px !important;
+  height: 42px !important;
+  font-size: 22px !important;
+  border-radius: 8px !important;
+  margin: 0 !important;
+}
+
+.tpl-grid-list .tpl-card-body {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 12px !important;
+  flex-wrap: wrap;
+  flex: 1 !important;
+}
+
+.tpl-grid-list .tpl-card-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.tpl-grid-list .tpl-card-title {
+  font-size: 14px !important;
+  margin: 0 !important;
+  flex: 1;
+  min-width: 220px;
+}
+
+.tpl-grid-list .tpl-card-desc {
+  display: none;
+}
+
+.tpl-grid-list .tpl-card-cta {
+  margin: 0 !important;
+  padding: 8px 14px !important;
+  font-size: 11.5px !important;
+  white-space: nowrap;
+}
+
+.tpl-grid-list .tpl-badge-feat {
+  position: static !important;
+  flex-shrink: 0;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .tpl-grid-list .tpl-card {
+    grid-template-columns: auto 1fr !important;
+    grid-template-rows: auto auto !important;
+  }
+  .tpl-grid-list .tpl-card-cta {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+}
+
+/* ====================================================================
+   🏷️ META DE CARD — Categoría junto al formato
+   ==================================================================== */
+.tpl-card-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tpl-card-cat {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(168,184,209,0.6);
+  padding: 3px 8px;
+  background: rgba(168,184,209,0.06);
+  border: 1px solid rgba(168,184,209,0.12);
+  border-radius: 5px;
+}
+  .tpl-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .tpl-card { padding: 1.25rem; }
+  .tpl-filters { gap: 0.4rem; }
+  .tpl-filter { padding: 7px 14px; font-size: 11.5px; }
+#sec-plantillas{display:flex;flex-direction:column;gap:16px}
+</style>
+<template id="tpl-plantillas">
+<div id="sec-plantillas">
+    <div class="section" id="sec-plantillas">
+      <!-- Stats banner -->
+      <div class="tpl-stats">
+        <div class="tpl-stat">
+          <span class="tpl-stat-num" id="tpl-stat-total">0</span>
+          <span class="tpl-stat-lbl">Plantillas disponibles</span>
+        </div>
+        <div class="tpl-stat-divider"></div>
+        <div class="tpl-stat">
+          <span class="tpl-stat-num" id="tpl-stat-feat">0</span>
+          <span class="tpl-stat-lbl">Destacadas</span>
+        </div>
+        <div class="tpl-stat-divider"></div>
+        <div class="tpl-stat">
+          <span class="tpl-stat-num">7</span>
+          <span class="tpl-stat-lbl">Categorías</span>
+        </div>
+        <div class="tpl-stat-divider"></div>
+        <div class="tpl-stat">
+          <span class="tpl-stat-num">∞</span>
+          <span class="tpl-stat-lbl">Descargas</span>
+        </div>
+      </div>
+
+      <!-- Search bar + view toggle -->
+      <div class="tpl-toolbar">
+        <div class="tpl-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="tpl-search-input" placeholder="Buscar por nombre o descripción..." autocomplete="off">
+          <button class="tpl-search-clear" id="tpl-search-clear" aria-label="Limpiar búsqueda" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div class="tpl-view-toggle">
+          <button class="tpl-view-btn is-active" data-view="grid" aria-label="Vista de cuadrícula" title="Vista cuadrícula">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </button>
+          <button class="tpl-view-btn" data-view="list" aria-label="Vista de lista" title="Vista lista">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros por categoría -->
+      <div class="tpl-filters">
+        <button class="tpl-filter is-active" data-cat="todas">Todas <span class="tpl-count" id="tpl-c-todas">0</span></button>
+        <button class="tpl-filter" data-cat="finanzas">Finanzas <span class="tpl-count" id="tpl-c-finanzas">0</span></button>
+        <button class="tpl-filter" data-cat="rh">RH <span class="tpl-count" id="tpl-c-rh">0</span></button>
+        <button class="tpl-filter" data-cat="ventas">Ventas <span class="tpl-count" id="tpl-c-ventas">0</span></button>
+        <button class="tpl-filter" data-cat="operaciones">Operaciones <span class="tpl-count" id="tpl-c-operaciones">0</span></button>
+        <button class="tpl-filter" data-cat="marketing">Marketing <span class="tpl-count" id="tpl-c-marketing">0</span></button>
+        <button class="tpl-filter" data-cat="legal">Legal <span class="tpl-count" id="tpl-c-legal">0</span></button>
+        <button class="tpl-filter tpl-filter-feat" data-cat="destacadas">★ Destacadas <span class="tpl-count" id="tpl-c-destacadas">0</span></button>
+      </div>
+
+      <!-- Resultados de búsqueda info -->
+      <div class="tpl-results-info" id="tpl-results-info" style="display:none">
+        <span id="tpl-results-text"></span>
+        <button class="tpl-clear-search" id="tpl-clear-search">Limpiar búsqueda</button>
+      </div>
+
+      <!-- Grid de plantillas -->
+      <div id="plantillas-grid" class="tpl-grid"></div>
+
+      <!-- Estado vacío al filtrar -->
+      <div id="tpl-empty" style="display:none">
+        <div class="tpl-empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+        </div>
+        <p class="tpl-empty-title">Sin resultados</p>
+        <p class="tpl-empty-desc">No encontramos plantillas que coincidan. Prueba otra categoría o limpia la búsqueda.</p>
+      </div>
+
+      <!-- Footer info -->
+      <div class="tpl-footer-note">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#93b4ed" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <div>
+          <p style="font-size:13px;font-weight:700;color:#fff;margin:0 0 3px">¿Necesitas una plantilla específica?</p>
+          <p style="font-size:12px;color:rgba(168,184,209,0.85);margin:0">Escríbenos por WhatsApp y la creamos para ti.
+            <a href="https://wa.me/522383738143?text=Hola%2C%20soy%20miembro%20VIP%20de%20ICADEM%20y%20me%20gustar%C3%ADa%20solicitar%20una%20plantilla%20espec%C3%ADfica%3A%20" target="_blank" rel="noopener" style="color:#93b4ed;font-weight:700;text-decoration:none;border-bottom:1.5px solid rgba(147,180,237,0.5);padding-bottom:1px;margin-left:4px">Solicitar plantilla →</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================
+         🛠️ HERRAMIENTA #2 — CALCULADORA FISCAL (PLACEHOLDER)
+         ============================================================ -->
+    <div id="tpl-modal">
+      <!-- Header -->
+      <div class="tpl-modal-header">
+        <div class="tpl-modal-header-left">
+          <div class="tpl-modal-icon" id="tpl-modal-icon"></div>
+          <div class="tpl-modal-title-block">
+            <div class="tpl-modal-tag">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+              <span id="tpl-modal-format">SHEETS</span> · <span id="tpl-modal-cat">Finanzas</span>
+            </div>
+            <h2 class="tpl-modal-title" id="tpl-modal-title-text">Plantilla Premium</h2>
+            <p class="tpl-modal-subtitle" id="tpl-modal-desc">Descripción de la plantilla.</p>
+          </div>
+        </div>
+        <button class="tpl-modal-close" onclick="closeTemplateModal()" aria-label="Cerrar">✕</button>
+      </div>
+
+      <!-- Body: iframe preview -->
+      <div class="tpl-modal-body">
+        <div class="tpl-modal-preview" id="tpl-modal-preview">
+          <!-- Loading spinner -->
+          <div class="tpl-modal-iframe-loading" id="tpl-modal-loading">
+            <div class="spinner"></div>
+            <p>Cargando vista previa...</p>
+          </div>
+          <!-- Iframe para preview -->
+          <iframe class="tpl-modal-iframe" id="tpl-modal-iframe" src="" title="Vista previa de plantilla" 
+                  sandbox="allow-scripts allow-same-origin allow-forms"
+                  allow="fullscreen"></iframe>
+          <!-- Mensaje cuando no hay URL disponible -->
+          <div class="tpl-modal-preview-pending" id="tpl-modal-pending" style="display:none">
+            <div class="preview-icon" id="tpl-pending-icon">📊</div>
+            <h3>Vista previa disponible próximamente</h3>
+            <p>Esta plantilla está siendo preparada con datos reales de alta calidad. Usa el botón de copia cuando esté disponible.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer: botones -->
+      <div class="tpl-modal-footer">
+        <div class="tpl-modal-footer-info">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Versión <span id="tpl-modal-version">v1.0</span>
+        </div>
+        <div class="tpl-modal-footer-actions">
+          <button class="tpl-btn-close-footer" onclick="closeTemplateModal()">
+            × Cerrar
+          </button>
+          <a class="tpl-btn-drive" id="tpl-btn-drive" href="#" target="_blank" rel="noopener" style="display:none">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Abrir en Drive
+          </a>
+          <a class="tpl-btn-copy" id="tpl-btn-copy" href="#" target="_blank" rel="noopener">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Hacer mi copia
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- MODIFICADO: login directo — Firebase Auth pre-cargado para no perder gesto de usuario -->
+</div>
+</template>
+<script>
+
+(function(){
+  'use strict';
+  console.log('%c[SOLUCION_RADICAL_v4] Iniciando reparacion del modal','color:#dc2626;font-weight:bold;font-size:16px');
+  
+  // [INDICADOR_VISUAL_v1] Agregar un dot visual rojo que confirme que el script CORRIO
+  function agregarIndicador(texto, color) {
+    const old = document.getElementById('icadem-debug-dot');
+    if (old) old.remove();
+    const dot = document.createElement('div');
+    dot.id = 'icadem-debug-dot';
+    dot.style.cssText = 'position:fixed;bottom:10px;left:10px;z-index:2147483647;background:' + color + ';color:#fff;padding:6px 12px;border-radius:99px;font-family:monospace;font-size:11px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.4);pointer-events:none;letter-spacing:0.05em;';
+    dot.textContent = texto;
+    document.body.appendChild(dot);
+  }
+  
+  // Esperar a que el body exista
+  function cuandoBodyEste(fn) {
+    if (document.body) { fn(); }
+    else { document.addEventListener('DOMContentLoaded', fn); }
+  }
+  
+  cuandoBodyEste(() => {
+    agregarIndicador('● RADICAL_v4 ACTIVO', '#10b981');
+    setTimeout(() => {
+      const dot = document.getElementById('icadem-debug-dot');
+      if (dot) {
+        dot.style.transition = 'opacity 1s';
+        dot.style.opacity = '0';
+        setTimeout(() => dot.remove(), 1100);
+      }
+    }, 8000);  // se quita despues de 8 segundos
+  });
+
+  // Funcion auto-suficiente que abre el modal SIN depender del IIFE
+  function abrirModalDirecto(id) {
+    console.log('%c[SOLUCION_RADICAL_v4] abrirModalDirecto(' + id + ')','color:#10b981;font-weight:bold');
+    
+    if (!window.PLANTILLAS) {
+      console.error('[SOLUCION_RADICAL_v4] ✗ window.PLANTILLAS no existe');
+      alert('Error: la lista de plantillas no se cargo. Recarga la pagina.');
+      return;
+    }
+    
+    const p = window.PLANTILLAS.find(x => x.id === id);
+    if (!p) {
+      console.error('[SOLUCION_RADICAL_v4] ✗ Plantilla no encontrada:', id);
+      return;
+    }
+    if (p.proximamente) {
+      console.log('[SOLUCION_RADICAL_v4] Plantilla proximamente');
+      return;
+    }
+    // PLANTILLAS_DINAMICAS_v1: bloqueo defensivo — si la plantilla está bloqueada,
+    // NO abrir el modal aunque algo intente llamar a esta función directamente.
+    //
+    // PLANTILLAS_INVITADO_v1: pero si el usuario es INVITADO, dejar que el flujo
+    // normal continúe — el paywall se encarga de pedirle suscripción (no tiene
+    // sentido bloquear plantillas a alguien que ya está bloqueado del todo).
+    if (p.bloqueada === true && !document.body.classList.contains('is-guest')) {
+      console.log('[PLANTILLAS_DINAMICAS_v1] Plantilla bloqueada, modal NO se abre (usuario VIP)');
+      return;
+    }
+    
+    const overlay = document.getElementById('tpl-modal-overlay');
+    const modal = document.getElementById('tpl-modal');
+    if (!overlay || !modal) {
+      console.error('[SOLUCION_RADICAL_v4] ✗ Modal HTML no encontrado en DOM');
+      alert('Error: el modal no esta en el DOM.');
+      return;
+    }
+    
+    // Llenar el header
+    const setText = (elId, val) => {
+      const el = document.getElementById(elId);
+      if (el) el.textContent = val;
+    };
+    setText('tpl-modal-icon', p.icono);
+    setText('tpl-modal-title-text', p.titulo);
+    setText('tpl-modal-desc', p.desc);
+    setText('tpl-modal-format', p.formato);
+    setText('tpl-modal-version', p.version || 'v1.0');
+    
+    const catLabels = {
+      'finanzas': 'Finanzas', 'rh': 'Capital Humano', 'ventas': 'Ventas',
+      'operaciones': 'Operaciones', 'marketing': 'Marketing', 'legal': 'Legal'
+    };
+    setText('tpl-modal-cat', catLabels[p.cat] || p.cat);
+    
+    // Configurar boton de descarga
+    const hasDownloadUrl = p.urlDownload && !p.urlDownload.startsWith('PENDIENTE');
+    const hasUrl = p.urlCopy && !p.urlCopy.startsWith('PENDIENTE');
+    const esDescargaDirecta = ['XLSX','DOCX','PPTX','PDF'].includes(p.formato) || p.urlDownload;
+    
+    const labels = {
+      'XLSX':'Descargar Excel',
+      'DOCX':'Descargar Word',
+      'PPTX':'Descargar PowerPoint',
+      'PDF':'Descargar PDF',
+      'SHEETS':'Hacer una copia',
+      'DOCS':'Hacer una copia',
+      'SLIDES':'Hacer una copia'
+    };
+    const label = labels[p.formato] || 'Descargar';
+    
+    const copyBtn = document.getElementById('tpl-btn-copy');
+    if (copyBtn) {
+      if (hasUrl || hasDownloadUrl) {
+        const targetUrl = hasDownloadUrl ? p.urlDownload : p.urlCopy;
+        copyBtn.href = targetUrl;
+        copyBtn.classList.remove('tpl-btn-disabled');
+        copyBtn.style.pointerEvents = '';
+        if (esDescargaDirecta) {
+          copyBtn.setAttribute('download', '');
+          copyBtn.removeAttribute('target');
+        } else {
+          copyBtn.removeAttribute('download');
+          copyBtn.setAttribute('target', '_blank');
+        }
+        copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span>' + label + '</span>';
+      } else {
+        copyBtn.href = '#';
+        copyBtn.classList.add('tpl-btn-disabled');
+        copyBtn.style.pointerEvents = 'none';
+      }
+    }
+    
+    // Drive button: ocultar siempre (solo Google Sheets lo usa)
+    const driveBtn = document.getElementById('tpl-btn-drive');
+    if (driveBtn) driveBtn.style.display = 'none';
+    
+    // Preview: mostrar el "pending" con preview premium
+    const loading = document.getElementById('tpl-modal-loading');
+    const iframe = document.getElementById('tpl-modal-iframe');
+    const pending = document.getElementById('tpl-modal-pending');
+    
+    if (loading) loading.style.display = 'none';
+    if (iframe) { iframe.style.display = 'none'; iframe.src = ''; }
+    
+    // [PLANTILLAS_GOOGLE_AUTO_v2] Si urlEdit existe O urlDownload es Google → iframe preview Google directo
+    // (esto cubre Google Sheets/Docs/Slides y archivos en Drive con /file/d/...)
+    const _icademGooglePrev2 = (url) => {
+      if (!url || typeof url !== 'string') return null;
+      const m1 = url.match(/docs\.google\.com\/(spreadsheets|document|presentation)\/d\/([a-zA-Z0-9_-]+)/i);
+      if (m1) return 'https://docs.google.com/' + m1[1] + '/d/' + m1[2] + '/preview';
+      const m2 = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+      if (m2) return 'https://drive.google.com/file/d/' + m2[1] + '/preview';
+      return null;
+    };
+    const _googlePrevExplicit = (p.urlEdit && !String(p.urlEdit).startsWith('PENDIENTE')) ? _icademGooglePrev2(p.urlEdit) : null;
+    const _googlePrevAuto = (p.urlDownload && !String(p.urlDownload).startsWith('PENDIENTE')) ? _icademGooglePrev2(p.urlDownload) : null;
+    const _googlePreviewUrl = _googlePrevExplicit || _googlePrevAuto;
+    const _googleOpenUrl = (p.urlEdit && _googlePrevExplicit) ? p.urlEdit : p.urlDownload;
+
+    if (_googlePreviewUrl && pending) {
+      console.log('%c[PLANTILLAS_GOOGLE_AUTO_v2] ⚡ Mostrando preview Google embebido','color:#4285F4;font-weight:bold;font-size:13px');
+      pending.style.display = 'flex';
+      const _tituloHeaderG = ({
+        'XLSX':'Vista previa - Excel',
+        'DOCX':'Vista previa - Word',
+        'PPTX':'Vista previa - PowerPoint',
+        'PDF':'Vista previa - PDF',
+        'SHEETS':'Vista previa - Google Sheets',
+        'DOCS':'Vista previa - Google Docs',
+        'SLIDES':'Vista previa - Google Slides'
+      })[p.formato] || 'Vista previa';
+
+      pending.innerHTML = ''
+        + '<div style="width:100%;padding:12px 18px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">'
+          + '<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#475569;-webkit-text-fill-color:#475569;letter-spacing:0.10em;text-transform:uppercase;">' + _tituloHeaderG + '</span>'
+          + '<a href="' + _googleOpenUrl + '" target="_blank" rel="noopener" style="font-family:Inter,sans-serif;font-size:11px;color:#C9A961;-webkit-text-fill-color:#C9A961;font-weight:700;text-decoration:none;letter-spacing:0.04em;">Abrir en pestana nueva &rarr;</a>'
+        + '</div>'
+        + '<div style="position:relative;flex:1;width:100%;min-height:480px;background:#fff;overflow:hidden;">'
+          + '<div id="icadem-gpreview-skeleton" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:24px 28px;gap:12px;background:#fff;z-index:2;">'
+            + '<div class="icadem-shimmer" style="height:26px;width:55%;border-radius:5px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:90%;border-radius:4px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:80%;border-radius:4px;"></div>'
+            + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+            + '</div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:70%;border-radius:4px;margin-top:8px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:85%;border-radius:4px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:75%;border-radius:4px;"></div>'
+            + '<div style="margin-top:auto;text-align:center;font-family:Inter,sans-serif;font-size:11.5px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;padding-top:12px;">Cargando vista previa de Google...</div>'
+          + '</div>'
+          + '<iframe id="icadem-gpreview-iframe" src="' + _googlePreviewUrl + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.4s;background:#fff;" allow="autoplay" allowfullscreen></iframe>'
+        + '</div>';
+
+      const _gIframe = document.getElementById('icadem-gpreview-iframe');
+      const _gSkel = document.getElementById('icadem-gpreview-skeleton');
+      if (_gIframe && _gSkel) {
+        let _gCargado = false;
+        _gIframe.onload = function() {
+          _gCargado = true;
+          _gIframe.style.opacity = '1';
+          setTimeout(() => { if (_gSkel) _gSkel.style.display = 'none'; }, 200);
+        };
+        setTimeout(() => {
+          if (!_gCargado && _gSkel) {
+            _gSkel.innerHTML = '<div style="margin:auto;text-align:center;padding:2rem;max-width:440px;"><div style="font-size:48px;line-height:1;margin-bottom:1rem;">' + p.icono + '</div><h4 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.3rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Vista previa tardando</h4><p style="font-family:Inter,sans-serif;font-size:12.5px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.55;margin:0;">Google esta tardando en cargar este archivo. Puedes abrirlo en una pestana nueva con el enlace superior derecho, o descargarlo con el boton dorado abajo.</p></div>';
+          }
+        }, 10000);
+      }
+
+      overlay.classList.add('tpl-modal-visible');
+      document.body.style.overflow = 'hidden';
+      return;
+    }
+
+    if (pending) {
+      // [MODAL_ROBUSTO_v2] Preview Office con fallback elegante y boton grande de descarga
+      pending.style.display = 'flex';
+
+      // Detectar si estamos en local o produccion
+      const enLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname) || location.protocol === 'file:';
+
+      // Construir URL publica del archivo
+      const archivoUrl = location.origin + '/' + (p.urlDownload || p.urlCopy);
+      const archivoUrlEncoded = encodeURIComponent(archivoUrl);
+      const officeViewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + archivoUrlEncoded;
+      const googleViewerUrl = 'https://docs.google.com/gview?url=' + archivoUrlEncoded + '&embedded=true';
+
+      const tituloHeader = ({
+        'XLSX':'Vista previa - Excel',
+        'DOCX':'Vista previa - Word',
+        'PPTX':'Vista previa - PowerPoint',
+        'PDF':'Vista previa - PDF'
+      })[p.formato] || 'Vista previa';
+
+      if (enLocal) {
+        // En local mostrar mensaje (Microsoft no puede acceder a archivos locales)
+        pending.innerHTML = ''
+          + '<div style="text-align:center;padding:2rem 1.5rem;max-width:520px;margin:0 auto;">'
+          + '<div style="font-size:72px;line-height:1;margin-bottom:1rem;">' + p.icono + '</div>'
+          + '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.6rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Preview no disponible en local</h3>'
+          + '<p style="font-family:Inter,sans-serif;font-size:13.5px;color:#475569;-webkit-text-fill-color:#475569;line-height:1.55;margin:0 0 1rem;">El preview en vivo funciona cuando el sitio esta publicado en internet. Sube el archivo a GitHub Pages para verlo aqui.</p>'
+          + '<p style="font-family:Inter,sans-serif;font-size:12px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;margin:0;">Descarga el archivo abajo para verlo localmente.</p>'
+          + '</div>';
+        return;
+      }
+
+      // [MODAL_SIMPLE_v3] Preview limpio sin botones inline problematicos
+      // Header de preview
+      const tituloHeaderSimple = ({
+        'XLSX':'Vista previa del Excel',
+        'DOCX':'Vista previa del Word',
+        'PPTX':'Vista previa del PowerPoint (puede tardar 5-10s)',
+        'PDF':'Vista previa del PDF'
+      })[p.formato] || 'Vista previa';
+
+      pending.innerHTML = ''
+        + '<div style="width:100%;padding:12px 18px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">'
+          + '<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#475569;-webkit-text-fill-color:#475569;letter-spacing:0.10em;text-transform:uppercase;">' + tituloHeaderSimple + '</span>'
+          + '<a href="' + archivoUrl + '" target="_blank" rel="noopener" style="font-family:Inter,sans-serif;font-size:11px;color:#C9A961;-webkit-text-fill-color:#C9A961;font-weight:700;text-decoration:none;letter-spacing:0.04em;">Abrir en pestana nueva &rarr;</a>'
+        + '</div>'
+        + '<div style="position:relative;flex:1;width:100%;min-height:480px;background:#fff;overflow:hidden;">'
+          + '<div id="icadem-office-skeleton" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:24px 28px;gap:12px;background:#fff;z-index:2;">'
+            + '<div class="icadem-shimmer" style="height:26px;width:55%;border-radius:5px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:90%;border-radius:4px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:80%;border-radius:4px;"></div>'
+            + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
+            + '</div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:70%;border-radius:4px;margin-top:8px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:85%;border-radius:4px;"></div>'
+            + '<div class="icadem-shimmer" style="height:14px;width:75%;border-radius:4px;"></div>'
+            + '<div style="margin-top:auto;text-align:center;font-family:Inter,sans-serif;font-size:11.5px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;padding-top:12px;">Cargando vista previa con Microsoft Office Online...</div>'
+          + '</div>'
+          + '<iframe id="icadem-office-iframe" src="' + officeViewerUrl + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.5s;background:#fff;" allowfullscreen></iframe>'
+        + '</div>';
+
+      const iframeReal = document.getElementById('icadem-office-iframe');
+      const skeleton = document.getElementById('icadem-office-skeleton');
+      
+      // [TURBO_v2] Si ya precargamos durante el hover, transicion casi instantanea
+      const yaPrecargadoModal = window._iframesPrecargados && window._iframesPrecargados[id];
+      if (yaPrecargadoModal) {
+        console.log('%c[TURBO_v2] ⚡⚡ Mostrando iframe precargado (turbo)','color:#f59e0b;font-weight:bold;font-size:14px');
+        // El iframe del modal cargara desde cache del browser (instantaneo)
+        // Skeleton solo 150ms para evitar parpadeo
+        setTimeout(() => {
+          if (iframeReal) iframeReal.style.opacity = '1';
+          if (skeleton) skeleton.style.display = 'none';
+        }, 150);
+      }
+      
+      if (iframeReal && skeleton) {
+        let cargado = false;
+        iframeReal.onload = function() {
+          cargado = true;
+          iframeReal.style.opacity = '1';
+          setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, yaPrecargadoModal ? 100 : 250);  // [TURBO_v2] mas rapido
+        };
+        // Fallback elegante a los 10 segundos
+        setTimeout(() => {
+          if (!cargado && skeleton) {
+            skeleton.innerHTML = '<div style="margin:auto;text-align:center;padding:2rem;max-width:440px;"><div style="font-size:48px;line-height:1;margin-bottom:1rem;">' + p.icono + '</div><h4 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.3rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Vista previa no disponible</h4><p style="font-family:Inter,sans-serif;font-size:12.5px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.55;margin:0;">El visor de Microsoft tarda en cargar este archivo. Descarga la plantilla con el boton dorado abajo para ver todo el contenido.</p></div>';
+          }
+        }, 10000);
+      }
+      // [FIX_RETURN_BUG_v5] MOSTRAR el modal AHORA, antes del return
+      overlay.classList.add('tpl-modal-visible');
+      document.body.style.overflow = 'hidden';
+      console.log('%c[FIX_RETURN_BUG_v5] ✓ Modal abierto (XLSX/DOCX/PPTX)','color:#10b981;font-weight:bold;font-size:14px');
+      return;
+    }
+
+    // ─── BLOQUE VIEJO (ya no se ejecuta porque arriba hay return) ─────
+    // Mantenido por compatibilidad si algun otro flujo cae aqui
+    if (false && pending) {
+      pending.style.display = 'flex';
+      const titulos = {
+        'XLSX': 'Plantilla Excel premium',
+        'DOCX': 'Plantilla Word premium',
+        'PPTX': 'Plantilla PowerPoint premium',
+        'PDF': 'Plantilla PDF premium'
+      };
+      const descripciones = {
+        'XLSX': 'Descarga el archivo Excel con formulas y graficas preconfiguradas. Abrelo con Microsoft Excel, Numbers (Mac) o Google Sheets.',
+        'DOCX': 'Descarga el documento Word con formato profesional listo para editar. Abrelo con Microsoft Word, Pages (Mac) o Google Docs.',
+        'PPTX': 'Descarga la presentacion PowerPoint con 12 slides investor-ready. Abrela con Microsoft PowerPoint, Keynote (Mac) o Google Slides.',
+        'PDF': 'Descarga el PDF listo para imprimir o compartir.'
+      };
+      const tituloPreview = titulos[p.formato] || 'Plantilla premium';
+      const descPreview = descripciones[p.formato] || 'Descarga el archivo premium con formato profesional listo para usar.';
+      
+      pending.innerHTML = ''
+        + '<div style="text-align:center;padding:2rem 1.5rem;max-width:540px;margin:0 auto;">'
+        + '<div style="font-size:80px;line-height:1;margin-bottom:1.25rem;filter:drop-shadow(0 8px 24px rgba(201,169,97,0.30));">' + p.icono + '</div>'
+        + '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.7rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">' + tituloPreview + '</h3>'
+        + '<p style="font-family:Inter,sans-serif;font-size:14px;color:#475569;-webkit-text-fill-color:#475569;line-height:1.55;margin:0 0 1.5rem;">' + descPreview + '</p>'
+        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 1.75rem;text-align:left;">'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + ''
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Listo para usar</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Formulas y formatos preconfigurados</div></div></div>'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + ''
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Graficas dinamicas</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Se actualizan automaticamente</div></div></div>'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + ''
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Diseno premium</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Estilo profesional ICADEM</div></div></div>'
+        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
+        + ''
+        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Sin proteccion</div>'
+        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Personalizable al 100%</div></div></div>'
+        + '</div>'
+        + '<p style="font-family:Inter,sans-serif;font-size:11px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;margin:0;">Version ' + (p.version || 'v1.0') + ' · ICADEM Panel VIP</p>'
+        + '</div>';
+    }
+    
+    // MOSTRAR el modal
+    overlay.classList.add('tpl-modal-visible');
+    document.body.style.overflow = 'hidden';
+    
+    console.log('%c[SOLUCION_RADICAL_v4] ✓ Modal abierto','color:#10b981;font-weight:bold');
+  }
+  
+  // Cerrar modal
+  function cerrarModalDirecto() {
+    const overlay = document.getElementById('tpl-modal-overlay');
+    if (overlay) {
+      overlay.classList.remove('tpl-modal-visible');
+      document.body.style.overflow = '';
+    }
+  }
+  
+  // EXPONER GLOBALMENTE (sobreescribir si ya existe)
+  window.openTemplateModal = abrirModalDirecto;
+  window.closeTemplateModal = cerrarModalDirecto;
+  console.log('[SOLUCION_RADICAL_v4] window.openTemplateModal sobreescrito:', typeof window.openTemplateModal);
+  
+  // FUNCION DE INICIALIZACION: agregar listeners a todas las cards Y al close del modal
+  function adjuntarListeners() {
+    const cards = document.querySelectorAll('.tpl-card-premium');
+    console.log('[SOLUCION_RADICAL_v4] Adjuntando listeners a ' + cards.length + ' cards');
+    
+    cards.forEach((card, idx) => {
+      if (card.dataset.radicalAttached === '1') return;
+      card.dataset.radicalAttached = '1';
+      
+      const id = card.dataset.id;
+      if (!id) return;
+      
+      // Remover el onclick inline para evitar duplicacion
+      card.removeAttribute('onclick');
+      
+      // [PRECARGA_HOVER_v1] Precargar iframe Office al pasar el mouse
+      let preloadTimer = null;
+      let preloadedIframe = null;
+      let preloadedPrefetch = null;
+      
+      card.addEventListener('mouseenter', function() {
+        if (preloadTimer) clearTimeout(preloadTimer);
+        preloadTimer = setTimeout(() => {
+          if (!window.PLANTILLAS) return;
+          const pp = window.PLANTILLAS.find(x => x.id === id);
+          if (!pp || pp.proximamente) return;
+          if (!['XLSX','DOCX','PPTX','PDF'].includes(pp.formato) && !pp.urlDownload) return;
+          
+          window._iframesPrecargados = window._iframesPrecargados || {};
+          if (window._iframesPrecargados[id]) return;  // ya precargado
+          
+          const enLocal = ['localhost','127.0.0.1',''].includes(location.hostname) || location.protocol === 'file:';
+          if (enLocal) return;
+          
+          const archivoUrl = location.origin + '/' + (pp.urlDownload || pp.urlCopy);
+          
+          // PASO 1: prefetch del archivo para que GitHub Pages lo prepare
+          if (!preloadedPrefetch) {
+            const link = document.createElement('link');
+            link.rel = 'prefetch';
+            link.href = archivoUrl;
+            link.as = 'fetch';
+            link.crossOrigin = 'anonymous';
+            document.head.appendChild(link);
+            preloadedPrefetch = link;
+          }
+          
+          // PASO 2: iframe oculto que precarga Office Online Viewer
+          if (!preloadedIframe) {
+            const officeUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(archivoUrl);
+            const ifr = document.createElement('iframe');
+            ifr.src = officeUrl;
+            ifr.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:0;opacity:0;pointer-events:none;';
+            ifr.setAttribute('aria-hidden', 'true');
+            ifr.dataset.precargaId = id;
+            document.body.appendChild(ifr);
+            preloadedIframe = ifr;
+            
+            ifr.onload = function() {
+              window._iframesPrecargados[id] = true;
+              console.log('%c[PRECARGA_HOVER_v1] ⚡ Precargado: ' + id, 'color:#10b981;font-weight:bold');
+            };
+          }
+        }, 50);  // [TURBO_v2] delay minimo para reaccion casi instantanea
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        if (preloadTimer) {
+          clearTimeout(preloadTimer);
+          preloadTimer = null;
+        }
+      });
+      
+      // Agregar listener directo del click
+      card.addEventListener('click', function(e) {
+        if (e.target.closest('button[onclick]')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const yaPrecargado = window._iframesPrecargados && window._iframesPrecargados[id];
+        console.log('%c[SOLUCION_RADICAL_v4] CLICK RADICAL en card: ' + id + (yaPrecargado ? ' (PRECARGADO ⚡)' : ''),'color:#dc2626;font-weight:bold;font-size:14px');
+        abrirModalDirecto(id);
+      });
+    });
+    
+    // Listener para cerrar modal con overlay click
+    const overlay = document.getElementById('tpl-modal-overlay');
+    if (overlay && !overlay.dataset.radicalAttached) {
+      overlay.dataset.radicalAttached = '1';
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) cerrarModalDirecto();
+      });
+    }
+    
+    // Tambien boton X del modal
+    const closeBtn = document.querySelector('.tpl-modal-close, .tpl-btn-close-footer');
+    if (closeBtn && !closeBtn.dataset.radicalAttached) {
+      closeBtn.dataset.radicalAttached = '1';
+      closeBtn.addEventListener('click', cerrarModalDirecto);
+    }
+  }
+  
+  // Ejecutar listeners ya y cada vez que cambien las cards
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', adjuntarListeners);
+  }
+  adjuntarListeners();
+  
+  // Watchdog: cada 1 segundo verificar si hay cards nuevas (por filtros que rehacen el grid)
+  setInterval(adjuntarListeners, 1000);
+  
+  // [TURBO_v2] PREFETCH AGRESIVO: precargar los 10 archivos al cargar el panel
+  // Esto los pone en cache del browser para que cuando Microsoft los pida sea instantaneo
+  function prefetchTodasLasPlantillas() {
+    if (window._prefetchHecho) return;
+    window._prefetchHecho = true;
+    
+    if (!window.PLANTILLAS) {
+      setTimeout(prefetchTodasLasPlantillas, 500);
+      return;
+    }
+    
+    const enLocal = ['localhost','127.0.0.1',''].includes(location.hostname) || location.protocol === 'file:';
+    if (enLocal) return;
+    
+    let prefetched = 0;
+    window.PLANTILLAS.forEach((pp, idx) => {
+      if (pp.proximamente) return;
+      if (!['XLSX','DOCX','PPTX','PDF'].includes(pp.formato) && !pp.urlDownload) return;
+      
+      const archivoUrl = location.origin + '/' + (pp.urlDownload || pp.urlCopy);
+      
+      // Espaciar los prefetch para no saturar (50ms entre cada uno)
+      setTimeout(() => {
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = archivoUrl;
+        link.as = 'fetch';
+        link.crossOrigin = 'anonymous';
+        document.head.appendChild(link);
+        prefetched++;
+        if (prefetched === 1) {
+          console.log('%c[TURBO_v2] 🚀 Prefetching ' + window.PLANTILLAS.filter(x => !x.proximamente).length + ' plantillas en paralelo...', 'color:#8b5cf6;font-weight:bold;font-size:13px');
+        }
+      }, idx * 50);
+    });
+  }
+  
+  // Iniciar prefetch despues de 2 segundos (no bloquear el render del panel)
+  setTimeout(prefetchTodasLasPlantillas, 2000);
+  
+  // ESC cierra el modal
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const overlay = document.getElementById('tpl-modal-overlay');
+      if (overlay && overlay.classList.contains('tpl-modal-visible')) {
+        cerrarModalDirecto();
+      }
+    }
+  });
+  
+  console.log('%c[SOLUCION_RADICAL_v4] Sistema activo - los clicks ahora funcionan','color:#10b981;font-weight:bold;font-size:14px');
+})();
+</script>
+<script>
+
+window.__initPlantillas = function(){
+  'use strict';
+
+  // ╔═══════════════════════════════════════════════════════════════╗
+  // ║ PLANTILLAS_DINAMICAS_v1 — CATÁLOGO DESDE FIRESTORE             ║
+  // ║                                                                 ║
+  // ║ Las plantillas se cargan dinámicamente desde Firestore          ║
+  // ║ /plantillas (Rules v12: read público, write solo admin).        ║
+  // ║                                                                 ║
+  // ║ Estado por plantilla:                                           ║
+  // ║   • visible: true + bloqueada: false → card normal, clic abre   ║
+  // ║   • bloqueada: true → card GRISADA con candado, clic NO abre    ║
+  // ║                                                                 ║
+  // ║ Para invitados (no autenticados): TODAS las cards se tratan     ║
+  // ║ como bloqueadas (ven el contenido pero no descargan).           ║
+  // ╚═══════════════════════════════════════════════════════════════╝
+  const PLANTILLAS = [];  // se llena dinámicamente desde Firestore
+  window.PLANTILLAS = PLANTILLAS;
+
+  // Cargar plantillas desde Firestore en cuanto Firebase esté listo
+  async function cargarPlantillasDesdeFirestore() {
+    try {
+      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
+      const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+      let app = getApps()[0];
+      if (!app) {
+        app = initializeApp({
+          apiKey: 'AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA',
+          authDomain: 'icadem-vip.firebaseapp.com',
+          projectId: 'icadem-vip',
+          storageBucket: 'icadem-vip.firebasestorage.app',
+          messagingSenderId: '12508983783',
+          appId: '1:12508983783:web:b12be6f1fab9bb91fb8d42'
+        });
+      }
+      const db = getFirestore(app);
+      const snap = await getDocs(collection(db, 'plantillas'));
+      const lista = [];
+      snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
+      // Limpiar y rellenar el array compartido
+      PLANTILLAS.length = 0;
+      lista.forEach(p => PLANTILLAS.push(p));
+      console.log('[PLANTILLAS_DINAMICAS_v1] Cargadas', lista.length, 'plantillas desde Firestore');
+      // Re-render
+      if (typeof renderPlantillas === 'function') renderPlantillas();
+      // Actualizar contadores de categoría
+      if (typeof actualizarContadores === 'function') actualizarContadores();
+    } catch(e) {
+      console.error('[PLANTILLAS_DINAMICAS_v1] Error cargando plantillas:', e);
+    }
+  }
+  // Disparar al cargar el módulo
+  cargarPlantillasDesdeFirestore();
+
+  const grid = document.getElementById('plantillas-grid');
+  const empty = document.getElementById('tpl-empty');
+  const filterBtns = document.querySelectorAll('.tpl-filter');
+  const searchInput = document.getElementById('tpl-search-input');
+  const searchClear = document.getElementById('tpl-search-clear');
+  const resultsInfo = document.getElementById('tpl-results-info');
+  const resultsText = document.getElementById('tpl-results-text');
+  const clearSearchBtn = document.getElementById('tpl-clear-search');
+  const viewBtns = document.querySelectorAll('.tpl-view-btn');
+
+  let _currentCat = 'todas';
+  let _currentView = 'grid';
+  let _currentSearch = '';
+
+  function normalizar(str) {
+    return (str || '').toString().toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
+  }
+
+  function renderPlantillas() {
+    if (!grid) return;
+
+    // 1) Filtrar por categoría
+    let lista;
+    if (_currentCat === 'todas') {
+      lista = PLANTILLAS;
+    } else if (_currentCat === 'destacadas') {
+      lista = PLANTILLAS.filter(p => p.destacada);
+    } else {
+      lista = PLANTILLAS.filter(p => p.cat === _currentCat);
+    }
+
+    // 2) Filtrar por búsqueda
+    if (_currentSearch) {
+      const q = normalizar(_currentSearch);
+      lista = lista.filter(p =>
+        normalizar(p.titulo).includes(q) ||
+        normalizar(p.desc).includes(q) ||
+        normalizar(p.cat).includes(q) ||
+        normalizar(p.formato).includes(q)
+      );
+    }
+
+    // Mostrar info de resultados si hay búsqueda
+    if (_currentSearch && resultsInfo && resultsText) {
+      resultsInfo.style.display = 'flex';
+      resultsText.innerHTML = `<strong>${lista.length}</strong> ${lista.length === 1 ? 'resultado' : 'resultados'} para "<em>${_currentSearch}</em>"`;
+    } else if (resultsInfo) {
+      resultsInfo.style.display = 'none';
+    }
+
+    if (lista.length === 0) {
+      grid.innerHTML = '';
+      grid.classList.remove('tpl-grid-list');
+      if (empty) empty.style.display = 'block';
+      return;
+    }
+    if (empty) empty.style.display = 'none';
+
+    // PLANTILLAS_DINAMICAS_v1: Ordenamiento de 3 niveles:
+    //   1) Visibles ANTES que bloqueadas (las bloqueadas siempre al final)
+    //   2) Destacadas primero dentro de cada grupo
+    //   3) Por campo 'orden' ascendente (que asigna el admin)
+    //
+    // PLANTILLAS_INVITADO_v1: para invitados, el bloqueo NO mueve al final
+    // (porque todas se ven iguales). Solo destacadas + orden.
+    const esInvitadoOrden = document.body.classList.contains('is-guest');
+    const ordenadas = [...lista].sort((a, b) => {
+      if (!esInvitadoOrden) {
+        const aBloq = (a.bloqueada === true || a.proximamente === true) ? 1 : 0;
+        const bBloq = (b.bloqueada === true || b.proximamente === true) ? 1 : 0;
+        if (aBloq !== bBloq) return aBloq - bBloq;  // visibles primero
+      }
+      const aDest = a.destacada ? 0 : 1;
+      const bDest = b.destacada ? 0 : 1;
+      if (aDest !== bDest) return aDest - bDest;  // destacadas primero
+      const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
+      const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
+      return aOrd - bOrd;  // por orden ascendente
+    });
+
+    // Aplicar clase de vista
+    if (_currentView === 'list') {
+      grid.classList.add('tpl-grid-list');
+    } else {
+      grid.classList.remove('tpl-grid-list');
+    }
+
+    grid.innerHTML = ordenadas.map(p => {
+      // ╔═════════════════════════════════════════════════════════════════╗
+      // ║ PLANTILLAS_DINAMICAS_v1: estado de la plantilla                 ║
+      // ║                                                                  ║
+      // ║ • bloqueada === true → card GRISADA con candado, sin click      ║
+      // ║ • bloqueada !== true → card normal, click abre modal            ║
+      // ║                                                                  ║
+      // ║ Compatibilidad: si una plantilla vieja tiene proximamente:true, ║
+      // ║ también se trata como bloqueada (fallback de seguridad).        ║
+      // ║                                                                  ║
+      // ║ PLANTILLAS_INVITADO_v1: si el usuario es INVITADO (body tiene   ║
+      // ║ clase 'is-guest'), TODAS las plantillas se muestran como        ║
+      // ║ visibles (a color, sin candado). El paywall ya se encarga de    ║
+      // ║ bloquear el modal/descarga cuando dan click. Solo los VIPs      ║
+      // ║ autenticados ven cards bloqueadas grisadas.                     ║
+      // ╚═════════════════════════════════════════════════════════════════╝
+      const esInvitado = document.body.classList.contains('is-guest');
+      const esBloqueadaReal = p.bloqueada === true || p.proximamente === true;
+      const esBloqueada = esBloqueadaReal && !esInvitado;
+
+      const formatColor = {
+        'SHEETS': '#10b981',  // verde Google Sheets
+        'DOCS':   '#3b82f6',  // azul Google Docs
+        'SLIDES': '#f59e0b',  // ambar Google Slides
+        'XLSX':   '#107C41',  // verde Microsoft Excel oficial
+        'DOCX':   '#2B579A',  // azul Microsoft Word oficial
+        'PPTX':   '#D24726',  // naranja Microsoft PowerPoint oficial
+        'PDF':    '#ef4444'
+      }[p.formato] || '#94a3b8';
+
+      const catLabel = {
+        'finanzas': 'Finanzas',
+        'rh': 'Capital Humano',
+        'ventas': 'Ventas',
+        'operaciones': 'Operaciones',
+        'marketing': 'Marketing',
+        'legal': 'Legal'
+      }[p.cat] || p.cat;
+
+      // ─── CASO 1: Plantilla BLOQUEADA ─────────────────────────────
+      // Se muestra grisada con candado. NO tiene data-id ni clase
+      // tpl-card-premium (para que SOLUCION_RADICAL_v4 NO le adjunte
+      // listener). NO tiene onclick. NO se puede abrir modal.
+      if (esBloqueada) {
+        return `
+          <article class="tpl-card tpl-card-locked" data-cat="${p.cat}" aria-disabled="true" style="cursor:not-allowed;opacity:0.65;position:relative">
+            <div class="tpl-locked-overlay" style="position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(11,37,84,0.92);padding:5px 11px;border-radius:99px;z-index:5">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:.06em">BLOQUEADA</span>
+            </div>
+            <div class="tpl-card-icon" style="opacity:0.5">${p.icono || '📄'}</div>
+            <div class="tpl-card-body">
+              <div class="tpl-card-meta">
+                <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15;opacity:0.5">${p.formato}</span>
+                <span class="tpl-card-cat" style="opacity:0.5">${catLabel}</span>
+              </div>
+              <h3 class="tpl-card-title" style="opacity:0.55">${p.titulo}</h3>
+              <p class="tpl-card-desc" style="opacity:0.45">${p.desc || ''}</p>
+            </div>
+            <span class="tpl-card-cta tpl-card-cta-soon" style="opacity:0.5;pointer-events:none">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              No disponible
+            </span>
+          </article>
+        `;
+      }
+
+      // ─── CASO 2: Plantilla VISIBLE ───────────────────────────────
+      // Card normal con click que abre modal
+      return `
+        <article class="tpl-card tpl-card-premium ${p.destacada ? 'tpl-card-feat' : ''}" 
+                 data-cat="${p.cat}" 
+                 data-id="${p.id}"
+                 onclick="openTemplateModal('${p.id}')"
+                 style="cursor:pointer">
+          ${p.destacada ? '<span class="tpl-badge-feat">★ Destacada</span>' : ''}
+          <span class="tpl-premium-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+            PREMIUM
+          </span>
+          <div class="tpl-card-icon">${p.icono || '📄'}</div>
+          <div class="tpl-card-body">
+            <div class="tpl-card-meta">
+              <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15">${p.formato}</span>
+              <span class="tpl-card-cat">${catLabel}</span>
+            </div>
+            <h3 class="tpl-card-title">${p.titulo}</h3>
+            <p class="tpl-card-desc">${p.desc || ''}</p>
+          </div>
+          <div class="tpl-card-cta tpl-card-cta-modal">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+            Ver plantilla
+          </div>
+        </article>
+      `;
+    }).join('');
+
+    // [LISTENERS_DIRECTOS_v3] Adjuntar listeners directos a cada card
+    // En vez de depender del onclick inline (que puede fallar por diversas razones),
+    // agregamos un click listener real a cada elemento.
+    setTimeout(() => {
+      const cards = grid.querySelectorAll('.tpl-card-premium');
+      console.log('%c[LISTENERS_DIRECTOS_v3] Adjuntando listeners a ' + cards.length + ' cards','color:#8b5cf6;font-weight:bold');
+      cards.forEach((card, idx) => {
+        if (card.dataset.listenerAttached === '1') return;
+        card.dataset.listenerAttached = '1';
+        const id = card.dataset.id;
+        card.addEventListener('click', function(e) {
+          // Si el click es en un boton interno con onclick propio, no interferir
+          if (e.target.closest('button[onclick], a[onclick], a[href]:not([href=""]):not([href="#"])')) return;
+          e.preventDefault();
+          console.log('%c[LISTENERS_DIRECTOS_v3] CLICK DIRECTO en card: ' + id,'color:#10b981;font-weight:bold;font-size:13px');
+          if (typeof window.openTemplateModal === 'function') {
+            window.openTemplateModal(id);
+          } else if (typeof openTemplateModal === 'function') {
+            openTemplateModal(id);
+          } else {
+            console.error('[LISTENERS_DIRECTOS_v3] ✗ openTemplateModal NO ESTA DEFINIDO!');
+            if (window.notify) window.notify('Error: la función openTemplateModal no está disponible. Recarga la página (Ctrl+Shift+R).', 'error');
+          }
+        });
+      });
+    }, 100);
+  }
+
+  function actualizarContadores() {
+    const contadores = {
+      todas: PLANTILLAS.length,
+      destacadas: 0,
+      finanzas: 0, rh: 0, ventas: 0,
+      operaciones: 0, marketing: 0, legal: 0
+    };
+    PLANTILLAS.forEach(p => {
+      contadores[p.cat] = (contadores[p.cat] || 0) + 1;
+      if (p.destacada) contadores.destacadas += 1;
+    });
+    Object.keys(contadores).forEach(cat => {
+      const el = document.getElementById('tpl-c-' + cat);
+      if (el) el.textContent = contadores[cat];
+    });
+    // Stats banner
+    const totalEl = document.getElementById('tpl-stat-total');
+    const featEl  = document.getElementById('tpl-stat-feat');
+    if (totalEl) totalEl.textContent = PLANTILLAS.length;
+    if (featEl)  featEl.textContent  = contadores.destacadas;
+  }
+
+  // Listeners de filtros de categoría
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      _currentCat = btn.dataset.cat;
+      renderPlantillas();
+    });
+  });
+
+  // Listener de búsqueda con debounce
+  let _searchTimer = null;
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const val = e.target.value;
+      if (searchClear) searchClear.style.display = val ? 'flex' : 'none';
+      clearTimeout(_searchTimer);
+      _searchTimer = setTimeout(() => {
+        _currentSearch = val.trim();
+        renderPlantillas();
+      }, 180);
+    });
+    // Atajo: Esc para limpiar
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchInput.value = '';
+        _currentSearch = '';
+        if (searchClear) searchClear.style.display = 'none';
+        renderPlantillas();
+      }
+    });
+  }
+
+  // Botón limpiar búsqueda (en el input)
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      searchInput.value = '';
+      _currentSearch = '';
+      searchClear.style.display = 'none';
+      searchInput.focus();
+      renderPlantillas();
+    });
+  }
+
+  // Botón limpiar búsqueda (en el banner de resultados)
+  if (clearSearchBtn) {
+    clearSearchBtn.addEventListener('click', () => {
+      if (searchInput) searchInput.value = '';
+      _currentSearch = '';
+      if (searchClear) searchClear.style.display = 'none';
+      renderPlantillas();
+    });
+  }
+
+  // Toggle vista grid/list
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      viewBtns.forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      _currentView = btn.dataset.view;
+      renderPlantillas();
+    });
+  });
+
+  // Render inicial
+  actualizarContadores();
+  renderPlantillas();
+
+  // PLANTILLAS_INVITADO_v2: exponer renderPlantillas en window para que el
+  // flujo de auth (activarModoInvitado / detectarVIP) pueda forzar re-render
+  // cuando cambie el modo (invitado ↔ VIP).
+  window.renderPlantillas = renderPlantillas;
+};
+window.ToolPlantillas = {
+  mount(c) {
+    bnToolShell(c, {
+      icon: 'i-briefcase',
+      title: 'Plantillas de Negocio',
+      sub: 'Plantillas premium en Excel, Word y PowerPoint para gestionar tu empresa: finanzas, RH, ventas, operaciones, marketing y legal.',
+      body: ''
+    });
+    const host = c.querySelector('.bn-tool');
+    const tpl = document.getElementById('tpl-plantillas');
+    host.appendChild(tpl.content.cloneNode(true));
+    window.__initPlantillas();
   }
 };
 </script>
