@@ -3068,6 +3068,7 @@ body.has-fomo .main{padding-top:18px}
 <!-- Stripe.js para Embedded Checkout (sección Suscripción) -->
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
@@ -8393,6 +8394,7 @@ const Sections = (function(){
       canal:renderCanal,
       perfil:renderPerfil,
       suscripcion:renderSuscripcion,
+      'tool-calc-fiscal':(c)=>window.ToolCalcFiscal.mount(c),
       'tool-diluciones':(c)=>ToolDiluciones.mount(c),
       'tool-ufc':(c)=>ToolUFC.mount(c),
       'tool-conversor':(c)=>ToolConversor.mount(c),
@@ -9049,7 +9051,7 @@ function initNav(){
         cerrarDrawerMovil();
       }
       // Herramientas con sección propia (se abren dentro del panel, no como popup)
-      const toolSections = { diluciones:'tool-diluciones', ufc:'tool-ufc', conversor:'tool-conversor', dosis:'tool-dosis', tfg:'tool-tfg', molaridad:'tool-molaridad', beer:'tool-beer', reporte:'tool-reporte' };
+      const toolSections = { 'calc-fiscal':'tool-calc-fiscal', diluciones:'tool-diluciones', ufc:'tool-ufc', conversor:'tool-conversor', dosis:'tool-dosis', tfg:'tool-tfg', molaridad:'tool-molaridad', beer:'tool-beer', reporte:'tool-reporte' };
       if(it.dataset.tool){
         if(toolSections[it.dataset.tool]){ navigateToSection(toolSections[it.dataset.tool]); return; }
         if(Tools[it.dataset.tool]){ Tools[it.dataset.tool].open(); return; }
@@ -10006,5 +10008,3085 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if (overlay) overlay.addEventListener('click', function(){ ocultar(false); });
 })();
 </script>
+
+<!-- ════════════════════════════════════════════════════════════
+     CALCULADORA FISCAL SAT 2026 · trasplantada del panel ICADEM
+     (lógica y IDs intactos · diseño adaptado al tema)
+     ════════════════════════════════════════════════════════════ -->
+<style id="css-calc-fiscal">
+.cf-tabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 6px;
+  background: rgba(10,15,28,0.5);
+  border: 1px solid rgba(143,188,230,0.15);
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+  backdrop-filter: blur(12px);
+}
+.cf-tab {
+  flex: 1 1 auto;
+  min-width: fit-content;
+  padding: 11px 18px;
+  background: transparent;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(182,194,216,0.65);
+  cursor: pointer;
+  transition: all 0.25s;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.cf-tab:hover { color: #fff; background: rgba(143,188,230,0.06); }
+.cf-tab.is-active {
+  background: linear-gradient(135deg, rgba(143,188,230,0.25), rgba(91,146,200,0.12));
+  color: #fff;
+  box-shadow: 0 4px 14px rgba(91,146,200,0.25), inset 0 1px 0 rgba(143,188,230,0.25);
+}
+.cf-hist-badge {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: linear-gradient(135deg, #fef3c7, #8fbce6);
+  color: #212e48;
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+/* Subtabs (aguinaldo / prima / ptu) */
+.cf-subtabs {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  padding: 5px;
+  background: rgba(10,15,28,0.4);
+  border: 1px solid rgba(143,188,230,0.12);
+  border-radius: 12px;
+  margin-bottom: 1.25rem;
+  width: fit-content;
+}
+.cf-subtab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(182,194,216,0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.cf-subtab:hover { color: #fff; }
+.cf-subtab.is-active {
+  background: rgba(143,188,230,0.18);
+  color: #fff;
+  border: 1px solid rgba(143,188,230,0.35);
+}
+
+/* Panels (tab content) */
+.cf-panel { display: none; }
+.cf-panel.is-active { display: block; animation: cfFade 0.3s ease; }
+.cf-prest-panel { display: none; }
+.cf-prest-panel.is-active { display: block; animation: cfFade 0.3s ease; }
+@keyframes cfFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Grid: input | resultado */
+.cf-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .cf-grid { grid-template-columns: 1fr; }
+}
+
+/* Cards */
+.cf-card {
+  background:
+    linear-gradient(180deg, rgba(33,46,72,0.4), rgba(24,35,58,0.65)),
+    radial-gradient(circle at 100% 0%, rgba(143,188,230,0.1), transparent 60%);
+  border: 1px solid rgba(91,146,200,0.25);
+  border-radius: 18px;
+  padding: 1.5rem;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.35), inset 0 1px 0 rgba(143,188,230,0.15);
+}
+.cf-card-input { display: flex; flex-direction: column; gap: 1rem; }
+.cf-card-result {
+  position: sticky;
+  top: 80px;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+}
+.cf-card-title {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  margin: 0 0 4px 0 !important;
+  letter-spacing: -0.01em !important;
+}
+.cf-card-sub {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12.5px !important;
+  color: rgba(168,184,209,0.75) !important;
+  margin: 0 0 0.5rem 0 !important;
+  line-height: 1.5 !important;
+}
+.cf-card-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+.cf-card-divider::before {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(143,188,230,0.25), transparent);
+}
+.cf-card-divider span {
+  padding: 0 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(143,188,230,0.7);
+  font-weight: 700;
+}
+.cf-card-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(143,188,230,0.25), transparent);
+}
+
+/* Fields */
+.cf-field { display: flex; flex-direction: column; gap: 6px; }
+.cf-label {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #fff !important;
+  letter-spacing: 0.01em;
+}
+.cf-optional {
+  font-weight: 400;
+  font-size: 11px;
+  color: rgba(168,184,209,0.6);
+  margin-left: 4px;
+}
+.cf-help {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11px !important;
+  color: rgba(168,184,209,0.7) !important;
+  margin: 2px 0 0 0 !important;
+  line-height: 1.45 !important;
+}
+.cf-input {
+  width: 100%;
+  padding: 11px 14px;
+  background: rgba(10,15,28,0.6) !important;
+  border: 1px solid rgba(143,188,230,0.18) !important;
+  border-radius: 10px;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13.5px !important;
+  color: #fff !important;
+  transition: all 0.2s;
+  outline: none;
+  box-sizing: border-box;
+}
+.cf-input::placeholder { color: rgba(168,184,209,0.4); }
+.cf-input:focus {
+  border-color: rgba(143,188,230,0.6) !important;
+  background: rgba(10,15,28,0.85) !important;
+  box-shadow: 0 0 0 3px rgba(143,188,230,0.15), 0 0 20px rgba(143,188,230,0.15);
+}
+.cf-input-prefix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.cf-prefix {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: rgba(143,188,230,0.85);
+  pointer-events: none;
+  z-index: 2;
+}
+.cf-input-prefix .cf-input {
+  padding-left: 32px !important;
+  padding-right: 44px !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* ════ Spinners (flechas up/down) custom para inputs number ════ */
+/* Ocultar flechas nativas de Chrome/Safari/Edge */
+.cf-input[type="number"]::-webkit-outer-spin-button,
+.cf-input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+/* Ocultar flechas nativas de Firefox */
+.cf-input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+/* Spinners custom */
+.cf-spin {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.cf-spin > .cf-input {
+  padding-right: 40px !important;
+}
+.cf-spin-controls {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+  z-index: 2;
+}
+.cf-spin-btn {
+  width: 26px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(143,188,230,0.18), rgba(91,146,200,0.06));
+  border: 1px solid rgba(143,188,230,0.3);
+  border-radius: 6px;
+  color: rgba(143,188,230,0.85);
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.15s ease;
+  padding: 0;
+  outline: none;
+}
+.cf-spin-btn:hover {
+  background: linear-gradient(135deg, rgba(143,188,230,0.4), rgba(91,146,200,0.18));
+  border-color: rgba(143,188,230,0.6);
+  color: #fff;
+  box-shadow: 0 0 12px rgba(143,188,230,0.35);
+  transform: scale(1.05);
+}
+.cf-spin-btn:active {
+  transform: scale(0.92);
+  background: linear-gradient(135deg, rgba(245,215,122,0.35), rgba(200,150,42,0.18));
+  border-color: rgba(245,215,122,0.55);
+  color: #fef3c7;
+}
+.cf-spin-btn svg { display: block; }
+
+/* Cuando es prefix + spinner, ajustar paddings */
+.cf-input-prefix.cf-spin > .cf-input {
+  padding-left: 32px !important;
+  padding-right: 40px !important;
+}
+
+/* Radio group (pills) */
+.cf-radio-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.cf-radio {
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 14px;
+  background: rgba(10,15,28,0.5);
+  border: 1px solid rgba(143,188,230,0.18);
+  border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(182,194,216,0.75);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+.cf-radio:hover {
+  border-color: rgba(143,188,230,0.4);
+  color: #fff;
+}
+.cf-radio input { position: absolute; opacity: 0; pointer-events: none; }
+.cf-radio.is-active {
+  background: linear-gradient(135deg, rgba(143,188,230,0.25), rgba(91,146,200,0.1));
+  border-color: rgba(143,188,230,0.55);
+  color: #fff;
+  box-shadow: inset 0 1px 0 rgba(143,188,230,0.25);
+}
+
+/* Botón calcular */
+.cf-btn-calc {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 13px 22px;
+  background: linear-gradient(135deg, #8fbce6 0%, #5b92c8 35%, #3e6fa8 100%);
+  background-size: 200% 100%;
+  border: 1.5px solid rgba(143,188,230,0.5);
+  border-radius: 12px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 800;
+  color: #212e48;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+  box-shadow:
+    0 6px 22px rgba(245,215,122,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+  transition: all 0.3s;
+  margin-top: 0.5rem;
+}
+.cf-btn-calc:hover {
+  background-position: right center;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(245,215,122,0.6), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.cf-btn-calc:active { transform: translateY(0); }
+
+/* Resultado vacío */
+.cf-result-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 1rem;
+  text-align: center;
+}
+.cf-result-empty-icon {
+  font-size: 48px;
+  opacity: 0.5;
+}
+.cf-result-empty-text {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  color: rgba(168,184,209,0.7) !important;
+  margin: 0 !important;
+  max-width: 280px;
+}
+
+/* Resultado con datos */
+.cf-result-header {
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(143,188,230,0.18);
+}
+.cf-result-eyebrow {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #8fbce6 !important;
+  margin: 0 0 6px 0 !important;
+  text-shadow: 0 0 12px rgba(143,188,230,0.4);
+}
+.cf-result-title {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 19px !important;
+  font-weight: 800 !important;
+  color: #fff !important;
+  margin: 0 !important;
+  letter-spacing: -0.015em !important;
+}
+.cf-result-sub {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  color: rgba(168,184,209,0.7) !important;
+  margin: 4px 0 0 0 !important;
+}
+
+.cf-result-body {
+  display: flex;
+  flex-direction: column;
+}
+.cf-result-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(143,188,230,0.08);
+}
+.cf-result-row:last-child { border-bottom: none; }
+.cf-result-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: rgba(182,194,216,0.85);
+  flex: 1;
+}
+.cf-result-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.cf-result-row.is-total {
+  margin: 6px -1.5rem;
+  padding: 12px 1.5rem;
+  background: linear-gradient(90deg, rgba(245,215,122,0.18), rgba(245,215,122,0.04));
+  border-top: 1px solid rgba(245,215,122,0.35);
+  border-bottom: 1px solid rgba(245,215,122,0.35);
+}
+.cf-result-row.is-total .cf-result-label {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 800;
+  color: #fef3c7;
+  font-size: 13.5px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.cf-result-row.is-total .cf-result-value {
+  font-size: 16px;
+  background: linear-gradient(180deg, #fef3c7, #8fbce6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.cf-result-row.is-neg .cf-result-value {
+  color: #fca5a5;
+}
+
+.cf-result-fundamento {
+  margin-top: 1.25rem !important;
+  padding: 0.75rem 1rem !important;
+  background: rgba(143,188,230,0.06) !important;
+  border-left: 3px solid rgba(143,188,230,0.5) !important;
+  border-radius: 0 8px 8px 0;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11.5px !important;
+  color: rgba(182,194,216,0.85) !important;
+  line-height: 1.6 !important;
+}
+.cf-result-fundamento strong { color: #8fbce6; }
+
+/* Botones acción del resultado */
+.cf-result-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+.cf-action {
+  flex: 1 1 auto;
+  min-width: 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  background: rgba(10,15,28,0.5);
+  border: 1px solid rgba(143,188,230,0.2);
+  border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: rgba(182,194,216,0.85);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cf-action:hover {
+  background: rgba(143,188,230,0.1);
+  border-color: rgba(143,188,230,0.45);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.cf-action-save:hover {
+  background: rgba(245,215,122,0.12);
+  border-color: rgba(245,215,122,0.5);
+  color: #fef3c7;
+}
+.cf-action.is-saved {
+  background: rgba(16,185,129,0.18) !important;
+  border-color: rgba(16,185,129,0.5) !important;
+  color: #6ee7b7 !important;
+}
+.cf-action-pdf:hover {
+  background: rgba(220,38,38,0.12);
+  border-color: rgba(248,113,113,0.5);
+  color: #fca5a5;
+}
+.cf-action-xls:hover {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.5);
+  color: #6ee7b7;
+}
+
+/* ════════ HISTORIAL ════════ */
+.cf-historial-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(180deg, rgba(245,215,122,0.08), rgba(245,215,122,0.02));
+  border: 1px solid rgba(245,215,122,0.25);
+  border-radius: 14px;
+  margin-bottom: 1.5rem;
+}
+.cf-historial-eyebrow {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #8fbce6 !important;
+  margin: 0 0 6px 0 !important;
+}
+.cf-historial-info {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 13px !important;
+  color: rgba(254,243,199,0.85) !important;
+  margin: 0 !important;
+  line-height: 1.55 !important;
+  max-width: 700px;
+}
+.cf-historial-info strong { color: #fff; font-weight: 700; }
+
+.cf-btn-clear {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background: transparent;
+  border: 1px solid rgba(248,113,113,0.35);
+  border-radius: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #fca5a5;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.cf-btn-clear:hover {
+  background: rgba(220,38,38,0.15);
+  border-color: rgba(248,113,113,0.6);
+}
+
+#cf-historial-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.cf-hist-empty {
+  text-align: center;
+  padding: 3.5rem 1rem;
+  background: linear-gradient(180deg, rgba(33,46,72,0.3), rgba(24,35,58,0.5));
+  border: 1px dashed rgba(143,188,230,0.25);
+  border-radius: 18px;
+}
+
+.cf-hist-card {
+  background: linear-gradient(180deg, rgba(33,46,72,0.4), rgba(24,35,58,0.65));
+  border: 1px solid rgba(91,146,200,0.25);
+  border-radius: 14px;
+  padding: 1.1rem 1.25rem;
+  transition: all 0.25s;
+}
+.cf-hist-card:hover {
+  border-color: rgba(143,188,230,0.45);
+  transform: translateX(2px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+.cf-hist-card-expiring {
+  border-color: rgba(245,158,11,0.4);
+  background:
+    linear-gradient(180deg, rgba(80,50,15,0.3), rgba(24,35,58,0.6)),
+    radial-gradient(circle at 100% 0%, rgba(245,158,11,0.12), transparent 60%);
+}
+.cf-hist-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+}
+.cf-hist-card-tipo {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8fbce6;
+  background: rgba(143,188,230,0.1);
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(143,188,230,0.3);
+  margin-bottom: 5px;
+}
+.cf-hist-card-titulo {
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  margin: 0 !important;
+}
+.cf-hist-card-sub {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 11.5px !important;
+  color: rgba(168,184,209,0.7) !important;
+  margin: 2px 0 0 0 !important;
+}
+.cf-hist-card-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-align: right;
+}
+.cf-hist-card-fecha {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: rgba(168,184,209,0.7);
+  font-weight: 600;
+}
+.cf-hist-card-ttl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: rgba(143,188,230,0.85);
+  background: rgba(143,188,230,0.08);
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(143,188,230,0.25);
+}
+.cf-hist-card-ttl.is-expiring {
+  color: #fbbf24;
+  background: rgba(245,158,11,0.12);
+  border-color: rgba(245,158,11,0.4);
+  animation: cfPulse 2s ease-in-out infinite;
+}
+@keyframes cfPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(245,158,11,0); }
+}
+
+.cf-hist-card-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 0.6rem 0.85rem;
+  background: rgba(2,5,15,0.4);
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  color: rgba(182,194,216,0.85);
+  margin-bottom: 0.85rem;
+}
+.cf-hist-card-preview strong { color: #fef3c7; font-weight: 700; }
+
+.cf-hist-card-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.cf-action-pdf-sm, .cf-action-xls-sm, .cf-action-del-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  background: rgba(10,15,28,0.5);
+  border: 1px solid rgba(143,188,230,0.2);
+  border-radius: 8px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(182,194,216,0.85);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.cf-action-pdf-sm:hover {
+  background: rgba(220,38,38,0.12);
+  border-color: rgba(248,113,113,0.5);
+  color: #fca5a5;
+}
+.cf-action-xls-sm:hover {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.5);
+  color: #6ee7b7;
+}
+.cf-action-del-sm:hover {
+  background: rgba(220,38,38,0.12);
+  border-color: rgba(248,113,113,0.4);
+  color: #fca5a5;
+}
+
+/* ════════════════════════════════════════════════════════════
+   🛠️ NÓMINA IMSS — Estilos específicos
+   ════════════════════════════════════════════════════════════ */
+
+/* Aviso CFDI prominente en resultado */
+  #sec-calc-fiscal,
+  #sec-calc-nomina,
+  #sec-calc-credito {
+    overflow-x: hidden;
+    max-width: 100%;
+  }
+
+  /* Tabs en mobile: scroll horizontal SIN afectar al padre */
+  .cf-tabs {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    overflow-y: hidden;
+    gap: 0.35rem;
+    padding: 5px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    /* Confinar el ancho al padre, NO crecer con el contenido */
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .cf-tabs::-webkit-scrollbar { display: none; }
+/* ─── Calc Fiscal · modo día ─── */
+[data-theme="day"] #sec-calc-fiscal .cf-card{background:#fff;border-color:#dbe6f2;box-shadow:0 2px 10px rgba(22,32,63,.06)}
+[data-theme="day"] #sec-calc-fiscal .cf-tabs{background:#dbe6f2;border-color:#c9d8ea}
+[data-theme="day"] #sec-calc-fiscal .cf-tab{color:#49556e}
+[data-theme="day"] #sec-calc-fiscal .cf-tab.is-active{background:#fff;color:#16203f;box-shadow:0 2px 8px rgba(22,32,63,.12)}
+[data-theme="day"] #sec-calc-fiscal .cf-input{background:#fff !important;color:#16203f !important;border-color:#c9d8ea !important}
+[data-theme="day"] #sec-calc-fiscal .cf-label{color:#16203f}
+[data-theme="day"] #sec-calc-fiscal .cf-help,[data-theme="day"] #sec-calc-fiscal .cf-card-sub{color:#49556e}
+[data-theme="day"] #sec-calc-fiscal .cf-card-title{color:#16203f}
+[data-theme="day"] #sec-calc-fiscal .cf-radio{color:#16203f}
+[data-theme="day"] #sec-calc-fiscal .page-title{color:#16203f}
+[data-theme="day"] #sec-calc-fiscal .page-sub{color:#49556e}
+
+#sec-calc-fiscal .page-header{margin-bottom:1.2rem}
+#sec-calc-fiscal .page-tag{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--primary);font-weight:700;margin:0 0 6px}
+#sec-calc-fiscal .page-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.4px;margin:0 0 6px;color:var(--text)}
+#sec-calc-fiscal .page-sub{font-size:13.5px;color:var(--text-2);margin:0;line-height:1.55}
+
+</style>
+<template id="tpl-calc-fiscal">
+    <div class="section" id="sec-calc-fiscal">
+      <div class="page-header">
+        <p class="page-tag">Herramienta · Fiscal</p>
+        <h1 class="page-title">Calculadora Fiscal SAT 2026</h1>
+        <p class="page-sub">ISR personas físicas y morales, aguinaldo, prima vacacional, finiquito, PTU, retención de honorarios.</p>
+      </div>
+
+      <!-- DISCLAIMER LEGAL -->
+      <div class="cf-disclaimer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fef3c7" stroke-width="2" style="flex-shrink:0;margin-top:2px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <div>
+          <p class="cf-disclaimer-title">Aviso legal</p>
+          <p class="cf-disclaimer-text">Esta calculadora es una herramienta de apoyo basada en disposiciones SAT/LFT vigentes en 2026. Los resultados son <strong>orientativos</strong>. Para cálculos definitivos y decisiones legales/fiscales, consulta a tu contador o asesor profesional. ICADEM no se hace responsable por errores derivados del uso de esta herramienta.</p>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="cf-tabs">
+        <button class="cf-tab is-active" data-cftab="isr-pf">ISR Personas Físicas</button>
+        <button class="cf-tab" data-cftab="isr-pm">ISR Personas Morales</button>
+        <button class="cf-tab" data-cftab="aguinaldo">Aguinaldo · PTU · Prima</button>
+        <button class="cf-tab" data-cftab="finiquito">Finiquito</button>
+        <button class="cf-tab" data-cftab="ret-iva">Retención IVA</button>
+        <button class="cf-tab" data-cftab="historial">Historial <span id="cf-hist-count" class="cf-hist-badge"></span></button>
+      </div>
+
+      <!-- ════════════ TAB 1: ISR PERSONAS FÍSICAS ════════════ -->
+      <div class="cf-panel is-active" data-cfpanel="isr-pf">
+        <div class="cf-grid">
+          <!-- Inputs -->
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">Datos del cálculo</h3>
+
+            <div class="cf-field">
+              <label class="cf-label">Tipo de ingreso</label>
+              <div class="cf-radio-group" id="isr-tipo">
+                <label class="cf-radio is-active"><input type="radio" name="isrTipo" value="sueldo" checked> Sueldo asalariado</label>
+                <label class="cf-radio"><input type="radio" name="isrTipo" value="honorarios"> Honorarios profesionales</label>
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Periodo</label>
+              <select class="cf-input" id="isr-periodo">
+                <option value="mensual">Mensual</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="semanal">Semanal</option>
+              </select>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Ingreso bruto del periodo (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="isr-bruto" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Monto antes de cualquier deducción</p>
+            </div>
+
+            <div class="cf-field" id="isr-honorarios-fields" style="display:none">
+              <label class="cf-label">¿Eres RESICO?</label>
+              <div class="cf-radio-group" id="isr-resico">
+                <label class="cf-radio is-active"><input type="radio" name="isrResico" value="no" checked> No (Régimen general)</label>
+                <label class="cf-radio"><input type="radio" name="isrResico" value="si"> Sí (RESICO)</label>
+              </div>
+              <p class="cf-help">RESICO aplica tasa fija según ingreso anual; Régimen general aplica tabla mensual</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre del cálculo (opcional)</label>
+              <input type="text" class="cf-input" id="isr-nombre" placeholder="Ej. Nómina Q1 abril">
+              <p class="cf-help">Útil para identificarlo en tu historial</p>
+            </div>
+
+            <button class="cf-btn-calc" id="btn-isr-pf-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular ISR
+            </button>
+          </div>
+
+          <!-- Resultado -->
+          <div class="cf-card cf-card-result" id="isr-pf-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon"></div>
+              <p class="cf-result-empty-text">Llena los datos y presiona "Calcular ISR" para ver el desglose</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 2: ISR PERSONAS MORALES ════════════ -->
+      <div class="cf-panel" data-cfpanel="isr-pm">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">Datos del cálculo</h3>
+
+            <div class="cf-field">
+              <label class="cf-label">Tipo de cálculo</label>
+              <div class="cf-radio-group" id="pm-tipo">
+                <label class="cf-radio is-active"><input type="radio" name="pmTipo" value="anual" checked> ISR anual</label>
+                <label class="cf-radio"><input type="radio" name="pmTipo" value="provisional"> Pago provisional</label>
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Ingresos acumulables del periodo (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pm-ingresos" placeholder="0.00" step="0.01" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Deducciones autorizadas (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pm-deducciones" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Compras, gastos, costos, depreciaciones, etc.</p>
+            </div>
+
+            <div class="cf-field" id="pm-coef-field">
+              <label class="cf-label">Coeficiente de utilidad <span class="cf-optional">(opcional)</span></label>
+              <input type="number" class="cf-input" id="pm-coef" placeholder="0.0700" step="0.0001" min="0" max="1">
+              <p class="cf-help">Para pagos provisionales. Ej: 0.0700 (7%). Si lo dejas vacío, calcula con utilidad real.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">PTU pagada en el ejercicio (MXN) <span class="cf-optional">(opcional)</span></label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pm-ptu" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Solo aplica para cálculo anual</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Pagos provisionales realizados (MXN) <span class="cf-optional">(opcional)</span></label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="pm-pagos-prev" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Solo aplica para cálculo anual</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre del cálculo (opcional)</label>
+              <input type="text" class="cf-input" id="pm-nombre" placeholder="Ej. ISR anual 2026">
+            </div>
+
+            <button class="cf-btn-calc" id="btn-isr-pm-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular ISR
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="isr-pm-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon"></div>
+              <p class="cf-result-empty-text">Llena los datos para calcular el ISR de personas morales</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 3: AGUINALDO + PTU + PRIMA VACACIONAL ════════════ -->
+      <div class="cf-panel" data-cfpanel="aguinaldo">
+        <div class="cf-subtabs">
+          <button class="cf-subtab is-active" data-prest="aguinaldo">Aguinaldo</button>
+          <button class="cf-subtab" data-prest="prima">Prima Vacacional</button>
+          <button class="cf-subtab" data-prest="ptu">PTU</button>
+        </div>
+
+        <!-- Aguinaldo -->
+        <div class="cf-prest-panel is-active" data-prestpanel="aguinaldo">
+          <div class="cf-grid">
+            <div class="cf-card cf-card-input">
+              <h3 class="cf-card-title">Aguinaldo</h3>
+              <p class="cf-card-sub">Mínimo 15 días de salario (Art. 87 LFT). Exento hasta 30 UMAs.</p>
+
+              <div class="cf-field">
+                <label class="cf-label">Salario diario (MXN)</label>
+                <div class="cf-input-prefix">
+                  <span class="cf-prefix">$</span>
+                  <input type="number" class="cf-input" id="ag-salario-diario" placeholder="0.00" step="0.01" min="0">
+                </div>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Días de aguinaldo otorgados</label>
+                <input type="number" class="cf-input" id="ag-dias" value="15" min="15" step="1">
+                <p class="cf-help">Mínimo legal: 15 días</p>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Días trabajados en el año</label>
+                <input type="number" class="cf-input" id="ag-dias-trab" value="365" min="1" max="366" step="1">
+                <p class="cf-help">Si no trabajó el año completo, ajusta los días</p>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Nombre del empleado (opcional)</label>
+                <input type="text" class="cf-input" id="ag-nombre" placeholder="Ej. Nombre del empleado">
+              </div>
+
+              <button class="cf-btn-calc" id="btn-aguinaldo-calc">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                Calcular Aguinaldo
+              </button>
+            </div>
+
+            <div class="cf-card cf-card-result" id="aguinaldo-result-card">
+              <div class="cf-result-empty">
+                <div class="cf-result-empty-icon"></div>
+                <p class="cf-result-empty-text">Calcula el aguinaldo proporcional con base en LFT 2026</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prima vacacional -->
+        <div class="cf-prest-panel" data-prestpanel="prima">
+          <div class="cf-grid">
+            <div class="cf-card cf-card-input">
+              <h3 class="cf-card-title">Prima Vacacional</h3>
+              <p class="cf-card-sub">25% sobre el salario de los días de vacaciones (Art. 80 LFT).</p>
+
+              <div class="cf-field">
+                <label class="cf-label">Salario diario (MXN)</label>
+                <div class="cf-input-prefix">
+                  <span class="cf-prefix">$</span>
+                  <input type="number" class="cf-input" id="pv-salario-diario" placeholder="0.00" step="0.01" min="0">
+                </div>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Antigüedad del empleado (años)</label>
+                <input type="number" class="cf-input" id="pv-antiguedad" value="1" min="0.5" step="0.5">
+                <p class="cf-help">Tabla LFT: 1°=12d, 2°=14d, 3°=16d, 4°=18d, 5°=20d, 6°-10°=22d, 11°-15°=24d, etc.</p>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">% de prima vacacional</label>
+                <input type="number" class="cf-input" id="pv-porcentaje" value="25" min="25" max="100" step="1">
+                <p class="cf-help">Mínimo legal: 25%</p>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Nombre del empleado (opcional)</label>
+                <input type="text" class="cf-input" id="pv-nombre" placeholder="Ej. Nombre del empleado">
+              </div>
+
+              <button class="cf-btn-calc" id="btn-prima-calc">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                Calcular Prima Vacacional
+              </button>
+            </div>
+
+            <div class="cf-card cf-card-result" id="prima-result-card">
+              <div class="cf-result-empty">
+                <div class="cf-result-empty-icon"></div>
+                <p class="cf-result-empty-text">Calcula la prima vacacional según LFT 2026</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PTU -->
+        <div class="cf-prest-panel" data-prestpanel="ptu">
+          <div class="cf-grid">
+            <div class="cf-card cf-card-input">
+              <h3 class="cf-card-title">PTU (Reparto de Utilidades)</h3>
+              <p class="cf-card-sub">10% sobre la utilidad fiscal repartible. Tope: 3 meses de salario o promedio últimos 3 años (lo que sea mayor).</p>
+
+              <div class="cf-field">
+                <label class="cf-label">Utilidad fiscal de la empresa (MXN)</label>
+                <div class="cf-input-prefix">
+                  <span class="cf-prefix">$</span>
+                  <input type="number" class="cf-input" id="ptu-utilidad" placeholder="0.00" step="0.01" min="0">
+                </div>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Total de días trabajados por TODOS los empleados</label>
+                <input type="number" class="cf-input" id="ptu-total-dias" placeholder="0" step="1" min="1">
+                <p class="cf-help">Suma de los días trabajados en el año por todos los colaboradores</p>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Total de salarios devengados por TODOS los empleados (MXN)</label>
+                <div class="cf-input-prefix">
+                  <span class="cf-prefix">$</span>
+                  <input type="number" class="cf-input" id="ptu-total-salarios" placeholder="0.00" step="0.01" min="0">
+                </div>
+              </div>
+
+              <div class="cf-card-divider">
+                <span>Datos del empleado a calcular</span>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Días trabajados del empleado</label>
+                <input type="number" class="cf-input" id="ptu-emp-dias" placeholder="0" step="1" min="0">
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Salario devengado del empleado (MXN)</label>
+                <div class="cf-input-prefix">
+                  <span class="cf-prefix">$</span>
+                  <input type="number" class="cf-input" id="ptu-emp-salario" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <p class="cf-help">Tope: salario máximo de sindicalizado más alto +20%</p>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Salario diario actual (MXN)</label>
+                <div class="cf-input-prefix">
+                  <span class="cf-prefix">$</span>
+                  <input type="number" class="cf-input" id="ptu-salario-diario" placeholder="0.00" step="0.01" min="0">
+                </div>
+                <p class="cf-help">Para calcular tope de 3 meses</p>
+              </div>
+
+              <div class="cf-field">
+                <label class="cf-label">Nombre del empleado (opcional)</label>
+                <input type="text" class="cf-input" id="ptu-nombre" placeholder="Ej. Nombre del empleado">
+              </div>
+
+              <button class="cf-btn-calc" id="btn-ptu-calc">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+                Calcular PTU
+              </button>
+            </div>
+
+            <div class="cf-card cf-card-result" id="ptu-result-card">
+              <div class="cf-result-empty">
+                <div class="cf-result-empty-icon"></div>
+                <p class="cf-result-empty-text">Calcula el reparto de utilidades aplicando topes LFT 2026</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 4: FINIQUITO ════════════ -->
+      <div class="cf-panel" data-cfpanel="finiquito">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">Finiquito Completo</h3>
+            <p class="cf-card-sub">Calcula días pendientes, aguinaldo proporcional, vacaciones, prima vacacional y, si aplica, indemnización + prima de antigüedad.</p>
+
+            <div class="cf-field">
+              <label class="cf-label">Tipo de separación</label>
+              <select class="cf-input" id="fin-tipo">
+                <option value="renuncia">Renuncia voluntaria</option>
+                <option value="injustificado">Despido injustificado (con indemnización)</option>
+                <option value="justificado">Despido justificado (sin indemnización)</option>
+                <option value="termino">Término de contrato / Mutuo acuerdo</option>
+              </select>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Salario diario integrado (SDI) (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="fin-sdi" placeholder="0.00" step="0.01" min="0">
+              </div>
+              <p class="cf-help">Salario diario + aguinaldo prop. + prima vac. prop.</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Salario diario simple (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="fin-salario-diario" placeholder="0.00" step="0.01" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Antigüedad (años)</label>
+              <input type="number" class="cf-input" id="fin-antiguedad" placeholder="0" step="0.1" min="0">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Días pendientes de pagar</label>
+              <input type="number" class="cf-input" id="fin-dias-pendientes" value="0" min="0" step="1">
+              <p class="cf-help">Días trabajados no pagados (entre el último pago y la fecha de baja)</p>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Días de aguinaldo del año</label>
+              <input type="number" class="cf-input" id="fin-dias-aguinaldo" value="15" min="15" step="1">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Días trabajados desde el último 1° de enero</label>
+              <input type="number" class="cf-input" id="fin-dias-anio" placeholder="0" min="0" max="366" step="1">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Vacaciones pendientes (días)</label>
+              <input type="number" class="cf-input" id="fin-vac-pend" value="0" min="0" step="1">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">% prima vacacional</label>
+              <input type="number" class="cf-input" id="fin-prima-vac" value="25" min="25" step="1">
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Nombre del empleado (opcional)</label>
+              <input type="text" class="cf-input" id="fin-nombre" placeholder="Ej. Nombre del empleado">
+            </div>
+
+            <button class="cf-btn-calc" id="btn-finiquito-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular Finiquito
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="finiquito-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon"></div>
+              <p class="cf-result-empty-text">Calcula el finiquito completo según el tipo de separación</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 5: RETENCIÓN IVA ════════════ -->
+      <div class="cf-panel" data-cfpanel="ret-iva">
+        <div class="cf-grid">
+          <div class="cf-card cf-card-input">
+            <h3 class="cf-card-title">Retención de IVA e ISR</h3>
+            <p class="cf-card-sub">Calcula retenciones de IVA e ISR para honorarios, arrendamiento, fletes y servicios.</p>
+
+            <div class="cf-field">
+              <label class="cf-label">Tipo de retención</label>
+              <select class="cf-input" id="ret-tipo">
+                <option value="honorarios-pf">Honorarios persona física (10% ISR + 2/3 IVA)</option>
+                <option value="arrendamiento">Arrendamiento (10% ISR + 2/3 IVA)</option>
+                <option value="fletes">Fletes / Autotransporte (4% IVA)</option>
+                <option value="servicios">Servicios independientes (16% IVA + 10% ISR)</option>
+                <option value="repse">REPSE (6% IVA si aplica)</option>
+              </select>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Subtotal (sin IVA) (MXN)</label>
+              <div class="cf-input-prefix">
+                <span class="cf-prefix">$</span>
+                <input type="number" class="cf-input" id="ret-subtotal" placeholder="0.00" step="0.01" min="0">
+              </div>
+            </div>
+
+            <div class="cf-field">
+              <label class="cf-label">Concepto / Proveedor (opcional)</label>
+              <input type="text" class="cf-input" id="ret-nombre" placeholder="Ej. Honorarios abril 2026">
+            </div>
+
+            <button class="cf-btn-calc" id="btn-ret-iva-calc">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg>
+              Calcular Retención
+            </button>
+          </div>
+
+          <div class="cf-card cf-card-result" id="ret-iva-result-card">
+            <div class="cf-result-empty">
+              <div class="cf-result-empty-icon"></div>
+              <p class="cf-result-empty-text">Calcula retenciones de IVA e ISR según el tipo de operación</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ════════════ TAB 6: HISTORIAL ════════════ -->
+      <div class="cf-panel" data-cfpanel="historial">
+        <div class="cf-historial-header">
+          <div>
+            <p class="cf-historial-eyebrow">⏰ Tu historial</p>
+            <p class="cf-historial-info">Los cálculos se conservan automáticamente <strong>7 días</strong>. Para conservarlos permanentemente, descarga el PDF o Excel desde el cálculo.</p>
+          </div>
+          <button class="cf-btn-clear" id="btn-cf-clear-historial" title="Borrar todo el historial">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            Limpiar todo
+          </button>
+        </div>
+        <div id="cf-historial-list"></div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================
+         HERRAMIENTA #3 — NÓMINA IMSS (PLACEHOLDER)
+         ============================================================ -->
+</template>
+<script>
+// Shim: notify() del panel clásico -> Toast del panel nuevo
+if (typeof window.notify !== 'function') {
+  window.notify = function(msg, tipo) {
+    const m = (typeof msg === 'object' && msg) ? (msg.message || msg.msg || '') : String(msg || '');
+    if (typeof Toast !== 'undefined') {
+      if (tipo === 'success') Toast.success('Listo', m); else if (tipo === 'error') Toast.error('Atención', m); else Toast.info('Aviso', m);
+    } else { console.log('[notify]', m); }
+  };
+}
+window.__initCalcFiscal = function(){
+  'use strict';
+
+  // ═══════════════════════════════════════════════════════════
+  // TABLAS OFICIALES SAT 2026
+  // (Mantén estas tablas actualizadas cuando el SAT publique cambios)
+  // ═══════════════════════════════════════════════════════════
+
+  // Tabla ISR mensual SAT 2026 (Art. 96 LISR)
+  const TABLA_ISR_MENSUAL_2026 = [
+    { liminf: 0.01,        limsup: 746.04,      cuotafija: 0,         tasa: 0.0192 },
+    { liminf: 746.05,      limsup: 6332.05,     cuotafija: 14.32,     tasa: 0.0640 },
+    { liminf: 6332.06,     limsup: 11128.01,    cuotafija: 371.83,    tasa: 0.1088 },
+    { liminf: 11128.02,    limsup: 12935.82,    cuotafija: 893.63,    tasa: 0.1600 },
+    { liminf: 12935.83,    limsup: 15487.71,    cuotafija: 1182.88,   tasa: 0.1792 },
+    { liminf: 15487.72,    limsup: 31236.49,    cuotafija: 1640.18,   tasa: 0.2136 },
+    { liminf: 31236.50,    limsup: 49233.00,    cuotafija: 5004.12,   tasa: 0.2352 },
+    { liminf: 49233.01,    limsup: 93993.90,    cuotafija: 9236.89,   tasa: 0.3000 },
+    { liminf: 93993.91,    limsup: 125325.20,   cuotafija: 22665.17,  tasa: 0.3200 },
+    { liminf: 125325.21,   limsup: 375975.61,   cuotafija: 32691.18,  tasa: 0.3400 },
+    { liminf: 375975.62,   limsup: Infinity,    cuotafija: 117912.32, tasa: 0.3500 }
+  ];
+
+  // Tabla ISR anual SAT 2026
+  const TABLA_ISR_ANUAL_2026 = [
+    { liminf: 0.01,        limsup: 8952.49,      cuotafija: 0,           tasa: 0.0192 },
+    { liminf: 8952.50,     limsup: 75984.55,     cuotafija: 171.88,      tasa: 0.0640 },
+    { liminf: 75984.56,    limsup: 133536.07,    cuotafija: 4461.94,     tasa: 0.1088 },
+    { liminf: 133536.08,   limsup: 155229.80,    cuotafija: 10723.55,    tasa: 0.1600 },
+    { liminf: 155229.81,   limsup: 185852.57,    cuotafija: 14194.54,    tasa: 0.1792 },
+    { liminf: 185852.58,   limsup: 374837.88,    cuotafija: 19682.13,    tasa: 0.2136 },
+    { liminf: 374837.89,   limsup: 590795.99,    cuotafija: 60049.40,    tasa: 0.2352 },
+    { liminf: 590796.00,   limsup: 1127926.84,   cuotafija: 110842.74,   tasa: 0.3000 },
+    { liminf: 1127926.85,  limsup: 1503902.46,   cuotafija: 271981.99,   tasa: 0.3200 },
+    { liminf: 1503902.47,  limsup: 4511707.37,   cuotafija: 392294.17,   tasa: 0.3400 },
+    { liminf: 4511707.38,  limsup: Infinity,     cuotafija: 1414947.85,  tasa: 0.3500 }
+  ];
+
+  // Subsidio al empleo mensual 2026 (Decreto SAT)
+  const TABLA_SUBSIDIO_2026 = [
+    { liminf: 0.01,     limsup: 1768.96,   subsidio: 407.02 },
+    { liminf: 1768.97,  limsup: 2653.38,   subsidio: 406.83 },
+    { liminf: 2653.39,  limsup: 3472.84,   subsidio: 406.62 },
+    { liminf: 3472.85,  limsup: 3537.87,   subsidio: 392.77 },
+    { liminf: 3537.88,  limsup: 4446.15,   subsidio: 382.46 },
+    { liminf: 4446.16,  limsup: 4717.18,   subsidio: 354.23 },
+    { liminf: 4717.19,  limsup: 5335.42,   subsidio: 324.87 },
+    { liminf: 5335.43,  limsup: 6224.67,   subsidio: 294.63 },
+    { liminf: 6224.68,  limsup: 7113.90,   subsidio: 253.54 },
+    { liminf: 7113.91,  limsup: 7382.33,   subsidio: 217.61 },
+    { liminf: 7382.34,  limsup: Infinity,  subsidio: 0 }
+  ];
+
+  // Tabla vacaciones LFT 2026 (Reforma 2023)
+  const TABLA_VACACIONES_LFT = [
+    { anios: 1,  dias: 12 },
+    { anios: 2,  dias: 14 },
+    { anios: 3,  dias: 16 },
+    { anios: 4,  dias: 18 },
+    { anios: 5,  dias: 20 },
+    { anios: 6,  dias: 22 }, // 6° a 10°: 22
+    { anios: 11, dias: 24 }, // 11° a 15°: 24
+    { anios: 16, dias: 26 }, // 16° a 20°: 26
+    { anios: 21, dias: 28 }, // 21° a 25°: 28
+    { anios: 26, dias: 30 }, // 26° a 30°: 30
+    { anios: 31, dias: 32 }  // 31° a 35°: 32
+  ];
+
+  function diasVacacionesLFT(anios) {
+    if (anios < 1) return Math.floor(12 * anios);
+    if (anios <= 5) return TABLA_VACACIONES_LFT[Math.min(Math.floor(anios) - 1, 4)].dias;
+    if (anios <= 10) return 22;
+    if (anios <= 15) return 24;
+    if (anios <= 20) return 26;
+    if (anios <= 25) return 28;
+    if (anios <= 30) return 30;
+    return 32;
+  }
+
+  // UMA 2026 (estimado, actualizar cuando INEGI publique)
+  const UMA_2026 = 113.14;
+  const SMG_2026 = 278.80; // Salario mínimo general 2026
+
+  // ═══════════════════════════════════════════════════════════
+  // FUNCIONES DE CÁLCULO
+  // ═══════════════════════════════════════════════════════════
+
+  // Aplicar tabla ISR
+  function aplicarTablaISR(base, tabla) {
+    const fila = tabla.find(f => base >= f.liminf && base <= f.limsup);
+    if (!fila) return 0;
+    const excedente = base - fila.liminf;
+    return fila.cuotafija + (excedente * fila.tasa);
+  }
+
+  function aplicarSubsidio(base) {
+    const fila = TABLA_SUBSIDIO_2026.find(f => base >= f.liminf && base <= f.limsup);
+    return fila ? fila.subsidio : 0;
+  }
+
+  // Convertir periodo a mensual
+  function aMensual(monto, periodo) {
+    if (periodo === 'mensual') return monto;
+    if (periodo === 'quincenal') return monto * 2;
+    if (periodo === 'semanal') return monto * (52/12);
+    return monto;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // FORMATO MONEY
+  // ═══════════════════════════════════════════════════════════
+  const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtNum = (n) => (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // ═══════════════════════════════════════════════════════════
+  // HISTORIAL LOCALSTORAGE (7 días TTL)
+  // ═══════════════════════════════════════════════════════════
+  const HIST_KEY = 'icadem_cf_historial_v1';
+  const HIST_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
+
+  function loadHist() {
+    try {
+      const raw = localStorage.getItem(HIST_KEY);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      const now = Date.now();
+      // Filtrar expirados
+      const vivos = arr.filter(item => (now - item.fecha) < HIST_TTL_MS);
+      if (vivos.length !== arr.length) saveHist(vivos);
+      return vivos;
+    } catch (e) { return []; }
+  }
+
+  function saveHist(arr) {
+    try { localStorage.setItem(HIST_KEY, JSON.stringify(arr)); } catch (e) {}
+  }
+
+  function pushHist(item) {
+    const arr = loadHist();
+    item.id = 'cf_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+    item.fecha = Date.now();
+    arr.unshift(item);
+    if (arr.length > 50) arr.length = 50; // máximo 50 items
+    saveHist(arr);
+    actualizarBadgeHistorial();
+    renderHistorial();
+  }
+
+  function deleteHistItem(id) {
+    const arr = loadHist().filter(i => i.id !== id);
+    saveHist(arr);
+    actualizarBadgeHistorial();
+    renderHistorial();
+  }
+
+  function clearHistAll() {
+    if (confirm('¿Borrar todo el historial? Esta acción no se puede deshacer.')) {
+      saveHist([]);
+      actualizarBadgeHistorial();
+      renderHistorial();
+    }
+  }
+
+  function actualizarBadgeHistorial() {
+    const badge = document.getElementById('cf-hist-count');
+    if (!badge) return;
+    const arr = loadHist();
+    if (arr.length === 0) { badge.style.display = 'none'; return; }
+    badge.textContent = arr.length;
+    badge.style.display = 'inline-flex';
+  }
+
+  function diasRestantes(fecha) {
+    const ms = HIST_TTL_MS - (Date.now() - fecha);
+    return Math.max(0, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDERIZAR RESULTADO + BOTONES (Guardar/PDF/Excel/Nuevo)
+  // ═══════════════════════════════════════════════════════════
+  function renderResultado(cardEl, data) {
+    const filas = data.filas.map(f => {
+      const isTotal = f.total;
+      const isNeg = f.negativo;
+      return `
+        <div class="cf-result-row ${isTotal ? 'is-total' : ''} ${isNeg ? 'is-neg' : ''}">
+          <span class="cf-result-label">${f.etiqueta}</span>
+          <span class="cf-result-value">${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</span>
+        </div>
+      `;
+    }).join('');
+
+    const id = 'res_' + Date.now();
+    cardEl.dataset.lastResult = id;
+    window['_cfLastResult_' + cardEl.id] = data;
+
+    cardEl.innerHTML = `
+      <div class="cf-result-header">
+        <div>
+          <p class="cf-result-eyebrow">${data.tipoLabel}</p>
+          <h3 class="cf-result-title">${data.titulo}</h3>
+          ${data.subtitulo ? `<p class="cf-result-sub">${data.subtitulo}</p>` : ''}
+        </div>
+      </div>
+      <div class="cf-result-body">
+        ${filas}
+      </div>
+      ${data.fundamento ? `<p class="cf-result-fundamento">📚 <strong>Fundamento legal:</strong> ${data.fundamento}</p>` : ''}
+      <div class="cf-result-actions">
+        <button class="cf-action cf-action-save" onclick="cfSaveAction('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+          Guardar (7 días)
+        </button>
+        <button class="cf-action cf-action-pdf" onclick="cfDownloadPDF('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Descargar PDF
+        </button>
+        <button class="cf-action cf-action-xls" onclick="cfDownloadXLS('${cardEl.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+          Descargar Excel
+        </button>
+      </div>
+    `;
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // ACCIONES PÚBLICAS (Save / PDF / XLS)
+  // ═══════════════════════════════════════════════════════════
+  window.cfSaveAction = function(cardId) {
+    const data = window['_cfLastResult_' + cardId];
+    if (!data) return;
+    pushHist(data);
+    // Feedback visual
+    const btn = event.target.closest('button');
+    const original = btn.innerHTML;
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polyline points="20 6 9 17 4 12"/></svg> Guardado · expira en 7d';
+    btn.classList.add('is-saved');
+    setTimeout(() => { btn.innerHTML = original; btn.classList.remove('is-saved'); }, 2500);
+  };
+
+  window.cfDownloadPDF = function(cardId) {
+    const data = window['_cfLastResult_' + cardId];
+    if (!data || !window.jspdf) {
+      window.notify('Error: no se pudo generar el PDF. Recarga la página e intenta de nuevo.');
+      return;
+    }
+    generarPDF(data);
+  };
+
+  window.cfDownloadXLS = function(cardId) {
+    const data = window['_cfLastResult_' + cardId];
+    if (!data || !window.XLSX) {
+      window.notify('Error: no se pudo generar el Excel. Recarga la página e intenta de nuevo.');
+      return;
+    }
+    generarXLS(data);
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // GENERAR PDF (membrete ICADEM premium ejecutivo)
+  // ═══════════════════════════════════════════════════════════
+
+  // Helper: limpiar emojis del texto (jsPDF helvetica no los soporta)
+  function limpiarEmojis(str) {
+    if (!str) return '';
+    return String(str)
+      // Remover emojis (rangos Unicode de emojis)
+      .replace(/[\u{1F300}-\u{1F9FF}]/gu, '')
+      .replace(/[\u{2600}-\u{27BF}]/gu, '')
+      .replace(/[\u{2700}-\u{27BF}]/gu, '')
+      .replace(/[\u{1F600}-\u{1F64F}]/gu, '')
+      .replace(/[\u{1F680}-\u{1F6FF}]/gu, '')
+      .replace(/[\u{1F900}-\u{1F9FF}]/gu, '')
+      .replace(/[\u{2300}-\u{23FF}]/gu, '')
+      .replace(/[\u{2B00}-\u{2BFF}]/gu, '')
+      .replace(/[\u{1F000}-\u{1F2FF}]/gu, '')
+      .replace(/[★⚠️📊📋💼🏢🎁🏖️💎📤💸📅🧮💰🎯📚🔥⏰💳📦📈📣🎤📜⚖️🎓🌐]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
+  function generarPDF(data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pageW = doc.internal.pageSize.width;   // 210
+    const pageH = doc.internal.pageSize.height;  // 297
+    const ahora = new Date();
+    const fechaLarga = ahora.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+    const horaCorta = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+    const folio = 'CF-' + ahora.getFullYear() + '-' + String(Date.now()).slice(-7);
+
+    // ════════════════════════════════════════════════════
+    // HEADER PREMIUM con efecto degradado simulado
+    // ════════════════════════════════════════════════════
+    // Banda principal azul oscuro
+    doc.setFillColor(11, 31, 74);
+    doc.rect(0, 0, pageW, 38, 'F');
+    // Capa con tono más claro arriba (para profundidad)
+    doc.setFillColor(15, 47, 104);
+    doc.rect(0, 0, pageW, 8, 'F');
+    // Acento dorado inferior (línea fina)
+    doc.setFillColor(245, 215, 122);
+    doc.rect(0, 38, pageW, 0.8, 'F');
+    // Acento dorado más fino debajo
+    doc.setFillColor(200, 150, 42);
+    doc.rect(0, 38.8, pageW, 0.3, 'F');
+
+    // Logo ICADEM (rectángulo decorativo + texto)
+    doc.setFillColor(245, 215, 122);
+    doc.roundedRect(15, 13, 4, 14, 1, 1, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('ICADEM', 22, 22);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(245, 215, 122);
+    doc.text('PANEL VIP  |  CALCULADORA FISCAL SAT 2026', 22, 28);
+
+    // Header derecho
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'bold');
+    doc.text('icademx.com', pageW - 15, 14, { align: 'right' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7);
+    doc.setTextColor(200, 215, 245);
+    doc.text(fechaLarga, pageW - 15, 20, { align: 'right' });
+    doc.text(horaCorta + ' hrs', pageW - 15, 24, { align: 'right' });
+    doc.setTextColor(245, 215, 122);
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Folio: ' + folio, pageW - 15, 30, { align: 'right' });
+
+    // ════════════════════════════════════════════════════
+    // TÍTULO DEL CÁLCULO
+    // ════════════════════════════════════════════════════
+    let y = 50;
+    doc.setTextColor(11, 31, 74);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(20);
+    doc.text(limpiarEmojis(data.titulo), 15, y);
+    y += 6;
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text(limpiarEmojis(data.tipoLabel).toUpperCase(), 15, y);
+    if (data.subtitulo) {
+      y += 4.5;
+      doc.text(limpiarEmojis(data.subtitulo), 15, y);
+    }
+    y += 10;
+
+    // ════════════════════════════════════════════════════
+    // CARD DE RESUMEN EJECUTIVO (TOTAL grande arriba)
+    // ════════════════════════════════════════════════════
+    const filaTotalPrincipal = data.filas.find(f => f.total && typeof f.valor === 'number');
+    if (filaTotalPrincipal) {
+      // Card dorada con sombra simulada
+      doc.setFillColor(248, 213, 110);
+      doc.roundedRect(15.5, y + 0.5, pageW - 31, 22, 3, 3, 'F'); // sombra
+      doc.setFillColor(254, 243, 199);
+      doc.roundedRect(15, y, pageW - 30, 22, 3, 3, 'F');
+      // Borde dorado
+      doc.setDrawColor(200, 150, 42);
+      doc.setLineWidth(0.5);
+      doc.roundedRect(15, y, pageW - 30, 22, 3, 3, 'S');
+
+      // Etiqueta del total
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(146, 64, 14);
+      doc.text(limpiarEmojis(filaTotalPrincipal.etiqueta).toUpperCase(), 22, y + 8);
+      // Subtitulo descriptivo
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(120, 53, 15);
+      doc.text('Resultado del cálculo según disposiciones SAT/LFT vigentes', 22, y + 13);
+
+      // Monto grande
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(11, 31, 74);
+      doc.text(fmt(filaTotalPrincipal.valor), pageW - 22, y + 14, { align: 'right' });
+
+      // MXN abajo
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7);
+      doc.setTextColor(146, 64, 14);
+      doc.text('PESOS MEXICANOS', pageW - 22, y + 19, { align: 'right' });
+
+      y += 30;
+    }
+
+    // ════════════════════════════════════════════════════
+    // SECCIÓN: DESGLOSE DE CÁLCULO
+    // ════════════════════════════════════════════════════
+    // Header de sección
+    doc.setFillColor(11, 31, 74);
+    doc.rect(15, y, 4, 6, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(11, 31, 74);
+    doc.text('DESGLOSE DEL CÁLCULO', 22, y + 4.5);
+    y += 9;
+
+    // Tabla de resultados
+    const filas = data.filas.map(f => [
+      limpiarEmojis(f.etiqueta),
+      typeof f.valor === 'number' ? fmt(f.valor) : limpiarEmojis(String(f.valor))
+    ]);
+
+    doc.autoTable({
+      startY: y,
+      head: [['CONCEPTO', 'MONTO']],
+      body: filas,
+      theme: 'plain',
+      headStyles: {
+        fillColor: [11, 31, 74],
+        textColor: [245, 215, 122],
+        fontSize: 9,
+        fontStyle: 'bold',
+        cellPadding: { top: 4, right: 5, bottom: 4, left: 5 },
+        lineWidth: 0
+      },
+      bodyStyles: {
+        fontSize: 9.5,
+        textColor: [30, 41, 59],
+        cellPadding: { top: 3.5, right: 5, bottom: 3.5, left: 5 },
+        lineColor: [226, 232, 240],
+        lineWidth: 0.1
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252]
+      },
+      columnStyles: {
+        0: { cellWidth: 115 },
+        1: { halign: 'right', cellWidth: 65, fontStyle: 'bold', font: 'courier' }
+      },
+      didParseCell: function(d) {
+        if (d.section === 'body') {
+          const fila = data.filas[d.row.index];
+          if (fila && fila.total) {
+            d.cell.styles.fillColor = [254, 243, 199];
+            d.cell.styles.textColor = [11, 31, 74];
+            d.cell.styles.fontStyle = 'bold';
+            d.cell.styles.fontSize = 10.5;
+            d.cell.styles.cellPadding = { top: 5, right: 5, bottom: 5, left: 5 };
+            if (d.column.index === 0) {
+              d.cell.text[0] = limpiarEmojis(d.cell.text[0]).toUpperCase();
+            }
+          }
+          if (fila && fila.negativo) {
+            d.cell.styles.textColor = [185, 28, 28];
+          }
+        }
+      },
+      didDrawCell: function(d) {
+        // Línea horizontal sutil después de cada fila TOTAL
+        if (d.section === 'body') {
+          const fila = data.filas[d.row.index];
+          if (fila && fila.total && d.column.index === 1) {
+            const cell = d.cell;
+            doc.setDrawColor(200, 150, 42);
+            doc.setLineWidth(0.3);
+            doc.line(d.cell.x - 115, d.cell.y, d.cell.x + d.cell.width, d.cell.y);
+            doc.line(d.cell.x - 115, d.cell.y + d.cell.height, d.cell.x + d.cell.width, d.cell.y + d.cell.height);
+          }
+        }
+      },
+      margin: { left: 15, right: 15 }
+    });
+
+    let endY = doc.lastAutoTable.finalY + 10;
+
+    // ════════════════════════════════════════════════════
+    // FUNDAMENTO LEGAL (card azul claro elegante)
+    // ════════════════════════════════════════════════════
+    if (data.fundamento) {
+      const fundLines = doc.splitTextToSize(limpiarEmojis(data.fundamento), pageW - 36);
+      const fundHeight = 9 + (fundLines.length * 3.8);
+
+      // Verificar si cabe en la página
+      if (endY + fundHeight > pageH - 50) {
+        doc.addPage();
+        endY = 20;
+      }
+
+      // Card con borde izquierdo grueso
+      doc.setFillColor(241, 245, 250);
+      doc.roundedRect(15, endY, pageW - 30, fundHeight, 2, 2, 'F');
+      // Borde izquierdo grueso azul
+      doc.setFillColor(11, 31, 74);
+      doc.rect(15, endY, 1.5, fundHeight, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(11, 31, 74);
+      doc.text('FUNDAMENTO LEGAL', 21, endY + 6);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(51, 65, 85);
+      doc.text(fundLines, 21, endY + 11);
+
+      endY += fundHeight + 6;
+    }
+
+    // ════════════════════════════════════════════════════
+    // ZONA DE FIRMAS
+    // ════════════════════════════════════════════════════
+    if (endY + 35 < pageH - 50) {
+      const firmaY = endY + 8;
+      doc.setDrawColor(180, 195, 220);
+      doc.setLineWidth(0.3);
+      // Línea izquierda
+      doc.line(25, firmaY + 12, 90, firmaY + 12);
+      // Línea derecha
+      doc.line(120, firmaY + 12, 185, firmaY + 12);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(7.5);
+      doc.setTextColor(11, 31, 74);
+      doc.text('ELABORÓ', 57.5, firmaY + 16, { align: 'center' });
+      doc.text('VALIDÓ / CONTADOR', 152.5, firmaY + 16, { align: 'center' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(6.5);
+      doc.setTextColor(120, 130, 150);
+      doc.text('Nombre y firma', 57.5, firmaY + 19.5, { align: 'center' });
+      doc.text('Cédula profesional', 152.5, firmaY + 19.5, { align: 'center' });
+
+      endY = firmaY + 25;
+    }
+
+    // ════════════════════════════════════════════════════
+    // FOOTER (disclaimer + página)
+    // ════════════════════════════════════════════════════
+    const footerY = pageH - 28;
+    // Card amarilla
+    doc.setFillColor(254, 243, 199);
+    doc.roundedRect(15, footerY, pageW - 30, 18, 2, 2, 'F');
+    // Borde izquierdo
+    doc.setFillColor(245, 158, 11);
+    doc.rect(15, footerY, 1.5, 18, 'F');
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(7);
+    doc.setTextColor(146, 64, 14);
+    doc.text('AVISO LEGAL', 21, footerY + 4.5);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(120, 53, 15);
+    const disc = 'Esta calculadora es una herramienta de apoyo basada en disposiciones SAT/LFT vigentes en 2026. Los resultados son orientativos. Para calculos definitivos y decisiones legales/fiscales, consulta a tu contador o asesor profesional. ICADEM no se hace responsable por errores derivados del uso de esta herramienta.';
+    const discLines = doc.splitTextToSize(disc, pageW - 42);
+    doc.text(discLines, 21, footerY + 8.5);
+
+    // Pie con folio + marca
+    doc.setFontSize(6.5);
+    doc.setTextColor(150, 158, 175);
+    doc.text('Generado por ICADEM Panel VIP', 15, pageH - 6);
+    doc.text('Folio: ' + folio, pageW / 2, pageH - 6, { align: 'center' });
+    const totalPaginas = doc.internal.getNumberOfPages();
+    doc.text('Página 1 de ' + totalPaginas, pageW - 15, pageH - 6, { align: 'right' });
+
+    // ════════════════════════════════════════════════════
+    // Guardar
+    // ════════════════════════════════════════════════════
+    const fileTitle = limpiarEmojis(data.titulo || 'calculo').replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+    const filename = 'ICADEM_' + fileTitle + '_' + ahora.toISOString().slice(0, 10) + '.pdf';
+    doc.save(filename);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // GENERAR EXCEL (XLSX) — formato premium ejecutivo
+  // ═══════════════════════════════════════════════════════════
+  function generarXLS(data) {
+    const ahora = new Date();
+    const fechaLarga = ahora.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+    const horaFmt = ahora.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' });
+    const folio = 'CF-' + ahora.getFullYear() + '-' + String(Date.now()).slice(-7);
+
+    // ── Paleta de colores ──
+    const C = {
+      azulOscuro:   '0B1F4A',
+      azulMedio:    '15315E',
+      azulClaro:    '1E3A6B',
+      dorado:       'F5D77A',
+      doradoLight:  'FEF3C7',
+      doradoDark:   'C8962A',
+      blanco:       'FFFFFF',
+      grisFondo:    'F8FAFC',
+      grisLinea:    'E2E8F0',
+      grisTexto:    '64748B',
+      negroTexto:   '0F172A',
+      rojo:         'B91C1C',
+      verde:        '15803D',
+      ambarBg:      'FEF3C7',
+      ambarText:    '92400E'
+    };
+
+    // ── Construir filas (array of arrays) ──
+    const rows = [];
+    // Sección 1: Header (filas 1-4)
+    rows.push(['ICADEM', '']);                                  // 0
+    rows.push(['CALCULADORA FISCAL SAT 2026', '']);             // 1
+    rows.push(['Panel VIP  |  icademx.com', '']);               // 2
+    rows.push(['', '']);                                        // 3 (separador)
+
+    // Sección 2: Metadatos (filas 5-9)
+    rows.push(['DATOS DEL DOCUMENTO', '']);                     // 4
+    rows.push(['Folio:', folio]);                               // 5
+    rows.push(['Fecha de emisión:', fechaLarga + ' · ' + horaFmt + ' hrs']); // 6
+    rows.push(['Tipo de cálculo:', limpiarEmojis(data.tipoLabel)]); // 7
+    rows.push(['Referencia:', limpiarEmojis(data.titulo)]);     // 8
+    if (data.subtitulo) rows.push(['Detalle:', limpiarEmojis(data.subtitulo)]); // 9?
+    rows.push(['', '']);                                        // separador
+
+    // Sección 3: TOTAL EJECUTIVO destacado
+    const filaTotalPrincipal = data.filas.find(f => f.total && typeof f.valor === 'number');
+    let totalRowIdx = -1;
+    if (filaTotalPrincipal) {
+      rows.push(['RESULTADO PRINCIPAL', '']);                   // header
+      rows.push([limpiarEmojis(filaTotalPrincipal.etiqueta), filaTotalPrincipal.valor]);
+      totalRowIdx = rows.length - 1;
+      rows.push(['', '']);
+    }
+
+    // Sección 4: Desglose
+    rows.push(['DESGLOSE DEL CÁLCULO', '']);
+    const desgloseHdrIdx = rows.length - 1;
+    rows.push(['CONCEPTO', 'MONTO (MXN)']);
+    const tableHdrIdx = rows.length - 1;
+
+    const tableStartIdx = rows.length;
+    const totalRowIdxs = [];
+    const negRowIdxs = [];
+    data.filas.forEach(f => {
+      const isNum = typeof f.valor === 'number';
+      rows.push([limpiarEmojis(f.etiqueta), isNum ? f.valor : limpiarEmojis(String(f.valor))]);
+      if (f.total) totalRowIdxs.push(rows.length - 1);
+      if (f.negativo) negRowIdxs.push(rows.length - 1);
+    });
+    rows.push(['', '']);
+
+    // Sección 5: Fundamento legal
+    let fundIdx = -1;
+    if (data.fundamento) {
+      rows.push(['FUNDAMENTO LEGAL', '']);
+      fundIdx = rows.length - 1;
+      rows.push([limpiarEmojis(data.fundamento), '']);
+      rows.push(['', '']);
+    }
+
+    // Sección 6: Aviso legal
+    rows.push(['AVISO LEGAL', '']);
+    const avisoHdrIdx = rows.length - 1;
+    rows.push([
+      'Esta calculadora es una herramienta de apoyo basada en disposiciones SAT/LFT vigentes en 2026. Los resultados son orientativos. Para cálculos definitivos y decisiones legales/fiscales, consulta a tu contador o asesor profesional. ICADEM no se hace responsable por errores derivados del uso de esta herramienta.',
+      ''
+    ]);
+    rows.push(['', '']);
+    rows.push(['Generado por ICADEM Panel VIP · icademx.com', '']);
+
+    // ── Crear hoja ──
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Anchos de columna
+    ws['!cols'] = [
+      { wch: 56 },   // A — Concepto
+      { wch: 28 }    // B — Monto
+    ];
+
+    // Alturas
+    ws['!rows'] = rows.map((row, idx) => {
+      if (idx === 0) return { hpt: 38 };          // ICADEM grande
+      if (idx === 1) return { hpt: 18 };          // subtítulo
+      if (idx === 2) return { hpt: 14 };          // domain
+      if (idx === 3) return { hpt: 8 };           // separador
+      if (idx === 4) return { hpt: 22 };          // header sección
+      if (idx === desgloseHdrIdx) return { hpt: 22 };
+      if (idx === avisoHdrIdx) return { hpt: 20 };
+      if (idx === tableHdrIdx) return { hpt: 24 };
+      if (totalRowIdxs.includes(idx)) return { hpt: 26 };
+      if (totalRowIdx === idx) return { hpt: 30 };  // total principal
+      return { hpt: 19 };
+    });
+
+    // Merges
+    ws['!merges'] = [
+      // Headers
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 1 } },
+      { s: { r: 2, c: 0 }, e: { r: 2, c: 1 } },
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 1 } },
+      // Headers de secciones
+      { s: { r: desgloseHdrIdx, c: 0 }, e: { r: desgloseHdrIdx, c: 1 } },
+      { s: { r: avisoHdrIdx, c: 0 }, e: { r: avisoHdrIdx, c: 1 } },
+      { s: { r: avisoHdrIdx + 1, c: 0 }, e: { r: avisoHdrIdx + 1, c: 1 } },
+      { s: { r: rows.length - 1, c: 0 }, e: { r: rows.length - 1, c: 1 } }
+    ];
+    if (filaTotalPrincipal) {
+      const totalHdrIdx = totalRowIdx - 1;
+      ws['!merges'].push({ s: { r: totalHdrIdx, c: 0 }, e: { r: totalHdrIdx, c: 1 } });
+    }
+    if (fundIdx >= 0) {
+      ws['!merges'].push({ s: { r: fundIdx, c: 0 }, e: { r: fundIdx, c: 1 } });
+      ws['!merges'].push({ s: { r: fundIdx + 1, c: 0 }, e: { r: fundIdx + 1, c: 1 } });
+    }
+
+    // ═══════════════ ESTILOS ═══════════════
+    function setCell(ref, value, style) {
+      if (!ws[ref]) ws[ref] = { t: typeof value === 'number' ? 'n' : 's', v: value };
+      ws[ref].s = style;
+    }
+
+    // ── 1. ICADEM logo (fila 1) ──
+    setCell('A1', 'ICADEM', {
+      font: { name: 'Calibri', sz: 26, bold: true, color: { rgb: C.blanco } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 }
+    });
+    setCell('B1', '', {
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } }
+    });
+
+    // ── 2. Subtítulo dorado ──
+    setCell('A2', 'CALCULADORA FISCAL SAT 2026', {
+      font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: C.dorado } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 }
+    });
+    setCell('B2', '', { fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } } });
+
+    // ── 3. Domain ──
+    setCell('A3', 'Panel VIP  |  icademx.com', {
+      font: { name: 'Calibri', sz: 9, italic: true, color: { rgb: 'B0C5E5' } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+      border: {
+        bottom: { style: 'medium', color: { rgb: C.dorado } }
+      }
+    });
+    setCell('B3', '', {
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      border: { bottom: { style: 'medium', color: { rgb: C.dorado } } }
+    });
+
+    // ── 4. Separador ──
+    setCell('A4', '', { fill: { patternType: 'solid', fgColor: { rgb: C.blanco } } });
+    setCell('B4', '', { fill: { patternType: 'solid', fgColor: { rgb: C.blanco } } });
+
+    // ── 5. Header "DATOS DEL DOCUMENTO" ──
+    setCell('A5', 'DATOS DEL DOCUMENTO', {
+      font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.azulOscuro } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.grisFondo } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        left:   { style: 'thick', color: { rgb: C.azulOscuro } },
+        bottom: { style: 'thin',  color: { rgb: C.grisLinea } }
+      }
+    });
+    setCell('B5', '', {
+      fill: { patternType: 'solid', fgColor: { rgb: C.grisFondo } },
+      border: { bottom: { style: 'thin', color: { rgb: C.grisLinea } } }
+    });
+
+    // ── Filas de metadatos (label + value) ──
+    const metaRows = [5, 6, 7, 8];
+    if (data.subtitulo) metaRows.push(9);
+    metaRows.forEach((excelRow, idx) => {
+      const r = excelRow + 1;
+      // Label
+      const refA = 'A' + r;
+      if (ws[refA]) {
+        ws[refA].s = {
+          font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.grisTexto } },
+          alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+          border: { left: { style: 'thick', color: { rgb: C.azulOscuro } } }
+        };
+      }
+      // Value
+      const refB = 'B' + r;
+      if (ws[refB]) {
+        ws[refB].s = {
+          font: { name: 'Calibri', sz: 10, color: { rgb: C.azulOscuro }, bold: true },
+          alignment: { horizontal: 'left', vertical: 'center', indent: 1 }
+        };
+      }
+    });
+
+    // ── TOTAL EJECUTIVO destacado (card dorada) ──
+    if (filaTotalPrincipal) {
+      const headerR = totalRowIdx; // header está una arriba
+      const valueR = totalRowIdx + 1;
+
+      // Header label
+      setCell('A' + headerR, 'RESULTADO PRINCIPAL', {
+        font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.ambarText } },
+        fill: { patternType: 'solid', fgColor: { rgb: C.doradoLight } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+        border: {
+          top:   { style: 'medium', color: { rgb: C.doradoDark } },
+          left:  { style: 'medium', color: { rgb: C.doradoDark } },
+          right: { style: 'medium', color: { rgb: C.doradoDark } }
+        }
+      });
+      setCell('B' + headerR, '', {
+        fill: { patternType: 'solid', fgColor: { rgb: C.doradoLight } },
+        border: {
+          top:   { style: 'medium', color: { rgb: C.doradoDark } },
+          right: { style: 'medium', color: { rgb: C.doradoDark } }
+        }
+      });
+
+      // Valor grande
+      setCell('A' + valueR, limpiarEmojis(filaTotalPrincipal.etiqueta).toUpperCase(), {
+        font: { name: 'Calibri', sz: 12, bold: true, color: { rgb: C.azulOscuro } },
+        fill: { patternType: 'solid', fgColor: { rgb: C.dorado } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+        border: {
+          left:   { style: 'medium', color: { rgb: C.doradoDark } },
+          right:  { style: 'medium', color: { rgb: C.doradoDark } },
+          bottom: { style: 'medium', color: { rgb: C.doradoDark } }
+        }
+      });
+      const cellB = ws['B' + valueR];
+      if (cellB) {
+        cellB.t = 'n';
+        cellB.z = '"$"#,##0.00';
+        cellB.s = {
+          font: { name: 'Calibri', sz: 18, bold: true, color: { rgb: C.azulOscuro } },
+          fill: { patternType: 'solid', fgColor: { rgb: C.dorado } },
+          alignment: { horizontal: 'right', vertical: 'center', indent: 2 },
+          border: {
+            right:  { style: 'medium', color: { rgb: C.doradoDark } },
+            bottom: { style: 'medium', color: { rgb: C.doradoDark } }
+          }
+        };
+      }
+    }
+
+    // ── Header de sección "DESGLOSE DEL CÁLCULO" ──
+    const dHdr = desgloseHdrIdx + 1;
+    setCell('A' + dHdr, 'DESGLOSE DEL CÁLCULO', {
+      font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: C.azulOscuro } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.grisFondo } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 1 },
+      border: {
+        left:   { style: 'thick', color: { rgb: C.azulOscuro } },
+        bottom: { style: 'thin',  color: { rgb: C.grisLinea } }
+      }
+    });
+    setCell('B' + dHdr, '', {
+      fill: { patternType: 'solid', fgColor: { rgb: C.grisFondo } },
+      border: { bottom: { style: 'thin', color: { rgb: C.grisLinea } } }
+    });
+
+    // ── Header tabla CONCEPTO/MONTO ──
+    const tHdr = tableHdrIdx + 1;
+    setCell('A' + tHdr, 'CONCEPTO', {
+      font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.dorado } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+      border: {
+        top:    { style: 'medium', color: { rgb: C.azulOscuro } },
+        bottom: { style: 'thin', color: { rgb: C.dorado } }
+      }
+    });
+    setCell('B' + tHdr, 'MONTO (MXN)', {
+      font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.dorado } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.azulOscuro } },
+      alignment: { horizontal: 'right', vertical: 'center', indent: 2 },
+      border: {
+        top:    { style: 'medium', color: { rgb: C.azulOscuro } },
+        bottom: { style: 'thin', color: { rgb: C.dorado } }
+      }
+    });
+
+    // ── Filas de datos ──
+    data.filas.forEach((f, i) => {
+      const r = tHdr + 1 + i;
+      const refA = 'A' + r;
+      const refB = 'B' + r;
+      const isTotal = f.total;
+      const isNeg = f.negativo;
+      const zebra = (i % 2 === 0) ? C.grisFondo : C.blanco;
+
+      // Etiqueta
+      setCell(refA, limpiarEmojis(f.etiqueta), {
+        font: {
+          name: 'Calibri',
+          sz: isTotal ? 11 : 10,
+          bold: isTotal,
+          color: { rgb: isTotal ? C.azulOscuro : C.negroTexto }
+        },
+        fill: { patternType: 'solid', fgColor: { rgb: isTotal ? C.dorado : zebra } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 2, wrapText: true },
+        border: {
+          bottom: { style: 'thin', color: { rgb: C.grisLinea } }
+        }
+      });
+
+      // Monto
+      const cellB = ws[refB];
+      if (cellB) {
+        if (typeof f.valor === 'number') {
+          cellB.t = 'n';
+          cellB.z = '_("$"* #,##0.00_);_("$"* (#,##0.00);_("$"* "-"??_);_(@_)';
+        }
+        cellB.s = {
+          font: {
+            name: 'Calibri',
+            sz: isTotal ? 12 : 10.5,
+            bold: isTotal || isNeg,
+            color: { rgb: isTotal ? C.azulOscuro : (isNeg ? C.rojo : C.azulMedio) }
+          },
+          fill: { patternType: 'solid', fgColor: { rgb: isTotal ? C.dorado : zebra } },
+          alignment: { horizontal: 'right', vertical: 'center', indent: 2 },
+          border: {
+            bottom: { style: 'thin', color: { rgb: C.grisLinea } }
+          }
+        };
+      }
+
+      // Bordes especiales para total
+      if (isTotal && ws[refA]) {
+        ws[refA].s.border = {
+          top:    { style: 'medium', color: { rgb: C.doradoDark } },
+          bottom: { style: 'medium', color: { rgb: C.doradoDark } }
+        };
+        if (ws[refB]) {
+          ws[refB].s.border = {
+            top:    { style: 'medium', color: { rgb: C.doradoDark } },
+            bottom: { style: 'medium', color: { rgb: C.doradoDark } }
+          };
+        }
+      }
+    });
+
+    // ── Fundamento legal ──
+    if (fundIdx >= 0) {
+      const r1 = fundIdx + 1;
+      const r2 = fundIdx + 2;
+      setCell('A' + r1, 'FUNDAMENTO LEGAL', {
+        font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.dorado } },
+        fill: { patternType: 'solid', fgColor: { rgb: C.azulMedio } },
+        alignment: { horizontal: 'left', vertical: 'center', indent: 2 }
+      });
+      setCell('B' + r1, '', {
+        fill: { patternType: 'solid', fgColor: { rgb: C.azulMedio } }
+      });
+      setCell('A' + r2, limpiarEmojis(data.fundamento), {
+        font: { name: 'Calibri', sz: 9.5, color: { rgb: C.negroTexto }, italic: true },
+        alignment: { horizontal: 'left', vertical: 'top', wrapText: true, indent: 2 },
+        fill: { patternType: 'solid', fgColor: { rgb: 'F0F6FF' } },
+        border: {
+          left:   { style: 'thick', color: { rgb: C.azulMedio } },
+          bottom: { style: 'thin', color: { rgb: C.grisLinea } },
+          right:  { style: 'thin', color: { rgb: C.grisLinea } }
+        }
+      });
+      setCell('B' + r2, '', {
+        fill: { patternType: 'solid', fgColor: { rgb: 'F0F6FF' } },
+        border: {
+          bottom: { style: 'thin', color: { rgb: C.grisLinea } },
+          right:  { style: 'thin', color: { rgb: C.grisLinea } }
+        }
+      });
+      ws['!rows'][r2 - 1] = { hpt: 55 };
+    }
+
+    // ── Aviso legal ──
+    const aHdr = avisoHdrIdx + 1;
+    const aBody = aHdr + 1;
+    setCell('A' + aHdr, 'AVISO LEGAL', {
+      font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: C.ambarText } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.ambarBg } },
+      alignment: { horizontal: 'left', vertical: 'center', indent: 2 },
+      border: {
+        top:    { style: 'medium', color: { rgb: 'D97706' } },
+        left:   { style: 'thick', color: { rgb: 'D97706' } }
+      }
+    });
+    const avisoTxt = ws['A' + aBody] ? ws['A' + aBody].v : '';
+    setCell('A' + aBody, avisoTxt, {
+      font: { name: 'Calibri', sz: 9.5, color: { rgb: '78350F' } },
+      fill: { patternType: 'solid', fgColor: { rgb: C.ambarBg } },
+      alignment: { horizontal: 'left', vertical: 'top', wrapText: true, indent: 2 },
+      border: {
+        left:   { style: 'thick', color: { rgb: 'D97706' } },
+        bottom: { style: 'medium', color: { rgb: 'D97706' } }
+      }
+    });
+    ws['!rows'][aBody - 1] = { hpt: 75 };
+
+    // ── Footer ──
+    const lastRow = rows.length;
+    setCell('A' + lastRow, 'Generado por ICADEM Panel VIP · icademx.com', {
+      font: { name: 'Calibri', sz: 9, italic: true, color: { rgb: C.grisTexto } },
+      alignment: { horizontal: 'center', vertical: 'center' }
+    });
+
+    // Range
+    ws['!ref'] = 'A1:B' + lastRow;
+
+    // Configuración de impresión: una página, márgenes
+    ws['!pageSetup'] = {
+      orientation: 'portrait',
+      paperSize: 9, // A4
+      fitToPage: true,
+      fitToWidth: 1,
+      fitToHeight: 0
+    };
+    ws['!margins'] = { left: 0.5, right: 0.5, top: 0.5, bottom: 0.5, header: 0.3, footer: 0.3 };
+
+    // Workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Cálculo Fiscal');
+    wb.Props = {
+      Title: limpiarEmojis(data.titulo),
+      Subject: 'Cálculo Fiscal SAT 2026',
+      Author: 'ICADEM Panel VIP',
+      Company: 'ICADEM',
+      CreatedDate: ahora
+    };
+
+    const fileTitle = limpiarEmojis(data.titulo || 'calculo').replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_');
+    const filename = 'ICADEM_' + fileTitle + '_' + ahora.toISOString().slice(0, 10) + '.xlsx';
+    XLSX.writeFile(wb, filename, { cellStyles: true });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #1: ISR PERSONAS FÍSICAS
+  // ═══════════════════════════════════════════════════════════
+  function calcISRPersonaFisica() {
+    const tipo = document.querySelector('input[name="isrTipo"]:checked').value;
+    const periodo = document.getElementById('isr-periodo').value;
+    const bruto = parseFloat(document.getElementById('isr-bruto').value) || 0;
+    const nombre = document.getElementById('isr-nombre').value.trim() || 'Sin nombre';
+
+    if (bruto <= 0) {
+      window.notify('Ingresa un monto válido mayor a cero');
+      return;
+    }
+
+    const baseMensual = aMensual(bruto, periodo);
+    let isr = 0, subsidio = 0, retIsr = 0, retIva = 0, neto = 0;
+    let filas = [];
+    let fundamento = '';
+
+    if (tipo === 'sueldo') {
+      isr = aplicarTablaISR(baseMensual, TABLA_ISR_MENSUAL_2026);
+      subsidio = aplicarSubsidio(baseMensual);
+      const isrFinal = Math.max(0, isr - subsidio);
+      // Convertir de regreso al periodo
+      const factor = periodo === 'quincenal' ? 0.5 : (periodo === 'semanal' ? 12/52 : 1);
+      const isrPeriodo = isrFinal * factor;
+      const subsidioPeriodo = subsidio * factor;
+      neto = bruto - isrPeriodo;
+
+      filas = [
+        { etiqueta: 'Ingreso bruto del periodo', valor: bruto },
+        { etiqueta: 'Equivalente mensual', valor: baseMensual },
+        { etiqueta: 'ISR según tabla mensual', valor: isr },
+        { etiqueta: 'Subsidio al empleo', valor: -subsidio, negativo: true },
+        { etiqueta: 'ISR a retener (mensual)', valor: isrFinal },
+        { etiqueta: 'ISR a retener (' + periodo + ')', valor: isrPeriodo },
+        { etiqueta: 'NETO A PAGAR', valor: neto, total: true }
+      ];
+      fundamento = 'Art. 96 LISR (Tabla mensual). Decreto Subsidio al Empleo SAT 2026.';
+
+    } else {
+      // Honorarios
+      const resico = document.querySelector('input[name="isrResico"]:checked').value === 'si';
+      const iva = bruto * 0.16;
+      const subtotalConIva = bruto + iva;
+
+      if (resico) {
+        // RESICO PF: tasa fija según ingreso anual proyectado
+        const anualEstimado = baseMensual * 12;
+        let tasa = 0.01;
+        if (anualEstimado > 25000)    tasa = 0.011;
+        if (anualEstimado > 300000)   tasa = 0.015;
+        if (anualEstimado > 600000)   tasa = 0.020;
+        if (anualEstimado > 1000000)  tasa = 0.025;
+        if (anualEstimado > 2500000)  tasa = 0.025;
+        retIsr = bruto * tasa;
+        retIva = iva * (2/3);
+        neto = subtotalConIva - retIsr - retIva;
+
+        filas = [
+          { etiqueta: 'Subtotal (honorarios)', valor: bruto },
+          { etiqueta: 'IVA 16% trasladado', valor: iva },
+          { etiqueta: 'TOTAL FACTURADO', valor: subtotalConIva, total: true },
+          { etiqueta: 'Tasa RESICO aplicable (' + (tasa*100).toFixed(2) + '%)', valor: '' },
+          { etiqueta: 'ISR retenido (RESICO)', valor: -retIsr, negativo: true },
+          { etiqueta: 'IVA retenido (2/3 partes)', valor: -retIva, negativo: true },
+          { etiqueta: 'NETO A RECIBIR', valor: neto, total: true }
+        ];
+        fundamento = 'Régimen Simplificado de Confianza (RESICO PF). Art. 113-E LISR. Tasa según rango de ingreso anual.';
+      } else {
+        // Régimen general PF servicios profesionales
+        retIsr = bruto * 0.10; // retención provisional 10%
+        retIva = iva * (2/3);  // retención IVA 2/3
+        neto = subtotalConIva - retIsr - retIva;
+
+        filas = [
+          { etiqueta: 'Subtotal (honorarios)', valor: bruto },
+          { etiqueta: 'IVA 16% trasladado', valor: iva },
+          { etiqueta: 'TOTAL FACTURADO', valor: subtotalConIva, total: true },
+          { etiqueta: 'ISR retenido por persona moral (10%)', valor: -retIsr, negativo: true },
+          { etiqueta: 'IVA retenido por persona moral (2/3)', valor: -retIva, negativo: true },
+          { etiqueta: 'NETO A RECIBIR', valor: neto, total: true }
+        ];
+        fundamento = 'Art. 106 LISR (10% retención ISR honorarios). Art. 1-A LIVA fracción II inciso a) (2/3 partes IVA).';
+      }
+    }
+
+    const tipoLabel = tipo === 'sueldo' ? '💼 ISR Sueldo Asalariado' : '💼 ISR Honorarios PF';
+
+    renderResultado(document.getElementById('isr-pf-result-card'), {
+      tipo: 'isr-pf',
+      tipoLabel: tipoLabel,
+      titulo: nombre,
+      subtitulo: 'Periodo: ' + periodo + ' · ' + new Date().toLocaleDateString('es-MX'),
+      filas: filas,
+      fundamento: fundamento
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #2: ISR PERSONAS MORALES
+  // ═══════════════════════════════════════════════════════════
+  function calcISRPersonaMoral() {
+    const tipo = document.querySelector('input[name="pmTipo"]:checked').value;
+    const ingresos = parseFloat(document.getElementById('pm-ingresos').value) || 0;
+    const deducciones = parseFloat(document.getElementById('pm-deducciones').value) || 0;
+    const coef = parseFloat(document.getElementById('pm-coef').value) || 0;
+    const ptu = parseFloat(document.getElementById('pm-ptu').value) || 0;
+    const pagosPrev = parseFloat(document.getElementById('pm-pagos-prev').value) || 0;
+    const nombre = document.getElementById('pm-nombre').value.trim() || 'Cálculo PM';
+
+    if (ingresos <= 0) {
+      window.notify('Ingresa un monto de ingresos válido');
+      return;
+    }
+
+    let utilidad = 0, isr = 0;
+    let filas = [];
+    let fundamento = '';
+    let tipoLabel = '';
+
+    if (tipo === 'anual') {
+      utilidad = Math.max(0, ingresos - deducciones - ptu);
+      isr = utilidad * 0.30;
+      const isrAPagar = Math.max(0, isr - pagosPrev);
+
+      filas = [
+        { etiqueta: 'Ingresos acumulables', valor: ingresos },
+        { etiqueta: 'Deducciones autorizadas', valor: -deducciones, negativo: true },
+        ...(ptu > 0 ? [{ etiqueta: 'PTU pagada (deducible)', valor: -ptu, negativo: true }] : []),
+        { etiqueta: 'UTILIDAD FISCAL', valor: utilidad, total: true },
+        { etiqueta: 'Tasa ISR PM (30%)', valor: '' },
+        { etiqueta: 'ISR del ejercicio', valor: isr },
+        ...(pagosPrev > 0 ? [{ etiqueta: 'Pagos provisionales realizados', valor: -pagosPrev, negativo: true }] : []),
+        { etiqueta: pagosPrev > 0 ? 'ISR ANUAL A PAGAR (o saldo a favor)' : 'ISR ANUAL A PAGAR', valor: isrAPagar, total: true }
+      ];
+      fundamento = 'Art. 9 LISR (Tasa 30% personas morales). Art. 14 LISR (Pagos provisionales).';
+      tipoLabel = '🏢 ISR Anual Persona Moral';
+
+    } else {
+      // Pago provisional
+      if (coef > 0) {
+        // Con coeficiente
+        utilidad = ingresos * coef;
+        filas = [
+          { etiqueta: 'Ingresos nominales acumulados', valor: ingresos },
+          { etiqueta: 'Coeficiente de utilidad', valor: coef.toFixed(4) },
+          { etiqueta: 'Utilidad fiscal estimada', valor: utilidad, total: true }
+        ];
+      } else {
+        utilidad = Math.max(0, ingresos - deducciones);
+        filas = [
+          { etiqueta: 'Ingresos nominales', valor: ingresos },
+          { etiqueta: 'Deducciones autorizadas', valor: -deducciones, negativo: true },
+          { etiqueta: 'Utilidad fiscal', valor: utilidad, total: true }
+        ];
+      }
+      isr = utilidad * 0.30;
+      const isrAPagar = Math.max(0, isr - pagosPrev);
+
+      filas.push(
+        { etiqueta: 'Tasa ISR PM (30%)', valor: '' },
+        { etiqueta: 'ISR del periodo', valor: isr },
+        ...(pagosPrev > 0 ? [{ etiqueta: 'Pagos provisionales anteriores', valor: -pagosPrev, negativo: true }] : []),
+        { etiqueta: 'PAGO PROVISIONAL A ENTERAR', valor: isrAPagar, total: true }
+      );
+      fundamento = 'Art. 14 LISR (Pago provisional con coeficiente de utilidad).';
+      tipoLabel = '🏢 Pago Provisional ISR PM';
+    }
+
+    renderResultado(document.getElementById('isr-pm-result-card'), {
+      tipo: 'isr-pm',
+      tipoLabel: tipoLabel,
+      titulo: nombre,
+      subtitulo: new Date().toLocaleDateString('es-MX'),
+      filas: filas,
+      fundamento: fundamento
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #3a: AGUINALDO
+  // ═══════════════════════════════════════════════════════════
+  function calcAguinaldo() {
+    const sd = parseFloat(document.getElementById('ag-salario-diario').value) || 0;
+    const dias = parseFloat(document.getElementById('ag-dias').value) || 15;
+    const diasTrab = parseFloat(document.getElementById('ag-dias-trab').value) || 365;
+    const nombre = document.getElementById('ag-nombre').value.trim() || 'Empleado';
+
+    if (sd <= 0) { window.notify('Ingresa el salario diario'); return; }
+
+    // Aguinaldo proporcional
+    const aguinaldoCompleto = sd * dias;
+    const aguinaldoPropor = (aguinaldoCompleto / 365) * diasTrab;
+    const exento = 30 * UMA_2026;
+    const gravado = Math.max(0, aguinaldoPropor - exento);
+
+    // ISR sobre lo gravable (procedimiento Art. 174 RLISR simplificado)
+    const isr = gravado > 0 ? gravado * 0.20 : 0; // estimado simplificado, en realidad es procedimiento integrado al sueldo
+    const neto = aguinaldoPropor - isr;
+
+    renderResultado(document.getElementById('aguinaldo-result-card'), {
+      tipo: 'aguinaldo',
+      tipoLabel: '🎁 Aguinaldo',
+      titulo: nombre,
+      subtitulo: dias + ' días sobre ' + diasTrab + ' días trabajados',
+      filas: [
+        { etiqueta: 'Salario diario', valor: sd },
+        { etiqueta: 'Días de aguinaldo otorgados', valor: dias.toString() },
+        { etiqueta: 'Días trabajados en el año', valor: diasTrab.toString() },
+        { etiqueta: 'Aguinaldo si trabajara año completo', valor: aguinaldoCompleto },
+        { etiqueta: 'AGUINALDO PROPORCIONAL', valor: aguinaldoPropor, total: true },
+        { etiqueta: 'Parte exenta (30 UMAs = ' + fmt(exento) + ')', valor: -Math.min(exento, aguinaldoPropor), negativo: true },
+        { etiqueta: 'Parte gravable', valor: gravado },
+        { etiqueta: 'ISR estimado (≈20%)', valor: -isr, negativo: true },
+        { etiqueta: 'NETO A PAGAR', valor: neto, total: true }
+      ],
+      fundamento: 'Art. 87 LFT (mínimo 15 días). Art. 93 fracción XIV LISR (exención 30 UMAs). UMA 2026: ' + fmt(UMA_2026) + '. Nota: ISR mostrado es estimado; el cálculo exacto se hace integrando el aguinaldo al sueldo del mes (Art. 174 RLISR).'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #3b: PRIMA VACACIONAL
+  // ═══════════════════════════════════════════════════════════
+  function calcPrima() {
+    const sd = parseFloat(document.getElementById('pv-salario-diario').value) || 0;
+    const ant = parseFloat(document.getElementById('pv-antiguedad').value) || 1;
+    const pct = parseFloat(document.getElementById('pv-porcentaje').value) || 25;
+    const nombre = document.getElementById('pv-nombre').value.trim() || 'Empleado';
+
+    if (sd <= 0) { window.notify('Ingresa el salario diario'); return; }
+
+    const diasVac = diasVacacionesLFT(ant);
+    const salarioVac = sd * diasVac;
+    const prima = salarioVac * (pct / 100);
+    const exento = 15 * UMA_2026;
+    const gravado = Math.max(0, prima - exento);
+    const isr = gravado > 0 ? gravado * 0.20 : 0; // estimado
+    const neto = prima - isr;
+
+    renderResultado(document.getElementById('prima-result-card'), {
+      tipo: 'prima-vac',
+      tipoLabel: '🏖️ Prima Vacacional',
+      titulo: nombre,
+      subtitulo: ant + ' año(s) de antigüedad · ' + diasVac + ' días de vacaciones',
+      filas: [
+        { etiqueta: 'Salario diario', valor: sd },
+        { etiqueta: 'Antigüedad', valor: ant + ' año(s)' },
+        { etiqueta: 'Días de vacaciones (LFT)', valor: diasVac.toString() },
+        { etiqueta: 'Salario por días de vacaciones', valor: salarioVac },
+        { etiqueta: 'Porcentaje de prima', valor: pct + '%' },
+        { etiqueta: 'PRIMA VACACIONAL BRUTA', valor: prima, total: true },
+        { etiqueta: 'Parte exenta (15 UMAs = ' + fmt(exento) + ')', valor: -Math.min(exento, prima), negativo: true },
+        { etiqueta: 'Parte gravable', valor: gravado },
+        { etiqueta: 'ISR estimado (≈20%)', valor: -isr, negativo: true },
+        { etiqueta: 'NETO A PAGAR', valor: neto, total: true }
+      ],
+      fundamento: 'Art. 80 LFT (mínimo 25%). Art. 76 LFT (Tabla de vacaciones reformada 2023). Art. 93 fracción XIV LISR (exención 15 UMAs). UMA 2026: ' + fmt(UMA_2026) + '.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #3c: PTU
+  // ═══════════════════════════════════════════════════════════
+  function calcPTU() {
+    const utilidad = parseFloat(document.getElementById('ptu-utilidad').value) || 0;
+    const totalDias = parseFloat(document.getElementById('ptu-total-dias').value) || 0;
+    const totalSalarios = parseFloat(document.getElementById('ptu-total-salarios').value) || 0;
+    const empDias = parseFloat(document.getElementById('ptu-emp-dias').value) || 0;
+    const empSalario = parseFloat(document.getElementById('ptu-emp-salario').value) || 0;
+    const sdActual = parseFloat(document.getElementById('ptu-salario-diario').value) || 0;
+    const nombre = document.getElementById('ptu-nombre').value.trim() || 'Empleado';
+
+    if (utilidad <= 0 || totalDias <= 0 || totalSalarios <= 0) {
+      window.notify('Completa los datos generales de la empresa (utilidad, días totales y salarios totales)');
+      return;
+    }
+
+    const ptuTotal = utilidad * 0.10;
+    const ptuMitadDias = ptuTotal / 2;
+    const ptuMitadSalarios = ptuTotal / 2;
+
+    const factorDias = empDias / totalDias;
+    const factorSalarios = empSalario / totalSalarios;
+
+    const porDias = ptuMitadDias * factorDias;
+    const porSalarios = ptuMitadSalarios * factorSalarios;
+    const subtotalEmp = porDias + porSalarios;
+
+    // Tope: 3 meses de salario o promedio últimos 3 años (lo mayor)
+    const tope3Meses = sdActual * 90;
+    const ptuFinal = sdActual > 0 ? Math.min(subtotalEmp, tope3Meses) : subtotalEmp;
+    const aplicaTope = sdActual > 0 && subtotalEmp > tope3Meses;
+
+    const exento = 15 * UMA_2026;
+    const gravado = Math.max(0, ptuFinal - exento);
+    const isr = gravado > 0 ? gravado * 0.20 : 0;
+    const neto = ptuFinal - isr;
+
+    renderResultado(document.getElementById('ptu-result-card'), {
+      tipo: 'ptu',
+      tipoLabel: '💎 PTU',
+      titulo: nombre,
+      subtitulo: 'Reparto del ejercicio fiscal',
+      filas: [
+        { etiqueta: 'Utilidad fiscal de la empresa', valor: utilidad },
+        { etiqueta: 'PTU total a repartir (10%)', valor: ptuTotal, total: true },
+        { etiqueta: '— Mitad por días', valor: ptuMitadDias },
+        { etiqueta: '— Mitad por salarios', valor: ptuMitadSalarios },
+        { etiqueta: 'PTU del empleado por días', valor: porDias },
+        { etiqueta: 'PTU del empleado por salarios', valor: porSalarios },
+        { etiqueta: 'PTU del empleado (subtotal)', valor: subtotalEmp },
+        ...(sdActual > 0 ? [{ etiqueta: 'Tope 3 meses de salario actual', valor: tope3Meses }] : []),
+        ...(aplicaTope ? [{ etiqueta: '⚠️ APLICA TOPE: PTU limitado a 3 meses', valor: '' }] : []),
+        { etiqueta: 'PTU FINAL', valor: ptuFinal, total: true },
+        { etiqueta: 'Parte exenta (15 UMAs)', valor: -Math.min(exento, ptuFinal), negativo: true },
+        { etiqueta: 'ISR estimado (≈20% sobre gravable)', valor: -isr, negativo: true },
+        { etiqueta: 'NETO A PAGAR', valor: neto, total: true }
+      ],
+      fundamento: 'Art. 117-127 LFT (Reparto de Utilidades). Reforma 2021: tope = 3 meses de salario o promedio últimos 3 años (lo mayor). Art. 93 fracción XIV LISR (exención 15 UMAs).'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #4: FINIQUITO
+  // ═══════════════════════════════════════════════════════════
+  function calcFiniquito() {
+    const tipo = document.getElementById('fin-tipo').value;
+    const sdi = parseFloat(document.getElementById('fin-sdi').value) || 0;
+    const sd = parseFloat(document.getElementById('fin-salario-diario').value) || 0;
+    const ant = parseFloat(document.getElementById('fin-antiguedad').value) || 0;
+    const diasPend = parseFloat(document.getElementById('fin-dias-pendientes').value) || 0;
+    const diasAg = parseFloat(document.getElementById('fin-dias-aguinaldo').value) || 15;
+    const diasAnio = parseFloat(document.getElementById('fin-dias-anio').value) || 0;
+    const vacPend = parseFloat(document.getElementById('fin-vac-pend').value) || 0;
+    const primaPct = parseFloat(document.getElementById('fin-prima-vac').value) || 25;
+    const nombre = document.getElementById('fin-nombre').value.trim() || 'Empleado';
+
+    if (sd <= 0) { window.notify('Ingresa el salario diario'); return; }
+
+    // Días pendientes
+    const pagoPend = sd * diasPend;
+    // Aguinaldo proporcional
+    const aguinaldoProp = (sd * diasAg / 365) * diasAnio;
+    // Vacaciones pendientes + prima vacacional
+    const vacBruto = sd * vacPend;
+    const primaVac = vacBruto * (primaPct / 100);
+
+    // Subtotal finiquito (siempre se paga)
+    const subtotalFiniquito = pagoPend + aguinaldoProp + vacBruto + primaVac;
+
+    // Indemnizaciones (solo despido injustificado)
+    let ind3meses = 0, ind20dias = 0, primaAntiguedad = 0;
+    if (tipo === 'injustificado') {
+      ind3meses = sdi * 90; // 3 meses de SDI
+      ind20dias = sdi * 20 * ant; // 20 días por año
+    }
+
+    // Prima de antigüedad (Art. 162 LFT) — aplica para todos los tipos cuando ant ≥ 15 años o despido
+    if (ant >= 15 || tipo === 'injustificado' || tipo === 'justificado') {
+      const sdiTope = Math.min(sdi, 2 * SMG_2026); // tope 2 SMG
+      primaAntiguedad = sdiTope * 12 * ant;
+    }
+
+    const totalBruto = subtotalFiniquito + ind3meses + ind20dias + primaAntiguedad;
+
+    // ISR (estimado simplificado)
+    const exentoFiniquito = 90 * UMA_2026; // tope exenciones varias
+    const gravable = Math.max(0, totalBruto - exentoFiniquito);
+    const isr = gravable * 0.20;
+    const neto = totalBruto - isr;
+
+    const tipoLabels = {
+      'renuncia': 'Renuncia voluntaria',
+      'injustificado': 'Despido injustificado (con indemnización)',
+      'justificado': 'Despido justificado',
+      'termino': 'Término de contrato / Mutuo acuerdo'
+    };
+
+    const filas = [
+      { etiqueta: 'Tipo de separación', valor: tipoLabels[tipo] },
+      { etiqueta: 'Antigüedad', valor: ant + ' año(s)' },
+      { etiqueta: 'Salario diario simple', valor: sd },
+      { etiqueta: 'SDI (Salario Diario Integrado)', valor: sdi },
+      { etiqueta: '— Días pendientes (' + diasPend + ')', valor: pagoPend },
+      { etiqueta: '— Aguinaldo proporcional', valor: aguinaldoProp },
+      { etiqueta: '— Vacaciones pendientes (' + vacPend + ' días)', valor: vacBruto },
+      { etiqueta: '— Prima vacacional (' + primaPct + '%)', valor: primaVac },
+      { etiqueta: 'SUBTOTAL FINIQUITO', valor: subtotalFiniquito, total: true }
+    ];
+
+    if (tipo === 'injustificado') {
+      filas.push(
+        { etiqueta: '— Indemnización 3 meses', valor: ind3meses },
+        { etiqueta: '— 20 días por año (' + ant + ' años)', valor: ind20dias }
+      );
+    }
+    if (primaAntiguedad > 0) {
+      filas.push({ etiqueta: '— Prima de antigüedad (12 días/año tope 2 SMG)', valor: primaAntiguedad });
+    }
+
+    filas.push(
+      { etiqueta: 'TOTAL BRUTO', valor: totalBruto, total: true },
+      { etiqueta: 'Exento estimado (90 UMAs)', valor: -Math.min(exentoFiniquito, totalBruto), negativo: true },
+      { etiqueta: 'Parte gravable', valor: gravable },
+      { etiqueta: 'ISR estimado (≈20%)', valor: -isr, negativo: true },
+      { etiqueta: 'NETO A PAGAR', valor: neto, total: true }
+    );
+
+    renderResultado(document.getElementById('finiquito-result-card'), {
+      tipo: 'finiquito',
+      tipoLabel: '📤 Finiquito',
+      titulo: nombre,
+      subtitulo: tipoLabels[tipo],
+      filas: filas,
+      fundamento: 'Art. 47, 48, 50, 76, 80, 87, 162 LFT. Art. 93 LISR (exenciones). UMA 2026: ' + fmt(UMA_2026) + '. SMG 2026: ' + fmt(SMG_2026) + '. Cálculo orientativo, validar con abogado laboral para casos específicos.'
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // CALC #5: RETENCIÓN IVA / ISR
+  // ═══════════════════════════════════════════════════════════
+  function calcRetencion() {
+    const tipo = document.getElementById('ret-tipo').value;
+    const subtotal = parseFloat(document.getElementById('ret-subtotal').value) || 0;
+    const nombre = document.getElementById('ret-nombre').value.trim() || 'Operación';
+
+    if (subtotal <= 0) { window.notify('Ingresa el subtotal'); return; }
+
+    const iva = subtotal * 0.16;
+    const total = subtotal + iva;
+
+    let retIsr = 0, retIva = 0, fundamento = '', tipoLabel = '';
+
+    switch (tipo) {
+      case 'honorarios-pf':
+        retIsr = subtotal * 0.10;
+        retIva = iva * (2/3);
+        fundamento = 'Art. 106 LISR (10% retención ISR honorarios). Art. 1-A LIVA fracción II inciso a) (2/3 partes IVA).';
+        tipoLabel = '💸 Retención · Honorarios PF';
+        break;
+      case 'arrendamiento':
+        retIsr = subtotal * 0.10;
+        retIva = iva * (2/3);
+        fundamento = 'Art. 116 LISR (10% retención arrendamiento). Art. 1-A LIVA fracción II inciso a).';
+        tipoLabel = '💸 Retención · Arrendamiento';
+        break;
+      case 'fletes':
+        retIsr = 0;
+        // Art. 1-A LIVA: 4% IVA sobre el valor del flete (subtotal)
+        retIva = subtotal * 0.04;
+        fundamento = 'Art. 1-A LIVA fracción II inciso c). Retención del 4% del IVA sobre el valor del flete (autotransporte terrestre de bienes).';
+        tipoLabel = '💸 Retención · Fletes';
+        break;
+      case 'servicios':
+        retIsr = subtotal * 0.10;
+        retIva = iva * (2/3);
+        fundamento = 'Servicios independientes prestados por PF a PM (Art. 106 LISR + Art. 1-A LIVA).';
+        tipoLabel = '💸 Retención · Servicios';
+        break;
+      case 'repse':
+        retIsr = 0;
+        retIva = subtotal * 0.06; // 6% sobre subtotal según reforma REPSE
+        fundamento = 'Subcontratación REPSE (Art. 1-A LIVA fracción IV reforma 2021): 6% IVA sobre el valor del servicio.';
+        tipoLabel = '💸 Retención · REPSE';
+        break;
+    }
+
+    const neto = total - retIsr - retIva;
+
+    renderResultado(document.getElementById('ret-iva-result-card'), {
+      tipo: 'ret-iva',
+      tipoLabel: tipoLabel,
+      titulo: nombre,
+      subtitulo: new Date().toLocaleDateString('es-MX'),
+      filas: [
+        { etiqueta: 'Subtotal', valor: subtotal },
+        { etiqueta: 'IVA 16% trasladado', valor: iva },
+        { etiqueta: 'TOTAL FACTURADO', valor: total, total: true },
+        ...(retIsr > 0 ? [{ etiqueta: 'ISR retenido', valor: -retIsr, negativo: true }] : []),
+        ...(retIva > 0 ? [{ etiqueta: 'IVA retenido', valor: -retIva, negativo: true }] : []),
+        { etiqueta: 'NETO A PAGAR/RECIBIR', valor: neto, total: true }
+      ],
+      fundamento: fundamento
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // RENDERIZAR HISTORIAL
+  // ═══════════════════════════════════════════════════════════
+  function renderHistorial() {
+    const cont = document.getElementById('cf-historial-list');
+    if (!cont) return;
+    const arr = loadHist();
+    if (arr.length === 0) {
+      cont.innerHTML = `
+        <div class="cf-hist-empty">
+          <div style="font-size:48px;margin-bottom:1rem">📅</div>
+          <p style="font-size:14px;font-weight:600;color:#fff;margin-bottom:6px">Tu historial está vacío</p>
+          <p style="font-size:12.5px;color:rgba(168,184,209,0.7)">Cuando guardes un cálculo aparecerá aquí. Se mantiene 7 días automáticamente.</p>
+        </div>
+      `;
+      return;
+    }
+
+    cont.innerHTML = arr.map(item => {
+      const dias = diasRestantes(item.fecha);
+      const fecha = new Date(item.fecha);
+      const expirando = dias <= 2;
+      const dataAttr = JSON.stringify(item).replace(/"/g, '&quot;');
+
+      const previewFilas = item.filas.filter(f => f.total).slice(0, 2).map(f =>
+        `<span><strong>${f.etiqueta}:</strong> ${typeof f.valor === 'number' ? fmt(f.valor) : f.valor}</span>`
+      ).join(' · ');
+
+      return `
+        <article class="cf-hist-card ${expirando ? 'cf-hist-card-expiring' : ''}">
+          <div class="cf-hist-card-head">
+            <div class="cf-hist-card-info">
+              <span class="cf-hist-card-tipo">${item.tipoLabel}</span>
+              <h4 class="cf-hist-card-titulo">${item.titulo}</h4>
+              ${item.subtitulo ? `<p class="cf-hist-card-sub">${item.subtitulo}</p>` : ''}
+            </div>
+            <div class="cf-hist-card-meta">
+              <span class="cf-hist-card-fecha">${fecha.toLocaleDateString('es-MX', { day:'numeric', month:'short' })} · ${fecha.toLocaleTimeString('es-MX', { hour:'2-digit', minute:'2-digit' })}</span>
+              <span class="cf-hist-card-ttl ${expirando ? 'is-expiring' : ''}">⏰ Expira en ${dias} día${dias !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          ${previewFilas ? `<div class="cf-hist-card-preview">${previewFilas}</div>` : ''}
+          <div class="cf-hist-card-actions">
+            <button class="cf-action cf-action-pdf-sm" onclick="cfHistDownloadPDF('${item.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              PDF
+            </button>
+            <button class="cf-action cf-action-xls-sm" onclick="cfHistDownloadXLS('${item.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>
+              Excel
+            </button>
+            <button class="cf-action cf-action-del-sm" onclick="cfHistDelete('${item.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              Borrar
+            </button>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  window.cfHistDownloadPDF = function(id) {
+    const item = loadHist().find(i => i.id === id);
+    if (item) generarPDF(item);
+  };
+  window.cfHistDownloadXLS = function(id) {
+    const item = loadHist().find(i => i.id === id);
+    if (item) generarXLS(item);
+  };
+  window.cfHistDelete = function(id) {
+    if (confirm('¿Borrar este cálculo del historial?')) deleteHistItem(id);
+  };
+
+  // ═══════════════════════════════════════════════════════════
+  // EVENTOS DE TABS Y SUBTABS
+  // ═══════════════════════════════════════════════════════════
+  document.querySelectorAll('.cf-tab').forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.cftab;
+      document.querySelectorAll('.cf-tab').forEach(b => b.classList.remove('is-active'));
+      t.classList.add('is-active');
+      document.querySelectorAll('.cf-panel').forEach(p => p.classList.remove('is-active'));
+      const panel = document.querySelector('.cf-panel[data-cfpanel="' + target + '"]');
+      if (panel) panel.classList.add('is-active');
+      if (target === 'historial') renderHistorial();
+    });
+  });
+
+  document.querySelectorAll('.cf-subtab').forEach(t => {
+    t.addEventListener('click', () => {
+      const target = t.dataset.prest;
+      document.querySelectorAll('.cf-subtab').forEach(b => b.classList.remove('is-active'));
+      t.classList.add('is-active');
+      document.querySelectorAll('.cf-prest-panel').forEach(p => p.classList.remove('is-active'));
+      const panel = document.querySelector('.cf-prest-panel[data-prestpanel="' + target + '"]');
+      if (panel) panel.classList.add('is-active');
+    });
+  });
+
+  // Radios visuales
+  document.querySelectorAll('.cf-radio-group').forEach(group => {
+    group.addEventListener('change', () => {
+      group.querySelectorAll('.cf-radio').forEach(r => r.classList.remove('is-active'));
+      const checked = group.querySelector('input:checked');
+      if (checked) checked.closest('.cf-radio').classList.add('is-active');
+    });
+  });
+
+  // Mostrar/ocultar campos de honorarios
+  document.querySelectorAll('input[name="isrTipo"]').forEach(r => {
+    r.addEventListener('change', () => {
+      const honFields = document.getElementById('isr-honorarios-fields');
+      if (r.value === 'honorarios' && r.checked) honFields.style.display = '';
+      else if (r.value === 'sueldo' && r.checked) honFields.style.display = 'none';
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  // BIND BOTONES DE CÁLCULO
+  // ═══════════════════════════════════════════════════════════
+  const bindings = [
+    ['btn-isr-pf-calc', calcISRPersonaFisica],
+    ['btn-isr-pm-calc', calcISRPersonaMoral],
+    ['btn-aguinaldo-calc', calcAguinaldo],
+    ['btn-prima-calc', calcPrima],
+    ['btn-ptu-calc', calcPTU],
+    ['btn-finiquito-calc', calcFiniquito],
+    ['btn-ret-iva-calc', calcRetencion]
+  ];
+  bindings.forEach(([id, fn]) => {
+    const btn = document.getElementById(id);
+    if (btn) btn.addEventListener('click', () => {
+      if (typeof toolRequiereVIP === 'function' && !toolRequiereVIP('Calculadora fiscal')) return;
+      fn();
+    });
+  });
+
+  const btnClear = document.getElementById('btn-cf-clear-historial');
+  if (btnClear) btnClear.addEventListener('click', clearHistAll);
+
+  // ═══════════════════════════════════════════════════════════
+  // INYECTAR SPINNERS CUSTOM A TODOS LOS INPUTS NUMBER
+  // ═══════════════════════════════════════════════════════════
+  function injectarSpinners() {
+    const calculadora = document.getElementById('sec-calc-fiscal');
+    if (!calculadora) return;
+
+    const inputs = calculadora.querySelectorAll('input.cf-input[type="number"]');
+    inputs.forEach(input => {
+      // Saltar si ya tiene spinner
+      if (input.dataset.cfSpinned === '1') return;
+      input.dataset.cfSpinned = '1';
+
+      // Si está dentro de cf-input-prefix, agregar la clase cf-spin al wrapper
+      let wrapper = input.parentElement;
+      if (wrapper && wrapper.classList.contains('cf-input-prefix')) {
+        wrapper.classList.add('cf-spin');
+      } else {
+        // Crear un wrapper cf-spin alrededor
+        wrapper = document.createElement('div');
+        wrapper.className = 'cf-spin';
+        input.parentNode.insertBefore(wrapper, input);
+        wrapper.appendChild(input);
+      }
+
+      // Crear los controles up/down
+      const controls = document.createElement('div');
+      controls.className = 'cf-spin-controls';
+      controls.innerHTML = `
+        <button type="button" class="cf-spin-btn cf-spin-up" tabindex="-1" aria-label="Aumentar">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,5 5,1 9,5"/></svg>
+        </button>
+        <button type="button" class="cf-spin-btn cf-spin-down" tabindex="-1" aria-label="Disminuir">
+          <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,1 5,5 9,1"/></svg>
+        </button>
+      `;
+      wrapper.appendChild(controls);
+
+      // Determinar el step automáticamente
+      const stepAttr = input.getAttribute('step');
+      const step = stepAttr ? parseFloat(stepAttr) : 1;
+      const min = input.getAttribute('min') !== null ? parseFloat(input.getAttribute('min')) : -Infinity;
+      const max = input.getAttribute('max') !== null ? parseFloat(input.getAttribute('max')) : Infinity;
+
+      // Funciones step
+      const stepUp = () => {
+        const current = parseFloat(input.value) || 0;
+        const next = Math.min(max, current + step);
+        // Mantener decimales según step
+        const decimals = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(decimals);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+      const stepDown = () => {
+        const current = parseFloat(input.value) || 0;
+        const next = Math.max(min, current - step);
+        const decimals = (step.toString().split('.')[1] || '').length;
+        input.value = next.toFixed(decimals);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+      };
+
+      // Bind con click + hold (para repetir mientras presionas)
+      let holdTimer = null, holdInterval = null;
+      function startHold(fn) {
+        fn(); // ejecutar inmediato
+        holdTimer = setTimeout(() => {
+          holdInterval = setInterval(fn, 60); // cada 60ms mientras se mantiene
+        }, 400); // delay inicial
+      }
+      function stopHold() {
+        clearTimeout(holdTimer);
+        clearInterval(holdInterval);
+        holdTimer = null;
+        holdInterval = null;
+      }
+
+      const upBtn = controls.querySelector('.cf-spin-up');
+      const downBtn = controls.querySelector('.cf-spin-down');
+
+      upBtn.addEventListener('mousedown', () => startHold(stepUp));
+      upBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepUp); }, { passive: false });
+      upBtn.addEventListener('mouseup', stopHold);
+      upBtn.addEventListener('mouseleave', stopHold);
+      upBtn.addEventListener('touchend', stopHold);
+      upBtn.addEventListener('touchcancel', stopHold);
+
+      downBtn.addEventListener('mousedown', () => startHold(stepDown));
+      downBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startHold(stepDown); }, { passive: false });
+      downBtn.addEventListener('mouseup', stopHold);
+      downBtn.addEventListener('mouseleave', stopHold);
+      downBtn.addEventListener('touchend', stopHold);
+      downBtn.addEventListener('touchcancel', stopHold);
+    });
+  }
+
+  // Init
+  actualizarBadgeHistorial();
+  injectarSpinners();
+
+  // Exponer generadores PDF/Excel globalmente para que otras herramientas los reusen
+  window._cfGenerarPDF = generarPDF;
+  window._cfGenerarXLS = generarXLS;
+};
+window.ToolCalcFiscal = {
+  mount(c) {
+    const tpl = document.getElementById('tpl-calc-fiscal');
+    c.innerHTML = '';
+    c.appendChild(tpl.content.cloneNode(true));
+    window.__initCalcFiscal();
+  }
+};
+</script>
+
 </body>
 </html>
