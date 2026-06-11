@@ -5,17 +5,17 @@
 
 /* ── Variables ── */
 :root {
-  --blue-dark:   #0b2f68;
-  --blue-mid:    #1a5298;
-  --blue-light:  #1a73e8;
-  --blue-soft:   #e8f0fe;
+  --blue-dark:   #18233a;
+  --blue-mid:    #3e6fa8;
+  --blue-light:  #5b92c8;
+  --blue-soft:   #eef3f9;
   --white:       #ffffff;
-  --bg:          #f4f8ff;
-  --text-dark:   #0d1f3c;
+  --bg:          #eef3f9;
+  --text-dark:   #16203f;
   --text-body:   #334155;
   --text-muted:  #64748b;
-  --gold:        #c8962a;
-  --gold-lt:     #e8c96a;
+  --gold:        #3e6fa8;
+  --gold-lt:     #8fbce6;
   --line:        rgba(20,104,177,0.12);
   --radius:      12px;
   --radius-lg:   20px;
@@ -85,14 +85,14 @@ button { cursor: pointer; font-family: var(--font); }
   font-size: 12px;
   font-weight: 600;
   color: var(--gold-lt);
-  background: rgba(200,150,42,0.15);
-  border: 1px solid rgba(200,150,42,0.3);
+  background: rgba(62,111,168,0.15);
+  border: 1px solid rgba(62,111,168,0.3);
   padding: 4px 14px;
   border-radius: 20px;
   transition: all 0.2s;
   white-space: nowrap;
 }
-.topbar a:hover { background: rgba(200,150,42,0.3); }
+.topbar a:hover { background: rgba(62,111,168,0.3); }
 
 /* ── Header ── */
 .site-header {
@@ -221,7 +221,7 @@ button { cursor: pointer; font-family: var(--font); }
 
 /* ── Hero ── */
 .hero {
-  background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 50%, #1976d2 100%);
+  background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue-mid) 50%, #3e6fa8 100%);
   padding: 5rem 0 4rem;
   position: relative;
   overflow: hidden;
@@ -251,8 +251,8 @@ button { cursor: pointer; font-family: var(--font); }
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--gold-lt);
-  background: rgba(200,150,42,0.15);
-  border: 1px solid rgba(200,150,42,0.3);
+  background: rgba(62,111,168,0.15);
+  border: 1px solid rgba(62,111,168,0.3);
   padding: 5px 14px;
   border-radius: 20px;
   display: inline-block;
@@ -283,10 +283,10 @@ button { cursor: pointer; font-family: var(--font); }
 .hero-actions .btn-primary {
   background: linear-gradient(135deg, var(--gold) 0%, var(--gold-lt) 100%);
   color: var(--blue-dark);
-  box-shadow: 0 4px 16px rgba(200,150,42,0.4);
+  box-shadow: 0 4px 16px rgba(62,111,168,0.4);
 }
 .hero-actions .btn-primary:hover {
-  box-shadow: 0 8px 28px rgba(200,150,42,0.55);
+  box-shadow: 0 8px 28px rgba(62,111,168,0.55);
 }
 .hero-actions .btn-secondary {
   color: #fff;
@@ -865,7 +865,7 @@ button { cursor: pointer; font-family: var(--font); }
 .cta-actions .btn-primary {
   background: linear-gradient(135deg, var(--gold), var(--gold-lt));
   color: var(--blue-dark);
-  box-shadow: 0 4px 16px rgba(200,150,42,0.4);
+  box-shadow: 0 4px 16px rgba(62,111,168,0.4);
 }
 .cta-actions .btn-secondary {
   color: #fff;
