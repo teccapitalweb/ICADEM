@@ -15076,22 +15076,31 @@ window.ToolCalcCredito = {
 /* Grid de cards */
 #plantillas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 #plantillas-grid.tpl-grid-list{grid-template-columns:1fr}
-.tpl-card{position:relative;background:var(--surface);border:1px solid var(--border-2);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;transition:all .2s;cursor:pointer}
-.tpl-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--primary) 45%,var(--border-2));box-shadow:0 10px 28px rgba(0,0,0,.25)}
-[data-theme="day"] .tpl-card:hover{box-shadow:0 10px 24px rgba(22,32,63,.12)}
+.tpl-card{position:relative;background:var(--surface);border:1px solid var(--border-2);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:all .2s;cursor:pointer}
+.tpl-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--primary) 50%,var(--border-2));box-shadow:0 14px 34px rgba(0,0,0,.28)}
+[data-theme="day"] .tpl-card:hover{box-shadow:0 12px 26px rgba(22,32,63,.13)}
+.tpl-card:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 .tpl-card.tpl-card-locked{cursor:not-allowed}
-.tpl-card.tpl-card-locked:hover{transform:none;box-shadow:none}
-#plantillas-grid.tpl-grid-list .tpl-card{flex-direction:row;align-items:center}
-.tpl-card-icon{width:46px;height:46px;border-radius:12px;background:color-mix(in srgb,var(--primary) 14%,transparent);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
-.tpl-card-body{display:flex;flex-direction:column;gap:6px;min-width:0;flex:1}
-.tpl-card-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.tpl-card-format{font-size:9.5px;font-weight:800;letter-spacing:1px;padding:3px 8px;border-radius:7px;border:1px solid}
-.tpl-card-cat{font-size:10.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--text-3)}
-.tpl-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.2px;margin:0;color:var(--text)}
-.tpl-card-desc{font-size:12px;color:var(--text-2);line-height:1.5;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.tpl-card-cta{margin-top:auto;font-size:12px;font-weight:700;color:var(--primary-soft,#8fbce6);display:inline-flex;align-items:center;gap:6px}
-.tpl-badge-feat{position:absolute;top:12px;right:12px;font-size:9px;font-weight:800;letter-spacing:.8px;padding:4px 9px;border-radius:99px;background:color-mix(in srgb,var(--primary) 18%,transparent);color:var(--primary-soft,#8fbce6);border:1px solid color-mix(in srgb,var(--primary) 40%,transparent)}
-.tpl-premium-badge{position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--primary) 90%,#000);padding:5px 11px;border-radius:99px;z-index:5;font-size:10px;font-weight:700;color:#fff;letter-spacing:.06em}
+.tpl-card.tpl-card-locked:hover{transform:none;box-shadow:none;border-color:var(--border-2)}
+.tpl-card.tpl-card-locked .tpl-card-top,.tpl-card.tpl-card-locked .tpl-card-title,.tpl-card.tpl-card-locked .tpl-card-desc{opacity:.5}
+#plantillas-grid.tpl-grid-list .tpl-card{flex-direction:row;align-items:center;gap:16px}
+#plantillas-grid.tpl-grid-list .tpl-card .tpl-card-top{flex-direction:column;align-items:flex-start}
+#plantillas-grid.tpl-grid-list .tpl-card .tpl-card-title{margin:0}
+#plantillas-grid.tpl-grid-list .tpl-card .tpl-card-cta{margin:0 0 0 auto;flex-shrink:0}
+.tpl-card-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.tpl-card-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tpl-card-icon .ic{width:21px;height:21px}
+.tpl-card-meta{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tpl-card-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.2px;margin:2px 0 0;color:var(--text);line-height:1.3}
+.tpl-card-desc{font-size:12px;color:var(--text-2);line-height:1.55;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tpl-card-cta{margin-top:auto;padding-top:6px;font-size:12px;font-weight:700;color:var(--primary-soft,#8fbce6);display:inline-flex;align-items:center;gap:7px}
+.tpl-card-cta .ic{width:14px;height:14px}
+.tpl-card-locked .tpl-card-cta{color:var(--text-3)}
+/* Badge esquina · mismo ADN que el badge de las cards de cursos */
+.tplx-cbadge{position:absolute;top:12px;right:12px;z-index:5;display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;padding:5px 11px;border-radius:100px;background:rgba(0,0,0,.45);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);color:#fff;border:1px solid rgba(255,255,255,.22)}
+.tplx-cbadge--left{right:auto;left:12px}
+.tplx-cbadge--feat{background:color-mix(in srgb,var(--primary) 55%,rgba(0,0,0,.4));border-color:color-mix(in srgb,var(--primary-soft,#8fbce6) 60%,transparent)}
+[data-theme="day"] .tplx-cbadge{background:rgba(22,32,63,.78)}
 /* Modal del visor */
 #tpl-modal-overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:2rem;background:rgba(7,11,20,.78);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
 #tpl-modal-overlay.tpl-modal-visible{display:flex;animation:cffIn .25s ease}
@@ -15204,931 +15213,201 @@ window.ToolCalcCredito = {
 </div>
 </div>
 </template>
-<script>
 
+
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   PLANTILLAS DE NEGOCIO · lógica nueva ICADEM (limpia, sin legado)
+   Datos: Firestore `plantillas` { titulo, desc, cat, formato,
+   destacada, bloqueada, proximamente, orden, urlCopy, urlEdit,
+   urlDownload, version }
+   ════════════════════════════════════════════════════════════ */
 (function(){
   'use strict';
-  console.log('%c[SOLUCION_RADICAL_v4] Iniciando reparacion del modal','color:#dc2626;font-weight:bold;font-size:16px');
-  
-  // [INDICADOR_VISUAL_v1] Agregar un dot visual rojo que confirme que el script CORRIO
-  function agregarIndicador(texto, color) {
-    const old = document.getElementById('icadem-debug-dot');
-    if (old) old.remove();
-    const dot = document.createElement('div');
-    dot.id = 'icadem-debug-dot';
-    dot.style.cssText = 'position:fixed;bottom:10px;left:10px;z-index:2147483647;background:' + color + ';color:#fff;padding:6px 12px;border-radius:99px;font-family:monospace;font-size:11px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.4);pointer-events:none;letter-spacing:0.05em;';
-    dot.textContent = texto;
-    document.body.appendChild(dot);
+
+  const FB_CFG = { apiKey:'AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA', authDomain:'icadem-vip.firebaseapp.com', projectId:'icadem-vip', storageBucket:'icadem-vip.firebasestorage.app', messagingSenderId:'12508983783', appId:'1:12508983783:web:b12be6f1fab9bb91fb8d42' };
+
+  const CAT_LABEL = { finanzas:'Finanzas', rh:'RH', ventas:'Ventas', operaciones:'Operaciones', marketing:'Marketing', legal:'Legal' };
+  const CAT_ICON  = { finanzas:'i-chart-bar', rh:'i-users', ventas:'i-cash', operaciones:'i-gauge', marketing:'i-broadcast', legal:'i-scale' };
+  const CAT_COLOR = { finanzas:'#34d399', rh:'#8fbce6', ventas:'#fbbf24', operaciones:'#a78bfa', marketing:'#f472b6', legal:'#5b92c8' };
+  const FMT_COLOR = { SHEETS:'#34d399', XLSX:'#34d399', DOCS:'#8fbce6', DOCX:'#8fbce6', WORD:'#8fbce6', SLIDES:'#fbbf24', PPTX:'#fbbf24', PDF:'#f87171' };
+
+  let cache = null;
+  const state = { cat:'todas', q:'', view:'grid' };
+
+  async function cargar(){
+    if (cache) return cache;
+    const [{ initializeApp, getApps }, { getFirestore, collection, getDocs }] = await Promise.all([
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+      import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js')
+    ]);
+    const app = getApps()[0] || initializeApp(FB_CFG);
+    const snap = await getDocs(collection(getFirestore(app), 'plantillas'));
+    cache = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    return cache;
   }
-  
-  // Esperar a que el body exista
-  function cuandoBodyEste(fn) {
-    if (document.body) { fn(); }
-    else { document.addEventListener('DOMContentLoaded', fn); }
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmtColor = f => FMT_COLOR[String(f||'').toUpperCase()] || '#5b92c8';
+  const valida = u => u && !String(u).startsWith('PENDIENTE');
+  function gPreview(url){
+    if (!valida(url)) return null;
+    let m = String(url).match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/i);
+    if (m) return 'https://docs.google.com/' + m[1] + '/d/' + m[2] + '/preview';
+    m = String(url).match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
+    if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
+    return null;
   }
-  
-  cuandoBodyEste(() => {
-    agregarIndicador('● RADICAL_v4 ACTIVO', '#10b981');
-    setTimeout(() => {
-      const dot = document.getElementById('icadem-debug-dot');
-      if (dot) {
-        dot.style.transition = 'opacity 1s';
-        dot.style.opacity = '0';
-        setTimeout(() => dot.remove(), 1100);
-      }
-    }, 8000);  // se quita despues de 8 segundos
-  });
+  const bloqueada = p => p.bloqueada === true || p.proximamente === true;
 
-  // Funcion auto-suficiente que abre el modal SIN depender del IIFE
-  function abrirModalDirecto(id) {
-    console.log('%c[SOLUCION_RADICAL_v4] abrirModalDirecto(' + id + ')','color:#10b981;font-weight:bold');
-    
-    if (!window.PLANTILLAS) {
-      console.error('[SOLUCION_RADICAL_v4] ✗ window.PLANTILLAS no existe');
-      alert('Error: la lista de plantillas no se cargo. Recarga la pagina.');
-      return;
+  function filtrar(lista){
+    let r = lista;
+    if (state.cat === 'destacadas') r = r.filter(p => p.destacada === true);
+    else if (state.cat !== 'todas') r = r.filter(p => p.cat === state.cat);
+    if (state.q) {
+      const q = state.q.toLowerCase();
+      r = r.filter(p => (p.titulo||'').toLowerCase().includes(q) || (p.desc||'').toLowerCase().includes(q));
     }
-    
-    const p = window.PLANTILLAS.find(x => x.id === id);
-    if (!p) {
-      console.error('[SOLUCION_RADICAL_v4] ✗ Plantilla no encontrada:', id);
-      return;
+    return r;
+  }
+
+  function card(p){
+    const lock = bloqueada(p);
+    const color = CAT_COLOR[p.cat] || '#5b92c8';
+    const icon  = CAT_ICON[p.cat]  || 'i-briefcase';
+    const fc = fmtColor(p.formato);
+    return `
+      <article class="tpl-card${lock ? ' tpl-card-locked' : ''}${p.destacada ? ' tpl-card-feat' : ''}" data-id="${esc(p.id)}" ${lock ? 'aria-disabled="true"' : 'tabindex="0" role="button"'}>
+        ${lock
+          ? '<span class="tplx-cbadge tplx-cbadge--left"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>PR\u00d3XIMAMENTE</span>'
+          : (p.destacada ? '<span class="tplx-cbadge tplx-cbadge--feat"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 21 12 17.77 5.82 21 7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>DESTACADA</span>' : '')}
+        <div class="tpl-card-top">
+          <div class="tpl-card-icon" style="color:${color};background:color-mix(in srgb,${color} 14%,transparent)"><svg class="ic"><use href="#${icon}"/></svg></div>
+          <div class="tpl-card-meta">
+            <span class="tag" style="color:${fc};border:1px solid ${fc}40;background:${fc}14">${esc(p.formato||'DOC')}</span>
+            <span class="tag" style="border:1px solid var(--border-2);color:var(--text-3)">${esc(CAT_LABEL[p.cat]||p.cat||'')}</span>
+          </div>
+        </div>
+        <h3 class="tpl-card-title">${esc(p.titulo)}</h3>
+        <p class="tpl-card-desc">${esc(p.desc)}</p>
+        <span class="tpl-card-cta">${lock
+          ? '<svg class="ic"><use href="#i-clock"/></svg>Disponible pronto'
+          : '<svg class="ic"><use href="#i-play"/></svg>Ver plantilla'}</span>
+      </article>`;
+  }
+
+  function render(){
+    const grid = $('plantillas-grid'); if (!grid || !cache) return;
+    $('tpl-stat-total').textContent = cache.length;
+    $('tpl-stat-feat').textContent  = cache.filter(p => p.destacada === true).length;
+    const counts = { todas: cache.length, destacadas: cache.filter(p=>p.destacada===true).length };
+    Object.keys(CAT_LABEL).forEach(c => counts[c] = cache.filter(p => p.cat === c).length);
+    Object.entries(counts).forEach(([c,n]) => { const el = $('tpl-c-'+c); if (el) el.textContent = n; });
+
+    const lista = filtrar(cache).sort((a,b) =>
+      (bloqueada(a)-bloqueada(b)) || ((b.destacada===true)-(a.destacada===true)) || ((a.orden??999)-(b.orden??999)));
+
+    const info = $('tpl-results-info');
+    if (state.q && info) { info.style.display='flex'; $('tpl-results-text').innerHTML = `<strong>${lista.length}</strong> resultado${lista.length===1?'':'s'} para "${esc(state.q)}"`; }
+    else if (info) info.style.display='none';
+
+    grid.classList.toggle('tpl-grid-list', state.view === 'list');
+    grid.innerHTML = lista.map(card).join('');
+    $('tpl-empty').style.display = lista.length ? 'none' : 'block';
+
+    grid.querySelectorAll('.tpl-card:not(.tpl-card-locked)').forEach(el => {
+      el.addEventListener('click', () => abrir(el.dataset.id));
+      el.addEventListener('keydown', e => { if (e.key==='Enter'||e.key===' ') { e.preventDefault(); abrir(el.dataset.id); } });
+    });
+  }
+
+  function abrir(id){
+    const p = (cache||[]).find(x => x.id === id); if (!p) return;
+    if (typeof toolRequiereVIP === 'function' && !toolRequiereVIP('Plantillas de negocio')) return;
+    const color = CAT_COLOR[p.cat] || '#5b92c8';
+    $('tpl-modal-icon').innerHTML = `<svg class="ic" style="color:${color}"><use href="#${CAT_ICON[p.cat]||'i-briefcase'}"/></svg>`;
+    $('tpl-modal-format').textContent = p.formato || 'DOC';
+    $('tpl-modal-cat').textContent = CAT_LABEL[p.cat] || p.cat || '';
+    $('tpl-modal-title-text').textContent = p.titulo || 'Plantilla';
+    $('tpl-modal-desc').textContent = p.desc || '';
+    $('tpl-modal-version').textContent = p.version || 'v1.0';
+
+    const prev = gPreview(p.urlEdit) || gPreview(p.urlDownload);
+    const iframe = $('tpl-modal-iframe'), loading = $('tpl-modal-loading'), pending = $('tpl-modal-pending');
+    if (prev) {
+      pending.style.display='none'; loading.style.display='flex';
+      iframe.style.display='block'; iframe.src = prev;
+      iframe.onload = () => { loading.style.display='none'; };
+    } else {
+      iframe.style.display='none'; iframe.src=''; loading.style.display='none'; pending.style.display='flex';
     }
-    if (p.proximamente) {
-      console.log('[SOLUCION_RADICAL_v4] Plantilla proximamente');
-      return;
-    }
-    // PLANTILLAS_DINAMICAS_v1: bloqueo defensivo — si la plantilla está bloqueada,
-    // NO abrir el modal aunque algo intente llamar a esta función directamente.
-    //
-    // PLANTILLAS_INVITADO_v1: pero si el usuario es INVITADO, dejar que el flujo
-    // normal continúe — el paywall se encarga de pedirle suscripción (no tiene
-    // sentido bloquear plantillas a alguien que ya está bloqueado del todo).
-    if (p.bloqueada === true && !document.body.classList.contains('is-guest')) {
-      console.log('[PLANTILLAS_DINAMICAS_v1] Plantilla bloqueada, modal NO se abre (usuario VIP)');
-      return;
-    }
-    
-    const overlay = document.getElementById('tpl-modal-overlay');
-    const modal = document.getElementById('tpl-modal');
-    if (!overlay || !modal) {
-      console.error('[SOLUCION_RADICAL_v4] ✗ Modal HTML no encontrado en DOM');
-      alert('Error: el modal no esta en el DOM.');
-      return;
-    }
-    
-    // Llenar el header
-    const setText = (elId, val) => {
-      const el = document.getElementById(elId);
-      if (el) el.textContent = val;
-    };
-    setText('tpl-modal-icon', p.icono);
-    setText('tpl-modal-title-text', p.titulo);
-    setText('tpl-modal-desc', p.desc);
-    setText('tpl-modal-format', p.formato);
-    setText('tpl-modal-version', p.version || 'v1.0');
-    
-    const catLabels = {
-      'finanzas': 'Finanzas', 'rh': 'Capital Humano', 'ventas': 'Ventas',
-      'operaciones': 'Operaciones', 'marketing': 'Marketing', 'legal': 'Legal'
-    };
-    setText('tpl-modal-cat', catLabels[p.cat] || p.cat);
-    
-    // Configurar boton de descarga
-    const hasDownloadUrl = p.urlDownload && !p.urlDownload.startsWith('PENDIENTE');
-    const hasUrl = p.urlCopy && !p.urlCopy.startsWith('PENDIENTE');
-    const esDescargaDirecta = ['XLSX','DOCX','PPTX','PDF'].includes(p.formato) || p.urlDownload;
-    
-    const labels = {
-      'XLSX':'Descargar Excel',
-      'DOCX':'Descargar Word',
-      'PPTX':'Descargar PowerPoint',
-      'PDF':'Descargar PDF',
-      'SHEETS':'Hacer una copia',
-      'DOCS':'Hacer una copia',
-      'SLIDES':'Hacer una copia'
-    };
-    const label = labels[p.formato] || 'Descargar';
-    
-    const copyBtn = document.getElementById('tpl-btn-copy');
-    if (copyBtn) {
-      if (hasUrl || hasDownloadUrl) {
-        const targetUrl = hasDownloadUrl ? p.urlDownload : p.urlCopy;
-        copyBtn.href = targetUrl;
-        copyBtn.classList.remove('tpl-btn-disabled');
-        copyBtn.style.pointerEvents = '';
-        if (esDescargaDirecta) {
-          copyBtn.setAttribute('download', '');
-          copyBtn.removeAttribute('target');
-        } else {
-          copyBtn.removeAttribute('download');
-          copyBtn.setAttribute('target', '_blank');
-        }
-        copyBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> <span>' + label + '</span>';
-      } else {
-        copyBtn.href = '#';
-        copyBtn.classList.add('tpl-btn-disabled');
-        copyBtn.style.pointerEvents = 'none';
-      }
-    }
-    
-    // Drive button: ocultar siempre (solo Google Sheets lo usa)
-    const driveBtn = document.getElementById('tpl-btn-drive');
-    if (driveBtn) driveBtn.style.display = 'none';
-    
-    // Preview: mostrar el "pending" con preview premium
-    const loading = document.getElementById('tpl-modal-loading');
-    const iframe = document.getElementById('tpl-modal-iframe');
-    const pending = document.getElementById('tpl-modal-pending');
-    
-    if (loading) loading.style.display = 'none';
-    if (iframe) { iframe.style.display = 'none'; iframe.src = ''; }
-    
-    // [PLANTILLAS_GOOGLE_AUTO_v2] Si urlEdit existe O urlDownload es Google → iframe preview Google directo
-    // (esto cubre Google Sheets/Docs/Slides y archivos en Drive con /file/d/...)
-    const _icademGooglePrev2 = (url) => {
-      if (!url || typeof url !== 'string') return null;
-      const m1 = url.match(/docs\.google\.com\/(spreadsheets|document|presentation)\/d\/([a-zA-Z0-9_-]+)/i);
-      if (m1) return 'https://docs.google.com/' + m1[1] + '/d/' + m1[2] + '/preview';
-      const m2 = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
-      if (m2) return 'https://drive.google.com/file/d/' + m2[1] + '/preview';
-      return null;
-    };
-    const _googlePrevExplicit = (p.urlEdit && !String(p.urlEdit).startsWith('PENDIENTE')) ? _icademGooglePrev2(p.urlEdit) : null;
-    const _googlePrevAuto = (p.urlDownload && !String(p.urlDownload).startsWith('PENDIENTE')) ? _icademGooglePrev2(p.urlDownload) : null;
-    const _googlePreviewUrl = _googlePrevExplicit || _googlePrevAuto;
-    const _googleOpenUrl = (p.urlEdit && _googlePrevExplicit) ? p.urlEdit : p.urlDownload;
-
-    if (_googlePreviewUrl && pending) {
-      console.log('%c[PLANTILLAS_GOOGLE_AUTO_v2] ⚡ Mostrando preview Google embebido','color:#4285F4;font-weight:bold;font-size:13px');
-      pending.style.display = 'flex';
-      const _tituloHeaderG = ({
-        'XLSX':'Vista previa - Excel',
-        'DOCX':'Vista previa - Word',
-        'PPTX':'Vista previa - PowerPoint',
-        'PDF':'Vista previa - PDF',
-        'SHEETS':'Vista previa - Google Sheets',
-        'DOCS':'Vista previa - Google Docs',
-        'SLIDES':'Vista previa - Google Slides'
-      })[p.formato] || 'Vista previa';
-
-      pending.innerHTML = ''
-        + '<div style="width:100%;padding:12px 18px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">'
-          + '<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#475569;-webkit-text-fill-color:#475569;letter-spacing:0.10em;text-transform:uppercase;">' + _tituloHeaderG + '</span>'
-          + '<a href="' + _googleOpenUrl + '" target="_blank" rel="noopener" style="font-family:Inter,sans-serif;font-size:11px;color:#C9A961;-webkit-text-fill-color:#C9A961;font-weight:700;text-decoration:none;letter-spacing:0.04em;">Abrir en pestana nueva &rarr;</a>'
-        + '</div>'
-        + '<div style="position:relative;flex:1;width:100%;min-height:480px;background:#fff;overflow:hidden;">'
-          + '<div id="icadem-gpreview-skeleton" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:24px 28px;gap:12px;background:#fff;z-index:2;">'
-            + '<div class="icadem-shimmer" style="height:26px;width:55%;border-radius:5px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:90%;border-radius:4px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:80%;border-radius:4px;"></div>'
-            + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-            + '</div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:70%;border-radius:4px;margin-top:8px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:85%;border-radius:4px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:75%;border-radius:4px;"></div>'
-            + '<div style="margin-top:auto;text-align:center;font-family:Inter,sans-serif;font-size:11.5px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;padding-top:12px;">Cargando vista previa de Google...</div>'
-          + '</div>'
-          + '<iframe id="icadem-gpreview-iframe" src="' + _googlePreviewUrl + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.4s;background:#fff;" allow="autoplay" allowfullscreen></iframe>'
-        + '</div>';
-
-      const _gIframe = document.getElementById('icadem-gpreview-iframe');
-      const _gSkel = document.getElementById('icadem-gpreview-skeleton');
-      if (_gIframe && _gSkel) {
-        let _gCargado = false;
-        _gIframe.onload = function() {
-          _gCargado = true;
-          _gIframe.style.opacity = '1';
-          setTimeout(() => { if (_gSkel) _gSkel.style.display = 'none'; }, 200);
-        };
-        setTimeout(() => {
-          if (!_gCargado && _gSkel) {
-            _gSkel.innerHTML = '<div style="margin:auto;text-align:center;padding:2rem;max-width:440px;"><div style="font-size:48px;line-height:1;margin-bottom:1rem;">' + p.icono + '</div><h4 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.3rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Vista previa tardando</h4><p style="font-family:Inter,sans-serif;font-size:12.5px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.55;margin:0;">Google esta tardando en cargar este archivo. Puedes abrirlo en una pestana nueva con el enlace superior derecho, o descargarlo con el boton dorado abajo.</p></div>';
-          }
-        }, 10000);
-      }
-
-      overlay.classList.add('tpl-modal-visible');
-      document.body.style.overflow = 'hidden';
-      return;
-    }
-
-    if (pending) {
-      // [MODAL_ROBUSTO_v2] Preview Office con fallback elegante y boton grande de descarga
-      pending.style.display = 'flex';
-
-      // Detectar si estamos en local o produccion
-      const enLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname) || location.protocol === 'file:';
-
-      // Construir URL publica del archivo
-      const archivoUrl = location.origin + '/' + (p.urlDownload || p.urlCopy);
-      const archivoUrlEncoded = encodeURIComponent(archivoUrl);
-      const officeViewerUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + archivoUrlEncoded;
-      const googleViewerUrl = 'https://docs.google.com/gview?url=' + archivoUrlEncoded + '&embedded=true';
-
-      const tituloHeader = ({
-        'XLSX':'Vista previa - Excel',
-        'DOCX':'Vista previa - Word',
-        'PPTX':'Vista previa - PowerPoint',
-        'PDF':'Vista previa - PDF'
-      })[p.formato] || 'Vista previa';
-
-      if (enLocal) {
-        // En local mostrar mensaje (Microsoft no puede acceder a archivos locales)
-        pending.innerHTML = ''
-          + '<div style="text-align:center;padding:2rem 1.5rem;max-width:520px;margin:0 auto;">'
-          + '<div style="font-size:72px;line-height:1;margin-bottom:1rem;">' + p.icono + '</div>'
-          + '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.6rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Preview no disponible en local</h3>'
-          + '<p style="font-family:Inter,sans-serif;font-size:13.5px;color:#475569;-webkit-text-fill-color:#475569;line-height:1.55;margin:0 0 1rem;">El preview en vivo funciona cuando el sitio esta publicado en internet. Sube el archivo a GitHub Pages para verlo aqui.</p>'
-          + '<p style="font-family:Inter,sans-serif;font-size:12px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;margin:0;">Descarga el archivo abajo para verlo localmente.</p>'
-          + '</div>';
-        return;
-      }
-
-      // [MODAL_SIMPLE_v3] Preview limpio sin botones inline problematicos
-      // Header de preview
-      const tituloHeaderSimple = ({
-        'XLSX':'Vista previa del Excel',
-        'DOCX':'Vista previa del Word',
-        'PPTX':'Vista previa del PowerPoint (puede tardar 5-10s)',
-        'PDF':'Vista previa del PDF'
-      })[p.formato] || 'Vista previa';
-
-      pending.innerHTML = ''
-        + '<div style="width:100%;padding:12px 18px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">'
-          + '<span style="font-family:Inter,sans-serif;font-size:11px;font-weight:700;color:#475569;-webkit-text-fill-color:#475569;letter-spacing:0.10em;text-transform:uppercase;">' + tituloHeaderSimple + '</span>'
-          + '<a href="' + archivoUrl + '" target="_blank" rel="noopener" style="font-family:Inter,sans-serif;font-size:11px;color:#C9A961;-webkit-text-fill-color:#C9A961;font-weight:700;text-decoration:none;letter-spacing:0.04em;">Abrir en pestana nueva &rarr;</a>'
-        + '</div>'
-        + '<div style="position:relative;flex:1;width:100%;min-height:480px;background:#fff;overflow:hidden;">'
-          + '<div id="icadem-office-skeleton" style="position:absolute;inset:0;display:flex;flex-direction:column;padding:24px 28px;gap:12px;background:#fff;z-index:2;">'
-            + '<div class="icadem-shimmer" style="height:26px;width:55%;border-radius:5px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:90%;border-radius:4px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:80%;border-radius:4px;"></div>'
-            + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px;">'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-              + '<div class="icadem-shimmer" style="height:40px;border-radius:5px;"></div>'
-            + '</div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:70%;border-radius:4px;margin-top:8px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:85%;border-radius:4px;"></div>'
-            + '<div class="icadem-shimmer" style="height:14px;width:75%;border-radius:4px;"></div>'
-            + '<div style="margin-top:auto;text-align:center;font-family:Inter,sans-serif;font-size:11.5px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;padding-top:12px;">Cargando vista previa con Microsoft Office Online...</div>'
-          + '</div>'
-          + '<iframe id="icadem-office-iframe" src="' + officeViewerUrl + '" style="position:absolute;inset:0;width:100%;height:100%;border:0;opacity:0;transition:opacity 0.5s;background:#fff;" allowfullscreen></iframe>'
-        + '</div>';
-
-      const iframeReal = document.getElementById('icadem-office-iframe');
-      const skeleton = document.getElementById('icadem-office-skeleton');
-      
-      // [TURBO_v2] Si ya precargamos durante el hover, transicion casi instantanea
-      const yaPrecargadoModal = window._iframesPrecargados && window._iframesPrecargados[id];
-      if (yaPrecargadoModal) {
-        console.log('%c[TURBO_v2] ⚡⚡ Mostrando iframe precargado (turbo)','color:#f59e0b;font-weight:bold;font-size:14px');
-        // El iframe del modal cargara desde cache del browser (instantaneo)
-        // Skeleton solo 150ms para evitar parpadeo
-        setTimeout(() => {
-          if (iframeReal) iframeReal.style.opacity = '1';
-          if (skeleton) skeleton.style.display = 'none';
-        }, 150);
-      }
-      
-      if (iframeReal && skeleton) {
-        let cargado = false;
-        iframeReal.onload = function() {
-          cargado = true;
-          iframeReal.style.opacity = '1';
-          setTimeout(() => { if (skeleton) skeleton.style.display = 'none'; }, yaPrecargadoModal ? 100 : 250);  // [TURBO_v2] mas rapido
-        };
-        // Fallback elegante a los 10 segundos
-        setTimeout(() => {
-          if (!cargado && skeleton) {
-            skeleton.innerHTML = '<div style="margin:auto;text-align:center;padding:2rem;max-width:440px;"><div style="font-size:48px;line-height:1;margin-bottom:1rem;">' + p.icono + '</div><h4 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.3rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">Vista previa no disponible</h4><p style="font-family:Inter,sans-serif;font-size:12.5px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.55;margin:0;">El visor de Microsoft tarda en cargar este archivo. Descarga la plantilla con el boton dorado abajo para ver todo el contenido.</p></div>';
-          }
-        }, 10000);
-      }
-      // [FIX_RETURN_BUG_v5] MOSTRAR el modal AHORA, antes del return
-      overlay.classList.add('tpl-modal-visible');
-      document.body.style.overflow = 'hidden';
-      console.log('%c[FIX_RETURN_BUG_v5] ✓ Modal abierto (XLSX/DOCX/PPTX)','color:#10b981;font-weight:bold;font-size:14px');
-      return;
-    }
-
-    // ─── BLOQUE VIEJO (ya no se ejecuta porque arriba hay return) ─────
-    // Mantenido por compatibilidad si algun otro flujo cae aqui
-    if (false && pending) {
-      pending.style.display = 'flex';
-      const titulos = {
-        'XLSX': 'Plantilla Excel premium',
-        'DOCX': 'Plantilla Word premium',
-        'PPTX': 'Plantilla PowerPoint premium',
-        'PDF': 'Plantilla PDF premium'
-      };
-      const descripciones = {
-        'XLSX': 'Descarga el archivo Excel con formulas y graficas preconfiguradas. Abrelo con Microsoft Excel, Numbers (Mac) o Google Sheets.',
-        'DOCX': 'Descarga el documento Word con formato profesional listo para editar. Abrelo con Microsoft Word, Pages (Mac) o Google Docs.',
-        'PPTX': 'Descarga la presentacion PowerPoint con 12 slides investor-ready. Abrela con Microsoft PowerPoint, Keynote (Mac) o Google Slides.',
-        'PDF': 'Descarga el PDF listo para imprimir o compartir.'
-      };
-      const tituloPreview = titulos[p.formato] || 'Plantilla premium';
-      const descPreview = descripciones[p.formato] || 'Descarga el archivo premium con formato profesional listo para usar.';
-      
-      pending.innerHTML = ''
-        + '<div style="text-align:center;padding:2rem 1.5rem;max-width:540px;margin:0 auto;">'
-        + '<div style="font-size:80px;line-height:1;margin-bottom:1.25rem;filter:drop-shadow(0 8px 24px rgba(201,169,97,0.30));">' + p.icono + '</div>'
-        + '<h3 style="font-family:Cormorant Garamond,Georgia,serif;font-size:1.7rem;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin:0 0 0.5rem;">' + tituloPreview + '</h3>'
-        + '<p style="font-family:Inter,sans-serif;font-size:14px;color:#475569;-webkit-text-fill-color:#475569;line-height:1.55;margin:0 0 1.5rem;">' + descPreview + '</p>'
-        + '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin:0 0 1.75rem;text-align:left;">'
-        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
-        + ''
-        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Listo para usar</div>'
-        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Formulas y formatos preconfigurados</div></div></div>'
-        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
-        + ''
-        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Graficas dinamicas</div>'
-        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Se actualizan automaticamente</div></div></div>'
-        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
-        + ''
-        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Diseno premium</div>'
-        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Estilo profesional ICADEM</div></div></div>'
-        + '<div style="display:flex;gap:10px;align-items:flex-start;background:#F8FAFC;padding:12px 14px;border-radius:10px;border:1px solid #E2E8F0;">'
-        + ''
-        + '<div><div style="font-family:Inter,sans-serif;font-size:12px;font-weight:700;color:#0A1F44;-webkit-text-fill-color:#0A1F44;margin-bottom:2px;">Sin proteccion</div>'
-        + '<div style="font-family:Inter,sans-serif;font-size:11px;color:#64748B;-webkit-text-fill-color:#64748B;line-height:1.35;">Personalizable al 100%</div></div></div>'
-        + '</div>'
-        + '<p style="font-family:Inter,sans-serif;font-size:11px;color:#94A3B8;-webkit-text-fill-color:#94A3B8;font-style:italic;margin:0;">Version ' + (p.version || 'v1.0') + ' · ICADEM Panel VIP</p>'
-        + '</div>';
-    }
-    
-    // MOSTRAR el modal
-    overlay.classList.add('tpl-modal-visible');
+    const drive = $('tpl-btn-drive'), copy = $('tpl-btn-copy');
+    const openUrl = valida(p.urlEdit) ? p.urlEdit : (valida(p.urlDownload) ? p.urlDownload : null);
+    drive.style.display = openUrl ? 'inline-flex' : 'none'; if (openUrl) drive.href = openUrl;
+    copy.style.display = valida(p.urlCopy) ? 'inline-flex' : 'none'; if (valida(p.urlCopy)) copy.href = p.urlCopy;
+    $('tpl-modal-overlay').classList.add('tpl-modal-visible');
     document.body.style.overflow = 'hidden';
-    
-    console.log('%c[SOLUCION_RADICAL_v4] ✓ Modal abierto','color:#10b981;font-weight:bold');
   }
-  
-  // Cerrar modal
-  function cerrarModalDirecto() {
-    const overlay = document.getElementById('tpl-modal-overlay');
-    if (overlay) {
-      overlay.classList.remove('tpl-modal-visible');
-      document.body.style.overflow = '';
-    }
+
+  function cerrar(){
+    const ov = $('tpl-modal-overlay'); if (!ov) return;
+    ov.classList.remove('tpl-modal-visible');
+    const f = $('tpl-modal-iframe'); if (f) f.src = '';
+    document.body.style.overflow = '';
   }
-  
-  // EXPONER GLOBALMENTE (sobreescribir si ya existe)
-  window.openTemplateModal = abrirModalDirecto;
-  window.closeTemplateModal = cerrarModalDirecto;
-  console.log('[SOLUCION_RADICAL_v4] window.openTemplateModal sobreescrito:', typeof window.openTemplateModal);
-  
-  // FUNCION DE INICIALIZACION: agregar listeners a todas las cards Y al close del modal
-  function adjuntarListeners() {
-    const cards = document.querySelectorAll('.tpl-card-premium');
-    console.log('[SOLUCION_RADICAL_v4] Adjuntando listeners a ' + cards.length + ' cards');
-    
-    cards.forEach((card, idx) => {
-      if (card.dataset.radicalAttached === '1') return;
-      card.dataset.radicalAttached = '1';
-      
-      const id = card.dataset.id;
-      if (!id) return;
-      
-      // Remover el onclick inline para evitar duplicacion
-      card.removeAttribute('onclick');
-      
-      // [PRECARGA_HOVER_v1] Precargar iframe Office al pasar el mouse
-      let preloadTimer = null;
-      let preloadedIframe = null;
-      let preloadedPrefetch = null;
-      
-      card.addEventListener('mouseenter', function() {
-        if (preloadTimer) clearTimeout(preloadTimer);
-        preloadTimer = setTimeout(() => {
-          if (!window.PLANTILLAS) return;
-          const pp = window.PLANTILLAS.find(x => x.id === id);
-          if (!pp || pp.proximamente) return;
-          if (!['XLSX','DOCX','PPTX','PDF'].includes(pp.formato) && !pp.urlDownload) return;
-          
-          window._iframesPrecargados = window._iframesPrecargados || {};
-          if (window._iframesPrecargados[id]) return;  // ya precargado
-          
-          const enLocal = ['localhost','127.0.0.1',''].includes(location.hostname) || location.protocol === 'file:';
-          if (enLocal) return;
-          
-          const archivoUrl = location.origin + '/' + (pp.urlDownload || pp.urlCopy);
-          
-          // PASO 1: prefetch del archivo para que GitHub Pages lo prepare
-          if (!preloadedPrefetch) {
-            const link = document.createElement('link');
-            link.rel = 'prefetch';
-            link.href = archivoUrl;
-            link.as = 'fetch';
-            link.crossOrigin = 'anonymous';
-            document.head.appendChild(link);
-            preloadedPrefetch = link;
-          }
-          
-          // PASO 2: iframe oculto que precarga Office Online Viewer
-          if (!preloadedIframe) {
-            const officeUrl = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(archivoUrl);
-            const ifr = document.createElement('iframe');
-            ifr.src = officeUrl;
-            ifr.style.cssText = 'position:absolute;width:1px;height:1px;left:-9999px;top:-9999px;border:0;opacity:0;pointer-events:none;';
-            ifr.setAttribute('aria-hidden', 'true');
-            ifr.dataset.precargaId = id;
-            document.body.appendChild(ifr);
-            preloadedIframe = ifr;
-            
-            ifr.onload = function() {
-              window._iframesPrecargados[id] = true;
-              console.log('%c[PRECARGA_HOVER_v1] ⚡ Precargado: ' + id, 'color:#10b981;font-weight:bold');
-            };
-          }
-        }, 50);  // [TURBO_v2] delay minimo para reaccion casi instantanea
-      });
-      
-      card.addEventListener('mouseleave', function() {
-        if (preloadTimer) {
-          clearTimeout(preloadTimer);
-          preloadTimer = null;
-        }
-      });
-      
-      // Agregar listener directo del click
-      card.addEventListener('click', function(e) {
-        if (e.target.closest('button[onclick]')) return;
-        e.preventDefault();
-        e.stopPropagation();
-        const yaPrecargado = window._iframesPrecargados && window._iframesPrecargados[id];
-        console.log('%c[SOLUCION_RADICAL_v4] CLICK RADICAL en card: ' + id + (yaPrecargado ? ' (PRECARGADO ⚡)' : ''),'color:#dc2626;font-weight:bold;font-size:14px');
-        abrirModalDirecto(id);
-      });
-    });
-    
-    // Listener para cerrar modal con overlay click
-    const overlay = document.getElementById('tpl-modal-overlay');
-    if (overlay && !overlay.dataset.radicalAttached) {
-      overlay.dataset.radicalAttached = '1';
-      overlay.addEventListener('click', function(e) {
-        if (e.target === overlay) cerrarModalDirecto();
-      });
-    }
-    
-    // Tambien boton X del modal
-    const closeBtn = document.querySelector('.tpl-modal-close, .tpl-btn-close-footer');
-    if (closeBtn && !closeBtn.dataset.radicalAttached) {
-      closeBtn.dataset.radicalAttached = '1';
-      closeBtn.addEventListener('click', cerrarModalDirecto);
-    }
-  }
-  
-  // Ejecutar listeners ya y cada vez que cambien las cards
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', adjuntarListeners);
-  }
-  adjuntarListeners();
-  
-  // Watchdog: cada 1 segundo verificar si hay cards nuevas (por filtros que rehacen el grid)
-  setInterval(adjuntarListeners, 1000);
-  
-  // [TURBO_v2] PREFETCH AGRESIVO: precargar los 10 archivos al cargar el panel
-  // Esto los pone en cache del browser para que cuando Microsoft los pida sea instantaneo
-  function prefetchTodasLasPlantillas() {
-    if (window._prefetchHecho) return;
-    window._prefetchHecho = true;
-    
-    if (!window.PLANTILLAS) {
-      setTimeout(prefetchTodasLasPlantillas, 500);
-      return;
-    }
-    
-    const enLocal = ['localhost','127.0.0.1',''].includes(location.hostname) || location.protocol === 'file:';
-    if (enLocal) return;
-    
-    let prefetched = 0;
-    window.PLANTILLAS.forEach((pp, idx) => {
-      if (pp.proximamente) return;
-      if (!['XLSX','DOCX','PPTX','PDF'].includes(pp.formato) && !pp.urlDownload) return;
-      
-      const archivoUrl = location.origin + '/' + (pp.urlDownload || pp.urlCopy);
-      
-      // Espaciar los prefetch para no saturar (50ms entre cada uno)
-      setTimeout(() => {
-        const link = document.createElement('link');
-        link.rel = 'prefetch';
-        link.href = archivoUrl;
-        link.as = 'fetch';
-        link.crossOrigin = 'anonymous';
-        document.head.appendChild(link);
-        prefetched++;
-        if (prefetched === 1) {
-          console.log('%c[TURBO_v2] 🚀 Prefetching ' + window.PLANTILLAS.filter(x => !x.proximamente).length + ' plantillas en paralelo...', 'color:#8b5cf6;font-weight:bold;font-size:13px');
-        }
-      }, idx * 50);
+  window.closeTemplateModal = cerrar;
+
+  if (!window._tplEscBound) {
+    window._tplEscBound = true;
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') { const ov = $('tpl-modal-overlay'); if (ov && ov.classList.contains('tpl-modal-visible')) cerrar(); }
     });
   }
-  
-  // Iniciar prefetch despues de 2 segundos (no bloquear el render del panel)
-  setTimeout(prefetchTodasLasPlantillas, 2000);
-  
-  // ESC cierra el modal
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      const overlay = document.getElementById('tpl-modal-overlay');
-      if (overlay && overlay.classList.contains('tpl-modal-visible')) {
-        cerrarModalDirecto();
+
+  function bind(){
+    document.querySelectorAll('.tpl-filter').forEach(b => b.addEventListener('click', () => {
+      document.querySelectorAll('.tpl-filter').forEach(x => x.classList.remove('is-active'));
+      b.classList.add('is-active'); state.cat = b.dataset.cat; render();
+    }));
+    document.querySelectorAll('.tpl-view-btn').forEach(b => b.addEventListener('click', () => {
+      document.querySelectorAll('.tpl-view-btn').forEach(x => x.classList.remove('is-active'));
+      b.classList.add('is-active'); state.view = b.dataset.view; render();
+    }));
+    const inp = $('tpl-search-input'), clearBtn = $('tpl-search-clear');
+    let t = null;
+    inp.addEventListener('input', () => {
+      clearTimeout(t);
+      t = setTimeout(() => { state.q = inp.value.trim(); clearBtn.style.display = state.q ? 'flex' : 'none'; render(); }, 150);
+    });
+    const limpiar = () => { inp.value=''; state.q=''; clearBtn.style.display='none'; render(); };
+    clearBtn.addEventListener('click', limpiar);
+    const cs = $('tpl-clear-search'); if (cs) cs.addEventListener('click', limpiar);
+    $('tpl-modal-overlay').addEventListener('click', e => { if (e.target.id === 'tpl-modal-overlay') cerrar(); });
+  }
+
+  window.ToolPlantillas = {
+    mount(c) {
+      bnToolShell(c, {
+        icon: 'i-briefcase',
+        title: 'Plantillas de Negocio',
+        sub: 'Plantillas premium en Excel, Word y PowerPoint para gestionar tu empresa: finanzas, RH, ventas, operaciones, marketing y legal.',
+        body: ''
+      });
+      const host = c.querySelector('.bn-tool');
+      host.appendChild(document.getElementById('tpl-plantillas').content.cloneNode(true));
+      bind();
+      if (cache) { render(); }
+      else {
+        cargar().then(render).catch(() => {
+          const g = $('plantillas-grid');
+          if (g) g.innerHTML = '<div class="cff-empty"><svg class="ic" style="width:34px;height:34px;opacity:.4"><use href="#i-briefcase"/></svg>No se pudieron cargar las plantillas. Revisa tu conexi\u00f3n e intenta de nuevo.</div>';
+        });
       }
     }
-  });
-  
-  console.log('%c[SOLUCION_RADICAL_v4] Sistema activo - los clicks ahora funcionan','color:#10b981;font-weight:bold;font-size:14px');
+  };
 })();
 </script>
-<script>
-
-window.__initPlantillas = function(){
-  'use strict';
-
-  // ╔═══════════════════════════════════════════════════════════════╗
-  // ║ PLANTILLAS_DINAMICAS_v1 — CATÁLOGO DESDE FIRESTORE             ║
-  // ║                                                                 ║
-  // ║ Las plantillas se cargan dinámicamente desde Firestore          ║
-  // ║ /plantillas (Rules v12: read público, write solo admin).        ║
-  // ║                                                                 ║
-  // ║ Estado por plantilla:                                           ║
-  // ║   • visible: true + bloqueada: false → card normal, clic abre   ║
-  // ║   • bloqueada: true → card GRISADA con candado, clic NO abre    ║
-  // ║                                                                 ║
-  // ║ Para invitados (no autenticados): TODAS las cards se tratan     ║
-  // ║ como bloqueadas (ven el contenido pero no descargan).           ║
-  // ╚═══════════════════════════════════════════════════════════════╝
-  const PLANTILLAS = [];  // se llena dinámicamente desde Firestore
-  window.PLANTILLAS = PLANTILLAS;
-
-  // Cargar plantillas desde Firestore en cuanto Firebase esté listo
-  async function cargarPlantillasDesdeFirestore() {
-    try {
-      const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js');
-      const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-      let app = getApps()[0];
-      if (!app) {
-        app = initializeApp({
-          apiKey: 'AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA',
-          authDomain: 'icadem-vip.firebaseapp.com',
-          projectId: 'icadem-vip',
-          storageBucket: 'icadem-vip.firebasestorage.app',
-          messagingSenderId: '12508983783',
-          appId: '1:12508983783:web:b12be6f1fab9bb91fb8d42'
-        });
-      }
-      const db = getFirestore(app);
-      const snap = await getDocs(collection(db, 'plantillas'));
-      const lista = [];
-      snap.forEach(d => lista.push({ id: d.id, ...d.data() }));
-      // Limpiar y rellenar el array compartido
-      PLANTILLAS.length = 0;
-      lista.forEach(p => PLANTILLAS.push(p));
-      console.log('[PLANTILLAS_DINAMICAS_v1] Cargadas', lista.length, 'plantillas desde Firestore');
-      // Re-render
-      if (typeof renderPlantillas === 'function') renderPlantillas();
-      // Actualizar contadores de categoría
-      if (typeof actualizarContadores === 'function') actualizarContadores();
-    } catch(e) {
-      console.error('[PLANTILLAS_DINAMICAS_v1] Error cargando plantillas:', e);
-    }
-  }
-  // Disparar al cargar el módulo
-  cargarPlantillasDesdeFirestore();
-
-  const grid = document.getElementById('plantillas-grid');
-  const empty = document.getElementById('tpl-empty');
-  const filterBtns = document.querySelectorAll('.tpl-filter');
-  const searchInput = document.getElementById('tpl-search-input');
-  const searchClear = document.getElementById('tpl-search-clear');
-  const resultsInfo = document.getElementById('tpl-results-info');
-  const resultsText = document.getElementById('tpl-results-text');
-  const clearSearchBtn = document.getElementById('tpl-clear-search');
-  const viewBtns = document.querySelectorAll('.tpl-view-btn');
-
-  let _currentCat = 'todas';
-  let _currentView = 'grid';
-  let _currentSearch = '';
-
-  function normalizar(str) {
-    return (str || '').toString().toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .trim();
-  }
-
-  function renderPlantillas() {
-    if (!grid) return;
-
-    // 1) Filtrar por categoría
-    let lista;
-    if (_currentCat === 'todas') {
-      lista = PLANTILLAS;
-    } else if (_currentCat === 'destacadas') {
-      lista = PLANTILLAS.filter(p => p.destacada);
-    } else {
-      lista = PLANTILLAS.filter(p => p.cat === _currentCat);
-    }
-
-    // 2) Filtrar por búsqueda
-    if (_currentSearch) {
-      const q = normalizar(_currentSearch);
-      lista = lista.filter(p =>
-        normalizar(p.titulo).includes(q) ||
-        normalizar(p.desc).includes(q) ||
-        normalizar(p.cat).includes(q) ||
-        normalizar(p.formato).includes(q)
-      );
-    }
-
-    // Mostrar info de resultados si hay búsqueda
-    if (_currentSearch && resultsInfo && resultsText) {
-      resultsInfo.style.display = 'flex';
-      resultsText.innerHTML = `<strong>${lista.length}</strong> ${lista.length === 1 ? 'resultado' : 'resultados'} para "<em>${_currentSearch}</em>"`;
-    } else if (resultsInfo) {
-      resultsInfo.style.display = 'none';
-    }
-
-    if (lista.length === 0) {
-      grid.innerHTML = '';
-      grid.classList.remove('tpl-grid-list');
-      if (empty) empty.style.display = 'block';
-      return;
-    }
-    if (empty) empty.style.display = 'none';
-
-    // PLANTILLAS_DINAMICAS_v1: Ordenamiento de 3 niveles:
-    //   1) Visibles ANTES que bloqueadas (las bloqueadas siempre al final)
-    //   2) Destacadas primero dentro de cada grupo
-    //   3) Por campo 'orden' ascendente (que asigna el admin)
-    //
-    // PLANTILLAS_INVITADO_v1: para invitados, el bloqueo NO mueve al final
-    // (porque todas se ven iguales). Solo destacadas + orden.
-    const esInvitadoOrden = document.body.classList.contains('is-guest');
-    const ordenadas = [...lista].sort((a, b) => {
-      if (!esInvitadoOrden) {
-        const aBloq = (a.bloqueada === true || a.proximamente === true) ? 1 : 0;
-        const bBloq = (b.bloqueada === true || b.proximamente === true) ? 1 : 0;
-        if (aBloq !== bBloq) return aBloq - bBloq;  // visibles primero
-      }
-      const aDest = a.destacada ? 0 : 1;
-      const bDest = b.destacada ? 0 : 1;
-      if (aDest !== bDest) return aDest - bDest;  // destacadas primero
-      const aOrd = typeof a.orden === 'number' ? a.orden : 9999;
-      const bOrd = typeof b.orden === 'number' ? b.orden : 9999;
-      return aOrd - bOrd;  // por orden ascendente
-    });
-
-    // Aplicar clase de vista
-    if (_currentView === 'list') {
-      grid.classList.add('tpl-grid-list');
-    } else {
-      grid.classList.remove('tpl-grid-list');
-    }
-
-    grid.innerHTML = ordenadas.map(p => {
-      // ╔═════════════════════════════════════════════════════════════════╗
-      // ║ PLANTILLAS_DINAMICAS_v1: estado de la plantilla                 ║
-      // ║                                                                  ║
-      // ║ • bloqueada === true → card GRISADA con candado, sin click      ║
-      // ║ • bloqueada !== true → card normal, click abre modal            ║
-      // ║                                                                  ║
-      // ║ Compatibilidad: si una plantilla vieja tiene proximamente:true, ║
-      // ║ también se trata como bloqueada (fallback de seguridad).        ║
-      // ║                                                                  ║
-      // ║ PLANTILLAS_INVITADO_v1: si el usuario es INVITADO (body tiene   ║
-      // ║ clase 'is-guest'), TODAS las plantillas se muestran como        ║
-      // ║ visibles (a color, sin candado). El paywall ya se encarga de    ║
-      // ║ bloquear el modal/descarga cuando dan click. Solo los VIPs      ║
-      // ║ autenticados ven cards bloqueadas grisadas.                     ║
-      // ╚═════════════════════════════════════════════════════════════════╝
-      const esInvitado = document.body.classList.contains('is-guest');
-      const esBloqueadaReal = p.bloqueada === true || p.proximamente === true;
-      const esBloqueada = esBloqueadaReal && !esInvitado;
-
-      const formatColor = {
-        'SHEETS': '#10b981',  // verde Google Sheets
-        'DOCS':   '#3b82f6',  // azul Google Docs
-        'SLIDES': '#f59e0b',  // ambar Google Slides
-        'XLSX':   '#107C41',  // verde Microsoft Excel oficial
-        'DOCX':   '#2B579A',  // azul Microsoft Word oficial
-        'PPTX':   '#D24726',  // naranja Microsoft PowerPoint oficial
-        'PDF':    '#ef4444'
-      }[p.formato] || '#94a3b8';
-
-      const catLabel = {
-        'finanzas': 'Finanzas',
-        'rh': 'Capital Humano',
-        'ventas': 'Ventas',
-        'operaciones': 'Operaciones',
-        'marketing': 'Marketing',
-        'legal': 'Legal'
-      }[p.cat] || p.cat;
-
-      // ─── CASO 1: Plantilla BLOQUEADA ─────────────────────────────
-      // Se muestra grisada con candado. NO tiene data-id ni clase
-      // tpl-card-premium (para que SOLUCION_RADICAL_v4 NO le adjunte
-      // listener). NO tiene onclick. NO se puede abrir modal.
-      if (esBloqueada) {
-        return `
-          <article class="tpl-card tpl-card-locked" data-cat="${p.cat}" aria-disabled="true" style="cursor:not-allowed;opacity:0.65;position:relative">
-            <div class="tpl-locked-overlay" style="position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;background:rgba(11,37,84,0.92);padding:5px 11px;border-radius:99px;z-index:5">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              <span style="font-size:10px;font-weight:700;color:#fff;letter-spacing:.06em">BLOQUEADA</span>
-            </div>
-            <div class="tpl-card-icon" style="opacity:0.5">${p.icono || '📄'}</div>
-            <div class="tpl-card-body">
-              <div class="tpl-card-meta">
-                <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15;opacity:0.5">${p.formato}</span>
-                <span class="tpl-card-cat" style="opacity:0.5">${catLabel}</span>
-              </div>
-              <h3 class="tpl-card-title" style="opacity:0.55">${p.titulo}</h3>
-              <p class="tpl-card-desc" style="opacity:0.45">${p.desc || ''}</p>
-            </div>
-            <span class="tpl-card-cta tpl-card-cta-soon" style="opacity:0.5;pointer-events:none">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              No disponible
-            </span>
-          </article>
-        `;
-      }
-
-      // ─── CASO 2: Plantilla VISIBLE ───────────────────────────────
-      // Card normal con click que abre modal
-      return `
-        <article class="tpl-card tpl-card-premium ${p.destacada ? 'tpl-card-feat' : ''}" 
-                 data-cat="${p.cat}" 
-                 data-id="${p.id}"
-                 onclick="openTemplateModal('${p.id}')"
-                 style="cursor:pointer">
-          ${p.destacada ? '<span class="tpl-badge-feat">★ Destacada</span>' : ''}
-          <span class="tpl-premium-badge">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
-            PREMIUM
-          </span>
-          <div class="tpl-card-icon">${p.icono || '📄'}</div>
-          <div class="tpl-card-body">
-            <div class="tpl-card-meta">
-              <span class="tpl-card-format" style="color:${formatColor};border-color:${formatColor}40;background:${formatColor}15">${p.formato}</span>
-              <span class="tpl-card-cat">${catLabel}</span>
-            </div>
-            <h3 class="tpl-card-title">${p.titulo}</h3>
-            <p class="tpl-card-desc">${p.desc || ''}</p>
-          </div>
-          <div class="tpl-card-cta tpl-card-cta-modal">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-            Ver plantilla
-          </div>
-        </article>
-      `;
-    }).join('');
-
-    // [LISTENERS_DIRECTOS_v3] Adjuntar listeners directos a cada card
-    // En vez de depender del onclick inline (que puede fallar por diversas razones),
-    // agregamos un click listener real a cada elemento.
-    setTimeout(() => {
-      const cards = grid.querySelectorAll('.tpl-card-premium');
-      console.log('%c[LISTENERS_DIRECTOS_v3] Adjuntando listeners a ' + cards.length + ' cards','color:#8b5cf6;font-weight:bold');
-      cards.forEach((card, idx) => {
-        if (card.dataset.listenerAttached === '1') return;
-        card.dataset.listenerAttached = '1';
-        const id = card.dataset.id;
-        card.addEventListener('click', function(e) {
-          // Si el click es en un boton interno con onclick propio, no interferir
-          if (e.target.closest('button[onclick], a[onclick], a[href]:not([href=""]):not([href="#"])')) return;
-          e.preventDefault();
-          console.log('%c[LISTENERS_DIRECTOS_v3] CLICK DIRECTO en card: ' + id,'color:#10b981;font-weight:bold;font-size:13px');
-          if (typeof window.openTemplateModal === 'function') {
-            window.openTemplateModal(id);
-          } else if (typeof openTemplateModal === 'function') {
-            openTemplateModal(id);
-          } else {
-            console.error('[LISTENERS_DIRECTOS_v3] ✗ openTemplateModal NO ESTA DEFINIDO!');
-            if (window.notify) window.notify('Error: la función openTemplateModal no está disponible. Recarga la página (Ctrl+Shift+R).', 'error');
-          }
-        });
-      });
-    }, 100);
-  }
-
-  function actualizarContadores() {
-    const contadores = {
-      todas: PLANTILLAS.length,
-      destacadas: 0,
-      finanzas: 0, rh: 0, ventas: 0,
-      operaciones: 0, marketing: 0, legal: 0
-    };
-    PLANTILLAS.forEach(p => {
-      contadores[p.cat] = (contadores[p.cat] || 0) + 1;
-      if (p.destacada) contadores.destacadas += 1;
-    });
-    Object.keys(contadores).forEach(cat => {
-      const el = document.getElementById('tpl-c-' + cat);
-      if (el) el.textContent = contadores[cat];
-    });
-    // Stats banner
-    const totalEl = document.getElementById('tpl-stat-total');
-    const featEl  = document.getElementById('tpl-stat-feat');
-    if (totalEl) totalEl.textContent = PLANTILLAS.length;
-    if (featEl)  featEl.textContent  = contadores.destacadas;
-  }
-
-  // Listeners de filtros de categoría
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      filterBtns.forEach(b => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      _currentCat = btn.dataset.cat;
-      renderPlantillas();
-    });
-  });
-
-  // Listener de búsqueda con debounce
-  let _searchTimer = null;
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      const val = e.target.value;
-      if (searchClear) searchClear.style.display = val ? 'flex' : 'none';
-      clearTimeout(_searchTimer);
-      _searchTimer = setTimeout(() => {
-        _currentSearch = val.trim();
-        renderPlantillas();
-      }, 180);
-    });
-    // Atajo: Esc para limpiar
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        searchInput.value = '';
-        _currentSearch = '';
-        if (searchClear) searchClear.style.display = 'none';
-        renderPlantillas();
-      }
-    });
-  }
-
-  // Botón limpiar búsqueda (en el input)
-  if (searchClear) {
-    searchClear.addEventListener('click', () => {
-      searchInput.value = '';
-      _currentSearch = '';
-      searchClear.style.display = 'none';
-      searchInput.focus();
-      renderPlantillas();
-    });
-  }
-
-  // Botón limpiar búsqueda (en el banner de resultados)
-  if (clearSearchBtn) {
-    clearSearchBtn.addEventListener('click', () => {
-      if (searchInput) searchInput.value = '';
-      _currentSearch = '';
-      if (searchClear) searchClear.style.display = 'none';
-      renderPlantillas();
-    });
-  }
-
-  // Toggle vista grid/list
-  viewBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      viewBtns.forEach(b => b.classList.remove('is-active'));
-      btn.classList.add('is-active');
-      _currentView = btn.dataset.view;
-      renderPlantillas();
-    });
-  });
-
-  // Render inicial
-  actualizarContadores();
-  renderPlantillas();
-
-  // PLANTILLAS_INVITADO_v2: exponer renderPlantillas en window para que el
-  // flujo de auth (activarModoInvitado / detectarVIP) pueda forzar re-render
-  // cuando cambie el modo (invitado ↔ VIP).
-  window.renderPlantillas = renderPlantillas;
-};
-window.ToolPlantillas = {
-  mount(c) {
-    bnToolShell(c, {
-      icon: 'i-briefcase',
-      title: 'Plantillas de Negocio',
-      sub: 'Plantillas premium en Excel, Word y PowerPoint para gestionar tu empresa: finanzas, RH, ventas, operaciones, marketing y legal.',
-      body: ''
-    });
-    const host = c.querySelector('.bn-tool');
-    const tpl = document.getElementById('tpl-plantillas');
-    host.appendChild(tpl.content.cloneNode(true));
-    window.__initPlantillas();
-  }
-};
-</script>
-
 </body>
 </html>
