@@ -42,7 +42,7 @@ input.falta,select.falta{border-color:var(--err)}
   <p class="sub">Herramienta de <strong>un solo uso</strong>. Para cada plantilla: presiona <strong>"Ver"</strong> para asomarte al contenido sin salir de aquí, y elige el título — <strong>el campo te sugiere solo los nombres posibles para ese tipo de archivo</strong> y la categoría se llena sola. Al migrar: se borran las demo y quedan únicamente estas 14.</p>
   <button class="btn" id="btn-login">Iniciar sesión admin</button>
   <button class="btn btn--g hide" id="btn-out">Cerrar sesión</button>
-  <div class="tip hide" id="tip">💡 Tip: escribe una letra en el campo de título y aparecen las opciones. Los Word solo te sugieren los 2 nombres de Word; los PowerPoint, los 2 de PowerPoint — así no hay forma de equivocarse de tipo.</div>
+  <div class="tip hide" id="tip">💡 Así de fácil: presiona "Ver" para asomarte al archivo, y en el menú de título elige el nombre — cada menú solo trae los nombres de su tipo (los Word solo los 2 de Word, etc.). La categoría se llena sola.</div>
   <div id="tabla" class="hide"></div>
   <div class="aviso hide" id="aviso">⚠ El botón primero <strong>elimina TODAS las plantillas actuales</strong> (las demo) y luego sube estas 14. Las futuras se crean desde el admin con "Nueva plantilla".</div>
   <button class="btn hide" id="btn-go">Borrar demos y migrar las 14</button>
@@ -70,7 +70,14 @@ function pintarTabla(){
     <div class="fila">
       <div class="fila__top">
         <div class="fmt f-${it.formato}">${it.formato}</div>
-        <input data-i="${i}" data-k="titulo" list="dl-${it.formato}" placeholder="Título · escribe una letra para ver opciones de ${it.formato}" value="${it.titulo||''}" autocomplete="off">
+        <div>
+          <select data-i="${i}" data-k="tsel" class="tsel">
+            <option value="">— Elige el título (${it.formato}) —</option>
+            ${sugs.map(s=>`<option value="${s.t}" ${it.titulo===s.t?'selected':''}>${s.t}</option>`).join('')}
+            <option value="__otro">✏️ Otro (escribir manualmente)</option>
+          </select>
+          <input data-i="${i}" data-k="titulo" class="hide tmanual" placeholder="Escribe el título" value="" autocomplete="off" style="margin-top:8px;">
+        </div>
         <select data-i="${i}" data-k="cat">
           <option value="">Categoría…</option>
           ${Object.entries(CATS).map(([k,v])=>`<option value="${k}" ${it.cat===k?'selected':''}>${v}</option>`).join('')}
@@ -79,23 +86,34 @@ function pintarTabla(){
       </div>
       <div class="prev" id="prev-${i}"></div>
     </div>`;
-  }).join('') + ['XLSX','DOCX','PPTX'].map(f =>
-    `<datalist id="dl-${f}">${SUGERENCIAS.filter(s=>s.fmt===f).map(s=>`<option value="${s.t}">`).join('')}</datalist>`
-  ).join('');
+  }).join('');
 
-  $('tabla').querySelectorAll('input,select').forEach(el => el.addEventListener('input', e => {
-    const i = Number(e.target.dataset.i), k = e.target.dataset.k, v = e.target.value.trim();
-    ITEMS[i][k] = v;
+  $('tabla').querySelectorAll('select.tsel').forEach(el => el.addEventListener('change', e => {
+    const i = Number(e.target.dataset.i), v = e.target.value;
+    const manual = $('tabla').querySelector(`input.tmanual[data-i="${i}"]`);
     e.target.classList.remove('falta');
-    // auto-categoría al elegir un título conocido
-    if (k === 'titulo') {
-      const s = SUGERENCIAS.find(x => x.t.toLowerCase() === v.toLowerCase());
-      if (s) {
-        ITEMS[i].cat = s.cat;
-        const sel = $('tabla').querySelector(`select[data-i="${i}"]`);
-        if (sel) { sel.value = s.cat; sel.classList.remove('falta'); }
-      }
+    if (v === '__otro') {
+      manual.classList.remove('hide'); manual.focus();
+      ITEMS[i].titulo = manual.value.trim();
+      return;
     }
+    manual.classList.add('hide');
+    ITEMS[i].titulo = v;
+    // auto-categoría
+    const s = SUGERENCIAS.find(x => x.t === v);
+    if (s) {
+      ITEMS[i].cat = s.cat;
+      const catSel = $('tabla').querySelector(`select[data-k="cat"][data-i="${i}"]`);
+      if (catSel) { catSel.value = s.cat; catSel.classList.remove('falta'); }
+    }
+  }));
+  $('tabla').querySelectorAll('input.tmanual').forEach(el => el.addEventListener('input', e => {
+    ITEMS[Number(e.target.dataset.i)].titulo = e.target.value.trim();
+    e.target.classList.remove('falta');
+  }));
+  $('tabla').querySelectorAll('select[data-k="cat"]').forEach(el => el.addEventListener('change', e => {
+    ITEMS[Number(e.target.dataset.i)].cat = e.target.value;
+    e.target.classList.remove('falta');
   }));
   $('tabla').querySelectorAll('[data-prev]').forEach(b => b.addEventListener('click', () => {
     const i = Number(b.dataset.prev);
@@ -129,8 +147,9 @@ onAuthStateChanged(auth, user => {
 
 $('btn-go').addEventListener('click', async () => {
   let falta = false;
-  $('tabla').querySelectorAll('input,select').forEach(el => {
-    if (!ITEMS[Number(el.dataset.i)][el.dataset.k]) { el.classList.add('falta'); falta = true; }
+  ITEMS.forEach((it, i) => {
+    if (!it.titulo) { ($('tabla').querySelector(`select.tsel[data-i="${i}"]`)||{classList:{add(){}}}).classList.add('falta'); falta = true; }
+    if (!it.cat)    { ($('tabla').querySelector(`select[data-k="cat"][data-i="${i}"]`)||{classList:{add(){}}}).classList.add('falta'); falta = true; }
   });
   if (falta) { alert('Completa el título y la categoría de todas (marcadas en rojo).'); return; }
   if (!confirm('Se ELIMINARÁN todas las plantillas actuales y se subirán estas 14. ¿Continuar?')) return;
