@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>ICADEM · Migración de plantillas (uso único)</title>
+<link rel="icon" type="image/png" href="icon-192.png">
 <style>
 :root{--bg:#0a0f1c;--surface:#0f1626;--surface-2:#18233a;--border:#212e48;--text:#f0f4fa;--text-2:#b6c2d8;--text-3:#8997b0;--primary:#5b92c8;--ok:#34d399;--warn:#fbbf24;--err:#f87171}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -44,7 +45,7 @@ input.falta{border-color:var(--err)}
 </div>
 <script type="module">
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, getDocs, addDoc, deleteDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const ADMINS = ["teccapitalweb@gmail.com","icademconsultoria2024@gmail.com","sinergiaagricola789@gmail.com","ipcilinstituto@gmail.com"];
@@ -75,7 +76,16 @@ function pintarTabla(){
   }));
 }
 
-$('btn-login').addEventListener('click', () => signInWithPopup(auth, new GoogleAuthProvider()).catch(e => alert(e.message)));
+$('btn-login').addEventListener('click', async () => {
+  try { await signInWithPopup(auth, new GoogleAuthProvider()); }
+  catch (e) {
+    // popup bloqueado o cerrado → respaldo con redirect (misma pestaña)
+    if (['auth/popup-blocked','auth/popup-closed-by-user','auth/cancelled-popup-request'].includes(e.code)) {
+      await signInWithRedirect(auth, new GoogleAuthProvider());
+    } else alert(e.message);
+  }
+});
+getRedirectResult(auth).catch(()=>{});
 $('btn-out').addEventListener('click', () => signOut(auth).then(()=>location.reload()));
 
 onAuthStateChanged(auth, user => {
