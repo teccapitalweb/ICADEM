@@ -2,230 +2,206 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verificar certificado · ICADEM</title>
-<meta name="description" content="Página oficial de verificación de certificados emitidos por ICADEM · Instituto de Capacitación y Desarrollo Empresarial. Escanea el QR del certificado o introduce el folio para validar su autenticidad.">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 60 60'%3E%3Ccircle cx='30' cy='30' r='28' fill='none' stroke='%230d4737' stroke-width='2'/%3E%3Ctext x='30' y='40' text-anchor='middle' font-family='Georgia,serif' font-size='28' font-weight='700' fill='%230d4737' font-style='italic'%3EI%3C/text%3E%3C/svg%3E">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<meta name="description" content="Valida la autenticidad de un certificado ICADEM con su folio único o escaneando su código QR.">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@600;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;background:linear-gradient(180deg,#f8f9fb 0%,#eef1f5 100%);min-height:100vh;padding:2rem 1rem;color:#0d1f4a;line-height:1.5}
-.container{max-width:720px;margin:0 auto}
-.brand{text-align:center;margin-bottom:2rem}
-.brand-logo{display:inline-flex;align-items:center;gap:14px;padding:.875rem 1.5rem;background:#fff;border-radius:14px;box-shadow:0 4px 14px rgba(13,71,55,.06);border:1px solid rgba(13,71,55,.08)}
-.brand-logo svg{width:40px;height:40px}
-.brand-logo-text h1{font-family:'Cormorant Garamond',serif;font-size:26px;color:#0d4737;font-weight:700;letter-spacing:.04em;line-height:1}
-.brand-logo-text p{font-size:11px;color:#64748b;letter-spacing:.05em;margin-top:2px;font-weight:500}
-.search-card{background:#fff;border-radius:18px;padding:2rem;box-shadow:0 8px 28px rgba(13,71,55,.06);border:1px solid rgba(13,71,55,.06);margin-bottom:1.5rem}
-.search-card h2{font-family:'Cormorant Garamond',serif;font-size:28px;color:#0d4737;font-weight:600;margin-bottom:.5rem}
-.search-card p{color:#64748b;font-size:14px;margin-bottom:1.25rem}
-.search-form{display:flex;gap:.5rem;flex-wrap:wrap}
-.search-form input{flex:1;min-width:200px;padding:14px 16px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;font-family:'JetBrains Mono',monospace;color:#0d1f4a;background:#f8fafc;transition:all .2s;letter-spacing:.04em}
-.search-form input:focus{outline:none;border-color:#0d4737;background:#fff;box-shadow:0 0 0 4px rgba(13,71,55,.1)}
-.search-form button{padding:14px 28px;background:#0d4737;color:#fff;border:none;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.04em;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
-.search-form button:hover{background:#0a3a2e;transform:translateY(-1px);box-shadow:0 6px 16px rgba(13,71,55,.25)}
-.search-form button:disabled{opacity:.6;cursor:not-allowed}
-.result{margin-top:1.5rem}
-.loading{text-align:center;padding:3rem 2rem;color:#64748b}
-.loading-spinner{display:inline-block;width:40px;height:40px;border:3px solid rgba(13,71,55,.15);border-top-color:#0d4737;border-radius:50%;animation:spin .9s linear infinite;margin-bottom:1rem}
-@keyframes spin{to{transform:rotate(360deg)}}
-.valid-card,.invalid-card{background:#fff;border-radius:18px;padding:2rem;box-shadow:0 12px 36px rgba(13,71,55,.08);border:1px solid rgba(13,71,55,.06);animation:slideUp .5s cubic-bezier(.34,1.56,.64,1)}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.valid-card{border-top:6px solid #0d4737}
-.invalid-card{border-top:6px solid #dc2626}
-.status-badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:99px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:1.25rem}
-.status-valid{background:#dcfce7;color:#0d4737;border:1px solid #86efac}
-.status-invalid{background:#fee2e2;color:#dc2626;border:1px solid #fca5a5}
-.status-badge svg{width:14px;height:14px}
-.valid-card h3{font-family:'Cormorant Garamond',serif;font-size:28px;color:#0d4737;font-weight:700;margin-bottom:.25rem}
-.invalid-card h3{font-family:'Cormorant Garamond',serif;font-size:24px;color:#dc2626;font-weight:700;margin-bottom:.5rem}
-.invalid-card p{color:#475569;font-size:14px;line-height:1.6}
-.cert-info{margin-top:1.5rem;display:grid;gap:1rem}
-.info-row{padding:1rem 1.25rem;background:#f8fafc;border-radius:12px;border-left:3px solid #0d4737}
-.info-label{font-size:10px;font-weight:700;color:#64748b;letter-spacing:.12em;text-transform:uppercase;margin-bottom:4px}
-.info-value{font-size:15px;color:#0d1f4a;font-weight:600;line-height:1.4}
-.info-value.alumno{font-family:'Cormorant Garamond',serif;font-size:22px;color:#0d4737;font-weight:700;letter-spacing:.02em}
-.info-value.curso{font-style:italic;color:#0d4737}
-.info-value.folio{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.05em;color:#0d4737}
-.cert-footer{margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8}
-.cert-footer strong{color:#0d4737}
-.back-link{display:inline-flex;align-items:center;gap:6px;margin-top:1.5rem;color:#0d4737;text-decoration:none;font-size:13px;font-weight:600;transition:gap .2s}
-.back-link:hover{gap:10px}
-@media(max-width:640px){
-  body{padding:1rem .75rem}
-  .search-card,.valid-card,.invalid-card{padding:1.5rem}
-  .search-form{flex-direction:column}
-  .search-form input,.search-form button{width:100%}
-  .brand-logo{padding:.75rem 1.25rem}
-  .brand-logo-text h1{font-size:22px}
+:root{
+  --bg:#02050f; --surface:rgba(11,22,44,.66); --border:rgba(147,197,253,.14);
+  --text:#f0f4fa; --text-2:#b6c2d8; --text-3:#8997b0;
+  --primary:#0b2f68; --primary-soft:#93c5fd; --gold:#f5d77a;
+  --ok:#34d399; --err:#f87171;
 }
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:32px 16px;position:relative;overflow-x:hidden;
+}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;
+  background:
+    radial-gradient(600px 360px at 80% 0%, rgba(11,47,104,.55), transparent 65%),
+    radial-gradient(520px 320px at 8% 100%, rgba(245,215,122,.10), transparent 60%);
+}
+.wrap{width:100%;max-width:560px;position:relative;z-index:1}
+.brand{text-align:center;margin-bottom:22px}
+.brand .logo{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:26px;letter-spacing:-.5px}
+.brand .logo b{color:var(--gold)}
+.brand p{color:var(--text-3);font-size:12.5px;margin-top:4px}
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:22px;
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  padding:28px;box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:19px;font-weight:800;letter-spacing:-.3px}
+.sub{color:var(--text-2);font-size:13px;line-height:1.6;margin:6px 0 18px}
+.row{display:flex;gap:10px}
+input{
+  flex:1;background:rgba(2,5,15,.6);border:1px solid var(--border);border-radius:13px;
+  padding:13px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13.5px;
+  letter-spacing:.06em;outline:none;transition:border-color .18s, box-shadow .18s;min-width:0;
+}
+input::placeholder{color:var(--text-3);letter-spacing:.04em}
+input:focus{border-color:var(--primary-soft);box-shadow:0 0 0 3px rgba(147,197,253,.14)}
+button{
+  border:none;border-radius:13px;padding:13px 22px;font-family:'Inter',sans-serif;
+  font-size:14px;font-weight:700;cursor:pointer;color:#0a1020;
+  background:linear-gradient(135deg,var(--gold),#e9c45a);
+  box-shadow:0 10px 26px rgba(245,215,122,.22);transition:transform .15s, box-shadow .15s;
+  flex-shrink:0;
+}
+button:hover{transform:translateY(-1px);box-shadow:0 14px 32px rgba(245,215,122,.3)}
+button:disabled{opacity:.55;cursor:not-allowed;transform:none}
+#result{margin-top:20px;display:none}
+.res{
+  border-radius:18px;padding:22px;border:1px solid;
+  animation:fadeUp .35s ease both;
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.res--ok{background:rgba(52,211,153,.07);border-color:rgba(52,211,153,.3)}
+.res--err{background:rgba(248,113,113,.07);border-color:rgba(248,113,113,.3)}
+.res__head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.res__badge{
+  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.res--ok .res__badge{background:rgba(52,211,153,.16);color:var(--ok)}
+.res--err .res__badge{background:rgba(248,113,113,.16);color:var(--err)}
+.res__badge svg{width:22px;height:22px}
+.res__title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:16px}
+.res--ok .res__title{color:var(--ok)} .res--err .res__title{color:var(--err)}
+.res__sub{font-size:12px;color:var(--text-3);margin-top:2px}
+.dl{display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.dl .it{min-width:0}
+.dl .k{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-3);font-family:'JetBrains Mono',monospace}
+.dl .v{font-size:14px;font-weight:600;margin-top:3px;word-break:break-word}
+.dl .it--full{grid-column:1/-1}
+.dl .v--name{font-size:17px;font-weight:800;font-family:'Plus Jakarta Sans',sans-serif}
+.folio-pill{
+  display:inline-flex;align-items:center;gap:7px;margin-top:14px;
+  background:rgba(2,5,15,.5);border:1px solid var(--border);border-radius:99px;
+  padding:7px 14px;font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--gold);letter-spacing:.05em;
+}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(10,16,32,.3);border-top-color:#0a1020;border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:-4px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.foot{margin-top:20px;text-align:center;color:var(--text-3);font-size:11.5px;line-height:1.7}
+.foot a{color:var(--primary-soft);text-decoration:none}
+@media (max-width:480px){ .row{flex-direction:column} .dl{grid-template-columns:1fr} }
 </style>
 </head>
 <body>
-
-<div class="container">
-
-  <!-- Brand -->
+<div class="wrap">
   <div class="brand">
-    <div class="brand-logo">
-      <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="30" cy="30" r="28" fill="none" stroke="#0d4737" stroke-width="2"/>
-        <text x="30" y="40" text-anchor="middle" font-family="Georgia,serif" font-size="28" font-weight="700" fill="#0d4737" font-style="italic">I</text>
-      </svg>
-      <div class="brand-logo-text">
-        <h1>ICADEM</h1>
-        <p>Instituto de Capacitación y Desarrollo Empresarial</p>
-      </div>
+    <div class="logo">ICADE<b>M</b></div>
+    <p>Capacitación empresarial, fiscal y legal</p>
+  </div>
+  <div class="card">
+    <h1>Verificación de certificados</h1>
+    <p class="sub">Ingresa el folio del certificado o escanea su código QR para validar su autenticidad en nuestro registro oficial.</p>
+    <div class="row">
+      <input id="folio-input" placeholder="ICADEM-2026-XXXXXX" autocomplete="off" spellcheck="false" autocapitalize="characters">
+      <button id="btn-verify">Verificar</button>
     </div>
+    <div id="result"></div>
   </div>
-
-  <!-- Buscador -->
-  <div class="search-card">
-    <h2>Verificar certificado</h2>
-    <p>Introduce el folio del certificado o escanea el código QR para validar su autenticidad.</p>
-    <form class="search-form" onsubmit="event.preventDefault();consultarFolio()">
-      <input type="text" id="folio-input" placeholder="ICADEM-YYMMDD-XXXX" autocomplete="off" spellcheck="false">
-      <button type="submit" id="btn-verificar">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Verificar
-      </button>
-    </form>
-  </div>
-
-  <!-- Resultado (se llena dinámicamente) -->
-  <div id="resultado" class="result"></div>
-
+  <p class="foot">Registro oficial de certificados de ICADEM · <a href="https://www.icademx.com">icademx.com</a></p>
 </div>
 
-<!-- Firebase v10 modular -->
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-// ⚠️ IMPORTANTE: Reemplaza esto con la config real de tu proyecto icadem-vip
-// La encuentras en Firebase Console → Configuración del proyecto → Tus apps → SDK setup
-const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "icadem-vip.firebaseapp.com",
-  projectId: "icadem-vip",
-  storageBucket: "icadem-vip.appspot.com",
-  messagingSenderId: "TU_SENDER_ID",
-  appId: "TU_APP_ID"
-};
-
-const app = initializeApp(firebaseConfig);
+const app = initializeApp({
+  apiKey: 'AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA',
+  authDomain: 'icadem-vip.firebaseapp.com',
+  projectId: 'icadem-vip',
+  storageBucket: 'icadem-vip.firebasestorage.app',
+  messagingSenderId: '12508983783',
+  appId: '1:12508983783:web:b12be6f1fab9bb91fb8d42'
+});
 const db = getFirestore(app);
 
-// ── Helper: formatear fecha
-function formatearFecha(iso) {
-  if (!iso) return '—';
+const $in = document.getElementById('folio-input');
+const $btn = document.getElementById('btn-verify');
+const $res = document.getElementById('result');
+
+const ICON_OK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>';
+const ICON_ERR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+function esc(s){ return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+function fmtFecha(v){
   try {
-    const d = new Date(iso);
-    const meses = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
-    return `${d.getDate()} de ${meses[d.getMonth()]} de ${d.getFullYear()}`;
-  } catch(e) { return '—'; }
+    const d = v?.toDate ? v.toDate() : new Date(v);
+    if (isNaN(d)) return String(v || '—');
+    return d.toLocaleDateString('es-MX', { year:'numeric', month:'long', day:'numeric' });
+  } catch(e){ return String(v || '—'); }
 }
 
-// ── Consultar folio en Firestore
-window.consultarFolio = async function() {
-  const folioInput = document.getElementById('folio-input');
-  const btn = document.getElementById('btn-verificar');
-  const resultado = document.getElementById('resultado');
-  const folio = (folioInput.value || '').trim().toUpperCase();
-
-  if (!folio) {
-    folioInput.focus();
-    return;
-  }
-
-  btn.disabled = true;
-  resultado.innerHTML = '<div class="valid-card" style="text-align:center"><div class="loading-spinner"></div><p style="color:#64748b">Consultando certificado…</p></div>';
-
+async function verificar(folio){
+  folio = (folio || '').trim().toUpperCase();
+  if (!folio) { $in.focus(); return; }
+  $btn.disabled = true; const orig = $btn.innerHTML; $btn.innerHTML = '<span class="spinner"></span>';
+  $res.style.display = 'none';
   try {
-    const certRef = doc(db, 'certificados', folio);
-    const snap = await getDoc(certRef);
-
+    const snap = await getDoc(doc(db, 'certificados', folio));
     if (!snap.exists()) {
-      // Certificado NO encontrado
-      resultado.innerHTML = `
-        <div class="invalid-card">
-          <span class="status-badge status-invalid">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-            No válido
-          </span>
-          <h3>Certificado no encontrado</h3>
-          <p>El folio <strong style="color:#0d4737;font-family:'JetBrains Mono',monospace">${folio}</strong> no corresponde a ningún certificado emitido por ICADEM. Verifica que el folio sea correcto o contacta al instituto si crees que es un error.</p>
-        </div>
-      `;
+      $res.innerHTML = `
+        <div class="res res--err">
+          <div class="res__head">
+            <div class="res__badge">${ICON_ERR}</div>
+            <div><div class="res__title">Certificado no encontrado</div>
+            <div class="res__sub">El folio no existe en el registro oficial de ICADEM</div></div>
+          </div>
+          <p style="font-size:13px;color:var(--text-2);line-height:1.6;">Revisa que el folio esté escrito exactamente como aparece en el certificado (por ejemplo <span style="font-family:'JetBrains Mono',monospace;color:var(--gold);">ICADEM-2026-A1B2C3</span>). Si crees que es un error, escríbenos desde <a href="https://www.icademx.com" style="color:var(--primary-soft);">icademx.com</a>.</p>
+        </div>`;
     } else {
-      // Certificado VÁLIDO
-      const cert = snap.data();
-      resultado.innerHTML = `
-        <div class="valid-card">
-          <span class="status-badge status-valid">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
-            Certificado válido
-          </span>
-          <h3>Este certificado es auténtico</h3>
-          <p style="color:#64748b;font-size:14px">Emitido oficialmente por ICADEM · IPCI Latinoamericano</p>
-
-          <div class="cert-info">
-            <div class="info-row">
-              <div class="info-label">Otorgado a</div>
-              <div class="info-value alumno">${cert.nombreAlumno || '—'}</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Programa académico</div>
-              <div class="info-value curso">${cert.curso || '—'}</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Área · Duración</div>
-              <div class="info-value">${cert.area || 'General'} · ${cert.horas || 0} hora${cert.horas !== 1 ? 's' : ''} académicas</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Fecha de emisión</div>
-              <div class="info-value">${formatearFecha(cert.fecha)}</div>
-            </div>
-            <div class="info-row">
-              <div class="info-label">Folio único</div>
-              <div class="info-value folio">${cert.folio || folio}</div>
-            </div>
+      const c = snap.data();
+      // Esquema nuevo con fallback al viejo (nombreAlumno / fecha)
+      const nombre = c.nombre || c.nombreAlumno || '—';
+      const emitido = c.emitido || c.fecha || c.createdAt || null;
+      const carga = [c.sesiones ? `${c.sesiones} sesiones` : null, c.horas ? `${c.horas} horas` : null].filter(Boolean).join(' · ') || '—';
+      $res.innerHTML = `
+        <div class="res res--ok">
+          <div class="res__head">
+            <div class="res__badge">${ICON_OK}</div>
+            <div><div class="res__title">Certificado auténtico</div>
+            <div class="res__sub">Emitido y registrado oficialmente por ICADEM</div></div>
           </div>
-
-          <div class="cert-footer">
-            Verificado en tiempo real contra la base de datos oficial de <strong>ICADEM</strong><br>
-            ${new Date().toLocaleString('es-MX', { day:'2-digit', month:'long', year:'numeric', hour:'2-digit', minute:'2-digit' })}
+          <div class="dl">
+            <div class="it it--full"><div class="k">Otorgado a</div><div class="v v--name">${esc(nombre)}</div></div>
+            <div class="it it--full"><div class="k">Curso</div><div class="v">${esc(c.curso || '—')}</div></div>
+            <div class="it"><div class="k">Área</div><div class="v">${esc(c.area || '—')}</div></div>
+            <div class="it"><div class="k">Carga académica</div><div class="v">${esc(carga)}</div></div>
+            <div class="it"><div class="k">Instructor</div><div class="v">${esc(c.instructor || 'Equipo ICADEM')}</div></div>
+            <div class="it"><div class="k">Fecha de emisión</div><div class="v">${fmtFecha(emitido)}</div></div>
           </div>
-        </div>
-      `;
+          <span class="folio-pill">Folio · ${esc(snap.id)}</span>
+        </div>`;
     }
-  } catch(e) {
-    console.error('Error consultando certificado:', e);
-    resultado.innerHTML = `
-      <div class="invalid-card">
-        <span class="status-badge status-invalid">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-          Error
-        </span>
-        <h3>No se pudo verificar el certificado</h3>
-        <p>Ocurrió un error al consultar la base de datos. Intenta de nuevo en unos segundos.</p>
-        <p style="margin-top:.75rem;font-size:11px;color:#94a3b8">Detalle técnico: ${e.code || e.message || 'unknown'}</p>
-      </div>
-    `;
-  } finally {
-    btn.disabled = false;
+  } catch (e) {
+    $res.innerHTML = `
+      <div class="res res--err">
+        <div class="res__head">
+          <div class="res__badge">${ICON_ERR}</div>
+          <div><div class="res__title">No se pudo verificar</div>
+          <div class="res__sub">${esc(e.message || 'Error de conexión')}</div></div>
+        </div>
+        <p style="font-size:13px;color:var(--text-2);">Revisa tu conexión e intenta de nuevo.</p>
+      </div>`;
   }
-};
-
-// ── Si la URL trae ?folio=XXX, auto-consultar
-const urlParams = new URLSearchParams(window.location.search);
-const folioFromUrl = urlParams.get('folio');
-if (folioFromUrl) {
-  document.getElementById('folio-input').value = folioFromUrl;
-  // Esperar a que Firebase termine de inicializar
-  setTimeout(() => window.consultarFolio(), 100);
+  $res.style.display = 'block';
+  $btn.disabled = false; $btn.innerHTML = orig;
 }
-</script>
 
+$btn.addEventListener('click', () => verificar($in.value));
+$in.addEventListener('keydown', e => { if (e.key === 'Enter') verificar($in.value); });
+
+// Folio por URL (?folio=) → verificación automática (QR)
+const f = new URLSearchParams(location.search).get('folio');
+if (f) { $in.value = f.toUpperCase(); verificar(f); }
+</script>
 </body>
 </html>

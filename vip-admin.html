@@ -3688,72 +3688,167 @@ const Pages={
     p.innerHTML=`
       <div class="fade-up">
         <div class="sec-hero">
-          <span class="sec-hero__eyebrow">Emisión</span>
+          <span class="sec-hero__eyebrow">Emisión y registro</span>
           <h1 class="sec-hero__title">Certificados</h1>
-          <p class="sec-hero__sub">Emite certificados con folio único ICADEM-AÑO-XXXXX. El sistema genera el PDF, lo guarda y envía al estudiante por email.</p>
+          <p class="sec-hero__sub">Registro oficial en Firestore (colección <strong style="color:var(--text-2);">certificados</strong>). Los alumnos los emiten automáticamente al completar el 100% de un curso; aquí puedes consultarlos, verificarlos, emitir manualmente o revocar.</p>
           <div class="sec-hero__actions">
-            <button class="btn btn--accent" id="new-cert"><svg class="ic"><use href="#i-plus"/></svg>Emitir certificado</button>
+            <button class="btn btn--accent" id="new-cert"><svg class="ic"><use href="#i-certificate"/></svg>Emitir manualmente</button>
           </div>
         </div>
-        <div class="adm-list" id="cert-list"></div>
+        <div class="kpi-grid" style="margin-bottom:18px;">
+          <div class="kpi-card" style="--c1:#5b92c8;--c2:#8fbce6;"><div class="kpi-card__label">Certificados emitidos</div><div class="kpi-card__value" id="ck-total">—</div></div>
+          <div class="kpi-card" style="--c1:#34D399;--c2:#6ee7b7;"><div class="kpi-card__label">Este año</div><div class="kpi-card__value" id="ck-year">—</div></div>
+          <div class="kpi-card" style="--c1:#F5D77A;--c2:#fbe7a8;"><div class="kpi-card__label">Alumnos certificados</div><div class="kpi-card__value" id="ck-alumnos">—</div></div>
+        </div>
+        <div class="form-field" style="max-width:420px;margin-bottom:14px;">
+          <input id="cert-buscar" placeholder="Buscar por folio, nombre o curso…" autocomplete="off">
+        </div>
+        <div class="adm-list" id="cert-list"><div class="empty-state"><div class="empty-state__title">Cargando certificados…</div></div></div>
       </div>
     `;
-    document.getElementById('new-cert').addEventListener('click',()=>certModal());
-    renderCerts();
-    function renderCerts(){
-      const list=document.getElementById('cert-list');
-      if(SEED.certificados.length===0){list.innerHTML=`<div class="empty"><div class="empty__icon"><svg class="ic"><use href="#i-certificate"/></svg></div><h3>Sin certificados emitidos</h3><p>Empieza emitiendo el primer certificado.</p></div>`;return;}
-      list.innerHTML=SEED.certificados.map(c=>`
-        <div class="adm-row" style="--c1:#5b92c8;">
-          <div class="adm-row__thumb"><svg class="ic"><use href="#i-certificate"/></svg></div>
-          <div class="adm-row__body">
-            <div class="adm-row__title">${c.estudiante} · ${c.curso}</div>
-            <div class="adm-row__meta">
-              <span><svg class="ic"><use href="#i-mail"/></svg>${c.email}</span>
-              <span><svg class="ic"><use href="#i-calendar"/></svg>${c.emitido}</span>
-              <span><svg class="ic"><use href="#i-clock"/></svg>${c.horas}h · ${c.calificacion}/100</span>
-              <span style="color:var(--primary);font-weight:700;">${c.folio}</span>
-            </div>
-          </div>
-          <span class="tag ${c.enviado?'tag--success':'tag--warning'}">${c.enviado?'Enviado':'Pendiente'}</span>
-          <div class="adm-row__actions">
-            <button class="icon-action" title="Ver PDF"><svg class="ic"><use href="#i-eye"/></svg></button>
-            <button class="icon-action icon-action--danger" data-del="${c.id}" title="Eliminar"><svg class="ic"><use href="#i-trash"/></svg></button>
-          </div>
-        </div>
-      `).join('');
-      list.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{
-        if(confirm('¿Eliminar este certificado? Esta acción es irreversible.')){
-          const i=SEED.certificados.findIndex(x=>x.id===b.dataset.del);if(i>=0){SEED.certificados.splice(i,1);renderCerts();Toast.success('Certificado eliminado');}
-        }
-      }));
+    document.getElementById('new-cert').addEventListener('click', () => Pages._modalCertManual());
+    document.getElementById('cert-buscar').addEventListener('input', () => Pages._renderCertsAdmin());
+    Pages._cargarCertsAdmin();
+  },
+
+  async _cargarCertsAdmin(){
+    const fb = window._fb; if (!fb) return;
+    try {
+      const snap = await fb.getDocs(fb.query(fb.collection(fb.db,'certificados'), fb.orderBy('createdAt','desc'), fb.limit(300)));
+      Pages._certsAdmin = snap.docs.map(d => ({ folio: d.id, ...d.data() }));
+    } catch (e) {
+      // fallback sin índice de orden
+      try {
+        const snap = await fb.getDocs(fb.collection(fb.db,'certificados'));
+        Pages._certsAdmin = snap.docs.map(d => ({ folio: d.id, ...d.data() }));
+      } catch (e2) {
+        const list=document.getElementById('cert-list');
+        if (list) list.innerHTML = `<div class="empty-state"><div class="empty-state__title">Error al leer certificados</div><div class="empty-state__sub">${e2.message||''}</div></div>`;
+        return;
+      }
     }
-    function certModal(){
-      const cursosOpts=SEED.cursos.filter(c=>c.activo).map(c=>`<option>${c.titulo}</option>`).join('');
-      const folio='ICADEM-2026-'+String(Math.floor(10000+Math.random()*89999));
-      const body=`
-        <div class="form-grid">
-          <div class="form-field form-field--full"><label class="label">Estudiante</label><input type="text" class="input" id="ce-nom" placeholder="Nombre completo del estudiante"></div>
-          <div class="form-field"><label class="label">Email</label><input type="email" class="input" id="ce-email" placeholder="email@example.com"></div>
-          <div class="form-field"><label class="label">Folio (auto)</label><input type="text" class="input" id="ce-folio" value="${folio}" readonly style="font-family:'JetBrains Mono',monospace;color:var(--primary);font-weight:700;"></div>
-          <div class="form-field form-field--full"><label class="label">Curso completado</label><select class="select" id="ce-curso">${cursosOpts}</select></div>
-          <div class="form-field"><label class="label">Horas</label><input type="number" class="input" id="ce-horas" value="8" min="1"></div>
-          <div class="form-field"><label class="label">Calificación</label><input type="number" class="input" id="ce-cal" value="90" min="0" max="100"></div>
-          <div class="form-field form-field--full" style="display:flex;align-items:center;gap:10px;flex-direction:row;"><input type="checkbox" id="ce-enviar" checked><label for="ce-enviar" style="cursor:pointer;font-size:13px;font-weight:500;">Enviar al estudiante por email automáticamente</label></div>
-        </div>
-      `;
-      const footer=document.createElement('div');
-      footer.innerHTML=`<button class="btn btn--ghost" id="m-cancel">Cancelar</button><button class="btn btn--accent" id="m-save">Emitir certificado<svg class="ic"><use href="#i-certificate"/></svg></button>`;
-      Modal.open({title:'Emitir nuevo certificado',subtitle:folio,icon:'i-certificate',body,footer});
-      footer.querySelector('#m-cancel').addEventListener('click',()=>Modal.close());
-      footer.querySelector('#m-save').addEventListener('click',()=>{
-        const data={estudiante:document.getElementById('ce-nom').value.trim(),email:document.getElementById('ce-email').value.trim(),folio:document.getElementById('ce-folio').value,curso:document.getElementById('ce-curso').value,horas:+document.getElementById('ce-horas').value,calificacion:+document.getElementById('ce-cal').value,enviado:document.getElementById('ce-enviar').checked,emitido:new Date().toISOString().slice(0,10)};
-        if(!data.estudiante||!data.email){Toast.error('Faltan datos','Nombre y email son obligatorios.');return;}
-        SEED.certificados.unshift({id:'cert'+Date.now(),...data});
-        Toast.success('Certificado emitido',data.folio+(data.enviado?' · Enviado por email':''));
-        Modal.close();renderCerts();
-      });
+    Pages._renderCertsAdmin();
+  },
+
+  _renderCertsAdmin(){
+    const list = document.getElementById('cert-list'); if (!list) return;
+    const all = Pages._certsAdmin || [];
+    const yr = new Date().getFullYear();
+    const setK=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v; };
+    setK('ck-total', all.length);
+    setK('ck-year', all.filter(c => (c.year || new Date(c.emitido||0).getFullYear()) === yr).length);
+    setK('ck-alumnos', new Set(all.map(c => c.uid || c.nombre)).size);
+
+    const q = (document.getElementById('cert-buscar')?.value || '').trim().toLowerCase();
+    const certs = !q ? all : all.filter(c =>
+      (c.folio||'').toLowerCase().includes(q) ||
+      (c.nombre||c.nombreAlumno||'').toLowerCase().includes(q) ||
+      (c.curso||'').toLowerCase().includes(q)
+    );
+    if (!certs.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-state__title">${q ? 'Sin resultados para tu búsqueda' : 'Aún no hay certificados emitidos'}</div><div class="empty-state__sub">${q ? 'Prueba con otro folio, nombre o curso.' : 'Se emiten solos cuando un alumno completa el 100% de un curso.'}</div></div>`;
+      return;
     }
+    const fmtF = v => { try { const d = v?.toDate ? v.toDate() : new Date(v); return isNaN(d) ? '—' : d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}); } catch(e){ return '—'; } };
+    list.innerHTML = certs.map(c => `
+      <div class="adm-row">
+        <div class="adm-row__thumb" style="--c1:#5b92c8;display:flex;align-items:center;justify-content:center;"><svg class="ic" style="width:20px;height:20px;color:#5b92c8;"><use href="#i-certificate"/></svg></div>
+        <div class="adm-row__body">
+          <div class="adm-row__title">${(c.nombre||c.nombreAlumno||'—').replace(/</g,'&lt;')}</div>
+          <div class="adm-row__meta">${(c.curso||'—').replace(/</g,'&lt;')} · ${c.area||''} · ${c.horas||0}h · Emitido ${fmtF(c.emitido||c.createdAt)}</div>
+          <div class="adm-row__meta" style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-3);">${c.folio}</div>
+        </div>
+        <div class="adm-row__actions">
+          <a class="icon-action" href="verificar.html?folio=${encodeURIComponent(c.folio)}" target="_blank" rel="noopener" title="Verificar"><svg class="ic"><use href="#i-arrow-right"/></svg></a>
+          <button class="icon-action icon-action--danger" data-del-cert="${c.folio}" title="Revocar"><svg class="ic"><use href="#i-trash"/></svg></button>
+        </div>
+      </div>`).join('');
+    list.querySelectorAll('[data-del-cert]').forEach(b => b.addEventListener('click', async () => {
+      const folio = b.dataset.delCert;
+      if (!confirm(`¿Revocar el certificado ${folio}?\n\nDejará de aparecer como válido en la verificación pública. Esta acción es irreversible.`)) return;
+      try {
+        const fb = window._fb;
+        await fb.deleteDoc(fb.doc(fb.db,'certificados', folio));
+        Toast.success('Certificado revocado', folio);
+        Pages._certsAdmin = (Pages._certsAdmin||[]).filter(c => c.folio !== folio);
+        Pages._renderCertsAdmin();
+      } catch(e){ Toast.error('No se pudo revocar', e.message||''); }
+    }));
+  },
+
+  _modalCertManual(){
+    const areas = ['Fiscal','Nómina','Legal','Contabilidad','Recursos Humanos','Finanzas','Negocios'];
+    const cursos = (window.AdminStore?.cursos || []).slice().sort((a,b)=>(a.titulo||'').localeCompare(b.titulo||''));
+    const body = document.createElement('div');
+    body.innerHTML = `
+      <div class="form-grid">
+        <div class="form-field form-field--full"><label>Nombre completo del alumno *</label><input id="cm-nombre" placeholder="Como aparecerá en el certificado"></div>
+        <div class="form-field form-field--full"><label>UID del alumno (opcional)</label><input id="cm-uid" placeholder="Pégalo desde la sección Miembros · si lo dejas vacío se registra a nombre del admin"></div>
+        <div class="form-field form-field--full"><label>Curso *</label>
+          <select id="cm-curso">
+            <option value="">— Selecciona un curso del catálogo —</option>
+            ${cursos.map(c=>`<option value="${c.id}" data-titulo="${(c.titulo||'').replace(/"/g,'&quot;')}" data-area="${c.area||''}" data-horas="${c.horas||0}" data-sesiones="${(c.sesiones||[]).length}">${(c.titulo||'')}</option>`).join('')}
+            <option value="__otro">Otro (escribir manualmente)</option>
+          </select>
+        </div>
+        <div class="form-field form-field--full" id="cm-otro-wrap" style="display:none;"><label>Nombre del curso *</label><input id="cm-otro" placeholder="Título exacto del curso"></div>
+        <div class="form-field"><label>Área *</label><select id="cm-area">${areas.map(a=>`<option>${a}</option>`).join('')}</select></div>
+        <div class="form-field"><label>Horas *</label><input id="cm-horas" type="number" min="1" value="8"></div>
+      </div>
+      <p style="font-size:11.5px;color:var(--text-3);margin-top:12px;line-height:1.6;">El folio se genera automáticamente con el formato <span style="font-family:'JetBrains Mono',monospace;color:var(--primary-soft,#8fbce6);">ICADEM-AÑO-XXXXXX</span> y queda verificable de inmediato en verificar.html.</p>
+    `;
+    const footer = document.createElement('div');
+    footer.innerHTML = `<button class="btn btn--ghost" id="cm-cancel">Cancelar</button><button class="btn btn--accent" id="cm-save">Emitir certificado</button>`;
+    const m = Modal.open({ id:'cert-manual', title:'Emitir certificado manual', subtitle:'Quedará en el registro oficial', icon:'i-certificate', body, footer });
+    body.querySelector('#cm-curso').addEventListener('change', e => {
+      const otro = e.target.value === '__otro';
+      body.querySelector('#cm-otro-wrap').style.display = otro ? '' : 'none';
+      const opt = e.target.selectedOptions[0];
+      if (!otro && opt && opt.dataset.area) {
+        body.querySelector('#cm-area').value = opt.dataset.area;
+        if (opt.dataset.horas && opt.dataset.horas !== '0') body.querySelector('#cm-horas').value = opt.dataset.horas;
+      }
+    });
+    footer.querySelector('#cm-cancel').addEventListener('click', () => m.close());
+    footer.querySelector('#cm-save').addEventListener('click', async () => {
+      const nombre = body.querySelector('#cm-nombre').value.trim();
+      const sel = body.querySelector('#cm-curso');
+      const esOtro = sel.value === '__otro';
+      const opt = sel.selectedOptions[0];
+      const cursoTitulo = esOtro ? body.querySelector('#cm-otro').value.trim() : (opt?.dataset.titulo || '');
+      const area = body.querySelector('#cm-area').value;
+      const horas = Number(body.querySelector('#cm-horas').value) || 0;
+      if (!nombre) { Toast.error('Falta el nombre del alumno'); return; }
+      if (!cursoTitulo) { Toast.error('Selecciona o escribe el curso'); return; }
+      if (horas < 1) { Toast.error('Las horas deben ser al menos 1'); return; }
+      const fb = window._fb;
+      const uid = body.querySelector('#cm-uid').value.trim() || (window.__currentAdmin?.uid || 'admin');
+      const yr = new Date().getFullYear();
+      // folio: hash de uid|curso|timestamp → base36 de 6
+      let h = 0; const s = uid + '|' + cursoTitulo + '|' + Date.now();
+      for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+      const folio = `ICADEM-${yr}-${Math.abs(h).toString(36).toUpperCase().padStart(6,'0').slice(-6)}`;
+      const btn = footer.querySelector('#cm-save'); btn.disabled = true; btn.textContent = 'Emitiendo…';
+      try {
+        const { doc, setDoc, serverTimestamp } = fb;
+        await setDoc(doc(fb.db,'certificados',folio), {
+          folio, uid, nombre,
+          cursoId: esOtro ? null : (sel.value || null),
+          curso: cursoTitulo, area, horas,
+          sesiones: esOtro ? 0 : Number(opt?.dataset.sesiones || 0),
+          instructor: 'Equipo ICADEM',
+          emitido: new Date().toISOString(), year: yr,
+          emitidoPor: window.__currentAdmin?.email || 'admin',
+          createdAt: serverTimestamp()
+        });
+        Toast.success('Certificado emitido', folio);
+        m.close();
+        Pages._cargarCertsAdmin();
+      } catch(e){
+        Toast.error('No se pudo emitir', e.message||'');
+        btn.disabled = false; btn.textContent = 'Emitir certificado';
+      }
+    });
   },
 
   // ════════════════════════════════════════════════════════════════════

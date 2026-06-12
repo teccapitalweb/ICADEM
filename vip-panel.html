@@ -4111,7 +4111,7 @@ function bnPdfHeader(pdf, titulo, sub){
 function bnPdfFooter(pdf){
   const W=210,H=297,M=16;
   pdf.setFontSize(8); pdf.setTextColor(150,160,178);
-  pdf.text('Generado con ICADEM VIP · icademmexico.com · '+new Date().toLocaleDateString('es-MX'), M, H-10);
+  pdf.text('Generado con ICADEM VIP · icademx.com · '+new Date().toLocaleDateString('es-MX'), M, H-10);
 }
 
 /* Registro */
@@ -5823,7 +5823,7 @@ const Sections = (function(){
               <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Folio único <code style="font-family:'JetBrains Mono',monospace;background:var(--surface-3);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--primary);">ICADEM-2026-XXXXXX</code></span></div>
               <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Código QR verificable desde cualquier dispositivo</span></div>
               <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Descargable en PDF · listo para LinkedIn y currículum</span></div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Verificación pública en <strong style="color:var(--text);">icademmexico.com/verificar</strong></span></div>
+              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Verificación pública en <strong style="color:var(--text);">icademx.com/verificar.html</strong></span></div>
             </div>
             <a class="btn btn--accent" data-go-cursos style="cursor:pointer;" onclick="window.navigateToSection && window.navigateToSection('cursos')">
               <svg class="ic"><use href="#i-book"/></svg>
@@ -5931,7 +5931,7 @@ const Sections = (function(){
     document.head.appendChild(st);
   }
   function assetUrl(f){ try { return new URL(f, location.href).href; } catch(e){ return f; } }
-  function verifyUrlCert(folio){ return 'https://www.icademmexico.com/verificar.html?folio=' + encodeURIComponent(folio); }
+  function verifyUrlCert(folio){ return 'https://www.icademx.com/verificar.html?folio=' + encodeURIComponent(folio); }
   function qrUrlCert(folio){ return 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=0&data=' + encodeURIComponent(verifyUrlCert(folio)); }
 
   function buildCertPremium(c, nombre){
@@ -5958,7 +5958,7 @@ const Sections = (function(){
             <div class="cp-sig"><div class="im"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==" alt=""></div><div class="ln"></div><div class="nm">Coordinación de Certificación</div><div class="ro">IPCI Latinoamericano</div></div>
             <div class="cp-sealw">${CP_SEAL}</div>
           </div>
-          <div class="cp-bar"><span>Folio: <b>${c.folio}</b></span><span class="s"></span><span>icademmexico.com</span><span class="s"></span><span>Emitido el ${fechaTxt}</span><span class="s"></span><span>Certificado emitido digitalmente por ICADEM / IPCI Latinoamericano</span></div>
+          <div class="cp-bar"><span>Folio: <b>${c.folio}</b></span><span class="s"></span><span>icademx.com</span><span class="s"></span><span>Emitido el ${fechaTxt}</span><span class="s"></span><span>Certificado emitido digitalmente por ICADEM / IPCI Latinoamericano</span></div>
         </div>
       </div></div>`;
   }
@@ -6206,7 +6206,7 @@ const Sections = (function(){
     footer.innerHTML=`<button class="btn btn--ghost" id="ct-close">Cerrar</button><button class="btn btn--ghost" id="ct-share">Compartir LinkedIn<svg class="ic"><use href="#i-arrow-right"/></svg></button><button class="btn btn--accent" id="ct-pdf">Descargar PDF<svg class="ic"><use href="#i-download"/></svg></button>`;
     const m=Modal.open({id:'cert-'+id,title:'Certificado ICADEM',subtitle:c.folio,icon:'i-certificate',size:'lg',body,footer});
     footer.querySelector('#ct-close').addEventListener('click',()=>m.close());
-    footer.querySelector('#ct-share').addEventListener('click',()=>{window.open('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent('https://www.icademmexico.com/verificar/'+c.folio),'_blank');Toast.success('Compartiendo','Abriendo LinkedIn…');});
+    footer.querySelector('#ct-share').addEventListener('click',()=>{window.open('https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent('https://www.icademx.com/verificar.html?folio='+encodeURIComponent(c.folio)),'_blank');Toast.success('Compartiendo','Abriendo LinkedIn…');});
     footer.querySelector('#ct-pdf').addEventListener('click',()=>generarPDFCert(c));
   }
   function generarPDFCert(c){
@@ -6227,7 +6227,7 @@ const Sections = (function(){
       pdf.setFontSize(14);pdf.setTextColor(26,20,16);pdf.text(String(c.horas),60,148);pdf.text(String(c.calificacion),105,148);pdf.text(c.area,160,148);pdf.text(formatDate(c.emitido),220,148);
       pdf.line(40,154,257,154);
       pdf.setFontSize(10);pdf.setTextColor(120,108,90);pdf.text(c.instructor,55,175);pdf.text('Instructor',55,181);
-      pdf.text('Folio: '+c.folio,242,175,{align:'right'});pdf.text('Verifica en icademmexico.com/verificar',242,181,{align:'right'});
+      pdf.text('Folio: '+c.folio,242,175,{align:'right'});pdf.text('Verifica en icademx.com/verificar.html',242,181,{align:'right'});
       pdf.save('certificado-'+c.folio+'.pdf');
       Toast.success('PDF descargado',c.folio);
     }catch(e){console.error(e);Toast.error('Error generando PDF',e.message||'Intenta de nuevo');}
@@ -6593,7 +6593,7 @@ const Sections = (function(){
   function descargarICS(w){
     const f=new Date(w.fecha);const end=new Date(f.getTime()+w.duracion*60*1000);
     const fmt=d=>d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
-    const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//ICADEM//ES','BEGIN:VEVENT','UID:'+w.id+'@icademmexico.com','DTSTAMP:'+fmt(new Date()),'DTSTART:'+fmt(f),'DTEND:'+fmt(end),'SUMMARY:'+w.titulo,'DESCRIPTION:'+(w.desc||'').replace(/\n/g,'\\n')+'\\n\\nInstructor: '+w.instructor,'LOCATION:Online · ICADEM Panel VIP','BEGIN:VALARM','TRIGGER:-PT1H','ACTION:DISPLAY','DESCRIPTION:Tu clase ICADEM en 1 hora','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
+    const ics=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//ICADEM//ES','BEGIN:VEVENT','UID:'+w.id+'@icademx.com','DTSTAMP:'+fmt(new Date()),'DTSTART:'+fmt(f),'DTEND:'+fmt(end),'SUMMARY:'+w.titulo,'DESCRIPTION:'+(w.desc||'').replace(/\n/g,'\\n')+'\\n\\nInstructor: '+w.instructor,'LOCATION:Online · ICADEM Panel VIP','BEGIN:VALARM','TRIGGER:-PT1H','ACTION:DISPLAY','DESCRIPTION:Tu clase ICADEM en 1 hora','END:VALARM','END:VEVENT','END:VCALENDAR'].join('\r\n');
     const blob=new Blob([ics],{type:'text/calendar'});const url=URL.createObjectURL(blob);
     const a=document.createElement('a');a.href=url;a.download='ICADEM-'+w.id+'.ics';a.click();URL.revokeObjectURL(url);
     Toast.success('Evento descargado','Importa el .ics a tu calendario');
@@ -8446,7 +8446,7 @@ const ICADEM_CONTACT = {
   // Zoom de la próxima clase (muestra · sustituir por el real al confirmar webinar)
   zoom: 'https://zoom.us/j/85234567890?pwd=ICADEM2026OEE',
   // Sitio público
-  sitio: 'https://www.icademmexico.com',
+  sitio: 'https://www.icademx.com',
 
   // Helpers para armar links wa.me con mensajes prediseñados
   waLink(text, num) {
@@ -9158,7 +9158,7 @@ function initNav(){
     const ics = [
       'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//ICADEM//ES',
       'BEGIN:VEVENT',
-      'UID:' + (prox.id || 'webinar') + '@icademmexico.com',
+      'UID:' + (prox.id || 'webinar') + '@icademx.com',
       'DTSTAMP:' + fmt(new Date()),
       'DTSTART:' + fmt(target),
       'DTEND:' + fmt(end),
