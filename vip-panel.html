@@ -3068,7 +3068,7 @@ body.has-fomo .main{padding-top:18px}
 <!-- Stripe.js para Embedded Checkout (sección Suscripción) -->
 <script src="https://js.stripe.com/v3/"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -8420,6 +8420,8 @@ const Sections = (function(){
       'tool-calc-fiscal':(c)=>window.ToolCalcFiscal.mount(c),
       'tool-calc-nomina':(c)=>window.ToolCalcNomina.mount(c),
       'tool-calc-credito':(c)=>window.ToolCalcCredito.mount(c),
+
+
       'tool-plantillas':(c)=>window.ToolPlantillas.mount(c),
       'tool-diluciones':(c)=>ToolDiluciones.mount(c),
       'tool-ufc':(c)=>ToolUFC.mount(c),
@@ -8432,6 +8434,22 @@ const Sections = (function(){
     },
     countdownTimer:null
   };
+
+  // Garantiza que los generadores PDF/XLS de la Calc Fiscal estén registrados
+  // (se registran al montar la fiscal; si el usuario entra directo a Nómina o
+  // Crédito, los montamos una vez en un contenedor invisible).
+  window.__ensureCfGenerators = function(){
+    if (typeof window._cfGenerarXLS === 'function' && typeof window._cfGenerarPDF === 'function') return true;
+    try {
+      const tmp = document.createElement('div');
+      tmp.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;';
+      document.body.appendChild(tmp);
+      window.ToolCalcFiscal && window.ToolCalcFiscal.mount(tmp);
+      tmp.remove();
+    } catch(e) { console.warn('[ensureCfGenerators]', e); }
+    return typeof window._cfGenerarXLS === 'function';
+  };
+
 })();
 
 // ═══════════════════════════════════════════════════════════════════
@@ -10075,7 +10093,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .cf-result-body{margin-top:14px;border:1px solid var(--border-2);border-radius:12px;overflow:hidden}
 .cf-result-row{display:flex;justify-content:space-between;gap:12px;padding:10px 14px;font-size:13px;color:var(--text-2);border-bottom:1px solid var(--border-2);background:var(--surface)}
 .cf-result-row:last-child{border-bottom:none}
-.cf-result-row .cf-result-value{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+.cf-result-row .cf-result-value{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;overflow-wrap:anywhere;min-width:0}
 .cf-result-row.is-neg .cf-result-value{color:#f87171}
 .cf-result-row.is-total{background:color-mix(in srgb,var(--primary) 12%,var(--surface));font-weight:700}
 .cf-result-row.is-total .cf-result-label{color:var(--text)}
@@ -10850,6 +10868,8 @@ window.__initCalcFiscal = function(){
       if (idx === 4) return { hpt: 22 };          // header sección
       if (idx === desgloseHdrIdx) return { hpt: 22 };
       if (idx === avisoHdrIdx) return { hpt: 20 };
+      if (idx === avisoHdrIdx + 1) return { hpt: 78 };            // texto del aviso con wrap
+      if (fundIdx >= 0 && idx === fundIdx + 1) return { hpt: 34 }; // fundamento legal con wrap
       if (idx === tableHdrIdx) return { hpt: 24 };
       if (totalRowIdxs.includes(idx)) return { hpt: 26 };
       if (totalRowIdx === idx) return { hpt: 30 };  // total principal
@@ -11953,6 +11973,29 @@ window.ToolCalcFiscal = {
 <style id="css-calc-nomina">
 /* Tabla multi-empleado */
 .nmx-tablewrap{overflow-x:auto;margin-top:16px;border:1px solid var(--border-2);border-radius:12px;padding:4px}
+
+/* ═══ Herramientas · pulido responsive (móvil primero) ═══ */
+.nm-multi-result-table,
+.pt-comp-result-table{
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+  margin-top:16px;
+  border:1px solid var(--border-2);
+  border-radius:12px;
+  padding:4px;
+}
+.nm-multi-result-table .cf-multi-table,
+.pt-comp-result-table .cf-multi-table{ min-width:560px; width:100%; }
+.cf-multi-table td, .cf-multi-table th{ white-space:nowrap; }
+.pt-recomendacion, .cf-result-fundamento{ overflow-wrap:anywhere; }
+
+@media (max-width:720px){
+  .nm-multi-result-table .cf-multi-table,
+  .pt-comp-result-table .cf-multi-table{ min-width:520px; font-size:12px; }
+  .cf-multi-table td, .cf-multi-table th{ padding:8px 10px; }
+  .bn-tool input, .bn-tool select, .bn-tool textarea{ font-size:16px; } /* evita el auto-zoom de iOS al enfocar */
+  .cf-action{ flex:1 1 calc(50% - 8px); justify-content:center; min-width:128px; }
+}
 #sec-calc-nomina .bn-tbl{min-width:560px}
 /* Alias: filas dinámicas que el JS genera con clases clásicas */
 #sec-calc-nomina .cf-input{width:100%;box-sizing:border-box;min-height:42px;background:var(--surface-2);color:var(--text);border:1px solid var(--border-2);border-radius:10px;padding:9px 11px;font-size:13px;font-family:inherit;transition:border-color .18s}
@@ -12717,15 +12760,15 @@ window.__initCalcNomina = function(){
   // Reusamos cfDownloadPDF y cfDownloadXLS via window
   // ═══════════════════════════════════════════════════════════
   window.cfDownloadPDF_externo = function(data) {
-    // Adaptamos data para reusar generador de Calc Fiscal
+    if (typeof window._cfGenerarPDF !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
     if (typeof window._cfGenerarPDF === 'function') {
       window._cfGenerarPDF(data);
     } else {
-      // Fallback: usar función propia simple
       generarReciboPDF(data);
     }
   };
   window.cfDownloadXLS_externo = function(data) {
+    if (typeof window._cfGenerarXLS !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
     if (typeof window._cfGenerarXLS === 'function') {
       window._cfGenerarXLS(data);
     } else {
@@ -13608,7 +13651,8 @@ window.__initCalcCredito = function(){
     if (!data || !window.jspdf) return;
     if (data.tipo === 'amortizacion') {
       generarAmortizacionPDF(data);
-    } else if (typeof window._cfGenerarPDF === 'function') {
+    } else if (typeof window._cfGenerarPDF !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
+      if (typeof window._cfGenerarPDF === 'function') {
       window._cfGenerarPDF(data);
     }
   };
@@ -13617,7 +13661,8 @@ window.__initCalcCredito = function(){
     if (!data || !window.XLSX) return;
     if (data.tipo === 'amortizacion') {
       generarAmortizacionXLS(data);
-    } else if (typeof window._cfGenerarXLS === 'function') {
+    } else if (typeof window._cfGenerarXLS !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
+      if (typeof window._cfGenerarXLS === 'function') {
       window._cfGenerarXLS(data);
     }
   };
@@ -14206,6 +14251,7 @@ window.__initCalcCredito = function(){
       if (idx === 2) return { hpt: 14 };
       if (idx === 4 || idx === 14 || idx === 19) return { hpt: 22 };
       if (idx === tableHdrIdx) return { hpt: 22 };
+      if (idx === avisoIdx + 1) return { hpt: 56 };  // aviso legal con wrap
       return { hpt: 18 };
     });
 
@@ -14474,36 +14520,45 @@ window.__initCalcCredito = function(){
   }
 
   function calcCAT(monto, tasaAnual, n, comision, seguroMensual, conIVA) {
-    // CAT calculado iterativamente: tasa que iguala el flujo neto
-    const tasaMensual = tasaAnual / 100 / 12;
+    // Saneo de entradas
+    monto = Math.max(0, Number(monto) || 0);
+    n = Math.max(1, Math.round(Number(n) || 0));
+    comision = Math.max(0, Number(comision) || 0);
+    seguroMensual = Math.max(0, Number(seguroMensual) || 0);
+    const tasaMensual = (Number(tasaAnual) || 0) / 100 / 12;
     const factor = Math.pow(1 + tasaMensual, n);
-    const pagoBase = tasaMensual === 0 ? monto / n : monto * (tasaMensual * factor) / (factor - 1);
+    const pagoBase = monto <= 0 ? 0 : (tasaMensual === 0 ? monto / n : monto * (tasaMensual * factor) / (factor - 1));
     const pagoConSeguro = pagoBase + seguroMensual;
     const ivaFactor = conIVA ? 1.16 : 1;
-
-    // Flujo: el cliente recibe (monto - comision)
-    const recibido = monto - comision;
-    // Pagos mensuales: pagoConSeguro * ivaFactor
-
-    // Encontrar tasa i tal que: recibido = pagoConSeguro*ivaFactor * [(1-(1+i)^-n)/i]
-    // Bisección
-    let lo = 0, hi = 5; // tasa mensual entre 0 y 500%
-    let cat = 0;
     const pagoEfectivo = pagoConSeguro * ivaFactor;
-    for (let iter = 0; iter < 100; iter++) {
-      const mid = (lo + hi) / 2;
-      const valor = mid === 0
-        ? pagoEfectivo * n
-        : pagoEfectivo * (1 - Math.pow(1 + mid, -n)) / mid;
-      if (valor > recibido) lo = mid;
-      else hi = mid;
-      if (Math.abs(hi - lo) < 1e-8) break;
-      cat = (lo + hi) / 2;
+    const recibido = monto - comision;
+    const totalPagado = pagoEfectivo * n + comision;
+
+    // Sin CAT calculable: el cliente no recibe nada (comisión ≥ monto) o datos vacíos
+    if (monto <= 0 || recibido <= 0 || pagoEfectivo <= 0) {
+      return { pagoBase, pagoConSeguro, pagoEfectivo, catAnual: null, totalPagado };
     }
-    // CAT efectivo anual
-    const catAnual = (Math.pow(1 + cat, 12) - 1) * 100;
-    return { pagoBase, pagoConSeguro, pagoEfectivo, catAnual, totalPagado: pagoEfectivo * n + comision };
+    // Lo pagado no supera lo recibido → costo efectivo ~0
+    if (pagoEfectivo * n <= recibido) {
+      return { pagoBase, pagoConSeguro, pagoEfectivo, catAnual: 0, totalPagado };
+    }
+    // Bisección: VP de la anualidad es decreciente en i · tope 100% MENSUAL
+    let lo = 0, hi = 1;
+    for (let iter = 0; iter < 200; iter++) {
+      const mid = (lo + hi) / 2;
+      const valor = pagoEfectivo * (mid === 0 ? n : (1 - Math.pow(1 + mid, -n)) / mid);
+      if (valor > recibido) lo = mid; else hi = mid;
+      if (hi - lo < 1e-10) break;
+    }
+    const i = (lo + hi) / 2;
+    // Encalló en el tope → los datos no tienen solución financiera razonable
+    if (i >= 1 - 1e-6) return { pagoBase, pagoConSeguro, pagoEfectivo, catAnual: null, totalPagado };
+    const catAnual = (Math.pow(1 + i, 12) - 1) * 100;
+    return { pagoBase, pagoConSeguro, pagoEfectivo, catAnual, totalPagado };
   }
+
+  // Formato seguro del CAT (null = no calculable con esos datos)
+  function fmtCAT(v) { return (v === null || v === undefined || !isFinite(v)) ? 'N/D' : fmtPct(v); }
 
   function calcComp() {
     const grid = document.getElementById('pt-comp-grid');
@@ -14533,7 +14588,9 @@ window.__initCalcCredito = function(){
     }
 
     // Mejor opción: menor CAT
-    const mejorIdx = opciones.reduce((bestIdx, o, i, arr) => o.catAnual < arr[bestIdx].catAnual ? i : bestIdx, 0);
+    const conCat = opciones.map((o, i) => ({ o, i })).filter(x => x.o.catAnual !== null);
+      const mejorIdx = conCat.length ? conCat.reduce((b, x) => x.o.catAnual < opciones[b].catAnual ? x.i : b, conCat[0].i) : 0;
+      const hayND = opciones.some(o => o.catAnual === null);
 
     const cont = document.getElementById('pt-comp-result');
     cont.innerHTML = `
@@ -14557,23 +14614,22 @@ window.__initCalcCredito = function(){
             </thead>
             <tbody>
               ${opciones.map((o, i) => `
-                <tr ${i === mejorIdx ? 'class="pt-comp-best"' : ''}>
+                <tr ${i === mejorIdx && opciones[mejorIdx].catAnual !== null ? 'class="pt-comp-best"' : ''}>
                   <td><strong>${o.nombre}</strong><br><span style="font-size:11px;color:var(--text-3)">Tasa ${fmtPct(o.tasa)} · ${o.plazo} meses</span></td>
                   <td style="text-align:right;font-family:monospace;font-weight:bold">${fmt(o.pagoEfectivo)}</td>
                   <td style="text-align:right;font-family:monospace">${fmt(o.totalPagado)}</td>
-                  <td style="text-align:right;font-family:monospace;font-weight:bold;color:${i === mejorIdx ? '#86efac' : '#f87171'}">${fmtPct(o.catAnual)}</td>
-                  <td>${i === mejorIdx ? '<span class="pt-best-badge">MEJOR OPCIÓN</span>' : '—'}</td>
+                  <td style="text-align:right;font-family:monospace;font-weight:bold;color:${i === mejorIdx ? '#86efac' : '#f87171'}">${fmtCAT(o.catAnual)}</td>
+                  <td>${i === mejorIdx && opciones[mejorIdx].catAnual !== null ? '<span class="pt-best-badge">MEJOR OPCIÓN</span>' : '—'}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
         </div>
-        <div class="pt-recomendacion is-good">
-          <strong>Recomendación:</strong> La opción <strong>"${opciones[mejorIdx].nombre}"</strong> tiene el CAT más bajo
-          (${fmtPct(opciones[mejorIdx].catAnual)}). Te ahorras
-          <strong>${fmt(opciones.reduce((s, o, i) => i === mejorIdx ? s : s + (o.totalPagado - opciones[mejorIdx].totalPagado), 0) / (opciones.length - 1 || 1))}</strong>
-          en promedio comparado con las demás opciones.
-        </div>
+        <div class="pt-recomendacion ${opciones[mejorIdx].catAnual === null ? 'is-warn' : 'is-good'}">
+            ${opciones[mejorIdx].catAnual === null
+              ? '<strong>⚠ No se pudo calcular el CAT de ninguna opción.</strong> Revisa que el monto sea mayor que la comisión y que tasa y plazo sean correctos.'
+              : `<strong>Recomendación:</strong> La opción <strong>"${opciones[mejorIdx].nombre}"</strong> tiene el CAT más bajo (${fmtCAT(opciones[mejorIdx].catAnual)}). Te ahorras <strong>${fmt(opciones.reduce((s, o, i) => i === mejorIdx ? s : s + (o.totalPagado - opciones[mejorIdx].totalPagado), 0) / (opciones.length - 1 || 1))}</strong> en promedio comparado con las demás opciones.${hayND ? ' <em>Las opciones marcadas N/D no entran en la comparación (revisa monto vs comisión).</em>' : ''}`}
+          </div>
         <p class="cf-result-fundamento">📚 <strong>Sobre el CAT:</strong> El Costo Anual Total incluye intereses + comisiones + seguros. Es la medida estandarizada por CONDUSEF para comparar créditos en igualdad de condiciones. <strong>A menor CAT, mejor crédito.</strong></p>
       </div>
     `;
@@ -14891,13 +14947,15 @@ window.__initCalcCredito = function(){
     const item = ptLoadHist().find(i => i.id === id);
     if (!item) return;
     if (item.tipo === 'amortizacion') generarAmortizacionPDF(item);
-    else if (typeof window._cfGenerarPDF === 'function') window._cfGenerarPDF(item);
+    else if (typeof window._cfGenerarPDF !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
+      if (typeof window._cfGenerarPDF === 'function') window._cfGenerarPDF(item);
   };
   window.ptHistDownloadXLS = function(id) {
     const item = ptLoadHist().find(i => i.id === id);
     if (!item) return;
     if (item.tipo === 'amortizacion') generarAmortizacionXLS(item);
-    else if (typeof window._cfGenerarXLS === 'function') window._cfGenerarXLS(item);
+    else if (typeof window._cfGenerarXLS !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
+      if (typeof window._cfGenerarXLS === 'function') window._cfGenerarXLS(item);
   };
   window.ptHistDelete = function(id) {
     if (confirm('¿Borrar este cálculo del historial?')) ptDeleteHistItem(id);
