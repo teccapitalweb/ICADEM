@@ -4944,48 +4944,87 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Cron automático</span>
           <h1 class="sec-hero__title">Noticias</h1>
-          <p class="sec-hero__sub">El cron de Railway corre cada día a las 7 AM y publica noticias del sector fiscal, contable y de negocios en el panel VIP.</p>
+          <p class="sec-hero__sub">El cron de Railway corre cada día a las 7 AM y publica noticias del sector fiscal, contable y de negocios (español e inglés) en el panel VIP. Aquí ves la colección <strong style="color:var(--text-2);">noticias_auto</strong> en tiempo real.</p>
         </div>
-
         <section class="cron-card">
           <div class="cron-card__row">
-            <div class="cron-card__icon"><svg class="ic" style="width:24px;height:24px;"><use href="#i-refresh"/></svg></div>
+            <div class="cron-card__icon"><svg class="ic" style="width:24px;height:24px"><use href="#i-news"/></svg></div>
             <div class="cron-card__info">
-              <span class="cron-card__lbl">${SEED.config.cronStatus==='activo'?'Cron en línea':'Cron pausado'}</span>
+              <span class="cron-card__lbl" id="cron-lbl">Cron en línea</span>
               <div class="cron-card__title">NewsData → Firestore</div>
-              <div class="cron-card__sub">Última ejecución: <strong>${SEED.config.cronUltima}</strong> · Próxima: <strong>${SEED.config.cronProxima}</strong> · <strong>${SEED.config.noticiasGeneradas}</strong> noticias publicadas en mayo</div>
+              <div class="cron-card__sub" id="cron-sub">Cargando estado…</div>
             </div>
-            <button class="btn btn--ghost" id="cron-run"><svg class="ic"><use href="#i-refresh"/></svg>Ejecutar ahora</button>
+            <button class="btn btn--ghost" id="cron-run"><svg class="ic"><use href="#i-arrow-right"/></svg>Ejecutar ahora</button>
           </div>
         </section>
-
-        <div class="section-header"><h2 class="section-header__title">Noticias publicadas hoy<span class="section-header__badge">${SEED.noticias.filter(n=>n.fecha==='Hoy').length} nuevas</span></h2></div>
-        <div class="adm-list">
-          ${SEED.noticias.map(n=>`
-            <div class="news-card" style="--c1:${n.color};">
-              <div class="news-card__cover"><svg class="ic"><use href="#i-news"/></svg></div>
-              <div class="news-card__body">
-                <div class="news-card__head">
-                  <span class="tag" style="color:${n.color};border-color:${n.color}40;background:${n.color}14;">${n.cat}</span>
-                  <span class="news-card__date">${n.fecha}</span>
-                </div>
-                <div class="news-card__title">${n.titulo}</div>
-                <div class="news-card__source"><svg class="ic"><use href="#i-news"/></svg>${n.fuente}</div>
-              </div>
-              <div class="adm-row__actions">
-                <button class="icon-action icon-action--danger" data-del-news="${n.id}" title="Eliminar"><svg class="ic"><use href="#i-trash"/></svg></button>
-              </div>
-            </div>
-          `).join('')}
-        </div>
+        <div class="section-header"><h2 class="section-header__title">Últimas noticias publicadas<span class="section-header__badge" id="news-count">…</span></h2></div>
+        <div class="adm-list" id="news-list"><div class="empty-state"><div class="empty-state__title">Cargando noticias…</div></div></div>
       </div>
     `;
-    document.getElementById('cron-run').addEventListener('click',()=>Toast.info('Cron ejecutado','Buscando noticias nuevas… 3 publicadas.'));
-    p.querySelectorAll('[data-del-news]').forEach(b=>b.addEventListener('click',()=>{
-      if(confirm('¿Eliminar esta noticia del panel?')){
-        const i=SEED.noticias.findIndex(x=>x.id===b.dataset.delNews);if(i>=0){SEED.noticias.splice(i,1);Pages.noticias(document.getElementById('page'));Toast.success('Noticia eliminada');}
+    Pages._cargarNoticiasAdmin();
+    document.getElementById('cron-run').addEventListener('click', () => Pages._ejecutarCronNoticias());
+  },
+
+  async _cargarNoticiasAdmin(){
+    const fb = window._fb; if (!fb) return;
+    const list = document.getElementById('news-list'); if (!list) return;
+    try {
+      const snap = await fb.getDocs(fb.query(fb.collection(fb.db,'noticias_auto'), fb.orderBy('createdAt','desc'), fb.limit(30)));
+      const arts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const cnt = document.getElementById('news-count'); if (cnt) cnt.textContent = `${arts.length} en el panel`;
+      const sub = document.getElementById('cron-sub');
+      if (sub) {
+        if (arts.length) {
+          const ult = arts[0].createdAt?.toDate ? arts[0].createdAt.toDate() : null;
+          sub.innerHTML = `Última publicación: <strong>${ult ? ult.toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'}) : '—'}</strong> · <strong>${arts.length}</strong> noticias en el panel · Próxima corrida automática: <strong>7:00 AM</strong>`;
+        } else {
+          sub.innerHTML = `<strong>La colección está vacía.</strong> Presiona "Ejecutar ahora" para traer las primeras noticias.`;
+        }
       }
-    }));
+      if (!arts.length) { list.innerHTML = '<div class="empty-state"><div class="empty-state__title">Sin noticias todavía</div><div class="empty-state__sub">Ejecuta el cron con el botón de arriba.</div></div>'; return; }
+      list.innerHTML = arts.map(n => `
+        <div class="news-card" style="--c1:${n.color||'#5b92c8'};">
+          <div class="news-card__cover"><svg class="ic"><use href="#i-news"/></svg></div>
+          <div class="news-card__body">
+            <div class="news-card__head">
+              <span class="tag" style="color:${n.color||'#5b92c8'};border-color:${(n.color||'#5b92c8')}40;background:${(n.color||'#5b92c8')}14;">${(n.categoria||n.cat||'')}</span>
+              <span class="tag" style="border-color:var(--border-2);color:var(--text-3);">${(n.lang||'es').toUpperCase()}</span>
+              <span class="news-card__date">${n.fuente||''}</span>
+            </div>
+            <div class="news-card__title">${(n.titulo||'').replace(/</g,'&lt;')}</div>
+            <div class="news-card__source">${n.link ? `<a href="${n.link}" target="_blank" rel="noopener" style="color:var(--primary-soft,#8fbce6);text-decoration:none;">Abrir fuente</a>` : ''}</div>
+          </div>
+          <div class="adm-row__actions">
+            <button class="icon-action icon-action--danger" data-del-news="${n.id}" title="Eliminar"><svg class="ic"><use href="#i-trash"/></svg></button>
+          </div>
+        </div>`).join('');
+      list.querySelectorAll('[data-del-news]').forEach(b => b.addEventListener('click', async () => {
+        if (!confirm('¿Eliminar esta noticia del panel?')) return;
+        try { await fb.deleteDoc(fb.doc(fb.db,'noticias_auto', b.dataset.delNews)); Toast.success('Noticia eliminada'); Pages._cargarNoticiasAdmin(); }
+        catch(e){ Toast.error('No se pudo eliminar', e.message||''); }
+      }));
+    } catch (e) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-state__title">Error al leer noticias</div><div class="empty-state__sub">${e.message||''}</div></div>`;
+    }
+  },
+
+  async _ejecutarCronNoticias(){
+    const btn = document.getElementById('cron-run'); if (!btn) return;
+    btn.disabled = true; const orig = btn.innerHTML; btn.innerHTML = 'Sincronizando…';
+    try {
+      const token = await Pages._getAuthToken();
+      const res = await fetch(`${Pages._webhookUrl}/noticias/sync`, { headers: { 'Authorization': 'Bearer ' + token } });
+      const j = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(j.error || `HTTP ${res.status}`);
+      const errs = (j.reporte || []).filter(r => r.error);
+      Toast.success(`Cron ejecutado · ${j.nuevas ?? 0} noticias nuevas`, errs.length ? `${errs.length} consulta(s) con error · revisa abajo` : 'Todo en orden');
+      if (errs.length) errs.slice(0,3).forEach(r => Toast.error(`${r.cat} (${r.lang})`, r.error));
+      console.log('[cron noticias] reporte completo:', j);
+      Pages._cargarNoticiasAdmin();
+    } catch (e) {
+      Toast.error('No se pudo ejecutar el cron', e.message || 'Revisa que el webhook tenga la última versión');
+    }
+    btn.disabled = false; btn.innerHTML = orig;
   },
 
   config(p){
