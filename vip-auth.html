@@ -1,299 +1,695 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="night">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acceso de miembros &middot; ICADEM VIP</title>
-<meta name="description" content="Inicia sesi&oacute;n o crea tu cuenta en la plataforma VIP de ICADEM: capacitaci&oacute;n empresarial, fiscal, legal y de recursos humanos.">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0A0F1C">
+<meta name="description" content="ICADEM · Inicia sesión o crea tu cuenta en la plataforma VIP: capacitación empresarial, fiscal, legal y de recursos humanos.">
+<title>ICADEM · Acceso</title>
 <link rel="icon" type="image/png" href="data:image/png;base64,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">
+<!-- ─── PWA · instalable como app ─── -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ICADEM VIP">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f1626">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
 <style>
-:root{
-  /* ICADEM &middot; Azul acero (paleta OdonTeck) &mdash; MODO NOCHE (por defecto) */
-  --bg-deep:#0A0F1C; --bg:#0F1626; --surface:#18233A; --surface-2:#212E48;
-  --line:rgba(143,188,230,.14); --line-soft:rgba(255,255,255,.06);
-  --primary:#5B92C8; --primary-soft:#8FBCE6; --primary-deep:#3E6FA8;
-  --accent:#8FBCE6; --accent-soft:#B8D6EE;
-  --text:#F0F4FA; --muted:#B6C2D8; --faint:#8997B0;
-  --danger:#f87171; --danger-bg:rgba(248,113,113,.12);
-  --ok:#34d399; --ok-bg:rgba(52,211,153,.12);
-  --glass:rgba(15,22,38,.55); --glass-brd:rgba(143,188,230,.16);
-  --glow-blue:rgba(91,146,200,.45); --glow-soft:rgba(143,188,230,.28);
-  --radius:18px; --radius-sm:12px;
-  --font-display:'Sora',sans-serif; --font-body:'Manrope',sans-serif; --font-mono:'JetBrains Mono',monospace;
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:inherit;text-decoration:none;cursor:pointer}
+img{display:block;max-width:100%}
+svg{flex-shrink:0}
+input{font:inherit;color:inherit}
+::selection{background:var(--primary);color:#fff}
+
+:root[data-theme="night"]{
+  --bg:#0F1626;--bg-deep:#0A0F1C;
+  --surface:#18233A;--surface-2:#212E48;--surface-3:#2B3A58;
+  --border:rgba(143,188,230,0.08);--border-2:rgba(143,188,230,0.16);--border-strong:rgba(143,188,230,0.26);
+  --text:#F0F4FA;--text-2:#B6C2D8;--text-3:#8997B0;
+  --primary:#5B92C8;--primary-soft:#8FBCE6;--primary-deep:#3E6FA8;
+  --primary-glow:rgba(91,146,200,0.38);--highlight:#93C5FD;
+  --success:#34D399;--danger:#F87171;
+  --shadow-card:0 20px 60px rgba(0,0,0,0.55);
 }
-body.modo-dia{
-  /* ICADEM &middot; Azul acero &mdash; MODO D&Iacute;A */
-  --bg-deep:#DBE6F2; --bg:#EEF3F9; --surface:#FFFFFF; --surface-2:#F4F8FC;
-  --line:rgba(22,32,63,.10); --line-soft:rgba(22,32,63,.06);
-  --text:#16203F; --muted:#49556E; --faint:#7A8599;
-  --danger:#dc2626; --danger-bg:rgba(220,38,38,.08);
-  --ok:#0f9d58; --ok-bg:rgba(15,157,88,.10);
-  --glass:rgba(255,255,255,.72); --glass-brd:rgba(91,146,200,.18);
-  --glow-blue:rgba(91,146,200,.22); --glow-soft:rgba(143,188,230,.18);
+:root[data-theme="day"]{
+  --bg:#EEF3F9;--bg-deep:#DBE6F2;
+  --surface:#FFFFFF;--surface-2:#F4F8FC;--surface-3:#E8EFF8;
+  --border:rgba(22,32,63,0.07);--border-2:rgba(22,32,63,0.14);--border-strong:rgba(22,32,63,0.24);
+  --text:#16203F;--text-2:#49556E;--text-3:#7A8599;
+  --primary:#5B92C8;--primary-soft:#8FBCE6;--primary-deep:#3E6FA8;
+  --primary-glow:rgba(91,146,200,0.28);--highlight:#3E6FA8;
+  --success:#0F9D58;--danger:#DC2D3F;
+  --shadow-card:0 16px 50px rgba(22,32,63,0.12);
 }
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:var(--font-body);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .5s ease,color .4s ease;-webkit-font-smoothing:antialiased}
-::-webkit-scrollbar{width:9px;height:9px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:linear-gradient(var(--primary),var(--accent));border-radius:9px;border:2px solid var(--bg)}
-input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-input[type=number]{-moz-appearance:textfield}
-.theme-btn{position:fixed;top:20px;right:22px;z-index:60;width:42px;height:42px;border-radius:12px;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(14px);color:var(--text);cursor:pointer;display:grid;place-items:center;transition:.2s}
-.theme-btn:hover{border-color:var(--primary);box-shadow:0 0 0 3px var(--glow-blue)}
-.theme-btn svg{width:18px;height:18px}
-.split{display:grid;grid-template-columns:1.05fr .95fr;min-height:100vh}
-.hero{position:relative;display:flex;flex-direction:column;justify-content:space-between;padding:46px 54px;overflow:hidden;border-right:1px solid var(--line);background:var(--bg-deep)}
-.hero::before{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(50vw 50vw at 8% -8%, var(--glow-blue), transparent 60%),radial-gradient(46vw 46vw at 96% 4%, var(--glow-soft), transparent 58%),radial-gradient(40vw 40vw at 70% 112%, var(--glow-blue), transparent 60%);opacity:.85}
-.hero::after{content:"";position:absolute;inset:0;z-index:0;pointer-events:none;opacity:.05;background-image:linear-gradient(var(--text) 1px,transparent 1px),linear-gradient(90deg,var(--text) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(circle at 30% 40%,#000,transparent 80%)}
-.hero > *{position:relative;z-index:1}
-.lockup{display:flex;flex-direction:column;gap:10px;animation:rv .6s both}
-.logo-link{display:inline-flex;width:max-content;line-height:0;text-decoration:none}
-.brand{display:inline-flex;align-items:center;gap:12px}
-.brand-mark{width:44px;height:44px;border-radius:13px;background:linear-gradient(135deg,#2E6FDE,#154EA7);display:grid;place-items:center;box-shadow:0 8px 24px rgba(37,99,235,.45);flex:none}
-.brand-mark img{width:100%;height:100%;object-fit:contain;display:block}
-.brand-word{font-family:var(--font-display);font-weight:800;font-size:1.5rem;letter-spacing:.14em;color:var(--text)}
-.lockup .kicker{font-family:var(--font-mono);font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
-.hero-mid{max-width:34rem}
-.hero-mid .eyebrow{display:inline-flex;align-items:center;gap:8px;font-family:var(--font-mono);font-size:.72rem;font-weight:500;letter-spacing:.16em;text-transform:uppercase;color:var(--primary-soft);margin-bottom:18px}
-.hero-mid .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent);animation:pulse 2.2s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-.hero-mid h1{font-family:var(--font-display);font-weight:800;font-size:clamp(2.2rem,3.2vw,3.05rem);line-height:1.08;letter-spacing:-.025em;text-wrap:balance;animation:rv .7s .08s both}
-.hero-mid h1 .grad{background:linear-gradient(110deg,var(--primary-soft),var(--accent-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
-.hero-mid p{color:var(--muted);font-size:1.02rem;line-height:1.6;margin-top:18px;max-width:42ch;animation:rv .7s .16s both}
-.metrics{display:flex;gap:42px;animation:rv .7s .24s both}
-.metrics .m b{font-family:var(--font-display);font-weight:800;font-size:1.7rem;display:block;background:linear-gradient(110deg,var(--primary-soft),var(--accent-soft));-webkit-background-clip:text;background-clip:text;color:transparent}
-.metrics .m span{font-family:var(--font-mono);color:var(--faint);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase}
-.authside{display:flex;align-items:center;justify-content:center;padding:42px 30px;background:var(--bg)}
-.auth-card{width:100%;max-width:410px;background:var(--glass);border:1px solid var(--glass-brd);border-radius:var(--radius);backdrop-filter:blur(22px);position:relative;overflow:hidden;box-shadow:0 30px 80px -30px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05);padding:28px 26px 26px;animation:rise .7s cubic-bezier(.2,.8,.3,1) both}
-@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
-@keyframes rv{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-.auth-card::before{content:"";position:absolute;top:-1px;left:16%;right:16%;height:1px;background:linear-gradient(90deg,transparent,var(--primary-soft),transparent)}
-.head{margin-bottom:18px}
-.head h2{font-family:var(--font-display);font-weight:700;font-size:1.34rem;letter-spacing:-.02em}
-.head p{color:var(--muted);font-size:.85rem;margin-top:5px}
-.tabs{display:flex;gap:5px;background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:5px;margin-bottom:20px}
-.tab{flex:1;border:none;background:none;color:var(--muted);font-family:var(--font-display);font-weight:600;font-size:.9rem;padding:11px;border-radius:9px;cursor:pointer;transition:.22s}
-.tab.is-active{color:#fff;background:linear-gradient(110deg,var(--primary),var(--primary-deep));box-shadow:0 8px 22px -10px var(--glow-blue)}
-.pane{display:none;animation:fade .35s ease}
-.pane.is-active{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
-.field{margin-bottom:14px}
-.field label{display:block;font-size:.72rem;font-weight:700;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
-.field .inp{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line);border-radius:var(--radius-sm);padding:0 13px;transition:.2s}
-.field .inp:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--glow-blue)}
-.field .inp>svg{width:17px;height:17px;color:var(--faint);flex:none}
-.field input{flex:1;background:none;border:none;outline:none;color:var(--text);font-family:var(--font-body);font-size:.94rem;padding:13px 0;min-width:0}
-.field input::placeholder{color:var(--faint)}
-.toggle-pass{background:none;border:none;color:var(--faint);cursor:pointer;padding:4px;display:grid;place-items:center;transition:.2s}
-.toggle-pass:hover{color:var(--primary-soft)}
-.toggle-pass svg{width:17px;height:17px}
-.row-between{display:flex;align-items:center;justify-content:flex-end;margin:-2px 0 16px}
-.forgot{color:var(--primary-soft);font-size:.82rem;font-weight:600;text-decoration:none}
-.forgot:hover{text-decoration:underline}
-.check{display:flex;align-items:flex-start;gap:10px;margin:2px 0 18px;cursor:pointer;user-select:none}
-.check input{position:absolute;opacity:0;width:0;height:0}
-.check .box{width:20px;height:20px;flex:none;border-radius:6px;border:1.5px solid var(--line);background:var(--surface-2);display:grid;place-items:center;transition:.2s;margin-top:1px}
-.check .box svg{width:12px;height:12px;color:#fff;opacity:0;transform:scale(.5);transition:.2s}
-.check input:checked+.box{background:linear-gradient(135deg,var(--primary),var(--accent));border-color:transparent}
-.check input:checked+.box svg{opacity:1;transform:scale(1)}
-.check span{font-size:.82rem;color:var(--muted);line-height:1.45}
-.check a{color:var(--primary-soft);text-decoration:none}
-.check a:hover{text-decoration:underline}
-.btn{width:100%;border:none;border-radius:var(--radius-sm);padding:14px;font-family:var(--font-display);font-weight:700;font-size:.95rem;cursor:pointer;transition:.22s;display:flex;align-items:center;justify-content:center;gap:9px}
-.btn:disabled{opacity:.7;cursor:wait}
-.btn.primary{color:#fff;background:linear-gradient(110deg,var(--primary),var(--primary-deep));box-shadow:0 12px 30px -10px var(--glow-blue)}
-.btn.primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 18px 40px -10px var(--glow-blue)}
-.btn.primary .btn-arrow{width:18px;height:18px}
-.btn.google{background:var(--surface-2);color:var(--text);border:1px solid var(--line)}
-.btn.google:hover:not(:disabled){border-color:var(--primary)}
-.btn.google svg{width:18px;height:18px}
-.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+
+body{
+  font-family:'Manrope',sans-serif;
+  font-size:14px;line-height:1.5;
+  color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  min-height:100vh;
+  position:relative;overflow-x:hidden;
+}
+body::before{
+  content:"";position:fixed;inset:0;
+  background:radial-gradient(circle at 25% 30%,var(--primary-glow),transparent 50%),radial-gradient(circle at 75% 70%,color-mix(in srgb,var(--highlight) 18%,transparent),transparent 50%);
+  filter:blur(60px);
+  pointer-events:none;
+  animation:aurora 24s ease-in-out infinite alternate;
+}
+body::after{
+  content:"";position:fixed;inset:0;
+  background-image:linear-gradient(to right,rgba(143,188,230,.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(143,188,230,.045) 1px,transparent 1px);
+  background-size:48px 48px;
+  -webkit-mask-image:radial-gradient(ellipse at center,#000 0%,transparent 70%);
+  mask-image:radial-gradient(ellipse at center,#000 0%,transparent 70%);
+  pointer-events:none;
+}
+:root[data-theme="day"] body::after{background-image:linear-gradient(to right,rgba(22,32,63,.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(22,32,63,.05) 1px,transparent 1px)}
+@keyframes aurora{0%{transform:translate(0,0) scale(1)}50%{transform:translate(2%,-2%) scale(1.05)}100%{transform:translate(-1%,1%) scale(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
-.sep{display:flex;align-items:center;gap:12px;color:var(--faint);font-size:.74rem;margin:18px 0}
-.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
-#alert-zone{margin-bottom:14px}
-#alert-zone:empty{margin-bottom:0}
-.alert{display:flex;gap:11px;align-items:flex-start;border-radius:var(--radius-sm);padding:13px 14px;font-size:.86rem;line-height:1.45;animation:fade .3s ease}
-.alert svg{width:18px;height:18px;flex:none;margin-top:1px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.alert--error{background:var(--danger-bg);color:var(--danger);border:1px solid rgba(248,113,113,.25)}
-.alert--success{background:var(--ok-bg);color:var(--ok);border:1px solid rgba(52,211,153,.25)}
-.alert__msg strong{font-weight:700;font-family:var(--font-display)}
-.copyr{font-family:var(--font-mono);font-size:.68rem;color:var(--faint);text-align:center;margin-top:18px;letter-spacing:.04em}
-@media(max-width:900px){
-  /* Fondo continuo + glow fijo: un solo lienzo, sin costura de dos tonos al hacer scroll */
-  body::before{content:"";position:fixed;inset:0;pointer-events:none;
-    background:radial-gradient(70vw 70vw at 88% -6%,var(--glow-blue),transparent 58%),radial-gradient(80vw 80vw at -8% 34%,var(--glow-soft),transparent 52%);}
-  .split{grid-template-columns:1fr;background:transparent;position:relative;z-index:1;min-height:100dvh}
-  .hero{border:none;background:transparent;justify-content:flex-start;align-items:center;text-align:center;padding:38px 24px 14px;gap:0;min-height:auto}
-  .hero::before,.hero::after{display:none}
-  .theme-btn{position:absolute}
-  .lockup{align-items:center}
-  .hero-mid,.metrics{display:none}
-  .authside{background:transparent;padding:6px 22px 54px}
+
+.wrap{
+  width:100%;max-width:440px;padding:24px;
+  position:relative;z-index:1;
+  animation:fadeUp .5s cubic-bezier(.2,.8,.25,1);
 }
-@media(max-width:520px){
-  .auth-card{padding:24px 18px 22px}
-  .metrics .m b{font-size:1.4rem}
+
+.brand{
+  text-align:center;margin-bottom:24px;
+}
+.brand__logo{
+  width:60px;height:60px;border-radius:16px;
+  background:linear-gradient(135deg,#2E6FDE,#154EA7);
+  display:inline-flex;align-items:center;justify-content:center;
+  margin-bottom:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,.35);
+  position:relative;overflow:hidden;
+}
+.brand__logo::before{
+  content:"";position:absolute;inset:-2px;border-radius:18px;
+  background:linear-gradient(135deg,var(--primary),var(--highlight),var(--primary));
+  background-size:200% 100%;
+  z-index:-1;
+  animation:shimmerBar 4s ease-in-out infinite;
+  filter:blur(8px);opacity:.4;
+}
+@keyframes shimmerBar{0%,100%{background-position:0 0}50%{background-position:200% 0}}
+.brand__logo img{width:100%;height:100%;object-fit:contain}
+.brand__name{
+  font-family:'Sora','Manrope',sans-serif;
+  font-size:22px;font-weight:800;letter-spacing:1.5px;
+  background:linear-gradient(135deg,var(--text),color-mix(in srgb,var(--text) 55%,transparent));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.brand__sub{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+  color:var(--text-3);margin-top:4px;
+}
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--border-2);
+  border-radius:22px;
+  padding:28px 28px 24px;
+  box-shadow:var(--shadow-card);
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--primary),var(--highlight),var(--primary));
+  background-size:200% 100%;
+  animation:shimmerBar 3.5s ease-in-out infinite;
+  border-radius:22px 22px 0 0;
+}
+
+.tabs{
+  display:flex;gap:4px;
+  background:var(--surface-2);
+  padding:4px;border-radius:100px;
+  margin-bottom:20px;
+}
+.tab{
+  flex:1;text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;font-weight:700;letter-spacing:.5px;
+  padding:10px 14px;border-radius:100px;
+  color:var(--text-3);cursor:pointer;
+  transition:all .2s cubic-bezier(.2,.8,.25,1);
+}
+.tab:hover{color:var(--text)}
+.tab.is-active{
+  background:linear-gradient(135deg,var(--primary),var(--primary-deep));
+  color:#fff;
+  box-shadow:0 4px 14px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+.pane{display:none;animation:fadeUp .35s ease}
+.pane.is-active{display:block}
+
+.field{display:flex;flex-direction:column;gap:7px;margin-bottom:14px}
+.label{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;
+  color:var(--text-3);
+}
+.input-wrap{position:relative}
+.input-wrap svg.lead{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:var(--text-3);
+  width:15px;height:15px;
+  fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;
+  pointer-events:none;
+}
+.input{
+  width:100%;
+  padding:13px 16px 13px 40px;
+  background:var(--surface-2);
+  border:1px solid var(--border-2);
+  border-radius:12px;
+  font-size:13.5px;color:var(--text);
+  transition:border-color .15s,box-shadow .15s;
+}
+.input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-glow)}
+.input::placeholder{color:var(--text-3)}
+.input.is-error{border-color:var(--danger);box-shadow:0 0 0 4px color-mix(in srgb,var(--danger) 15%,transparent)}
+
+.toggle-pass{
+  position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;
+  color:var(--text-3);
+  display:flex;align-items:center;justify-content:center;
+  transition:color .15s;
+}
+.toggle-pass:hover{color:var(--text)}
+.toggle-pass svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+.forgot{
+  text-align:right;margin:-4px 0 14px;
+}
+.forgot a{
+  font-family:'JetBrains Mono',monospace;
+  font-size:10px;font-weight:600;letter-spacing:.4px;
+  color:var(--text-3);transition:color .15s;
+}
+.forgot a:hover{color:var(--primary)}
+
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;
+  padding:14px 22px;
+  border-radius:100px;
+  font-family:'Sora','Manrope',sans-serif;
+  font-size:14px;font-weight:700;letter-spacing:-.1px;
+  cursor:pointer;transition:all .2s cubic-bezier(.2,.8,.25,1);
+  border:1px solid transparent;
+  background:linear-gradient(135deg,var(--primary),var(--primary-deep));
+  color:#fff;
+  box-shadow:0 10px 28px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.18);
+}
+.btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 14px 36px var(--primary-glow),inset 0 1px 0 rgba(255,255,255,.22)}
+.btn:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.btn .spinner{
+  width:16px;height:16px;border-radius:50%;
+  border:2px solid rgba(255,255,255,.3);
+  border-top-color:#fff;
+  animation:spin .7s linear infinite;
+}
+
+.alert{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:12px 14px;border-radius:12px;
+  font-size:12.5px;line-height:1.5;
+  margin-bottom:14px;
+  border:1px solid;
+}
+.alert--error{background:color-mix(in srgb,var(--danger) 8%,transparent);color:var(--danger);border-color:color-mix(in srgb,var(--danger) 28%,transparent)}
+.alert--success{background:color-mix(in srgb,var(--success) 8%,transparent);color:var(--success);border-color:color-mix(in srgb,var(--success) 28%,transparent)}
+.alert svg{width:16px;height:16px;flex-shrink:0;margin-top:1px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.alert__msg strong{font-weight:700}
+
+.foot{
+  text-align:center;margin-top:18px;
+  font-size:12px;color:var(--text-2);
+}
+.foot a{color:var(--primary);font-weight:600}
+
+.helper-text{
+  font-size:11px;color:var(--text-3);margin-top:6px;
+  line-height:1.45;
+}
+.helper-text strong{color:var(--text-2);font-weight:600}
+
+.checkbox-row{
+  display:flex;align-items:flex-start;gap:9px;
+  margin-bottom:14px;
+  font-size:12.5px;color:var(--text-2);line-height:1.5;
+  cursor:pointer;
+}
+.checkbox-row input{margin-top:2px;flex-shrink:0;accent-color:var(--primary)}
+.checkbox-row a{color:var(--primary);font-weight:600}
+
+.legal{
+  text-align:center;margin-top:18px;
+  font-family:'JetBrains Mono',monospace;
+  font-size:9.5px;font-weight:500;letter-spacing:.7px;
+  color:var(--text-3);
+}
+
+.theme-toggle{
+  position:fixed;top:16px;right:16px;z-index:10;
+  width:38px;height:38px;border-radius:50%;
+  background:var(--surface);border:1px solid var(--border-2);
+  color:var(--text-2);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;
+}
+.theme-toggle:hover{color:var(--text);border-color:var(--border-strong)}
+.theme-toggle svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+@media (max-width:420px){
+  .wrap{padding:18px}
+  .card{padding:24px 22px 22px}
+  .brand__logo{width:54px;height:54px}
+  .brand__name{font-size:20px}
+}
+.auth-divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:var(--text-3);font-size:11.5px;font-family:'Manrope',sans-serif;text-transform:uppercase;letter-spacing:1px}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--border-2)}
+.btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:12px 16px;border-radius:12px;background:#fff;color:#1f1f1f;font-family:'Manrope',sans-serif;font-size:14px;font-weight:600;border:1px solid #dadce0;cursor:pointer;transition:box-shadow .15s ease,transform .08s ease}
+.btn-google:hover{box-shadow:0 3px 10px rgba(0,0,0,.2)}
+.btn-google:active{transform:translateY(1px)}
+.btn-google:disabled{opacity:.6;cursor:default}
+.btn-google svg{width:18px;height:18px;flex-shrink:0}
+
+/* ═══ Layout split · hero (izq) + formulario (der) ═══ */
+.auth-shell{min-height:100vh;min-height:100dvh;width:100%;display:grid;grid-template-columns:1.05fr .95fr;position:relative;z-index:1}
+.auth-main{display:flex;align-items:center;justify-content:center;padding:24px}
+.auth-main .wrap{padding:0}
+
+/* Hero izquierdo */
+.auth-hero{position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:32px;padding:52px 56px;overflow:hidden;background:linear-gradient(157deg,#18233A 0%,#0F1626 55%,#0A0F1C 100%);border-right:1px solid var(--border-2)}
+.auth-hero::before{content:"";position:absolute;top:-20%;left:-10%;width:70%;height:70%;background:radial-gradient(circle,var(--primary-glow),transparent 60%);filter:blur(70px);pointer-events:none}
+.auth-hero::after{content:"";position:absolute;inset:0;background-image:linear-gradient(to right,rgba(143,188,230,.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(143,188,230,.05) 1px,transparent 1px);background-size:46px 46px;-webkit-mask-image:radial-gradient(ellipse at 30% 40%,#000,transparent 75%);mask-image:radial-gradient(ellipse at 30% 40%,#000,transparent 75%);pointer-events:none}
+.auth-hero > *{position:relative;z-index:1}
+.brand--hero{text-align:left;margin:0;display:flex;align-items:center;gap:14px}
+.brand--hero .brand__logo{margin-bottom:0;width:52px;height:52px}
+.brand--hero .brand__name{font-size:20px}
+.brand--hero .brand__sub{margin-top:2px}
+.auth-hero__title{font-family:'Sora','Manrope',sans-serif;font-size:clamp(34px,3.4vw,52px);font-weight:800;line-height:1.04;letter-spacing:-1.4px;color:var(--text);max-width:14ch}
+.auth-hero__title em{font-style:normal;background:linear-gradient(120deg,var(--primary-soft),var(--highlight));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.auth-hero__desc{margin-top:20px;font-size:15px;line-height:1.7;color:var(--text-2);max-width:42ch}
+.auth-hero__stats{display:flex;gap:40px}
+.auth-stat__num{display:block;font-family:'Sora',sans-serif;font-size:30px;font-weight:800;letter-spacing:-1px;color:var(--primary-soft)}
+.auth-stat__lbl{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:600;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-3)}
+
+/* Hero en modo DÍA · panel azul claro para que ambas mitades combinen */
+:root[data-theme="day"] .auth-hero{background:linear-gradient(157deg,#F4F8FC 0%,#EEF3F9 55%,#DBE6F2 100%)}
+:root[data-theme="day"] .auth-hero::after{background-image:linear-gradient(to right,rgba(22,32,63,.05) 1px,transparent 1px),linear-gradient(to bottom,rgba(22,32,63,.05) 1px,transparent 1px)}
+:root[data-theme="day"] .auth-stat__num{color:var(--primary-deep)}
+:root[data-theme="day"] .auth-hero__title em{background:linear-gradient(120deg,var(--primary-deep),var(--primary));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+/* Encabezado del formulario (Hola de nuevo / Crea tu cuenta) */
+.pane-head{margin-bottom:18px}
+.pane-head h2{font-family:'Sora','Manrope',sans-serif;font-size:23px;font-weight:800;letter-spacing:-.6px;color:var(--text);line-height:1.15}
+.pane-head p{font-size:13.5px;color:var(--text-2);margin-top:5px;line-height:1.5}
+
+.wrap .brand{display:none}
+
+/* ═══ Panel que vende ═══ */
+.hero-marquee{
+  margin:30px 0 28px;max-width:100%;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);
+  overflow:hidden;
+}
+.hero-marquee .track{display:flex;gap:12px;width:max-content;animation:icademSlide 60s linear infinite}
+.hero-marquee:hover .track{animation-play-state:paused}
+@keyframes icademSlide{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.hero-marquee img{
+  width:112px;height:112px;object-fit:cover;border-radius:12px;flex:none;
+  border:1px solid var(--border-2);
+  box-shadow:0 10px 26px rgba(0,0,0,.4);
+}
+:root[data-theme="day"] .hero-marquee img{box-shadow:0 10px 26px rgba(22,32,63,.18)}
+
+.hero-hook{
+  margin-top:6px;
+  font-family:'Sora','Manrope',sans-serif;
+  font-size:clamp(1.15rem,1.8vw,1.45rem);font-weight:800;letter-spacing:-.5px;
+  color:var(--text);margin:0 0 16px;
+}
+.hero-hook b{
+  background:linear-gradient(120deg,var(--primary-soft),var(--highlight));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+:root[data-theme="day"] .hero-hook b{background:linear-gradient(120deg,var(--primary-deep),var(--primary));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-benefits{list-style:none;display:grid;gap:11px;margin:0 0 26px;padding:0;max-width:430px}
+.hero-benefits li{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--text-2);line-height:1.45}
+.hero-benefits li b{color:var(--text)}
+.hero-benefits svg{
+  width:18px;height:18px;flex:none;margin-top:1px;
+  stroke:#0A0F1C;background:var(--primary-soft);border-radius:50%;padding:3.5px;
+  stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;
+}
+.hero-price{display:grid;gap:10px;max-width:400px;margin-bottom:28px}
+.hero-price .opt{
+  display:flex;align-items:center;gap:13px;
+  background:var(--surface);border:1px solid var(--border-2);
+  border-radius:13px;padding:10px 16px;
+}
+.hero-price .opt b{font-size:1.35rem;font-weight:800;color:var(--text);letter-spacing:-.5px;white-space:nowrap}
+.hero-price .opt small{display:block;color:var(--text-2);font-size:.75rem;line-height:1.45}
+.hero-price .opt--star{background:linear-gradient(135deg,rgba(91,146,200,.16),var(--surface));border:1.5px solid var(--primary);position:relative}
+.hero-price .opt--star b{color:var(--primary-soft)}
+:root[data-theme="day"] .hero-price .opt--star b{color:var(--primary-deep)}
+.hero-price .opt--star .badge{
+  position:absolute;top:-10px;right:12px;
+  background:var(--primary);color:#fff;
+  font-size:.58rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  padding:3px 10px;border-radius:20px;
+}
+.hero-price .tachado{text-decoration:line-through;opacity:.5;margin-right:4px}
+
+.hero-refs-title{font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:var(--primary-soft);margin:0 0 14px;font-weight:700}
+:root[data-theme="day"] .hero-refs-title{color:var(--primary-deep)}
+.hero-refs{display:grid;gap:14px;max-width:430px;margin-bottom:24px}
+.hero-ref{display:flex;gap:9px;align-items:flex-start}
+.hero-ref .avi{
+  width:32px;height:32px;border-radius:50%;flex:none;margin-top:2px;
+  display:grid;place-items:center;font-size:.64rem;font-weight:800;color:#0A0F1C;
+  background:linear-gradient(135deg,var(--primary-soft),var(--primary));
+}
+.hero-ref .bub{
+  position:relative;background:var(--surface);
+  border:1px solid var(--border-2);
+  border-radius:4px 14px 14px 14px;padding:.5rem .85rem .55rem;
+}
+.hero-ref .bub b{display:block;font-size:.72rem;color:var(--text)}
+.hero-ref .bub b small{font-weight:400;color:var(--text-3);margin-left:4px;font-size:.66rem}
+.hero-ref .bub p{margin:2px 0 0;font-size:.78rem;line-height:1.45;color:var(--text-2)}
+.hero-ref .lk{
+  position:absolute;bottom:-9px;right:-5px;
+  display:inline-flex;align-items:center;gap:3px;
+  background:var(--surface-2);border:1px solid var(--border-strong);
+  border-radius:20px;padding:2px 7px 2px 3px;
+  font-size:.58rem;font-weight:700;color:var(--text-2);
+}
+.hero-ref .lk i{width:14px;height:14px;border-radius:50%;display:grid;place-items:center;background:var(--primary);font-style:normal}
+.hero-ref .lk svg{width:8px;height:8px;fill:#fff}
+.hero-ref .meta{display:flex;gap:.8rem;margin:.25rem 0 0 .8rem;font-size:.6rem;color:var(--text-3)}
+.hero-ref .meta b{font-weight:700}
+
+.hero-trust{font-size:10px;letter-spacing:1.8px;text-transform:uppercase;color:var(--text-3)}
+
+.auth-free{
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  margin:0 0 14px;font-size:.88rem;color:var(--text-2);
+}
+.auth-free b{color:var(--primary-soft);font-weight:800}
+:root[data-theme="day"] .auth-free b{color:var(--primary-deep)}
+.auth-free svg{width:16px;height:16px;flex:none;stroke:#fff;background:var(--primary);border-radius:50%;padding:3px}
+
+/* MÓVIL: el panel NO se oculta — versión compacta que vende antes del form */
+@media (max-width:920px){
+  .auth-shell{grid-template-columns:1fr;overflow-x:hidden}
+  .auth-shell > *{min-width:0;max-width:100%}
+  .auth-main{padding:24px 18px}
+  .wrap .brand{display:block}
+  .auth-hero{
+    display:flex !important;flex-direction:column;align-items:center;text-align:center;
+    justify-content:flex-start !important;gap:14px !important;
+    padding:24px 18px 20px !important;min-height:0 !important;
+    min-width:0;max-width:100vw;border-right:0;border-bottom:1px solid var(--border-2);
+  }
+  .auth-hero > div{min-width:0;width:100%;max-width:100%}
+  .brand--hero{justify-content:center}
+  .auth-hero__title{font-size:1.3rem !important;line-height:1.22;max-width:100% !important}
+  .auth-hero__desc{display:none}
+  .auth-hero__stats{display:none}
+  .hero-marquee{width:100%;margin:16px 0 18px;max-width:100%}
+  .hero-marquee img{width:86px;height:86px}
+  .hero-hook{font-size:1.12rem;margin-bottom:14px}
+  .hero-benefits{margin:0 auto 20px;max-width:340px;text-align:left;gap:9px}
+  .hero-benefits li{font-size:.78rem}
+  .hero-price{margin:0 auto 20px;max-width:340px;text-align:left}
+  .hero-price .opt{padding:8px 13px}
+  .hero-price .opt b{font-size:1.15rem}
+  .hero-refs{margin:0 auto 18px;max-width:340px;text-align:left;gap:12px}
+  .hero-refs-title{text-align:center}
+  .hero-ref .bub p{font-size:.74rem}
+  .hero-ref .avi{width:28px;height:28px;font-size:.58rem}
+  .hero-trust{text-align:center;letter-spacing:1px;font-size:8.5px;white-space:normal;padding:0 8px}
 }
 </style>
 </head>
 <body>
 
-<button class="theme-btn" id="theme-toggle" aria-label="Cambiar tema"></button>
+<button class="theme-toggle" id="theme-toggle" aria-label="Tema">
+  <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z"/></svg>
+</button>
 
-<div class="split">
-  <section class="hero">
-    <div class="lockup">
-      <a class="logo-link" href="index.html" aria-label="ICADEM">
-        <span class="brand">
-          <span class="brand-mark"><img src="data:image/png;base64,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" alt="ICADEM"></span>
-          <span class="brand-word">ICADEM</span>
-        </span>
-      </a>
-      <span class="kicker">Instituto &middot; Capacitaci&oacute;n &middot; Consultor&iacute;a</span>
-    </div>
-    <div class="hero-mid">
-      <span class="eyebrow"><span class="dot"></span>Membres&iacute;a profesional</span>
-      <h1>Te damos la bienvenida al <span class="grad">club VIP de ICADEM.</span></h1>
-      <p>Acceso exclusivo a cursos de capacitaci&oacute;n empresarial, fiscal, legal y de recursos humanos, clases en vivo con expertos, materiales descargables y certificados con folio oficial.</p>
-    </div>
-    <div class="metrics">
-      <div class="m"><b>24/7</b><span>Acceso</span></div>
-      <div class="m"><b>100%</b><span>Certificable</span></div>
-      <div class="m"><b>Pro</b><span>Herramientas</span></div>
-    </div>
-  </section>
-
-  <section class="authside">
-    <div class="auth-card">
-      <div class="head">
-        <h2 id="login-title">Acceso de miembros</h2>
-        <p id="login-sub">Entra a tu panel VIP de ICADEM</p>
+<div class="auth-shell">
+  <aside class="auth-hero">
+    <div class="brand brand--hero">
+      <div class="brand__logo">
+        <img src="data:image/png;base64,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" alt="ICADEM">
       </div>
-      <div class="tabs">
-        <button class="tab is-active" data-tab="login">Iniciar sesi&oacute;n</button>
-        <button class="tab" data-tab="register">Crear cuenta</button>
+      <div>
+        <div class="brand__name">ICADEM</div>
+        <div class="brand__sub">Instituto · Capacitación · Consultoría</div>
       </div>
-      <div id="alert-zone"></div>
+    </div>
 
-      <div class="pane is-active" id="pane-login">
-        <div class="field">
-          <label for="li-email">Correo</label>
-          <div class="inp">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
-            <input type="email" id="li-email" placeholder="tu@correo.com" autocomplete="email">
-          </div>
+    <div>
+      <h1 class="auth-hero__title">Domina lo fiscal, legal y de RH que tu empresa <em>te está pidiendo</em>.</h1>
+      <p class="auth-hero__desc">Cursos de capacitación empresarial, clases en vivo con expertos y certificados de folio oficial para crecer profesionalmente.</p>
+
+      <div class="hero-marquee" aria-hidden="true"><div class="track"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"></div></div>
+      <p class="hero-hook">Todo esto por <b>menos de $9 al día</b>:</p>
+
+      <ul class="hero-benefits">
+        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Biblioteca completa</b> de cursos: fiscal, legal, nóminas, IMSS y RH</span></li>
+        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Clases en vivo</b> con expertos en capacitación empresarial</span></li>
+        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Material descargable premium</b> listo para aplicar en tu empresa</span></li>
+        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Certificados con folio oficial</b> verificables</span></li>
+        <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Asesoría personalizada</b> y canal VIP · sin permanencia</span></li>
+      </ul>
+
+      <div class="hero-price">
+        <div class="opt">
+          <b>$250</b>
+          <small>MXN al mes · menos de $9 al día<br>Cancela cuando quieras</small>
         </div>
-        <div class="field">
-          <label for="li-pass">Contrase&ntilde;a</label>
-          <div class="inp">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="li-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password">
-            <button class="toggle-pass" data-target="li-pass" type="button" aria-label="Mostrar contrase&ntilde;a">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
+        <div class="opt opt--star">
+          <span class="badge">Ahorras $600</span>
+          <b>$2,400</b>
+          <small>MXN al año · sale en <span class="tachado">$250</span><strong style="color:var(--primary-soft);">$200/mes</strong><br>Acceso completo los 365 días</small>
         </div>
-        <div class="row-between">
-          <a class="forgot" id="forgot-link" href="#">&iquest;Olvidaste tu contrase&ntilde;a?</a>
-        </div>
-        <button class="btn primary" id="btn-login">
-          <span class="btn-label">Iniciar sesi&oacute;n</span>
-          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </button>
-        <div class="sep">o contin&uacute;a con</div>
-        <button class="btn google" data-google type="button">
-          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
-          <span class="btn-label">Continuar con Google</span>
-        </button>
       </div>
 
-      <div class="pane" id="pane-register">
-        <div class="field">
-          <label for="re-name">Nombre completo</label>
-          <div class="inp">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <input type="text" id="re-name" placeholder="Tu nombre" autocomplete="name">
+      <!-- ⚠️ BORRADORES: reemplazar con testimonios REALES antes de pautar fuerte -->
+      <p class="hero-refs-title">Referencias</p>
+      <div class="hero-refs">
+        <div class="hero-ref">
+          <span class="avi">MG</span>
+          <div style="flex:1;">
+            <div class="bub">
+              <b>Mariana González <small>· Encargada de nóminas</small></b>
+              <p>Con el curso de nóminas e IMSS dejé de depender del despacho externo. El certificado con folio lo validó mi jefa sin problema</p>
+              <span class="lk"><i><svg viewBox="0 0 24 24"><path d="M2 10h4v12H2zM22 11c0-1.1-.9-2-2-2h-5.2l.9-4.4v-.3c0-.4-.2-.8-.4-1.1L14.2 2 8.6 7.6c-.4.4-.6.9-.6 1.4v9c0 1.1.9 2 2 2h7c.8 0 1.5-.5 1.8-1.2l2.1-5c.1-.2.1-.5.1-.8v-2z"/></svg></i>11</span>
+            </div>
+            <div class="meta"><b>Me gusta</b><b>Responder</b><span>2 sem</span></div>
           </div>
         </div>
-        <div class="field">
-          <label for="re-email">Correo</label>
-          <div class="inp">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg>
-            <input type="email" id="re-email" placeholder="tu@correo.com" autocomplete="email">
+        <div class="hero-ref">
+          <span class="avi">RA</span>
+          <div style="flex:1;">
+            <div class="bub">
+              <b>Ricardo Aguilar <small>· Contador independiente</small></b>
+              <p>Las clases en vivo de declaraciones ante el SAT me actualizaron en semanas. Ya le ofrezco más servicios a mis clientes</p>
+              <span class="lk"><i><svg viewBox="0 0 24 24"><path d="M2 10h4v12H2zM22 11c0-1.1-.9-2-2-2h-5.2l.9-4.4v-.3c0-.4-.2-.8-.4-1.1L14.2 2 8.6 7.6c-.4.4-.6.9-.6 1.4v9c0 1.1.9 2 2 2h7c.8 0 1.5-.5 1.8-1.2l2.1-5c.1-.2.1-.5.1-.8v-2z"/></svg></i>8</span>
+            </div>
+            <div class="meta"><b>Me gusta</b><b>Responder</b><span>1 mes</span></div>
           </div>
         </div>
-        <div class="field">
-          <label for="re-pass">Contrase&ntilde;a</label>
-          <div class="inp">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-            <input type="password" id="re-pass" placeholder="M&iacute;nimo 6 caracteres" autocomplete="new-password">
-            <button class="toggle-pass" data-target="re-pass" type="button" aria-label="Mostrar contrase&ntilde;a">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>
-            </button>
-          </div>
-        </div>
-        <label class="check">
-          <input type="checkbox" id="re-terms">
-          <span class="box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-          <span>Acepto los <a href="#" target="_blank" rel="noopener">t&eacute;rminos y la pol&iacute;tica de privacidad</a> de ICADEM.</span>
-        </label>
-        <button class="btn primary" id="btn-register">
-          <span class="btn-label">Crear cuenta</span>
-          <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </button>
-        <div class="sep">o reg&iacute;strate con</div>
-        <button class="btn google" data-google type="button">
-          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/><path fill="#FBBC05" d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/></svg>
-          <span class="btn-label">Continuar con Google</span>
-        </button>
       </div>
 
-      <div class="copyr">ICADEM &copy; 2026 &middot; Todos los derechos reservados</div>
+      <p class="hero-trust">Pago seguro con Stripe · Acceso inmediato · Sin permanencia</p>
     </div>
-  </section>
+
+    <div class="auth-hero__stats">
+      <div class="auth-stat"><span class="auth-stat__num">24/7</span><span class="auth-stat__lbl">acceso</span></div>
+      <div class="auth-stat"><span class="auth-stat__num">100%</span><span class="auth-stat__lbl">certificable</span></div>
+      <div class="auth-stat"><span class="auth-stat__num">Pro</span><span class="auth-stat__lbl">herramientas</span></div>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+<div class="wrap">
+  <div class="brand">
+    <div class="brand__logo">
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAAAADwCAYAAAA+VemSAAAVGElEQVR4nO3de5Bk1V0H8O+ZmX3AAln2JSzsshvCY2EfyMOECOQBMURCiAoUEILKH1oa/UNLE5LSMimrUv5htHyUlmXU0hipFDGEiiIQJcGUFcEighBDKjEBqQIxy0IQ9jXT/fWP8/vtPdvb0923Z/ree/p+P1VTPdPTffvcvud3z+Oecy4gIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiJStVB3AmT5kQwAZnqe7oYQWEd6ZHIUwJlLgjUA6ALgYoFqr/XXEwrq7CmAM0VyFjFYu33+twrARYiBOgNgNYBHQwgv9nmtv6ajYM6PAjgjSWl7pOQkeQqAXQD2ALgAwFkA1gF4Q8/bXwDwDIBXAdwN4OsAHgkhvJZsfzaE0Jnwboi0j5WU6d83knyA5D721+n56ec5kveRfD/J4/xzej9LRJbAqssgGUheSfLBnkDskpwnuWA//QK2m/x/3v5OfZ3kzclnzlmJLyLjsICds993kvxSTwm70CcQy/Cgnk+e+xzJ85M0qDQWKSsNHJIfZFFVHlQlXgo/IZDkIZKf8DTQagAiMgIWVeZNJD+fBNkCJy/9jIdJXmJpmav3WxHJQBK8G0k+boHUr806SV2Sh+33fSQvtjQpiEUWkwTvOST/0wLo8LHxVRlvGyuIRQZh0d7cTvK7FjhVVJmH8TTsY1GdVpu4IdTD2AC0IY6MgzLuBrANwAKAJgTKLIAOgJMB3EfyohBCh+qdbgRd56uZBe+MBcUXAVwFYB7AinpTdowFAHMAngKw057TWOqa6SxaPw/ejyAG7wKaF7xADN4FAOcC+FMbctmEGkKrqQSuEcmZEEKX5G4AjyHOEPIZQ03lgXtTCOEz1PjpWjU5o0w1FsMU1wD4GuLkgy6aX6r57KeXEUvjvQCgqnQ9VIWujwfqRxFnEOVSJZ1BDOJ1AD5igat8VBOVwDWwHlwC2AjgWwBOQPOrzikiBvEMgEsBPAJry9eaqhbSmbMewUqujwM4CUXbNxcBRZp/TtXn+uSUaaZC0nF1LoAnUZxEczsWHrTfB3BeCOF537c6E9U2KoGr59/5xYht3i7yC14gprkDYC2AD9hzyk8V0xdePVob+La6E7IMvCp9te2TSt+KKYArZFXMDoDNAC5DzPw5H4NZxH3YDWCnNQ1y6EmfGjlnnhzN2PXfGxBXiuwgz+pzqos4cux99nfu+5MVBXC1fOnWH0del40G8X3w8dHqka6QArgiVn0mybMRq5y5V5+d78MVJE/RTKVq6YuujpdUZyJe+82197mX90afAOCS5DmpgAK4eiswfdVM35832qMCuCIK4OrdiunL4L4/O+xx2k5QjaUArl4T5/oulQfwNr8eTC0KXwkFcAUsM/sgh832OI0ZfAOKcd5SAQVwNYL1QJ+OeBMyYDoDeKHuBLSNArhaawCsqjsREzSNJ6VGUwBXq2M/IstCAVytOeSx6oZkQgFcDVpH1l4Az/pzNaZnUpSfKqYvvAK+blQIYS+Ah+3paQzgV1GcrKQCCuAKWcZeXXc6JsBPRk/ZihwzupRUDQVwhSxT7687HRPgwfoNe1QJXBEFcPXurDsBE0IAL9SdiLZRAFdvL6ZnJhIQA9fX9voHe05L61REAVyRZM3kRxB7oqdlDSlfXvY7AJ63dr7avxVRAFfI7iN0GMA/21PTEMBdxID91xDCfgCz6sCqjgK4Wl5tvhfTU0r50kAP1Z2QNlIAV8ur0Q8g3hxsDnkHsi8LtB/Ag/bcNNQqsqEArpDNSJoF8BKAf0IMgJzHRnuwfimE8F3dmaF6CuAaWBvxs4hVz5yPgXdg3WudVznvS5b0hVfPV6t4ELEa7XcqzI1fPvofAPfbSUmlb8UUwBWzjD4bQvgegD+2p3OsRvui9PeHEP7LetgVwBVTANfDS+G7EQMhx1LYe9Tv1OSF+iiAa5AM+P83AHchHoecSuEOYvX5rhDC/dDNvWujM2dNbPVGAtgK4DEAJyIGctOPibd1DyLeIvWbiGt+qfpcA5XANUlK4WcAfBKxRMuhFPPS949CCE8htucVvDVp+tl+qiWXXtYhDq88C82+tOTt9L0ALkDsgaaGTtanqRmlFTzjW4/0HSjut9tUC4gnmJ8PITwHTdwXiZMc7PGTjObZPIft8YE0zVIvVaEbgjYMkeTjiLcf9bZmE3QRa2uPA7gOwH8DRQ1C6qMAbggr0Yh4h78vADjZ/lV3M8cXHzgAYE8I4duMgzZy6HCbenVnDjEWECGE8FUA1wCYR3HJpi4+1rkL4H0WvHMKXpFFkFxhjz+btD87VTZ2k8/skOySvMnSNFfvtyOSAQ8Ukj9D8jULqCo7thbssUvyekvLkm6LSjJQQy6lLZIgvojk9yygDltQTZKfKJ4neWuaFhEpIQninSS/nATZwjIHcrdnm98keUaahiXsQ7DHTSRPTJ8TmXpMrreS/HWSLy1zIC8kvx8m+XskT7HPW7aSl+RakutJrlYAS6uQnElKsjNI/h2LgRVkrPZ6h9MwXXtt2qY+RPIvSF6QfuaE9iX0/K0rIdIOPLo03k3yL0ke6AnQeftZSH7mk5/eYP4bkruT7R45WSxz2o/Zpn3W8cv9WSKNxdibO5P8vZ3kHST/vU8w93OA5LdJfozkzmQ7syoN86O2SKYs2IIPqrAS7jzEYZhrAFwNYCPigJAXENei7iIOh/xWCGE+2Q6aMiWQ5BoAK0IIL5MMGq4pU82qoaU7m5pa4tr+NGUMeOOpBJ4SVgKnc4mJYmqi/w+wW6HkUrJZiXwAGaVZRIy1+VeTXO9/150mERHJlbdbp6E0qWNfGAeFrK7q85os+wyUCya3HpnW6XjWmdaddI9203rOZYr16yUmuZXkB0husb+zO5Fa2zSQvJhx6uPa5H8z1sud3X6JADj2Mg3JVSTfaSOfXrFBFXfY/7Kb7cNiHa8v2L48T/J3SZ7T+7omXq4SOYaVSEe1B0meQ/J2ko/1jIiaJ/mP7BlZlYOk9F1L8lkePURzgeS9JK8jeWrPe1QqS7MkGXOm5/krSN7Zk7k7LMYnk+QLzHCKXVL63pwEbZdHz2wiyX0kf5vknt7353bSkinD/m3bU0l+kOSjPRl5gccui+MTDq73knuZ0jQ75GfJK2OwmKf8+xa46UnKAzkN5nmSD5P8aZKvS7ZzTI1FZGKS0jadFTRH8laSnyf5cp+MvNgUP8/0n7LtjD180NJV2WWVJPD+w/ZhsTW7+pXK/0vyz0n+cM8256gqdmn6skbAnokD9txWALcC+AkAFyYvX0C8XDSsiuhrLT8D4CIA+4Dyay2zuEnaxwBcBuDVAZ/dBbAWwL+EED7MMZaHZbF+9TYATwLw6YCD8lK6umZ6ovoigHsAfDaE8ELyGUMvR9lrVoQQDpRJv7QIY5U07UmeY+xJ/gzJ/Ump4lXGsqtj+Osvsu2XLoVZVGd/o8Tnfjx975ifd7ttq+xie71VbjKWyn9C8h08unYzsK3MOMRy1QhpXjXK62RKsGdGDMkLSX6U5BM9Gc9XwhjXvGXoX7XPGWtWkT1ebds6zKMn86c/h+w1Ny7h82bs8W9tH3qryGX4YgOpJ0h+iOT25DPnuIROL2pFzHboPdCMgftp9u9JXo5F5Tzzf2XcTEpbQYPkZsZebS6Stq79vEhyh793zO9olnHhO/8+lspL5XRbr5D8A5JvSD5bbWTpj0eXuJeQ/KueDNWvJ3k5Mi5JPk3yuKWmneQ9tr1+1VpP+zc4Zs8vi9J3J8mDnMwSt73rdX2f5O/w6GV/NF/Y6FocYhUthNAheRrJTwN4BMD7Eb+fDmInzCyW//vy25acAmCXpWWczOnB+JUBr/EOoS9j/Bun+f7vArASk7ntywyAOcTvvAPgJAC/BOBRxtrQRjtW2Y1em4TWBzBjT+wCyUsAfA3ALYgZ03tnZzHZ3vougFUALmMxKX9cTw/4nx/rv7ee7nEmx9PS+COI6ZzkBPuA4n7JC4hBfQuAr5J8ix2z1gdxqwPYgrdD8pcBPARgE2LgzqD6W3u+aQmB5VYO+J8f6yfssezlqhBC6Fgar+jZ5iQFxOAFYiCfCeABkrcsFsRsUVu5tQGcBO9vAvgEgOMQS8OqA9ePwQ+RPNHSNInM5wF72pjv9/bvDgCbbXtVB8kc4gl2JYC/JvleC+LeY7YSLcnbrdjJXknwvhnAryGe2Yl6vg+vip4B4PXJc+NYGPA/bxLcYI9l99XT9JMAVqO4b3DVZu2zCeBuktfasTwSxCGEA9M657pX6wKYNnKJ8d4/96AYEVVXlSug6Ch7jz037nHZOfwlY2/bS/A3jvn+5eSjzwDgDxknhHTbUm1OtS6AEYdEdgH8IoANKAK4Tn4CeZdlwrK9u/76y+1xUEaeL7ntI+1fkqcBuMCervs7m0WscWwFcLu1zVt3eanug1CpJCOuA3Az6mnz9uPHYTeA02ys8TjHZtC++PbeyXjNuUxb+0g7HXEsdV3V517e/Pgx+7t1S+y0KoBR7O+FiB0xQDMyIhBLkzUALmeyftaIfB9eHuE1WwGsKjlpwt97JY6emFA3r7nsIrnOTnz97sE0tUMp2xbAzjtBmuhaC66RgoRxdlCH5NmI12eHVSUPo/y+d0iuRCyBy55cqrAaxaWmflZi8CW2bDXtQFTlMJpT8jo/FpeTXL9YaTKAB/yw96QdQEPZCYIATgewB/VcPhomINZe+v8zhEMhhEMVpqcybQ3ga+2xKVVBIB6LLmKgnJU8N4wH02YUQzMXe10HwMmIVeFRt++vuRLACttGUwLY9/c4xMtwQMvydKt2NnFu3QlYhFft32p/jxIo/prdGD4+2UvPbSW276W1V5+bErzO0+fHtGnpm6i2BvDhuhOwCA+Qd9gQwVGquv6atyXbGLR9AHiuRJr8hHB+ifdUyff/pFpTUZO2BnDpa6EV8QA7G7GneJRLPd5W3tGzjUFOHiUx3v5lXD7nfNQ3Wm0UJ9adgDo09WAsOx8gYb2pPkm8adUtbwdvRLxZNzBCGq2Taf8I2/fS6rIS6QHiml0noTnXf1OexhvsOv/CtF4y6qc1AYw4Ast7Uy+x55q4/z698F3296A1oYKVkFsBbMfoPcSjBLt9BAOAnxrx9XVqwoCcyjUxA0+a98Y2lQfgNSMMq/Tjdz6AdRheQvr/trBYzbIvH7WG2DF2cc/7m6ip1/Unqo0BPM5AhiqlQblhxGGVBzDaPvl23gJg45A2tpdoVyBW6X2edFMdsNrISCcZksdZcyprTT4gk7IesROrqUHsNYQ1AK6y54Ydpw0oVzqWGfj/bhQrYzSRj4feQfIHrZk0Sr5ewBT0XLcpgH1fb0K88N+kAQm9fGWO661EGRY8NybvG9WwS2ledX+TPTb1u/JmxgoAW5LnBr8phHkA+3NfIK9NAeya3P51vg7XWwGMskrHqMfRS/fVKHqij3kvi7svbEdx/TeHjF42jQdzn/jfxgBualUw5YG2FkU1ul/mpLWP1yXvG8armH7HwH7v8ed2IFblmzTkdJBS1/cH3bplmKZcqmpjAK+oOwEj8kC7dJEpcjOWAbdivEXm/m/A//zz/FJWLgG8ZfhLlkfZe1hNSisC2AKgQ3IFgKvt6abvu6fvKsssvVU9//95KNaJKlMqbLPHfhmxy3i3wzf3fFbTXWOPEw0uW/Vy3fBXTl4uB2ZJkp7JBRST3htxBh3AO6+2kdw+4BLJ6fY46v74Mf/RZHG/9HYyvuTQaRhczW6iEyr6nC6AQ02oRrcigJ0F8mt1p2NEo7aD/faeZU9Ic+gfmP4Zb0dxZ4raM+oQvu/P2mOp9JbtibZ8NI8GxE/tCagQrQrtA/mbnimBIo3vtsd+bdGy7T4v2begGGGV5gP/jGuQx3cEFOnfZLO4Rl3NJB2ZVuouDyGEw03owW5FACcdPueiuK6Zw777cMdrSJ7ZMyrL10Iu207166YzKCbBB+BIhibJ42H3akIeQexpvAjAylFXM/GOqBDC0yGEQWtqN1YOmbjNPNhmAVxqz80k/0s7t8Zp0/c2J3z5nD2Ii8w3cfmcQQ5ijO+B5Akk19rvOe1v6wI457GvR0ZbJR1NcyhW1xznWJ7d87ev3ngbipNDThl63BUzZ5BpLGSZ6DH4fvqk95yqS572i/3eSclzW7C0+xQdaVv7XFrb9tUo7g6YkxMRO/1KCSG8EkLYZ783/erEUdoSwG738Jc0jlejT8Wxd0U4AXHu8LjSTph09NUmNHPy/mK8x/51KNYTK3Xyya3q7NoWwMcPf0kj+WJ3b7e//bidkvy/DH//HrthdnqHiusQv6dcRl85LzkXXV52kNxKXteWAPaD8wO1pmJ8vtidLwfr+/P6nr/LbI+I83z9MpRv473Ja3I06mojy8Lu+lBbHLUlgL002W6PuWXOI8MmSW5EMWh/qStFHgl8W0vqDMQqdJMXrxvGl0uqqkSdQ42do7kepHE1dTXKYbwdvB7ArqS6t5SM4z3M6RrZO1HMPsrtJOe1Cr9+XUkAhxDmQwgHq/isftoSwN6+exLFZPnceC3iPclz59jjUoJtA3CkE8fv8pfr9xMA3GV/tyJvt2InUWTIP0OR2b1jqJvJj6d1N8kZmy106hL2w9/zNl/dEvHm3X6iqHt/y+xHB7EqewDAfUn6p15u1aSxJTNvfgvAh+pOzxJtRLyW/SKWfhJ+MoSwi+RmAN/B0i5L1e22EMKn/FjXnZgqlBrAnbmujYm+g+ReAL+C2CbOaVCHVxMvAPAQgKcQL/mMM5DD3/MqyU0AfgHAXgCHkEfNLL2x2SsAPhxC+JzfbrXepFWnNSWwS9Z72oB4ycFvNdr0dp+nMQCYDSEcLDuDZpHt+R0H1wN4CfGEltP3sQZAJ4TwaptK3lbLfSVCOdZSj2muI7GyTPRyyPWAAcWooeXahzILojdVriOpRGRMftIiudaaVNmd2HPorBCZtBm0q0NXZHrUOZZ5qbJNuMgyWp1zEIuIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiITNr/Ax9LNkyrO+gCAAAAAElFTkSuQmCC" alt="ICADEM">
+    </div>
+    <div class="brand__name">ICADEM</div>
+    <div class="brand__sub">Instituto · Capacitación · Consultoría</div>
+  </div>
+
+  <div class="card">
+    <p class="auth-free">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+      Regístrate <b>completamente gratis</b>
+    </p>
+    <div class="tabs">
+      <button class="tab" data-tab="login">Iniciar sesión</button>
+      <button class="tab is-active" data-tab="register">Crear cuenta</button>
+    </div>
+
+    <div id="alert-zone"></div>
+
+    <!-- LOGIN -->
+    <div class="pane" id="pane-login">
+      <div class="pane-head">
+        <h2 id="login-title">Hola de nuevo</h2>
+        <p id="login-sub">Ingresa tus datos para entrar a tu panel VIP.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="li-email">Correo electrónico</label>
+        <div class="input-wrap">
+          <svg class="lead" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+          <input type="email" class="input" id="li-email" placeholder="tu@correo.com" autocomplete="email">
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="li-pass">Contraseña</label>
+        <div class="input-wrap">
+          <svg class="lead" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" class="input" id="li-pass" placeholder="••••••••" autocomplete="current-password">
+          <button type="button" class="toggle-pass" data-target="li-pass" aria-label="Mostrar contraseña">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8s11 8 11 8s-4 8-11 8s-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="forgot"><a href="#" id="forgot-link">¿Olvidaste tu contraseña?</a></div>
+      <button class="btn" id="btn-login">
+        <span class="btn-label">Iniciar sesión</span>
+        <svg class="btn-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+      <div class="auth-divider">o</div>
+      <button type="button" class="btn-google" data-google="1">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continuar con Google
+      </button>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="pane is-active" id="pane-register">
+      <div class="pane-head">
+        <h2>Crea tu cuenta</h2>
+        <p>Únete al club VIP de ICADEM en 30 segundos.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="re-name">Nombre completo</label>
+        <div class="input-wrap">
+          <svg class="lead" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <input type="text" class="input" id="re-name" placeholder="Tu nombre" autocomplete="name">
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="re-email">Correo electrónico</label>
+        <div class="input-wrap">
+          <svg class="lead" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22 6 12 13 2 6"/></svg>
+          <input type="email" class="input" id="re-email" placeholder="tu@correo.com" autocomplete="email">
+        </div>
+      </div>
+      <div class="field">
+        <label class="label" for="re-pass">Contraseña</label>
+        <div class="input-wrap">
+          <svg class="lead" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <input type="password" class="input" id="re-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+          <button type="button" class="toggle-pass" data-target="re-pass" aria-label="Mostrar contraseña">
+            <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8s11 8 11 8s-4 8-11 8s-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
+        <div class="helper-text">Usa al menos <strong>6 caracteres</strong> con letras y números.</div>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" id="re-terms">
+        <span>Acepto los <a href="#" target="_blank">Términos y condiciones</a> y la <a href="#" target="_blank">Política de privacidad</a> de ICADEM.</span>
+      </label>
+      <button class="btn" id="btn-register">
+        <span class="btn-label">Crear cuenta</span>
+        <svg class="btn-arrow" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+      </button>
+      <div class="helper-text" style="margin-top:10px;text-align:center;">Al crearla, entras directo a tu panel VIP de ICADEM.</div>
+      <div class="auth-divider">o</div>
+      <button type="button" class="btn-google" data-google="1">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Registrarte con Google
+      </button>
+    </div>
+  </div>
+
+  <div class="legal">ICADEM · Instituto · Capacitación · Consultoría<br>© 2026 · Todos los derechos reservados</div>
+</div>
+  </main>
 </div>
 
+<!-- UI independiente de Firebase (tabs, theme, toggle password) -->
 <script>
+/* ===== Tema ===== */
 const Theme = {
-  init(){
+  init() {
     const s = localStorage.getItem('icadem-auth:theme') || 'night';
-    if (s === 'day') document.body.classList.add('modo-dia');
+    document.documentElement.dataset.theme = s;
     this.updateIcon();
   },
-  toggle(){
-    document.body.classList.toggle('modo-dia');
-    localStorage.setItem('icadem-auth:theme', document.body.classList.contains('modo-dia') ? 'day' : 'night');
+  toggle() {
+    const c = document.documentElement.dataset.theme;
+    const n = c === 'night' ? 'day' : 'night';
+    document.documentElement.dataset.theme = n;
+    localStorage.setItem('icadem-auth:theme', n);
     this.updateIcon();
   },
-  updateIcon(){
-    const isDay = document.body.classList.contains('modo-dia');
+  updateIcon() {
+    const isDay = document.documentElement.dataset.theme === 'day';
     document.getElementById('theme-toggle').innerHTML = isDay
-      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>'
-      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
+      ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>'
+      : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3A7 7 0 0 0 21 12.79z"/></svg>';
   }
 };
 Theme.init();
 document.getElementById('theme-toggle').addEventListener('click', () => Theme.toggle());
 
+/* ===== Tabs ===== */
+function switchTab(name){
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('is-active', t.dataset.tab === name));
+  document.querySelectorAll('.pane').forEach(p => p.classList.toggle('is-active', p.id === 'pane-' + name));
+  document.getElementById('alert-zone').innerHTML = '';
+}
 document.querySelectorAll('[data-tab]').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('is-active'));
-    b.classList.add('is-active');
-    document.querySelectorAll('.pane').forEach(p => p.classList.remove('is-active'));
-    document.getElementById('pane-' + b.dataset.tab).classList.add('is-active');
-    document.getElementById('alert-zone').innerHTML = '';
-  });
+  b.addEventListener('click', () => switchTab(b.dataset.tab));
 });
 
+/* ===== Soporte ?tab=login / ?tab=register (default: register) ===== */
+(function(){
+  try {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    if (t === 'login') switchTab('login');
+  } catch(e){}
+})();
+
+/* ===== Toggle pass ===== */
 document.querySelectorAll('.toggle-pass').forEach(b => {
   b.addEventListener('click', () => {
     const i = document.getElementById(b.dataset.target);
@@ -301,58 +697,81 @@ document.querySelectorAll('.toggle-pass').forEach(b => {
   });
 });
 
+/* ===== Alerts (compartidos con Firebase) ===== */
 const ICON_ERR = '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
-const ICON_OK  = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
-window.showAlert = function(type, title, msg){
+const ICON_OK = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>';
+window.showAlert = function(type, title, msg) {
   const z = document.getElementById('alert-zone');
-  z.innerHTML = '<div class="alert alert--' + type + '">' + (type==='error'?ICON_ERR:ICON_OK) + '<div class="alert__msg"><strong>' + title + '</strong>' + (msg?'<br>'+msg:'') + '</div></div>';
+  z.innerHTML = `<div class="alert alert--${type}">${type==='error'?ICON_ERR:ICON_OK}<div class="alert__msg"><strong>${title}</strong>${msg?'<br>'+msg:''}</div></div>`;
 };
-window.clearAlert = function(){ document.getElementById('alert-zone').innerHTML = ''; };
+window.clearAlert = function() { document.getElementById('alert-zone').innerHTML = ''; };
 
-window.setLoading = function(btn, isLoading, originalLabel){
+/* ===== Loading state (compartido) ===== */
+window.setLoading = function(btn, isLoading, originalLabel) {
   btn.disabled = isLoading;
   const label = btn.querySelector('.btn-label');
   const arrow = btn.querySelector('.btn-arrow');
-  if (isLoading){
-    if (label) label.textContent = 'Procesando\u2026';
+  if (isLoading) {
+    if (label) label.textContent = 'Procesando…';
     if (arrow) arrow.style.display = 'none';
     if (!btn.querySelector('.spinner')) btn.appendChild(Object.assign(document.createElement('span'), {className:'spinner'}));
   } else {
     if (label) label.textContent = originalLabel;
     if (arrow) arrow.style.display = '';
-    const sp = btn.querySelector('.spinner'); if (sp) sp.remove();
+    btn.querySelector('.spinner')?.remove();
   }
 };
 
+/* ===== "Hola de nuevo" · reconocer a quien ya entró antes (cerró sesión) ===== */
 (function(){
-  try{
+  try {
     const last = JSON.parse(localStorage.getItem('icadem_last_user') || 'null');
-    if (last && last.email){
+    if (last && last.email) {
       const em = document.getElementById('li-email');
       if (em && !em.value) em.value = last.email;
       const first = (last.nombre || '').trim().split(' ')[0];
       const t = document.getElementById('login-title');
       const s = document.getElementById('login-sub');
       if (first && t) t.textContent = 'Hola de nuevo, ' + first;
-      if (s) s.textContent = 'Tu acceso VIP te est\u00e1 esperando.';
-      const pass = document.getElementById('li-pass');
-      if (em && em.value && pass) setTimeout(() => pass.focus(), 200);
+      if (s) s.textContent = 'Tu acceso VIP te está esperando.';
+      // Usuario reconocido → mostrar login y enfocar la contraseña directo
+      const urlTab = new URLSearchParams(window.location.search).get('tab');
+      if (urlTab !== 'register') {
+        switchTab('login');
+        const pass = document.getElementById('li-pass');
+        if (em && em.value && pass) setTimeout(() => pass.focus(), 200);
+      }
     }
-  }catch(e){}
+  } catch(e){}
 })();
 </script>
 
+<!-- Firebase Auth (módulo) -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import {
-  getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  sendPasswordResetEmail, updateProfile, setPersistence, browserLocalPersistence,
-  onAuthStateChanged, GoogleAuthProvider, signInWithPopup
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
-  getFirestore, doc, setDoc, getDoc, serverTimestamp
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+/* =========================================================
+   CONFIG · Firebase ICADEM (icadem-vip) — SIN CAMBIOS
+   ========================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA",
   authDomain: "icadem-vip.firebaseapp.com",
@@ -362,6 +781,7 @@ const firebaseConfig = {
   appId: "1:12508983783:web:b12be6f1fab9bb91fb8d42"
 };
 
+/* Admins · emails con acceso al panel admin */
 const ADMINS = [
   "teccapitalweb@gmail.com",
   "icademconsultoria2024@gmail.com",
@@ -369,23 +789,31 @@ const ADMINS = [
   "ipcilinstituto@gmail.com"
 ];
 
-const app  = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db   = getFirestore(app);
+const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence);
 
-async function ensureMiembroDoc(user, displayName, origen){
-  if (!user || !user.uid) return { ok:false, reason:'no-user' };
-  try{
-    const ref  = doc(db, 'miembros', user.uid);
+/* =========================================================
+   Crear o actualizar documento del miembro en Firestore
+   (misma lógica de siempre — el webhook de Stripe activa)
+   ========================================================= */
+async function ensureMiembroDoc(user, displayName, origen) {
+  if (!user || !user.uid) return { ok: false, reason: 'no-user' };
+  try {
+    const ref = doc(db, 'miembros', user.uid);
     const snap = await getDoc(ref);
-    if (snap.exists()){
+    if (snap.exists()) {
       const data = snap.data();
-      if (data.activa !== true && displayName && !data.nombre){
-        await setDoc(ref, { nombre: displayName, displayName: displayName, lastUpdatedAt: serverTimestamp() }, { merge:true });
+      if (data.activa !== true && displayName && !data.nombre) {
+        await setDoc(ref, {
+          nombre: displayName,
+          displayName: displayName,
+          lastUpdatedAt: serverTimestamp()
+        }, { merge: true });
       }
-      console.log('[ensureMiembroDoc] ya existia:', user.uid);
-      return { ok:true, action:'exists', uid:user.uid };
+      console.log('[ensureMiembroDoc] ya existía:', user.uid);
+      return { ok: true, action: 'exists', uid: user.uid };
     }
     await setDoc(ref, {
       uid: user.uid,
@@ -400,112 +828,126 @@ async function ensureMiembroDoc(user, displayName, origen){
       lastUpdatedAt: serverTimestamp(),
       origen: origen || 'login-web'
     });
-    console.log('[ensureMiembroDoc] doc creado en miembros/' + user.uid);
-    return { ok:true, action:'created', uid:user.uid };
-  }catch(e){
-    console.error('[ensureMiembroDoc] Error:', e.code, e.message);
-    if (e.code === 'permission-denied'){
-      console.error('  Reglas Firestore bloqueando: permite crear miembros/{uid} con activa:false');
+    console.log('[ensureMiembroDoc] ✅ doc creado en miembros/' + user.uid);
+    return { ok: true, action: 'created', uid: user.uid };
+  } catch (e) {
+    console.error('[ensureMiembroDoc] ❌ Error:', e.code, '·', e.message);
+    if (e.code === 'permission-denied') {
+      console.error('  ⚠️ Reglas Firestore bloqueando: permite crear miembros/{uid} con activa:false');
     }
-    return { ok:false, reason: e.code || e.message };
+    return { ok: false, reason: e.code || e.message };
   }
 }
 
+/* Si ya está logueado, redirige inmediatamente · pero PRIMERO asegura el doc */
 onAuthStateChanged(auth, async (user) => {
-  if (user){
+  if (user) {
     await ensureMiembroDoc(user, user.displayName, 'login-web');
-    try{ localStorage.setItem('icadem_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); }catch(e){}
-    const isAdmin = ADMINS.includes((user.email || '').toLowerCase());
-    window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html';
+    try { localStorage.setItem('icadem_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}
+    const isAdmin = ADMINS.includes((user.email || "").toLowerCase());
+    window.location.href = isAdmin ? "vip-admin.html" : "vip-panel.html";
   }
 });
 
-function translateError(code){
+/* ===== Traducir errores Firebase ===== */
+function translateError(code) {
   const map = {
-    'auth/invalid-email': 'El correo no es valido.',
-    'auth/user-disabled': 'Esta cuenta esta deshabilitada. Contacta soporte.',
+    'auth/invalid-email': 'El correo no es válido.',
+    'auth/user-disabled': 'Esta cuenta está deshabilitada. Contacta soporte.',
     'auth/user-not-found': 'No existe una cuenta con ese correo.',
-    'auth/wrong-password': 'Contrasena incorrecta.',
-    'auth/invalid-credential': 'Correo o contrasena incorrectos.',
-    'auth/email-already-in-use': 'Ya existe una cuenta con ese correo. Inicia sesion.',
-    'auth/weak-password': 'La contrasena debe tener al menos 6 caracteres.',
+    'auth/wrong-password': 'Contraseña incorrecta.',
+    'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+    'auth/email-already-in-use': 'Ya existe una cuenta con ese correo. Inicia sesión.',
+    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
     'auth/too-many-requests': 'Demasiados intentos. Espera unos minutos.',
-    'auth/network-request-failed': 'Sin conexion. Revisa tu internet.',
-    'auth/missing-password': 'Escribe una contrasena.',
-    'auth/missing-email': 'Escribe tu correo electronico.',
-    'auth/popup-blocked': 'El navegador bloqueo la ventana de Google. Permite las ventanas emergentes e intenta de nuevo.',
+    'auth/network-request-failed': 'Sin conexión. Revisa tu internet.',
+    'auth/missing-password': 'Escribe una contraseña.',
+    'auth/missing-email': 'Escribe tu correo electrónico.',
+    'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permite las ventanas emergentes e intenta de nuevo.',
     'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de terminar.',
-    'auth/account-exists-with-different-credential': 'Ya tienes una cuenta con ese correo usando contrasena. Inicia sesion con tu correo.',
-    'auth/unauthorized-domain': 'Este dominio no esta autorizado para Google. El admin debe agregarlo en Firebase, Authentication, Settings, Dominios autorizados.'
+    'auth/account-exists-with-different-credential': 'Ya tienes una cuenta con ese correo usando contraseña. Inicia sesión con tu correo.',
+    'auth/unauthorized-domain': 'Este dominio no está autorizado para Google. El admin debe agregarlo en Firebase, Authentication, Settings, Dominios autorizados.'
   };
-  return map[code] || 'Algo salio mal. Intenta de nuevo.';
+  return map[code] || 'Algo salió mal. Intenta de nuevo.';
 }
 
+/* ===== LOGIN ===== */
 document.getElementById('btn-login').addEventListener('click', async () => {
   clearAlert();
   const email = document.getElementById('li-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('li-pass').value;
-  if (!email || !pass){ showAlert('error', 'Faltan datos', 'Llena ambos campos.'); return; }
+  const pass = document.getElementById('li-pass').value;
+  if (!email || !pass) { showAlert('error', 'Faltan datos', 'Llena ambos campos.'); return; }
   const btn = document.getElementById('btn-login');
   setLoading(btn, true);
-  try{
+  try {
     await signInWithEmailAndPassword(auth, email, pass);
     const isAdmin = ADMINS.includes(email);
-    showAlert('success', 'Bienvenido!', 'Redirigiendo...');
+    showAlert('success', '¡Bienvenido!', 'Redirigiendo…');
     setTimeout(() => { window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html'; }, 600);
-  }catch(e){
-    setLoading(btn, false, 'Iniciar sesion');
-    showAlert('error', 'No pudimos iniciar sesion', translateError(e.code));
+  } catch (e) {
+    setLoading(btn, false, 'Iniciar sesión');
+    showAlert('error', 'No pudimos iniciar sesión', translateError(e.code));
   }
 });
 
+/* ===== REGISTER ===== */
 document.getElementById('btn-register').addEventListener('click', async () => {
   clearAlert();
-  const name  = document.getElementById('re-name').value.trim();
+  const name = document.getElementById('re-name').value.trim();
   const email = document.getElementById('re-email').value.trim().toLowerCase();
-  const pass  = document.getElementById('re-pass').value;
+  const pass = document.getElementById('re-pass').value;
   const terms = document.getElementById('re-terms').checked;
-  if (!name){ showAlert('error', 'Falta tu nombre'); return; }
-  if (!email || !pass){ showAlert('error', 'Faltan datos', 'Correo y contrasena son obligatorios.'); return; }
-  if (pass.length < 6){ showAlert('error', 'Contrasena muy corta', 'Minimo 6 caracteres.'); return; }
-  if (!terms){ showAlert('error', 'Debes aceptar los terminos'); return; }
+  if (!name) { showAlert('error', 'Falta tu nombre'); return; }
+  if (!email || !pass) { showAlert('error', 'Faltan datos', 'Correo y contraseña son obligatorios.'); return; }
+  if (pass.length < 6) { showAlert('error', 'Contraseña muy corta', 'Mínimo 6 caracteres.'); return; }
+  if (!terms) { showAlert('error', 'Debes aceptar los términos'); return; }
   const btn = document.getElementById('btn-register');
   setLoading(btn, true);
-  try{
+  try {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(cred.user, { displayName: name });
+
+    // ⚡ Crear doc en col `miembros` con activa:false + fechaRegistro
     const docResult = await ensureMiembroDoc(cred.user, name, 'registro-web');
+
     const isAdmin = ADMINS.includes(email);
-    if (docResult && docResult.ok === false){
+
+    // 🔍 Diagnóstico visible: si NO se creó el doc, mostrar alert claro
+    if (docResult && docResult.ok === false) {
       const motivo = docResult.reason || 'desconocido';
-      console.error('DIAGNOSTICO: doc miembro NO se creo. Razon:', motivo);
+      console.error('❌ DIAGNÓSTICO: doc miembro NO se creó. Razón:', motivo);
       const txt = motivo === 'permission-denied'
-        ? 'Tu cuenta SI se creo, pero falta actualizar las reglas Firestore para guardar tu perfil. Entrando a tu panel...'
-        : 'Tu cuenta se creo pero hubo un problema al guardar tu perfil (' + motivo + '). Entrando a tu panel...';
-      showAlert('error', 'Cuenta creada - advertencia', txt);
+        ? 'Tu cuenta SÍ se creó, pero falta actualizar las reglas Firestore para guardar tu perfil. Entrando a tu panel…'
+        : 'Tu cuenta se creó pero hubo un problema al guardar tu perfil (' + motivo + '). Entrando a tu panel…';
+      showAlert('error', 'Cuenta creada · advertencia', txt);
       setTimeout(() => { window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html'; }, 4000);
       return;
     }
-    showAlert('success', 'Cuenta creada!',
-      isAdmin ? 'Redirigiendo al panel admin...'
-              : (docResult && docResult.action === 'created' ? 'Perfil guardado - entrando a tu panel...' : 'Entrando a tu panel...'));
+
+    // Camino feliz · todo funcionó
+    showAlert('success', '¡Cuenta creada!',
+      isAdmin ? 'Redirigiendo al panel admin…'
+              : (docResult && docResult.action === 'created' ? 'Perfil guardado · entrando a tu panel…' : 'Entrando a tu panel…'));
     setTimeout(() => { window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html'; }, 900);
-  }catch(e){
+  } catch (e) {
     setLoading(btn, false, 'Crear cuenta');
     showAlert('error', 'No pudimos crear tu cuenta', translateError(e.code));
   }
 });
 
+/* ===== GOOGLE SIGN-IN ===== */
 const googleProvider = new GoogleAuthProvider();
 googleProvider.setCustomParameters({ prompt: 'select_account' });
+
 document.querySelectorAll('[data-google]').forEach(btn => {
   btn.addEventListener('click', async () => {
     clearAlert();
     btn.disabled = true;
-    try{
+    try {
+      // El popup hace login/registro · onAuthStateChanged crea el doc y redirige.
       await signInWithPopup(auth, googleProvider);
-      showAlert('success', 'Listo!', 'Entrando con Google...');
-    }catch(e){
+      showAlert('success', '¡Listo!', 'Entrando con Google…');
+    } catch (e) {
       btn.disabled = false;
       if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') return;
       showAlert('error', 'No pudimos entrar con Google', translateError(e.code));
@@ -513,31 +955,41 @@ document.querySelectorAll('[data-google]').forEach(btn => {
   });
 });
 
+/* ===== FORGOT PASSWORD ===== */
 document.getElementById('forgot-link').addEventListener('click', async (e) => {
   e.preventDefault();
   clearAlert();
   const email = document.getElementById('li-email').value.trim().toLowerCase();
-  if (!email){
-    showAlert('error', 'Escribe tu correo primero', 'Para enviarte el enlace de recuperacion.');
+  if (!email) {
+    showAlert('error', 'Escribe tu correo primero', 'Para enviarte el enlace de recuperación.');
     document.getElementById('li-email').focus();
     return;
   }
-  try{
+  try {
     await sendPasswordResetEmail(auth, email);
     showAlert('success', 'Enlace enviado', 'Revisa tu bandeja de entrada (y la carpeta de spam).');
-  }catch(e){
+  } catch (e) {
     showAlert('error', 'No pudimos enviar el correo', translateError(e.code));
   }
 });
 
-['li-email','li-pass'].forEach(id => {
+/* ===== Enter para enviar ===== */
+['li-email','li-pass'].forEach(id=>{
   document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-login').click(); });
 });
-['re-name','re-email','re-pass'].forEach(id => {
+['re-name','re-email','re-pass'].forEach(id=>{
   document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-register').click(); });
 });
 </script>
 
+<!-- ─── Service Worker · permite instalar ICADEM como app ─── -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function(){
+      navigator.serviceWorker.register('sw.js').catch(function(){ /* silencioso: la app funciona igual */ });
+    });
+  }
+</script>
 <!-- ═══ POPUP PWA · Instalar ICADEM (auth · clave separada del panel) ═══ -->
 <style>
   #icadem-install-pop{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:20px;font-family:'Manrope','Sora',system-ui,sans-serif}
@@ -560,10 +1012,10 @@ document.getElementById('forgot-link').addEventListener('click', async (e) => {
   #icadem-install-pop .iip-ios b{color:#8fbce6}
   @keyframes iipFade{from{opacity:0}to{opacity:1}}
   @keyframes iipPop{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:none}}
-  body.modo-dia #icadem-install-pop .iip-card{background:#ffffff;border-color:#dbe6f2}
-  body.modo-dia #icadem-install-pop h3{color:#16203f}
-  body.modo-dia #icadem-install-pop p,body.modo-dia #icadem-install-pop .iip-feat{color:#16203f}
-  body.modo-dia #icadem-install-pop .iip-ios{background:#eef3f9;border-color:#dbe6f2;color:#49556e}
+  :root[data-theme="day"] #icadem-install-pop .iip-card{background:#ffffff;border-color:#dbe6f2}
+  :root[data-theme="day"] #icadem-install-pop h3{color:#16203f}
+  :root[data-theme="day"] #icadem-install-pop p,:root[data-theme="day"] #icadem-install-pop .iip-feat{color:#16203f}
+  :root[data-theme="day"] #icadem-install-pop .iip-ios{background:#eef3f9;border-color:#dbe6f2;color:#49556e}
 </style>
 <div id="icadem-install-pop" role="dialog" aria-modal="true" aria-label="Instalar ICADEM como app">
   <div class="iip-overlay" id="iip-overlay"></div>
@@ -571,11 +1023,11 @@ document.getElementById('forgot-link').addEventListener('click', async (e) => {
     <div class="iip-glow"></div>
     <div class="iip-icon"><img src="icon-192.png" alt="ICADEM"></div>
     <h3>Instala ICADEM VIP</h3>
-    <p>Acc&eacute;dela como una app: m&aacute;s r&aacute;pida, en pantalla completa y desde tu pantalla de inicio.</p>
-    <div class="iip-ios" id="iip-ios-help">En iPhone/iPad: toca <b>Compartir</b> y luego <b>&laquo;A&ntilde;adir a inicio&raquo;</b>.</div>
+    <p>Accédela como una app: más rápida, en pantalla completa y desde tu pantalla de inicio.</p>
+    <div class="iip-ios" id="iip-ios-help">En iPhone/iPad: toca <b>Compartir</b> y luego <b>«Añadir a inicio»</b>.</div>
     <div class="iip-feats">
       <div class="iip-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>Acceso directo desde tu inicio</div>
-      <div class="iip-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>Carga m&aacute;s r&aacute;pida, como app nativa</div>
+      <div class="iip-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>Carga más rápida, como app nativa</div>
       <div class="iip-feat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 6 9 17l-5-5"/></svg>Pantalla completa, sin distracciones</div>
     </div>
     <button class="iip-btn" id="iip-install-btn">Instalar ahora</button>
@@ -598,15 +1050,13 @@ document.getElementById('forgot-link').addEventListener('click', async (e) => {
   function esIOS(){return /iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;}
   function mostrar(){if(yaInstalada()||fueDescartada())return;pop.classList.add('show');}
   function ocultar(recordar){pop.classList.remove('show');if(recordar){try{localStorage.setItem(STORAGE_KEY,String(Date.now()));}catch(e){}}}
-  if('serviceWorker' in navigator){window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});}
-  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;setTimeout(mostrar,1400);});
-  if(esIOS()&&!yaInstalada()){if(iosHelp)iosHelp.style.display='block';if(installBtn)installBtn.style.display='none';setTimeout(mostrar,1600);}
+  window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();deferredPrompt=e;setTimeout(mostrar,15000);});
+  if(esIOS()&&!yaInstalada()){if(iosHelp)iosHelp.style.display='block';if(installBtn)installBtn.style.display='none';setTimeout(mostrar,15000);}
   window.addEventListener('appinstalled',function(){ocultar(true);deferredPrompt=null;});
   if(installBtn)installBtn.addEventListener('click',function(){if(!deferredPrompt){ocultar(true);return;}deferredPrompt.prompt();deferredPrompt.userChoice.then(function(){ocultar(true);deferredPrompt=null;});});
   if(laterBtn)laterBtn.addEventListener('click',function(){ocultar(true);});
   if(overlay)overlay.addEventListener('click',function(){ocultar(false);});
 })();
 </script>
-
 </body>
 </html>
