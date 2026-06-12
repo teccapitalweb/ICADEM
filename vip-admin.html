@@ -1101,7 +1101,7 @@ window.__signOut = async () => {
 <symbol id="i-briefcase" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
 <symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1l1-4l9.5-9.5z"/></symbol>
-<symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="i-star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></symbol><symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></symbol>
 <symbol id="i-image" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></symbol>
 <symbol id="i-bell" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
 <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
@@ -4466,6 +4466,11 @@ const Pages={
         }
       
 /* ─── Plantillas de negocio: filas ─── */
+.tpla-fmt{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:.4px;color:var(--fc,#60A5FA);background:color-mix(in srgb,var(--fc,#60A5FA) 12%,transparent);border:1px solid color-mix(in srgb,var(--fc,#60A5FA) 35%,transparent);border-radius:11px}
+.adm-row.tpla-lock .adm-row__body{opacity:.55}
+.icon-action.is-on{color:#F5D77A;border-color:#F5D77A66;background:#F5D77A14}
+.tpla-chip--soon{color:var(--text-3);border-color:var(--border-2)}
+.tpla-chip--warn{color:#FBBF24;border-color:#FBBF2455;background:#FBBF2412}
 .tpla-row{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--surface);border:1px solid var(--border-2);border-radius:14px;padding:14px 16px;margin-bottom:10px;flex-wrap:wrap}
 .tpla-row.is-lock{opacity:.62}
 .tpla-row__main{min-width:0;flex:1}
@@ -4920,24 +4925,23 @@ const Pages={
       const lock = p.bloqueada === true || p.proximamente === true;
       const fc = Pages._TPL_FMT_COLOR[String(p.formato||'').toUpperCase()] || '#60A5FA';
       return `
-      <div class="tpla-row${lock ? ' is-lock' : ''}">
-        <div class="tpla-row__main">
-          <div class="tpla-row__title">${(p.titulo||'Sin título').replace(/</g,'&lt;')} ${p.destacada===true?'<span class="tpla-chip tpla-chip--feat">DESTACADA</span>':''} ${lock?'<span class="tpla-chip">PRÓXIMAMENTE</span>':''}</div>
-          <div class="tpla-row__meta">
-            <span class="tpla-chip" style="color:${fc};border-color:${fc}55;">${(p.formato||'DOC')}</span>
-            <span>${Pages._TPL_CATS[p.cat] || p.cat || 'Sin categoría'}</span>
-            <span>orden ${p.orden ?? '—'}</span>
-            <span>${p.version || 'v1.0'}</span>
-            <span>${p.urlCopy && !String(p.urlCopy).startsWith('PENDIENTE') ? 'Copia lista' : 'Sin link de copia'}</span>
+        <div class="adm-row${lock ? ' tpla-lock' : ''}">
+          <div class="adm-row__thumb tpla-fmt" style="--fc:${fc};">${(p.formato||'DOC').slice(0,5)}</div>
+          <div class="adm-row__body">
+            <div class="adm-row__title">${(p.titulo||'Sin título').replace(/</g,'&lt;')}
+              ${p.destacada===true?'<span class="tpla-chip tpla-chip--feat">DESTACADA</span>':''}
+              ${lock?'<span class="tpla-chip tpla-chip--soon">PRÓXIMAMENTE</span>':''}
+              ${(!p.urlEdit && !p.urlCopy && !p.urlDownload) ? '<span class="tpla-chip tpla-chip--warn">SIN LINKS</span>' : ''}
+            </div>
+            <div class="adm-row__meta">${Pages._TPL_CATS[p.cat] || p.cat || 'Sin categoría'} · orden ${p.orden ?? '—'} · ${p.version || 'v1.0'}</div>
           </div>
-        </div>
-        <div class="tpla-row__actions">
-          <button class="btn btn--ghost btn--sm" data-tpl-toggle-feat="${p.id}">${p.destacada===true?'Quitar destacada':'Destacar'}</button>
-          <button class="btn btn--ghost btn--sm" data-tpl-toggle-lock="${p.id}">${lock?'Publicar':'Ocultar'}</button>
-          <button class="btn btn--ghost btn--sm" data-tpl-edit="${p.id}">Editar</button>
-          <button class="btn btn--ghost btn--sm tpla-del" data-tpl-del="${p.id}">Eliminar</button>
-        </div>
-      </div>`;
+          <div class="adm-row__actions">
+            <button class="icon-action${p.destacada===true?' is-on':''}" data-tpl-toggle-feat="${p.id}" title="${p.destacada===true?'Quitar destacada':'Destacar'}"><svg class="ic"><use href="#i-star"/></svg></button>
+            <button class="icon-action${lock?'':' is-on'}" data-tpl-toggle-lock="${p.id}" title="${lock?'Publicar (visible para miembros)':'Ocultar (próximamente)'}"><svg class="ic"><use href="#i-eye"/></svg></button>
+            <button class="icon-action" data-tpl-edit="${p.id}" title="Editar"><svg class="ic"><use href="#i-edit"/></svg></button>
+            <button class="icon-action icon-action--danger" data-tpl-del="${p.id}" title="Eliminar"><svg class="ic"><use href="#i-trash"/></svg></button>
+          </div>
+        </div>`;
     }).join('');
     el.querySelectorAll('[data-tpl-edit]').forEach(b => b.addEventListener('click', () => Pages._modalTpl(st.items.find(x=>x.id===b.dataset.tplEdit))));
     el.querySelectorAll('[data-tpl-toggle-feat]').forEach(b => b.addEventListener('click', () => Pages._toggleTpl(b.dataset.tplToggleFeat, 'destacada')));
