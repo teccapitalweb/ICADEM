@@ -1012,6 +1012,18 @@
         </div>
       </a>
 
+      <!-- NUEVO: Botón marca personal de Jorge — Consultoría / cursos de IA para empresas.
+           Cambia el texto y el href (consultoria-ia.html) cuando tengas la página lista. -->
+      <a href="consultoria-ia.html" class="nav-ia" aria-label="Consultoría e IA para empresas">
+        <svg class="nav-ia-ico" viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <path d="M12 2.5l1.6 4.3 4.3 1.6-4.3 1.6L12 14.3l-1.6-4.3L6.1 8.4l4.3-1.6L12 2.5z"
+                fill="currentColor"/>
+          <path d="M18.5 14.2l.8 2.1 2.1.8-2.1.8-.8 2.1-.8-2.1-2.1-.8 2.1-.8.8-2.1z"
+                fill="currentColor" opacity="0.8"/>
+        </svg>
+        <span class="nav-ia-text">IA Empresas</span>
+      </a>
+
       <!-- MODIFICADO: Botón VIP siempre visible en móvil (no oculto en hamburguesa) -->
       <a href="#" class="nav-vip-mobile" aria-label="Acceso VIP" onclick="irAlVIP();return false;">
         <span class="nav-vip-mobile-crown">♛</span>
@@ -1072,6 +1084,39 @@
         .nav-vip-crown { font-size: 13px; line-height: 1; }
         .nav-vip-text { position: relative; }
 
+        /* === Botón "IA Empresas" — marca personal Jorge (desktop) === */
+        .nav-ia {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 9px 18px;
+          margin-left: 18px;   /* separación del logo ICADEM */
+          margin-right: auto;  /* empuja el nav (Nosotros...) a la derecha y deja este pegado al logo */
+          font-family: inherit;
+          font-size: 13px;
+          font-weight: 700;
+          letter-spacing: 0.02em;
+          color: #dbeafe !important;
+          background: rgba(11, 47, 104, 0.45);
+          border: 1px solid rgba(147, 197, 253, 0.40);
+          border-radius: 50px;
+          text-decoration: none;
+          white-space: nowrap;
+          backdrop-filter: blur(10px);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.06), 0 0 0 rgba(147,197,253,0);
+          transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, color .18s ease;
+        }
+        .nav-ia:hover {
+          color: #ffffff !important;
+          border-color: rgba(147, 197, 253, 0.75);
+          transform: translateY(-2px);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.10), 0 6px 20px rgba(11,47,104,0.55), 0 0 18px rgba(147,197,253,0.25);
+        }
+        .nav-ia:active { transform: translateY(0); }
+        .nav-ia-ico { color: #93c5fd; flex: 0 0 auto; }
+        .nav-ia:hover .nav-ia-ico { color: #f5d77a; }
+        .nav-ia-text { position: relative; }
+
         @media (max-width: 768px) {
           .nav-vip {
             width: fit-content;
@@ -1103,8 +1148,8 @@
             box-shadow:
               0 2px 8px rgba(62,111,168, 0.30),
               inset 0 1px 0 rgba(255, 255, 255, 0.22);
-            margin-left: auto;
-            margin-right: 12px;
+            margin-left: 0;     /* el empuje al grupo lo hace .nav-ia */
+            margin-right: 2px;
             white-space: nowrap;
             position: relative;
             z-index: 5;
@@ -1145,21 +1190,43 @@
             100% { left: 150%; }
           }
         }
-        @media (max-width: 380px) {
-          .nav-vip-mobile {
-            padding: 9px 14px;
-            font-size: 12px;
-            margin-right: 8px;
+        @media (max-width: 389px) {
+          /* Solo en pantallas angostas (iPhone SE/mini, Androids chicos):
+             el logo circular ya representa la marca; ocultamos el wordmark
+             para que IA Empresas + VIP quepan con aire (sin cortarse). */
+          .brand strong { display: none !important; }
+          .nav-ia {
+            padding: 8px 12px;
+            font-size: 11.5px;
+            gap: 5px;
           }
+          .nav-ia-ico { width: 13px; height: 13px; }
+          .nav-vip-mobile {
+            padding: 8px 13px;
+            font-size: 11.5px;
+            margin-right: 2px;
+          }
+        }
+        @media (max-width: 340px) {
+          /* En lo más angosto: el botón IA solo muestra el icono para que todo quepa */
+          .nav-ia-text { display: none; }
+          .nav-ia { padding: 8px 10px; }
         }
 
         /* === Header móvil estilo "isla pill" tipo Sinergia === */
         @media (max-width: 900px) {
           .site-header {
             padding: 12px 0 !important;
+            /* NO sticky en móvil: la barra vive en el flujo normal y se sube
+               junto con el contenido al hacer scroll (no se queda fija ni se
+               sobrepone). El fondo va transparente; la "isla pill" trae el suyo. */
+            position: static !important;
+            top: auto !important;
             background: transparent !important;
             border-bottom: none !important;
             backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            z-index: auto !important;
           }
           .header-inner {
             margin: 0 12px !important;
@@ -1200,25 +1267,24 @@
             line-height: 1 !important;
           }
           .menu-toggle {
-            background: rgba(255, 255, 255, 0.06) !important;
-            border: 1px solid rgba(255, 255, 255, 0.12) !important;
-            border-radius: 50% !important;
-            width: 38px !important;
-            height: 38px !important;
-            display: flex !important;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 4px;
-            padding: 0 !important;
-            flex: 0 0 auto;
+            display: none !important; /* Hamburguesa eliminada en móvil — se usan los 2 botones */
           }
-          .menu-toggle span {
-            width: 16px;
-            height: 1.5px;
-            background: #fff !important;
-            border-radius: 2px;
+
+          /* Botón IA Empresas en móvil: compacto, empuja el grupo de botones a la derecha */
+          .nav-ia {
+            margin-left: auto;
+            margin-right: 0;
+            padding: 9px 14px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            background: rgba(11, 47, 104, 0.55);
+            border: 1.5px solid rgba(147, 197, 253, 0.45);
+            backdrop-filter: blur(8px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.10);
+            z-index: 5;
           }
+          .nav-ia-ico { width: 14px; height: 14px; }
 
           /* Nav dropdown abierto en mobile — azul ICADEM, NO blanco */
           .nav.is-open,
