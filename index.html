@@ -1117,6 +1117,29 @@
         .nav-ia:hover .nav-ia-ico { color: #f5d77a; }
         .nav-ia-text { position: relative; }
 
+        /* === DESKTOP: todo el header en UNA sola línea (evita que el nav se
+           parta en 2 renglones al agregar IA Empresas / con "Mi Panel VIP") === */
+        @media (min-width: 901px) {
+          .header-inner {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+          }
+          .nav {
+            flex-wrap: nowrap !important;
+            align-items: center !important;
+            column-gap: 15px !important;
+            white-space: nowrap;
+          }
+          .nav-ia {
+            margin-left: 14px;
+            margin-right: auto;
+            padding: 8px 15px;
+            font-size: 12.5px;
+            flex: 0 0 auto;
+          }
+        }
+
         @media (max-width: 768px) {
           .nav-vip {
             width: fit-content;
@@ -1190,27 +1213,29 @@
             100% { left: 150%; }
           }
         }
-        @media (max-width: 389px) {
-          /* Solo en pantallas angostas (iPhone SE/mini, Androids chicos):
-             el logo circular ya representa la marca; ocultamos el wordmark
-             para que IA Empresas + VIP quepan con aire (sin cortarse). */
+        @media (max-width: 600px) {
+          /* En teléfonos: el logo circular ya representa la marca; ocultamos el
+             wordmark para que IA Empresas + VIP quepan completos y con aire
+             (el VIP nunca se corta). Ambos botones quedan del mismo tamaño. */
           .brand strong { display: none !important; }
           .nav-ia {
-            padding: 8px 12px;
-            font-size: 11.5px;
-            gap: 5px;
+            padding: 9px 15px;
+            font-size: 12px;
+            gap: 6px;
+            border-radius: 999px;
           }
-          .nav-ia-ico { width: 13px; height: 13px; }
+          .nav-ia-ico { width: 14px; height: 14px; }
           .nav-vip-mobile {
-            padding: 8px 13px;
-            font-size: 11.5px;
+            padding: 9px 15px;
+            font-size: 12px;
+            letter-spacing: 0.06em;
             margin-right: 2px;
           }
         }
         @media (max-width: 340px) {
           /* En lo más angosto: el botón IA solo muestra el icono para que todo quepa */
           .nav-ia-text { display: none; }
-          .nav-ia { padding: 8px 10px; }
+          .nav-ia { padding: 9px 11px; }
         }
 
         /* === Header móvil estilo "isla pill" tipo Sinergia === */
