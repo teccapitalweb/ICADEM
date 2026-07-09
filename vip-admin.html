@@ -130,7 +130,7 @@ body{
   color:var(--primary);
 }
 .topbar__pill::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--primary);animation:pulseDotSmall 1.8s ease-out infinite;box-shadow:0 0 6px var(--primary-glow)}
-.topbar__right{display:flex;align-items:center;gap:10px}
+.topbar__right{display:flex;align-items:center;gap:10px;margin-left:auto}
 .theme-toggle,.icon-btn{
   width:38px;height:38px;border-radius:50%;
   background:var(--surface);border:1px solid var(--border-2);
@@ -1185,7 +1185,7 @@ window.__signOut = async () => {
   <!-- MAIN -->
   <main class="main">
     <div class="topbar">
-      <span class="topbar__pill">Modo administrador</span>
+      <!-- MODIFICADO: se eliminó el pill "Modo administrador" -->
       <div class="topbar__right">
         <button class="theme-toggle" id="theme-toggle" aria-label="Cambiar tema"><svg class="ic"><use href="#i-moon"/></svg></button>
         <div class="avatar">
