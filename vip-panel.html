@@ -8405,6 +8405,24 @@ const Sections = (function(){
     });
   }
 
+  // Garantiza que los generadores PDF/XLS de la Calc Fiscal estén registrados
+  // (se registran al montar la fiscal; si el usuario entra directo a Nómina o
+  // Crédito, los montamos una vez en un contenedor invisible).
+  // NOTA: estaba declarada después del `return` de este IIFE, por lo que nunca
+  // se ejecutaba (código muerto) — se reubica aquí, antes del return, para que
+  // sí quede asignada a window.
+  window.__ensureCfGenerators = function(){
+    if (typeof window._cfGenerarXLS === 'function' && typeof window._cfGenerarPDF === 'function') return true;
+    try {
+      const tmp = document.createElement('div');
+      tmp.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;';
+      document.body.appendChild(tmp);
+      window.ToolCalcFiscal && window.ToolCalcFiscal.mount(tmp);
+      tmp.remove();
+    } catch(e) { console.warn('[ensureCfGenerators]', e); }
+    return typeof window._cfGenerarXLS === 'function';
+  };
+
   return {
     renderers:{
       cursos:renderCursos,
@@ -8433,21 +8451,6 @@ const Sections = (function(){
       'tool-reporte':(c)=>ToolReporte.mount(c)
     },
     countdownTimer:null
-  };
-
-  // Garantiza que los generadores PDF/XLS de la Calc Fiscal estén registrados
-  // (se registran al montar la fiscal; si el usuario entra directo a Nómina o
-  // Crédito, los montamos una vez en un contenedor invisible).
-  window.__ensureCfGenerators = function(){
-    if (typeof window._cfGenerarXLS === 'function' && typeof window._cfGenerarPDF === 'function') return true;
-    try {
-      const tmp = document.createElement('div');
-      tmp.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;';
-      document.body.appendChild(tmp);
-      window.ToolCalcFiscal && window.ToolCalcFiscal.mount(tmp);
-      tmp.remove();
-    } catch(e) { console.warn('[ensureCfGenerators]', e); }
-    return typeof window._cfGenerarXLS === 'function';
   };
 
 })();
@@ -11951,6 +11954,12 @@ window.__initCalcFiscal = function(){
   // Exponer generadores PDF/Excel globalmente para que otras herramientas los reusen
   window._cfGenerarPDF = generarPDF;
   window._cfGenerarXLS = generarXLS;
+
+  // Exponer tabla/funciones de ISR: __initCalcNomina las usa (calcRecibo, calcMulti)
+  // y vive en un <script> separado, así que no las hereda por closure.
+  window.aplicarTablaISR = aplicarTablaISR;
+  window.aplicarSubsidio = aplicarSubsidio;
+  window.TABLA_ISR_MENSUAL_2026 = TABLA_ISR_MENSUAL_2026;
 };
 window.ToolCalcFiscal = {
   mount(c) {
@@ -12155,8 +12164,8 @@ window.__initCalcNomina = function(){
   const fmt = (n) => '$' + (Number(n) || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtPct = (n) => (Number(n) * 100 || 0).toFixed(2) + '%';
 
-  // Reusa la tabla ISR del script anterior (ya está cargada)
-  // Reusa aplicarTablaISR y aplicarSubsidio del script anterior
+  // aplicarTablaISR/aplicarSubsidio/TABLA_ISR_MENSUAL_2026 viven en __initCalcFiscal
+  // (otro <script>) y se usan aquí vía window.* — ver exports al final de __initCalcFiscal
 
   // === Días de vacaciones LFT 2026 (Reforma 2023) ===
   function diasVacacionesLFT(anios) {
@@ -12814,11 +12823,13 @@ window.__initCalcNomina = function(){
     // Crédito INFONAVIT (lo que retiene al empleado)
     const infonavitEmpleado = (infonavitPct / 100) * sbc * diasTrab;
 
-    // ISR
+    // ISR (aplicarTablaISR/aplicarSubsidio viven en __initCalcFiscal; si el usuario
+    // entra directo a Nómina sin pasar por Fiscal, hay que montarla una vez para exponerlas)
+    if (typeof window.aplicarTablaISR !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
     const factor = periodo === 'mensual' ? 1 : (periodo === 'quincenal' ? 2 : 52/12);
     const baseMensualISR = sueldoBruto * factor;
-    const isrMensual = aplicarTablaISR(baseMensualISR, TABLA_ISR_MENSUAL_2026);
-    const subsidio = aplicarSubsidio(baseMensualISR);
+    const isrMensual = window.aplicarTablaISR(baseMensualISR, window.TABLA_ISR_MENSUAL_2026);
+    const subsidio = window.aplicarSubsidio(baseMensualISR);
     const isrFinalMensual = Math.max(0, isrMensual - subsidio);
     const isrPeriodo = isrFinalMensual / factor;
 
@@ -13065,6 +13076,10 @@ window.__initCalcNomina = function(){
     let totalISR = 0, totalNeto = 0;
     const rows = [];
 
+    // aplicarTablaISR/aplicarSubsidio viven en __initCalcFiscal; si el usuario entra
+    // directo a Nómina sin pasar por Fiscal, hay que montarla una vez para exponerlas
+    if (typeof window.aplicarTablaISR !== 'function') window.__ensureCfGenerators && window.__ensureCfGenerators();
+
     tbody.querySelectorAll('tr').forEach((tr, i) => {
       const nombre = tr.querySelector('.nm-multi-nombre').value || ('Empleado ' + (i + 1));
       const salario = parseFloat(tr.querySelector('.nm-multi-salario').value) || 0;
@@ -13081,8 +13096,8 @@ window.__initCalcNomina = function(){
       // ISR aproximado
       const factor = dias === 30 ? 1 : (dias === 15 ? 2 : 52/12);
       const baseMensISR = sueldoBruto * factor;
-      const isrM = aplicarTablaISR(baseMensISR, TABLA_ISR_MENSUAL_2026);
-      const subs = aplicarSubsidio(baseMensISR);
+      const isrM = window.aplicarTablaISR(baseMensISR, window.TABLA_ISR_MENSUAL_2026);
+      const subs = window.aplicarSubsidio(baseMensISR);
       const isrFinal = Math.max(0, isrM - subs);
       const isr = isrFinal / factor;
 
@@ -13311,7 +13326,12 @@ window.__initCalcNomina = function(){
     const btn = document.getElementById(id);
     if (btn) btn.addEventListener('click', () => {
       if (id !== 'btn-nm-multi-add' && typeof toolRequiereVIP === 'function' && !toolRequiereVIP('Calculadora de nómina')) return;
-      fn();
+      try {
+        fn();
+      } catch (e) {
+        console.error('[calc-nomina]', id, e);
+        if (typeof Toast !== 'undefined') Toast.error('No se pudo calcular', 'Intenta de nuevo. Si el problema persiste, contacta a soporte.');
+      }
     });
   });
 
