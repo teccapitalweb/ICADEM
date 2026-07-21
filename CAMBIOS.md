@@ -2,7 +2,7 @@
 
 ## 2026-07-20 — Fix: "Recibo de nómina" y "Multi-empleado" rotos (ReferenceError) + causa raíz de `__ensureCfGenerators`
 
-**Archivo:** `vip-panel.html` (sin commitear todavía — cambios en working tree, pendientes de autorización para push)
+**Archivo:** `vip-panel.html` (commiteado en `5994166` y pusheado a `main`)
 
 ### 1. `aplicarTablaISR`/`aplicarSubsidio`/`TABLA_ISR_MENSUAL_2026` no eran accesibles entre scripts
 
