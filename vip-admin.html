@@ -1283,6 +1283,27 @@ const Modal={
 /* =========================================================
    DATOS SEED (después → Firestore)
    ========================================================= */
+/* ═══════════════════════════════════════════════════════════
+   MODIFICADO · CACHÉ DE PRECIOS (config/club)
+   Una sola lectura al arrancar el panel; los KPIs de ingresos
+   (MRR, plan mensual, plan anual) la usan en vez de tener 250 y
+   1999 escritos a mano. Si Firestore falla, quedan los de respaldo.
+   ═══════════════════════════════════════════════════════════ */
+window.__PRECIOS = { mes: 250, ano: 1999 };
+window.__cargarPrecios = async function(){
+  try {
+    const fb = window._fb;
+    if (!fb || !fb.getDoc) return;
+    const snap = await fb.getDoc(fb.doc(fb.db, 'config', 'club'));
+    const c = snap.exists() ? snap.data() : {};
+    if (Number(c.precioMes) > 0) window.__PRECIOS.mes = Number(c.precioMes);
+    if (Number(c.precioAno) > 0) window.__PRECIOS.ano = Number(c.precioAno);
+    // Repintar lo que ya se haya dibujado con los valores de respaldo
+    if (window.AdminStore && typeof AdminStore._autoRerender === 'function') AdminStore._autoRerender();
+    if (window.Pages && typeof Pages._renderKpisMiembros === 'function') Pages._renderKpisMiembros();
+  } catch (e) { console.warn('[precios] usando respaldo:', e.message); }
+};
+
 const SEED={
   cursos:[
     {id:'c1',titulo:'Declaración anual de personas morales paso a paso',area:'Fiscal',nivel:'Intermedio',instructor:'C.P. María López',horas:12,modulos:8,activo:true,inscritos:184},
@@ -1339,10 +1360,13 @@ const Pages={
       noticiasHoy: 0, notifTotal: 0
     };
 
-    // Calcular ingresos del mes basado en miembros reales (250 mensual / 1999 anual)
+    // MODIFICADO: ingresos del mes con los precios REALES de config/club
+    // (antes 250 y 167 fijos). El anual se prorratea a mensual.
+    const __P = window.__PRECIOS || { mes: 250, ano: 1999 };
+    const __anualMensualizado = Math.round(__P.ano / 12);
     const ingresoMes = ready ? store.miembros.reduce((sum, m) => {
       if (m.activo === false) return sum;
-      return sum + (m.plan === 'anual' || m.plan === 'Anual' ? 167 : 250); // anual ≈ 1999/12 = 167/mes
+      return sum + (m.plan === 'anual' || m.plan === 'Anual' ? __anualMensualizado : __P.mes);
     }, 0) : 0;
 
     // Próximo webinar real
@@ -4004,9 +4028,10 @@ const Pages={
     const anuales = miembros.filter(m => m.plan === 'anual' && Pages._mbEstaActivo(m)).length;
     const regalos = miembros.filter(m => (m.esRegalo === true || m.plan === 'regalo') && Pages._mbEstaActivo(m)).length;
 
-    // Calcular MRR estimado
-    const ingresoMensual = mensuales * 250;
-    const ingresoAnualProrrateado = Math.round((anuales * 1999) / 12);
+    // MODIFICADO: MRR con los precios REALES de config/club (antes 250/1999 fijos)
+    const P = window.__PRECIOS || { mes: 250, ano: 1999 };
+    const ingresoMensual = mensuales * P.mes;
+    const ingresoAnualProrrateado = Math.round((anuales * P.ano) / 12);
     const mrr = ingresoMensual + ingresoAnualProrrateado;
 
     // Tasa de conversión
@@ -4027,12 +4052,12 @@ const Pages={
       <div class="kpi-card" style="--c1:#3B82F6;--c2:#60A5FA;">
         <div class="kpi-card__label">Plan Mensual</div>
         <div class="kpi-card__value">${mensuales}</div>
-        <div class="kpi-card__sub">$${(mensuales * 250).toLocaleString('es-MX')} MXN/mes</div>
+        <div class="kpi-card__sub">$${(mensuales * P.mes).toLocaleString('es-MX')} MXN/mes</div>
       </div>
       <div class="kpi-card" style="--c1:#5b92c8;--c2:#8fbce6;">
         <div class="kpi-card__label">Plan Anual</div>
         <div class="kpi-card__value">${anuales}</div>
-        <div class="kpi-card__sub">${anuales > 0 ? '$' + (anuales * 1999).toLocaleString('es-MX') + ' MXN al año' : 'Sin anuales'}</div>
+        <div class="kpi-card__sub">${anuales > 0 ? '$' + (anuales * P.ano).toLocaleString('es-MX') + ' MXN al año' : 'Sin anuales'}</div>
       </div>
       <div class="kpi-card" style="--c1:#A855F7;--c2:#C084FC;">
         <div class="kpi-card__label">MRR estimado</div>
@@ -5885,9 +5910,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 // Cuando Firebase confirma admin, arrancar listeners de Firestore
 window.addEventListener('adminready', () => {
   AdminStore.init();
+  if (window.__cargarPrecios) window.__cargarPrecios(); // MODIFICADO: caché de precios
 });
 // Por si el evento ya pasó antes de que carguemos esto
-if (window.__currentAdmin) AdminStore.init();
+if (window.__currentAdmin) {
+  AdminStore.init();
+  if (window.__cargarPrecios) window.__cargarPrecios(); // MODIFICADO: caché de precios
+}
 </script>
 
 </body>

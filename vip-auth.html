@@ -476,7 +476,8 @@ body::after{
       <p class="auth-hero__desc">Cursos de capacitación empresarial, clases en vivo con expertos y certificados de folio oficial para crecer profesionalmente.</p>
 
       <div class="hero-marquee" aria-hidden="true"><div class="track"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"></div></div>
-      <p class="hero-hook">Todo esto por <b>menos de $9 al día</b>:</p>
+      <!-- MODIFICADO: precio por día calculado desde config/club -->
+      <p class="hero-hook">Todo esto por <b>menos de $<span id="hp-dia">9</span> al día</b>:</p>
 
       <ul class="hero-benefits">
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Biblioteca completa</b> de cursos: fiscal, legal, nóminas, IMSS y RH</span></li>
@@ -486,15 +487,18 @@ body::after{
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Asesoría personalizada</b> y canal VIP · sin permanencia</span></li>
       </ul>
 
+      <!-- MODIFICADO: precios en vivo desde Firestore config/club.
+           OJO: antes decía $2,400/año pero el checkout cobraba $1,999 —
+           ahora ambos salen del mismo doc, ya no se pueden desfasar. -->
       <div class="hero-price">
         <div class="opt">
-          <b>$250</b>
-          <small>MXN al mes · menos de $9 al día<br>Cancela cuando quieras</small>
+          <b>$<span id="hp-mes">250</span></b>
+          <small>MXN al mes · menos de $<span id="hp-dia2">9</span> al día<br>Cancela cuando quieras</small>
         </div>
         <div class="opt opt--star">
-          <span class="badge">Ahorras $600</span>
-          <b>$2,400</b>
-          <small>MXN al año · sale en <span class="tachado">$250</span><strong style="color:var(--primary-soft);">$200/mes</strong><br>Acceso completo los 365 días</small>
+          <span class="badge" id="hp-badge">Ahorras $<span id="hp-ahorro">600</span></span>
+          <b>$<span id="hp-ano">2,400</span></b>
+          <small>MXN al año · sale en <span class="tachado">$<span id="hp-tachado">250</span></span><strong style="color:var(--primary-soft);">$<span id="hp-equiv">200</span>/mes</strong><br>Acceso completo los 365 días</small>
         </div>
       </div>
 
@@ -797,6 +801,45 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence);
+
+/* ═══════════════════════════════════════════════════════════
+   MODIFICADO · PRECIOS EN VIVO (patrón SYNOVA)
+   Lee config/club de Firestore y pinta el bloque de precios del
+   hero. Las reglas permiten lectura pública de ese doc, así que
+   funciona aunque el visitante NO haya iniciado sesión.
+   Todo lo derivado (por día, ahorro, equivalente mensual) se
+   calcula solo — no hay ningún número escrito a mano.
+   Si Firestore falla, se quedan los valores del HTML como respaldo.
+   ═══════════════════════════════════════════════════════════ */
+(async function pintarPreciosHero(){
+  try {
+    const snap = await getDoc(doc(db, 'config', 'club'));
+    const c = snap.exists() ? snap.data() : {};
+    const pm = Number(c.precioMes) > 0 ? Number(c.precioMes) : 250;
+    const pa = Number(c.precioAno) > 0 ? Number(c.precioAno) : 1999;
+
+    const fmt = n => Number(n).toLocaleString('es-MX');
+    const porDia   = Math.ceil(pm / 30);          // "menos de $X al día"
+    const ahorro   = Math.max(0, (pm * 12) - pa); // vs pagar 12 meses sueltos
+    const equivMes = Math.round(pa / 12);         // "sale en $X/mes"
+
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('hp-dia',     porDia);
+    set('hp-dia2',    porDia);
+    set('hp-mes',     fmt(pm));
+    set('hp-ano',     fmt(pa));
+    set('hp-tachado', fmt(pm));
+    set('hp-equiv',   fmt(equivMes));
+    set('hp-ahorro',  fmt(ahorro));
+
+    // Si el plan anual no ahorra nada (o cuesta más), ocultamos el badge
+    // en vez de anunciar "Ahorras $0".
+    const badge = document.getElementById('hp-badge');
+    if (badge) badge.style.display = ahorro > 0 ? '' : 'none';
+  } catch (e) {
+    console.warn('[precios hero] usando valores de respaldo:', e.message);
+  }
+})();
 
 /* =========================================================
    Crear o actualizar documento del miembro en Firestore

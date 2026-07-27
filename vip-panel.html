@@ -9354,9 +9354,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function(){
+  // MODIFICADO: se quitaron los precios fijos ($250/$1,999) de este objeto.
+  // Solo se usa `.name` (badge del sidebar); los precios de verdad salen de
+  // config/club en renderSuscripcionActivar/VIP. Dejarlos aquí solo servía
+  // para que se desfasaran del precio real sin que nadie se diera cuenta.
   const PLAN_LABELS = {
-    mensual: { name:'VIP Mensual', price:'$250', period:'MXN/mes', cycle:'mes' },
-    anual:   { name:'VIP Anual',   price:'$1,999', period:'MXN/año', cycle:'año' },
+    mensual: { name:'VIP Mensual', period:'MXN/mes', cycle:'mes' },
+    anual:   { name:'VIP Anual',   period:'MXN/año', cycle:'año' },
     regalo:  { name:'Acceso temporal', price:'—', period:'cortesía', cycle:'cortesía' },
     admin:   { name:'ADMIN',       price:'—',     period:'',         cycle:'—' }
   };
