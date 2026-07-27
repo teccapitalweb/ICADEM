@@ -7832,10 +7832,31 @@ const Sections = (function(){
     renderSuscripcionActivar(container, S);
   }
 
+  /* ─── MODIFICADO: precios en vivo desde Firestore config/club (patrón SYNOVA).
+     El admin los edita en vip-admin.html → Configuración y el webhook usa el
+     mismo doc para armar el cobro real en Stripe. Fallback: 250 / 1999. ─── */
+  async function leerPreciosVIP(){
+    try {
+      const fs = window.__fs;
+      const snap = await fs.getDoc(fs.doc(fs.db, 'config', 'club'));
+      const c = snap.exists() ? snap.data() : {};
+      const mes = Number(c.precioMes) > 0 ? Number(c.precioMes) : 250;
+      const ano = Number(c.precioAno) > 0 ? Number(c.precioAno) : 1999;
+      return { mes, ano };
+    } catch (e) {
+      console.warn('[precios] fallback:', e.message);
+      return { mes: 250, ano: 1999 };
+    }
+  }
+  function fmtPrecioVIP(n){ return '$' + Number(n).toLocaleString('es-MX'); }
+
   /* ─── Estado: SIN membresía (logueado pero no pagó) o INVITADO (demo) ─── */
-  function renderSuscripcionActivar(container, S){
+  async function renderSuscripcionActivar(container, S){
     const intentPlan = localStorage.getItem('icadem_intent_plan') || 'anual';
     const isInvitado = S.modo === 'invitado';
+    // MODIFICADO: precios dinámicos (antes hardcodeados $250 / $1,999)
+    const precios = isInvitado ? { mes: 250, ano: 1999 } : await leerPreciosVIP();
+    const ahorroPct = Math.max(0, Math.round((1 - precios.ano / (precios.mes * 12)) * 100));
 
     container.innerHTML = `
       <div class="fade-up">
@@ -7870,23 +7891,24 @@ const Sections = (function(){
             Elige tu plan
           </h3>
           <div class="plan-picker" id="plan-picker">
+            <!-- MODIFICADO: precios en vivo desde config/club -->
             <button class="plan-picker__card ${intentPlan==='mensual'?'is-active':''}" data-plan="mensual" type="button">
               <div>
                 <div class="plan-picker__name">VIP Mensual</div>
                 <div class="plan-picker__sub">Cancela cuando quieras</div>
               </div>
               <div style="text-align:right">
-                <div class="plan-picker__price">$250</div>
+                <div class="plan-picker__price">${fmtPrecioVIP(precios.mes)}</div>
                 <div class="plan-picker__price-sub">MXN/mes</div>
               </div>
             </button>
             <button class="plan-picker__card ${intentPlan==='anual'?'is-active':''}" data-plan="anual" type="button">
               <div>
                 <div class="plan-picker__name">VIP Anual</div>
-                <div class="plan-picker__sub">Ahorras 21%</div>
+                <div class="plan-picker__sub">${ahorroPct > 0 ? `Ahorras ${ahorroPct}%` : 'Un solo pago al año'}</div>
               </div>
               <div style="text-align:right">
-                <div class="plan-picker__price">$1,999</div>
+                <div class="plan-picker__price">${fmtPrecioVIP(precios.ano)}</div>
                 <div class="plan-picker__price-sub">MXN/año</div>
               </div>
             </button>
@@ -8008,10 +8030,13 @@ const Sections = (function(){
   }
 
   /* ─── Estado: VIP activo · muestra plan real y historial ─── */
-  function renderSuscripcionVIP(container, S){
+  async function renderSuscripcionVIP(container, S){
+    // MODIFICADO: precios en vivo desde config/club (precio vigente; las
+    // suscripciones activas conservan el precio con el que se contrataron)
+    const precios = await leerPreciosVIP();
     const PLAN_DATA = {
-      mensual: { name:'VIP Mensual', priceNum:'$250',   priceSub:'MXN / mes', period:'mensual' },
-      anual:   { name:'VIP Anual',   priceNum:'$1,999', priceSub:'MXN / año',  period:'anual' }
+      mensual: { name:'VIP Mensual', priceNum:fmtPrecioVIP(precios.mes), priceSub:'MXN / mes', period:'mensual' },
+      anual:   { name:'VIP Anual',   priceNum:fmtPrecioVIP(precios.ano), priceSub:'MXN / año',  period:'anual' }
     };
     const plan = PLAN_DATA[S.plan] || PLAN_DATA.mensual;
     const proxRenovStr = S.membership?.proximaRenovacion
