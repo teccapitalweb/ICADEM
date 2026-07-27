@@ -476,8 +476,9 @@ body::after{
       <p class="auth-hero__desc">Cursos de capacitación empresarial, clases en vivo con expertos y certificados de folio oficial para crecer profesionalmente.</p>
 
       <div class="hero-marquee" aria-hidden="true"><div class="track"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"></div></div>
-      <!-- MODIFICADO: precio por día calculado desde config/club -->
-      <p class="hero-hook">Todo esto por <b>menos de $<span id="hp-dia">9</span> al día</b>:</p>
+      <!-- MODIFICADO: SIN números fijos. El HTML no trae ningún precio;
+           el texto real lo escribe el script con lo que diga config/club. -->
+      <p class="hero-hook">Todo esto por <b id="hp-hook">menos de lo que crees al día</b>:</p>
 
       <ul class="hero-benefits">
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Biblioteca completa</b> de cursos: fiscal, legal, nóminas, IMSS y RH</span></li>
@@ -487,18 +488,20 @@ body::after{
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Asesoría personalizada</b> y canal VIP · sin permanencia</span></li>
       </ul>
 
-      <!-- MODIFICADO: precios en vivo desde Firestore config/club.
-           OJO: antes decía $2,400/año pero el checkout cobraba $1,999 —
-           ahora ambos salen del mismo doc, ya no se pueden desfasar. -->
+      <!-- MODIFICADO: BLINDADO · aquí NO hay ni un número de precio escrito.
+           Los placeholders son "—" y el script los llena desde config/club.
+           Si Firestore falla, se queda el "—" · JAMÁS se ve un precio viejo.
+           (Antes esta sección decía $2,400/año mientras el checkout cobraba
+           $1,999 — precisamente el desfase que esto vuelve imposible.) -->
       <div class="hero-price">
         <div class="opt">
-          <b>$<span id="hp-mes">250</span></b>
-          <small>MXN al mes · menos de $<span id="hp-dia2">9</span> al día<br>Cancela cuando quieras</small>
+          <b>$<span id="hp-mes">—</span></b>
+          <small>MXN al mes · <span id="hp-mes-detalle">sin permanencia</span><br>Cancela cuando quieras</small>
         </div>
         <div class="opt opt--star">
-          <span class="badge" id="hp-badge">Ahorras $<span id="hp-ahorro">600</span></span>
-          <b>$<span id="hp-ano">2,400</span></b>
-          <small>MXN al año · sale en <span class="tachado">$<span id="hp-tachado">250</span></span><strong style="color:var(--primary-soft);">$<span id="hp-equiv">200</span>/mes</strong><br>Acceso completo los 365 días</small>
+          <span class="badge" id="hp-badge" style="display:none"></span>
+          <b>$<span id="hp-ano">—</span></b>
+          <small>MXN al año · <span id="hp-ano-detalle">acceso completo los 365 días</span></small>
         </div>
       </div>
 
@@ -815,8 +818,15 @@ setPersistence(auth, browserLocalPersistence);
   try {
     const snap = await getDoc(doc(db, 'config', 'club'));
     const c = snap.exists() ? snap.data() : {};
-    const pm = Number(c.precioMes) > 0 ? Number(c.precioMes) : 250;
-    const pa = Number(c.precioAno) > 0 ? Number(c.precioAno) : 1999;
+    const pm = Number(c.precioMes);
+    const pa = Number(c.precioAno);
+    // SIN respaldo con números viejos: si no hay precio válido en Firestore
+    // nos salimos y la página se queda con "—". Preferimos no decir precio
+    // a decir uno equivocado.
+    if (!(pm > 0) || !(pa > 0)) {
+      console.warn('[precios hero] config/club sin precios válidos · se deja "—"');
+      return;
+    }
 
     const fmt = n => Number(n).toLocaleString('es-MX');
     const porDia   = Math.ceil(pm / 30);          // "menos de $X al día"
@@ -824,20 +834,31 @@ setPersistence(auth, browserLocalPersistence);
     const equivMes = Math.round(pa / 12);         // "sale en $X/mes"
 
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('hp-dia',     porDia);
-    set('hp-dia2',    porDia);
-    set('hp-mes',     fmt(pm));
-    set('hp-ano',     fmt(pa));
-    set('hp-tachado', fmt(pm));
-    set('hp-equiv',   fmt(equivMes));
-    set('hp-ahorro',  fmt(ahorro));
+    set('hp-mes', fmt(pm));
+    set('hp-ano', fmt(pa));
 
-    // Si el plan anual no ahorra nada (o cuesta más), ocultamos el badge
-    // en vez de anunciar "Ahorras $0".
+    const hook = document.getElementById('hp-hook');
+    if (hook) hook.textContent = `menos de $${fmt(porDia)} al día`;
+
+    const mesDet = document.getElementById('hp-mes-detalle');
+    if (mesDet) mesDet.textContent = `menos de $${fmt(porDia)} al día`;
+
+    const anoDet = document.getElementById('hp-ano-detalle');
+    if (anoDet) {
+      anoDet.innerHTML = ahorro > 0
+        ? `sale en <span class="tachado">$${fmt(pm)}</span><strong style="color:var(--primary-soft);">$${fmt(equivMes)}/mes</strong><br>Acceso completo los 365 días`
+        : `$${fmt(equivMes)}/mes · acceso completo los 365 días`;
+    }
+
+    // El badge nace oculto en el HTML: solo aparece si de verdad hay ahorro,
+    // así nunca se anuncia un "Ahorras $0" ni un ahorro que ya no aplica.
     const badge = document.getElementById('hp-badge');
-    if (badge) badge.style.display = ahorro > 0 ? '' : 'none';
+    if (badge && ahorro > 0) {
+      badge.textContent = `Ahorras $${fmt(ahorro)}`;
+      badge.style.display = '';
+    }
   } catch (e) {
-    console.warn('[precios hero] usando valores de respaldo:', e.message);
+    console.warn('[precios hero] Firestore no respondió · se deja "—":', e.message);
   }
 })();
 

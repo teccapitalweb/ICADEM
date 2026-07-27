@@ -7835,28 +7835,34 @@ const Sections = (function(){
   /* ─── MODIFICADO: precios en vivo desde Firestore config/club (patrón SYNOVA).
      El admin los edita en vip-admin.html → Configuración y el webhook usa el
      mismo doc para armar el cobro real en Stripe. Fallback: 250 / 1999. ─── */
+  // BLINDADO: si Firestore no da un precio válido devolvemos null y la
+  // pantalla muestra "$—". NUNCA caemos a los precios viejos ($250/$1,999):
+  // más vale no mostrar precio que mostrar uno que ya no se cobra.
+  // (El checkout de Stripe siempre enseña el monto real antes de pagar.)
   async function leerPreciosVIP(){
     try {
       const fs = window.__fs;
       const snap = await fs.getDoc(fs.doc(fs.db, 'config', 'club'));
       const c = snap.exists() ? snap.data() : {};
-      const mes = Number(c.precioMes) > 0 ? Number(c.precioMes) : 250;
-      const ano = Number(c.precioAno) > 0 ? Number(c.precioAno) : 1999;
+      const mes = Number(c.precioMes), ano = Number(c.precioAno);
+      if (!(mes > 0) || !(ano > 0)) { console.warn('[precios] config/club sin precios válidos'); return null; }
       return { mes, ano };
     } catch (e) {
-      console.warn('[precios] fallback:', e.message);
-      return { mes: 250, ano: 1999 };
+      console.warn('[precios] Firestore no respondió:', e.message);
+      return null;
     }
   }
-  function fmtPrecioVIP(n){ return '$' + Number(n).toLocaleString('es-MX'); }
+  function fmtPrecioVIP(n){ return (n > 0) ? '$' + Number(n).toLocaleString('es-MX') : '$—'; }
 
   /* ─── Estado: SIN membresía (logueado pero no pagó) o INVITADO (demo) ─── */
   async function renderSuscripcionActivar(container, S){
     const intentPlan = localStorage.getItem('icadem_intent_plan') || 'anual';
     const isInvitado = S.modo === 'invitado';
-    // MODIFICADO: precios dinámicos (antes hardcodeados $250 / $1,999)
-    const precios = isInvitado ? { mes: 250, ano: 1999 } : await leerPreciosVIP();
-    const ahorroPct = Math.max(0, Math.round((1 - precios.ano / (precios.mes * 12)) * 100));
+    // MODIFICADO: precios dinámicos · null = no se pudo leer → se pinta "$—"
+    const precios = await leerPreciosVIP();
+    const pMes = precios ? precios.mes : 0;
+    const pAno = precios ? precios.ano : 0;
+    const ahorroPct = precios ? Math.max(0, Math.round((1 - pAno / (pMes * 12)) * 100)) : 0;
 
     container.innerHTML = `
       <div class="fade-up">
@@ -7898,7 +7904,7 @@ const Sections = (function(){
                 <div class="plan-picker__sub">Cancela cuando quieras</div>
               </div>
               <div style="text-align:right">
-                <div class="plan-picker__price">${fmtPrecioVIP(precios.mes)}</div>
+                <div class="plan-picker__price">${fmtPrecioVIP(pMes)}</div>
                 <div class="plan-picker__price-sub">MXN/mes</div>
               </div>
             </button>
@@ -7908,7 +7914,7 @@ const Sections = (function(){
                 <div class="plan-picker__sub">${ahorroPct > 0 ? `Ahorras ${ahorroPct}%` : 'Un solo pago al año'}</div>
               </div>
               <div style="text-align:right">
-                <div class="plan-picker__price">${fmtPrecioVIP(precios.ano)}</div>
+                <div class="plan-picker__price">${fmtPrecioVIP(pAno)}</div>
                 <div class="plan-picker__price-sub">MXN/año</div>
               </div>
             </button>
@@ -8033,10 +8039,10 @@ const Sections = (function(){
   async function renderSuscripcionVIP(container, S){
     // MODIFICADO: precios en vivo desde config/club (precio vigente; las
     // suscripciones activas conservan el precio con el que se contrataron)
-    const precios = await leerPreciosVIP();
+    const precios = await leerPreciosVIP();   // null → se pinta "$—"
     const PLAN_DATA = {
-      mensual: { name:'VIP Mensual', priceNum:fmtPrecioVIP(precios.mes), priceSub:'MXN / mes', period:'mensual' },
-      anual:   { name:'VIP Anual',   priceNum:fmtPrecioVIP(precios.ano), priceSub:'MXN / año',  period:'anual' }
+      mensual: { name:'VIP Mensual', priceNum:fmtPrecioVIP(precios ? precios.mes : 0), priceSub:'MXN / mes', period:'mensual' },
+      anual:   { name:'VIP Anual',   priceNum:fmtPrecioVIP(precios ? precios.ano : 0), priceSub:'MXN / año',  period:'anual' }
     };
     const plan = PLAN_DATA[S.plan] || PLAN_DATA.mensual;
     const proxRenovStr = S.membership?.proximaRenovacion
