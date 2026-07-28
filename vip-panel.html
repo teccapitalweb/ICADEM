@@ -4586,7 +4586,51 @@ const ToolReporte = (function(){
   }
   return {open(){navigateToSection('tool-reporte');}, mount};
 })();
-function navigateToSection(section){
+/* ═══════════════════════════════════════════════════════════════
+   MODIFICADO · RUTAS: recordar la pestaña abierta
+   La pestaña activa vive en la URL (ej. vip-panel.html#cursos):
+     · F5 o Ctrl+Shift+R te devuelve a la MISMA pestaña, no al inicio
+     · Atrás / Adelante del navegador se mueven entre pestañas
+     · Puedes copiar el link y abrirlo directo en esa pestaña
+   Incluye las herramientas que abren como sección (tool-…).
+   ═══════════════════════════════════════════════════════════════ */
+const SECCION_DEFAULT_VIP = 'inicio';
+let __seccionActualVIP = null;
+
+function __seccionesValidasVIP(){
+  const s = new Set(Array.from(
+    document.querySelectorAll('.nav-item[data-section], .mobile-nav__item[data-section], .mobile-drawer__item[data-section]')
+  ).map(n => n.dataset.section));
+  s.add('inicio');
+  // Herramientas que se abren como sección propia (tool-calc-fiscal, etc.)
+  try { Object.keys(Sections.renderers || {}).forEach(k => s.add(k)); } catch(e) {}
+  return s;
+}
+function __leerSeccionURLVIP(){
+  let s = '';
+  try { s = decodeURIComponent((location.hash || '').replace(/^#/, '')).trim(); } catch(e) { s = ''; }
+  if (!s) s = (new URLSearchParams(location.search).get('seccion') || '').trim();
+  return __seccionesValidasVIP().has(s) ? s : SECCION_DEFAULT_VIP;
+}
+function __sincronizarDesdeURLVIP(){
+  const s = __leerSeccionURLVIP();
+  if (s !== __seccionActualVIP) navigateToSection(s, { reemplazar: true });
+}
+window.addEventListener('popstate', __sincronizarDesdeURLVIP);
+window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
+
+function navigateToSection(section, opciones){
+  // Sección inexistente (link viejo, # inventado) → al inicio
+  if(!__seccionesValidasVIP().has(section)) section = SECCION_DEFAULT_VIP;
+
+  // ── Dejar la pestaña escrita en la URL ──
+  __seccionActualVIP = section;
+  const __destino = '#' + section;
+  if(location.hash !== __destino && window.history){
+    if(opciones && opciones.reemplazar) history.replaceState(null, '', __destino);
+    else history.pushState(null, '', __destino);
+  }
+
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
   document.querySelectorAll(`[data-section="${section}"]`).forEach(ni => ni.classList.add('is-active'));
   // Si es una herramienta-sección (tool-iper, tool-oee...), resaltar su item data-tool
@@ -9351,6 +9395,7 @@ function init(){
   injectSupportFAB();
   window.Modal=Modal;window.Tools=Tools;window.Toast=Toast;window.navigateToSection=navigateToSection;
   window.openReferralModal=openReferralModal;
+  window.__leerSeccionURLVIP=__leerSeccionURLVIP;  // MODIFICADO: lo usa la ruta inicial
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 </script>
@@ -9512,6 +9557,21 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         initCountdown().catch(e => console.warn('[initCountdown post-auth]', e));
       }
     }, 150);
+
+    // 8. MODIFICADO · Abrir la pestaña que diga la URL (#cursos, #suscripcion…).
+    // Se hace AQUÍ, no en init(), porque secciones como Suscripción o Perfil
+    // necesitan saber quién es el usuario para pintarse bien.
+    // Solo una vez por carga: si el usuario ya navegó, no lo movemos.
+    if (!window.__rutaInicialAplicada) {
+      window.__rutaInicialAplicada = true;
+      try {
+        const destino = window.__leerSeccionURLVIP ? window.__leerSeccionURLVIP() : 'inicio';
+        // 'inicio' ya es la vista por defecto del HTML · no hace falta re-render
+        if (destino !== 'inicio' && typeof window.navigateToSection === 'function') {
+          window.navigateToSection(destino, { reemplazar: true });
+        }
+      } catch (e) { console.warn('[ruta inicial]', e.message); }
+    }
   };
 
   // ─── Timer del demo ───

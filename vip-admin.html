@@ -5655,7 +5655,42 @@ function dirAdminCargar(){
   }, (err)=>{ console.error('dir admin',err); const c=document.getElementById('dir-admin-list'); if(c) c.innerHTML='<div class="empty-state">Error al cargar el directorio.</div>'; });
 }
 
-function navigate(section){
+/* ═══════════════════════════════════════════════════════════════
+   MODIFICADO · RUTAS: recordar la pestaña abierta
+   La pestaña activa vive en la URL (ej. vip-admin.html#miembros):
+     · F5 o Ctrl+Shift+R te devuelve a la MISMA pestaña, no al inicio
+     · Atrás / Adelante del navegador se mueven entre pestañas
+     · Puedes copiar el link y abrirlo directo en esa pestaña
+   La lista de pestañas válidas se saca del propio menú, así que si
+   mañana agregan o quitan una sección, esto sigue funcionando solo.
+   ═══════════════════════════════════════════════════════════════ */
+const SECCION_DEFAULT = 'dashboard';
+let __seccionActual = null;
+
+function __seccionesValidas(){
+  return new Set(Array.from(
+    document.querySelectorAll('.nav-item[data-section], .mobile-nav__item[data-section]')
+  ).map(n => n.dataset.section));
+}
+function __leerSeccionURL(){
+  let s = '';
+  try { s = decodeURIComponent((location.hash || '').replace(/^#/, '')).trim(); } catch(e) { s = ''; }
+  // Compatibilidad con links viejos tipo ?seccion=miembros
+  if (!s) s = (new URLSearchParams(location.search).get('seccion') || '').trim();
+  return __seccionesValidas().has(s) ? s : SECCION_DEFAULT;
+}
+function __sincronizarDesdeURL(){
+  const s = __leerSeccionURL();
+  if (s !== __seccionActual) navigate(s, { reemplazar: true });
+}
+// Atrás/Adelante del navegador y edición manual del #
+window.addEventListener('popstate', __sincronizarDesdeURL);
+window.addEventListener('hashchange', __sincronizarDesdeURL);
+
+function navigate(section, opciones){
+  // Si llega una sección que no existe (link viejo, # inventado), al inicio
+  if(!__seccionesValidas().has(section)) section = SECCION_DEFAULT;
+
   if(section!=='foro' && typeof _foroAdminUnsub==='function'){ _foroAdminUnsub(); _foroAdminUnsub=null; }
   if(section!=='directorio' && typeof _dirAdminUnsub==='function'){ _dirAdminUnsub(); _dirAdminUnsub=null; }
   document.querySelectorAll('.nav-item, .mobile-nav__item').forEach(n=>n.classList.remove('is-active'));
@@ -5665,6 +5700,15 @@ function navigate(section){
   fn(p);
   window.scrollTo({top:0,behavior:'instant'});
   document.querySelector('.main')?.scrollTo({top:0,behavior:'instant'});
+
+  // ── Dejar la pestaña escrita en la URL ──
+  __seccionActual = section;
+  const destino = '#' + section;
+  if(location.hash !== destino && window.history){
+    // reemplazar = carga inicial o botón atrás (no ensuciar el historial)
+    if(opciones && opciones.reemplazar) history.replaceState(null, '', destino);
+    else history.pushState(null, '', destino);
+  }
 }
 
 /* =========================================================
@@ -5926,7 +5970,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('modal-close').addEventListener('click',()=>Modal.close());
   document.getElementById('modal-backdrop').addEventListener('click',e=>{if(e.target.id==='modal-backdrop')Modal.close();});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')Modal.close();});
-  navigate('dashboard');
+  // MODIFICADO: abrir la pestaña que diga la URL (antes siempre 'dashboard')
+  navigate(__leerSeccionURL(), { reemplazar: true });
 });
 
 // Cuando Firebase confirma admin, arrancar listeners de Firestore
