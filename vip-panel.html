@@ -2928,13 +2928,14 @@ body.has-fomo .main{padding-top:18px}
 
 /* ─── Popup paywall ─── */
 .paywall-modal{
-  position:fixed;inset:0;z-index:200;
+  position:fixed!important;inset:0!important;z-index:2147483000!important;
   background:rgba(0,0,0,.65);
   backdrop-filter:blur(4px);
   display:none;align-items:center;justify-content:center;padding:20px;
+  overflow-y:auto;overscroll-behavior:contain;isolation:isolate;
   animation:fadeIn .2s ease;
 }
-.paywall-modal.is-open{display:flex}
+.paywall-modal.is-open{display:flex!important}
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 .paywall-modal__box{
   background:var(--surface);
@@ -3084,7 +3085,7 @@ body.has-fomo .main{padding-top:18px}
 </div>
 
 <!-- Popup paywall (se abre al hacer click en contenido bloqueado) -->
-<div class="paywall-modal" id="paywall-modal" role="dialog" aria-modal="true" aria-labelledby="paywall-title">
+<div class="paywall-modal" id="paywall-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="paywall-title">
   <div class="paywall-modal__box">
     <button class="paywall-modal__close" id="paywall-close" aria-label="Cerrar">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
@@ -9750,27 +9751,37 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // ─── Popup paywall genérico ───
   function showPaywallModal(opts){
     const modal = document.getElementById('paywall-modal');
+    if (!modal) return;
     if (opts && opts.title) document.getElementById('paywall-title').textContent = opts.title;
     if (opts && opts.sub) document.getElementById('paywall-sub').textContent = opts.sub;
-    // Sacarlo de cualquier contexto de apilamiento para que siempre aparezca
-    // delante del modal "Detalle del curso".
-    if (modal && modal.parentElement !== document.body) document.body.appendChild(modal);
+    // Portal directo a <body>: evita que el paywall herede el contexto de
+    // apilamiento o el scroll del modal "Detalle del curso".
+    if (modal.parentElement !== document.body) document.body.appendChild(modal);
+    modal.setAttribute('aria-hidden', 'false');
     modal.classList.add('is-open');
+    requestAnimationFrame(() => modal.querySelector('.paywall-modal__close')?.focus());
   }
   window.__showPaywallModal = showPaywallModal;
 
+  function closePaywallModal(){
+    const modal = document.getElementById('paywall-modal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
   // Cerrar modal
   document.getElementById('paywall-close')?.addEventListener('click', () => {
-    document.getElementById('paywall-modal').classList.remove('is-open');
+    closePaywallModal();
   });
   document.getElementById('paywall-dismiss')?.addEventListener('click', () => {
-    document.getElementById('paywall-modal').classList.remove('is-open');
+    closePaywallModal();
   });
   document.getElementById('paywall-cta')?.addEventListener('click', () => {
     const paywall = document.getElementById('paywall-modal');
     const S = window.UserState;
     if (S.modo === 'invitado') {
-      paywall.classList.remove('is-open');
+      closePaywallModal();
       window.location.href = 'vip-auth.html?plan=' + (localStorage.getItem('icadem_intent_plan') || 'anual');
     } else {
       // Cerrar primero el detalle del curso. Después se navega a Suscripción,
@@ -9779,7 +9790,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       detalles.forEach(backdrop => Modal.close(backdrop.dataset.modalId));
       const mostrarPlanes = () => {
         window.navigateToSection?.('suscripcion');
-        paywall.classList.remove('is-open');
+        closePaywallModal();
       };
       if (detalles.length) setTimeout(mostrarPlanes, 270);
       else mostrarPlanes();
@@ -9788,7 +9799,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   // Cerrar al click fuera del box
   document.getElementById('paywall-modal')?.addEventListener('click', (e) => {
     if (e.target.id === 'paywall-modal') {
-      e.currentTarget.classList.remove('is-open');
+      closePaywallModal();
     }
   });
 
