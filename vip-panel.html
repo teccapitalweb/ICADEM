@@ -3062,6 +3062,91 @@ body.has-fomo .main{padding-top:18px}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
 </style>
+<style id="club-refresh-2026">
+/* Club ICADEM · actualización visual 2026 */
+.app{grid-template-columns:228px minmax(0,1fr) 320px}
+.sidebar{padding:16px 10px 22px;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(22px);border-right:1px solid var(--border)}
+.brand{margin:0 2px 8px;padding:8px 10px 18px}
+.brand__logo{width:42px;height:42px;border-radius:12px;box-shadow:0 10px 24px rgba(17,50,105,.22)}
+.brand__logo img{width:42px;height:42px;border-radius:12px}
+.brand__name{font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:800;letter-spacing:-.35px}
+.nav-section{padding:0 2px;margin-top:7px}
+.nav-label{padding:10px 12px 7px;color:color-mix(in srgb,var(--text-3) 82%,transparent);font-size:8px;letter-spacing:1.8px}
+.nav-item{position:relative;min-height:40px;padding:9px 11px;border-radius:11px;font-size:12.5px}
+.nav-item::before{content:"";position:absolute;left:-3px;top:10px;bottom:10px;width:3px;border-radius:4px;background:transparent;transition:.2s}
+.nav-item.is-active{background:linear-gradient(90deg,color-mix(in srgb,var(--primary) 18%,transparent),color-mix(in srgb,var(--primary) 5%,transparent));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--primary) 16%,transparent)}
+.nav-item.is-active::before{background:var(--primary);box-shadow:0 0 12px var(--primary)}
+.nav-item.is-active .ic{filter:drop-shadow(0 0 5px var(--primary-glow))}
+
+.club-sidebar-card{display:block;width:calc(100% - 4px);margin:14px 2px 4px;padding:16px;text-align:left;border:1px solid color-mix(in srgb,var(--primary) 22%,var(--border));border-radius:16px;background:radial-gradient(circle at 85% 12%,color-mix(in srgb,var(--primary) 22%,transparent),transparent 32%),linear-gradient(145deg,var(--surface-2),var(--surface));color:var(--text);cursor:pointer;transition:transform .2s,border-color .2s}
+.club-sidebar-card:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--primary) 46%,transparent)}
+.club-sidebar-card__kicker{display:block;margin-bottom:8px;font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:700;letter-spacing:1.3px;text-transform:uppercase;color:var(--primary)}
+.club-sidebar-card strong{display:block;font-size:13px;line-height:1.25}
+.club-sidebar-card small{display:block;margin-top:7px;color:var(--text-3);font-size:10.5px;line-height:1.45}
+.club-sidebar-card__link{display:inline-flex;margin-top:12px;color:var(--primary);font-size:10.5px;font-weight:700}
+
+.main{padding:16px 28px 48px;gap:18px}
+.topbar{position:sticky;top:0;z-index:24;margin:0 -10px;padding:8px 10px;background:color-mix(in srgb,var(--bg) 82%,transparent);backdrop-filter:blur(22px);border-bottom:1px solid color-mix(in srgb,var(--border) 72%,transparent)}
+.topbar__left{flex:1}
+.club-search-btn{display:flex;align-items:center;gap:9px;width:min(360px,42vw);height:36px;margin-left:4px;padding:0 14px;border:1px solid var(--border-2);border-radius:100px;background:color-mix(in srgb,var(--surface) 86%,transparent);color:var(--text-3);font-size:11.5px;text-align:left;cursor:pointer;transition:.2s}
+.club-search-btn:hover{border-color:color-mix(in srgb,var(--primary) 42%,transparent);color:var(--text-2);background:var(--surface)}
+.club-search-btn .ic{width:14px;height:14px}.club-search-btn kbd{margin-left:auto;padding:2px 6px;border:1px solid var(--border);border-radius:5px;background:var(--surface-2);font:600 9px/1.4 'JetBrains Mono',monospace;color:var(--text-3)}
+
+.banner{min-height:250px;padding:34px 36px;border-radius:26px;background:radial-gradient(circle at 88% 20%,color-mix(in srgb,var(--primary) 30%,transparent),transparent 28%),linear-gradient(135deg,#132a54 0%,#0a162d 72%);border:1px solid color-mix(in srgb,var(--primary) 20%,var(--border));box-shadow:0 28px 70px rgba(0,8,28,.28)}
+:root[data-theme="day"] .banner{background:radial-gradient(circle at 88% 20%,rgba(91,146,200,.18),transparent 28%),linear-gradient(135deg,#fff,#edf5fc 72%)}
+.banner__title{font-family:'Plus Jakarta Sans',sans-serif;font-size:clamp(29px,3.2vw,42px);font-weight:800;letter-spacing:-1.4px;max-width:650px}
+.banner__sub{max-width:610px;font-size:14px;line-height:1.65}
+.banner__stats{max-width:330px;display:grid;grid-template-columns:repeat(2,1fr);width:100%}
+.banner__stat{min-width:0;padding:16px 18px;border-radius:16px}
+.banner__stat-val{font-size:26px;font-weight:800}
+.club-hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px;position:relative;z-index:2}
+.club-hero-btn{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 16px;border:1px solid color-mix(in srgb,var(--primary) 26%,transparent);border-radius:100px;background:var(--primary);color:#071426;font-size:11.5px;font-weight:800;cursor:pointer;transition:.2s}
+.club-hero-btn:hover{transform:translateY(-2px);box-shadow:0 12px 28px var(--primary-glow)}
+.club-hero-btn--ghost{background:color-mix(in srgb,var(--surface) 55%,transparent);color:var(--text);backdrop-filter:blur(12px)}
+
+.club-home-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(270px,.65fr);gap:16px;margin:20px 0 26px}
+.club-home-card{position:relative;overflow:hidden;min-height:220px;padding:24px;border:1px solid var(--border);border-radius:22px;background:var(--surface);box-shadow:0 16px 45px rgba(0,8,28,.08)}
+.club-home-card--learning{background:radial-gradient(circle at 88% 22%,color-mix(in srgb,var(--primary) 20%,transparent),transparent 30%),var(--surface)}
+.club-home-card__kicker{display:flex;align-items:center;gap:8px;margin-bottom:18px;font:700 9px/1 'JetBrains Mono',monospace;letter-spacing:1.4px;text-transform:uppercase;color:var(--primary)}
+.club-home-card__kicker::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 12px var(--success)}
+.club-learning{display:grid;grid-template-columns:190px 1fr;gap:22px;align-items:center}
+.club-learning__cover{aspect-ratio:16/10;border-radius:16px;background-size:cover;background-position:center;box-shadow:0 16px 35px rgba(0,0,0,.22)}
+.club-learning__body h3{margin:0 0 8px;font-family:'Plus Jakarta Sans',sans-serif;font-size:21px;line-height:1.25;letter-spacing:-.45px}
+.club-learning__body p{margin:0;color:var(--text-2);font-size:12.5px;line-height:1.55}
+.club-learning__progress{display:flex;align-items:center;gap:10px;margin-top:18px}
+.club-learning__bar{flex:1;height:7px;border-radius:10px;background:var(--surface-3);overflow:hidden}.club-learning__fill{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--primary),var(--highlight));box-shadow:0 0 12px var(--primary-glow)}
+.club-learning__pct{font:700 10px/1 'JetBrains Mono',monospace;color:var(--primary)}
+.club-learning__action{display:inline-flex;align-items:center;gap:7px;margin-top:16px;padding:9px 14px;border:0;border-radius:100px;background:var(--primary);color:#071426;font-size:10.5px;font-weight:800;cursor:pointer}
+.club-quick-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.club-quick{display:flex;flex-direction:column;justify-content:space-between;min-height:78px;padding:14px;border:1px solid var(--border);border-radius:15px;background:var(--surface-2);color:var(--text);cursor:pointer;text-align:left;transition:.2s}
+.club-quick:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--primary) 40%,transparent)}
+.club-quick .ic{width:18px;height:18px;color:var(--primary)}.club-quick span{font-size:10.5px;font-weight:700;line-height:1.25}
+
+.aside{padding:16px 14px 24px;background:color-mix(in srgb,var(--surface) 25%,transparent)}
+.widget{padding:18px;border:1px solid var(--border);border-radius:18px;background:color-mix(in srgb,var(--surface) 92%,transparent);box-shadow:0 12px 30px rgba(0,8,28,.06)}
+.widget--wa{background:radial-gradient(circle at 90% 15%,rgba(35,203,112,.14),transparent 28%),var(--surface)}
+.widget__label{font-family:'JetBrains Mono',monospace;letter-spacing:.7px}
+
+.sec-hero{padding:16px 0 20px}.sec-hero__title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;letter-spacing:-1px}
+.tabs{display:inline-flex;width:auto;padding:4px;margin-bottom:18px;border:1px solid var(--border);border-radius:14px;background:var(--surface)}
+.tab{border:0;border-radius:10px;padding:8px 14px}.tab.is-active{box-shadow:none;transform:none}
+.toolbar{padding:14px;margin-bottom:20px;border:1px solid var(--border);border-radius:16px;background:color-mix(in srgb,var(--surface) 72%,transparent)}
+.searchbar{max-width:none}.searchbar input{min-height:42px;border-radius:12px;background:var(--surface-2)}
+.cursos-grid{grid-template-columns:repeat(auto-fit,minmax(275px,1fr));gap:16px}
+.curso-card{border-radius:20px;background:color-mix(in srgb,var(--surface) 96%,transparent);box-shadow:0 14px 35px rgba(0,8,28,.06)}
+.curso-card__cover{height:176px;align-items:flex-end;justify-content:flex-end}
+.curso-card__cover::before{background:linear-gradient(180deg,transparent 35%,rgba(3,10,24,.72));mask-image:none;-webkit-mask-image:none}
+.curso-card__cover>svg{width:30px;height:30px;margin:0 16px 14px;opacity:.8}
+.curso-card__body{padding:17px 18px 19px;gap:9px}.curso-card__title{font-size:17px;line-height:1.3}.curso-card__desc{font-size:12px;line-height:1.5}.curso-card__meta{gap:10px;padding-top:11px}
+.curso-card__progress{margin-top:1px;padding-top:7px;border-top:1px solid var(--border)}
+
+@media(max-width:1380px){.app{grid-template-columns:220px 1fr}.aside{display:none}.club-home-grid{grid-template-columns:1.25fr .75fr}}
+@media(max-width:880px){
+  .main{padding:calc(10px + env(safe-area-inset-top)) 14px 130px}.topbar{margin:0 -4px;padding:7px 4px}.topbar__left{display:none}
+  .banner{min-height:auto;padding:24px 22px;border-radius:22px}.banner__title{font-size:30px}.banner__stats{max-width:none}.club-home-grid{grid-template-columns:1fr}.club-learning{grid-template-columns:120px 1fr}.club-home-card{padding:18px}.cursos-grid{grid-template-columns:1fr}.curso-card__cover{height:190px}
+}
+@media(max-width:560px){.club-learning{grid-template-columns:1fr}.club-learning__cover{max-height:160px}.club-quick-grid{grid-template-columns:repeat(2,1fr)}.banner__stats{grid-template-columns:repeat(2,1fr)}.tabs{display:flex;overflow-x:auto;width:100%}.tab{flex:1;white-space:nowrap;padding:8px 10px;font-size:9.5px}}
+</style>
 </head>
 <body style="visibility:hidden">
 
@@ -3589,6 +3674,13 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
     </div>
 
+    <button class="club-sidebar-card" type="button" onclick="navigateToSection('suscripcion')">
+      <span class="club-sidebar-card__kicker">Tu espacio ICADEM</span>
+      <strong>Aprende, conecta y avanza.</strong>
+      <small>Consulta los beneficios y el estado de tu membresía.</small>
+      <span class="club-sidebar-card__link">Ver mi plan →</span>
+    </button>
+
     <div class="nav-section">
       <div class="nav-label">Mi cuenta</div>
       <a class="nav-item" data-section="perfil"><svg class="ic"><use href="#i-user"/></svg>Mi perfil</a>
@@ -3602,6 +3694,11 @@ window.__setDisplayName = async (nombre) => {
     <header class="topbar">
       <div class="topbar__left">
         <span class="pill" id="topbar-pill"><svg class="ic"><use href="#i-user"/></svg><span id="topbar-pill-text">Miembro</span></span>
+        <button class="club-search-btn" type="button" onclick="navigateToSection('cursos');setTimeout(function(){document.getElementById('cur-search')?.focus();},120)" aria-label="Buscar cursos">
+          <svg class="ic"><use href="#i-search"/></svg>
+          <span>Buscar cursos, temas o instructores</span>
+          <kbd>Ctrl K</kbd>
+        </button>
       </div>
       <div class="topbar__right">
         <button class="icon-btn" id="btn-notif" aria-label="Notificaciones">
@@ -3628,7 +3725,11 @@ window.__setDisplayName = async (nombre) => {
         <div class="banner__info">
           <span class="banner__eyebrow"><span class="banner__eyebrow__dot"></span><span id="greeting-label">En vivo</span><span class="banner__version">v.2026.05</span></span>
           <h1 class="banner__title" id="hero-title">Buenas tardes</h1>
-          <p class="banner__sub">Tu acceso a cursos premium, herramientas pro y la comunidad de negocios, fiscal y legal más activa de México.</p>
+          <p class="banner__sub">Todo tu aprendizaje en un solo lugar: cursos especializados, clases en vivo, herramientas profesionales y una comunidad que avanza contigo.</p>
+          <div class="club-hero-actions">
+            <button class="club-hero-btn" type="button" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Explorar cursos</button>
+            <button class="club-hero-btn club-hero-btn--ghost" type="button" onclick="navigateToSection('webinars')"><svg class="ic"><use href="#i-broadcast"/></svg>Ver próximas clases</button>
+          </div>
         </div>
         <div class="banner__stats">
           <div class="banner__stat" data-section="cursos" style="cursor:pointer"><div class="banner__stat-lbl">Cursos</div><div class="banner__stat-val" id="bn-stat-cursos">0</div></div>
@@ -3639,6 +3740,25 @@ window.__setDisplayName = async (nombre) => {
       </section>
 
       <div style="height:22px"></div>
+
+      <section class="club-home-grid" aria-label="Tu aprendizaje y accesos rápidos">
+        <div class="club-home-card club-home-card--learning" id="home-learning-card">
+          <div class="club-home-card__kicker">Tu siguiente paso</div>
+          <div style="display:flex;align-items:center;gap:12px;color:var(--text-3);font-size:12px;">
+            <span style="width:18px;height:18px;border:2px solid var(--border-2);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;"></span>
+            Preparando tu ruta de aprendizaje…
+          </div>
+        </div>
+        <div class="club-home-card">
+          <div class="club-home-card__kicker">Accesos rápidos</div>
+          <div class="club-quick-grid">
+            <button class="club-quick" type="button" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg><span>Mis cursos</span></button>
+            <button class="club-quick" type="button" onclick="navigateToSection('webinars')"><svg class="ic"><use href="#i-broadcast"/></svg><span>Clases en vivo</span></button>
+            <button class="club-quick" type="button" onclick="navigateToSection('pdfs')"><svg class="ic"><use href="#i-news"/></svg><span>Materiales</span></button>
+            <button class="club-quick" type="button" onclick="navigateToSection('directorio')"><svg class="ic"><use href="#i-users"/></svg><span>Directorio VIP</span></button>
+          </div>
+        </div>
+      </section>
 
       <!-- Noticias diarias (reales desde Firestore) -->
       <section>
@@ -4652,7 +4772,7 @@ function navigateToSection(section, opciones){
     try { window.__icademCheckout.destroy(); } catch(e) {}
     window.__icademCheckout = null;
   }
-  if(section==='inicio'){inicio.style.display='';dyn.style.display='none';if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();return;}
+  if(section==='inicio'){inicio.style.display='';dyn.style.display='none';if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();if(typeof window.__actualizarInicioAprendizaje==='function')window.__actualizarInicioAprendizaje();return;}
   inicio.style.display='none';dyn.style.display='';
   const renderer=Sections.renderers[section];
   if(renderer){dyn.innerHTML='';renderer(dyn);}
@@ -4855,6 +4975,13 @@ const Sections = (function(){
       // Mostrar splash de felicitación
       setTimeout(() => mostrarSplashCompletado(curso), 400);
     }
+    const cursoActual = cursos.find(c => c.id === cursoId);
+    if (cursoActual) {
+      const totalClases = cursoActual.sesiones?.length || 0;
+      cursoActual.progreso = totalClases ? Math.round((p[cursoId].clasesVistas.length / totalClases) * 100) : 0;
+      cursoActual.status = p[cursoId].completado ? 'completado' : (p[cursoId].clasesVistas.length ? 'progreso' : 'catalogo');
+    }
+    actualizarInicioAprendizaje();
     return p[cursoId];
   };
 
@@ -5190,6 +5317,36 @@ const Sections = (function(){
     return coverSVG(curso.area, curso.titulo);
   }
 
+  function actualizarInicioAprendizaje(){
+    const host = document.getElementById('home-learning-card');
+    if (!host) return;
+    if (!cursos.length) {
+      host.innerHTML = `<div class="club-home-card__kicker">Tu siguiente paso</div><h3 style="margin:0 0 8px;font-size:19px;">Tu catálogo está por comenzar</h3><p style="margin:0;color:var(--text-2);font-size:12.5px;line-height:1.55;">En cuanto publiquemos el primer curso aparecerá aquí.</p>`;
+      return;
+    }
+    const enCurso = cursos.find(c => {
+      const p = getProgresoCurso(c.id);
+      return p.clasesVistas?.length > 0 && !p.completado;
+    });
+    const curso = enCurso || cursos.find(c => c.activo !== false && c.publicado !== false && Array.isArray(c.sesiones) && c.sesiones.length) || cursos[0];
+    const total = curso.sesiones?.length || 0;
+    const pct = progresoCursoPct(curso.id, total);
+    const portada = curso.portada || coverSVG(curso.area, curso.titulo);
+    host.innerHTML = `
+      <div class="club-home-card__kicker">${pct > 0 ? 'Continúa aprendiendo' : 'Recomendado para comenzar'}</div>
+      <div class="club-learning">
+        <div class="club-learning__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.28)),url('${portada}')"></div>
+        <div class="club-learning__body">
+          <h3>${curso.titulo}</h3>
+          <p>${curso.area || 'Formación profesional'} · ${total} clase${total === 1 ? '' : 's'}${curso.horas ? ` · ${curso.horas}h` : ''}</p>
+          <div class="club-learning__progress"><div class="club-learning__bar"><div class="club-learning__fill" style="width:${pct}%"></div></div><span class="club-learning__pct">${pct}%</span></div>
+          <button class="club-learning__action" type="button" data-home-course="${curso.id}">${pct > 0 ? 'Continuar curso' : 'Comenzar curso'} <span>→</span></button>
+        </div>
+      </div>`;
+    host.querySelector('[data-home-course]')?.addEventListener('click', () => openCursoDetalle(curso.id));
+  }
+  window.__actualizarInicioAprendizaje = actualizarInicioAprendizaje;
+
   // ─── Cargar cursos desde Firestore ───
   async function cargarCursosFirestore(){
     if (_cursosLoading) return;
@@ -5202,6 +5359,8 @@ const Sections = (function(){
       const snap = await fs.getDocs(q);
       cursos = snap.docs.map((d, i) => {
         const data = d.data();
+        const progresoGuardado = getProgresoCurso(d.id);
+        const clasesVistas = Array.isArray(progresoGuardado.clasesVistas) ? progresoGuardado.clasesVistas.length : 0;
         return {
           id: d.id,
           titulo: data.titulo || 'Sin título',
@@ -5227,8 +5386,8 @@ const Sections = (function(){
           // Portada automática
           portada: data.portada || getPortadaCurso({ titulo: data.titulo, portada: data.portada }),
           // Compatibilidad con UI vieja
-          status: 'catalogo',
-          progreso: 0
+          status: progresoGuardado.completado ? 'completado' : (clasesVistas > 0 ? 'progreso' : 'catalogo'),
+          progreso: data.sesiones?.length ? Math.round((clasesVistas / data.sesiones.length) * 100) : 0
         };
       }).filter(c => c.archivado !== true);
       // ─── Día de desbloqueo por ORDEN · los "disponibleSiempre" NO consumen turno ───
@@ -5248,6 +5407,7 @@ const Sections = (function(){
         _ce('bn-stat-pdfs', _pdfs);
       } catch(_e){}
       _cursosLoaded = true;
+      actualizarInicioAprendizaje();
     } catch (e) {
       console.warn('No se pudieron cargar cursos de Firestore:', e.message);
       cursos = [];
@@ -5401,14 +5561,13 @@ const Sections = (function(){
     return {
       progreso:cursos.filter(c=>c.status==='progreso').length,
       completado:cursos.filter(c=>c.status==='completado').length,
-      catalogo:cursos.filter(c=>c.status==='catalogo').length
+      catalogo:cursos.length
     };
   }
   function cursosFiltrados(){
     return cursos.filter(c=>{
       if(cursosState.tab==='progreso'&&c.status!=='progreso')return false;
       if(cursosState.tab==='completado'&&c.status!=='completado')return false;
-      if(cursosState.tab==='catalogo'&&c.status!=='catalogo')return false;
       if(cursosState.area!=='todas'&&c.area!==cursosState.area)return false;
       if(cursosState.search){
         const q=cursosState.search.toLowerCase();
@@ -5428,9 +5587,9 @@ const Sections = (function(){
           <p class="sec-hero__sub">Disfruta gratis la primera clase del catálogo. Activa tu membresía para desbloquear todos los cursos, clases y materiales.</p>
         </div>
         <div class="tabs">
-          <button class="tab ${cursosState.tab==='progreso'?'is-active':''}" data-curtab="progreso">En progreso · ${c.progreso}</button>
+          <button class="tab ${cursosState.tab==='progreso'?'is-active':''}" data-curtab="progreso">Continuar · ${c.progreso}</button>
           <button class="tab ${cursosState.tab==='completado'?'is-active':''}" data-curtab="completado">Completados · ${c.completado}</button>
-          <button class="tab ${cursosState.tab==='catalogo'?'is-active':''}" data-curtab="catalogo">Catálogo · ${c.catalogo}</button>
+          <button class="tab ${cursosState.tab==='catalogo'?'is-active':''}" data-curtab="catalogo">Todos · ${c.catalogo}</button>
         </div>
         <div class="toolbar">
           <div class="searchbar">
@@ -5504,6 +5663,7 @@ const Sections = (function(){
       const desbloqueado = cursoDesbloqueado(cursoIdx, c);
       const diasFalta = diasParaDesbloquear(cursoIdx, c);
       const portada = c.portada || coverSVG(c.area, c.titulo);
+      const pct = progresoCursoPct(c.id, c.sesiones?.length || 0);
       return `
       <article class="curso-card ${!desbloqueado?'curso-card--locked':''}" data-cid="${c.id}" tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#5b92c8'};">
         <div class="curso-card__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)),url('${portada}');background-size:cover;background-position:center;">
@@ -5525,6 +5685,7 @@ const Sections = (function(){
             ${c.sesiones?.length ? `<span><svg class="ic"><use href="#i-book"/></svg>${c.sesiones.length} clase${c.sesiones.length!==1?'s':''}</span>` : ''}
             ${c.materiales?.length ? `<span><svg class="ic"><use href="#i-news"/></svg>${c.materiales.length} PDF${c.materiales.length!==1?'s':''}</span>` : ''}
           </div>
+          ${pct > 0 ? `<div class="curso-card__progress"><div class="curso-card__progress-bar"><div class="curso-card__progress-fill" style="width:${pct}%"></div></div><span class="curso-card__progress-pct">${pct}%</span></div>` : ''}
         </div>
       </article>
     `;}).join('')}</div>`;
@@ -9368,6 +9529,13 @@ function initNav(){
   });
   document.getElementById('btn-notif')?.addEventListener('click',(e)=>{e.stopPropagation();toggleNotifDropdown();});
   document.getElementById('btn-avatar')?.addEventListener('click',()=>navigateToSection('perfil'));
+  document.addEventListener('keydown',(e)=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){
+      e.preventDefault();
+      navigateToSection('cursos');
+      setTimeout(()=>document.getElementById('cur-search')?.focus(),120);
+    }
+  });
 
   // ─── Calendario .ics (widget panel derecho) · ahora dinámico ───
   // Usa event delegation porque el widget se re-renderea con el webinar real
