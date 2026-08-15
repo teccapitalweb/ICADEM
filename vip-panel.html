@@ -15955,8 +15955,13 @@ window.ToolCalcCredito = {
 @media (max-width:880px){
   :root{--club-mobile-nav-h:72px}
   html,body{width:100%;max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}
+  .app{
+    width:100%;min-width:0;max-width:100%;
+    grid-template-columns:minmax(0,1fr)!important
+  }
   .app,.main,.topbar,.banner,.toolbar,.club-home-grid,
   #inicio-content,[id$="-content"]{min-width:0;max-width:100%}
+  .main{width:100%;grid-column:1/-1}
   #dynamic-section,#dynamic-section>.fade-up{width:100%;min-width:0;max-width:100%;align-self:stretch}
 
   .main{
