@@ -3708,6 +3708,10 @@ window.__setDisplayName = async (nombre) => {
         </span>
       </div>
       <div class="topbar__right">
+        <button class="install-app-btn" id="install-app-btn" type="button" aria-label="Instalar ICADEM en este dispositivo" hidden>
+          <svg class="ic"><use href="#i-download"/></svg>
+          <span>Instalar</span>
+        </button>
         <button class="icon-btn" id="btn-notif" aria-label="Notificaciones">
           <svg class="ic"><use href="#i-bell"/></svg>
           <span class="dot"></span>
@@ -3895,6 +3899,7 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" data-section="foro"><svg class="ic"><use href="#i-messages"/></svg>Foro VIP</a>
         <a class="mobile-drawer__item" data-section="directorio"><svg class="ic"><use href="#i-users"/></svg>Directorio VIP</a>
         <a class="mobile-drawer__item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
+        <a class="mobile-drawer__item" id="drawer-whatsapp-support"><svg class="ic"><use href="#i-whatsapp"/></svg>Soporte por WhatsApp</a>
       </div>
 
       <div class="mobile-drawer__section">
@@ -4769,6 +4774,7 @@ function navigateToSection(section, opciones){
   }
   const inicio=document.getElementById('inicio-content');const dyn=document.getElementById('dynamic-section');
   if(!inicio||!dyn)return;
+  window.scrollTo({top:0,left:0,behavior:'auto'});
   if(Sections.countdownTimer){clearInterval(Sections.countdownTimer);Sections.countdownTimer=null;}
   // Limpiar listeners del foro al salir de la sección
   if(section!=='foro' && typeof window.__foroCleanup==='function'){ window.__foroCleanup(); }
@@ -4784,8 +4790,8 @@ function navigateToSection(section, opciones){
   const renderer=Sections.renderers[section];
   if(renderer){dyn.innerHTML='';renderer(dyn);}
   else{dyn.innerHTML=sectionPlaceholder(section);}
-  window.scrollTo({top:0,behavior:'instant'});
-  document.querySelector('main.main')?.scrollTo({top:0,behavior:'instant'});
+  window.scrollTo({top:0,left:0,behavior:'auto'});
+  document.querySelector('main.main')?.scrollTo({top:0,left:0,behavior:'auto'});
 }
 
 function sectionPlaceholder(section){
@@ -9516,6 +9522,12 @@ function initNav(){
     cerrarDrawerMovil();
     setTimeout(() => openLogoutModal(), 200);
   });
+  document.getElementById('drawer-whatsapp-support')?.addEventListener('click', () => {
+    const url = (typeof ICADEM_CONTACT !== 'undefined' && ICADEM_CONTACT.waLink)
+      ? ICADEM_CONTACT.waLink(ICADEM_CONTACT.msgSoporte())
+      : 'https://wa.me/522383738143';
+    window.open(url, '_blank', 'noopener');
+  });
 
   document.querySelectorAll('[data-open-tool]').forEach(btn=>btn.addEventListener('click',()=>{const t=btn.dataset.openTool;if(Tools[t])Tools[t].open();}));
   document.querySelectorAll('.section-header__link[data-section], .widget [data-section], .banner__stat[data-section]').forEach(el=>{el.addEventListener('click',e=>{e.preventDefault();navigateToSection(el.dataset.section);});});
@@ -10398,7 +10410,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   html[data-theme="day"] #icadem-install-pop .iip-feat{color:#16203f}
   html[data-theme="day"] #icadem-install-pop .iip-ios{background:#eef3f9;border-color:#E5DCC9}
 </style>
-<div id="icadem-install-pop" role="dialog" aria-modal="true" aria-labelledby="iip-title">
+<div id="icadem-install-pop" role="dialog" aria-modal="true" aria-labelledby="iip-title" hidden>
   <div class="iip-overlay" id="iip-overlay"></div>
   <div class="iip-card">
     <div class="iip-glow"></div>
@@ -10422,62 +10434,57 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </div>
 <script>
 (function(){
-  var STORAGE_KEY = 'icadem_install_hidden_panel';
   var deferredPrompt = null;
-  var pop = document.getElementById('icadem-install-pop');
-  var installBtn = document.getElementById('iip-install-btn');
-  var laterBtn = document.getElementById('iip-later-btn');
-  var overlay = document.getElementById('iip-overlay');
-  var iosHelp = document.getElementById('iip-ios-help');
+  var installBtn = document.getElementById('install-app-btn');
+  var legacyPop = document.getElementById('icadem-install-pop');
+  if (legacyPop) legacyPop.hidden = true;
+  if (!installBtn) return;
 
-  if (!pop) return;
-
-  // ¿Ya está instalada (corriendo en modo app)? No mostrar nada.
   function yaInstalada(){
     return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-  }
-  // ¿El usuario ya la cerró antes? Respetamos su decisión por 14 días.
-  // En el panel reaparece cada sesión: "Ahora no" solo lo oculta hasta cerrar la pestaña.
-  // Usa sessionStorage (separado del auth) para que ignorarlo en el login NO lo silencie aquí.
-  function fueDescartada(){
-    try { return sessionStorage.getItem(STORAGE_KEY) === '1'; } catch(e){ return false; }
   }
   function esIOS(){
     return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
   }
-  function mostrar(){
-    if (yaInstalada() || fueDescartada()) return;
-    pop.classList.add('show');
+  function mostrarBoton(){
+    if (yaInstalada()) return;
+    installBtn.hidden = false;
+    installBtn.classList.add('is-ready');
   }
-  function ocultar(recordar){
-    pop.classList.remove('show');
-    if (recordar){ try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch(e){} }
+  function ocultarBoton(){
+    installBtn.hidden = true;
+    installBtn.classList.remove('is-ready');
+  }
+  function mostrarGuia(){
+    var ios = esIOS();
+    var body = ios
+      ? '<div class="install-guide"><p><b>1.</b> Abre ICADEM en Safari.</p><p><b>2.</b> Toca el botón <b>Compartir</b>.</p><p><b>3.</b> Elige <b>Agregar a pantalla de inicio</b>.</p></div>'
+      : '<div class="install-guide"><p>Abre el menú de tu navegador y selecciona <b>Instalar aplicación</b> o <b>Agregar a pantalla de inicio</b>.</p></div>';
+    if (typeof Modal !== 'undefined' && Modal.open) {
+      Modal.open({id:'install-help',title:'Instalar ICADEM',subtitle:'Acceso rápido desde tu teléfono',icon:'i-download',size:'sm',body:body});
+    } else if (typeof Toast !== 'undefined' && Toast.info) {
+      Toast.info('Instalar ICADEM', ios ? 'Safari → Compartir → Agregar a pantalla de inicio' : 'Usa la opción Instalar aplicación del navegador');
+    }
   }
 
-  // Android/Chrome/Edge: capturamos el evento y mostramos NUESTRO popup
   window.addEventListener('beforeinstallprompt', function(e){
     e.preventDefault();
     deferredPrompt = e;
-    setTimeout(mostrar, 1200); // pequeño delay para no ser intrusivo al cargar
+    mostrarBoton();
   });
-
-  // iOS (Safari) no dispara beforeinstallprompt: mostramos instrucciones manuales
-  if (esIOS() && !yaInstalada()){
-    if (iosHelp) iosHelp.style.display = 'block';
-    if (installBtn) installBtn.style.display = 'none'; // en iOS no hay botón automático
-    setTimeout(mostrar, 1500);
-  }
-
-  // Si ya se instaló, ocultar y recordar
-  window.addEventListener('appinstalled', function(){ ocultar(true); deferredPrompt = null; });
-
-  if (installBtn) installBtn.addEventListener('click', function(){
-    if (!deferredPrompt){ ocultar(true); return; }
+  window.addEventListener('appinstalled', function(){
+    deferredPrompt = null;
+    ocultarBoton();
+  });
+  installBtn.addEventListener('click', function(){
+    if (!deferredPrompt){ mostrarGuia(); return; }
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function(){ ocultar(true); deferredPrompt = null; });
+    deferredPrompt.userChoice.then(function(result){
+      if (result && result.outcome === 'accepted') ocultarBoton();
+      deferredPrompt = null;
+    });
   });
-  if (laterBtn) laterBtn.addEventListener('click', function(){ ocultar(true); });
-  if (overlay) overlay.addEventListener('click', function(){ ocultar(false); });
+  if (esIOS() && !yaInstalada()) mostrarBoton();
 })();
 </script>
 
@@ -15925,6 +15932,18 @@ window.ToolCalcCredito = {
 <style id="club-mobile-hardening-2026">
 /* Club ICADEM · adaptación móvil reforzada */
 .mobile-club-title{display:none}
+#icadem-install-pop{display:none!important}
+.install-app-btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:38px;padding:0 13px;border:1px solid color-mix(in srgb,var(--primary) 42%,var(--border));
+  border-radius:100px;background:color-mix(in srgb,var(--primary) 14%,var(--surface));
+  color:var(--primary);font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap
+}
+.install-app-btn[hidden]{display:none!important}
+.install-app-btn .ic{width:15px;height:15px}
+.install-guide{display:grid;gap:10px;color:var(--text-2);font-size:13px;line-height:1.55}
+.install-guide p{margin:0;padding:11px 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2)}
+.install-guide b{color:var(--text)}
 
 @media (hover:none) and (pointer:coarse){
   .club-sidebar-card:hover,.club-hero-btn:hover,.club-quick:hover,
@@ -15938,6 +15957,7 @@ window.ToolCalcCredito = {
   html,body{width:100%;max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}
   .app,.main,.topbar,.banner,.toolbar,.club-home-grid,
   #inicio-content,[id$="-content"]{min-width:0;max-width:100%}
+  #dynamic-section,#dynamic-section>.fade-up{width:100%;min-width:0;max-width:100%;align-self:stretch}
 
   .main{
     gap:16px;
@@ -15971,6 +15991,7 @@ window.ToolCalcCredito = {
   .icon-btn,.theme-toggle{min-width:44px;min-height:44px}
   .icon-btn{width:44px;height:44px}
   .theme-toggle{justify-content:center;padding:0 13px}
+  .install-app-btn{min-height:44px;padding:0 12px}
 
   .banner{width:100%;padding:24px 20px;border-radius:22px}
   .banner__info{min-width:0;width:100%}
@@ -15995,12 +16016,27 @@ window.ToolCalcCredito = {
   .tabs::-webkit-scrollbar{display:none}
   .tab{min-height:42px;scroll-snap-align:start}
   .toolbar{width:100%;padding:12px}
-  .searchbar,.searchbar input{width:100%;max-width:100%}
+  .searchbar,.searchbar input{width:100%;max-width:100%;min-width:0}
+  .dd-fancy{display:block;width:100%;min-width:0;max-width:100%}
+  .dd-fancy__trigger{width:100%;min-height:46px}
 
   .cursos-grid,.certs-grid,.webinars-grid{width:100%;min-width:0}
   .curso-card{width:100%;min-width:0}
   .curso-card__cover{height:auto;aspect-ratio:16/9}
   .curso-card__body{min-width:0}
+
+  .perfil-hero,.perfil-grid,.perfil-card{width:100%;min-width:0;max-width:100%}
+  .perfil-grid{grid-template-columns:minmax(0,1fr)}
+  .perfil-hero{padding:20px 18px}
+  .perfil-hero__info{width:100%;min-width:0}
+  .perfil-hero__name,.perfil-hero__email{max-width:100%;overflow-wrap:anywhere}
+  .perfil-hero__email{white-space:normal}
+  .perfil-hero>.btn{width:100%;min-height:44px;align-self:stretch!important;justify-content:center}
+  .perfil-card{padding:17px 16px;overflow:hidden}
+  .perfil-field{width:100%;min-width:0}
+  .perfil-field__lbl{flex:0 0 94px;min-width:0}
+  .perfil-field__val{white-space:normal;overflow-wrap:anywhere;line-height:1.4}
+  .perfil-field__edit{width:44px;height:44px;justify-content:center;margin:-8px -8px -8px 0}
 
   .mobile-nav{
     min-height:calc(var(--club-mobile-nav-h) + env(safe-area-inset-bottom));
@@ -16030,6 +16066,7 @@ window.ToolCalcCredito = {
     padding-bottom:calc(30px + env(safe-area-inset-bottom))
   }
   .mobile-drawer__item{min-height:46px}
+  #wa-fab,#wa-fab-menu{display:none!important}
 
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
   select,textarea{font-size:16px!important}
@@ -16037,6 +16074,15 @@ window.ToolCalcCredito = {
 }
 
 @media (max-width:560px){
+  #dynamic-section .tabs{
+    display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;padding:4px;overflow:visible;scroll-snap-type:none
+  }
+  #dynamic-section .tabs .tab{
+    width:100%;min-width:0;min-height:48px;padding:7px 5px;
+    white-space:normal;font-size:9px;line-height:1.25;text-align:center
+  }
+  #dynamic-section .toolbar{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
   .modal-backdrop{align-items:flex-end;padding:0;padding-top:env(safe-area-inset-top)}
   .modal{
     max-width:none;max-height:calc(100dvh - env(safe-area-inset-top));
@@ -16067,6 +16113,7 @@ window.ToolCalcCredito = {
   .topbar{margin-left:-2px;margin-right:-2px}
   .theme-toggle{width:44px;padding:0}
   .theme-toggle span{display:none}
+  .install-app-btn{padding:0 10px;font-size:10px;gap:5px}
   .banner{padding:22px 18px}
   .banner__title{font-size:clamp(26px,9vw,30px);letter-spacing:-.9px}
   .banner__sub{font-size:12.5px;line-height:1.55}
@@ -16081,6 +16128,12 @@ window.ToolCalcCredito = {
   .curso-card__body{padding:15px 16px 17px}
   .curso-card__title{font-size:16px}
   .mobile-nav__item{min-width:0;font-size:9px;letter-spacing:0}
+  .perfil-hero{padding:18px 14px}
+  .perfil-card{padding:16px 14px}
+  .perfil-field{align-items:flex-start;flex-wrap:wrap;gap:5px 10px;padding:12px 0}
+  .perfil-field__lbl{flex:0 0 100%;font-size:9.5px}
+  .perfil-field__val{flex:1;text-align:left;min-width:0}
+  .perfil-field__edit{margin:-6px -6px -6px 0}
 }
 
 @media (max-width:350px){
