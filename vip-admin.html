@@ -1998,11 +1998,6 @@ const Pages={
               <svg class="ic"><use href="#i-plus"/></svg>
               Nuevo curso
             </button>
-            ${new URLSearchParams(location.search).get('catalogMigration') === '1' ? `
-              <button class="btn" id="run-bunny-migration" style="border-color:#8B5CF6;color:#C4B5FD;">
-                Aplicar catálogo Bunny (32 cursos)
-              </button>
-            ` : ''}
           </div>
         </div>
 
@@ -2117,54 +2112,6 @@ const Pages={
     p.querySelector('#new-curso-btn')?.addEventListener('click', () => {
       Pages._abrirModalCurso(null);
     });
-    p.querySelector('#run-bunny-migration')?.addEventListener('click', (event) => {
-      Pages._runBunnyCatalogMigration(event.currentTarget);
-    });
-  },
-
-  async _runBunnyCatalogMigration(button) {
-    const fb = window._fb;
-    if (!fb?.db || !fb?.writeBatch) {
-      Toast.error('Firebase no está listo', 'Recarga la página e inténtalo de nuevo');
-      return;
-    }
-    button.disabled = true;
-    button.textContent = 'Aplicando catálogo…';
-    try {
-      const response = await fetch('assets/data/icadem-catalog-migration.json', { cache: 'no-store' });
-      if (!response.ok) throw new Error(`No se pudo cargar la migración (${response.status})`);
-      const migration = await response.json();
-      if (migration.courses?.length !== 32 || migration.archive?.length !== 5) {
-        throw new Error('El catálogo de migración no tiene la estructura esperada');
-      }
-
-      const batch = fb.writeBatch(fb.db);
-      migration.courses.forEach(course => {
-        const { docId, sourceCollection, ...data } = course;
-        batch.update(fb.doc(fb.db, 'cursos', docId), {
-          ...data,
-          migracionBunny: true,
-          migracionBunnyAt: fb.serverTimestamp()
-        });
-      });
-      migration.archive.forEach(item => {
-        batch.update(fb.doc(fb.db, 'cursos', item.docId), {
-          archivado: true,
-          activo: false,
-          publicado: false,
-          motivoArchivo: item.reason,
-          migracionBunnyAt: fb.serverTimestamp()
-        });
-      });
-      await batch.commit();
-      button.textContent = 'Catálogo Bunny aplicado';
-      Toast.success('Catálogo actualizado', '32 cursos y 128 clases de Bunny');
-    } catch (error) {
-      console.error('[Bunny catalog migration]', error);
-      button.disabled = false;
-      button.textContent = 'Reintentar catálogo Bunny';
-      Toast.error('No se pudo aplicar el catálogo', error.message || 'Intenta de nuevo');
-    }
   },
 
   // ─── KPIs ───
