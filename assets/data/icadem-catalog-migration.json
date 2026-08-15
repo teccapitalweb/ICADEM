@@ -1,0 +1,1388 @@
+{
+  "generatedAt": "2026-08-15T19:39:03.840Z",
+  "projectId": "icadem-vip",
+  "videoLibraryId": 726119,
+  "courses": [
+    {
+      "docId": "BcWI7FGsZ6Lqz5YmfFIe",
+      "sourceCollection": "Amparo en materia penal",
+      "titulo": "Amparo directo e indirecto en materia penal",
+      "descripcion": "Domina los fundamentos, requisitos y estrategias del amparo directo e indirecto aplicado a la materia penal.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 1,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/amparo-penal.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "ba96601d-76e2-4a02-b619-0d0c64021cc2",
+          "duracionSegundos": 5091
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "8562035c-55ca-41a0-b20c-69da6780c496",
+          "duracionSegundos": 3705
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "b0ed20d7-a2b2-45fd-89a5-0d15922cf6ae",
+          "duracionSegundos": 3297
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "08bae429-fd45-4642-b06b-71d6647ef53b",
+          "duracionSegundos": 1469
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "8c1c0600-f5c0-485d-b20a-4f8fcd3d336a",
+          "duracionSegundos": 3288
+        }
+      ]
+    },
+    {
+      "docId": "A67K9cNKktrC38t8GBmn",
+      "sourceCollection": "Argumentación jurídica en audiencias previas al juicio",
+      "titulo": "Argumentación jurídica en audiencias previas al juicio",
+      "descripcion": "Construye intervenciones jurídicas sólidas y persuasivas para las audiencias que anteceden al juicio.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 2,
+      "horas": 7,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/argumentacion-audiencias-previas.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "7eff1082-ac68-46cf-a575-d34a12289c33",
+          "duracionSegundos": 3673
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "80a42a1b-d754-4a11-a9e8-168faa3a3285",
+          "duracionSegundos": 3885
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "62db97d9-5cc2-4fae-977b-a362590fe862",
+          "duracionSegundos": 4525
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "c281b495-4047-4a6c-9fef-5db64f5c607e",
+          "duracionSegundos": 4301
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "5aad0127-4a3a-4534-a63b-927e163f493e",
+          "duracionSegundos": 5947
+        }
+      ]
+    },
+    {
+      "docId": "kiFbLvkNnMed8lgouXh8",
+      "sourceCollection": "Claves de la argumentación jurídica",
+      "titulo": "Argumentación jurídica: narrativa, falacias y persuasión",
+      "descripcion": "Fortalece la narrativa del caso, identifica falacias y aplica técnicas de persuasión jurídica.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 3,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/argumentacion-narrativa-falacias.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "f5845a5c-8852-47e0-9361-d564e1e235a2",
+          "duracionSegundos": 3748
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "f2c1ef05-e7b7-4354-a7fc-b18ee5f0f7d8",
+          "duracionSegundos": 3346
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "bf6991dd-4be3-4b46-8632-b6f7fe8fbc0b",
+          "duracionSegundos": 3474
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "5694f662-6f12-43e5-886c-d0b77d4cc979",
+          "duracionSegundos": 4246
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "c0fe4ba1-0f2c-4852-8794-2ac58c100da0",
+          "duracionSegundos": 2904
+        }
+      ]
+    },
+    {
+      "docId": "UrMcpg0pQgAgBI6dSs8O",
+      "sourceCollection": "Conducción de audiencia y litigación",
+      "titulo": "Conducción de audiencias y litigación oral",
+      "descripcion": "Desarrolla habilidades prácticas para conducir audiencias, interrogar y litigar oralmente con claridad.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 4,
+      "horas": 6,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/conduccion-audiencias-litigacion.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "2dcee13c-d88d-45da-a2f8-985f86612795",
+          "duracionSegundos": 3907
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "d02861b5-7347-45a7-ab2a-6235eb0f4add",
+          "duracionSegundos": 7470
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "b7304540-5ff7-4d58-bf6d-0264384c6af3",
+          "duracionSegundos": 8749
+        }
+      ]
+    },
+    {
+      "docId": "1xaWMqqsQTwzlsQAGEfy",
+      "sourceCollection": "Contratos mercantiles",
+      "titulo": "Contratos mercantiles en la práctica",
+      "descripcion": "Analiza, redacta y negocia contratos mercantiles con enfoque preventivo y aplicación empresarial.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 5,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/contratos-mercantiles.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "b7f8b9d9-a930-4fdb-876c-b2054a1f4b98",
+          "duracionSegundos": 4135
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "5454ad43-17f6-4a3e-86cc-cd4abc4516a9",
+          "duracionSegundos": 3884
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "24928e51-e91e-4250-b3a8-d852c977d3aa",
+          "duracionSegundos": 3755
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "608fd813-0b24-4ee7-8e29-2ad5dc10c789",
+          "duracionSegundos": 3823
+        }
+      ]
+    },
+    {
+      "docId": "3UErA6VzEb8yCHBP8wu5",
+      "sourceCollection": "Derecho civil - contrato inmobiliario",
+      "titulo": "Contratos inmobiliarios y derecho civil",
+      "descripcion": "Comprende los contratos inmobiliarios y sus principales efectos, obligaciones y riesgos civiles.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 6,
+      "horas": 7,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/contratos-inmobiliarios-derecho-civil.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "32fe7d1d-6823-4a85-98f6-1ba459e3b8cb",
+          "duracionSegundos": 4875
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "571bb0fa-6769-42aa-ac8b-aa3c086bf06b",
+          "duracionSegundos": 4124
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "45b1ea7b-4489-40b3-a500-dc7a873ec422",
+          "duracionSegundos": 4840
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "a389019f-bf19-40f5-9cb4-e5938fd4ac03",
+          "duracionSegundos": 4443
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "be16a8bc-ac34-4f27-b922-09c216bef620",
+          "duracionSegundos": 5102
+        }
+      ]
+    },
+    {
+      "docId": "ZNGXQyIv3pWye25ugZ3q",
+      "sourceCollection": "Derecho fiscal",
+      "titulo": "Derecho fiscal aplicado",
+      "descripcion": "Aplica los principios del derecho fiscal a obligaciones, procedimientos y decisiones empresariales.",
+      "area": "Fiscal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 7,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/derecho-fiscal-aplicado.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "95c1f8dd-186c-4839-bef8-0bbd1fce7d12",
+          "duracionSegundos": 2439
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "4fa6b670-fca2-456a-b032-230dfb213b02",
+          "duracionSegundos": 2916
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "09321ab3-2b73-450a-b388-1f80bf439eab",
+          "duracionSegundos": 3442
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "8180aed6-d714-4290-b314-e166d7bae7b0",
+          "duracionSegundos": 2948
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "b7838de7-38ef-4c7e-9fa4-5cd530fb6eaf",
+          "duracionSegundos": 3074
+        }
+      ]
+    },
+    {
+      "docId": "VdTVm9KeKEx2qoIgnBPZ",
+      "sourceCollection": "Derecho notarial y registral",
+      "titulo": "Derecho notarial y registral",
+      "descripcion": "Conoce la función notarial, los instrumentos públicos y los procesos esenciales de registro.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 8,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/derecho-notarial-registral.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "99ef6f2f-c134-4481-a1c7-4a86286373c7",
+          "duracionSegundos": 4444
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "dc1d5f8c-6928-4de3-ac1c-e7725e615b11",
+          "duracionSegundos": 4803
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "7ac213cf-67c2-4192-bf15-db2d2c0f7551",
+          "duracionSegundos": 3231
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "3f947965-4190-4f0c-aae0-e6f2c9469360",
+          "duracionSegundos": 2512
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "3844dfcc-cea4-4320-a329-df4cf54c0f88",
+          "duracionSegundos": 2693
+        }
+      ]
+    },
+    {
+      "docId": "ZHIhKUptcNXZawUn6lOc",
+      "sourceCollection": "Divorcio juicio oral",
+      "titulo": "Divorcio mediante juicio oral",
+      "descripcion": "Estudia la preparación y conducción del divorcio dentro del procedimiento oral familiar.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 9,
+      "horas": 6,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/divorcio-juicio-oral.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "8d128c57-b4d0-4405-b986-ed37bd6b6337",
+          "duracionSegundos": 3945
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "9dd17812-26c0-41b8-86f7-b3bdb2a50917",
+          "duracionSegundos": 3792
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "5913a3bf-ef5a-4093-b546-52995bb91f19",
+          "duracionSegundos": 3920
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "558aeb08-a42f-4044-893d-ff19e2ca1905",
+          "duracionSegundos": 3631
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "3a0d4112-6d38-4fc5-b8b4-cabb3d53bdbb",
+          "duracionSegundos": 3929
+        }
+      ]
+    },
+    {
+      "docId": "2okJKdxTaHeroaiII40i",
+      "sourceCollection": "Divorcio pensión alimentaria",
+      "titulo": "Pensión alimentaria y litigación familiar",
+      "descripcion": "Aborda la determinación, reclamación y defensa de la pensión alimentaria en litigios familiares.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 10,
+      "horas": 6,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/pension-alimentaria-litigacion-familiar.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "7e136d7e-718b-45ff-b7ae-20943fc74a3a",
+          "duracionSegundos": 4148
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "fe5652dd-b72c-4d3d-ab54-5e4f805c2ff3",
+          "duracionSegundos": 4410
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "34717fac-785b-4254-8f5a-f80f4f759f88",
+          "duracionSegundos": 5268
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "c93d0c2f-7633-464c-8d8e-fa8aad8b4df9",
+          "duracionSegundos": 4761
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "13b514a8-63d6-40db-b164-b53400735667",
+          "duracionSegundos": 2999
+        }
+      ]
+    },
+    {
+      "docId": "dyWzInQkh46VjFo9xJKn",
+      "sourceCollection": "Fraude inmobiliario",
+      "titulo": "Prevención y análisis del fraude inmobiliario",
+      "descripcion": "Detecta señales de alerta, valida documentación y reduce riesgos en operaciones inmobiliarias.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 11,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/prevencion-fraude-inmobiliario.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "a3f9670d-129c-4eb8-a262-1334541b7e7a",
+          "duracionSegundos": 6065
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "beeb9af4-7414-479a-9b3f-cc1c459a8bb4",
+          "duracionSegundos": 6411
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "4c24bb91-8359-477d-b4a7-78ec1012f42f",
+          "duracionSegundos": 5473
+        }
+      ]
+    },
+    {
+      "docId": "CkbC8n6VHc67gqWbLUL7",
+      "sourceCollection": "Elaboración de demandas y contestaciones",
+      "titulo": "Elaboración de demandas y contestaciones",
+      "descripcion": "Estructura hechos, argumentos, pruebas y peticiones para elaborar demandas y contestaciones sólidas.",
+      "area": "Legal",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 12,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/elaboracion-demandas-contestaciones.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "03e693ff-efff-4123-868b-f2890452f4c6",
+          "duracionSegundos": 3764
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "708f4d5b-1c41-44fe-b723-d6edb1b7945d",
+          "duracionSegundos": 3973
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "a2633b78-1b3d-4df9-847d-3db2586d3cf5",
+          "duracionSegundos": 3435
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "25cd0c54-3cd4-47b4-a008-852ced4e8975",
+          "duracionSegundos": 5362
+        }
+      ]
+    },
+    {
+      "docId": "1cZo316GQR8P6Y4eFK53",
+      "sourceCollection": "Mecanismos de defensa ante actos de gobierno y multas",
+      "titulo": "Caducidad de créditos fiscales y medios de defensa",
+      "descripcion": "Masterclass sobre caducidad de créditos fiscales, cómputo de plazos y medios de defensa.",
+      "area": "Fiscal",
+      "nivel": "Masterclass",
+      "instructor": "Equipo ICADEM",
+      "orden": 13,
+      "horas": 1,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/caducidad-creditos-fiscales-defensa.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Masterclass completa",
+          "videoId": "7ab7055c-95b6-4f6b-bce2-91c9b2a8a52e",
+          "duracionSegundos": 2992
+        }
+      ]
+    },
+    {
+      "docId": "i6jlJmjyz3j3Xa1o21za",
+      "sourceCollection": "Aplicación práctica de los tratados que tiene México y sus beneficios",
+      "titulo": "Tratados de libre comercio: aplicación práctica y beneficios arancelarios",
+      "descripcion": "Aprovecha tratados comerciales y beneficios arancelarios en operaciones reales de comercio exterior.",
+      "area": "Negocios",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 14,
+      "horas": 6,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/tratados-libre-comercio.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "c8cd6878-519f-4fcb-b147-c09d4415b114",
+          "duracionSegundos": 4807
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "f03e1712-3e27-4f4e-b009-8ba262dcb2ac",
+          "duracionSegundos": 4132
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "77dfab33-95e9-4ce3-88f1-7b6954c144c5",
+          "duracionSegundos": 5231
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "02b94d2b-f874-4378-ab6d-857c4cc7b9c3",
+          "duracionSegundos": 4781
+        }
+      ]
+    },
+    {
+      "docId": "0PJFLfcqyc9R2wSTP6kF",
+      "sourceCollection": "Clasificación y regulación arancelaria",
+      "titulo": "Clasificación arancelaria y reglas de interpretación",
+      "descripcion": "Clasifica mercancías aplicando reglas de interpretación y criterios técnicos del sistema arancelario.",
+      "area": "Negocios",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 15,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/clasificacion-arancelaria.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "0cca5e26-af30-400c-8a4d-b15c28a6b9bb",
+          "duracionSegundos": 4718
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "7ad839a5-8b2b-4905-a83e-86dd891c4884",
+          "duracionSegundos": 3742
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "2b403bbc-eb6e-4ffe-ad8b-cc2ed71fb333",
+          "duracionSegundos": 5191
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "c4b34dc7-8dc1-43d4-bf72-459af388ed77",
+          "duracionSegundos": 4030
+        }
+      ]
+    },
+    {
+      "docId": "0LykwhqPns9qNQbO51iO",
+      "sourceCollection": "Excel Pro Admin control y optimización",
+      "titulo": "Excel administrativo: control y optimización",
+      "descripcion": "Optimiza controles administrativos, reportes y análisis de información mediante Excel.",
+      "area": "Negocios",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 16,
+      "horas": 7,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/excel-administrativo.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "03427f1f-1ad3-45b6-8837-31db1c0b97ac",
+          "duracionSegundos": 6698
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "b076b2f9-144c-4b1d-a458-b315cd1b8f69",
+          "duracionSegundos": 7920
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "cc880cfb-d6d2-4168-8f81-a07c2f152a69",
+          "duracionSegundos": 7194
+        }
+      ]
+    },
+    {
+      "docId": "N6ljRcFTkheVxmHXYBii",
+      "sourceCollection": "Finanzas",
+      "titulo": "Finanzas para la toma de decisiones",
+      "descripcion": "Interpreta información financiera y conviértela en decisiones prácticas para la empresa.",
+      "area": "Finanzas",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 17,
+      "horas": 4,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/finanzas-toma-decisiones.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "f850389a-2cd4-4ad9-a90a-272a829a048b",
+          "duracionSegundos": 4139
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "93c48a43-1173-43d7-a0dc-41ced52772fa",
+          "duracionSegundos": 3538
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "dcd8d138-2737-4404-85a2-a3a374ea2e64",
+          "duracionSegundos": 3734
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "6ecebc00-c9ff-4e9f-9432-3ac8938caa7e",
+          "duracionSegundos": 2653
+        }
+      ]
+    },
+    {
+      "docId": "O7CGIcE0flHuUTQF8rty",
+      "sourceCollection": "Inteligencia financiera",
+      "titulo": "Inteligencia financiera",
+      "descripcion": "Desarrolla criterios para administrar recursos, deuda, ahorro y crecimiento patrimonial.",
+      "area": "Finanzas",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 18,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/inteligencia-financiera.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "dceb300b-0921-435c-8012-e6fe55984fd4",
+          "duracionSegundos": 3150
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "bf25e5f0-757f-4dd6-bd5a-56b4bcc95749",
+          "duracionSegundos": 3875
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "c738ead7-e5fb-46c6-9128-27155d3c340d",
+          "duracionSegundos": 3591
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "0db923c9-050d-4c73-99b5-8d0ef648d3c2",
+          "duracionSegundos": 2919
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "addafd01-2e75-4681-bd84-d148d21d5cc8",
+          "duracionSegundos": 2651
+        }
+      ]
+    },
+    {
+      "docId": "TnzDdjMOovb5z3GPU2zt",
+      "sourceCollection": "Inversiones y mercados financieros",
+      "titulo": "Inversiones y mercados financieros",
+      "descripcion": "Comprende instrumentos, riesgo, diversificación y funcionamiento de los mercados financieros.",
+      "area": "Finanzas",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 19,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/inversiones-mercados-financieros.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "3b5e95ae-c711-4e17-bbdb-2ce96bce6cef",
+          "duracionSegundos": 6579
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "6c9dba43-5e83-4a9d-b147-edc43472c6dd",
+          "duracionSegundos": 6781
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "9f07f8be-ecc9-4ee0-bdf3-ae69a7ff9452",
+          "duracionSegundos": 2949
+        }
+      ]
+    },
+    {
+      "docId": "5AMpKfjsSIpNEBffd63p",
+      "sourceCollection": "Gestión de almacenes e inventario",
+      "titulo": "Gestión de almacenes e inventarios",
+      "descripcion": "Mejora la recepción, ubicación, control y disponibilidad de productos dentro del almacén.",
+      "area": "Negocios",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 20,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/gestion-almacenes-inventarios.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "377baa39-310f-4995-8382-4c4782656167",
+          "duracionSegundos": 2792
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "d34aef66-b9d5-43d8-a067-fb3faa1a8da5",
+          "duracionSegundos": 3320
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "31ab8088-ea0d-49d1-878b-1dde4a6b4e79",
+          "duracionSegundos": 3510
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "ec3b4dea-a052-48b4-ba68-5092b30b8b31",
+          "duracionSegundos": 2585
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "0c049bb1-5526-4055-ae07-e1402307d189",
+          "duracionSegundos": 2615
+        }
+      ]
+    },
+    {
+      "docId": "pAdSmtHjxULW4CNajb9H",
+      "sourceCollection": "Gestión logística, operaciones y almacenes",
+      "titulo": "Logística, operaciones y almacenes",
+      "descripcion": "Integra procesos logísticos, operación de almacenes y flujo de materiales de extremo a extremo.",
+      "area": "Negocios",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 21,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/logistica-operaciones-almacenes.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "79fd1d39-483a-418e-a626-c3c37fc467f2",
+          "duracionSegundos": 2887
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "d72e8c0b-d9ff-4036-86f3-2a2d28b06e67",
+          "duracionSegundos": 3175
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "d420eba5-4554-4d14-9da5-7ca59be8c861",
+          "duracionSegundos": 3697
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "a66a77c7-587d-4fa5-b745-700d0c1746ab",
+          "duracionSegundos": 2390
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "d8c2d96a-11e6-4bcc-9e49-bd41a747a208",
+          "duracionSegundos": 3631
+        }
+      ]
+    },
+    {
+      "docId": "c3BNdUDfjBj4hJ9Unnqb",
+      "sourceCollection": "Planificación y optimización de rutas de distribución",
+      "titulo": "Planeación estratégica de rutas de distribución",
+      "descripcion": "Masterclass para diseñar rutas eficientes considerando tiempos, cobertura y capacidad operativa.",
+      "area": "Negocios",
+      "nivel": "Masterclass",
+      "instructor": "Equipo ICADEM",
+      "orden": 22,
+      "horas": 2,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/planeacion-rutas-distribucion.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Masterclass completa",
+          "videoId": "9fff56b0-871c-4ec7-8bfc-f574cd0ba7dd",
+          "duracionSegundos": 3934
+        }
+      ]
+    },
+    {
+      "docId": "dVAhomFtlE3Xts6Y1wQ1",
+      "sourceCollection": "Técnicas de gestión de inventarios",
+      "titulo": "Indicadores y mejores prácticas para la gestión de inventarios",
+      "descripcion": "Minicurso para medir la exactitud, rotación y disponibilidad del inventario y mejorar su control.",
+      "area": "Negocios",
+      "nivel": "Minicurso",
+      "instructor": "Equipo ICADEM",
+      "orden": 23,
+      "horas": 3,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/indicadores-gestion-inventarios.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Indicadores clave para el control de inventarios",
+          "videoId": "3d2c29f4-5143-41c6-b7d3-fc2b878dc079",
+          "duracionSegundos": 4138
+        },
+        {
+          "numero": 2,
+          "titulo": "Mejores prácticas de gestión de inventarios",
+          "videoId": "7fc8c4a9-3b04-4f52-8881-99b3abc88791",
+          "duracionSegundos": 3997
+        }
+      ]
+    },
+    {
+      "docId": "Chv5kQzoC473LZpfVwtj",
+      "sourceCollection": "Inteligencia emocional y manejo de estrés claves para un servicio de calidad",
+      "titulo": "Inteligencia emocional y manejo del estrés",
+      "descripcion": "Gestiona emociones y presión laboral para mejorar el desempeño y la calidad del servicio.",
+      "area": "Recursos Humanos",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 24,
+      "horas": 6,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/inteligencia-emocional-manejo-estres.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "6d29e36b-15cd-4851-9db5-bfbbe4291a28",
+          "duracionSegundos": 3434
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "2b316c65-68db-4e3a-8cdf-e92d420b966b",
+          "duracionSegundos": 4209
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "7db9aa7a-d5bc-4042-944a-3b0721df39b0",
+          "duracionSegundos": 4098
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "d2dc0d30-30af-45e8-b868-4194af90ab7d",
+          "duracionSegundos": 4055
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "406a41e4-f9c5-4ef8-a3f2-33d24698133e",
+          "duracionSegundos": 3696
+        }
+      ]
+    },
+    {
+      "docId": "is1aPC49EvZnIKkyS3Y7",
+      "sourceCollection": "Liderazgo estratégico y gestión de alto impacto",
+      "titulo": "Liderazgo estratégico y gestión de alto impacto",
+      "descripcion": "Alinea personas, prioridades y resultados mediante una visión estratégica de alto impacto.",
+      "area": "Recursos Humanos",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 25,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/liderazgo-estrategico-alto-impacto.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "be589ea6-f07b-45fa-94d4-8588c340cb4f",
+          "duracionSegundos": 3759
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "a3a0f902-8f70-4d8c-96a6-84a4cc3cc15c",
+          "duracionSegundos": 3185
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "118f3559-287f-4e99-a9ac-1e2b6578624f",
+          "duracionSegundos": 3533
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "e0f647a5-92ab-4ceb-802f-1e5b850c6530",
+          "duracionSegundos": 3002
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "07399a3e-a863-47ae-b8b5-de56494faa2d",
+          "duracionSegundos": 3020
+        }
+      ]
+    },
+    {
+      "docId": "yOqWUsJonnQ0IO5fJyeO",
+      "sourceCollection": "Liderazgo para mandos medios",
+      "titulo": "Liderazgo para mandos medios",
+      "descripcion": "Convierte objetivos directivos en ejecución, coordinación y acompañamiento efectivo de equipos.",
+      "area": "Recursos Humanos",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 26,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/liderazgo-mandos-medios.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "2694c69a-ecd7-4550-8bcf-e759374b3b82",
+          "duracionSegundos": 3031
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "b72a7bdb-bfd4-445a-9506-64ffce99c82a",
+          "duracionSegundos": 3472
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "5d58a579-e5ba-46dd-b0dd-92fb86c37a5e",
+          "duracionSegundos": 2996
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "57e4c777-3ce7-44d0-a554-bc2a066bf880",
+          "duracionSegundos": 3607
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "56965bd6-86b1-467c-bfc2-5cb4793320f5",
+          "duracionSegundos": 3248
+        }
+      ]
+    },
+    {
+      "docId": "FWkM4YO1VlE2BSGX9WYZ",
+      "sourceCollection": "Liderazgo y gerencia de equipo",
+      "titulo": "Liderazgo y gerencia de equipos",
+      "descripcion": "Fortalece la comunicación, delegación y conducción cotidiana de equipos de trabajo.",
+      "area": "Recursos Humanos",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 27,
+      "horas": 4,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/liderazgo-gerencia-equipos.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "64797504-a29c-4944-a3cc-bb050d8103d5",
+          "duracionSegundos": 3665
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "5e447c04-42f7-4f67-b8a9-7f1df58edd70",
+          "duracionSegundos": 4793
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "b7eb0909-6634-470c-969a-46ca0e5701b2",
+          "duracionSegundos": 5387
+        }
+      ]
+    },
+    {
+      "docId": "t3Sqq9QbiOXCN6r6QE7N",
+      "sourceCollection": "Selección de talento 4.0 nuevas técnicas y tendencias",
+      "titulo": "Selección de talento 4.0: técnicas y tendencias",
+      "descripcion": "Aplica entrevistas, evaluación por competencias y herramientas digitales a la selección de talento.",
+      "area": "Recursos Humanos",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 28,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/seleccion-talento-4.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "25531f8d-f58f-450e-887e-9ebd65a89ba6",
+          "duracionSegundos": 3113
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "fcaf1f5e-0d50-4be7-9f02-9408fda0d80f",
+          "duracionSegundos": 3244
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "570ce5e4-486a-4cfe-961d-a9aa81b7dd0c",
+          "duracionSegundos": 4852
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "d56a447b-7da4-4003-9815-ad84ae6c4769",
+          "duracionSegundos": 3625
+        }
+      ]
+    },
+    {
+      "docId": "PlXGveysEzktbxz08oTH",
+      "sourceCollection": "Competencias digitales docentes",
+      "titulo": "Competencias digitales para docentes",
+      "descripcion": "Integra recursos tecnológicos, colaboración y enseñanza híbrida en la práctica docente.",
+      "area": "Recursos Humanos",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 29,
+      "horas": 6,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/competencias-digitales-docentes.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "239ca384-767a-486b-94be-812bd358fa13",
+          "duracionSegundos": 7090
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "4a340573-986f-4e5b-8ecf-9f8ebad3be5a",
+          "duracionSegundos": 7321
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "5f05fb72-6842-4951-8bad-108fdbdca1ce",
+          "duracionSegundos": 4278
+        }
+      ]
+    },
+    {
+      "docId": "fN1cNQYJEUDbWNTwo8vu",
+      "sourceCollection": "Aprende a hacer campañas efectivas en Meta Ads con IA",
+      "titulo": "Meta Ads con IA: campañas, métricas y optimización",
+      "descripcion": "Diseña campañas en Meta Ads, analiza métricas y utiliza IA para optimizar resultados.",
+      "area": "Negocios",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 30,
+      "horas": 7,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/meta-ads-ia.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "a63537b8-8602-4476-a153-9cc014329112",
+          "duracionSegundos": 5221
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "bf348768-9c96-441b-b6e2-b2143ea2f199",
+          "duracionSegundos": 5431
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "808f7c11-45fd-472c-af99-d2da9d4d0b69",
+          "duracionSegundos": 5392
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "49067edc-13cc-45c4-9c14-cf5642bf645d",
+          "duracionSegundos": 3823
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "6de912bc-4d5b-46c0-8cf3-8093f7d90ec6",
+          "duracionSegundos": 4525
+        }
+      ]
+    },
+    {
+      "docId": "iTGcAVqeip8NukrXrk6P",
+      "sourceCollection": "Ventas digitales y por redes sociales",
+      "titulo": "Ventas digitales y publicidad en redes sociales",
+      "descripcion": "Convierte contenido, publicidad y conversación digital en oportunidades de venta.",
+      "area": "Negocios",
+      "nivel": "Minicurso",
+      "instructor": "Equipo ICADEM",
+      "orden": 31,
+      "horas": 5,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/ventas-digitales-redes-sociales.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "cecf2aec-9ed8-4876-b315-d52879cc1608",
+          "duracionSegundos": 6930
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "4d43563b-758c-490a-a486-18d5daf2793f",
+          "duracionSegundos": 9913
+        }
+      ]
+    },
+    {
+      "docId": "cJsV1WkKs0cuyAJ2YYMO",
+      "sourceCollection": "Inmobiliario, más allá de las ventas",
+      "titulo": "Negocio inmobiliario más allá de las ventas",
+      "descripcion": "Explora desarrollo, inversión, análisis y operación inmobiliaria más allá de la intermediación comercial.",
+      "area": "Negocios",
+      "nivel": "Intermedio",
+      "instructor": "Equipo ICADEM",
+      "orden": 32,
+      "horas": 6,
+      "activo": true,
+      "publicado": true,
+      "disponible": true,
+      "archivado": false,
+      "portada": "https://www.icademx.com/assets/cursos/vip/negocio-inmobiliario.jpg",
+      "sesiones": [
+        {
+          "numero": 1,
+          "titulo": "Lección 1",
+          "videoId": "4353c697-ef27-4667-b2c7-72266041b02e",
+          "duracionSegundos": 3401
+        },
+        {
+          "numero": 2,
+          "titulo": "Lección 2",
+          "videoId": "059e9309-5fef-43c5-ab2c-214bcf3856b0",
+          "duracionSegundos": 2820
+        },
+        {
+          "numero": 3,
+          "titulo": "Lección 3",
+          "videoId": "85cf01a5-6ec6-4c16-abae-c2ed111a9be8",
+          "duracionSegundos": 3639
+        },
+        {
+          "numero": 4,
+          "titulo": "Lección 4",
+          "videoId": "bf03227a-3a83-4eb5-860a-c5a9b6108490",
+          "duracionSegundos": 4196
+        },
+        {
+          "numero": 5,
+          "titulo": "Lección 5",
+          "videoId": "764cdb51-7be1-47d7-a15e-a6c910a449f1",
+          "duracionSegundos": 7032
+        }
+      ]
+    }
+  ],
+  "archive": [
+    {
+      "docId": "QftNkLuG61J3KrmR9Vl0",
+      "reason": "Colección duplicada",
+      "archivado": true,
+      "activo": false,
+      "publicado": false
+    },
+    {
+      "docId": "Bbh3CjhkUibnpd4tvCXH",
+      "reason": "Sin videos reproducibles en Bunny",
+      "archivado": true,
+      "activo": false,
+      "publicado": false
+    },
+    {
+      "docId": "oNILumBEwoRKUZoLoX2O",
+      "reason": "Sin videos reproducibles en Bunny",
+      "archivado": true,
+      "activo": false,
+      "publicado": false
+    },
+    {
+      "docId": "QlBUAYFs0TJrbElC1T7P",
+      "reason": "Sin videos reproducibles en Bunny",
+      "archivado": true,
+      "activo": false,
+      "publicado": false
+    },
+    {
+      "docId": "W5t35JK4joVxJXROoIlP",
+      "reason": "Sin videos reproducibles en Bunny",
+      "archivado": true,
+      "activo": false,
+      "publicado": false
+    }
+  ]
+}
