@@ -1958,6 +1958,7 @@ const Pages={
       negocios:'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&q=80&auto=format&fit=crop'
     };
     function pick(){
+      if(/elaboraci[oó]n de demandas|demandas y contestaciones/.test(t))return'personalizada-demandas';
       if(a.indexOf('fiscal')>=0||a.indexOf('sat')>=0||a.indexOf('impuesto')>=0||a.indexOf('contab')>=0)return'fiscal';
       if(a.indexOf('legal')>=0||a.indexOf('jur\u00edd')>=0||a.indexOf('jurid')>=0)return'legal';
       if(a.indexOf('finanz')>=0||a.indexOf('n\u00f3mina')>=0||a.indexOf('nomina')>=0)return'finanzas';
@@ -1966,6 +1967,7 @@ const Pages={
       if(/n\u00f3mina|nomina|imss|ptu|cr\u00e9dito|credito|flujo|finanz|presupuesto/.test(t))return'finanzas';
       return'negocios';
     }
+    IMG['personalizada-demandas']='assets/cursos/curso-demandas-contestaciones-v2.png';
     return IMG[pick()];
   },
   _getPortada(curso) {
