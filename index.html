@@ -1035,12 +1035,12 @@
       </button>
 
       <nav class="nav" id="main-nav" aria-label="Menú principal">
-        <a href="#nosotros">Nosotros</a>
-        <a href="#servicios">Servicios</a>
-        <a href="#capacitaciones">Capacitaciones</a>
-        <a href="#certificacion">Certificación</a>
-        <a href="#testimonios">Testimonios</a>
-        <a href="#contacto" class="nav-cta">Contacto</a>
+        <a href="#ic-nosotros">Nosotros</a>
+        <a href="#ic-servicios">Servicios</a>
+        <a href="#ic-capacitaciones">Capacitaciones</a>
+        <a href="#ic-certificacion">Certificación</a>
+        <a href="#ic-testimonios">Testimonios</a>
+        <a href="#ic-contacto" class="nav-cta">Contacto</a>
         <a href="#" class="nav-vip" aria-label="Acceso VIP" onclick="irAlVIP();return false;">
           <span class="nav-vip-crown">♛</span>
           <span class="nav-vip-text">Acceso VIP</span>
@@ -1878,8 +1878,8 @@
           </p>
 
           <div class="fhero-actions">
-            <a class="fhero-btn-primary" href="#capacitaciones">Ver capacitaciones →</a>
-            <a class="fhero-btn-secondary" href="#contacto">Solicitar información</a>
+            <a class="fhero-btn-primary" href="#ic-capacitaciones">Ver capacitaciones →</a>
+            <a class="fhero-btn-secondary" href="#ic-contacto">Solicitar información</a>
           </div>
 
           <div class="fhero-pills">
@@ -2052,6 +2052,241 @@
     </script>
     <!-- FIN Hero futurista -->
 
+    <!-- Nueva experiencia de landing ICADEM -->
+    <style>
+      .authority-strip, #nosotros, #servicios, #beneficios, #capacitaciones, #cifras,
+      #certificacion, #evidencia, #testimonios, .cta-section, #contacto { display: none !important; }
+
+      .ic-landing {
+        --ic-bg: #071222; --ic-card: rgba(16, 36, 68, 0.76); --ic-line: rgba(143, 188, 230, 0.16);
+        --ic-blue: #8fbce6; --ic-green: #54f2ae; --ic-text: #f4f8ff; --ic-muted: #9db0ca;
+        position: relative; color: var(--ic-text);
+        background: radial-gradient(circle at 10% 18%, rgba(42, 102, 183, 0.16), transparent 30%), radial-gradient(circle at 92% 52%, rgba(43, 104, 195, 0.14), transparent 27%), var(--ic-bg);
+        overflow: hidden;
+      }
+      .ic-landing *, .ic-landing *::before, .ic-landing *::after { box-sizing: border-box; }
+      .ic-shell { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
+      .ic-section { position: relative; padding: 112px 0; scroll-margin-top: 90px; }
+      .ic-section + .ic-section { border-top: 1px solid rgba(143, 188, 230, 0.08); }
+      .ic-kicker { display: inline-flex; align-items: center; gap: 10px; margin: 0 0 20px; font: 700 11px/1 'JetBrains Mono', monospace; letter-spacing: .18em; text-transform: uppercase; color: var(--ic-blue); }
+      .ic-kicker::before { content: ""; width: 24px; height: 1px; background: currentColor; box-shadow: 0 0 10px currentColor; }
+      .ic-title { max-width: 830px; margin: 0; font-size: clamp(36px, 5vw, 68px); line-height: .98; letter-spacing: -.055em; color: #fff; }
+      .ic-title em { color: var(--ic-blue); font-style: normal; }
+      .ic-lead { max-width: 690px; margin: 24px 0 0; font-size: clamp(16px, 1.8vw, 20px); line-height: 1.75; color: var(--ic-muted); }
+      .ic-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 52px; padding: 0 24px; border: 1px solid rgba(143,188,230,.25); border-radius: 999px; color: #071222; background: linear-gradient(135deg, #d8ecff, #8fbce6); font-size: 14px; font-weight: 800; text-decoration: none; box-shadow: 0 14px 40px rgba(73,139,210,.2); transition: transform .25s ease, box-shadow .25s ease; }
+      .ic-button:hover { transform: translateY(-2px); box-shadow: 0 18px 50px rgba(73,139,210,.32); }
+      .ic-button--ghost { color: #eaf4ff; background: rgba(143,188,230,.06); box-shadow: none; }
+      .ic-button--ghost:hover { background: rgba(143,188,230,.12); }
+
+      .ic-routebar { position: relative; z-index: 3; margin-top: -1px; background: rgba(6, 17, 33, .94); border-block: 1px solid var(--ic-line); }
+      .ic-routegrid { display: grid; grid-template-columns: repeat(3, 1fr); }
+      .ic-route { position: relative; min-height: 152px; padding: 30px 34px; color: inherit; text-decoration: none; border-right: 1px solid var(--ic-line); transition: background .25s ease; }
+      .ic-route:last-child { border-right: 0; }
+      .ic-route:hover { background: rgba(69, 129, 204, .09); }
+      .ic-route small { display: block; margin-bottom: 20px; font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: .16em; color: #6682a8; }
+      .ic-route strong { display: block; max-width: 260px; font-size: 20px; line-height: 1.2; color: #fff; }
+      .ic-route span { position: absolute; right: 28px; bottom: 28px; font-size: 23px; color: var(--ic-blue); transition: transform .25s ease; }
+      .ic-route:hover span { transform: translateX(5px); }
+
+      .ic-intro-grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: 90px; align-items: center; }
+      .ic-statement { display: grid; gap: 12px; }
+      .ic-statement article { display: grid; grid-template-columns: 58px 1fr; gap: 20px; align-items: start; padding: 24px; border: 1px solid var(--ic-line); border-radius: 18px; background: linear-gradient(135deg, rgba(15,38,76,.8), rgba(8,24,48,.65)); }
+      .ic-statement b { display: grid; place-items: center; width: 58px; aspect-ratio: 1; border-radius: 15px; background: rgba(143,188,230,.09); color: var(--ic-blue); font: 800 14px/1 'JetBrains Mono', monospace; }
+      .ic-statement h3 { margin: 2px 0 8px; font-size: 19px; color: #fff; }
+      .ic-statement p { margin: 0; color: var(--ic-muted); line-height: 1.65; font-size: 14px; }
+
+      .ic-bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; margin-top: 54px; }
+      .ic-service { position: relative; min-height: 310px; padding: 34px; border: 1px solid var(--ic-line); border-radius: 24px; background: linear-gradient(145deg, rgba(17,41,78,.88), rgba(7,22,45,.92)); overflow: hidden; transition: transform .25s ease, border-color .25s ease; }
+      .ic-service:hover { transform: translateY(-5px); border-color: rgba(143,188,230,.35); }
+      .ic-service--club { grid-column: span 7; min-height: 430px; background: radial-gradient(circle at 84% 20%, rgba(67,124,224,.34), transparent 32%), linear-gradient(145deg,#123c83,#091b3d 72%); }
+      .ic-service--empresa { grid-column: span 5; min-height: 430px; }
+      .ic-service--curso, .ic-service--consultoria, .ic-service--cert { grid-column: span 4; }
+      .ic-service-num { font: 700 11px/1 'JetBrains Mono', monospace; letter-spacing: .15em; color: #6682a8; }
+      .ic-service-icon { display: grid; place-items: center; width: 52px; height: 52px; margin: 54px 0 28px; border: 1px solid rgba(143,188,230,.22); border-radius: 15px; color: var(--ic-blue); background: rgba(143,188,230,.07); }
+      .ic-service-icon svg { width: 24px; height: 24px; }
+      .ic-service h3 { max-width: 520px; margin: 0 0 14px; font-size: clamp(25px, 3vw, 40px); line-height: 1.05; letter-spacing: -.035em; color: #fff; }
+      .ic-service:not(.ic-service--club):not(.ic-service--empresa) h3 { font-size: 25px; }
+      .ic-service p { max-width: 520px; margin: 0; color: var(--ic-muted); line-height: 1.7; }
+      .ic-service-link { position: absolute; right: 28px; bottom: 26px; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--ic-line); border-radius: 50%; color: var(--ic-blue); text-decoration: none; }
+      .ic-club-orbit { position: absolute; width: 250px; height: 250px; right: -46px; top: 26px; border: 1px solid rgba(143,188,230,.18); border-radius: 50%; }
+      .ic-club-orbit::before, .ic-club-orbit::after { content: ""; position: absolute; border-radius: 50%; }
+      .ic-club-orbit::before { inset: 44px; border: 1px solid rgba(143,188,230,.24); }
+      .ic-club-orbit::after { width: 18px; height: 18px; top: 18px; left: 70px; background: var(--ic-green); box-shadow: 0 0 28px var(--ic-green); }
+
+      .ic-catalog-head { display: flex; justify-content: space-between; align-items: end; gap: 28px; }
+      .ic-catalog-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+      .ic-chip { padding: 9px 14px; border: 1px solid var(--ic-line); border-radius: 999px; font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: .1em; color: var(--ic-muted); }
+      .ic-courses { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 50px; }
+      .ic-course { min-width: 0; border: 1px solid var(--ic-line); border-radius: 22px; background: rgba(12,30,58,.7); overflow: hidden; transition: transform .25s ease, border-color .25s ease; }
+      .ic-course:hover { transform: translateY(-6px); border-color: rgba(143,188,230,.36); }
+      .ic-course-media { position: relative; aspect-ratio: 16 / 10; overflow: hidden; }
+      .ic-course-media img { width: 100%; height: 100%; object-fit: cover; transition: transform .6s ease; }
+      .ic-course:hover img { transform: scale(1.045); }
+      .ic-course-media::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, rgba(4,14,30,.75)); }
+      .ic-course-area { position: absolute; z-index: 2; left: 16px; bottom: 14px; padding: 7px 10px; border: 1px solid rgba(255,255,255,.16); border-radius: 999px; background: rgba(6,18,38,.75); backdrop-filter: blur(10px); font: 700 9px/1 'JetBrains Mono', monospace; letter-spacing: .13em; text-transform: uppercase; color: #d8ecff; }
+      .ic-course-body { padding: 22px; }
+      .ic-course h3 { min-height: 58px; margin: 0 0 18px; font-size: 20px; line-height: 1.35; color: #fff; }
+      .ic-course-meta { display: flex; justify-content: space-between; padding-top: 16px; border-top: 1px solid var(--ic-line); color: #7891b4; font-size: 12px; }
+      .ic-catalog-bottom { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 34px; padding: 26px 28px; border: 1px solid var(--ic-line); border-radius: 20px; background: rgba(143,188,230,.045); }
+      .ic-catalog-bottom p { margin: 0; color: var(--ic-muted); }
+
+      .ic-process-grid { display: grid; grid-template-columns: .82fr 1.18fr; gap: 80px; align-items: start; }
+      .ic-process { display: grid; }
+      .ic-step { display: grid; grid-template-columns: 72px 1fr; gap: 24px; padding: 30px 0; border-top: 1px solid var(--ic-line); }
+      .ic-step:last-child { border-bottom: 1px solid var(--ic-line); }
+      .ic-step b { color: var(--ic-blue); font: 700 13px/1 'JetBrains Mono', monospace; }
+      .ic-step h3 { margin: 0 0 8px; font-size: 22px; color: #fff; }
+      .ic-step p { margin: 0; color: var(--ic-muted); line-height: 1.65; }
+
+      .ic-cert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+      .ic-cert-card { position: relative; min-height: 440px; padding: 38px; border: 1px solid rgba(143,188,230,.28); border-radius: 28px; background: radial-gradient(circle at 80% 15%, rgba(77,137,225,.25), transparent 34%), linear-gradient(145deg,#133b7a,#081933); box-shadow: 0 38px 100px rgba(0,9,30,.46); overflow: hidden; transform: rotate(1.2deg); }
+      .ic-cert-top { display: flex; justify-content: space-between; align-items: center; font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: .16em; text-transform: uppercase; color: var(--ic-blue); }
+      .ic-cert-card h3 { margin: 74px 0 12px; font-size: clamp(38px, 5vw, 62px); line-height: .95; letter-spacing: -.055em; color: #fff; }
+      .ic-cert-card > p { max-width: 420px; color: var(--ic-muted); line-height: 1.7; }
+      .ic-cert-data { position: absolute; left: 38px; right: 38px; bottom: 34px; display: flex; align-items: end; justify-content: space-between; padding-top: 22px; border-top: 1px solid rgba(143,188,230,.18); }
+      .ic-cert-data span { display: block; margin-bottom: 6px; color: #7189aa; font-size: 10px; text-transform: uppercase; letter-spacing: .12em; }
+      .ic-cert-data strong { font: 700 13px/1 'JetBrains Mono', monospace; color: var(--ic-blue); }
+      .ic-qr { width: 58px; height: 58px; padding: 5px; border-radius: 8px; background: #fff; }
+      .ic-qr::before { content: ""; display: block; width: 100%; height: 100%; background: repeating-conic-gradient(#0a1830 0 25%, #fff 0 50%) 0 0/10px 10px; }
+      .ic-checks { display: grid; gap: 12px; margin: 34px 0 0; padding: 0; list-style: none; }
+      .ic-checks li { display: flex; gap: 12px; color: #c4d3e7; }
+      .ic-checks li::before { content: "✓"; display: grid; place-items: center; flex: 0 0 24px; height: 24px; border-radius: 50%; background: rgba(84,242,174,.1); color: var(--ic-green); font-weight: 900; }
+
+      .ic-proof-grid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 16px; margin-top: 48px; }
+      .ic-proof-main, .ic-proof-side figure { position: relative; margin: 0; border: 1px solid var(--ic-line); border-radius: 24px; overflow: hidden; background: #0b1c36; }
+      .ic-proof-main { min-height: 520px; }
+      .ic-proof-side { display: grid; grid-template-rows: 1fr 1fr; gap: 16px; }
+      .ic-proof-side figure { min-height: 252px; }
+      .ic-proof-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .7s ease; }
+      .ic-proof-grid figure:hover img { transform: scale(1.035); }
+      .ic-proof-grid figcaption { position: absolute; inset: auto 16px 16px; padding: 12px 16px; border: 1px solid rgba(255,255,255,.14); border-radius: 999px; background: rgba(5,17,35,.78); backdrop-filter: blur(14px); color: #dceaff; font-size: 12px; }
+      .ic-testimonial-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 46px; }
+      .ic-testimonial { padding: 28px; border: 1px solid var(--ic-line); border-radius: 22px; background: rgba(13,32,62,.72); }
+      .ic-testimonial-stars { color: #86bdf0; letter-spacing: .14em; }
+      .ic-testimonial h3 { margin: 30px 0 10px; font-size: 19px; color: #fff; }
+      .ic-testimonial p { margin: 0; color: var(--ic-muted); line-height: 1.7; }
+      .ic-testimonial-foot { display: flex; align-items: center; gap: 12px; margin-top: 28px; padding-top: 18px; border-top: 1px solid var(--ic-line); color: #758dac; font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: .1em; text-transform: uppercase; }
+      .ic-testimonial-foot::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ic-green); box-shadow: 0 0 12px var(--ic-green); }
+
+      .ic-contact-wrap { position: relative; padding: 64px; border: 1px solid rgba(143,188,230,.2); border-radius: 32px; background: radial-gradient(circle at 8% 18%, rgba(76,138,226,.22), transparent 30%), linear-gradient(145deg, rgba(17,48,95,.9), rgba(6,20,42,.96)); overflow: hidden; }
+      .ic-contact-grid { display: grid; grid-template-columns: 1fr .82fr; gap: 70px; align-items: start; }
+      .ic-contact-details { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 34px; }
+      .ic-contact-details a { padding: 11px 16px; border: 1px solid var(--ic-line); border-radius: 999px; color: #bfd1e8; text-decoration: none; font-size: 13px; }
+      .ic-form { display: grid; gap: 12px; }
+      .ic-form-row { display: grid; gap: 8px; }
+      .ic-form label { font: 700 10px/1 'JetBrains Mono', monospace; letter-spacing: .11em; text-transform: uppercase; color: #7f98b9; }
+      .ic-form input, .ic-form select, .ic-form textarea { width: 100%; border: 1px solid rgba(143,188,230,.18); border-radius: 13px; outline: none; padding: 14px 16px; color: #fff; background: rgba(4,16,34,.72); font: inherit; }
+      .ic-form input:focus, .ic-form select:focus, .ic-form textarea:focus { border-color: rgba(143,188,230,.52); box-shadow: 0 0 0 3px rgba(143,188,230,.08); }
+      .ic-form select option { color: #0b1830; }
+
+      @media (max-width: 980px) {
+        .ic-section { padding: 84px 0; }
+        .ic-routegrid, .ic-intro-grid, .ic-process-grid, .ic-cert-grid, .ic-contact-grid { grid-template-columns: 1fr; }
+        .ic-route { border-right: 0; border-bottom: 1px solid var(--ic-line); }
+        .ic-route:last-child { border-bottom: 0; }
+        .ic-intro-grid, .ic-process-grid, .ic-cert-grid, .ic-contact-grid { gap: 48px; }
+        .ic-service--club, .ic-service--empresa { grid-column: span 12; }
+        .ic-service--curso, .ic-service--consultoria, .ic-service--cert { grid-column: span 6; }
+        .ic-courses { grid-template-columns: repeat(2, 1fr); }
+        .ic-proof-grid { grid-template-columns: 1fr; }
+        .ic-testimonial-row { grid-template-columns: 1fr; }
+      }
+      @media (max-width: 640px) {
+        .ic-shell { width: min(100% - 28px, 1180px); }
+        .ic-section { padding: 68px 0; }
+        .ic-title { font-size: 40px; }
+        .ic-route { min-height: 128px; padding: 24px 20px; }
+        .ic-statement article { grid-template-columns: 46px 1fr; padding: 18px; }
+        .ic-statement b { width: 46px; }
+        .ic-bento, .ic-courses { grid-template-columns: 1fr; }
+        .ic-service, .ic-service--club, .ic-service--empresa, .ic-service--curso, .ic-service--consultoria, .ic-service--cert { grid-column: auto; min-height: 330px; padding: 26px; }
+        .ic-service-icon { margin-top: 40px; }
+        .ic-catalog-head, .ic-catalog-bottom { align-items: flex-start; flex-direction: column; }
+        .ic-catalog-actions { justify-content: flex-start; }
+        .ic-course h3 { min-height: auto; }
+        .ic-step { grid-template-columns: 48px 1fr; gap: 14px; }
+        .ic-cert-card { min-height: 430px; padding: 26px; }
+        .ic-cert-data { left: 26px; right: 26px; }
+        .ic-proof-main { min-height: 360px; }
+        .ic-contact-wrap { padding: 30px 22px; border-radius: 24px; }
+      }
+      @media (prefers-reduced-motion: reduce) { .ic-landing *, .ic-landing *::before, .ic-landing *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; } }
+    </style>
+
+    <div class="ic-landing">
+      <section class="ic-routebar" aria-label="Rutas principales"><div class="ic-shell ic-routegrid">
+        <a class="ic-route" href="#ic-capacitaciones"><small>01 · PROFESIONALES</small><strong>Actualiza tus conocimientos y fortalece tu perfil.</strong><span>→</span></a>
+        <a class="ic-route" href="#ic-servicios"><small>02 · EMPRESAS</small><strong>Desarrolla talento y mejora la operación de tu equipo.</strong><span>→</span></a>
+        <a class="ic-route" href="#ic-contacto"><small>03 · EMPRENDEDORES</small><strong>Convierte una idea en una estructura de negocio más sólida.</strong><span>→</span></a>
+      </div></section>
+
+      <section class="ic-section" id="ic-nosotros"><div class="ic-shell ic-intro-grid">
+        <div class="reveal"><p class="ic-kicker">Más que cursos</p><h2 class="ic-title">Aprendizaje que se convierte en <em>acción.</em></h2><p class="ic-lead">ICADEM conecta conocimiento especializado, acompañamiento empresarial y tecnología para que profesionales y organizaciones avancen con claridad.</p></div>
+        <div class="ic-statement">
+          <article class="reveal"><b>01</b><div><h3>Contenido aplicable</h3><p>Programas construidos alrededor de situaciones reales, decisiones y herramientas de trabajo.</p></div></article>
+          <article class="reveal"><b>02</b><div><h3>Experiencia flexible</h3><p>Capacitación digital, sesiones en vivo y soluciones presenciales adaptadas a cada necesidad.</p></div></article>
+          <article class="reveal"><b>03</b><div><h3>Respaldo institucional</h3><p>Certificación verificable y una experiencia profesional de principio a fin.</p></div></article>
+        </div>
+      </div></section>
+
+      <section class="ic-section" id="ic-servicios"><div class="ic-shell">
+        <p class="ic-kicker reveal">Ecosistema ICADEM</p><h2 class="ic-title reveal">Una solución para cada etapa de <em>crecimiento.</em></h2>
+        <div class="ic-bento">
+          <article class="ic-service ic-service--club reveal"><span class="ic-service-num">01 · MEMBRESÍA</span><div class="ic-club-orbit" aria-hidden="true"></div><div class="ic-service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V7l4 3 4-6 4 6 4-3v12H4Z"/><path d="M7 15h10"/></svg></div><h3>Club ICADEM</h3><p>Acceso continuo a un catálogo multidisciplinario de cursos, clases en vivo, materiales, certificados y una comunidad profesional.</p><a class="ic-service-link" href="#" onclick="irAlVIP();return false;" aria-label="Conocer Club ICADEM">↗</a></article>
+          <article class="ic-service ic-service--empresa reveal"><span class="ic-service-num">02 · ORGANIZACIONES</span><div class="ic-service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 21V5l8-3 8 3v16"/><path d="M9 21v-4h6v4M8 8h1m6 0h1M8 12h1m6 0h1"/></svg></div><h3>Capacitación para empresas</h3><p>Programas a la medida para desarrollar competencias, liderazgo y resultados en equipos de trabajo.</p><a class="ic-service-link" href="#ic-contacto" aria-label="Solicitar capacitación empresarial">↗</a></article>
+          <article class="ic-service ic-service--curso reveal"><span class="ic-service-num">03 · FORMACIÓN</span><div class="ic-service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v17H6.5A2.5 2.5 0 0 0 4 22V5.5ZM20 5.5A2.5 2.5 0 0 0 17.5 3H13v17h4.5A2.5 2.5 0 0 1 20 22V5.5Z"/></svg></div><h3>Cursos especializados</h3><p>Actualización fiscal, legal, financiera, administrativa y empresarial.</p><a class="ic-service-link" href="#ic-capacitaciones" aria-label="Ver cursos">↗</a></article>
+          <article class="ic-service ic-service--consultoria reveal"><span class="ic-service-num">04 · ESTRATEGIA</span><div class="ic-service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/><path d="m4 6 6-4 6 7 4-3"/></svg></div><h3>Consultoría empresarial</h3><p>Diagnóstico y acompañamiento para ordenar procesos y tomar mejores decisiones.</p><a class="ic-service-link" href="#ic-contacto" aria-label="Solicitar consultoría">↗</a></article>
+          <article class="ic-service ic-service--cert reveal"><span class="ic-service-num">05 · RESPALDO</span><div class="ic-service-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="5"/><path d="m8.5 12-1 9 4.5-2 4.5 2-1-9"/></svg></div><h3>Certificación digital</h3><p>Constancias con valor curricular, folio único y validación mediante código QR.</p><a class="ic-service-link" href="#ic-certificacion" aria-label="Conocer certificación">↗</a></article>
+        </div>
+      </div></section>
+
+      <section class="ic-section" id="ic-capacitaciones"><div class="ic-shell">
+        <div class="ic-catalog-head"><div><p class="ic-kicker reveal">Catálogo multidisciplinario</p><h2 class="ic-title reveal">Conocimiento para los retos de <em>hoy.</em></h2></div><div class="ic-catalog-actions reveal"><span class="ic-chip">LEGAL</span><span class="ic-chip">FISCAL</span><span class="ic-chip">NEGOCIOS</span><span class="ic-chip">TALENTO</span></div></div>
+        <div class="ic-courses">
+          <article class="ic-course reveal"><div class="ic-course-media"><img src="assets/cursos/vip/amparo-penal.jpg" alt="Curso de amparo penal"><span class="ic-course-area">Legal</span></div><div class="ic-course-body"><h3>Amparo directo e indirecto en materia penal</h3><div class="ic-course-meta"><span>5 clases</span><span>Intermedio</span></div></div></article>
+          <article class="ic-course reveal"><div class="ic-course-media"><img src="assets/cursos/vip/inteligencia-financiera.jpg" alt="Curso de inteligencia financiera"><span class="ic-course-area">Finanzas</span></div><div class="ic-course-body"><h3>Inteligencia financiera para tomar mejores decisiones</h3><div class="ic-course-meta"><span>5 clases</span><span>Intermedio</span></div></div></article>
+          <article class="ic-course reveal"><div class="ic-course-media"><img src="assets/cursos/vip/liderazgo-estrategico-alto-impacto.jpg" alt="Curso de liderazgo estratégico"><span class="ic-course-area">Talento</span></div><div class="ic-course-body"><h3>Liderazgo estratégico y gestión de alto impacto</h3><div class="ic-course-meta"><span>5 clases</span><span>Intermedio</span></div></div></article>
+          <article class="ic-course reveal"><div class="ic-course-media"><img src="assets/cursos/vip/meta-ads-ia.jpg" alt="Curso de Meta Ads con inteligencia artificial"><span class="ic-course-area">Negocios</span></div><div class="ic-course-body"><h3>Meta Ads con IA: campañas, métricas y optimización</h3><div class="ic-course-meta"><span>5 clases</span><span>Intermedio</span></div></div></article>
+        </div>
+        <div class="ic-catalog-bottom reveal"><p>Estos son solo algunos de los programas disponibles dentro de Club ICADEM.</p><a class="ic-button ic-button--ghost" href="#" onclick="irAlVIP();return false;">Explorar membresía <span>→</span></a></div>
+      </div></section>
+
+      <section class="ic-section"><div class="ic-shell ic-process-grid">
+        <div class="reveal"><p class="ic-kicker">Cómo trabajamos</p><h2 class="ic-title">Del reto al <em>resultado.</em></h2><p class="ic-lead">Una ruta sencilla para convertir necesidades de aprendizaje en capacidades reales.</p></div>
+        <div class="ic-process"><article class="ic-step reveal"><b>01</b><div><h3>Entendemos el objetivo</h3><p>Identificamos las habilidades, conocimientos o procesos que necesitas fortalecer.</p></div></article><article class="ic-step reveal"><b>02</b><div><h3>Diseñamos la experiencia</h3><p>Elegimos contenidos, modalidad y herramientas de acuerdo con tu contexto.</p></div></article><article class="ic-step reveal"><b>03</b><div><h3>Acompañamos la aplicación</h3><p>Conectamos el aprendizaje con decisiones y situaciones reales de trabajo.</p></div></article></div>
+      </div></section>
+
+      <section class="ic-section" id="ic-certificacion"><div class="ic-shell ic-cert-grid">
+        <div class="ic-cert-card reveal"><div class="ic-cert-top"><span>ICADEM</span><span>Certificado digital</span></div><h3>Constancia de<br>participación</h3><p>Un respaldo profesional diseñado para integrarse a tu trayectoria y facilitar su verificación.</p><div class="ic-cert-data"><div><span>Folio de referencia</span><strong>ICADEM-VC-2026</strong></div><div class="ic-qr" aria-label="Representación de código QR"></div></div></div>
+        <div class="reveal"><p class="ic-kicker">Respaldo verificable</p><h2 class="ic-title">Tu aprendizaje también construye <em>trayectoria.</em></h2><p class="ic-lead">Nuestros certificados reúnen presentación institucional y elementos de validación para respaldar cada proceso formativo.</p><ul class="ic-checks"><li>Valor curricular para fortalecer tu perfil profesional</li><li>Código QR para una validación rápida</li><li>Folio único y control institucional</li></ul></div>
+      </div></section>
+
+      <section class="ic-section" id="ic-testimonios"><div class="ic-shell">
+        <p class="ic-kicker reveal">Experiencia ICADEM</p><h2 class="ic-title reveal">Formación que deja <em>evidencia.</em></h2><p class="ic-lead reveal">Cada programa reúne conocimiento, interacción y una comunidad que continúa creciendo.</p>
+        <div class="ic-proof-grid"><figure class="ic-proof-main reveal"><img src="assets/galeria/galeria-1.jpg" alt="Participantes en una experiencia de capacitación ICADEM"><figcaption>Capacitación con enfoque práctico</figcaption></figure><div class="ic-proof-side"><figure class="reveal"><img src="assets/galeria/galeria-3.jpg" alt="Sesión de formación profesional ICADEM"><figcaption>Aprendizaje colaborativo</figcaption></figure><figure class="reveal"><img src="assets/galeria/galeria-5.jpg" alt="Comunidad profesional de ICADEM"><figcaption>Comunidad profesional</figcaption></figure></div></div>
+        <div class="ic-testimonial-row"><article class="ic-testimonial reveal"><div class="ic-testimonial-stars">★★★★★</div><h3>Contenido claro y aplicable</h3><p>Programas orientados a resolver dudas reales y llevar herramientas concretas al entorno profesional.</p><div class="ic-testimonial-foot">Participantes ICADEM</div></article><article class="ic-testimonial reveal"><div class="ic-testimonial-stars">★★★★★</div><h3>Acompañamiento cercano</h3><p>Atención profesional antes, durante y después de cada experiencia de capacitación.</p><div class="ic-testimonial-foot">Comunidad ICADEM</div></article><article class="ic-testimonial reveal"><div class="ic-testimonial-stars">★★★★★</div><h3>Experiencia flexible</h3><p>Opciones digitales y presenciales que permiten avanzar sin detener las responsabilidades diarias.</p><div class="ic-testimonial-foot">Profesionales y empresas</div></article></div>
+      </div></section>
+
+      <section class="ic-section" id="ic-contacto"><div class="ic-shell ic-contact-wrap reveal"><div class="ic-contact-grid">
+        <div><p class="ic-kicker">Hablemos de tu siguiente paso</p><h2 class="ic-title">El crecimiento empieza con una <em>conversación.</em></h2><p class="ic-lead">Cuéntanos qué quieres fortalecer y te ayudaremos a encontrar la capacitación o solución adecuada.</p><div class="ic-contact-details"><a href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20quiero%20informes." target="_blank" rel="noopener">WhatsApp · +52 238 373 8143</a><a href="https://www.instagram.com/icadem3/" target="_blank" rel="noopener">Instagram · @icadem3</a></div></div>
+        <form class="ic-form" id="ic-contact-form"><div class="ic-form-row"><label for="ic-nombre">Nombre</label><input id="ic-nombre" name="nombre" type="text" placeholder="Tu nombre" required></div><div class="ic-form-row"><label for="ic-medio">Teléfono o correo</label><input id="ic-medio" name="medio" type="text" placeholder="Tu mejor medio de contacto" required></div><div class="ic-form-row"><label for="ic-servicio">¿Qué te interesa?</label><select id="ic-servicio" name="servicio"><option>Club ICADEM</option><option>Capacitación empresarial</option><option>Curso especializado</option><option>Consultoría empresarial</option><option>Asesoría para emprendedores</option></select></div><div class="ic-form-row"><label for="ic-mensaje">Mensaje</label><textarea id="ic-mensaje" name="mensaje" rows="4" placeholder="Cuéntanos brevemente qué necesitas"></textarea></div><button class="ic-button" type="submit">Enviar por WhatsApp <span>→</span></button></form>
+      </div></div></section>
+    </div>
+
+    <script>
+      (function () {
+        const form = document.getElementById('ic-contact-form');
+        if (!form) return;
+        form.addEventListener('submit', function (event) {
+          event.preventDefault();
+          const data = new FormData(form);
+          const message = ['Hola ICADEM, quiero solicitar información.', '', 'Nombre: ' + (data.get('nombre') || ''), 'Contacto: ' + (data.get('medio') || ''), 'Interés: ' + (data.get('servicio') || ''), 'Mensaje: ' + (data.get('mensaje') || 'Sin mensaje adicional')].join('\n');
+          window.open('https://wa.me/522383738143?text=' + encodeURIComponent(message), '_blank', 'noopener');
+        });
+      })();
+    </script>
+
+    <template id="legacy-landing" hidden>
     <section class="authority-strip">
       <div class="container authority-grid">
         <article class="reveal">
@@ -2743,6 +2978,7 @@
         </form>
       </div>
     </section>
+    </template>
   </main>
 
   <footer class="site-footer">
@@ -2761,10 +2997,10 @@
       <div>
         <h3>Navegación</h3>
         <ul>
-          <li><a href="#nosotros">Nosotros</a></li>
-          <li><a href="#servicios">Servicios</a></li>
-          <li><a href="#capacitaciones">Capacitaciones</a></li>
-          <li><a href="#certificacion">Certificación</a></li>
+          <li><a href="#ic-nosotros">Nosotros</a></li>
+          <li><a href="#ic-servicios">Servicios</a></li>
+          <li><a href="#ic-capacitaciones">Capacitaciones</a></li>
+          <li><a href="#ic-certificacion">Certificación</a></li>
         </ul>
       </div>
 
