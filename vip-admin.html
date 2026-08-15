@@ -1958,7 +1958,6 @@ const Pages={
       negocios:'https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=900&q=80&auto=format&fit=crop'
     };
     function pick(){
-      if(/elaboraci[oó]n de demandas|demandas y contestaciones/.test(t))return'personalizada-demandas';
       if(a.indexOf('fiscal')>=0||a.indexOf('sat')>=0||a.indexOf('impuesto')>=0||a.indexOf('contab')>=0)return'fiscal';
       if(a.indexOf('legal')>=0||a.indexOf('jur\u00edd')>=0||a.indexOf('jurid')>=0)return'legal';
       if(a.indexOf('finanz')>=0||a.indexOf('n\u00f3mina')>=0||a.indexOf('nomina')>=0)return'finanzas';
@@ -1967,7 +1966,6 @@ const Pages={
       if(/n\u00f3mina|nomina|imss|ptu|cr\u00e9dito|credito|flujo|finanz|presupuesto/.test(t))return'finanzas';
       return'negocios';
     }
-    IMG['personalizada-demandas']='assets/cursos/curso-demandas-contestaciones-v2.png';
     return IMG[pick()];
   },
   _getPortada(curso) {
@@ -2432,7 +2430,13 @@ const Pages={
     this._modalCurso.editandoId = esEdicion ? curso.id : null;
     // Clonar para no mutar el original
     this._modalCurso.sesiones = esEdicion && Array.isArray(curso.sesiones)
-      ? curso.sesiones.map(s => ({ numero: s.numero, titulo: s.titulo || '', url: s.url || '' }))
+      ? curso.sesiones.map(s => ({
+          numero: s.numero,
+          titulo: s.titulo || '',
+          url: s.url || '',
+          videoId: s.videoId || '',
+          duracionSegundos: Number(s.duracionSegundos) || 0
+        }))
       : [];
     this._modalCurso.materiales = esEdicion && Array.isArray(curso.materiales)
       ? curso.materiales.map(m => ({
@@ -2596,6 +2600,7 @@ const Pages={
         <span style="background:color-mix(in srgb,var(--primary) 14%,transparent);color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;letter-spacing:.6px;padding:5px 8px;border-radius:6px;flex-shrink:0;margin-top:4px;white-space:nowrap;">CLASE ${idx + 1}</span>
         <div style="flex:1;display:flex;flex-direction:column;gap:6px;min-width:0;">
           <input type="text" class="input" placeholder="Título de la clase" value="${(s.titulo || '').replace(/"/g,'&quot;')}" data-sesion-idx="${idx}" data-sesion-campo="titulo" style="font-size:13px;padding:8px 11px;">
+          <input type="text" class="input" placeholder="Bunny videoId (recomendado)" value="${(s.videoId || '').replace(/"/g,'&quot;')}" data-sesion-idx="${idx}" data-sesion-campo="videoId" style="font-size:13px;padding:8px 11px;">
           <input type="url" class="input" placeholder="URL del video (Google Drive, YouTube, etc.)" value="${(s.url || '').replace(/"/g,'&quot;')}" data-sesion-idx="${idx}" data-sesion-campo="url" style="font-size:13px;padding:8px 11px;">
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
@@ -2630,7 +2635,7 @@ const Pages={
   },
 
   _agregarSesionModal() {
-    this._modalCurso.sesiones.push({ numero: this._modalCurso.sesiones.length + 1, titulo: '', url: '' });
+    this._modalCurso.sesiones.push({ numero: this._modalCurso.sesiones.length + 1, titulo: '', url: '', videoId: '', duracionSegundos: 0 });
     this._renderSesionesModal();
   },
   _moverSesionModal(idx, delta) {
@@ -2726,19 +2731,30 @@ const Pages={
       if (!titulo) { Toast.error('Falta el título', 'El curso necesita un nombre'); document.getElementById('cf-titulo')?.focus(); throw new Error('skip'); }
       if (!area) { Toast.error('Falta el área', 'Selecciona una categoría'); throw new Error('skip'); }
 
-      // Validar sesiones (todas necesitan título + URL válida)
+      // Validar sesiones (título + Bunny videoId o URL externa)
       const sesionesLimpias = [];
       for (let i = 0; i < this._modalCurso.sesiones.length; i++) {
         const s = this._modalCurso.sesiones[i];
-        if (!s.titulo?.trim() || !s.url?.trim()) {
-          Toast.error(`Clase ${i + 1} incompleta`, 'Completa el título y la URL del video');
+        const tituloSesion = s.titulo?.trim();
+        const videoId = s.videoId?.trim();
+        const url = s.url?.trim();
+        if (!tituloSesion || (!videoId && !url)) {
+          Toast.error(`Clase ${i + 1} incompleta`, 'Completa el título y agrega un videoId de Bunny o una URL');
           throw new Error('skip');
         }
-        try { new URL(s.url); } catch(e) {
+        if (videoId && !/^[0-9a-f-]{30,40}$/i.test(videoId)) {
+          Toast.error(`Clase ${i + 1}: videoId inválido`, 'Verifica el identificador de Bunny');
+          throw new Error('skip');
+        }
+        if (url) try { new URL(url); } catch(e) {
           Toast.error(`Clase ${i + 1}: URL inválida`, 'Verifica que el enlace sea correcto');
           throw new Error('skip');
         }
-        sesionesLimpias.push({ numero: i + 1, titulo: s.titulo.trim(), url: s.url.trim() });
+        const sesionLimpia = { numero: i + 1, titulo: tituloSesion };
+        if (videoId) sesionLimpia.videoId = videoId;
+        if (url) sesionLimpia.url = url;
+        if (Number(s.duracionSegundos) > 0) sesionLimpia.duracionSegundos = Number(s.duracionSegundos);
+        sesionesLimpias.push(sesionLimpia);
       }
 
       // Validar materiales (si tienen título, también necesitan URL · y al revés)
@@ -5752,7 +5768,7 @@ const AdminStore = {
     try {
       const q = query(collection(db, 'cursos'), orderBy('titulo', 'asc'));
       const u = onSnapshot(q, (snap) => {
-        this.cursos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        this.cursos = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(c => c.archivado !== true);
         this._emit('cursos');
       }, (err) => console.warn('[AdminStore] cursos:', err.message));
       this.unsubs.push(u);
