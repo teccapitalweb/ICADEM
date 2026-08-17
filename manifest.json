@@ -2,9 +2,13 @@
   "name": "ICADEM VIP",
   "short_name": "ICADEM",
   "description": "Panel VIP de ICADEM · Capacitación empresarial, fiscal, legal y de RH. Cursos, herramientas y certificación verificable.",
-  "start_url": "./vip-panel.html",
+  "id": "./vip-panel.html",
+  "start_url": "./vip-auth.html?source=pwa",
   "scope": "./",
   "display": "standalone",
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
   "orientation": "portrait-primary",
   "background_color": "#0F1626",
   "theme_color": "#0F1626",

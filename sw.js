@@ -1,10 +1,10 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v4';
+const CACHE = 'icadem-vip-v5';
 const SHELL = [
   './vip-panel.html',
   './vip-auth.html',
   './index.html',
-  './manifest.json?v=20260815',
+  './manifest.json?v=20260817-login',
   './icon-192.png?v=20260815',
   './icon-512.png?v=20260815',
   './icon-maskable-512.png?v=20260815',
@@ -37,7 +37,7 @@ self.addEventListener('fetch', (e) => {
         const copy = r.clone();
         caches.open(CACHE).then((c) => c.put(req, copy));
         return r;
-      }).catch(() => caches.match(req).then((m) => m || caches.match('./vip-panel.html')))
+      }).catch(() => caches.match(req).then((m) => m || caches.match('./vip-auth.html')))
     );
     return;
   }
