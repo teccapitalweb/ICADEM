@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v5';
+const CACHE = 'icadem-vip-v6';
 const SHELL = [
   './vip-panel.html',
   './vip-auth.html',

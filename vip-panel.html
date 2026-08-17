@@ -3256,6 +3256,9 @@ setPersistence(auth, browserLocalPersistence);
 // ⚠️ CAMBIA esta URL por la de tu Railway cuando esté deployado
 const WEBHOOK_URL = 'https://icadem-webhook-production.up.railway.app';
 window.WEBHOOK_URL = WEBHOOK_URL;
+// El ID de biblioteca forma parte de las URLs públicas del reproductor; la
+// API key de Bunny continúa almacenada únicamente fuera del frontend.
+window.BUNNY_VIDEO_LIBRARY_ID = '726119';
 
 const ADMIN_EMAILS = ['teccapitalweb@gmail.com','icademconsultoria2024@gmail.com','sinergiaagricola789@gmail.com','ipcilinstituto@gmail.com'];
 
@@ -5222,6 +5225,8 @@ const Sections = (function(){
       return;
     }
 
+    const esVistaPreviaGratis = !toolEsVIP() && esClaseGratisGlobal(cursoId, sesionIdx);
+
     const numClase = sesion.numero || (sesionIdx + 1);
     if (!sesion.videoId) {
       if (sesion.url) window.abrirVisor(sesion.url, sesion.titulo, cursoId, numClase);
@@ -5237,6 +5242,23 @@ const Sections = (function(){
     if (frame) frame.dataset.bunnyRequest = requestId;
     if (titleEl) titleEl.textContent = `Cargando · ${sesion.titulo || `Clase ${numClase}`}`;
     if (dlEl) dlEl.style.display = 'none';
+
+    const params = new URLSearchParams({
+      autoplay: 'true',
+      loop: 'false',
+      muted: 'false',
+      preload: 'true',
+      responsive: 'true'
+    });
+    const bunnyDirectUrl = `https://iframe.mediadelivery.net/embed/${window.BUNNY_VIDEO_LIBRARY_ID}/${encodeURIComponent(sesion.videoId)}?${params}`;
+
+    // La clase gratuita no necesita autorización de membresía en Railway.
+    if (esVistaPreviaGratis) {
+      if (frame?.dataset.bunnyRequest !== requestId) return;
+      frame.src = bunnyDirectUrl;
+      if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
+      return;
+    }
 
     try {
       const user = window.__auth?.currentUser;
@@ -5255,7 +5277,13 @@ const Sections = (function(){
       if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
     } catch (error) {
       console.error('[Bunny player]', error);
-      if (frame?.dataset.bunnyRequest === requestId) window.cerrarVisor();
+      // Respaldo temporal: si Railway todavía no tiene la configuración de
+      // Bunny, la clase ya autorizada se mantiene abierta con el iframe oficial.
+      if (frame?.dataset.bunnyRequest === requestId) {
+        frame.src = bunnyDirectUrl;
+        if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
+        return;
+      }
       Toast.error('No se pudo abrir la clase', error.message || 'Intenta nuevamente');
     }
   };
@@ -9847,13 +9875,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   let demoInterval = null;
   function startDemoTimer(){
     if (demoInterval) return;
-    const startTs = parseInt(localStorage.getItem('icadem_demo_session_start') || '0', 10);
+    const demoStorage = sessionStorage;
+    const startTs = parseInt(demoStorage.getItem('icadem_demo_session_start') || '0', 10);
     const now = Date.now();
     let elapsed = 0;
-    if (startTs && (now - startTs) < 600000) {
+    if (startTs && (now - startTs) >= 0 && (now - startTs) < 300000) {
       elapsed = Math.floor((now - startTs) / 1000);
     } else {
-      localStorage.setItem('icadem_demo_session_start', String(now));
+      demoStorage.setItem('icadem_demo_session_start', String(now));
     }
     let remaining = Math.max(0, 300 - elapsed);
     const timerEl = document.getElementById('fomo-banner-timer');
