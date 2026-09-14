@@ -343,17 +343,17 @@ body::after{
 }
 :root[data-theme="day"] .hero-marquee img{box-shadow:0 10px 26px rgba(22,32,63,.18)}
 
-.hero-hook{
-  margin-top:6px;
-  font-family:'Sora','Manrope',sans-serif;
-  font-size:clamp(1.15rem,1.8vw,1.45rem);font-weight:800;letter-spacing:-.5px;
-  color:var(--text);margin:0 0 16px;
+.hero-free{
+  display:inline-flex;align-items:center;justify-content:center;
+  margin:0 0 28px;padding:14px 22px;
+  border:1.5px solid var(--primary);border-radius:14px;
+  background:linear-gradient(135deg,rgba(91,146,200,.18),var(--surface));
+  box-shadow:0 10px 28px rgba(0,0,0,.18);
+  color:var(--primary-soft);font-family:'Sora','Manrope',sans-serif;
+  font-size:clamp(1.1rem,1.8vw,1.35rem);font-weight:800;letter-spacing:.8px;
+  text-transform:uppercase;
 }
-.hero-hook b{
-  background:linear-gradient(120deg,var(--primary-soft),var(--highlight));
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
-}
-:root[data-theme="day"] .hero-hook b{background:linear-gradient(120deg,var(--primary-deep),var(--primary));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+:root[data-theme="day"] .hero-free{color:var(--primary-deep);box-shadow:0 10px 26px rgba(22,32,63,.12)}
 .hero-benefits{list-style:none;display:grid;gap:11px;margin:0 0 26px;padding:0;max-width:430px}
 .hero-benefits li{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--text-2);line-height:1.45}
 .hero-benefits li b{color:var(--text)}
@@ -362,25 +362,6 @@ body::after{
   stroke:#0A0F1C;background:var(--primary-soft);border-radius:50%;padding:3.5px;
   stroke-width:3;fill:none;stroke-linecap:round;stroke-linejoin:round;
 }
-.hero-price{display:grid;gap:10px;max-width:400px;margin-bottom:28px}
-.hero-price .opt{
-  display:flex;align-items:center;gap:13px;
-  background:var(--surface);border:1px solid var(--border-2);
-  border-radius:13px;padding:10px 16px;
-}
-.hero-price .opt b{font-size:1.35rem;font-weight:800;color:var(--text);letter-spacing:-.5px;white-space:nowrap}
-.hero-price .opt small{display:block;color:var(--text-2);font-size:.75rem;line-height:1.45}
-.hero-price .opt--star{background:linear-gradient(135deg,rgba(91,146,200,.16),var(--surface));border:1.5px solid var(--primary);position:relative}
-.hero-price .opt--star b{color:var(--primary-soft)}
-:root[data-theme="day"] .hero-price .opt--star b{color:var(--primary-deep)}
-.hero-price .opt--star .badge{
-  position:absolute;top:-10px;right:12px;
-  background:var(--primary);color:#fff;
-  font-size:.58rem;font-weight:800;letter-spacing:1px;text-transform:uppercase;
-  padding:3px 10px;border-radius:20px;
-}
-.hero-price .tachado{text-decoration:line-through;opacity:.5;margin-right:4px}
-
 .hero-refs-title{font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:var(--primary-soft);margin:0 0 14px;font-weight:700}
 :root[data-theme="day"] .hero-refs-title{color:var(--primary-deep)}
 .hero-refs{display:grid;gap:14px;max-width:430px;margin-bottom:24px}
@@ -439,12 +420,9 @@ body::after{
   .auth-hero__stats{display:none}
   .hero-marquee{width:100%;margin:16px 0 18px;max-width:100%}
   .hero-marquee img{width:86px;height:86px}
-  .hero-hook{font-size:1.12rem;margin-bottom:14px}
   .hero-benefits{margin:0 auto 20px;max-width:340px;text-align:left;gap:9px}
   .hero-benefits li{font-size:.78rem}
-  .hero-price{margin:0 auto 20px;max-width:340px;text-align:left}
-  .hero-price .opt{padding:8px 13px}
-  .hero-price .opt b{font-size:1.15rem}
+  .hero-free{margin:0 auto 20px;padding:12px 18px;font-size:1.08rem}
   .hero-refs{margin:0 auto 18px;max-width:340px;text-align:left;gap:12px}
   .hero-refs-title{text-align:center}
   .hero-ref .bub p{font-size:.74rem}
@@ -476,10 +454,6 @@ body::after{
       <p class="auth-hero__desc">Cursos de capacitación empresarial, clases en vivo con expertos y certificados de folio oficial para crecer profesionalmente.</p>
 
       <div class="hero-marquee" aria-hidden="true"><div class="track"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-01.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-02.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-03.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-04.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-05.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-06.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-07.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-08.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-09.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-10.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-11.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-12.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-13.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-14.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-15.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-16.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-17.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-18.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-19.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-20.webp" alt="" loading="lazy"><img src="assets/img/cursos-mini/curso-21.webp" alt="" loading="lazy"></div></div>
-      <!-- MODIFICADO: SIN números fijos. El HTML no trae ningún precio;
-           el texto real lo escribe el script con lo que diga config/club. -->
-      <p class="hero-hook">Todo esto por <b id="hp-hook">menos de lo que crees al día</b>:</p>
-
       <ul class="hero-benefits">
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Biblioteca completa</b> de cursos: fiscal, legal, nóminas, IMSS y RH</span></li>
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Clases en vivo</b> con expertos en capacitación empresarial</span></li>
@@ -488,22 +462,7 @@ body::after{
         <li><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg><span><b>Asesoría personalizada</b> y canal VIP · sin permanencia</span></li>
       </ul>
 
-      <!-- MODIFICADO: BLINDADO · aquí NO hay ni un número de precio escrito.
-           Los placeholders son "—" y el script los llena desde config/club.
-           Si Firestore falla, se queda el "—" · JAMÁS se ve un precio viejo.
-           (Antes esta sección decía $2,400/año mientras el checkout cobraba
-           $1,999 — precisamente el desfase que esto vuelve imposible.) -->
-      <div class="hero-price">
-        <div class="opt">
-          <b>$<span id="hp-mes">—</span></b>
-          <small>MXN al mes · <span id="hp-mes-detalle">sin permanencia</span><br>Cancela cuando quieras</small>
-        </div>
-        <div class="opt opt--star">
-          <span class="badge" id="hp-badge" style="display:none"></span>
-          <b>$<span id="hp-ano">—</span></b>
-          <small>MXN al año · <span id="hp-ano-detalle">acceso completo los 365 días</span></small>
-        </div>
-      </div>
+      <p class="hero-free">Regístrate gratis</p>
 
       <!-- ⚠️ BORRADORES: reemplazar con testimonios REALES antes de pautar fuerte -->
       <p class="hero-refs-title">Referencias</p>
@@ -804,63 +763,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence);
-
-/* ═══════════════════════════════════════════════════════════
-   MODIFICADO · PRECIOS EN VIVO (patrón SYNOVA)
-   Lee config/club de Firestore y pinta el bloque de precios del
-   hero. Las reglas permiten lectura pública de ese doc, así que
-   funciona aunque el visitante NO haya iniciado sesión.
-   Todo lo derivado (por día, ahorro, equivalente mensual) se
-   calcula solo — no hay ningún número escrito a mano.
-   Si Firestore falla, se quedan los valores del HTML como respaldo.
-   ═══════════════════════════════════════════════════════════ */
-(async function pintarPreciosHero(){
-  try {
-    const snap = await getDoc(doc(db, 'config', 'club'));
-    const c = snap.exists() ? snap.data() : {};
-    const pm = Number(c.precioMes);
-    const pa = Number(c.precioAno);
-    // SIN respaldo con números viejos: si no hay precio válido en Firestore
-    // nos salimos y la página se queda con "—". Preferimos no decir precio
-    // a decir uno equivocado.
-    if (!(pm > 0) || !(pa > 0)) {
-      console.warn('[precios hero] config/club sin precios válidos · se deja "—"');
-      return;
-    }
-
-    const fmt = n => Number(n).toLocaleString('es-MX');
-    const porDia   = Math.ceil(pm / 30);          // "menos de $X al día"
-    const ahorro   = Math.max(0, (pm * 12) - pa); // vs pagar 12 meses sueltos
-    const equivMes = Math.round(pa / 12);         // "sale en $X/mes"
-
-    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    set('hp-mes', fmt(pm));
-    set('hp-ano', fmt(pa));
-
-    const hook = document.getElementById('hp-hook');
-    if (hook) hook.textContent = `menos de $${fmt(porDia)} al día`;
-
-    const mesDet = document.getElementById('hp-mes-detalle');
-    if (mesDet) mesDet.textContent = `menos de $${fmt(porDia)} al día`;
-
-    const anoDet = document.getElementById('hp-ano-detalle');
-    if (anoDet) {
-      anoDet.innerHTML = ahorro > 0
-        ? `sale en <span class="tachado">$${fmt(pm)}</span><strong style="color:var(--primary-soft);">$${fmt(equivMes)}/mes</strong><br>Acceso completo los 365 días`
-        : `$${fmt(equivMes)}/mes · acceso completo los 365 días`;
-    }
-
-    // El badge nace oculto en el HTML: solo aparece si de verdad hay ahorro,
-    // así nunca se anuncia un "Ahorras $0" ni un ahorro que ya no aplica.
-    const badge = document.getElementById('hp-badge');
-    if (badge && ahorro > 0) {
-      badge.textContent = `Ahorras $${fmt(ahorro)}`;
-      badge.style.display = '';
-    }
-  } catch (e) {
-    console.warn('[precios hero] Firestore no respondió · se deja "—":', e.message);
-  }
-})();
 
 /* =========================================================
    Crear o actualizar documento del miembro en Firestore
