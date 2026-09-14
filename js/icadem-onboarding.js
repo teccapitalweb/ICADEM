@@ -302,16 +302,23 @@
   }
 
   function blockingDialogOpen() {
-    return Boolean(document.querySelector('.modal.is-open,.paywall-modal.is-open'));
+    return Boolean(document.querySelector(
+      '#splash-bienvenida,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible'
+    ));
   }
 
-  function autoStart(attempt) {
+  function autoStart() {
     installEntryPoints();
-    if (userReady() && !blockingDialogOpen()) {
-      if (!wasSeen()) start();
+    if (!userReady()) {
+      window.setTimeout(autoStart, 250);
       return;
     }
-    if (attempt < 80) window.setTimeout(function () { autoStart(attempt + 1); }, 250);
+    if (wasSeen()) return;
+    if (blockingDialogOpen()) {
+      window.setTimeout(autoStart, 250);
+      return;
+    }
+    start();
   }
 
   function init() {
@@ -319,7 +326,7 @@
     const dynamic = document.getElementById('dynamic-section');
     if (dynamic) new MutationObserver(installEntryPoints).observe(dynamic, { childList: true, subtree: true });
     window.IcademGuidedTour = { start: function () { start({ force: true }); }, stop: stop };
-    window.setTimeout(function () { autoStart(0); }, 700);
+    window.setTimeout(autoStart, 700);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
