@@ -3161,7 +3161,7 @@ body.has-fomo .main{padding-top:18px}
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
 <div class="fomo-banner" id="fomo-banner" style="display:none">
   <span class="fomo-banner__icon" aria-hidden="true">⭐</span>
-  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Tu primera clase es gratis.</strong> Activa tu suscripción para desbloquear todos los cursos y materiales.</span>
+  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Tus primeras 4 clases y el primer material son gratis.</strong> Activa tu suscripción para continuar y desbloquear un curso nuevo cada 6 días.</span>
   <span class="fomo-banner__timer" id="fomo-banner-timer" style="display:none">5:00</span>
   <button class="fomo-banner__cta" id="fomo-banner-cta" type="button">
     Suscribirme
@@ -3416,7 +3416,7 @@ window.__showWelcomeSplash = function(opts) {
     icono = '🎁';
     kicker = 'ACCESO DE CORTESÍA';
     titulo = dias ? `ICADEM te regaló <em>${dias} días VIP</em>` : `ICADEM te regaló <em>acceso VIP</em>`;
-    desc = `${nombre}, disfruta acceso completo sin costo durante tu periodo de cortesía. Esto es lo que tienes desbloqueado:`;
+    desc = `${nombre}, disfruta tu primer curso desde hoy y uno nuevo cada 6 días durante tu periodo de cortesía. También tienes estos beneficios:`;
   } else if (plan === 'anual') {
     icono = '⭐';
     kicker = '¡BIENVENIDO AL CLUB VIP!';
@@ -3431,7 +3431,7 @@ window.__showWelcomeSplash = function(opts) {
 
   // ── Recorrido "película" · los beneficios del panel ──
   const beneficios = [
-    { ic:'📚', t:'Cursos premium',   d:'Catálogo completo con clases reales que se desbloquean a tu ritmo.' },
+    { ic:'📚', t:'Cursos premium',   d:'Tu primer curso hoy y uno nuevo cada 6 días, con clases y materiales.' },
     { ic:'🎥', t:'Clases en vivo',   d:'Webinars con expertos y acceso a las grabaciones cuando quieras.' },
     { ic:'📂', t:'PDFs y material',  d:'Plantillas, formatos y recursos descargables listos para usar.' },
     { ic:'🛠️', t:'Herramientas pro', d:'Calculadora fiscal, nómina y crédito, documentos legales y plantillas de negocio listas para usar.' },
@@ -4846,8 +4846,11 @@ const Sections = (function(){
   let _cursosLoading = false;
 
   // ─── Lógica de desbloqueo progresivo (copiada de Sinergia) ───
-  // Un curso se desbloquea cada 10 días desde fechaAlta del miembro
+  // Un curso se desbloquea cada 6 días desde fechaAlta del miembro
   // EXCEPCIÓN: si disponibleSiempre === true, visible desde día 1
+  const CURSO_UNLOCK_INTERVAL_DAYS = 6;
+  const FREE_CLASS_COUNT = 4;
+  const FREE_MATERIAL_COUNT = 1;
   // ═══ Modo preview para admins (probar como usuario VIP sin crear cuenta) ═══
   // URL params: ?como=user → ignora isAdmin, se comporta como usuario normal
   //             &dias=N    → simula N días desde el alta (para probar desbloqueos)
@@ -4925,13 +4928,18 @@ const Sections = (function(){
   function cursoDesbloqueado(indexCurso, curso){
     if (esAdminReal()) return true;
     if (curso && curso.marcarProximamente === true) return false;
-    // Todos pueden abrir el detalle. El control de acceso se aplica a cada
-    // clase: solo la primera sesión del primer curso es gratuita.
-    return true;
+    // Sin membresía solo se abre el primer curso para mostrar sus 4 clases y
+    // su primer material gratuitos. Para miembros, el acceso parte de la fecha
+    // real de alta y respeta la cola progresiva del catálogo.
+    if (!toolEsVIP()) return String(curso?.id || '') === primerCursoGratisId();
+    if (curso?.disponibleSiempre === true) return true;
+    return calcularDiasMembresia() >= cursoUnlockDay(curso);
   }
 
   function diasParaDesbloquear(indexCurso, curso){
-    return 0;
+    if (cursoDesbloqueado(indexCurso, curso)) return 0;
+    if (!toolEsVIP() || curso?.marcarProximamente === true) return null;
+    return Math.max(0, cursoUnlockDay(curso) - calcularDiasMembresia());
   }
 
   // Mostrar banner si está en modo preview (solo admins lo ven)
@@ -5007,12 +5015,20 @@ const Sections = (function(){
   }
 
   function esClaseGratisGlobal(cursoId, indexClase) {
-    return indexClase === 0 && String(cursoId) === primerCursoGratisId();
+    return indexClase >= 0 && indexClase < FREE_CLASS_COUNT && String(cursoId) === primerCursoGratisId();
+  }
+
+  function esMaterialGratisGlobal(cursoId, indexMaterial) {
+    return indexMaterial >= 0 && indexMaterial < FREE_MATERIAL_COUNT && String(cursoId) === primerCursoGratisId();
   }
 
   function claseDesbloqueada(cursoId, indexClase, sesiones) {
     if (esAdminReal()) return true;
-    if (window.UserState?.modo === 'vip') return true;
+    if (window.UserState?.modo === 'vip') {
+      const cursoIdx = cursos.findIndex(c => String(c.id) === String(cursoId));
+      const curso = cursoIdx >= 0 ? cursos[cursoIdx] : null;
+      return !!curso && cursoDesbloqueado(cursoIdx, curso);
+    }
     return esClaseGratisGlobal(cursoId, indexClase);
   }
 
@@ -5205,7 +5221,7 @@ const Sections = (function(){
     document.body.style.overflow = 'hidden';
   };
 
-  // Abre una clase aplicando una única vista previa gratuita global. Si la
+  // Abre una clase aplicando las cuatro vistas previas gratuitas globales. Si la
   // sesión ya tiene videoId usa Bunny con autorización del webhook; mientras
   // la migración termina conserva compatibilidad con las URLs antiguas.
   window.abrirClaseICADEM = async function(cursoId, sesionIdx) {
@@ -5220,12 +5236,10 @@ const Sections = (function(){
       const totalMateriales = Array.isArray(curso.materiales) ? curso.materiales.length : 0;
       window.__showPaywallModal?.({
         title: 'Desbloquea el curso completo',
-        sub: `Disfruta gratis la primera clase. Activa tu membresía para abrir las demás clases${totalMateriales ? ` y ${totalMateriales} material${totalMateriales !== 1 ? 'es' : ''} del curso` : ''}.`
+        sub: `Disfruta gratis las primeras 4 clases y el primer material del curso. Activa tu membresía para continuar con el programa completo.`
       });
       return;
     }
-
-    const esVistaPreviaGratis = !toolEsVIP() && esClaseGratisGlobal(cursoId, sesionIdx);
 
     const numClase = sesion.numero || (sesionIdx + 1);
     if (!sesion.videoId) {
@@ -5251,14 +5265,6 @@ const Sections = (function(){
       responsive: 'true'
     });
     const bunnyDirectUrl = `https://iframe.mediadelivery.net/embed/${window.BUNNY_VIDEO_LIBRARY_ID}/${encodeURIComponent(sesion.videoId)}?${params}`;
-
-    // La clase gratuita no necesita autorización de membresía en Railway.
-    if (esVistaPreviaGratis) {
-      if (frame?.dataset.bunnyRequest !== requestId) return;
-      frame.src = bunnyDirectUrl;
-      if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
-      return;
-    }
 
     try {
       const user = window.__auth?.currentUser;
@@ -5433,12 +5439,12 @@ const Sections = (function(){
       }).filter(c => c.archivado !== true);
       // ─── Día de desbloqueo por ORDEN · los "disponibleSiempre" NO consumen turno ───
       // cursos viene ordenado por `orden` asc. El 1er curso normal = día 0 (abierto
-      // para miembros activos), el siguiente = día 8, etc. Los "siempre abierto" = día 0
+      // para miembros activos), el siguiente = día 6, etc. Los "siempre abierto" = día 0
       // y no recorren la fila, así el orden de desbloqueo nunca se desordena.
       let _rank = 0;
       cursos.forEach(c => {
         if (c.disponibleSiempre) { c._unlockDay = 0; }
-        else { c._unlockDay = _rank * 8; _rank++; }
+        else { c._unlockDay = _rank * CURSO_UNLOCK_INTERVAL_DAYS; _rank++; }
       });
       try {
         var _ce=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
@@ -5625,7 +5631,7 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Tu camino</span>
           <h1 class="sec-hero__title">Mis cursos</h1>
-          <p class="sec-hero__sub">Disfruta gratis la primera clase del catálogo. Activa tu membresía para desbloquear todos los cursos, clases y materiales.</p>
+          <p class="sec-hero__sub">Disfruta gratis las primeras 4 clases y el primer material del primer curso. Con tu membresía, los siguientes cursos se desbloquean cada 6 días desde tu fecha de pago.</p>
         </div>
         <div class="tabs">
           <button class="tab ${cursosState.tab==='progreso'?'is-active':''}" data-curtab="progreso">Continuar · ${c.progreso}</button>
@@ -5710,8 +5716,8 @@ const Sections = (function(){
         <div class="curso-card__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)),url('${portada}');background-size:cover;background-position:center;">
           <svg class="ic" style="opacity:.85;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"><use href="#${ICON_AREA[c.area]||'i-book'}"/></svg>
           ${c.disponibleSiempre ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0f1626;">DISPONIBLE</span>' : ''}
-          ${!toolEsVIP() && String(c.id) === primerCursoGratisId() ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0f1626;left:12px;right:auto;">1 CLASE GRATIS</span>' : ''}
-          ${!desbloqueado && diasFalta > 0 ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.85);color:var(--primary);border:1px solid var(--primary);">🔒 Se desbloquea en ${diasFalta} día${diasFalta!==1?'s':''}</span>` : ''}
+          ${!toolEsVIP() && String(c.id) === primerCursoGratisId() ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0f1626;left:12px;right:auto;">4 CLASES GRATIS</span>' : ''}
+          ${!desbloqueado && diasFalta !== null && diasFalta > 0 ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.85);color:var(--primary);border:1px solid var(--primary);">🔒 Se desbloquea en ${diasFalta} día${diasFalta!==1?'s':''}</span>` : ''}
         </div>
         <div class="curso-card__body">
           <div class="curso-card__tags">
@@ -5766,16 +5772,24 @@ const Sections = (function(){
       <p style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:18px;">${c.descripcion || c.desc || ''}</p>
     `;
 
-    // Si NO está desbloqueado, mostrar candado con días restantes
+    // Si NO está desbloqueado, mostrar el motivo correcto: membresía, goteo o próximamente.
     if (!desbloqueado) {
+      const lockTitle = c.marcarProximamente === true
+        ? 'Este curso estará disponible próximamente'
+        : (!toolEsVIP() ? 'Activa tu membresía para abrir este curso' : 'Este curso se desbloquea pronto');
+      const lockText = c.marcarProximamente === true
+        ? 'Estamos terminando de preparar sus clases y materiales.'
+        : (!toolEsVIP()
+          ? 'Puedes probar gratis las primeras 4 clases y el primer material del primer curso. Al suscribirte, este curso se abrirá según tu calendario de 6 días.'
+          : `Disponible en <strong style="color:var(--primary);">${diasFalta} día${diasFalta!==1?'s':''}</strong>. Los cursos se desbloquean cada 6 días desde tu fecha de alta.`);
       bodyContent += `
         <div class="empty-state" style="background:var(--surface-2);border:1px solid var(--border-2);border-radius:14px;padding:32px 24px;">
           <div class="empty-state__icon">
             <svg class="ic ic--xl" style="color:var(--primary);"><use href="#i-shield-check"/></svg>
           </div>
-          <h3 style="color:var(--primary);">🔒 Este curso se desbloquea pronto</h3>
-          <p>Disponible en <strong style="color:var(--primary);">${diasFalta} día${diasFalta!==1?'s':''}</strong>. Los cursos se desbloquean progresivamente para que aproveches cada uno a fondo.</p>
-          <p style="font-size:12px;color:var(--text-3);margin-top:10px;">Si quieres acceso anticipado, contáctanos.</p>
+          <h3 style="color:var(--primary);">🔒 ${lockTitle}</h3>
+          <p>${lockText}</p>
+          ${!toolEsVIP() && c.marcarProximamente !== true ? '<button class="btn btn--accent" style="margin-top:14px;" onclick="Modal.close(\'curso-' + id + '\');navigateToSection(\'suscripcion\')">Ver membresía</button>' : ''}
         </div>
       `;
     } else {
@@ -5908,12 +5922,17 @@ const Sections = (function(){
             <style>@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}</style>
           `;
         }
-      } else if (!toolEsVIP() && c.materiales && c.materiales.length > 0) {
+      } else if (!toolEsVIP() && c.materiales && c.materiales.length > 0 && String(c.id) === primerCursoGratisId()) {
+        const materialGratis = c.materiales[0];
+        const materialGratisTitulo = (materialGratis.titulo || 'Primer material del curso').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        const materialGratisUrl = (materialGratis.url || '').replace(/'/g, "\\'");
+        const materialesRestantes = Math.max(0, c.materiales.length - FREE_MATERIAL_COUNT);
         bodyContent += `
-          <div style="margin-top:22px;padding:18px;border:1px solid var(--border-2);border-radius:14px;background:var(--surface-2);text-align:center;">
-            <div style="font-weight:800;color:var(--text);margin-bottom:6px;">🔒 Material exclusivo para miembros</div>
-            <div style="font-size:12px;color:var(--text-2);line-height:1.55;margin-bottom:12px;">Disfruta gratis la primera clase. Activa tu membresía para abrir las demás clases y ${c.materiales.length} material${c.materiales.length!==1?'es':''} del curso.</div>
-            <button class="btn btn--accent" onclick="Modal.close('curso-${id}');navigateToSection('suscripcion')">Desbloquear curso completo</button>
+          <div style="margin-top:22px;padding:18px;border:1px solid color-mix(in srgb,var(--success) 35%,var(--border-2));border-radius:14px;background:color-mix(in srgb,var(--success) 7%,var(--surface-2));">
+            <div style="font-weight:800;color:var(--text);margin-bottom:6px;">🎁 Tu primer material también es gratis</div>
+            <div style="font-size:12px;color:var(--text-2);line-height:1.55;margin-bottom:12px;">Abre esta primera presentación o PDF sin pagar. La membresía desbloquea el resto del curso.</div>
+            <button class="btn btn--accent" data-bypass-paywall="true" onclick="window.abrirVisor('${materialGratisUrl}','${materialGratisTitulo}')">Abrir ${materialGratisTitulo}</button>
+            ${materialesRestantes ? `<div style="font-size:11px;color:var(--text-3);margin-top:12px;">🔒 ${materialesRestantes} material${materialesRestantes!==1?'es':''} más con la membresía.</div>` : ''}
           </div>`;
       }
     }
@@ -6930,7 +6949,7 @@ const Sections = (function(){
 
   /* ============================ PDFs Y MATERIAL ============================ */
   // ⚡ AHORA conectado a Firestore · agrega los materiales de TODOS los cursos
-  // Lógica idéntica a Sinergia · respeta desbloqueo progresivo (8 días) y "siempre disponible"
+  // Respeta desbloqueo progresivo (6 días), el primer material gratuito y "siempre disponible"
 
   // Recorre todos los cursos y aplana sus materiales con metadata del curso de origen
   function _allMaterialesFromCursos() {
@@ -6942,7 +6961,9 @@ const Sections = (function(){
         out.push({
           id: `${c.id}_${idx}`,
           cursoId: c.id,
+          materialIndex: idx,
           cursoOrden: typeof c.orden === 'number' ? c.orden : cursoIdx,
+          cursoUnlockDay: cursoUnlockDay(c),
           cursoTitulo: c.titulo || 'Sin título',
           cursoArea: c.area || 'General',
           cursoDisponibleSiempre: c.disponibleSiempre === true,
@@ -6959,22 +6980,24 @@ const Sections = (function(){
   // Determina si un material está disponible para este usuario AHORA
   function _materialDisponible(mat) {
     if (esAdminReal()) return true;
+    if (!toolEsVIP()) return esMaterialGratisGlobal(mat.cursoId, mat.materialIndex);
     if (mat.disponibleSiempre === true) return true;
     if (mat.cursoDisponibleSiempre === true) return true;
     const dias = calcularDiasMembresia();
     // Si tiene día manual, usar ese · si no, usar la cola por orden del curso
     const diaDesbloqueo = (mat.desbloquearEnDias !== null && mat.desbloquearEnDias !== undefined)
       ? mat.desbloquearEnDias
-      : (mat.cursoOrden * 8);
+      : mat.cursoUnlockDay;
     return dias >= diaDesbloqueo;
   }
 
   function _diasParaMaterial(mat) {
     if (_materialDisponible(mat)) return 0;
+    if (!toolEsVIP()) return null;
     const dias = calcularDiasMembresia();
     const diaDesbloqueo = (mat.desbloquearEnDias !== null && mat.desbloquearEnDias !== undefined)
       ? mat.desbloquearEnDias
-      : (mat.cursoOrden * 8);
+      : mat.cursoUnlockDay;
     return Math.max(0, diaDesbloqueo - dias);
   }
 
@@ -7018,7 +7041,7 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Descargables</span>
           <h1 class="sec-hero__title">PDFs y material</h1>
-          <p class="sec-hero__sub">Plantillas en Excel, checklists, procedimientos y formatos oficiales listos para tu empresa o despacho. <strong style="color:var(--primary);">Se desbloquean según tus días de membresía</strong>, igual que las clases.</p>
+          <p class="sec-hero__sub"><strong style="color:var(--success);">El primer material del primer curso es gratis.</strong> Con tu membresía, los demás materiales se desbloquean junto con cada curso, cada 6 días.</p>
         </div>
         ${total === 0 ? `
           <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
@@ -7101,6 +7124,13 @@ const Sections = (function(){
       });
       container.querySelectorAll('.pdf-card[data-disponible="false"]').forEach(card => {
         card.addEventListener('click', () => {
+          if (card.dataset.requiereMembresia === 'true') {
+            window.__showPaywallModal?.({
+              title: 'Desbloquea todos los materiales',
+              sub: 'El primer material del primer curso es gratis. Activa tu membresía para acceder a los siguientes materiales y cursos.'
+            });
+            return;
+          }
           const dias = parseInt(card.dataset.diasFaltan, 10);
           if (Toast) {
             Toast.info(
@@ -7127,12 +7157,16 @@ const Sections = (function(){
     const tipoLabel = { excel:'Excel', pdf:'PDF', ppt:'PPT', doc:'DOC' }[tipo] || 'Archivo';
     const disponible = _materialDisponible(m);
     const diasFaltan = _diasParaMaterial(m);
+    const esGratis = !toolEsVIP() && esMaterialGratisGlobal(m.cursoId, m.materialIndex);
+    const requiereMembresia = !toolEsVIP() && !disponible;
     const tituloEsc = (m.titulo || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
     const cursoEsc = (m.cursoTitulo || '').replace(/"/g,'&quot;').replace(/</g,'&lt;');
 
     return `
       <article class="pdf-card ${!disponible ? 'pdf-card--soon' : ''}" style="--pdf-color:${c};cursor:pointer;"
         data-disponible="${disponible}"
+        data-free="${esGratis}"
+        data-requiere-membresia="${requiereMembresia}"
         data-url="${(m.url||'').replace(/"/g,'&quot;')}"
         data-dias-faltan="${diasFaltan}"
         data-titulo="${tituloEsc}"
@@ -7150,8 +7184,10 @@ const Sections = (function(){
           </div>
           <div class="pdf-card__tags">
             ${disponible
-              ? `<span class="tag tag--soon" style="color:#0f1626;border-color:#34D399;background:#34D399;font-weight:700;">Disponible</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;background:linear-gradient(135deg, var(--primary), var(--highlight));color:#0f1626;cursor:pointer;" onclick="event.stopPropagation();if(typeof window.abrirVisor==='function'){window.abrirVisor('${(m.url||'').replace(/'/g,'%27')}','${tituloEsc.replace(/'/g,'&apos;')}');}"><svg class="ic"><use href="#i-download"/></svg>Abrir</button>`
-              : `<span class="tag tag--soon">${diasFaltan === 1 ? 'Mañana' : 'En '+diasFaltan+' días'}</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;opacity:.55;cursor:not-allowed;" disabled><svg class="ic"><use href="#i-clock"/></svg>Disponible pronto</button>`
+              ? `<span class="tag tag--soon" style="color:#0f1626;border-color:#34D399;background:#34D399;font-weight:700;">${esGratis ? 'Gratis' : 'Disponible'}</span><button class="row-btn pdf-card__btn-soon" data-bypass-paywall="true" style="margin-left:auto;background:linear-gradient(135deg, var(--primary), var(--highlight));color:#0f1626;cursor:pointer;" onclick="event.stopPropagation();if(typeof window.abrirVisor==='function'){window.abrirVisor('${(m.url||'').replace(/'/g,'%27')}','${tituloEsc.replace(/'/g,'&apos;')}');}"><svg class="ic"><use href="#i-download"/></svg>Abrir</button>`
+              : (requiereMembresia
+                ? `<span class="tag tag--soon">Solo miembros</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;opacity:.75;cursor:pointer;"><svg class="ic"><use href="#i-shield-check"/></svg>Desbloquear</button>`
+                : `<span class="tag tag--soon">${diasFaltan === 1 ? 'Mañana' : 'En '+diasFaltan+' días'}</span><button class="row-btn pdf-card__btn-soon" style="margin-left:auto;opacity:.55;cursor:not-allowed;" disabled><svg class="ic"><use href="#i-clock"/></svg>Disponible pronto</button>`)
             }
           </div>
         </div>
@@ -9815,7 +9851,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       } else { // sin-membresia
         banner.style.display = '';
         document.body.classList.add('has-fomo');
-        if (bannerText) bannerText.innerHTML = '<strong>Tu primera clase es gratis.</strong> Activa tu suscripción para desbloquear todos los cursos y materiales.';
+        if (bannerText) bannerText.innerHTML = '<strong>Tus primeras 4 clases y el primer material son gratis.</strong> Activa tu suscripción para continuar y desbloquear un curso nuevo cada 6 días.';
         if (bannerTimer) bannerTimer.style.display = 'none';
       }
     }
