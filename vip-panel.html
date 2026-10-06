@@ -6899,16 +6899,96 @@ const Sections = (function(){
 
     // ─── Botón "Marcar vista y seguir" ───
     container.querySelector('[data-lesson-complete]')?.addEventListener('click', () => {
-      if (!yaVista && typeof window.marcarClaseVista === 'function') {
+      const esPrimeraVez = !yaVista;
+      if (esPrimeraVez && typeof window.marcarClaseVista === 'function') {
         window.marcarClaseVista(cursoId, numClase);
       }
+      // Confeti SOLO la primera vez que se completa la clase (no en repasos),
+      // para que la celebración mantenga su peso y no se vuelva ruido.
+      if (esPrimeraVez && typeof window.__celebrar === 'function') {
+        try { window.__celebrar(); } catch(e){}
+      }
+      // Da un pelín más de tiempo (650ms) cuando hay confeti, para que la
+      // persona vea el "¡bien hecho!" antes de cambiar de vista.
+      const retraso = esPrimeraVez ? 650 : 350;
       if (siguienteIdx >= 0) {
-        setTimeout(() => window.abrirClaseICADEM(cursoId, siguienteIdx), 350);
+        setTimeout(() => window.abrirClaseICADEM(cursoId, siguienteIdx), retraso);
       } else {
-        setTimeout(() => window.__volverACurso(cursoId), 350);
+        setTimeout(() => window.__volverACurso(cursoId), retraso);
       }
     });
   }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // CONFETI DE CELEBRACIÓN · zero deps, Web Animations API, auto-cleanup
+  // Se dispara al completar una clase por primera vez (ver handler arriba).
+  // Compatible con reduced-motion: no hace nada si la persona lo pidió.
+  // ═══════════════════════════════════════════════════════════════════
+  window.__celebrar = function(opts){
+    opts = opts || {};
+    // Respeto a prefers-reduced-motion: si la persona lo pidió, no celebramos.
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    } catch(e) {}
+    // Evitar múltiples capas simultáneas
+    if (document.getElementById('__celebrar-root')) return;
+
+    const root = document.createElement('div');
+    root.id = '__celebrar-root';
+    root.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99999;overflow:hidden;contain:strict';
+    document.body.appendChild(root);
+
+    const colors = opts.colors || ['#1F4FE5','#5B92C8','#8FBCE6','#34D399','#D4A017','#F472B6','#A78BFA','#FBBF24'];
+    const count = opts.count || 140;
+    const duration = opts.duration || 2800;
+
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement('div');
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const w = 6 + Math.random() * 7;
+      const h = w * (0.4 + Math.random() * 0.6);
+      // Origen: dos "cañones" simétricos a ambos lados del centro
+      const fromLeft = i % 2 === 0;
+      const startX = (fromLeft ? 20 : 80) + (Math.random() - 0.5) * 8;
+      const startY = 50 + (Math.random() - 0.5) * 10;
+      const spreadX = (fromLeft ? 1 : -1) * (40 + Math.random() * 50);
+      const spreadY = -40 - Math.random() * 55; // sube
+      const fallY = 95; // cae al borde inferior
+      const rotStart = Math.random() * 360;
+      const rotEnd = rotStart + (Math.random() - 0.5) * 1080;
+      const dur = duration * (0.75 + Math.random() * 0.4);
+      const delay = Math.random() * 220;
+      const shape = Math.random() > 0.5 ? '1px' : '50%'; // mezcla rectángulos y círculos
+
+      p.style.cssText = 'position:absolute;left:' + startX + 'vw;top:' + startY + 'vh;width:' + w + 'px;height:' + h + 'px;background:' + color + ';border-radius:' + shape + ';transform:rotate(' + rotStart + 'deg);will-change:transform,opacity';
+      root.appendChild(p);
+
+      p.animate([
+        { transform: 'translate(0,0) rotate(' + rotStart + 'deg)', opacity: 1, offset: 0 },
+        { transform: 'translate(' + (spreadX * 0.7) + 'vw, ' + spreadY + 'vh) rotate(' + ((rotStart + rotEnd) / 2) + 'deg)', opacity: 1, offset: 0.35 },
+        { transform: 'translate(' + spreadX + 'vw, ' + fallY + 'vh) rotate(' + rotEnd + 'deg)', opacity: 0, offset: 1 }
+      ], {
+        duration: dur,
+        delay: delay,
+        easing: 'cubic-bezier(.22,.65,.55,1)',
+        fill: 'forwards'
+      });
+    }
+
+    // Toast "¡Bien hecho!" discreto arriba
+    const toast = document.createElement('div');
+    toast.textContent = opts.mensaje || '¡Bien hecho! Clase completada';
+    toast.style.cssText = 'position:absolute;left:50%;top:28px;transform:translateX(-50%) translateY(-12px);padding:12px 22px;border-radius:999px;background:color-mix(in srgb, var(--success, #10b981) 92%, white);color:#fff;font-family:inherit;font-weight:700;font-size:14px;letter-spacing:-.1px;box-shadow:0 14px 32px -12px rgba(16,185,129,.6), 0 0 0 1px rgba(255,255,255,.1) inset;opacity:0';
+    root.appendChild(toast);
+    toast.animate([
+      { opacity: 0, transform: 'translateX(-50%) translateY(-12px)' },
+      { opacity: 1, transform: 'translateX(-50%) translateY(0)', offset: 0.1 },
+      { opacity: 1, transform: 'translateX(-50%) translateY(0)', offset: 0.75 },
+      { opacity: 0, transform: 'translateX(-50%) translateY(-10px)', offset: 1 }
+    ], { duration: duration * 0.85, easing: 'cubic-bezier(.3,.7,.2,1)', fill: 'forwards' });
+
+    setTimeout(() => root.remove(), duration + 600);
+  };
 
   // Helper: regresar al detalle del curso desde la vista de clase
   window.__volverACurso = function(cursoId){
