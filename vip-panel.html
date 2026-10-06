@@ -3190,6 +3190,108 @@ body.has-fomo .main{padding-top:18px}
   .course-lesson__action{width:30px;height:30px}
   .course-lesson__action .ic{width:12px;height:12px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   Clase individual · reproducción, estudio y evaluación en una página
+   (estilo IMFRA, adaptado a tokens ICADEM)
+   Sección: clase-detalle (renderClaseDetalle)
+   ═══════════════════════════════════════════════════════════════════ */
+.lesson-page{width:100%;max-width:1180px;margin:0 auto;padding:4px 0 54px}
+.lesson-layout{display:grid;grid-template-columns:minmax(0,1fr) 326px;gap:24px;align-items:start}
+.lesson-main{display:grid;gap:22px;min-width:0}
+.lesson-player{position:relative;aspect-ratio:16/9;overflow:hidden;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:#090909;box-shadow:0 18px 48px rgba(0,0,0,.18)}
+.lesson-player iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:#090909}
+.lesson-player__status{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;padding:28px;color:rgba(255,255,255,.92);text-align:center}
+.lesson-player__status[hidden]{display:none}
+.lesson-player__status small{max-width:330px;color:rgba(255,255,255,.52);font-size:11px;line-height:1.5}
+.lesson-player__empty-icon{width:68px;height:68px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.14);border-radius:50%;background:rgba(255,255,255,.07);color:var(--primary)}
+.lesson-player__empty-icon .ic{width:25px;height:25px}
+.lesson-player__retry{min-height:38px;margin-top:4px;padding:0 15px;border:1px solid rgba(255,255,255,.2);border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-weight:700;cursor:pointer;font-family:inherit}
+.lesson-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:22px;padding:0 2px}
+.lesson-heading>div{min-width:0;flex:1}
+.lesson-heading>div>span{display:block;margin-bottom:7px;color:var(--text-3);font-weight:700;font-size:9px;line-height:1;font-family:'JetBrains Mono',monospace;letter-spacing:1.45px;text-transform:uppercase}
+.lesson-heading h1{margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-weight:750;font-size:clamp(24px,3.2vw,34px);line-height:1.1;letter-spacing:-1px}
+.lesson-heading__progress{position:relative;display:flex;align-items:center;gap:10px;margin-top:13px}
+.lesson-heading__progress::before{content:"";height:4px;min-width:120px;flex:1;border-radius:99px;background:var(--surface-3)}
+.lesson-heading__progress i{position:absolute;height:4px;max-width:calc(100% - 205px);border-radius:99px;background:linear-gradient(90deg,var(--primary),var(--highlight))}
+.lesson-heading__progress small{flex:0 0 auto;color:var(--text-3);font-size:10px}
+.lesson-complete{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:10px;flex:0 0 auto;padding:0 15px 0 18px;border:0;border-radius:999px;background:var(--text);color:var(--surface);font-weight:750;font-size:11px;line-height:1;font-family:inherit;cursor:pointer}
+.lesson-complete .ic{width:23px;height:23px;padding:5px;border-radius:50%;background:color-mix(in srgb,var(--surface) 16%,transparent)}
+.lesson-complete.is-complete{background:var(--surface);color:var(--text);border:1px solid var(--border-2)}
+.lesson-next{width:100%;display:flex;align-items:center;gap:14px;padding:12px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);text-align:left;cursor:pointer;font-family:inherit}
+.lesson-next:disabled{cursor:not-allowed;opacity:.58}
+.lesson-next.is-ready:hover{border-color:color-mix(in srgb,var(--primary) 32%,var(--border));background:var(--surface-2)}
+.lesson-next__thumb{width:118px;height:70px;flex:0 0 118px;border-radius:9px;background-size:cover;background-position:center}
+.lesson-next>span:nth-child(2){display:grid;gap:4px;min-width:0;flex:1}
+.lesson-next small{color:var(--primary);font-weight:700;font-size:8px;line-height:1;font-family:'JetBrains Mono',monospace;letter-spacing:1.2px;text-transform:uppercase}
+.lesson-next strong{font-size:13px}
+.lesson-next em{color:var(--text-3);font-size:10px;font-style:normal}
+.lesson-next>.ic{width:18px;height:18px;color:var(--text-3)}
+.lesson-section-kicker{display:block;margin-bottom:8px;color:var(--primary);font-weight:700;font-size:9px;line-height:1;font-family:'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase}
+.lesson-summary-card,.lesson-challenge-card{padding:26px;border:1px solid var(--border);border-radius:17px;background:var(--surface)}
+.lesson-summary-card h2,.lesson-challenge-card h2{margin:0;font-family:'Plus Jakarta Sans',sans-serif;font-weight:750;font-size:23px;line-height:1.18;letter-spacing:-.5px}
+.lesson-summary-card>p,.lesson-challenge-card__intro p{max-width:720px;margin:10px 0 0;color:var(--text-2);font-size:13px;line-height:1.65}
+.lesson-summary-card h3{margin:25px 0 12px;font-size:13px}
+.lesson-summary-card footer{display:flex;align-items:center;gap:8px;margin-top:19px;color:var(--text-3);font-size:10px}
+.lesson-summary-card footer .ic{width:15px;height:15px;color:var(--success)}
+.lesson-side{position:sticky;top:12px;overflow:hidden;border:1px solid var(--border);border-radius:17px;background:var(--surface);box-shadow:0 15px 36px rgba(0,0,0,.08)}
+.lesson-side--mobile{display:none}
+.lesson-side__tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:12px;padding:4px;border-radius:11px;background:var(--surface-2)}
+.lesson-side__tabs button{min-height:38px;border:0;border-radius:8px;background:transparent;color:var(--text-3);font-weight:700;font-size:11px;line-height:1;font-family:inherit;cursor:pointer}
+.lesson-side__tabs button.is-active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.lesson-side__panel{display:none;padding:0 16px 18px}
+.lesson-side__panel.is-active{display:block}
+.lesson-outline{display:grid}
+.lesson-outline__item{width:100%;min-height:45px;display:grid;grid-template-columns:24px minmax(0,1fr) 15px;align-items:center;gap:7px;padding:9px 3px;border:0;border-bottom:1px solid var(--border);background:transparent;color:var(--text-2);text-align:left;cursor:pointer;font-family:inherit}
+.lesson-outline__item:last-child{border-bottom:0}
+.lesson-outline__item>span{width:22px;height:22px;display:grid;place-items:center;border-radius:50%;color:var(--text-3);font-weight:700;font-size:9px;line-height:1;font-family:'JetBrains Mono',monospace}
+.lesson-outline__item strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.lesson-outline__item>.ic{width:12px;height:12px;color:var(--text-3)}
+.lesson-outline__item.is-current{color:var(--text)}
+.lesson-outline__item.is-current>span{border:1px solid var(--primary);color:var(--primary)}
+.lesson-outline__item.is-complete>span{background:var(--success);color:#fff}
+.lesson-outline__item:disabled{cursor:not-allowed;opacity:.46}
+.lesson-notes{display:grid;gap:9px}
+.lesson-notes>span{font-weight:750;font-size:12px}
+.lesson-notes textarea{width:100%;min-height:280px;resize:vertical;padding:13px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);font-weight:500;font-size:12px;line-height:1.65;font-family:inherit;outline:0}
+.lesson-notes textarea:focus{border-color:var(--primary);box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 20%,transparent)}
+.lesson-notes small{color:var(--text-3);font-size:9px}
+.lesson-side-quiz{display:grid;justify-items:center;gap:8px;padding:18px 5px 6px;text-align:center}
+.lesson-side-quiz__icon{width:52px;height:52px;display:grid;place-items:center;border-radius:15px;background:color-mix(in srgb,var(--primary) 13%,var(--surface-2));color:var(--primary)}
+.lesson-side-quiz__icon .ic{width:23px;height:23px}
+.lesson-side-quiz h3{margin:5px 0 0;font-size:15px}
+.lesson-side-quiz p{margin:0;color:var(--text-3);font-size:10px;line-height:1.5}
+.lesson-side-quiz>div{display:grid;gap:3px;width:100%;margin:8px 0;padding:13px;border:1px solid var(--border);border-radius:10px}
+.lesson-side-quiz>div strong{font-size:20px}
+.lesson-side-quiz>div span{color:var(--text-3);font-size:9px}
+.lesson-side-quiz>button{width:100%;min-height:40px;border:1px solid var(--border-2);border-radius:9px;background:var(--text);color:var(--surface);font-weight:750;cursor:pointer;font-family:inherit}
+
+@media (max-width:820px){
+  .lesson-layout{grid-template-columns:1fr}
+  .lesson-side{position:static}
+  .lesson-side--desktop{display:none}
+  .lesson-side--mobile{display:block}
+  .lesson-heading{align-items:flex-start}
+  .lesson-side__panel{max-height:none}
+  .lesson-outline__item strong{white-space:normal}
+  .lesson-notes textarea{min-height:190px}
+}
+@media (max-width:560px){
+  .lesson-page{padding:0 0 24px}
+  .lesson-layout,.lesson-main{gap:15px}
+  .lesson-page>.course-detail-back{margin-bottom:11px}
+  .lesson-player{border-radius:12px}
+  .lesson-heading{display:grid;gap:15px}
+  .lesson-heading h1{font-size:24px}
+  .lesson-heading__progress{flex-wrap:wrap}
+  .lesson-heading__progress i{max-width:calc(100% - 170px)}
+  .lesson-complete{width:100%}
+  .lesson-next{align-items:flex-start}
+  .lesson-next__thumb{width:82px;height:66px;flex-basis:82px}
+  .lesson-summary-card{padding:19px 16px;border-radius:13px}
+  .lesson-summary-card h2{font-size:20px}
+  .lesson-side{border-radius:13px}
+}
 </style>
 <style id="club-refresh-2026">
 /* Club ICADEM · actualización visual 2026 */
@@ -5353,7 +5455,51 @@ const Sections = (function(){
   // Abre una clase aplicando las cuatro vistas previas gratuitas globales. Si la
   // sesión ya tiene videoId usa Bunny con autorización del webhook; mientras
   // la migración termina conserva compatibilidad con las URLs antiguas.
+  // ═══════════════════════════════════════════════════════════════════
+  // CLASE INDIVIDUAL · abrirClaseICADEM (entry point público, misma firma)
+  //
+  // Antes: abría el modal #visorOverlay con el iframe de Bunny.
+  // Ahora: valida acceso y navega a la sección 'clase-detalle' (full-page
+  // estilo IMFRA: video + sidebar Temario/Notas/Quiz + Marcar vista + Siguiente).
+  // Mantiene window.abrirVisor para materiales (PDFs, Excel, etc.).
+  // ═══════════════════════════════════════════════════════════════════
   window.abrirClaseICADEM = async function(cursoId, sesionIdx) {
+    const curso = cursos.find(x => String(x.id) === String(cursoId));
+    const sesion = curso?.sesiones?.[sesionIdx];
+    if (!sesion) {
+      Toast.error('Clase no encontrada', 'Actualiza la página e intenta de nuevo');
+      return;
+    }
+
+    if (!claseDesbloqueada(cursoId, sesionIdx, curso.sesiones)) {
+      const totalMateriales = Array.isArray(curso.materiales) ? curso.materiales.length : 0;
+      window.__showPaywallModal?.({
+        title: 'Desbloquea el curso completo',
+        sub: `Disfruta gratis las primeras 4 clases y el primer material del curso. Activa tu membresía para continuar con el programa completo.`
+      });
+      return;
+    }
+
+    // Si la clase no tiene videoId pero sí tiene url (ej. presentación / PDF),
+    // mantenemos el visor modal original — es más apto que una página completa
+    // para visualizar un archivo plano.
+    const numClase = sesion.numero || (sesionIdx + 1);
+    if (!sesion.videoId) {
+      if (sesion.url) window.abrirVisor(sesion.url, sesion.titulo, cursoId, numClase);
+      else Toast.info('Video pendiente', 'Esta clase todavía no tiene un video asignado');
+      return;
+    }
+
+    // Guardar contexto activo y navegar a la sección full-page.
+    window.__claseActualCursoId = String(cursoId);
+    window.__claseActualSesionIdx = Number(sesionIdx);
+    if (typeof navigateToSection === 'function') navigateToSection('clase-detalle');
+  };
+
+  // Legacy: cuerpo del viejo abrirClaseICADEM (modal + Bunny fetch inline).
+  // Mantengo el código como función no-llamada para referencia; su lógica
+  // de Bunny token se replica dentro de renderClaseDetalle.
+  async function __legacyAbrirClaseModalUnused(cursoId, sesionIdx) {
     const curso = cursos.find(x => String(x.id) === String(cursoId));
     const sesion = curso?.sesiones?.[sesionIdx];
     if (!sesion) {
@@ -6333,6 +6479,264 @@ const Sections = (function(){
       try { renderCursoDetalle(dyn); } catch(e){ console.warn('[refrescarCursoDetalle]', e); }
     }
   };
+
+  // ═══════════════════════════════════════════════════════════════════
+  // RENDER CLASE DETALLE · vista full-page (estilo IMFRA, tokens ICADEM)
+  //
+  // Monta en #dynamic-section cuando el hash es #clase-detalle. Lee
+  // window.__claseActualCursoId / __claseActualSesionIdx (que abrirClaseICADEM
+  // setea antes de navegar). Reproduce el video vía token firmado por el
+  // webhook de Railway (mismo flujo que el viejo modal, inline aquí).
+  // Sidebar con 3 tabs: Temario (lista de clases del curso), Notas
+  // (textarea con autoguardado en localStorage) y Quiz (placeholder).
+  // ═══════════════════════════════════════════════════════════════════
+  function _notasKey(cursoId, numeroClase){
+    const cuenta = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `icadem:v2:lesson-notes:${cuenta}:${cursoId}:${numeroClase}`;
+  }
+
+  function renderClaseDetalle(container){
+    const cursoId = window.__claseActualCursoId;
+    const sesionIdx = window.__claseActualSesionIdx;
+    if (!cursoId || sesionIdx == null) {
+      container.innerHTML = `<div class="course-page-loading"><strong>Elige una clase del curso</strong><button class="btn btn--ghost" style="margin-top:4px;" onclick="navigateToSection('cursos')">Volver a cursos</button></div>`;
+      return;
+    }
+    // Si los cursos aún no están cargados, esperar y re-montar
+    if (!_cursosLoaded && !_cursosLoading) {
+      container.innerHTML = `<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando clase…</strong></div>`;
+      cargarCursosFirestore().then(() => { if (location.hash === '#clase-detalle') renderClaseDetalle(container); });
+      return;
+    }
+    if (_cursosLoading) {
+      container.innerHTML = `<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando clase…</strong></div>`;
+      const retry = () => { if (!container.isConnected) return; if (_cursosLoaded) renderClaseDetalle(container); else setTimeout(retry, 180); };
+      setTimeout(retry, 180);
+      return;
+    }
+
+    const curso = cursos.find(x => String(x.id) === String(cursoId));
+    const sesiones = Array.isArray(curso?.sesiones) ? curso.sesiones : [];
+    const sesion = sesiones[sesionIdx];
+    if (!curso || !sesion) {
+      container.innerHTML = `<div class="fade-up course-page lesson-page"><button type="button" class="course-detail-back" onclick="navigateToSection('cursos')"><span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>Catálogo de cursos</button><div class="empty-state" style="padding:64px 24px;text-align:center;"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Clase no encontrada</h3><p>Vuelve al curso para elegir otra clase.</p></div></div>`;
+      return;
+    }
+
+    const htmlEsc = (s) => String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const numClase = sesion.numero || (sesionIdx + 1);
+    const totalSes = sesiones.length;
+    const prog = getProgresoCurso(cursoId);
+    const yaVista = prog.clasesVistas.includes(numClase);
+    const pct = progresoCursoPct(cursoId, totalSes);
+    const minutos = sesion.minutos || sesion.duracion || null;
+    const notasActuales = (() => { try { return localStorage.getItem(_notasKey(cursoId, numClase)) || ''; } catch(e) { return ''; } })();
+
+    // Siguiente clase disponible (desbloqueada y no vista; si no hay, la siguiente a la actual)
+    const siguienteIdx = (() => {
+      for (let i = sesionIdx + 1; i < sesiones.length; i++) {
+        if (claseDesbloqueada(cursoId, i, sesiones)) return i;
+      }
+      return -1;
+    })();
+    const siguienteSesion = siguienteIdx >= 0 ? sesiones[siguienteIdx] : null;
+    const siguienteNum = siguienteSesion ? (siguienteSesion.numero || siguienteIdx + 1) : null;
+
+    // Temario (sidebar) — mini lista de todas las clases del curso
+    const temarioHtml = sesiones.map((s, i) => {
+      const n = s.numero || i + 1;
+      const abierta = claseDesbloqueada(cursoId, i, sesiones);
+      const vista = prog.clasesVistas.includes(n);
+      const cur = i === sesionIdx;
+      const titulo = htmlEsc(s.titulo || `Clase ${n}`);
+      return `<button type="button" class="lesson-outline__item ${cur?'is-current':''} ${vista?'is-complete':''}" ${!abierta?'disabled':''} ${abierta?`onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${i})"`:''}>
+        <span>${vista?'<svg class="ic"><use href="#i-check"/></svg>':String(n).padStart(2,'0')}</span>
+        <strong>${titulo}</strong>
+        <svg class="ic"><use href="#${abierta?'i-arrow-right':'i-shield-check'}"/></svg>
+      </button>`;
+    }).join('');
+
+    // Resumen (si viene en Firestore se usa; si no, uno genérico)
+    const resumen = sesion.resumen || sesion.descripcion || curso.descripcion || '';
+
+    const sideHtml = `<aside class="lesson-side">
+      <div class="lesson-side__tabs" role="tablist">
+        <button class="is-active" type="button" data-lesson-tab="temario">Temario</button>
+        <button type="button" data-lesson-tab="notas">Notas</button>
+        <button type="button" data-lesson-tab="quiz">Quiz</button>
+      </div>
+      <div class="lesson-side__panel is-active" data-lesson-panel="temario">
+        <div class="lesson-outline">${temarioHtml}</div>
+      </div>
+      <div class="lesson-side__panel" data-lesson-panel="notas">
+        <label class="lesson-notes">
+          <span>Tus notas de la clase</span>
+          <textarea data-lesson-notes placeholder="Escribe ideas, criterios o pendientes para aplicar…">${htmlEsc(notasActuales)}</textarea>
+          <small data-notes-state>Se guardan automáticamente en este dispositivo.</small>
+        </label>
+      </div>
+      <div class="lesson-side__panel" data-lesson-panel="quiz">
+        <div class="lesson-side-quiz">
+          <span class="lesson-side-quiz__icon"><svg class="ic"><use href="#i-trophy"/></svg></span>
+          <h3>Reto de la clase</h3>
+          <p>Preguntas con explicación técnica inmediata.</p>
+          <div><strong>—</strong><span>Aún no disponible</span></div>
+          <button type="button" disabled style="opacity:.5;cursor:not-allowed;">Próximamente</button>
+        </div>
+      </div>
+    </aside>`;
+
+    const siguienteHtml = siguienteSesion ? `<button type="button" class="lesson-next is-ready" onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${siguienteIdx})" data-bypass-paywall="true">
+      <span class="lesson-next__thumb" style="background-image:linear-gradient(135deg,rgba(10,15,35,.2),rgba(10,15,35,.7)),url('${String(curso.portada || coverSVG(curso.area, curso.titulo)).replace(/'/g,'%27')}')"></span>
+      <span>
+        <small>A continuación · Clase ${siguienteNum}</small>
+        <strong>${htmlEsc(siguienteSesion.titulo || `Clase ${siguienteNum}`)}</strong>
+        <em>Lista para continuar</em>
+      </span>
+      <svg class="ic"><use href="#i-arrow-right"/></svg>
+    </button>` : `<button type="button" class="lesson-next" disabled>
+      <span class="lesson-next__thumb" style="background:var(--surface-2)"></span>
+      <span>
+        <small>Curso completado</small>
+        <strong>¡Terminaste todas las clases!</strong>
+        <em>Tu certificado ya está disponible</em>
+      </span>
+      <svg class="ic"><use href="#i-check"/></svg>
+    </button>`;
+
+    container.innerHTML = `<div class="fade-up course-page lesson-page">
+      <button type="button" class="course-detail-back" onclick="window.__volverACurso('${String(cursoId).replace(/'/g,"\\'")}')">
+        <span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>${htmlEsc(curso.titulo)}
+      </button>
+      <div class="lesson-layout">
+        <main class="lesson-main">
+          <section class="lesson-player">
+            <iframe data-lesson-frame title="${htmlEsc(sesion.titulo || `Clase ${numClase}`)}" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen hidden></iframe>
+            <div class="lesson-player__status" data-lesson-player-status>
+              <div class="sub-loading__spin"></div>
+              <strong>Preparando la clase</strong>
+              <small>Estamos autorizando la reproducción segura.</small>
+            </div>
+          </section>
+          <section class="lesson-heading">
+            <div>
+              <span>Clase ${numClase} de ${totalSes}${minutos?` · ${htmlEsc(minutos)} min`:''}</span>
+              <h1>${htmlEsc(sesion.titulo || `Clase ${numClase}`)}</h1>
+              <div class="lesson-heading__progress">
+                <i style="width:${pct}%"></i>
+                <small>${prog.clasesVistas.length} de ${totalSes} vistas · ${pct}%</small>
+              </div>
+            </div>
+            <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete>
+              ${yaVista ? 'Ya vista · continuar' : 'Marcar vista y seguir'}
+              <svg class="ic"><use href="#${yaVista?'i-check':'i-arrow-right'}"/></svg>
+            </button>
+          </section>
+          ${resumen ? `<section class="lesson-summary-card">
+            <span class="lesson-section-kicker">Resumen de la clase</span>
+            <h2>Lo que vas a aprender</h2>
+            <p>${htmlEsc(resumen)}</p>
+            <footer><svg class="ic"><use href="#i-shield-check"/></svg>Contenido verificado por el equipo ICADEM</footer>
+          </section>` : ''}
+          ${siguienteHtml}
+        </main>
+        ${sideHtml}
+      </div>
+    </div>`;
+
+    // ─── Montar el video (Bunny token firmado por Railway) ───
+    const frameEl = container.querySelector('[data-lesson-frame]');
+    const statusEl = container.querySelector('[data-lesson-player-status]');
+    (async () => {
+      try {
+        if (!sesion.videoId) {
+          statusEl.innerHTML = `<span class="lesson-player__empty-icon"><svg class="ic"><use href="#i-play"/></svg></span><strong>Video en preparación</strong><small>El contenido de esta clase estará disponible muy pronto.</small>`;
+          return;
+        }
+        const user = window.__auth?.currentUser;
+        const idToken = user ? await user.getIdToken() : '';
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) headers.Authorization = `Bearer ${idToken}`;
+        const response = await fetch(`${window.WEBHOOK_URL}/api/bunny/embed-token`, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ videoId: sesion.videoId, courseId: cursoId, sessionIndex: sesionIdx })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!container.isConnected || location.hash !== '#clase-detalle') return;
+        if (!response.ok || !data.embedUrl) {
+          // Fallback al iframe directo de Bunny si el webhook no está configurado
+          const params = new URLSearchParams({ autoplay: 'true', loop: 'false', muted: 'false', preload: 'true', responsive: 'true' });
+          frameEl.src = `https://iframe.mediadelivery.net/embed/${window.BUNNY_VIDEO_LIBRARY_ID}/${encodeURIComponent(sesion.videoId)}?${params}`;
+        } else {
+          frameEl.src = data.embedUrl;
+        }
+        frameEl.hidden = false;
+        statusEl.hidden = true;
+      } catch (error) {
+        console.error('[clase video]', error);
+        if (!container.isConnected) return;
+        statusEl.innerHTML = `<span class="lesson-player__empty-icon"><svg class="ic"><use href="#i-alert-circle"/></svg></span><strong>No pudimos cargar el video</strong><small>Comprueba tu conexión e intenta nuevamente.</small><button type="button" class="lesson-player__retry">Reintentar</button>`;
+        statusEl.querySelector('.lesson-player__retry')?.addEventListener('click', () => renderClaseDetalle(container));
+      }
+    })();
+
+    // ─── Tabs del sidebar ───
+    container.querySelectorAll('[data-lesson-tab]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const target = btn.dataset.lessonTab;
+        container.querySelectorAll('[data-lesson-tab]').forEach(b => b.classList.toggle('is-active', b === btn));
+        container.querySelectorAll('[data-lesson-panel]').forEach(p => p.classList.toggle('is-active', p.dataset.lessonPanel === target));
+      });
+    });
+
+    // ─── Notas (autoguardado en localStorage) ───
+    let notaTimer = 0;
+    container.querySelectorAll('[data-lesson-notes]').forEach(ta => {
+      ta.addEventListener('input', () => {
+        container.querySelectorAll('[data-notes-state]').forEach(s => s.textContent = 'Guardando…');
+        clearTimeout(notaTimer);
+        notaTimer = setTimeout(() => {
+          try { localStorage.setItem(_notasKey(cursoId, numClase), ta.value); } catch(e) {}
+          container.querySelectorAll('[data-notes-state]').forEach(s => s.textContent = 'Guardado en este dispositivo.');
+        }, 400);
+      });
+    });
+
+    // ─── Botón "Marcar vista y seguir" ───
+    container.querySelector('[data-lesson-complete]')?.addEventListener('click', () => {
+      if (!yaVista && typeof window.marcarClaseVista === 'function') {
+        window.marcarClaseVista(cursoId, numClase);
+      }
+      if (siguienteIdx >= 0) {
+        setTimeout(() => window.abrirClaseICADEM(cursoId, siguienteIdx), 350);
+      } else {
+        setTimeout(() => window.__volverACurso(cursoId), 350);
+      }
+    });
+  }
+
+  // Helper: regresar al detalle del curso desde la vista de clase
+  window.__volverACurso = function(cursoId){
+    window.__cursoActualId = cursoId;
+    if (typeof navigateToSection === 'function') navigateToSection('curso-detalle');
+  };
+
+  // Si el usuario marca una clase como vista desde el visor viejo (materiales),
+  // y además estamos en #clase-detalle, re-renderizar la sección actual.
+  const _origMarcarVista = window.marcarClaseVista;
+  if (typeof _origMarcarVista === 'function' && !window.__marcarClaseVistaWrapped) {
+    window.__marcarClaseVistaWrapped = true;
+    window.marcarClaseVista = function(cid, num){
+      const r = _origMarcarVista.apply(this, arguments);
+      try {
+        const dyn = document.getElementById('dynamic-section');
+        if (dyn && location.hash === '#clase-detalle') renderClaseDetalle(dyn);
+      } catch(e){}
+      return r;
+    };
+  }
 
   function moduloTitulo(c,i){
     const g={'Fiscal':['Introducción al régimen fiscal','ISR personas físicas','ISR personas morales','IVA y retenciones','Deducciones autorizadas','Cierre del ejercicio','Casos prácticos','Evaluación final'],'Nómina':['Fundamentos de nómina','Cálculo de percepciones','Deducciones e IMSS','Aguinaldo y prima vacacional','Finiquito y liquidación','Evaluación final'],'Legal':['Contratos mercantiles','Contratos laborales','Aviso de privacidad','Cumplimiento normativo','Evaluación final'],'Contabilidad':['Bases contables','Estados financieros','Conciliaciones','Evaluación final']};
@@ -9174,6 +9578,7 @@ const Sections = (function(){
     renderers:{
       cursos:renderCursos,
       'curso-detalle':renderCursoDetalle,
+      'clase-detalle':renderClaseDetalle,
       certificados:renderCertificados,
       logros:renderLogros,
       webinars:renderWebinars,
