@@ -3485,6 +3485,161 @@ body.has-fomo .main{padding-top:18px}
   .lesson-next{padding:12px;border-radius:14px;gap:12px}
   .lesson-next__thumb{width:88px;height:60px;flex-basis:88px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   HERRAMIENTAS · landing index (grid de cards)
+   ═══════════════════════════════════════════════════════════════════ */
+.tools-index{width:100%;max-width:1180px;margin:0 auto;padding:4px 0 48px;display:flex;flex-direction:column;gap:28px}
+.tools-index-hero{position:relative;overflow:hidden;border-radius:22px;padding:40px 44px;background:linear-gradient(135deg,var(--primary,#1F4FE5),var(--accent-ink,#0F2A8F));color:#fff;box-shadow:0 24px 60px -28px rgba(31,79,229,.45)}
+.tools-index-hero::after{content:'';position:absolute;right:-80px;top:-80px;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.08),transparent 70%);pointer-events:none}
+.tools-index-hero__copy{max-width:620px;position:relative;z-index:1}
+.tools-index-hero__eyebrow{display:inline-flex;align-items:center;gap:7px;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:650;letter-spacing:.2px;margin-bottom:14px}
+.tools-index-hero h1{font-family:'Plus Jakarta Sans',sans-serif;font-weight:750;font-size:clamp(28px,3.6vw,42px);line-height:1.08;letter-spacing:-1.1px;margin:0 0 12px}
+.tools-index-hero p{color:rgba(255,255,255,.82);font-size:14px;line-height:1.65;margin:0;max-width:520px}
+.tools-index-head{display:flex;align-items:end;justify-content:space-between;gap:16px;padding:0 2px}
+.tools-index-head__eyebrow{display:block;color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.tools-index-head h2{font-weight:700;font-size:24px;letter-spacing:-.6px;margin:0}
+.tools-index-head__count{font-size:12px;color:var(--text-3);font-weight:600}
+.tools-index-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+.tool-index-card{display:grid;grid-template-columns:52px minmax(0,1fr) 18px;align-items:center;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:16px;color:var(--text);text-align:left;cursor:pointer;font-family:inherit;transition:all .18s;box-shadow:0 1px 2px rgba(10,15,35,.03)}
+.tool-index-card:hover{border-color:color-mix(in srgb,var(--primary) 35%,var(--border));background:color-mix(in srgb,var(--primary) 3%,var(--surface));transform:translateY(-2px);box-shadow:0 14px 32px -16px rgba(10,15,35,.14)}
+.tool-index-card__icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;background:color-mix(in srgb,var(--primary) 12%,var(--surface-2));color:var(--primary);flex-shrink:0}
+.tool-index-card__icon .ic{width:22px;height:22px}
+.tool-index-card__body{display:grid;gap:4px;min-width:0}
+.tool-index-card__kicker{color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase}
+.tool-index-card__body strong{font-size:15px;font-weight:650;letter-spacing:-.2px}
+.tool-index-card__body small{color:var(--text-3);font-size:12px;line-height:1.5;margin-top:2px}
+.tool-index-card__tag{display:inline-block;margin-top:8px;padding:4px 10px;border-radius:999px;background:color-mix(in srgb,var(--success,#10b981) 10%,transparent);color:var(--success,#10b981);font-size:10px;font-weight:700;letter-spacing:.3px;width:fit-content}
+.tool-index-card[data-locked] .tool-index-card__tag{background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary)}
+.tool-index-card__arrow{width:18px;height:18px;color:var(--text-3);transition:transform .18s}
+.tool-index-card:hover .tool-index-card__arrow{transform:translateX(3px);color:var(--primary)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   LIBROS · biblioteca editorial (covers con color por categoría)
+   ═══════════════════════════════════════════════════════════════════ */
+.library-page{width:100%;max-width:1180px;margin:0 auto;padding:4px 0 48px;display:flex;flex-direction:column;gap:28px}
+.library-hero{position:relative;overflow:hidden;border-radius:22px;padding:40px 44px;background:linear-gradient(135deg,#0B1A33,#1F4FE5);color:#fff;box-shadow:0 24px 60px -28px rgba(11,26,51,.4)}
+.library-hero::after{content:'';position:absolute;right:-60px;bottom:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(199,151,31,.3),transparent 70%);pointer-events:none}
+.library-hero__copy{max-width:620px;position:relative;z-index:1}
+.library-hero__eyebrow{display:inline-block;padding:5px 11px;border-radius:999px;background:rgba(255,255,255,.14);backdrop-filter:blur(6px);color:#fff;font-size:11px;font-weight:650;letter-spacing:.2px;margin-bottom:14px}
+.library-hero h1{font-family:'Plus Jakarta Sans',sans-serif;font-weight:750;font-size:clamp(28px,3.6vw,42px);line-height:1.08;letter-spacing:-1.1px;margin:0 0 12px}
+.library-hero p{color:rgba(255,255,255,.82);font-size:14px;line-height:1.65;margin:0;max-width:540px}
+.library-head{display:flex;align-items:end;justify-content:space-between;gap:16px;padding:0 2px}
+.library-head__eyebrow{display:block;color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px}
+.library-head h2{font-weight:700;font-size:24px;letter-spacing:-.6px;margin:0}
+.library-head__count{font-size:12px;color:var(--text-3);font-weight:600}
+.library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.library-card{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all .22s;box-shadow:0 1px 2px rgba(10,15,35,.04)}
+.library-card:hover{transform:translateY(-3px);box-shadow:0 20px 40px -20px rgba(10,15,35,.18);border-color:color-mix(in srgb,var(--primary) 25%,var(--border))}
+.library-card__cover{aspect-ratio:3/4;position:relative;background:var(--book-color);overflow:hidden;display:grid;place-items:center}
+.library-card__cover::before{content:'';position:absolute;top:0;bottom:0;left:16px;width:1px;background:rgba(255,255,255,.18);z-index:1}
+.library-card__cover::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%,rgba(0,0,0,.3));pointer-events:none}
+.library-card__chip{position:absolute;top:12px;right:12px;z-index:2;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.92);color:var(--book-color);font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800;letter-spacing:.6px}
+.library-card__cover-inner{position:relative;z-index:1;padding:22px 20px;text-align:center;color:#fff;max-width:85%;font-family:'Instrument Serif',Georgia,serif}
+.library-card__kicker{display:block;color:rgba(255,255,255,.78);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:8px;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:14px}
+.library-card__cover-inner h3{color:#fff;font-family:'Instrument Serif','Georgia',serif;font-size:21px;line-height:1.15;font-style:italic;font-weight:400;letter-spacing:-.2px;margin:0 0 16px;text-wrap:balance}
+.library-card__year{display:inline-block;color:rgba(255,255,255,.85);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.6px;font-weight:700;padding-top:14px;border-top:1px solid rgba(255,255,255,.25)}
+.library-card__body{padding:14px 16px 16px;display:flex;flex-direction:column;gap:4px}
+.library-card__body small{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;letter-spacing:1.1px;text-transform:uppercase}
+.library-card__body strong{font-size:14px;font-weight:650;letter-spacing:-.2px;line-height:1.3}
+.library-card__author{color:var(--text-3);font-size:11.5px;font-weight:500}
+.library-card__foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:10px;padding-top:12px;border-top:1px solid var(--border)}
+.library-card__cost{display:inline-flex;align-items:center;gap:5px;color:var(--text-2);font-size:11px;font-weight:600}
+.library-card__cost .ic{width:12px;height:12px;color:var(--accent,#C7971F)}
+.library-card__state{padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);font-size:10px;font-weight:700}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MIS LOGROS · refresh editorial tipo SYNOVA
+   Deja intacto el renderLogros original; solo cambia su expresión visual.
+   ═══════════════════════════════════════════════════════════════════ */
+.sec-hero{padding:0 2px 24px;border-bottom:0}
+.sec-hero__eyebrow{color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:1.5px;text-transform:uppercase}
+.sec-hero__title{font-family:'Plus Jakarta Sans',sans-serif;font-weight:750;font-size:clamp(32px,4.4vw,46px);line-height:1.05;letter-spacing:-1.4px;margin:6px 0 10px}
+.sec-hero__sub{color:var(--text-2);font-size:14.5px;line-height:1.65;max-width:620px}
+
+.logro-hero{padding:28px 32px;border-radius:22px;border:1px solid var(--border);background:var(--surface);box-shadow:0 10px 32px -22px rgba(10,15,35,.14);margin-bottom:28px}
+.logro-hero__row{display:grid;grid-template-columns:auto 1fr auto;gap:28px;align-items:center;margin-bottom:16px}
+.logro-hero__icon{width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--primary),color-mix(in srgb,var(--primary) 60%,black));color:#fff;display:grid;place-items:center;box-shadow:0 10px 24px -10px color-mix(in srgb,var(--primary) 60%,transparent)}
+.logro-hero__icon .ic{width:28px;height:28px}
+.logro-hero__lbl{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:4px}
+.logro-hero__name{font-family:'Plus Jakarta Sans',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.5px;line-height:1.15}
+.logro-hero__racha{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:color-mix(in srgb,var(--accent,#C7971F) 12%,transparent);color:var(--accent,#C7971F);font-weight:700;font-size:13px}
+.logro-hero__racha-num{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:800}
+.logro-hero__racha-lbl{font-size:11px;font-weight:600;color:var(--text-3)}
+.logro-hero__xp-bar{height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.logro-hero__xp-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent,#C7971F));border-radius:999px;transition:width .5s cubic-bezier(.2,.7,.2,1)}
+.logro-hero__xp-text{display:flex;justify-content:space-between;gap:12px;color:var(--text-3);font-size:11.5px;font-weight:500;font-family:'JetBrains Mono',monospace}
+.logro-hero__xp-text strong{color:var(--text);font-weight:700}
+
+/* Camino de aprendiz a maestro · más plano y claro */
+.nivel-path{padding:24px 28px;border-radius:20px;border:1px solid var(--border);background:var(--surface);margin-bottom:28px;position:relative;overflow:hidden}
+.nivel-path__title{font-weight:700;font-size:15px;letter-spacing:-.2px;margin-bottom:18px;color:var(--text)}
+.nivel-path__track{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;position:relative}
+.nivel-path__track::before{content:'';position:absolute;top:28px;left:12%;right:12%;height:2px;background:var(--border);border-radius:999px;z-index:0}
+.nivel-path__track::after{content:'';position:absolute;top:28px;left:12%;height:2px;width:calc(var(--nivel-progress,0%) - 12%);background:linear-gradient(90deg,var(--primary),var(--accent,#C7971F));border-radius:999px;z-index:1;transition:width .6s cubic-bezier(.2,.7,.2,1)}
+.nivel-step{display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;z-index:2}
+.nivel-step__icon{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:2px solid var(--border);color:var(--text-3);transition:all .2s}
+.nivel-step.is-done .nivel-step__icon{background:var(--primary);border-color:var(--primary);color:#fff}
+.nivel-step.is-current .nivel-step__icon{background:#fff;border-color:var(--primary);color:var(--primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 15%,transparent),0 8px 20px -8px color-mix(in srgb,var(--primary) 55%,transparent)}
+.nivel-step__name{font-size:11px;font-weight:650;color:var(--text);text-align:center;line-height:1.2;max-width:80px}
+.nivel-step.is-locked .nivel-step__name{color:var(--text-3)}
+.nivel-step__xp{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;letter-spacing:.8px;text-transform:uppercase}
+.nivel-step.is-current .nivel-step__xp{color:var(--primary)}
+
+/* KPI tiles */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin-bottom:28px}
+.kpi-card{padding:18px 20px;border-radius:16px;border:1px solid var(--border);background:var(--surface);transition:border-color .18s}
+.kpi-card:hover{border-color:color-mix(in srgb,var(--primary) 32%,var(--border))}
+.kpi-card__label{color:var(--text-3);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9.5px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:8px}
+.kpi-card__value{font-family:'Plus Jakarta Sans',sans-serif;font-size:28px;font-weight:750;letter-spacing:-.6px;line-height:1;color:var(--text)}
+.kpi-card__value-sub{font-size:14px;font-weight:650;color:var(--text-3);margin-left:3px}
+
+/* Logros · categorías agrupadas */
+.logros-cat{margin-bottom:28px}
+.logros-cat__header{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:0 2px}
+.logros-cat__icon{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:color-mix(in srgb,var(--cat-color,var(--primary)) 12%,var(--surface-2));color:var(--cat-color,var(--primary))}
+.logros-cat__icon .ic{width:16px;height:16px}
+.logros-cat__title{font-weight:700;font-size:17px;letter-spacing:-.3px;margin:0;flex:1}
+.logros-cat__count{padding:4px 10px;border-radius:999px;background:var(--surface-2);color:var(--text-2);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10.5px;letter-spacing:.3px}
+.logros-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.logro{position:relative;display:flex;flex-direction:column;align-items:center;gap:10px;padding:22px 16px 18px;background:var(--surface);border:1px solid var(--border);border-radius:16px;cursor:pointer;transition:all .18s;text-align:center}
+.logro:hover{transform:translateY(-2px);box-shadow:0 14px 28px -16px rgba(10,15,35,.14);border-color:color-mix(in srgb,var(--cat-color,var(--primary)) 32%,var(--border))}
+.logro__icon{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:var(--surface-2);color:var(--text-3);transition:all .22s}
+.logro__icon .ic{width:22px;height:22px}
+.logro.is-unlocked .logro__icon{background:linear-gradient(135deg,var(--cat-color,var(--primary)),color-mix(in srgb,var(--cat-color,var(--primary)) 65%,black));color:#fff;box-shadow:0 10px 22px -10px color-mix(in srgb,var(--cat-color,var(--primary)) 60%,transparent)}
+.logro.is-locked{opacity:.68}
+.logro__name{font-weight:650;font-size:13.5px;letter-spacing:-.2px;line-height:1.25;color:var(--text)}
+.logro.is-locked .logro__name{color:var(--text-2)}
+.logro__xp{color:var(--cat-color,var(--primary));font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;letter-spacing:.5px}
+.logro.is-locked .logro__xp{color:var(--text-3)}
+
+/* Responsive para los nuevos componentes */
+@media (max-width:820px){
+  .tools-index-hero,.library-hero{padding:30px 24px;border-radius:18px}
+  .tools-index-hero h1,.library-hero h1{font-size:28px;letter-spacing:-.9px}
+  .tools-index-head,.library-head{flex-direction:column;align-items:flex-start}
+  .nivel-path__track{grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}
+  .nivel-step__icon{width:48px;height:48px}
+  .nivel-step__name{font-size:10px}
+  .logro-hero__row{grid-template-columns:auto 1fr;gap:16px}
+  .logro-hero__racha{grid-column:1/-1;justify-self:start}
+}
+@media (max-width:560px){
+  .tool-index-card{grid-template-columns:44px minmax(0,1fr);padding:16px;gap:12px}
+  .tool-index-card__arrow{display:none}
+  .tool-index-card__icon{width:44px;height:44px;border-radius:12px}
+  .library-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
+  .library-card__cover-inner{padding:16px 14px}
+  .library-card__cover-inner h3{font-size:17px;margin-bottom:12px}
+  .logro-hero{padding:22px 20px;border-radius:18px}
+  .logro-hero__name{font-size:20px}
+  .nivel-path{padding:20px 18px}
+  .nivel-path__track{gap:4px}
+  .nivel-step__icon{width:40px;height:40px}
+  .nivel-step__name{font-size:9px;max-width:60px}
+  .logros-cat__header{padding:0}
+  .logro{padding:18px 12px 14px}
+}
 </style>
 <style id="club-refresh-2026">
 /* Club ICADEM · actualización visual 2026 */
@@ -4087,7 +4242,9 @@ window.__setDisplayName = async (nombre) => {
     </div>
 
     <div class="nav-section">
-      <div class="nav-label">Herramientas pro</div>
+      <div class="nav-label">Recursos profesionales</div>
+      <a class="nav-item" data-section="herramientas"><svg class="ic"><use href="#i-tools"/></svg>Herramientas</a>
+      <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
       <a class="nav-item" data-tool="plantillas"><svg class="ic"><use href="#i-briefcase"/></svg>Plantillas de negocio</a>
       <a class="nav-item" data-tool="calc-fiscal"><svg class="ic"><use href="#i-calculator"/></svg>Calculadora fiscal</a>
       <a class="nav-item" data-tool="calc-nomina"><svg class="ic"><use href="#i-cash"/></svg>Calculadora de nómina</a>
@@ -4314,7 +4471,9 @@ window.__setDisplayName = async (nombre) => {
       </div>
 
       <div class="mobile-drawer__section">
-        <div class="mobile-drawer__label">Herramientas pro</div>
+        <div class="mobile-drawer__label">Recursos profesionales</div>
+        <a class="mobile-drawer__item" data-section="herramientas"><svg class="ic"><use href="#i-tools"/></svg>Herramientas</a>
+        <a class="mobile-drawer__item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
         <a class="mobile-drawer__item" data-tool="plantillas"><svg class="ic"><use href="#i-briefcase"/></svg>Plantillas de negocio</a>
         <a class="mobile-drawer__item" data-tool="calc-fiscal"><svg class="ic"><use href="#i-calculator"/></svg>Calculadora fiscal</a>
         <a class="mobile-drawer__item" data-tool="calc-nomina"><svg class="ic"><use href="#i-cash"/></svg>Calculadora de nómina</a>
@@ -6672,6 +6831,110 @@ const Sections = (function(){
       try { renderCursoDetalle(dyn); } catch(e){ console.warn('[refrescarCursoDetalle]', e); }
     }
   };
+
+  // ═══════════════════════════════════════════════════════════════════
+  // HERRAMIENTAS · landing index que lista todas las tools en un grid
+  // Cada card navega a su sección individual (tool-plantillas, tool-calc-*,
+  // etc.) que ya existe y sigue funcionando igual.
+  // ═══════════════════════════════════════════════════════════════════
+  const TOOLS_CATALOG = [
+    { id:'plantillas',   icon:'i-briefcase',    categoria:'Plantillas',   titulo:'Plantillas de negocio',  desc:'Formatos editables listos: contratos, facturas, nómina, flujo de caja y más.' },
+    { id:'calc-fiscal',  icon:'i-calculator',   categoria:'Fiscal',       titulo:'Calculadora fiscal',     desc:'ISR, IVA y retenciones con tarifas 2026, exporta a Excel y PDF.' },
+    { id:'calc-nomina',  icon:'i-cash',         categoria:'Nómina',       titulo:'Calculadora de nómina',  desc:'Nómina mensual con IMSS, Infonavit, ISR y subsidio al empleo.' },
+    { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas',     titulo:'Calculadora de crédito', desc:'Compara tasas, CAT, mensualidad y total pagado por producto.' }
+  ];
+
+  function renderHerramientas(container){
+    const esVip = typeof toolEsVIP === 'function' ? toolEsVIP() : false;
+    const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    container.innerHTML = `<div class="fade-up tools-index">
+      <section class="tools-index-hero">
+        <div class="tools-index-hero__copy">
+          <span class="tools-index-hero__eyebrow">Herramientas ICADEM</span>
+          <h1>Apoyo profesional, en un solo lugar.</h1>
+          <p>Calculadoras y plantillas listas para acompañar decisiones fiscales, contables, de nómina y financieras — con criterio verificable y exportación profesional.</p>
+        </div>
+      </section>
+      <div class="tools-index-head">
+        <div><span class="tools-index-head__eyebrow">Recursos disponibles</span><h2>Elige una herramienta</h2></div>
+        <span class="tools-index-head__count">${TOOLS_CATALOG.length} herramientas</span>
+      </div>
+      <div class="tools-index-grid">
+        ${TOOLS_CATALOG.map(t => `
+          <button type="button" class="tool-index-card" data-tool-nav="${htmlEsc(t.id)}" ${!esVip ? 'data-locked="true"' : ''}>
+            <span class="tool-index-card__icon"><svg class="ic"><use href="#${htmlEsc(t.icon)}"/></svg></span>
+            <span class="tool-index-card__body">
+              <span class="tool-index-card__kicker">${htmlEsc(t.categoria)}</span>
+              <strong>${htmlEsc(t.titulo)}</strong>
+              <small>${htmlEsc(t.desc)}</small>
+              <span class="tool-index-card__tag">${esVip?'Disponible':'Miembros VIP'}</span>
+            </span>
+            <svg class="ic tool-index-card__arrow"><use href="#i-arrow-right"/></svg>
+          </button>
+        `).join('')}
+      </div>
+    </div>`;
+    container.querySelectorAll('[data-tool-nav]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const id = btn.dataset.toolNav;
+        if (typeof navigateToSection === 'function') navigateToSection('tool-' + id);
+      });
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════
+  // LIBROS · catálogo canjeable (hardcoded por ahora; mañana se puede
+  // migrar a una colección Firestore sin cambiar el renderer)
+  // Diseño editorial inspirado en SYNOVA (biblioteca canjeable con créditos).
+  // ═══════════════════════════════════════════════════════════════════
+  const LIBROS_CATALOG = [
+    { id:'fiscal-2026',    categoria:'Fiscal',       titulo:'Prontuario fiscal 2026', autor:'Equipo ICADEM', costo:180, color:'#1F4FE5', estado:'proximamente' },
+    { id:'nif-2026',       categoria:'Contabilidad', titulo:'NIF comentadas 2026',    autor:'Equipo ICADEM', costo:220, color:'#097C58', estado:'proximamente' },
+    { id:'cff-comentado',  categoria:'Legal',        titulo:'Código Fiscal comentado',autor:'Equipo ICADEM', costo:260, color:'#6D3BC9', estado:'proximamente' },
+    { id:'nomina-practica',categoria:'Nómina',       titulo:'Nómina práctica 2026',   autor:'Equipo ICADEM', costo:180, color:'#C7971F', estado:'proximamente' },
+    { id:'finanzas-dueno', categoria:'Finanzas',     titulo:'Finanzas para dueños',   autor:'Equipo ICADEM', costo:200, color:'#B4252A', estado:'proximamente' },
+    { id:'auditoria-int',  categoria:'Auditoría',    titulo:'Auditoría integral',     autor:'Equipo ICADEM', costo:240, color:'#087A8A', estado:'proximamente' }
+  ];
+
+  function renderLibros(container){
+    const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    container.innerHTML = `<div class="fade-up library-page">
+      <section class="library-hero">
+        <div class="library-hero__copy">
+          <span class="library-hero__eyebrow">Biblioteca ICADEM</span>
+          <h1>Conocimiento profesional para conservar.</h1>
+          <p>Pronto podrás canjear tus créditos por referencias técnicas que permanecen en tu biblioteca para consulta cuando las necesites.</p>
+        </div>
+      </section>
+      <div class="library-head">
+        <div><span class="library-head__eyebrow">Catálogo canjeable</span><h2>Elige tu próxima referencia</h2></div>
+        <span class="library-head__count">${LIBROS_CATALOG.length} próximamente</span>
+      </div>
+      <div class="library-grid">
+        ${LIBROS_CATALOG.map(b => `
+          <article class="library-card" data-book-id="${htmlEsc(b.id)}">
+            <div class="library-card__cover" style="--book-color:${b.color}">
+              <span class="library-card__chip">PRÓXIMAMENTE</span>
+              <div class="library-card__cover-inner">
+                <span class="library-card__kicker">ICADEM · ${htmlEsc(b.categoria)}</span>
+                <h3>${htmlEsc(b.titulo)}</h3>
+                <span class="library-card__year">2026</span>
+              </div>
+            </div>
+            <div class="library-card__body">
+              <small>${htmlEsc(b.categoria)}</small>
+              <strong>${htmlEsc(b.titulo)}</strong>
+              <span class="library-card__author">${htmlEsc(b.autor)}</span>
+              <div class="library-card__foot">
+                <span class="library-card__cost"><svg class="ic"><use href="#i-trophy"/></svg>${b.costo} créditos</span>
+                <span class="library-card__state">Pronto</span>
+              </div>
+            </div>
+          </article>
+        `).join('')}
+      </div>
+    </div>`;
+  }
 
   // ═══════════════════════════════════════════════════════════════════
   // RENDER CLASE DETALLE · vista full-page (estilo IMFRA, tokens ICADEM)
@@ -9852,6 +10115,8 @@ const Sections = (function(){
       cursos:renderCursos,
       'curso-detalle':renderCursoDetalle,
       'clase-detalle':renderClaseDetalle,
+      herramientas:renderHerramientas,
+      libros:renderLibros,
       certificados:renderCertificados,
       logros:renderLogros,
       webinars:renderWebinars,
