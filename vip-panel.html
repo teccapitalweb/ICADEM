@@ -3292,6 +3292,199 @@ body.has-fomo .main{padding-top:18px}
   .lesson-summary-card h2{font-size:20px}
   .lesson-side{border-radius:13px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   VP STYLE REFRESH · detalle de curso y clase (sin cambiar la marca)
+   Inspiración: visionpecuariamx.com · patrón editorial, respirado,
+   bordes 14-18px, tags en pills, lesson rows con numeración circular.
+   Esto SOBREESCRIBE partes del CSS anterior; no toca la paleta ni
+   layout global, solo las dos secciones visibles de curso/clase.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Breadcrumb back · círculo suave */
+.course-detail-back{color:var(--text-2);font-weight:600;font-size:12.5px;letter-spacing:-.1px;margin-bottom:22px}
+.course-detail-back span{width:36px;height:36px;border:1px solid var(--border);background:var(--surface);box-shadow:0 1px 2px rgba(10,15,35,.04);transition:background .18s,border-color .18s}
+.course-detail-back:hover span{background:var(--surface-2);border-color:color-mix(in srgb,var(--primary) 25%,var(--border))}
+
+/* Hero del curso · menos oscuro, más editorial */
+.course-detail-hero{min-height:300px;border-radius:22px;padding:38px;box-shadow:0 20px 48px -24px rgba(10,15,35,.3)}
+.course-detail-hero__copy{max-width:680px}
+.course-detail-hero__tags{gap:8px;margin-bottom:16px}
+.course-detail-hero__tags span{padding:7px 13px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.12);backdrop-filter:blur(10px);font-family:inherit;font-weight:600;font-size:11.5px;line-height:1;letter-spacing:.1px;text-transform:none;color:#fff;border-radius:999px}
+.course-detail-hero h2{font-weight:700;letter-spacing:-1.2px;line-height:1.08}
+.course-detail-hero__copy p{margin-top:16px;gap:4px;font-size:13.5px}
+.course-detail-hero__copy p b{font-size:14.5px;font-weight:650}
+.course-detail-hero__start{min-height:52px;padding:0 20px 0 24px;background:#fff;color:var(--primary-ink,#0f1626);font-weight:700;font-size:13.5px;box-shadow:0 10px 24px -10px rgba(0,0,0,.5)}
+.course-detail-hero__start .ic{width:20px;height:20px;padding:5px;background:var(--primary);color:#fff}
+.course-detail-hero__start:hover{transform:translateY(-1px);box-shadow:0 14px 30px -10px rgba(0,0,0,.55)}
+
+.course-detail__description{color:var(--text-2);font-size:14.5px;line-height:1.7;margin-block:24px 28px}
+
+/* Section head del temario · más limpio */
+.course-detail-section__head{align-items:center;margin-bottom:18px}
+.course-detail-section__head span,.course-detail-progress>span{color:var(--primary);font-family:inherit;font-weight:700;font-size:11px;letter-spacing:1.3px}
+.course-detail-section__head h3{font-weight:700;font-size:24px;letter-spacing:-.6px;margin-top:3px}
+.course-detail-section__head>b{padding:6px 11px;border-radius:999px;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);font-family:inherit;font-weight:700;font-size:11px;letter-spacing:0}
+.course-detail-section__intro{color:var(--text-3);font-size:12.5px;margin:-6px 0 18px}
+
+/* ─── Temario estilo VP: línea vertical + número circular + thumb mini + estado ─── */
+.course-lessons{gap:4px;position:relative;padding-left:46px}
+.course-lessons::before{content:'';position:absolute;left:17px;top:32px;bottom:32px;width:2px;background:var(--border);border-radius:2px;pointer-events:none;z-index:0}
+.course-lesson{position:relative;min-height:auto;grid-template-columns:108px minmax(0,1fr) auto;gap:16px;padding:12px 18px 12px 0;border:0;background:transparent;border-radius:14px;box-shadow:none;transition:background .18s}
+.course-lesson::after{display:none}
+.course-lesson:hover{transform:none;background:color-mix(in srgb,var(--primary) 4%,var(--surface));box-shadow:none;border:0}
+.course-lesson__cover{width:108px;height:68px;border-radius:10px;z-index:1;box-shadow:0 2px 6px rgba(10,15,35,.08)}
+.course-lesson__cover::after{display:none}
+.course-lesson__cover>span{display:none}
+/* La <b> con la numeración "01" sale del cover y se vuelve el círculo del timeline VP */
+.course-lesson__cover>b{position:absolute;left:-46px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:2px solid var(--border-strong);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--text-2);box-shadow:none;backdrop-filter:none;padding:0;letter-spacing:0;min-width:0;height:34px}
+.course-lesson.is-complete{background:transparent;border:0}
+.course-lesson.is-complete .course-lesson__cover>b{background:var(--success);border-color:var(--success);color:transparent;font-size:0;background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");background-size:14px;background-position:center;background-repeat:no-repeat}
+.course-lesson.is-complete .course-lesson__cover{filter:none;opacity:1}
+.course-lesson.is-locked{background:transparent}
+.course-lesson.is-locked .course-lesson__cover>b{background:var(--surface-2);border-color:var(--border);color:var(--text-3)}
+.course-lesson.is-locked:hover{background:var(--surface-2)}
+/* Copy block simplificado */
+.course-lesson__copy{gap:4px}
+.course-lesson__copy em{font-family:inherit;font-weight:650;font-size:10.5px;letter-spacing:.4px;text-transform:none;color:var(--text-3)}
+.course-lesson.is-complete .course-lesson__copy em{color:var(--success)}
+.course-lesson.is-locked .course-lesson__copy em{color:var(--text-3)}
+.course-lesson__copy strong{font-size:14.5px;font-weight:650;letter-spacing:-.2px}
+.course-lesson__copy small{font-family:inherit;font-size:11.5px;font-weight:500;color:var(--text-3)}
+/* Status chip a la derecha (acceso gratuito / próxima clase) */
+.course-lesson__action{width:auto;height:auto;background:transparent;border:0;color:var(--text-3)}
+.course-lesson:hover .course-lesson__action{transform:none;background:transparent;border:0;color:var(--primary)}
+.course-lesson__action .ic{width:18px;height:18px}
+
+/* Material cards · más editoriales */
+.course-materials{gap:10px}
+.course-material{padding:14px;border-radius:14px;gap:14px;background:var(--surface);border-color:var(--border)}
+.course-material:hover{border-color:color-mix(in srgb,var(--primary) 32%,var(--border));background:color-mix(in srgb,var(--primary) 3%,var(--surface))}
+.course-material__icon{width:44px;height:44px;flex:0 0 44px;border-radius:11px;background:color-mix(in srgb,var(--primary) 10%,var(--surface-2))}
+.course-material__icon .ic{width:19px;height:19px}
+.course-material__copy strong{font-size:13.5px;font-weight:650;letter-spacing:-.1px}
+.course-material__copy small{font-size:11.5px}
+.course-material__download{width:36px;height:36px;flex:0 0 36px;border-radius:10px}
+
+/* Panel lateral de avance · más suave */
+.course-detail-progress{border-radius:20px;padding:26px;border-color:var(--border);background:var(--surface);box-shadow:0 10px 30px -18px rgba(10,15,35,.14)}
+.course-detail-progress>span{font-weight:700;letter-spacing:1.3px;margin-bottom:14px}
+.course-detail-progress__top>strong{font-size:22px;font-weight:700;letter-spacing:-.5px;line-height:1.15;max-width:170px}
+.course-detail-progress__top>i{width:72px;height:72px;flex:0 0 72px}
+.course-detail-progress__top>i::before{width:58px;height:58px}
+.course-detail-progress__top>i b{font-size:11px;font-weight:800;color:var(--text)}
+.course-detail-progress__bar{height:6px;margin:20px 0 18px;border-radius:999px}
+.course-detail-progress ul{gap:14px}
+.course-detail-progress li{color:var(--text-2);font-size:12.5px;gap:10px}
+.course-detail-progress li .ic{width:17px;height:17px;color:var(--primary)}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CLASE INDIVIDUAL · estilo VP editorial
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Layout más respirado */
+.lesson-page{padding-top:4px;padding-bottom:48px}
+.lesson-layout{gap:28px;grid-template-columns:minmax(0,1fr) 340px}
+.lesson-main{gap:24px}
+
+/* Player con bordes más suaves */
+.lesson-player{border-radius:22px;background:#0a0d18;box-shadow:0 24px 50px -22px rgba(10,15,35,.4);border:0}
+.lesson-player__status{color:rgba(255,255,255,.9)}
+.lesson-player__empty-icon{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12)}
+
+/* Heading limpio */
+.lesson-heading{align-items:flex-end;gap:24px;padding:0 2px}
+.lesson-heading>div>span{color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:1.4px;margin-bottom:10px}
+.lesson-heading h1{font-weight:700;letter-spacing:-1px;line-height:1.08}
+.lesson-heading__progress{margin-top:16px;gap:12px}
+.lesson-heading__progress::before{height:5px}
+.lesson-heading__progress i{height:5px}
+.lesson-heading__progress small{color:var(--text-3);font-size:11px;font-weight:600}
+
+/* Botón "Marcar vista y seguir" tipo VP */
+.lesson-complete{min-height:48px;padding:0 20px 0 22px;border-radius:999px;background:var(--primary);color:#fff;font-weight:700;font-size:12.5px;letter-spacing:-.05px;box-shadow:0 10px 22px -10px color-mix(in srgb,var(--primary) 65%,transparent);transition:all .2s}
+.lesson-complete:hover{transform:translateY(-1px);box-shadow:0 14px 28px -10px color-mix(in srgb,var(--primary) 75%,transparent);background:color-mix(in srgb,var(--primary) 92%,black)}
+.lesson-complete .ic{width:22px;height:22px;padding:4px;background:rgba(255,255,255,.18);color:#fff}
+.lesson-complete.is-complete{background:var(--surface);color:var(--text);border:1px solid var(--border);box-shadow:none}
+.lesson-complete.is-complete .ic{background:var(--success);color:#fff}
+
+/* Resumen · card limpia */
+.lesson-summary-card{padding:28px;border-radius:20px;border-color:var(--border);box-shadow:0 8px 24px -16px rgba(10,15,35,.1)}
+.lesson-summary-card h2{font-weight:700;font-size:22px;letter-spacing:-.5px;line-height:1.2}
+.lesson-summary-card>p{color:var(--text-2);font-size:14px;line-height:1.7;max-width:68ch}
+.lesson-summary-card footer{margin-top:22px;padding-top:18px;border-top:1px solid var(--border);color:var(--text-3);font-size:11px}
+.lesson-summary-card footer .ic{width:14px;height:14px;color:var(--success)}
+.lesson-section-kicker{color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10px;letter-spacing:1.4px;margin-bottom:10px}
+
+/* Card "A continuación" */
+.lesson-next{padding:14px;border-radius:16px;gap:16px;background:var(--surface);border-color:var(--border);transition:all .18s}
+.lesson-next.is-ready:hover{border-color:color-mix(in srgb,var(--primary) 35%,var(--border));background:color-mix(in srgb,var(--primary) 3%,var(--surface));transform:translateY(-1px);box-shadow:0 10px 24px -16px rgba(10,15,35,.15)}
+.lesson-next__thumb{width:124px;height:76px;flex:0 0 124px;border-radius:12px}
+.lesson-next>span:nth-child(2){gap:5px}
+.lesson-next small{color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9.5px;letter-spacing:1.2px}
+.lesson-next strong{font-size:14px;font-weight:650;letter-spacing:-.2px}
+.lesson-next em{color:var(--text-3);font-size:11px}
+.lesson-next>.ic{width:20px;height:20px;color:var(--text-3)}
+.lesson-next.is-ready:hover>.ic{color:var(--primary)}
+
+/* Sidebar de la clase · tabs tipo VP (pills) */
+.lesson-side{position:sticky;top:16px;border-radius:20px;border-color:var(--border);box-shadow:0 12px 32px -18px rgba(10,15,35,.12)}
+.lesson-side__tabs{margin:14px;padding:5px;border-radius:14px;background:var(--surface-2);gap:4px}
+.lesson-side__tabs button{min-height:40px;border-radius:10px;font-weight:650;font-size:12.5px;color:var(--text-2);transition:all .18s}
+.lesson-side__tabs button:hover:not(.is-active){color:var(--text)}
+.lesson-side__tabs button.is-active{background:var(--surface);color:var(--text);box-shadow:0 2px 8px rgba(10,15,35,.08)}
+.lesson-side__panel{padding:4px 18px 20px}
+
+/* Lista de clases en sidebar · limpia y legible */
+.lesson-outline__item{min-height:48px;padding:11px 4px;grid-template-columns:28px minmax(0,1fr) 15px;gap:10px}
+.lesson-outline__item>span{width:24px;height:24px}
+.lesson-outline__item strong{font-size:12px;font-weight:600;line-height:1.3}
+.lesson-outline__item.is-current{background:color-mix(in srgb,var(--primary) 6%,transparent);margin:0 -8px;padding-left:10px;padding-right:10px;border-radius:10px;border-bottom:0}
+.lesson-outline__item.is-current+.lesson-outline__item{border-top:1px solid var(--border)}
+.lesson-outline__item.is-current>span{background:var(--primary);border-color:var(--primary);color:#fff}
+
+/* Notas */
+.lesson-notes>span{font-weight:650;font-size:12.5px;color:var(--text)}
+.lesson-notes textarea{min-height:300px;padding:14px;border-radius:12px;font-size:13px;line-height:1.65}
+.lesson-notes small{color:var(--text-3);font-size:10px;font-weight:500}
+
+/* Quiz placeholder */
+.lesson-side-quiz{padding:22px 6px 10px}
+.lesson-side-quiz__icon{width:56px;height:56px;border-radius:16px;background:color-mix(in srgb,var(--primary) 12%,var(--surface-2))}
+.lesson-side-quiz h3{font-weight:700;font-size:15px;letter-spacing:-.2px}
+.lesson-side-quiz p{color:var(--text-3);font-size:11px;line-height:1.6;max-width:220px}
+.lesson-side-quiz>div{border-radius:12px;padding:14px;gap:4px}
+.lesson-side-quiz>div strong{font-size:22px;font-weight:700;color:var(--text-2)}
+.lesson-side-quiz>div span{color:var(--text-3);font-size:10px;font-weight:500}
+.lesson-side-quiz>button{border-radius:10px;font-weight:700;font-size:12.5px}
+
+/* Responsive · colapsa a 1 columna en móvil manteniendo lectura cómoda */
+@media (max-width:900px){
+  .lesson-layout{grid-template-columns:1fr;gap:22px}
+  .lesson-side{position:static}
+  .course-lesson{grid-template-columns:92px minmax(0,1fr) auto;gap:12px}
+  .course-lesson__cover{width:92px;height:60px}
+}
+@media (max-width:560px){
+  .course-detail-hero{padding:26px 22px;border-radius:18px}
+  .course-detail-hero h2{font-size:30px;letter-spacing:-.8px}
+  .course-lessons{padding-left:40px}
+  .course-lessons::before{left:14px;top:28px;bottom:28px}
+  .course-lesson{grid-template-columns:80px minmax(0,1fr);padding:10px 0 10px 0;gap:10px}
+  .course-lesson__cover>b{left:-40px;width:28px;height:28px;font-size:10px}
+  .course-lesson__cover{width:80px;height:54px;border-radius:8px}
+  .course-lesson__action{display:none}
+  .course-lesson__copy strong{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;line-height:1.3}
+  .course-lesson__copy small{font-size:10.5px}
+  .course-detail-progress{padding:22px;border-radius:16px}
+  .lesson-heading{display:grid;gap:14px}
+  .lesson-complete{width:100%;justify-content:center}
+  .lesson-player{border-radius:16px}
+  .lesson-summary-card{padding:22px 18px;border-radius:16px}
+  .lesson-summary-card h2{font-size:20px}
+  .lesson-next{padding:12px;border-radius:14px;gap:12px}
+  .lesson-next__thumb{width:88px;height:60px;flex-basis:88px}
+}
 </style>
 <style id="club-refresh-2026">
 /* Club ICADEM · actualización visual 2026 */
