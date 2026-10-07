@@ -7408,26 +7408,51 @@ const Sections = (function(){
   }
 
   function _retosCasosListHtml(st){
-    return `<div class="retos-sub">
+    const total = ICADEM_RETOS_CASOS.length;
+    const hechos = Object.keys(st.casosCompletados || {}).length;
+    const pendientes = total - hechos;
+    const avancePct = total ? Math.round((hechos / total) * 100) : 0;
+    const areas = Array.from(new Set(ICADEM_RETOS_CASOS.map(c=>c.area)));
+    return `<div class="retos-sub retos-sub--casos">
       <button type="button" class="retos-back" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Volver</button>
-      <div class="retos-sub__head"><div><span class="retos-head__eyebrow">Simulador profesional</span><h2>Casos de obra fiscal</h2><p>Decisiones encadenadas con explicación técnica inmediata.</p></div></div>
+      <header class="retos-interior-head">
+        <div class="retos-interior-head__copy">
+          <span class="retos-head__eyebrow">Simulador profesional</span>
+          <h2>Casos de obra fiscal</h2>
+          <p>Expedientes reales con decisiones encadenadas. Elige una ruta, recibe la justificación técnica y mide tu criterio.</p>
+        </div>
+        <div class="retos-interior-head__stats" role="group" aria-label="Resumen del catálogo">
+          <div class="retos-stat"><strong>${total}</strong><small>Expedientes</small></div>
+          <div class="retos-stat retos-stat--accent"><strong>${hechos}</strong><small>Resueltos</small></div>
+          <div class="retos-stat"><strong>${pendientes}</strong><small>Pendientes</small></div>
+          <div class="retos-stat retos-stat--bar"><strong>${avancePct}%</strong><small>Avance</small><i><span style="width:${avancePct}%"></span></i></div>
+        </div>
+      </header>
+      <div class="retos-area-legend" aria-hidden="true">
+        <span class="retos-area-legend__kicker">Áreas</span>
+        ${areas.map(a => `<span class="retos-area-chip" data-area="${_htmlEscRet(a)}"><i></i>${_htmlEscRet(a)}</span>`).join('')}
+      </div>
       <div class="retos-casos-grid">
         ${ICADEM_RETOS_CASOS.map((c, i) => {
           const done = st.casosCompletados && st.casosCompletados[c.id];
-          return `<article class="retos-caso-card ${done?'is-complete':''}" data-retos-caso-id="${_htmlEscRet(c.id)}">
+          return `<article class="retos-caso-card ${done?'is-complete':''}" data-area="${_htmlEscRet(c.area)}" data-retos-caso-id="${_htmlEscRet(c.id)}">
+            <div class="retos-caso-card__art" aria-hidden="true"><i></i></div>
             <div class="retos-caso-card__top">
-              <b>${String(i+1).padStart(2,'0')}</b>
+              <b class="retos-caso-card__num">${String(i+1).padStart(2,'0')}</b>
               <span class="retos-caso-card__area">${_htmlEscRet(c.area)}</span>
               ${done ? '<em class="retos-caso-card__done"><svg class="ic"><use href="#i-check"/></svg> Resuelto</em>' : ''}
             </div>
             <h3>${_htmlEscRet(c.titulo)}</h3>
             <p>${_htmlEscRet(c.escenario)}</p>
             <div class="retos-caso-card__meta">
-              <span>${_htmlEscRet(c.dificultad)}</span>
-              <span>${_htmlEscRet(c.duracion)}</span>
-              <span>${c.pasos.length} decisiones</span>
+              <span><svg class="ic"><use href="#i-trophy"/></svg>${_htmlEscRet(c.dificultad)}</span>
+              <span><svg class="ic"><use href="#i-clock"/></svg>${_htmlEscRet(c.duracion)}</span>
+              <span><svg class="ic"><use href="#i-check"/></svg>${c.pasos.length} decisiones</span>
             </div>
-            <button type="button" class="retos-caso-card__cta">${done?'Revisar nuevamente':'Abrir expediente'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            <div class="retos-caso-card__foot">
+              <span class="retos-caso-card__cue">${done?'Expediente revisable':'Toca para abrir el expediente'}</span>
+              <button type="button" class="retos-caso-card__cta">${done?'Revisar':'Abrir'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            </div>
           </article>`;
         }).join('')}
       </div>
@@ -7441,23 +7466,31 @@ const Sections = (function(){
     const total = c.pasos.length;
     const idx = __retosCurrentCasoStep;
     const answer = __retosCurrentCasoAnswer;
-    const correcta = paso.correcta;
+    const correcta = paso ? paso.correcta : -1;
     const terminado = idx >= total;
 
     if (terminado) {
       const pct = Math.round((__retosCurrentCasoScore / total) * 100);
       const aprobado = pct >= 67;
-      return `<div class="retos-sub">
+      return `<div class="retos-sub retos-sub--result">
         <button type="button" class="retos-back" data-retos-nav="casos"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Casos de obra</button>
         <section class="retos-caso-result ${aprobado?'is-pass':'is-retry'}">
-          <div class="retos-caso-result__score"><strong>${pct}%</strong><span>${__retosCurrentCasoScore} de ${total} correctas</span></div>
+          <div class="retos-caso-result__scorewrap">
+            <div class="retos-caso-result__score"><strong>${pct}%</strong><span>${__retosCurrentCasoScore} / ${total} correctas</span></div>
+            <div class="retos-caso-result__ribbon">${aprobado?'Expediente resuelto':'Pendiente de revisión'}</div>
+          </div>
           <div class="retos-caso-result__body">
-            <span class="retos-head__eyebrow">${aprobado?'Expediente resuelto':'Repasa y vuelve a intentarlo'}</span>
+            <span class="retos-head__eyebrow">${_htmlEscRet(c.area)} · ${_htmlEscRet(c.dificultad)}</span>
             <h2>${_htmlEscRet(c.titulo)}</h2>
-            <p>${aprobado ? 'Tomaste decisiones consistentes y trazables en todo el caso. Suma XP y la racha avanza.' : 'El expediente queda registrado. Revisa las explicaciones y vuelve a intentarlo para consolidar el criterio.'}</p>
+            <p>${aprobado ? 'Tomaste decisiones consistentes y trazables en todo el caso. Suma XP y tu racha avanza.' : 'El expediente queda registrado. Revisa las explicaciones y vuelve a intentarlo para consolidar el criterio.'}</p>
+            <ul class="retos-caso-result__chips">
+              <li><svg class="ic"><use href="#i-trophy"/></svg><span>+${total*5} XP sumados</span></li>
+              <li><svg class="ic"><use href="#i-check"/></svg><span>${total} decisiones evaluadas</span></li>
+              <li><svg class="ic"><use href="#i-book"/></svg><span>Explicación técnica detrás de cada opción</span></li>
+            </ul>
           </div>
           <div class="retos-caso-result__actions">
-            <button type="button" class="btn btn--primary" data-retos-caso-restart>Repetir caso</button>
+            <button type="button" class="btn btn--primary" data-retos-caso-restart>Repetir caso<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             <button type="button" class="btn btn--ghost" data-retos-nav="casos">Otro expediente</button>
           </div>
         </section>
@@ -7472,32 +7505,63 @@ const Sections = (function(){
       }
       return `<button type="button" class="retos-caso-opt ${cls}" ${answer!=null?'disabled':''} data-retos-caso-answer="${i}">
         <b>${String.fromCharCode(65+i)}</b><span>${_htmlEscRet(opc)}</span>
+        <em class="retos-caso-opt__mark" aria-hidden="true"></em>
       </button>`;
     }).join('');
 
+    const stepDots = Array.from({length: total}).map((_, i) => {
+      const state = i < idx ? 'is-done' : (i === idx ? 'is-current' : '');
+      return `<li class="${state}"><b>${i+1}</b><span>Decisión ${i+1}</span></li>`;
+    }).join('');
+
     const feedback = answer != null ? `<div class="retos-caso-feedback ${answer===correcta?'is-correct':'is-wrong'}">
-      <strong>${answer===correcta?'Decisión correcta':'Decisión por revisar'}</strong>
+      <header>
+        <span class="retos-caso-feedback__badge"><svg class="ic"><use href="#${answer===correcta?'i-check':'i-shield-check'}"/></svg></span>
+        <div>
+          <strong>${answer===correcta?'Decisión correcta':'Decisión por revisar'}</strong>
+          <small>${answer===correcta?'Buen criterio técnico aplicado.':'Repasa la justificación y continúa.'}</small>
+        </div>
+      </header>
       <p>${_htmlEscRet(paso.explicacion)}</p>
       <button type="button" class="btn btn--primary" data-retos-caso-next>${idx === total-1 ? 'Cerrar expediente' : 'Siguiente decisión'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
     </div>` : '';
 
-    return `<div class="retos-sub">
+    return `<div class="retos-sub retos-sub--run">
       <button type="button" class="retos-back" data-retos-nav="casos"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Expedientes</button>
-      <section class="retos-caso-run">
-        <header>
-          <div><span class="retos-head__eyebrow">${_htmlEscRet(c.area)} · ${_htmlEscRet(c.dificultad)}</span><h2>${_htmlEscRet(c.titulo)}</h2></div>
-          <b class="retos-caso-run__count">${idx+1}/${total}</b>
-        </header>
-        <div class="retos-caso-run__bar"><i style="width:${((idx+1)/total)*100}%"></i></div>
-        <div class="retos-caso-run__scenario">
-          <span>Situación</span>
-          <p>${_htmlEscRet(c.escenario)}</p>
-          <small><b>Objetivo:</b> ${_htmlEscRet(c.objetivo)}</small>
-        </div>
-        <h3 class="retos-caso-run__q">${_htmlEscRet(paso.prompt)}</h3>
-        <div class="retos-caso-opts">${opciones}</div>
-        ${feedback}
-      </section>
+      <div class="retos-run-shell">
+        <main class="retos-caso-run" data-area="${_htmlEscRet(c.area)}">
+          <header class="retos-caso-run__head">
+            <div class="retos-caso-run__area"><i></i>${_htmlEscRet(c.area)}</div>
+            <h2>${_htmlEscRet(c.titulo)}</h2>
+            <div class="retos-caso-run__meta"><span><svg class="ic"><use href="#i-trophy"/></svg>${_htmlEscRet(c.dificultad)}</span><span><svg class="ic"><use href="#i-clock"/></svg>${_htmlEscRet(c.duracion)}</span><span><svg class="ic"><use href="#i-check"/></svg>${total} decisiones</span></div>
+          </header>
+          <div class="retos-caso-run__bar"><i style="width:${((idx+1)/total)*100}%"></i></div>
+          <div class="retos-caso-run__scenario">
+            <span class="retos-caso-run__kicker">Expediente · Situación</span>
+            <p>${_htmlEscRet(c.escenario)}</p>
+            <small><b>Objetivo profesional:</b> ${_htmlEscRet(c.objetivo)}</small>
+          </div>
+          <div class="retos-caso-run__question">
+            <span class="retos-caso-run__qnum">Decisión ${idx+1}</span>
+            <h3 class="retos-caso-run__q">${_htmlEscRet(paso.prompt)}</h3>
+          </div>
+          <div class="retos-caso-opts">${opciones}</div>
+          ${feedback}
+        </main>
+        <aside class="retos-run-aside">
+          <section class="retos-run-aside__card">
+            <span class="retos-run-aside__kicker">Progreso del caso</span>
+            <strong class="retos-run-aside__count">${idx+1}<em> / ${total}</em></strong>
+            <small>Decisiones registradas</small>
+            <ol class="retos-run-aside__steps">${stepDots}</ol>
+          </section>
+          <section class="retos-run-aside__card retos-run-aside__card--soft">
+            <span class="retos-run-aside__kicker">Metodología</span>
+            <p>Lee la situación completa, elige la actuación profesional y revisa la razón técnica. No hay castigo por errar: cada paso suma criterio.</p>
+          </section>
+          <button type="button" class="retos-run-aside__exit" data-retos-nav="casos"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Guardar y salir</button>
+        </aside>
+      </div>
     </div>`;
   }
 
@@ -7510,38 +7574,69 @@ const Sections = (function(){
     const st = getRetosState();
     const dominadas = (st.flashcardsDominadas || []).length;
     const total = ICADEM_RETOS_FLASHCARDS.length;
+    const dominioPct = total ? Math.round((dominadas/total)*100) : 0;
+    const esDominada = (st.flashcardsDominadas || []).includes(card.id);
+    const dots = deck.map((_, i) => `<span class="${i===__retosFlashIdx?'is-current':''}"></span>`).join('');
 
-    return `<div class="retos-sub">
+    return `<div class="retos-sub retos-sub--flash">
       <button type="button" class="retos-back" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Volver</button>
-      <div class="retos-sub__head">
-        <div><span class="retos-head__eyebrow">Repaso rápido</span><h2>Flashcards técnicas</h2><p>Filtra por área, voltea la tarjeta y marca tu nivel de dominio.</p></div>
-        <small class="retos-head__count">${dominadas}/${total} dominadas</small>
-      </div>
-      <div class="retos-flash-filter">
-        ${areas.map(a => `<button type="button" class="${a===__retosFlashArea?'is-active':''}" data-retos-flash-area="${_htmlEscRet(a)}">${_htmlEscRet(a)}</button>`).join('')}
-      </div>
-      <section class="retos-flashcard ${__retosFlashFlipped?'is-flipped':''}">
-        <div class="retos-flashcard__inner">
-          <div class="retos-flashcard__face retos-flashcard__front">
-            <div class="retos-flashcard__top"><span class="retos-flashcard__area">${_htmlEscRet(card.area)}</span><span class="retos-flashcard__count">${__retosFlashIdx+1} / ${deck.length}</span></div>
-            <div class="retos-flashcard__main">
-              <h3>${_htmlEscRet(card.termino)}</h3>
-              <p>Identifica este término</p>
-              <button type="button" class="btn btn--primary retos-flashcard__flip" data-retos-flash-flip>Mostrar definición<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-            </div>
-          </div>
-          <div class="retos-flashcard__face retos-flashcard__back">
-            <span class="retos-flashcard__area">${_htmlEscRet(card.area)}</span>
-            <h4>${_htmlEscRet(card.termino)}</h4>
-            <p>${_htmlEscRet(card.definicion)}</p>
-            <div class="retos-flashcard__rate">
-              <button type="button" data-retos-flash-rate="repasar"><span>↻</span>Repasar</button>
-              <button type="button" data-retos-flash-rate="entendido"><span>☺</span>Entendido</button>
-              <button type="button" data-retos-flash-rate="dominado"><span>★</span>Dominado</button>
-            </div>
-          </div>
+      <header class="retos-interior-head">
+        <div class="retos-interior-head__copy">
+          <span class="retos-head__eyebrow">Repaso rápido</span>
+          <h2>Flashcards técnicas</h2>
+          <p>Voltea cada tarjeta, lee la definición y marca tu nivel de dominio. El progreso se guarda al momento.</p>
         </div>
-      </section>
+        <div class="retos-interior-head__stats">
+          <div class="retos-stat"><strong>${total}</strong><small>Tarjetas</small></div>
+          <div class="retos-stat retos-stat--accent"><strong>${dominadas}</strong><small>Dominadas</small></div>
+          <div class="retos-stat retos-stat--bar"><strong>${dominioPct}%</strong><small>Dominio</small><i><span style="width:${dominioPct}%"></span></i></div>
+        </div>
+      </header>
+      <nav class="retos-flash-filter" aria-label="Filtrar por área">
+        ${areas.map(a => `<button type="button" class="${a===__retosFlashArea?'is-active':''}" data-retos-flash-area="${_htmlEscRet(a)}">${_htmlEscRet(a)}</button>`).join('')}
+      </nav>
+      <div class="retos-flash-deck">
+        <button type="button" class="retos-flash-nav retos-flash-nav--prev" data-retos-flash-prev aria-label="Tarjeta anterior" ${deck.length<=1?'disabled':''}><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></button>
+        <section class="retos-flashcard ${__retosFlashFlipped?'is-flipped':''}" data-area="${_htmlEscRet(card.area)}">
+          <div class="retos-flashcard__inner">
+            <div class="retos-flashcard__face retos-flashcard__front">
+              <div class="retos-flashcard__top">
+                <span class="retos-flashcard__area">${_htmlEscRet(card.area)}</span>
+                <span class="retos-flashcard__count">${__retosFlashIdx+1} <em>/ ${deck.length}</em></span>
+              </div>
+              <div class="retos-flashcard__main">
+                <span class="retos-flashcard__kicker">Identifica el término</span>
+                <h3>${_htmlEscRet(card.termino)}</h3>
+                ${esDominada ? '<span class="retos-flashcard__badge"><svg class="ic"><use href="#i-check"/></svg> Dominada</span>' : ''}
+                <button type="button" class="btn btn--primary retos-flashcard__flip" data-retos-flash-flip>Mostrar definición<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+              </div>
+              <footer class="retos-flashcard__hint">
+                <span><svg class="ic"><use href="#i-book"/></svg>Explicación técnica al reverso</span>
+              </footer>
+            </div>
+            <div class="retos-flashcard__face retos-flashcard__back">
+              <div class="retos-flashcard__top">
+                <span class="retos-flashcard__area">${_htmlEscRet(card.area)}</span>
+                <button type="button" class="retos-flashcard__flipback" data-retos-flash-flip><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Volver</button>
+              </div>
+              <div class="retos-flashcard__back-body">
+                <span class="retos-flashcard__term">${_htmlEscRet(card.termino)}</span>
+                <p>${_htmlEscRet(card.definicion)}</p>
+              </div>
+              <div class="retos-flashcard__rate">
+                <small>¿Qué tan bien dominas este término?</small>
+                <div class="retos-flashcard__rate-row">
+                  <button type="button" data-retos-flash-rate="repasar"><span>↻</span><em>Repasar</em></button>
+                  <button type="button" data-retos-flash-rate="entendido"><span>☺</span><em>Entendido</em></button>
+                  <button type="button" data-retos-flash-rate="dominado"><span>★</span><em>Dominado</em></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+        <button type="button" class="retos-flash-nav retos-flash-nav--next" data-retos-flash-next aria-label="Tarjeta siguiente" ${deck.length<=1?'disabled':''}><svg class="ic"><use href="#i-arrow-right"/></svg></button>
+      </div>
+      <div class="retos-flash-dots" aria-hidden="true">${dots}</div>
     </div>`;
   }
 
@@ -7560,20 +7655,56 @@ const Sections = (function(){
     const st = getRetosState();
     const mejor = st.mejorQuiz || 0;
     const intentos = st.quizCompletados || 0;
-    return `<div class="retos-sub">
+    const areas = Array.from(new Set(ICADEM_RETOS_QUIZ_BANK.map(q=>q.area)));
+    return `<div class="retos-sub retos-sub--quiz-intro">
       <button type="button" class="retos-back" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Volver</button>
       <section class="retos-quiz-intro">
-        <div class="retos-quiz-intro__visual"><span><svg class="ic"><use href="#i-bolt"/></svg></span></div>
-        <span class="retos-head__eyebrow">Quiz express ICADEM</span>
-        <h2>Pon a prueba lo que sabes</h2>
-        <p>Doce preguntas aleatorias del banco técnico. Después de cada una recibirás una explicación para reforzar el concepto.</p>
-        <div class="retos-quiz-intro__facts">
-          <span><b>12</b><small>preguntas</small></span>
-          <span><b>~5 min</b><small>duración</small></span>
-          <span><b>70%</b><small>para aprobar</small></span>
+        <div class="retos-quiz-intro__visual">
+          <span class="retos-quiz-intro__badge"><svg class="ic"><use href="#i-bolt"/></svg></span>
+          <span class="retos-head__eyebrow">Quiz express ICADEM</span>
+          <h2>Pon a prueba lo que sabes</h2>
+          <p>Doce preguntas aleatorias del banco técnico de ICADEM. Después de cada respuesta recibirás una explicación para reforzar el concepto.</p>
+          <button type="button" class="btn btn--primary btn--lg retos-quiz-intro__cta" data-retos-quiz-start>Comenzar quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          <small class="retos-quiz-intro__legal">Puedes repetir el quiz las veces que quieras · tu mejor marca queda guardada.</small>
         </div>
-        ${intentos ? `<div class="retos-quiz-intro__record"><span>Tu mejor resultado</span><strong>${mejor}% · ${intentos} intento${intentos===1?'':'s'}</strong></div>` : '<div class="retos-quiz-intro__reward"><span><strong>+25 XP</strong> al aprobar por primera vez</span></div>'}
-        <button type="button" class="btn btn--primary btn--lg" data-retos-quiz-start>Comenzar quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+        <aside class="retos-quiz-intro__side">
+          <div class="retos-quiz-intro__facts">
+            <div class="retos-quiz-intro__fact">
+              <b>12</b>
+              <small>Preguntas</small>
+              <em>Mezcla aleatoria</em>
+            </div>
+            <div class="retos-quiz-intro__fact">
+              <b>~5 min</b>
+              <small>Duración</small>
+              <em>Sin reloj a cuenta</em>
+            </div>
+            <div class="retos-quiz-intro__fact">
+              <b>70%</b>
+              <small>Para aprobar</small>
+              <em>Umbral profesional</em>
+            </div>
+            <div class="retos-quiz-intro__fact">
+              <b>+25<i>XP</i></b>
+              <small>Recompensa</small>
+              <em>Al aprobar por 1ª vez</em>
+            </div>
+          </div>
+          <div class="retos-quiz-intro__areas">
+            <span class="retos-quiz-intro__areas-kicker">Preguntas de todas estas áreas</span>
+            <div class="retos-quiz-intro__areas-chips">
+              ${areas.map(a => `<span class="retos-area-chip" data-area="${_htmlEscRet(a)}"><i></i>${_htmlEscRet(a)}</span>`).join('')}
+            </div>
+          </div>
+          ${intentos ? `<div class="retos-quiz-intro__record">
+            <span>Tu mejor marca</span>
+            <strong>${mejor}%</strong>
+            <small>${intentos} intento${intentos===1?'':'s'} registrado${intentos===1?'':'s'}</small>
+          </div>` : `<div class="retos-quiz-intro__reward">
+            <span><svg class="ic"><use href="#i-trophy"/></svg></span>
+            <div><strong>Primera vez</strong><small>Al aprobar sumas +25 XP y desbloqueas tu racha.</small></div>
+          </div>`}
+        </aside>
       </section>
     </div>`;
   }
@@ -7584,7 +7715,6 @@ const Sections = (function(){
     if (idx >= total) return _retosQuizResultHtml();
     const q = __retosQuizQuestions[idx];
     const answer = __retosQuizAnswer;
-    const pct = Math.round(((idx) / total) * 100);
     const opciones = q.opciones.map((opc, i) => {
       let cls = '';
       if (answer != null) {
@@ -7593,24 +7723,57 @@ const Sections = (function(){
       }
       return `<button type="button" class="retos-caso-opt ${cls}" ${answer!=null?'disabled':''} data-retos-quiz-answer="${i}">
         <b>${String.fromCharCode(65+i)}</b><span>${_htmlEscRet(opc)}</span>
+        <em class="retos-caso-opt__mark" aria-hidden="true"></em>
       </button>`;
     }).join('');
-    return `<div class="retos-sub">
+    const quizDots = __retosQuizQuestions.map((_, i) => {
+      const state = i < idx ? 'is-done' : (i === idx ? 'is-current' : '');
+      return `<span class="${state}"></span>`;
+    }).join('');
+    const marcaRequerida = Math.ceil(total * 0.7);
+    const vanBien = __retosQuizScore;
+    return `<div class="retos-sub retos-sub--run">
       <button type="button" class="retos-back" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Salir del quiz</button>
-      <section class="retos-caso-run">
-        <header>
-          <div><span class="retos-head__eyebrow">${_htmlEscRet(q.area)}</span><h2>Pregunta ${idx+1} de ${total}</h2></div>
-          <b class="retos-caso-run__count">${idx+1}/${total}</b>
-        </header>
-        <div class="retos-caso-run__bar"><i style="width:${((idx+1)/total)*100}%"></i></div>
-        <h3 class="retos-caso-run__q">${_htmlEscRet(q.pregunta)}</h3>
-        <div class="retos-caso-opts">${opciones}</div>
-        ${answer != null ? `<div class="retos-caso-feedback ${answer===q.correcta?'is-correct':'is-wrong'}">
-          <strong>${answer===q.correcta?'Correcta':'Incorrecta'}</strong>
-          <p>${q.explicacion ? _htmlEscRet(q.explicacion) : (answer===q.correcta ? 'Buen criterio técnico.' : 'La respuesta correcta era la marcada en verde.')}</p>
-          <button type="button" class="btn btn--primary" data-retos-quiz-next>${idx===total-1?'Ver resultado':'Siguiente pregunta'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-        </div>` : ''}
-      </section>
+      <div class="retos-run-shell">
+        <main class="retos-caso-run" data-area="${_htmlEscRet(q.area)}">
+          <header class="retos-caso-run__head">
+            <div class="retos-caso-run__area"><i></i>${_htmlEscRet(q.area)}</div>
+            <h2>Pregunta ${idx+1} <em>de ${total}</em></h2>
+            <div class="retos-caso-run__meta"><span><svg class="ic"><use href="#i-bolt"/></svg>Quiz express</span><span><svg class="ic"><use href="#i-check"/></svg>70% para aprobar</span></div>
+          </header>
+          <div class="retos-caso-run__bar"><i style="width:${((idx+1)/total)*100}%"></i></div>
+          <div class="retos-caso-run__question">
+            <span class="retos-caso-run__qnum">Pregunta ${idx+1}</span>
+            <h3 class="retos-caso-run__q">${_htmlEscRet(q.pregunta)}</h3>
+          </div>
+          <div class="retos-caso-opts">${opciones}</div>
+          ${answer != null ? `<div class="retos-caso-feedback ${answer===q.correcta?'is-correct':'is-wrong'}">
+            <header>
+              <span class="retos-caso-feedback__badge"><svg class="ic"><use href="#${answer===q.correcta?'i-check':'i-shield-check'}"/></svg></span>
+              <div>
+                <strong>${answer===q.correcta?'Respuesta correcta':'Respuesta por revisar'}</strong>
+                <small>${answer===q.correcta?'Suma 1 punto al marcador.':'La correcta está marcada en verde.'}</small>
+              </div>
+            </header>
+            <p>${q.explicacion ? _htmlEscRet(q.explicacion) : (answer===q.correcta ? 'Buen criterio técnico.' : 'Repasa esta área en flashcards para consolidar.')}</p>
+            <button type="button" class="btn btn--primary" data-retos-quiz-next>${idx===total-1?'Ver resultado':'Siguiente pregunta'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          </div>` : ''}
+        </main>
+        <aside class="retos-run-aside">
+          <section class="retos-run-aside__card">
+            <span class="retos-run-aside__kicker">Avance del quiz</span>
+            <strong class="retos-run-aside__count">${idx+1}<em> / ${total}</em></strong>
+            <small>Preguntas respondidas</small>
+            <div class="retos-run-aside__dots">${quizDots}</div>
+          </section>
+          <section class="retos-run-aside__card retos-run-aside__card--soft">
+            <span class="retos-run-aside__kicker">Marcador</span>
+            <strong class="retos-run-aside__big">${vanBien}<em> correctas</em></strong>
+            <small>Mínimo ${marcaRequerida} para aprobar · tu umbral del 70%.</small>
+          </section>
+          <button type="button" class="retos-run-aside__exit" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Guardar y salir</button>
+        </aside>
+      </div>
     </div>`;
   }
 
@@ -7618,18 +7781,27 @@ const Sections = (function(){
     const total = __retosQuizQuestions.length || 12;
     const pct = total > 0 ? Math.round((__retosQuizScore / total) * 100) : 0;
     const aprobado = pct >= 70;
-    return `<div class="retos-sub">
+    return `<div class="retos-sub retos-sub--result">
       <button type="button" class="retos-back" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Volver</button>
       <section class="retos-caso-result ${aprobado?'is-pass':'is-retry'}">
-        <div class="retos-caso-result__score"><strong>${pct}%</strong><span>${__retosQuizScore} de ${total} correctas</span></div>
+        <div class="retos-caso-result__scorewrap">
+          <div class="retos-caso-result__score"><strong>${pct}%</strong><span>${__retosQuizScore} / ${total} correctas</span></div>
+          <div class="retos-caso-result__ribbon">${aprobado?'Quiz aprobado':'Pendiente de repaso'}</div>
+        </div>
         <div class="retos-caso-result__body">
-          <span class="retos-head__eyebrow">${aprobado?'Quiz aprobado':'Repasa y vuelve a intentarlo'}</span>
-          <h2>${aprobado ? '¡Buen criterio!' : 'Casi lo logras'}</h2>
+          <span class="retos-head__eyebrow">Quiz express ICADEM</span>
+          <h2>${aprobado ? '¡Buen criterio profesional!' : 'Casi lo logras'}</h2>
           <p>${aprobado ? 'Dominas los conceptos básicos. Suma XP, mantén la racha y pasa al siguiente nivel con los casos de obra.' : 'Revisa las flashcards del área que te costó más y vuelve al quiz. La práctica consolida el criterio.'}</p>
+          <ul class="retos-caso-result__chips">
+            <li><svg class="ic"><use href="#i-trophy"/></svg><span>${aprobado?'+25 XP sumados':'+5 XP por intento'}</span></li>
+            <li><svg class="ic"><use href="#i-check"/></svg><span>${__retosQuizScore} de ${total} aciertos</span></li>
+            <li><svg class="ic"><use href="#i-book"/></svg><span>Explicación detrás de cada respuesta</span></li>
+          </ul>
         </div>
         <div class="retos-caso-result__actions">
-          <button type="button" class="btn btn--primary" data-retos-quiz-restart>Nuevo quiz</button>
+          <button type="button" class="btn btn--primary" data-retos-quiz-restart>Nuevo quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>
           <button type="button" class="btn btn--ghost" data-retos-nav="flashcards">Repasar flashcards</button>
+          <button type="button" class="btn btn--ghost" data-retos-nav="casos">Casos de obra</button>
         </div>
       </section>
     </div>`;
@@ -7698,13 +7870,26 @@ const Sections = (function(){
       __retosFlashFlipped = false;
       _renderRetosShell(container);
     }));
-    container.querySelector('[data-retos-flash-flip]')?.addEventListener('click', () => {
-      __retosFlashFlipped = true;
+    container.querySelectorAll('[data-retos-flash-flip]').forEach(b => b.addEventListener('click', () => {
+      __retosFlashFlipped = !__retosFlashFlipped;
+      _renderRetosShell(container);
+    }));
+    const _flashDeck = () => __retosFlashArea === 'Todas' ? ICADEM_RETOS_FLASHCARDS : ICADEM_RETOS_FLASHCARDS.filter(f=>f.area===__retosFlashArea);
+    container.querySelector('[data-retos-flash-prev]')?.addEventListener('click', () => {
+      const deck = _flashDeck(); if (deck.length === 0) return;
+      __retosFlashIdx = (__retosFlashIdx - 1 + deck.length) % deck.length;
+      __retosFlashFlipped = false;
+      _renderRetosShell(container);
+    });
+    container.querySelector('[data-retos-flash-next]')?.addEventListener('click', () => {
+      const deck = _flashDeck(); if (deck.length === 0) return;
+      __retosFlashIdx = (__retosFlashIdx + 1) % deck.length;
+      __retosFlashFlipped = false;
       _renderRetosShell(container);
     });
     container.querySelectorAll('[data-retos-flash-rate]').forEach(btn => btn.addEventListener('click', () => {
       const rate = btn.dataset.retosFlashRate;
-      const deck = __retosFlashArea === 'Todas' ? ICADEM_RETOS_FLASHCARDS : ICADEM_RETOS_FLASHCARDS.filter(f=>f.area===__retosFlashArea);
+      const deck = _flashDeck();
       const card = deck[__retosFlashIdx];
       if (!card) return;
       if (rate === 'dominado') marcarRetoCompletado('flashcard-dominada', card.id, 5);
@@ -18835,6 +19020,251 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-tile__badge{ width: 44px; height: 44px; border-radius: 12px; }
   .retos-tile__badge .ic{ width: 20px; height: 20px; }
   .retos-misioncard, .retos-methodcard{ padding: 18px; }
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   RETOS · pulido interior (lista casos, caso run, flashcards, quiz)
+   Añadido al final para ganar la cascada sobre reglas previas.
+   ═════════════════════════════════════════════════════════════════════ */
+:root{
+  --rt-area-fiscal: #2f6fb5;
+  --rt-area-contabilidad: #c7871a;
+  --rt-area-nomina: #8b5cf6;
+  --rt-area-legal: #c9463d;
+  --rt-area-rh: #0f766e;
+  --rt-area-finanzas: #d97706;
+}
+.retos-caso-card[data-area="Fiscal"], .retos-flashcard[data-area="Fiscal"], .retos-caso-run[data-area="Fiscal"], .retos-area-chip[data-area="Fiscal"] i{ --rt-area: var(--rt-area-fiscal); }
+.retos-caso-card[data-area="Contabilidad"], .retos-flashcard[data-area="Contabilidad"], .retos-caso-run[data-area="Contabilidad"], .retos-area-chip[data-area="Contabilidad"] i{ --rt-area: var(--rt-area-contabilidad); }
+.retos-caso-card[data-area="Nómina"], .retos-flashcard[data-area="Nómina"], .retos-caso-run[data-area="Nómina"], .retos-area-chip[data-area="Nómina"] i{ --rt-area: var(--rt-area-nomina); }
+.retos-caso-card[data-area="Legal"], .retos-flashcard[data-area="Legal"], .retos-caso-run[data-area="Legal"], .retos-area-chip[data-area="Legal"] i{ --rt-area: var(--rt-area-legal); }
+.retos-caso-card[data-area="RH"], .retos-flashcard[data-area="RH"], .retos-caso-run[data-area="RH"], .retos-area-chip[data-area="RH"] i{ --rt-area: var(--rt-area-rh); }
+.retos-caso-card[data-area="Finanzas"], .retos-flashcard[data-area="Finanzas"], .retos-caso-run[data-area="Finanzas"], .retos-area-chip[data-area="Finanzas"] i{ --rt-area: var(--rt-area-finanzas); }
+
+/* ── Header editorial de secciones interiores ────────────────────── */
+.retos-interior-head{ display:grid; grid-template-columns: minmax(0,1fr) auto; gap: 28px; align-items: end; padding: 4px 2px 10px; border-bottom: 1px solid var(--border); }
+.retos-interior-head__copy h2{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 760; font-size: clamp(26px, 2.1vw, 32px); letter-spacing: -0.8px; margin: 6px 0 6px; color: var(--text); line-height: 1.12; }
+.retos-interior-head__copy p{ color: var(--text-2); font-size: 14px; line-height: 1.6; margin: 0; max-width: 620px; }
+.retos-interior-head__stats{ display:flex; gap: 14px; flex-wrap: wrap; }
+.retos-stat{ position: relative; min-width: 92px; padding: 14px 18px 12px; border-radius: 14px; border: 1px solid var(--border); background: var(--surface); box-shadow: 0 1px 2px rgba(27,31,51,.03); display: grid; gap: 2px; }
+.retos-stat strong{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 760; font-size: 24px; letter-spacing: -0.6px; color: var(--text); line-height: 1; }
+.retos-stat small{ color: var(--text-3); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 9.5px; letter-spacing: 1.1px; text-transform: uppercase; }
+.retos-stat--accent{ background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 10%, var(--surface)), var(--surface)); border-color: color-mix(in srgb, var(--primary) 28%, var(--border)); }
+.retos-stat--accent strong{ color: var(--primary); }
+.retos-stat--bar{ min-width: 150px; }
+.retos-stat--bar i{ grid-column: 1 / -1; display: block; height: 4px; margin-top: 8px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 10%, var(--surface-2)); overflow: hidden; }
+.retos-stat--bar i span{ display: block; height: 100%; background: linear-gradient(90deg, var(--primary), color-mix(in srgb, var(--primary) 55%, var(--accent, #4fa899))); border-radius: 999px; transition: width .4s cubic-bezier(.2,.7,.2,1); }
+
+/* ── Leyenda de áreas (chips) ────────────────────────────────────── */
+.retos-area-legend{ display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 2px 4px; }
+.retos-area-legend__kicker{ color: var(--text-3); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; margin-right: 6px; }
+.retos-area-chip{ display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); color: var(--text-2); font-size: 12px; font-weight: 600; }
+.retos-area-chip i{ width: 10px; height: 10px; border-radius: 50%; background: var(--rt-area, var(--primary)); display: inline-block; }
+
+/* ── Casos list · tarjetas enriquecidas ──────────────────────────── */
+.retos-sub--casos .retos-casos-grid{ grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px; }
+.retos-caso-card{ position: relative; overflow: hidden; padding: 24px 22px 20px; gap: 10px; }
+.retos-caso-card__art{ position: absolute; inset: 0 0 auto 0; height: 6px; background: var(--rt-area, var(--primary)); opacity: .82; }
+.retos-caso-card__art i{ display: block; height: 100%; background: linear-gradient(90deg, var(--rt-area, var(--primary)), color-mix(in srgb, var(--rt-area, var(--primary)) 55%, white)); }
+.retos-caso-card::after{ content:''; position: absolute; right: -40px; top: -40px; width: 160px; height: 160px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--rt-area, var(--primary)) 10%, transparent), transparent 70%); pointer-events: none; opacity: .9; transition: opacity .2s; }
+.retos-caso-card:hover::after{ opacity: 1; }
+.retos-caso-card__num{ font-family:'Outfit','Plus Jakarta Sans',sans-serif !important; font-weight: 800 !important; font-size: 13px !important; min-width: 36px; height: 28px; background: color-mix(in srgb, var(--rt-area, var(--primary)) 10%, var(--surface-2)) !important; color: var(--rt-area, var(--primary)) !important; letter-spacing: 0 !important; }
+.retos-caso-card__area{ background: color-mix(in srgb, var(--rt-area, var(--primary)) 13%, transparent) !important; color: var(--rt-area, var(--primary)) !important; }
+.retos-caso-card h3{ margin-top: 4px; font-size: 17.5px; line-height: 1.22; letter-spacing: -0.4px; }
+.retos-caso-card__meta{ margin-top: 4px; gap: 6px; }
+.retos-caso-card__meta span{ display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; background: var(--surface-2); border: 1px solid var(--border); font-size: 10.5px; letter-spacing: .3px; color: var(--text-2); font-family:'JetBrains Mono',monospace; font-weight: 700; }
+.retos-caso-card__meta .ic{ width: 11px; height: 11px; opacity: .7; }
+.retos-caso-card__foot{ margin-top: auto; padding-top: 14px; border-top: 1px dashed var(--border); display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 10px; align-items: center; }
+.retos-caso-card__cue{ color: var(--text-3); font-size: 11.5px; line-height: 1.3; }
+.retos-caso-card__cta{ min-height: 36px; padding: 0 14px; margin-top: 0; font-size: 12px; letter-spacing: .1px; }
+.retos-caso-card:hover .retos-caso-card__cta{ background: var(--rt-area, var(--primary)); border-color: var(--rt-area, var(--primary)); color: #fff; }
+.retos-caso-card.is-complete{ background: color-mix(in srgb, #2e9e6b 4%, var(--surface)); border-color: color-mix(in srgb, #2e9e6b 32%, var(--border)); }
+.retos-caso-card.is-complete .retos-caso-card__art{ background: #2e9e6b; }
+
+/* ── Caso run · 2-col editorial ──────────────────────────────────── */
+.retos-run-shell{ display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+.retos-run-shell > .retos-caso-run{ padding: 32px 36px; border-radius: var(--r-xl); border: 1px solid var(--border); background: var(--surface); box-shadow: 0 1px 2px rgba(27,31,51,.03); display: flex; flex-direction: column; gap: 20px; position: relative; overflow: hidden; }
+.retos-run-shell > .retos-caso-run::before{ content:''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: var(--rt-area, var(--primary)); opacity: .9; }
+.retos-caso-run__head{ display: flex; flex-direction: column; gap: 8px; }
+.retos-caso-run__area{ display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 10px; border-radius: 999px; background: color-mix(in srgb, var(--rt-area, var(--primary)) 10%, var(--surface-2)); color: var(--rt-area, var(--primary)); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10.5px; letter-spacing: .9px; text-transform: uppercase; align-self: flex-start; }
+.retos-caso-run__area i{ width: 7px; height: 7px; border-radius: 50%; background: var(--rt-area, var(--primary)); display: inline-block; }
+.retos-caso-run__head h2{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 760; font-size: 26px; letter-spacing: -0.7px; line-height: 1.18; margin: 2px 0 0; color: var(--text); }
+.retos-caso-run__head h2 em{ font-style: normal; color: var(--text-3); font-weight: 650; font-size: 20px; }
+.retos-caso-run__meta{ display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.retos-caso-run__meta span{ display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10.5px; letter-spacing: .3px; }
+.retos-caso-run__meta .ic{ width: 12px; height: 12px; opacity: .7; }
+.retos-caso-run__scenario{ padding: 20px 22px; border-radius: var(--r-lg); background: color-mix(in srgb, var(--rt-area, var(--primary)) 4%, var(--surface-2)); border-left: 3px solid var(--rt-area, var(--primary)); }
+.retos-caso-run__kicker{ display: block; color: var(--rt-area, var(--primary)); font-family:'JetBrains Mono',monospace; font-weight: 800; font-size: 9.5px; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 8px; }
+.retos-caso-run__scenario p{ margin: 0 0 10px; color: var(--text); font-size: 14px; line-height: 1.65; }
+.retos-caso-run__scenario small{ display: block; padding-top: 10px; border-top: 1px dashed color-mix(in srgb, var(--rt-area, var(--primary)) 28%, var(--border)); color: var(--text-2); font-size: 12.5px; line-height: 1.55; }
+.retos-caso-run__scenario small b{ color: var(--text); font-weight: 700; margin-right: 4px; }
+.retos-caso-run__question{ padding-top: 6px; }
+.retos-caso-run__qnum{ display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--surface-2); color: var(--text-3); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10px; letter-spacing: .5px; margin-bottom: 10px; }
+.retos-caso-run__q{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 700; font-size: 19px; letter-spacing: -0.3px; line-height: 1.35; color: var(--text); margin: 0; }
+
+/* ── Opciones · botones con hover slide ──────────────────────────── */
+.retos-caso-opt{ position: relative; grid-template-columns: 38px minmax(0, 1fr) auto; gap: 14px; padding: 16px 18px; border-radius: var(--r-md); border: 1.5px solid var(--border); transition: all .18s cubic-bezier(.2,.7,.2,1); }
+.retos-caso-opt b{ width: 36px; height: 36px; border-radius: 10px; font-size: 13px; }
+.retos-caso-opt span{ font-size: 14px; }
+.retos-caso-opt__mark{ width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--border); background: transparent; display: inline-block; transition: all .18s; }
+.retos-caso-opt:hover:not(:disabled){ transform: translateX(2px); border-color: color-mix(in srgb, var(--rt-area, var(--primary)) 42%, var(--border)); }
+.retos-caso-opt:hover:not(:disabled) .retos-caso-opt__mark{ border-color: color-mix(in srgb, var(--rt-area, var(--primary)) 50%, var(--border)); background: color-mix(in srgb, var(--rt-area, var(--primary)) 10%, transparent); }
+.retos-caso-opt.is-correct{ border-color: #2e9e6b; }
+.retos-caso-opt.is-correct .retos-caso-opt__mark{ background: #2e9e6b; border-color: #2e9e6b; box-shadow: inset 0 0 0 4px #fff; }
+.retos-caso-opt.is-wrong{ border-color: #c9463d; }
+.retos-caso-opt.is-wrong .retos-caso-opt__mark{ background: #c9463d; border-color: #c9463d; box-shadow: inset 0 0 0 4px #fff; }
+
+/* ── Feedback card con badge ─────────────────────────────────────── */
+.retos-caso-feedback{ padding: 20px 22px; border-radius: var(--r-lg); display: flex; flex-direction: column; gap: 12px; }
+.retos-caso-feedback header{ display: flex; align-items: flex-start; gap: 14px; }
+.retos-caso-feedback__badge{ width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); flex: 0 0 auto; }
+.retos-caso-feedback__badge .ic{ width: 20px; height: 20px; }
+.retos-caso-feedback.is-correct .retos-caso-feedback__badge{ background: #2e9e6b; color: #fff; }
+.retos-caso-feedback.is-wrong .retos-caso-feedback__badge{ background: #c9463d; color: #fff; }
+.retos-caso-feedback header strong{ display: block; font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 750; font-size: 15px; letter-spacing: -0.2px; }
+.retos-caso-feedback header small{ display: block; color: var(--text-2); font-size: 12.5px; margin-top: 2px; }
+.retos-caso-feedback p{ margin: 0; padding: 14px 16px; background: var(--surface); border-radius: 12px; border: 1px solid color-mix(in srgb, var(--text) 6%, transparent); color: var(--text-2); font-size: 13.5px; line-height: 1.65; }
+
+/* ── Aside sticky del run ────────────────────────────────────────── */
+.retos-run-aside{ display: flex; flex-direction: column; gap: 14px; position: sticky; top: 20px; }
+.retos-run-aside__card{ padding: 22px 20px; border-radius: var(--r-lg); border: 1px solid var(--border); background: var(--surface); box-shadow: 0 1px 2px rgba(27,31,51,.03); display: flex; flex-direction: column; gap: 6px; }
+.retos-run-aside__card--soft{ background: var(--surface-2); }
+.retos-run-aside__kicker{ color: var(--text-3); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; }
+.retos-run-aside__count{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 800; font-size: 34px; letter-spacing: -1px; color: var(--text); line-height: 1; margin-top: 4px; }
+.retos-run-aside__count em{ font-style: normal; font-weight: 650; font-size: 18px; color: var(--text-3); margin-left: 2px; }
+.retos-run-aside__big{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 760; font-size: 22px; letter-spacing: -0.4px; color: var(--primary); margin-top: 2px; }
+.retos-run-aside__big em{ font-style: normal; font-size: 13px; color: var(--text-3); font-weight: 650; margin-left: 4px; }
+.retos-run-aside__card small{ color: var(--text-2); font-size: 12.5px; line-height: 1.55; }
+.retos-run-aside__card--soft p{ margin: 6px 0 0; color: var(--text-2); font-size: 13px; line-height: 1.6; }
+.retos-run-aside__steps{ list-style: none; padding: 10px 0 0; margin: 10px 0 0; border-top: 1px dashed var(--border); display: flex; flex-direction: column; gap: 6px; }
+.retos-run-aside__steps li{ display: grid; grid-template-columns: 28px minmax(0,1fr); gap: 10px; align-items: center; padding: 6px 4px; color: var(--text-3); font-size: 12.5px; }
+.retos-run-aside__steps li b{ display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--surface-2); color: var(--text-2); font-family:'JetBrains Mono',monospace; font-weight: 800; font-size: 11px; border: 1px solid var(--border); }
+.retos-run-aside__steps li.is-current b{ background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 15%, transparent); }
+.retos-run-aside__steps li.is-current{ color: var(--text); font-weight: 600; }
+.retos-run-aside__steps li.is-done b{ background: #2e9e6b; color: #fff; border-color: #2e9e6b; }
+.retos-run-aside__steps li.is-done{ color: var(--text-2); }
+.retos-run-aside__dots{ display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
+.retos-run-aside__dots span{ width: 10px; height: 10px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); }
+.retos-run-aside__dots span.is-done{ background: #2e9e6b; border-color: #2e9e6b; }
+.retos-run-aside__dots span.is-current{ background: var(--primary); border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent); }
+.retos-run-aside__exit{ align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); font-family: inherit; font-weight: 650; font-size: 12.5px; cursor: pointer; transition: all .15s; }
+.retos-run-aside__exit:hover{ color: var(--text); background: var(--surface-2); }
+.retos-run-aside__exit .ic{ width: 13px; height: 13px; }
+
+/* ── Resultado · ribbon + chips ──────────────────────────────────── */
+.retos-caso-result{ grid-template-columns: minmax(0, auto) minmax(0, 1fr); padding: 40px 44px; gap: 36px; }
+.retos-caso-result__scorewrap{ display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.retos-caso-result__ribbon{ padding: 5px 14px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10px; letter-spacing: .9px; text-transform: uppercase; }
+.retos-caso-result.is-pass .retos-caso-result__ribbon{ background: #2e9e6b; color: #fff; }
+.retos-caso-result.is-retry .retos-caso-result__ribbon{ background: color-mix(in srgb, var(--accent, #c7871a) 20%, transparent); color: color-mix(in srgb, var(--accent, #c7871a) 95%, black); }
+.retos-caso-result__body{ gap: 10px; }
+.retos-caso-result__body h2{ font-size: 28px; letter-spacing: -0.6px; }
+.retos-caso-result__chips{ list-style: none; padding: 0; margin: 10px 0 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.retos-caso-result__chips li{ display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--border); color: var(--text-2); font-size: 12.5px; font-weight: 600; }
+.retos-caso-result__chips .ic{ width: 13px; height: 13px; color: var(--primary); }
+.retos-caso-result__actions .btn{ font-weight: 650; }
+.retos-caso-result__actions .btn--primary .ic{ width: 14px; height: 14px; }
+
+/* ── Flashcards · deck con prev/next + dots ──────────────────────── */
+.retos-flash-deck{ display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; gap: 14px; align-items: center; margin-top: 4px; }
+.retos-flash-nav{ display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; border: 1px solid var(--border); background: var(--surface); color: var(--text-2); cursor: pointer; transition: all .15s; box-shadow: 0 2px 10px -4px rgba(27,31,51,.1); }
+.retos-flash-nav:hover:not(:disabled){ background: var(--primary); color: #fff; border-color: var(--primary); transform: scale(1.05); }
+.retos-flash-nav:disabled{ opacity: .35; cursor: not-allowed; }
+.retos-flash-nav .ic{ width: 18px; height: 18px; }
+.retos-flashcard{ min-height: 440px; }
+.retos-flashcard__inner{ min-height: 440px; }
+.retos-flashcard__face{ padding: 32px 36px; gap: 16px; }
+.retos-flashcard__front{ background: linear-gradient(140deg, var(--surface) 0%, color-mix(in srgb, var(--rt-area, var(--primary)) 7%, var(--surface)) 100%); border-top: 4px solid var(--rt-area, var(--primary)); }
+.retos-flashcard__back{ background: linear-gradient(140deg, var(--rt-area, var(--primary)), color-mix(in srgb, var(--rt-area, var(--primary)) 55%, black)); color: #fff; border-color: transparent; }
+.retos-flashcard__area{ background: color-mix(in srgb, var(--rt-area, var(--primary)) 14%, transparent); color: var(--rt-area, var(--primary)); }
+.retos-flashcard__back .retos-flashcard__area{ background: rgba(255,255,255,.18); color: #fff; }
+.retos-flashcard__count{ color: var(--text-2); font-size: 12px; }
+.retos-flashcard__count em{ font-style: normal; color: var(--text-3); font-weight: 650; margin-left: 2px; }
+.retos-flashcard__kicker{ color: var(--text-3); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10px; letter-spacing: 1.3px; text-transform: uppercase; }
+.retos-flashcard__main h3{ font-size: clamp(30px, 4.2vw, 46px); letter-spacing: -1.4px; line-height: 1.08; }
+.retos-flashcard__badge{ display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: color-mix(in srgb, #2e9e6b 14%, transparent); color: #2e9e6b; font-size: 11.5px; font-weight: 700; font-family:'JetBrains Mono',monospace; letter-spacing: .5px; }
+.retos-flashcard__badge .ic{ width: 13px; height: 13px; }
+.retos-flashcard__flip{ margin-top: 24px; }
+.retos-flashcard__hint{ display: flex; justify-content: center; padding-top: 10px; border-top: 1px dashed var(--border); color: var(--text-3); font-size: 11.5px; }
+.retos-flashcard__hint span{ display: inline-flex; align-items: center; gap: 6px; }
+.retos-flashcard__hint .ic{ width: 12px; height: 12px; opacity: .7; }
+.retos-flashcard__flipback{ display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.3); font-family: inherit; font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all .15s; }
+.retos-flashcard__flipback:hover{ background: rgba(255,255,255,.26); }
+.retos-flashcard__flipback .ic{ width: 12px; height: 12px; }
+.retos-flashcard__back-body{ display: flex; flex-direction: column; gap: 12px; margin: 10px 0; }
+.retos-flashcard__term{ display: inline-block; font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 800; font-size: clamp(22px, 3vw, 30px); letter-spacing: -0.9px; color: #fff; line-height: 1.1; }
+.retos-flashcard__back p{ font-size: 15px; line-height: 1.65; color: rgba(255,255,255,.95); }
+.retos-flashcard__rate{ padding-top: 14px; border-top: 1px solid rgba(255,255,255,.2); display: flex; flex-direction: column; gap: 10px; }
+.retos-flashcard__rate small{ color: rgba(255,255,255,.75); font-size: 11.5px; font-family:'JetBrains Mono',monospace; font-weight: 600; letter-spacing: .4px; text-align: center; }
+.retos-flashcard__rate-row{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.retos-flashcard__rate-row button{ display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-height: 56px; padding: 10px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.1); color: #fff; font-family: inherit; cursor: pointer; transition: all .15s; }
+.retos-flashcard__rate-row button:hover{ background: rgba(255,255,255,.22); border-color: rgba(255,255,255,.55); transform: translateY(-2px); }
+.retos-flashcard__rate-row button span{ font-size: 20px; line-height: 1; }
+.retos-flashcard__rate-row button em{ font-style: normal; font-weight: 650; font-size: 11.5px; letter-spacing: .2px; }
+.retos-flash-dots{ display: flex; gap: 6px; justify-content: center; padding: 6px 0 2px; flex-wrap: wrap; max-width: 100%; }
+.retos-flash-dots span{ width: 7px; height: 7px; border-radius: 50%; background: color-mix(in srgb, var(--text) 14%, transparent); transition: all .15s; }
+.retos-flash-dots span.is-current{ background: var(--primary); width: 22px; border-radius: 999px; }
+.retos-flash-filter{ gap: 6px; padding: 4px 0; }
+.retos-flash-filter button{ padding: 7px 14px; font-size: 12.5px; border-radius: 999px; }
+
+/* ── Quiz intro · split layout ───────────────────────────────────── */
+.retos-sub--quiz-intro .retos-quiz-intro{ display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 32px; align-items: stretch; padding: 0; background: transparent; border: 0; box-shadow: none; text-align: left; }
+.retos-quiz-intro__visual{ display: flex; flex-direction: column; align-items: flex-start; gap: 14px; padding: 48px 44px 40px; border-radius: var(--r-xl); background: linear-gradient(135deg, var(--primary) 0%, color-mix(in srgb, var(--primary) 55%, #0a2140) 100%); color: #fff; position: relative; overflow: hidden; width: auto; height: auto; box-shadow: 0 24px 48px -24px color-mix(in srgb, var(--primary) 55%, transparent); }
+.retos-quiz-intro__visual::after{ content:''; position: absolute; right: -60px; top: -60px; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.14), transparent 70%); pointer-events: none; }
+.retos-quiz-intro__badge{ width: 62px; height: 62px; display: grid; place-items: center; border-radius: 18px; background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.26); backdrop-filter: blur(10px); margin-bottom: 4px; }
+.retos-quiz-intro__badge .ic{ width: 28px; height: 28px; color: #fff; }
+.retos-quiz-intro__visual .retos-head__eyebrow{ color: rgba(255,255,255,.78); background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); }
+.retos-quiz-intro__visual h2{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 760; font-size: clamp(28px, 2.6vw, 36px); letter-spacing: -0.9px; margin: 0; line-height: 1.1; color: #fff; }
+.retos-quiz-intro__visual p{ color: rgba(255,255,255,.86); font-size: 14.5px; line-height: 1.65; margin: 0; max-width: none; }
+.retos-quiz-intro__cta{ margin-top: 14px; background: #fff !important; color: var(--primary) !important; border: 0 !important; min-height: 52px; padding: 0 28px; font-weight: 700; }
+.retos-quiz-intro__cta:hover{ background: color-mix(in srgb, #fff 94%, var(--primary)) !important; transform: translateY(-1px); box-shadow: 0 10px 24px -10px rgba(0,0,0,.3); }
+.retos-quiz-intro__cta .ic{ color: var(--primary); }
+.retos-quiz-intro__legal{ color: rgba(255,255,255,.65); font-size: 11.5px; margin-top: 4px; }
+.retos-quiz-intro__side{ display: flex; flex-direction: column; gap: 16px; }
+.retos-quiz-intro__facts{ grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; display: grid; }
+.retos-quiz-intro__fact{ padding: 18px 18px 14px; border-radius: var(--r-md); border: 1px solid var(--border); background: var(--surface); display: grid; gap: 2px; }
+.retos-quiz-intro__fact b{ font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 780; font-size: 22px; letter-spacing: -0.6px; color: var(--text); line-height: 1; }
+.retos-quiz-intro__fact b i{ font-style: normal; font-size: 11px; color: var(--text-3); margin-left: 3px; vertical-align: 4px; }
+.retos-quiz-intro__fact small{ color: var(--text); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10px; letter-spacing: .9px; text-transform: uppercase; margin-top: 4px; }
+.retos-quiz-intro__fact em{ color: var(--text-3); font-style: normal; font-size: 11.5px; margin-top: 2px; }
+.retos-quiz-intro__areas{ padding: 16px 18px; border-radius: var(--r-md); background: var(--surface-2); border: 1px solid var(--border); }
+.retos-quiz-intro__areas-kicker{ display: block; color: var(--text-3); font-family:'JetBrains Mono',monospace; font-weight: 700; font-size: 10px; letter-spacing: 1.1px; text-transform: uppercase; margin-bottom: 10px; }
+.retos-quiz-intro__areas-chips{ display: flex; flex-wrap: wrap; gap: 6px; }
+.retos-quiz-intro__record, .retos-quiz-intro__reward{ display: grid; grid-template-columns: auto minmax(0,1fr); gap: 12px; align-items: center; padding: 14px 16px; border-radius: var(--r-md); background: color-mix(in srgb, var(--primary) 7%, var(--surface-2)); border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border)); font-size: 13px; }
+.retos-quiz-intro__record span, .retos-quiz-intro__reward span{ color: var(--text-3); font-family:'JetBrains Mono',monospace; font-size: 10px; letter-spacing: .9px; text-transform: uppercase; font-weight: 700; }
+.retos-quiz-intro__record strong{ color: var(--primary); font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 760; font-size: 24px; letter-spacing: -0.5px; margin: 2px 0; }
+.retos-quiz-intro__record small{ color: var(--text-2); font-size: 11.5px; grid-column: 1 / -1; }
+.retos-quiz-intro__reward > span{ width: 36px; height: 36px; display: grid; place-items: center; border-radius: 10px; background: var(--primary); color: #fff; }
+.retos-quiz-intro__reward > span .ic{ width: 18px; height: 18px; }
+.retos-quiz-intro__reward strong{ display: block; color: var(--text); font-family:'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 700; font-size: 14px; }
+.retos-quiz-intro__reward small{ display: block; color: var(--text-2); font-size: 12px; margin-top: 2px; }
+
+/* ── Responsive final ────────────────────────────────────────────── */
+@media (max-width: 1100px){
+  .retos-run-shell{ grid-template-columns: 1fr; }
+  .retos-run-aside{ position: static; flex-direction: row; flex-wrap: wrap; }
+  .retos-run-aside__card{ flex: 1 1 240px; }
+  .retos-run-aside__exit{ flex: 0 0 auto; }
+}
+@media (max-width: 920px){
+  .retos-sub--quiz-intro .retos-quiz-intro{ grid-template-columns: 1fr; }
+  .retos-quiz-intro__visual{ padding: 36px 28px 32px; }
+  .retos-interior-head{ grid-template-columns: 1fr; }
+  .retos-interior-head__stats{ margin-top: 4px; }
+}
+@media (max-width: 640px){
+  .retos-flash-deck{ grid-template-columns: 1fr; }
+  .retos-flash-nav{ display: none; }
+  .retos-flashcard__face{ padding: 24px 20px; }
+  .retos-flashcard__rate-row{ grid-template-columns: 1fr; }
+  .retos-caso-result{ grid-template-columns: 1fr; padding: 28px 24px; gap: 20px; }
+  .retos-caso-result__scorewrap{ flex-direction: row; justify-content: center; }
+  .retos-run-shell > .retos-caso-run{ padding: 24px 22px; }
+  .retos-run-aside{ flex-direction: column; }
+  .retos-stat{ min-width: auto; flex: 1 1 140px; }
+  .retos-caso-opt{ grid-template-columns: 32px minmax(0, 1fr); padding: 14px 16px; }
+  .retos-caso-opt__mark{ display: none; }
+  .retos-quiz-intro__facts{ grid-template-columns: 1fr; }
 }
 </style>
 <script src="js/icadem-onboarding.js?v=1"></script>
