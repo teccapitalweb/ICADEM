@@ -3640,6 +3640,61 @@ body.has-fomo .main{padding-top:18px}
   .logros-cat__header{padding:0}
   .logro{padding:18px 12px 14px}
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PDFs y material · estado vacío "próximamente"
+   ═══════════════════════════════════════════════════════════════════ */
+.pdfs-page{width:100%;max-width:1180px;margin:0 auto;padding:4px 0 48px}
+.pdfs-empty{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px;padding:60px 32px 54px;margin-top:24px;border:1px solid var(--border);border-radius:22px;background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 4%,var(--surface)),var(--surface));overflow:hidden}
+.pdfs-empty::before{content:'';position:absolute;top:-120px;left:50%;transform:translateX(-50%);width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--primary) 14%,transparent),transparent 60%);pointer-events:none;z-index:0}
+.pdfs-empty>*{position:relative;z-index:1}
+.pdfs-empty__badge{width:72px;height:72px;border-radius:22px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),color-mix(in srgb,var(--primary) 55%,black));color:#fff;box-shadow:0 12px 28px -14px color-mix(in srgb,var(--primary) 55%,transparent)}
+.pdfs-empty__badge .ic{width:28px;height:28px}
+.pdfs-empty__kicker{color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase}
+.pdfs-empty h2{font-family:'Plus Jakarta Sans',sans-serif;font-weight:750;font-size:28px;letter-spacing:-.8px;line-height:1.1;margin:4px 0 4px;max-width:620px}
+.pdfs-empty p{color:var(--text-2);font-size:14px;line-height:1.65;max-width:580px;margin:0}
+.pdfs-empty__actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px}
+.pdfs-empty__actions .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:999px;font-weight:650;font-size:13px;cursor:pointer;font-family:inherit;transition:all .18s}
+.pdfs-empty__actions .btn .ic{width:16px;height:16px}
+.pdfs-empty__actions .btn--primary{background:var(--primary);color:#fff;border:0}
+.pdfs-empty__actions .btn--primary:hover{background:color-mix(in srgb,var(--primary) 90%,black);transform:translateY(-1px);box-shadow:0 10px 20px -10px color-mix(in srgb,var(--primary) 60%,transparent)}
+.pdfs-empty__actions .btn--ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
+.pdfs-empty__actions .btn--ghost:hover{background:var(--surface-2);border-color:color-mix(in srgb,var(--primary) 30%,var(--border))}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SIDEBAR MEMBER CARD · reemplaza "Tu espacio ICADEM"
+   Estados: loading | vip | gratis | invitado
+   Inspirado en VP (verde institucional) y IMFRA (gold VIP),
+   adaptado a la marca azul académica ICADEM.
+   ═══════════════════════════════════════════════════════════════════ */
+.sidebar-member{position:relative;margin:14px 2px 4px;padding:1px;border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 24%,var(--border)),var(--border));overflow:hidden;transition:transform .22s}
+.sidebar-member__inner{position:relative;display:flex;flex-direction:column;gap:4px;padding:16px 15px 14px;background:var(--surface);border-radius:17px;overflow:hidden}
+.sidebar-member__inner::before{content:'';position:absolute;top:-50%;right:-30%;width:150%;height:150%;background:radial-gradient(circle at 70% 20%,color-mix(in srgb,var(--primary) 10%,transparent),transparent 55%);pointer-events:none}
+.sidebar-member__kicker{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:4px}
+.sidebar-member__kicker::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--primary)}
+.sidebar-member strong[data-member-title]{position:relative;z-index:1;display:block;font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:700;letter-spacing:-.2px;line-height:1.2;color:var(--text)}
+.sidebar-member small[data-member-sub]{position:relative;z-index:1;display:block;margin-top:4px;color:var(--text-3);font-size:11px;line-height:1.45}
+.sidebar-member__cta{position:relative;z-index:1;margin-top:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:10px;border:0;background:var(--primary);color:#fff;font-family:inherit;font-weight:650;font-size:12px;letter-spacing:-.1px;cursor:pointer;transition:all .18s;width:100%}
+.sidebar-member__cta:hover{background:color-mix(in srgb,var(--primary) 90%,black);transform:translateY(-1px);box-shadow:0 8px 18px -8px color-mix(in srgb,var(--primary) 55%,transparent)}
+
+/* Estado VIP · acento dorado académico */
+.sidebar-member[data-member-state="vip"]{background:linear-gradient(135deg,color-mix(in srgb,var(--accent,#C7971F) 55%,var(--primary)),color-mix(in srgb,var(--primary) 50%,var(--border)))}
+.sidebar-member[data-member-state="vip"] .sidebar-member__inner::before{background:radial-gradient(circle at 72% 18%,color-mix(in srgb,var(--accent,#C7971F) 22%,transparent),transparent 55%)}
+.sidebar-member[data-member-state="vip"] .sidebar-member__kicker{color:var(--accent,#C7971F)}
+.sidebar-member[data-member-state="vip"] .sidebar-member__kicker::before{background:var(--accent,#C7971F)}
+.sidebar-member[data-member-state="vip"] .sidebar-member__cta{background:var(--text);color:var(--surface)}
+.sidebar-member[data-member-state="vip"] .sidebar-member__cta:hover{background:color-mix(in srgb,var(--text) 85%,var(--primary))}
+
+/* Estado gratis / sin membresía · CTA en primary */
+.sidebar-member[data-member-state="gratis"],
+.sidebar-member[data-member-state="invitado"]{background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 32%,var(--border)),var(--border))}
+
+/* Loading state */
+.sidebar-member[data-member-state="loading"]{background:var(--border)}
+.sidebar-member[data-member-state="loading"] .sidebar-member__cta{opacity:.5;pointer-events:none}
+
+/* Oculta la card vieja .club-sidebar-card por si quedan referencias en memoria o service worker cacheado */
+.club-sidebar-card{display:none !important}
 </style>
 <style id="club-refresh-2026">
 /* Club ICADEM · actualización visual 2026 */
@@ -4245,10 +4300,6 @@ window.__setDisplayName = async (nombre) => {
       <div class="nav-label">Recursos profesionales</div>
       <a class="nav-item" data-section="herramientas"><svg class="ic"><use href="#i-tools"/></svg>Herramientas</a>
       <a class="nav-item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
-      <a class="nav-item" data-tool="plantillas"><svg class="ic"><use href="#i-briefcase"/></svg>Plantillas de negocio</a>
-      <a class="nav-item" data-tool="calc-fiscal"><svg class="ic"><use href="#i-calculator"/></svg>Calculadora fiscal</a>
-      <a class="nav-item" data-tool="calc-nomina"><svg class="ic"><use href="#i-cash"/></svg>Calculadora de nómina</a>
-      <a class="nav-item" data-tool="calc-credito"><svg class="ic"><use href="#i-credit-card"/></svg>Calculadora de crédito</a>
     </div>
 
     <div class="nav-section">
@@ -4258,18 +4309,21 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
     </div>
 
-    <button class="club-sidebar-card" type="button" onclick="navigateToSection('suscripcion')">
-      <span class="club-sidebar-card__kicker">Tu espacio ICADEM</span>
-      <strong>Aprende, conecta y avanza.</strong>
-      <small>Consulta los beneficios y el estado de tu membresía.</small>
-      <span class="club-sidebar-card__link">Ver mi plan →</span>
-    </button>
-
     <div class="nav-section">
       <div class="nav-label">Mi cuenta</div>
       <a class="nav-item" data-section="perfil"><svg class="ic"><use href="#i-user"/></svg>Mi perfil</a>
       <a class="nav-item" data-section="suscripcion"><svg class="ic"><use href="#i-credit-card"/></svg>Suscripción</a>
       <a class="nav-item" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
+    </div>
+
+    <!-- Membership card estilo editorial · se actualiza automáticamente -->
+    <div class="sidebar-member" id="sidebar-member-card" data-member-state="loading">
+      <div class="sidebar-member__inner">
+        <span class="sidebar-member__kicker" data-member-kicker>Tu membresía</span>
+        <strong data-member-title>Cargando…</strong>
+        <small data-member-sub>Un segundo</small>
+        <button type="button" class="sidebar-member__cta" data-member-cta onclick="navigateToSection('suscripcion')">Ver detalles</button>
+      </div>
     </div>
   </aside>
 
@@ -4474,10 +4528,6 @@ window.__setDisplayName = async (nombre) => {
         <div class="mobile-drawer__label">Recursos profesionales</div>
         <a class="mobile-drawer__item" data-section="herramientas"><svg class="ic"><use href="#i-tools"/></svg>Herramientas</a>
         <a class="mobile-drawer__item" data-section="libros"><svg class="ic"><use href="#i-book"/></svg>Libros</a>
-        <a class="mobile-drawer__item" data-tool="plantillas"><svg class="ic"><use href="#i-briefcase"/></svg>Plantillas de negocio</a>
-        <a class="mobile-drawer__item" data-tool="calc-fiscal"><svg class="ic"><use href="#i-calculator"/></svg>Calculadora fiscal</a>
-        <a class="mobile-drawer__item" data-tool="calc-nomina"><svg class="ic"><use href="#i-cash"/></svg>Calculadora de nómina</a>
-        <a class="mobile-drawer__item" data-tool="calc-credito"><svg class="ic"><use href="#i-credit-card"/></svg>Calculadora de crédito</a>
       </div>
 
       <div class="mobile-drawer__section">
@@ -8302,136 +8352,37 @@ const Sections = (function(){
     return 'pdf'; // default
   }
 
+  // ═══════════════════════════════════════════════════════════════════
+  // PDFs y material · reservado para materiales canjeables independientes
+  //
+  // Antes: aplanaba curso.materiales[] de TODOS los cursos aquí.
+  // Ahora: los materiales del curso viven DENTRO del detalle del curso
+  // (card "Material del curso"). Esta sección queda vacía con un estado
+  // "Próximamente" preparado para los materiales independientes que se
+  // podrán canjear con créditos (sistema que llega en siguiente iteración).
+  //
+  // Los helpers _allMaterialesFromCursos / _materialDisponible /
+  // _renderPdfCard se dejan vivos abajo porque son zero-cost dead code y
+  // los reutilizaremos cuando se active el canje con créditos.
+  // ═══════════════════════════════════════════════════════════════════
   async function renderPDFs(container){
-    // Asegurar cursos cargados antes de renderizar
-    if (!_cursosLoaded && !_cursosLoading) {
-      container.innerHTML = `
-        <div class="fade-up">
-          <div class="sec-hero">
-            <span class="sec-hero__eyebrow">Descargables</span>
-            <h1 class="sec-hero__title">PDFs y material</h1>
-            <p class="sec-hero__sub">Cargando materiales desde Firestore…</p>
-          </div>
-        </div>`;
-      await cargarCursosFirestore();
-    }
-
-    // Re-leer materiales aplanados (de los cursos reales)
-    const materialesTodos = _allMaterialesFromCursos();
-    const areasUnicas = Array.from(new Set(materialesTodos.map(m => m.cursoArea).filter(Boolean))).sort();
-
-    // KPIs
-    const total = materialesTodos.length;
-    const disponiblesAhora = materialesTodos.filter(m => _materialDisponible(m)).length;
-    const proximos = total - disponiblesAhora;
-    const tipos = { excel:0, pdf:0, ppt:0, doc:0 };
-    materialesTodos.forEach(m => { const t = _inferirTipoMaterial(m.url); tipos[t]++; });
-
-    container.innerHTML = `
-      <div class="fade-up">
-        <div class="sec-hero">
-          <span class="sec-hero__eyebrow">Descargables</span>
-          <h1 class="sec-hero__title">PDFs y material</h1>
-          <p class="sec-hero__sub"><strong style="color:var(--success);">El primer material del primer curso es gratis.</strong> Con tu membresía, los demás materiales se desbloquean junto con cada curso, cada 6 días.</p>
-        </div>
-        ${total === 0 ? `
-          <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
-            <div style="width:64px;height:64px;border-radius:50%;background:color-mix(in srgb, var(--primary) 12%, transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
-              </svg>
-            </div>
-            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Sin materiales aún</div>
-            <div style="font-size:13px;color:var(--text-3);max-width:360px;margin:0 auto;line-height:1.5;">Los materiales descargables aparecerán aquí cuando se suban desde el panel de administración.</div>
-          </div>
-        ` : `
-          <div class="kpi-grid">
-            <div class="kpi-card"><div class="kpi-card__label">Total materiales</div><div class="kpi-card__value">${total}</div></div>
-            <div class="kpi-card"><div class="kpi-card__label">Disponibles ahora</div><div class="kpi-card__value">${disponiblesAhora}</div></div>
-            <div class="kpi-card"><div class="kpi-card__label">Próximamente</div><div class="kpi-card__value">${proximos}</div></div>
-            <div class="kpi-card"><div class="kpi-card__label">Plantillas Excel</div><div class="kpi-card__value">${tipos.excel}</div></div>
-          </div>
-          <div class="toolbar">
-            <div class="searchbar">
-              <svg viewBox="0 0 24 24"><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg>
-              <input type="text" id="pdf-search-input" placeholder="Buscar material…">
-            </div>
-            <div class="dd-fancy" data-dd="pdf-area">
-              <button type="button" class="dd-fancy__trigger" id="pdf-area-trigger" aria-haspopup="listbox" aria-expanded="false">
-                <svg class="dd-fancy__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                <span class="dd-fancy__label" id="pdf-area-label">Todas las áreas</span>
-                <svg class="dd-fancy__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-              </button>
-              <div class="dd-fancy__menu" id="pdf-area-menu" role="listbox">
-                <button type="button" class="dd-fancy__item is-selected" data-value="todas" role="option">Todas las áreas</button>
-                ${areasUnicas.map(a => `<button type="button" class="dd-fancy__item" data-value="${a}" role="option">${a}</button>`).join('')}
-              </div>
-            </div>
-          </div>
-          <div class="pdfs-grid" id="pdfs-grid-container">
-            ${materialesTodos.map(m => _renderPdfCard(m)).join('')}
-          </div>
-        `}
+    container.innerHTML = `<div class="fade-up pdfs-page">
+      <div class="sec-hero">
+        <span class="sec-hero__eyebrow">Materiales independientes</span>
+        <h1 class="sec-hero__title">PDFs y material</h1>
+        <p class="sec-hero__sub">Esta biblioteca está reservada para materiales que podrás <strong style="color:var(--primary);">canjear con créditos</strong>. Los materiales que ya acompañan a cada curso siguen disponibles dentro de <a href="#cursos" style="color:var(--primary);font-weight:650;">Mis cursos</a>.</p>
       </div>
-    `;
-
-    // Bind búsqueda
-    setTimeout(() => {
-      const grid = container.querySelector('#pdfs-grid-container');
-      const search = container.querySelector('#pdf-search-input');
-      let currentArea = 'todas';
-
-      const aplicarFiltros = () => {
-        if (!grid) return;
-        const q = (search?.value || '').toLowerCase().trim();
-        const cards = grid.querySelectorAll('.pdf-card');
-        cards.forEach(card => {
-          const titulo = (card.dataset.titulo || '').toLowerCase();
-          const curso = (card.dataset.curso || '').toLowerCase();
-          const area = card.dataset.area || '';
-          const matchArea = currentArea === 'todas' || area === currentArea;
-          const matchSearch = !q || titulo.includes(q) || curso.includes(q);
-          card.style.display = (matchArea && matchSearch) ? '' : 'none';
-        });
-      };
-
-      if (search) search.addEventListener('input', aplicarFiltros);
-
-      // Bind del dropdown custom de áreas
-      bindFancyDropdown('pdf-area', (value) => {
-        currentArea = value;
-        aplicarFiltros();
-      });
-
-      // Click en cards: si disponible → abrir visor enbebed (igual que clases) · si no → toast con días restantes
-      container.querySelectorAll('.pdf-card[data-disponible="true"]').forEach(card => {
-        card.addEventListener('click', () => {
-          const url = card.dataset.url;
-          const titulo = card.dataset.titulo;
-          if (url && typeof window.abrirVisor === 'function') {
-            window.abrirVisor(url, titulo);
-          }
-        });
-      });
-      container.querySelectorAll('.pdf-card[data-disponible="false"]').forEach(card => {
-        card.addEventListener('click', () => {
-          if (card.dataset.requiereMembresia === 'true') {
-            window.__showPaywallModal?.({
-              title: 'Desbloquea todos los materiales',
-              sub: 'El primer material del primer curso es gratis. Activa tu membresía para acceder a los siguientes materiales y cursos.'
-            });
-            return;
-          }
-          const dias = parseInt(card.dataset.diasFaltan, 10);
-          if (Toast) {
-            Toast.info(
-              dias === 1 ? 'Disponible mañana' : `Disponible en ${dias} días`,
-              'Este material se desbloqueará junto con su curso · sigue avanzando'
-            );
-          }
-        });
-      });
-    }, 50);
+      <section class="pdfs-empty">
+        <div class="pdfs-empty__badge"><svg class="ic"><use href="#i-news"/></svg></div>
+        <span class="pdfs-empty__kicker">Próximamente</span>
+        <h2>Biblioteca de materiales canjeables</h2>
+        <p>Estamos preparando una colección de formatos editables, checklists técnicos y guías en PDF que podrás canjear con tus créditos ICADEM. Mantén tu racha activa para acumular créditos y acceder al catálogo en cuanto se publique.</p>
+        <div class="pdfs-empty__actions">
+          <button type="button" class="btn btn--primary" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Ver materiales de mis cursos</button>
+          <button type="button" class="btn btn--ghost" onclick="navigateToSection('libros')"><svg class="ic"><use href="#i-book"/></svg>Explorar la biblioteca</button>
+        </div>
+      </section>
+    </div>`;
   }
 
   function _renderPdfCard(m) {
@@ -11088,6 +11039,48 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         el.style.color = 'var(--text-3)';
       }
     });
+
+    // ─── Nueva membership card del sidebar (reemplaza "Tu espacio ICADEM") ───
+    // Muestra estado real: VIP activo / sin membresía / modo demo. Diseño
+    // editorial inspirado en Visión Pecuaria / IMFRA · ver bloque CSS
+    // ".sidebar-member" para los 4 estados visuales.
+    (function actualizarMemberCard(){
+      const card = document.getElementById('sidebar-member-card');
+      if (!card) return;
+      const titleEl = card.querySelector('[data-member-title]');
+      const subEl   = card.querySelector('[data-member-sub]');
+      const kickEl  = card.querySelector('[data-member-kicker]');
+      const ctaEl   = card.querySelector('[data-member-cta]');
+      if (!titleEl || !subEl || !kickEl || !ctaEl) return;
+
+      if (S.modo === 'vip') {
+        const planLabel = (typeof PLAN_LABELS !== 'undefined' && PLAN_LABELS[S.plan]) ? PLAN_LABELS[S.plan].name : 'Membresía activa';
+        card.setAttribute('data-member-state', 'vip');
+        kickEl.textContent = 'MIEMBRO VIP';
+        titleEl.textContent = planLabel;
+        if (S.cancelacionProgramada && S.fechaFinAcceso) {
+          try {
+            const d = new Date(S.fechaFinAcceso);
+            subEl.textContent = 'Acceso hasta ' + d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' });
+          } catch(e) { subEl.textContent = 'Membresía activa'; }
+        } else {
+          subEl.textContent = 'Tu formación académica está al día.';
+        }
+        ctaEl.textContent = 'Ver mi plan';
+      } else if (S.modo === 'invitado') {
+        card.setAttribute('data-member-state', 'invitado');
+        kickEl.textContent = 'MODO DEMO';
+        titleEl.textContent = 'Explorando ICADEM';
+        subEl.textContent = 'Crea tu cuenta para guardar tu progreso.';
+        ctaEl.textContent = 'Hazte VIP';
+      } else {
+        card.setAttribute('data-member-state', 'gratis');
+        kickEl.textContent = 'ACCESO GRATUITO';
+        titleEl.textContent = 'Activa tu membresía';
+        subEl.textContent = 'Desbloquea todos los cursos, materiales y herramientas.';
+        ctaEl.textContent = 'Hazte VIP';
+      }
+    })();
 
     // ─── Pill del topbar (icono coronita arriba) · muestra NOMBRE del usuario ───
     // (el estado de membresía ya se comunica en el banner naranja superior + drawer)
