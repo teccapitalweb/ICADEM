@@ -3661,40 +3661,11 @@ body.has-fomo .main{padding-top:18px}
 .pdfs-empty__actions .btn--ghost{background:transparent;border:1px solid var(--border);color:var(--text)}
 .pdfs-empty__actions .btn--ghost:hover{background:var(--surface-2);border-color:color-mix(in srgb,var(--primary) 30%,var(--border))}
 
-/* ═══════════════════════════════════════════════════════════════════
-   SIDEBAR MEMBER CARD · reemplaza "Tu espacio ICADEM"
-   Estados: loading | vip | gratis | invitado
-   Inspirado en VP (verde institucional) y IMFRA (gold VIP),
-   adaptado a la marca azul académica ICADEM.
-   ═══════════════════════════════════════════════════════════════════ */
-.sidebar-member{position:relative;margin:14px 2px 4px;padding:1px;border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 24%,var(--border)),var(--border));overflow:hidden;transition:transform .22s}
-.sidebar-member__inner{position:relative;display:flex;flex-direction:column;gap:4px;padding:16px 15px 14px;background:var(--surface);border-radius:17px;overflow:hidden}
-.sidebar-member__inner::before{content:'';position:absolute;top:-50%;right:-30%;width:150%;height:150%;background:radial-gradient(circle at 70% 20%,color-mix(in srgb,var(--primary) 10%,transparent),transparent 55%);pointer-events:none}
-.sidebar-member__kicker{position:relative;z-index:1;display:inline-flex;align-items:center;gap:6px;color:var(--primary);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9px;letter-spacing:1.3px;text-transform:uppercase;margin-bottom:4px}
-.sidebar-member__kicker::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--primary)}
-.sidebar-member strong[data-member-title]{position:relative;z-index:1;display:block;font-family:'Plus Jakarta Sans',sans-serif;font-size:14.5px;font-weight:700;letter-spacing:-.2px;line-height:1.2;color:var(--text)}
-.sidebar-member small[data-member-sub]{position:relative;z-index:1;display:block;margin-top:4px;color:var(--text-3);font-size:11px;line-height:1.45}
-.sidebar-member__cta{position:relative;z-index:1;margin-top:12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 12px;border-radius:10px;border:0;background:var(--primary);color:#fff;font-family:inherit;font-weight:650;font-size:12px;letter-spacing:-.1px;cursor:pointer;transition:all .18s;width:100%}
-.sidebar-member__cta:hover{background:color-mix(in srgb,var(--primary) 90%,black);transform:translateY(-1px);box-shadow:0 8px 18px -8px color-mix(in srgb,var(--primary) 55%,transparent)}
-
-/* Estado VIP · acento dorado académico */
-.sidebar-member[data-member-state="vip"]{background:linear-gradient(135deg,color-mix(in srgb,var(--accent,#C7971F) 55%,var(--primary)),color-mix(in srgb,var(--primary) 50%,var(--border)))}
-.sidebar-member[data-member-state="vip"] .sidebar-member__inner::before{background:radial-gradient(circle at 72% 18%,color-mix(in srgb,var(--accent,#C7971F) 22%,transparent),transparent 55%)}
-.sidebar-member[data-member-state="vip"] .sidebar-member__kicker{color:var(--accent,#C7971F)}
-.sidebar-member[data-member-state="vip"] .sidebar-member__kicker::before{background:var(--accent,#C7971F)}
-.sidebar-member[data-member-state="vip"] .sidebar-member__cta{background:var(--text);color:var(--surface)}
-.sidebar-member[data-member-state="vip"] .sidebar-member__cta:hover{background:color-mix(in srgb,var(--text) 85%,var(--primary))}
-
-/* Estado gratis / sin membresía · CTA en primary */
-.sidebar-member[data-member-state="gratis"],
-.sidebar-member[data-member-state="invitado"]{background:linear-gradient(135deg,color-mix(in srgb,var(--primary) 32%,var(--border)),var(--border))}
-
-/* Loading state */
-.sidebar-member[data-member-state="loading"]{background:var(--border)}
-.sidebar-member[data-member-state="loading"] .sidebar-member__cta{opacity:.5;pointer-events:none}
-
-/* Oculta la card vieja .club-sidebar-card por si quedan referencias en memoria o service worker cacheado */
-.club-sidebar-card{display:none !important}
+/* (CSS .sidebar-member y override .club-sidebar-card eliminados por completo:
+   la info de membresía ya aparece en el chip del topbar y en el brand badge
+   del sidebar. No hace falta duplicarla en una card marketing en el pie.)
+   El .club-sidebar-card quedó aún definido más abajo (misma hoja) pero
+   nunca se renderiza ya que su <button> fue retirado del HTML. */
 </style>
 <style id="club-refresh-2026">
 /* Club ICADEM · actualización visual 2026 */
@@ -4316,15 +4287,6 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
     </div>
 
-    <!-- Membership card estilo editorial · se actualiza automáticamente -->
-    <div class="sidebar-member" id="sidebar-member-card" data-member-state="loading">
-      <div class="sidebar-member__inner">
-        <span class="sidebar-member__kicker" data-member-kicker>Tu membresía</span>
-        <strong data-member-title>Cargando…</strong>
-        <small data-member-sub>Un segundo</small>
-        <button type="button" class="sidebar-member__cta" data-member-cta onclick="navigateToSection('suscripcion')">Ver detalles</button>
-      </div>
-    </div>
   </aside>
 
   <!-- MAIN -->
@@ -11040,47 +11002,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       }
     });
 
-    // ─── Nueva membership card del sidebar (reemplaza "Tu espacio ICADEM") ───
-    // Muestra estado real: VIP activo / sin membresía / modo demo. Diseño
-    // editorial inspirado en Visión Pecuaria / IMFRA · ver bloque CSS
-    // ".sidebar-member" para los 4 estados visuales.
-    (function actualizarMemberCard(){
-      const card = document.getElementById('sidebar-member-card');
-      if (!card) return;
-      const titleEl = card.querySelector('[data-member-title]');
-      const subEl   = card.querySelector('[data-member-sub]');
-      const kickEl  = card.querySelector('[data-member-kicker]');
-      const ctaEl   = card.querySelector('[data-member-cta]');
-      if (!titleEl || !subEl || !kickEl || !ctaEl) return;
-
-      if (S.modo === 'vip') {
-        const planLabel = (typeof PLAN_LABELS !== 'undefined' && PLAN_LABELS[S.plan]) ? PLAN_LABELS[S.plan].name : 'Membresía activa';
-        card.setAttribute('data-member-state', 'vip');
-        kickEl.textContent = 'MIEMBRO VIP';
-        titleEl.textContent = planLabel;
-        if (S.cancelacionProgramada && S.fechaFinAcceso) {
-          try {
-            const d = new Date(S.fechaFinAcceso);
-            subEl.textContent = 'Acceso hasta ' + d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' });
-          } catch(e) { subEl.textContent = 'Membresía activa'; }
-        } else {
-          subEl.textContent = 'Tu formación académica está al día.';
-        }
-        ctaEl.textContent = 'Ver mi plan';
-      } else if (S.modo === 'invitado') {
-        card.setAttribute('data-member-state', 'invitado');
-        kickEl.textContent = 'MODO DEMO';
-        titleEl.textContent = 'Explorando ICADEM';
-        subEl.textContent = 'Crea tu cuenta para guardar tu progreso.';
-        ctaEl.textContent = 'Hazte VIP';
-      } else {
-        card.setAttribute('data-member-state', 'gratis');
-        kickEl.textContent = 'ACCESO GRATUITO';
-        titleEl.textContent = 'Activa tu membresía';
-        subEl.textContent = 'Desbloquea todos los cursos, materiales y herramientas.';
-        ctaEl.textContent = 'Hazte VIP';
-      }
-    })();
+    // (Antes aquí se actualizaba la card .sidebar-member con el estado VIP;
+    // la quitamos porque la info ya aparece en el chip del topbar y en el
+    // badge del brand del sidebar. El CSS correspondiente queda vivo pero
+    // sin DOM al cual aplicarse, es inofensivo.)
 
     // ─── Pill del topbar (icono coronita arriba) · muestra NOMBRE del usuario ───
     // (el estado de membresía ya se comunica en el banner naranja superior + drawer)
@@ -17612,10 +17537,20 @@ html, body { font-family: 'Inter','Outfit',ui-sans-serif,system-ui,-apple-system
 .nav-item .nav-item__badge, .nav-item__badge{ margin-left: auto; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); font-family: 'JetBrains Mono',monospace; font-weight: 700; font-size: 8.5px; letter-spacing: .6px; }
 .nav-item .nav-item__dot, .nav-item__dot{ width: 7px; height: 7px; border-radius: 50%; background: var(--danger,#c9463d); margin-left: auto; }
 
-/* ═══ Content wrapper · ancho académico ═══ */
+/* ═══ Content wrapper · fluido, deja que la grid controle ancho ═══ */
 .main > .content, .main > .section-host, .main{ background: var(--bg); }
-#dynamic-section, #inicio-content{ max-width: 1240px; margin: 0 auto; padding: 28px; }
-@media (max-width: 900px){ #dynamic-section, #inicio-content{ padding: 20px; } }
+/* Antes puse max-width 1240px aquí y creaba hueco en los lados cuando la
+   columna del grid era más ancha. Ahora el contenido fluye al 100% de
+   la columna central del app grid, con padding generoso académico. */
+#dynamic-section, #inicio-content{ max-width: none; width: 100%; margin: 0; padding: 32px 36px 48px; }
+@media (max-width: 1200px){ #dynamic-section, #inicio-content{ padding: 28px 28px 40px; } }
+@media (max-width: 900px){ #dynamic-section, #inicio-content{ padding: 22px 20px 32px; } }
+
+/* Reduce la columna derecha de 320px a 288px (más aire al centro).
+   Agrega gap entre nav-content-right para que no se peguen. */
+.app{ grid-template-columns: 228px minmax(0, 1fr) 288px !important; }
+@media (max-width: 1200px){ .app{ grid-template-columns: 220px minmax(0, 1fr) !important; } }
+@media (max-width: 1200px){ .right-sidebar, .club-sidebar-right, aside.right, [data-club-right]{ display: none !important; } }
 
 /* ═══ Sec-hero genérico · más editorial ═══ */
 .sec-hero{ padding: 0 2px 24px; border-bottom: 0; margin-bottom: 24px; }
@@ -17674,14 +17609,16 @@ html, body { font-family: 'Inter','Outfit',ui-sans-serif,system-ui,-apple-system
 .library-card:hover{ box-shadow: var(--shadow-lg); border-color: color-mix(in srgb, var(--primary) 25%, var(--border)); }
 .library-card__body strong{ font-family: 'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 650; letter-spacing: -0.2px; }
 
-/* ═══ PDFs empty state ═══ */
-.pdfs-empty{ border-radius: var(--r-2xl); border: 1px solid var(--border); background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 3%, var(--surface)), var(--surface)); box-shadow: var(--shadow-sm); padding: 72px 32px 60px; }
-.pdfs-empty h2{ font-family: 'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 700; letter-spacing: -0.8px; }
+/* ═══ PDFs empty state · compacto, no gigante ═══ */
+.pdfs-empty{ border-radius: var(--r-2xl); border: 1px solid var(--border); background: linear-gradient(180deg, color-mix(in srgb, var(--primary) 3%, var(--surface)), var(--surface)); box-shadow: var(--shadow-sm); padding: 44px 32px 40px; }
+.pdfs-empty h2{ font-family: 'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 700; letter-spacing: -0.8px; font-size: 24px; margin: 4px 0 4px; }
+.pdfs-empty p{ font-size: 13.5px; max-width: 520px; }
+.pdfs-empty__badge{ width: 60px; height: 60px; border-radius: 18px; }
+.pdfs-empty__badge .ic{ width: 24px; height: 24px; }
 
-/* ═══ Sidebar member card · académica ═══ */
-.sidebar-member{ border-radius: var(--r-lg); margin: 18px 2px 4px; }
-.sidebar-member__inner{ border-radius: calc(var(--r-lg) - 2px); padding: 18px 16px 16px; }
-.sidebar-member strong[data-member-title]{ font-family: 'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 700; letter-spacing: -0.3px; }
+/* Empty state genérico (clases en vivo, foro, etc.) · no vasto */
+.empty-state, [class*="empty"]{ min-height: 0 !important; }
+.empty-state{ padding: 48px 28px !important; }
 
 /* ═══ Course cards del catálogo (Mis cursos) · más editoriales ═══ */
 .curso-card{ border-radius: var(--r-xl) !important; border: 1px solid var(--border) !important; background: var(--surface) !important; box-shadow: 0 1px 2px rgba(27,31,51,.03) !important; transition: transform .22s, box-shadow .22s, border-color .22s !important; overflow: hidden; }
@@ -17711,6 +17648,73 @@ h1, h2, h3, h4{ color: var(--text); }
   .topbar{ height: 60px; padding: 0 18px; }
   #dynamic-section, #inicio-content{ padding: 20px 16px; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   PROPORCIONES · ajustes de respiración y densidad editorial
+   Mejora "muy apretadas" (más padding interno + gap) y "demasiado hueco"
+   (mejor distribución del ancho disponible, grids más densos).
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Grid de cursos y webinars más denso en pantallas grandes */
+.cursos-grid, .cursos__list, .curso-list, [class*="curso-grid"]{
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+  gap: 20px !important;
+}
+.webinars-grid, [class*="webinar-grid"]{
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+  gap: 20px !important;
+}
+
+/* Sec-hero: más respiración entre eyebrow, título, sub, y la siguiente sección */
+.sec-hero{ padding: 4px 2px 32px !important; }
+
+/* Más gap vertical entre secciones hermanas en secciones dinámicas */
+#dynamic-section > *, #inicio-content > *{ margin-bottom: 0; }
+#dynamic-section > div.fade-up > section, #dynamic-section > div.fade-up > div.sec-hero + * { margin-top: 24px; }
+
+/* Course cards: respiración interna + estados sin apretar */
+.curso-card{ padding: 0 !important; }
+.curso-card .curso-card__body, .curso-card__body{ padding: 20px 20px 18px !important; }
+.curso-card__title, .curso-card h3{ font-size: 16px !important; margin: 10px 0 6px !important; line-height: 1.3 !important; }
+
+/* Logros: KPI tiles con padding generoso */
+.kpi-grid{ gap: 16px !important; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important; }
+.kpi-card{ padding: 22px 24px !important; }
+.logro{ padding: 28px 18px 22px !important; }
+.logros-grid{ grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 14px !important; }
+
+/* Herramientas index: cards más altas con breathing */
+.tool-index-card{ padding: 22px 24px !important; min-height: 110px; }
+.tools-index-grid{ grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)) !important; gap: 16px !important; }
+
+/* Libros: covers más legibles en pantallas anchas */
+.library-grid{ grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap: 22px !important; }
+
+/* Course detail layout: proporción primary:aside 1fr : 320px (antes 300px) */
+.course-detail-layout{ grid-template-columns: minmax(0,1fr) 320px !important; gap: 32px !important; }
+
+/* Lesson detail layout: proporción primary:aside 1fr : 340px */
+.lesson-layout{ grid-template-columns: minmax(0,1fr) 340px !important; gap: 32px !important; }
+
+/* Section head: título y subtítulo con espaciado académico */
+.section-head{ margin-bottom: 22px !important; }
+.section-head h2, .section-head__title{ font-size: 22px !important; letter-spacing: -0.4px !important; }
+
+/* Right sidebar widgets: espaciado más generoso + bordes limpios */
+.right-sidebar > *, .club-sidebar-right > *, aside.right > *{ margin-bottom: 14px !important; }
+.right-sidebar > *:last-child, .club-sidebar-right > *:last-child, aside.right > *:last-child{ margin-bottom: 0 !important; }
+
+/* Fade-up contenedor general: respira */
+#dynamic-section > .fade-up{ display: flex; flex-direction: column; gap: 24px; }
+#inicio-content > .fade-up{ display: flex; flex-direction: column; gap: 24px; }
+
+/* Topbar más denso para que el header no robe aire al contenido */
+.topbar{ height: 64px !important; }
+
+/* Hero del detalle de curso: menos tall para no abrumar */
+.course-detail-hero{ min-height: 280px !important; padding: 36px !important; }
 </style>
 <script src="js/icadem-onboarding.js?v=1"></script>
 </body>
