@@ -20,6 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -7253,18 +7254,46 @@ const Sections = (function(){
           : `<span class="retos-hero__pill retos-hero__pill--free" title="Puedes jugar un reto gratis"><svg class="ic"><use href="#i-shield-check"/></svg>1 reto gratis</span>`);
 
     container.innerHTML = `<div class="fade-up retos-page">
-      <header class="retos-hero">
-        <div class="retos-hero__copy">
-          <span class="retos-hero__eyebrow">Entrena tu criterio</span>
-          <h1>Practica para <em>la decisión real.</em></h1>
-          <p>Casos de obra fiscal, flashcards técnicas y quiz express con explicación inmediata. Suma XP, mantén tu racha diaria y sube de nivel.</p>
+      <header class="retos-hero retos-hero--v2">
+        <div class="retos-hero__mast">
+          <span class="retos-hero__mark" aria-hidden="true"></span>
+          <span class="retos-hero__kicker">ICADEM · Sala de criterio</span>
+          <span class="retos-hero__hair" aria-hidden="true"></span>
+          <span class="retos-hero__edition">Edición N.º 01 · MMXXVI</span>
+          <span class="retos-hero__pillslot">${vipPill}</span>
         </div>
-        <div class="retos-hero__side">
-          <div class="retos-hero__stats">
-            <div class="retos-hero__stat"><span>Racha</span><strong>${st.racha}<em>día${st.racha===1?'':'s'}</em></strong></div>
-            <div class="retos-hero__stat"><span>XP formativo</span><strong>${st.xp}</strong></div>
+        <div class="retos-hero__rule retos-hero__rule--top" aria-hidden="true"></div>
+        <div class="retos-hero__grid">
+          <div class="retos-hero__copy">
+            <span class="retos-hero__eyebrow">Programa de criterio profesional</span>
+            <h1>Practica para la decisión real.</h1>
+            <p>Casos de obra fiscal, flashcards técnicas y quiz express — cada paso con fundamento legal y explicación inmediata. Suma XP, sostén tu racha diaria y consolida criterio.</p>
+            <div class="retos-hero__byline" aria-label="Áreas cubiertas">
+              <span>Fiscal</span><i aria-hidden="true"></i>
+              <span>Contabilidad</span><i aria-hidden="true"></i>
+              <span>Nómina</span><i aria-hidden="true"></i>
+              <span>Legal</span>
+            </div>
           </div>
-          ${vipPill}
+          <aside class="retos-hero__ledger" aria-label="Resumen de membresía">
+            <span class="retos-hero__ledger-title">Resumen de membresía</span>
+            <dl class="retos-hero__ledger-list">
+              <div class="retos-hero__row">
+                <dt>Racha activa</dt>
+                <dd><strong>${st.racha}</strong><em>día${st.racha===1?'':'s'} al cierre de hoy</em></dd>
+              </div>
+              <div class="retos-hero__row">
+                <dt>XP formativo</dt>
+                <dd><strong>${st.xp}</strong><em>puntos de criterio acumulados</em></dd>
+              </div>
+            </dl>
+          </aside>
+        </div>
+        <div class="retos-hero__rule retos-hero__rule--bottom" aria-hidden="true"></div>
+        <div class="retos-hero__colophon">
+          <span class="retos-hero__colophon-sign">Metodología <em>Decidir — Explicar — Aplicar</em></span>
+          <span class="retos-hero__colophon-dot" aria-hidden="true"></span>
+          <span class="retos-hero__colophon-mark">ICM · MMXXVI</span>
         </div>
       </header>
 
@@ -7474,25 +7503,59 @@ const Sections = (function(){
       const aprobado = pct >= 67;
       return `<div class="retos-sub retos-sub--result">
         <button type="button" class="retos-back" data-retos-nav="casos"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Casos de obra</button>
-        <section class="retos-caso-result ${aprobado?'is-pass':'is-retry'}">
-          <div class="retos-caso-result__scorewrap">
-            <div class="retos-caso-result__score"><strong>${pct}%</strong><span>${__retosCurrentCasoScore} / ${total} correctas</span></div>
-            <div class="retos-caso-result__ribbon">${aprobado?'Expediente resuelto':'Pendiente de revisión'}</div>
+        <section class="retos-caso-result retos-caso-result--v2 ${aprobado?'is-pass':'is-retry'}">
+          <header class="rcr-mast">
+            <div class="rcr-dossier">
+              <span class="rcr-file">Dictamen de resolución · <code>${_htmlEscRet(c.area)}</code></span>
+              <span class="rcr-ref">Dificultad ${_htmlEscRet(c.dificultad)} · ${total} decisiones evaluadas</span>
+            </div>
+            <span class="rcr-seal">
+              <em>Expediente</em>
+              <strong>${aprobado?'Resuelto':'En revisión'}</strong>
+            </span>
+          </header>
+          <div class="rcr-rule rcr-rule--double" aria-hidden="true"></div>
+          <div class="rcr-body">
+            <aside class="rcr-score" aria-label="Calificación">
+              <span class="rcr-score__label">Calificación</span>
+              <div class="rcr-score__num"><b>${pct}</b><em>/100</em></div>
+              <div class="rcr-score__bar" aria-hidden="true"><i style="width:${pct}%"></i></div>
+              <small class="rcr-score__meta">Resuelto en <b>${__retosCurrentCasoScore}</b> de <b>${total}</b> decisiones correctas</small>
+            </aside>
+            <article class="rcr-verdict">
+              <span class="rcr-verdict__eyebrow">Veredicto técnico</span>
+              <h2>${_htmlEscRet(c.titulo)}</h2>
+              <p>${aprobado ? 'La resolución del expediente se sostiene con criterio técnico. Decisiones consistentes y trazables — tu racha avanza al cierre del día y el expediente queda archivado como consulta.' : 'El expediente queda abierto en tu bitácora. Revisa las explicaciones técnicas de cada paso y vuelve a correrlo para consolidar el criterio antes del siguiente caso.'}</p>
+            </article>
           </div>
-          <div class="retos-caso-result__body">
-            <span class="retos-head__eyebrow">${_htmlEscRet(c.area)} · ${_htmlEscRet(c.dificultad)}</span>
-            <h2>${_htmlEscRet(c.titulo)}</h2>
-            <p>${aprobado ? 'Tomaste decisiones consistentes y trazables en todo el caso. Suma XP y tu racha avanza.' : 'El expediente queda registrado. Revisa las explicaciones y vuelve a intentarlo para consolidar el criterio.'}</p>
-            <ul class="retos-caso-result__chips">
-              <li><svg class="ic"><use href="#i-trophy"/></svg><span>+${total*5} XP sumados</span></li>
-              <li><svg class="ic"><use href="#i-check"/></svg><span>${total} decisiones evaluadas</span></li>
-              <li><svg class="ic"><use href="#i-book"/></svg><span>Explicación técnica detrás de cada opción</span></li>
-            </ul>
-          </div>
-          <div class="retos-caso-result__actions">
-            <button type="button" class="btn btn--primary" data-retos-caso-restart>Repetir caso<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-            <button type="button" class="btn btn--ghost" data-retos-nav="casos">Otro expediente</button>
-          </div>
+          <dl class="rcr-ledger" aria-label="Partidas de la sesión">
+            <div>
+              <dt>XP sumado</dt>
+              <dd><strong>+${total*5}</strong><em>pts formativos</em></dd>
+            </div>
+            <div>
+              <dt>Pasos del expediente</dt>
+              <dd><strong>${total}</strong><em>decisiones</em></dd>
+            </div>
+            <div>
+              <dt>Resuelto en</dt>
+              <dd><strong>${__retosCurrentCasoScore}</strong><em>de ${total} correctas</em></dd>
+            </div>
+          </dl>
+          <div class="rcr-rule rcr-rule--thin" aria-hidden="true"></div>
+          <footer class="rcr-foot">
+            <div class="rcr-sign">
+              <span class="rcr-sign__label">Firmado</span>
+              <span class="rcr-sign__body"><em>ICADEM</em> · Sala de criterio profesional</span>
+            </div>
+            <div class="rcr-actions">
+              <button type="button" class="rcr-btn rcr-btn--ghost" data-retos-nav="casos">Abrir otro expediente</button>
+              <button type="button" class="rcr-btn rcr-btn--primary" data-retos-caso-restart>
+                <span>Repetir expediente</span>
+                <svg class="ic"><use href="#i-arrow-right"/></svg>
+              </button>
+            </div>
+          </footer>
         </section>
       </div>`;
     }
@@ -19265,6 +19328,598 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-opt{ grid-template-columns: 32px minmax(0, 1fr); padding: 14px 16px; }
   .retos-caso-opt__mark{ display: none; }
   .retos-quiz-intro__facts{ grid-template-columns: 1fr; }
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   RETOS · HERO v2 (boletín editorial) + RESULT v2 (dictamen)
+   Angular editorial · papel cálido · Fraunces serif · filetes
+   Fuente Fraunces se carga vía <link> en <head>, no @import aquí.
+   ═════════════════════════════════════════════════════════════════════ */
+:root{
+  --rh-paper:#f7f1e3;
+  --rh-paper-2:#efe6cd;
+  --rh-paper-shade:#e4d9b6;
+  --rh-ink:#141a33;
+  --rh-ink-2:#4a5172;
+  --rh-ink-3:#8a8d9d;
+  --rh-rule:#1b1f33;
+  --rh-rule-soft:rgba(27,31,51,.14);
+  --rh-rule-ghost:rgba(27,31,51,.08);
+  --rh-ocre:#8a6c2a;
+  --rh-ocre-soft:#c8a85f;
+  --rh-bordeaux:#7a2e2e;
+  --rh-olive:#4e5a24;
+  --rh-serif:'Fraunces','Cormorant Garamond',Georgia,'Times New Roman',serif;
+}
+:root[data-theme="dark"]{
+  --rh-paper:#121828;
+  --rh-paper-2:#171f33;
+  --rh-paper-shade:#242d47;
+  --rh-ink:#f0ead6;
+  --rh-ink-2:#b4b4c0;
+  --rh-ink-3:#8d8f9f;
+  --rh-rule:#f0ead6;
+  --rh-rule-soft:rgba(240,234,214,0.16);
+  --rh-rule-ghost:rgba(240,234,214,0.09);
+  --rh-ocre:#d9a63c;
+  --rh-ocre-soft:#f1c25a;
+  --rh-bordeaux:#d08a8a;
+  --rh-olive:#b8c47a;
+}
+
+/* ─── HERO v2 · portada boletín ─────────────────────────────────── */
+.retos-hero.retos-hero--v2{
+  position:relative;
+  display:block;
+  grid-template-columns:none;
+  align-items:initial;
+  gap:0;
+  padding:34px 48px 24px;
+  color:var(--rh-ink);
+  border:1px solid var(--rh-paper-shade);
+  border-radius:10px;
+  background:linear-gradient(180deg, var(--rh-paper) 0%, var(--rh-paper-2) 100%);
+  box-shadow:0 26px 56px -36px rgba(27,31,51,.22);
+  overflow:hidden;
+  isolation:isolate;
+}
+:root[data-theme="dark"] .retos-hero.retos-hero--v2{
+  box-shadow:0 26px 56px -36px rgba(0,0,0,.6);
+}
+.retos-hero.retos-hero--v2::before{
+  content:'';
+  position:absolute; inset:0;
+  background-image:repeating-linear-gradient(90deg, rgba(27,31,51,.012) 0 1px, transparent 1px 4px);
+  mix-blend-mode:multiply;
+  pointer-events:none;
+  z-index:0;
+}
+.retos-hero.retos-hero--v2::after{ content:none !important; display:none !important; }
+.retos-hero.retos-hero--v2 > *{ position:relative; z-index:1; }
+
+/* Masthead */
+.retos-hero--v2 .retos-hero__mast{
+  display:flex; align-items:center; gap:14px;
+  padding:0 0 16px;
+  flex-wrap:wrap;
+}
+.retos-hero--v2 .retos-hero__mark{
+  width:10px; height:10px; flex-shrink:0; display:block;
+  background:var(--rh-ocre);
+  box-shadow:0 0 0 3px rgba(138,108,42,.2);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--rh-ocre) 20%, transparent);
+}
+.retos-hero--v2 .retos-hero__kicker,
+.retos-hero--v2 .retos-hero__edition{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10.5px; font-weight:700;
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--rh-ink-2);
+  font-feature-settings:"lnum","tnum";
+}
+.retos-hero--v2 .retos-hero__edition{ color:var(--rh-ink-3); letter-spacing:.22em; }
+.retos-hero--v2 .retos-hero__hair{
+  flex:1 1 auto; height:1px;
+  background:linear-gradient(90deg, var(--rh-rule-soft), transparent 85%);
+  min-width:40px;
+}
+.retos-hero--v2 .retos-hero__pillslot{ margin-left:auto; display:inline-flex; justify-content:flex-start; }
+.retos-hero--v2 .retos-hero__pillslot .retos-hero__pill{
+  border-radius:4px !important;
+  border:1px solid var(--rh-rule-soft) !important;
+  background:transparent !important;
+  color:var(--rh-ink) !important;
+  font-family:'JetBrains Mono', ui-monospace, monospace !important;
+  font-weight:700 !important; font-size:10px !important;
+  letter-spacing:.18em !important; text-transform:uppercase !important;
+  padding:7px 12px !important;
+  box-shadow:none !important;
+  gap:7px !important;
+}
+.retos-hero--v2 .retos-hero__pillslot .retos-hero__pill--vip{
+  background:var(--rh-ink) !important; color:var(--rh-paper) !important;
+  border-color:var(--rh-ink) !important;
+}
+.retos-hero--v2 .retos-hero__pillslot .retos-hero__pill--paywall{
+  background:var(--rh-ocre) !important; color:#fff !important;
+  border-color:var(--rh-ocre) !important;
+}
+.retos-hero--v2 .retos-hero__pillslot .retos-hero__pill .ic{ width:11px; height:11px; }
+
+/* Rules */
+.retos-hero--v2 .retos-hero__rule{ height:1px; background:var(--rh-rule-soft); }
+.retos-hero--v2 .retos-hero__rule--top{
+  background:linear-gradient(90deg, var(--rh-rule) 0%, var(--rh-rule) 56px, var(--rh-rule-soft) 56px, var(--rh-rule-soft) 100%);
+  position:relative;
+  margin-bottom:0;
+}
+.retos-hero--v2 .retos-hero__rule--top::after{
+  content:''; display:block; height:1px;
+  background:var(--rh-rule-ghost);
+  transform:translateY(3px);
+}
+.retos-hero--v2 .retos-hero__rule--bottom{ background:var(--rh-rule-soft); margin-top:14px; }
+
+/* Grid */
+.retos-hero--v2 .retos-hero__grid{
+  display:grid;
+  grid-template-columns:minmax(0, 1.55fr) minmax(260px, .85fr);
+  gap:0;
+  padding:28px 0 12px;
+}
+.retos-hero--v2 .retos-hero__copy{
+  padding-right:48px;
+  border-right:1px solid var(--rh-rule-ghost);
+}
+.retos-hero--v2 .retos-hero__eyebrow{
+  display:inline-block;
+  margin:0 0 14px;
+  padding:0; background:transparent !important; border:0 !important;
+  color:var(--rh-ocre);
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10.5px; font-weight:700;
+  letter-spacing:.26em; text-transform:uppercase;
+}
+.retos-hero--v2 h1{
+  font-family:var(--rh-serif);
+  font-weight:500;
+  font-size:clamp(36px, 4.4vw, 54px);
+  line-height:1.03;
+  letter-spacing:-0.012em;
+  color:var(--rh-ink);
+  margin:0 0 18px;
+  max-width:16ch;
+  font-variation-settings:"opsz" 144;
+  text-wrap:balance;
+}
+.retos-hero--v2 h1 em{ font-style:italic; color:var(--rh-ink); margin:0; font-variation-settings:"opsz" 144; }
+.retos-hero--v2 p{
+  color:var(--rh-ink-2);
+  font-size:14.5px; line-height:1.65;
+  margin:0 0 22px;
+  max-width:52ch;
+  font-weight:420;
+}
+.retos-hero--v2 .retos-hero__byline{
+  display:flex; align-items:center; flex-wrap:wrap; gap:10px 12px;
+  padding-top:14px;
+  border-top:1px solid var(--rh-rule-ghost);
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10.5px; font-weight:700;
+  letter-spacing:.22em; text-transform:uppercase;
+  color:var(--rh-ink-2);
+}
+.retos-hero--v2 .retos-hero__byline i{
+  display:inline-block; width:3px; height:3px; border-radius:50%;
+  background:var(--rh-ocre);
+}
+
+/* Ledger (stats) */
+.retos-hero--v2 .retos-hero__ledger{
+  padding:4px 0 4px 36px;
+  display:flex; flex-direction:column; gap:0;
+}
+.retos-hero--v2 .retos-hero__ledger-title{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10px; font-weight:700;
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+  margin:0 0 20px;
+  padding-bottom:12px;
+  border-bottom:1px solid var(--rh-rule-ghost);
+}
+.retos-hero--v2 .retos-hero__ledger-list{ margin:0; padding:0; display:flex; flex-direction:column; gap:22px; }
+.retos-hero--v2 .retos-hero__row{ display:grid; gap:4px; }
+.retos-hero--v2 .retos-hero__row dt{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:9.5px; font-weight:700;
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+.retos-hero--v2 .retos-hero__row dd{
+  margin:0;
+  display:flex; align-items:baseline; gap:12px;
+  border-top:1px solid var(--rh-rule-soft);
+  padding-top:6px;
+}
+.retos-hero--v2 .retos-hero__row dd strong{
+  font-family:var(--rh-serif);
+  font-weight:500;
+  font-size:62px; line-height:.95;
+  letter-spacing:-0.02em;
+  color:var(--rh-ink);
+  font-variant-numeric:lining-nums tabular-nums;
+  font-variation-settings:"opsz" 144;
+}
+.retos-hero--v2 .retos-hero__row dd em{
+  font-style:normal;
+  color:var(--rh-ink-3);
+  font-size:11.5px; line-height:1.35;
+  font-weight:500; letter-spacing:.02em;
+  max-width:16ch;
+}
+
+/* Colophon */
+.retos-hero--v2 .retos-hero__colophon{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding-top:10px;
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10px; font-weight:700;
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+.retos-hero--v2 .retos-hero__colophon em{
+  font-style:italic; font-family:var(--rh-serif);
+  font-weight:500; letter-spacing:0; text-transform:none;
+  font-size:12.5px; color:var(--rh-ink-2);
+}
+.retos-hero--v2 .retos-hero__colophon-dot{ width:3px; height:3px; border-radius:50%; background:var(--rh-ocre); }
+.retos-hero--v2 .retos-hero__colophon-mark{ margin-left:auto; color:var(--rh-ocre); }
+
+/* Responsive hero */
+@media (max-width:900px){
+  .retos-hero.retos-hero--v2{ padding:26px 24px 20px; }
+  .retos-hero--v2 .retos-hero__grid{ grid-template-columns:1fr; padding:22px 0 6px; }
+  .retos-hero--v2 .retos-hero__copy{ padding-right:0; border-right:0; padding-bottom:22px; border-bottom:1px solid var(--rh-rule-ghost); }
+  .retos-hero--v2 .retos-hero__ledger{ padding:22px 0 0; }
+  .retos-hero--v2 .retos-hero__row dd strong{ font-size:48px; }
+  .retos-hero--v2 .retos-hero__mast{ padding-bottom:14px; }
+  .retos-hero--v2 .retos-hero__pillslot{ margin-left:0; }
+}
+@media (max-width:400px){
+  .retos-hero--v2 .retos-hero__row dd{ flex-direction:column; align-items:flex-start; gap:4px; }
+  .retos-hero--v2 .retos-hero__row dd strong{ font-size:42px; }
+}
+
+/* ─── RESULT v2 · dictamen de resolución ─────────────────────── */
+.retos-caso-result.retos-caso-result--v2{
+  position:relative;
+  display:block;
+  grid-template-columns:none;
+  align-items:initial;
+  gap:0;
+  padding:32px 48px 24px 52px;
+  color:var(--rh-ink);
+  border:1px solid var(--rh-paper-shade);
+  border-radius:10px;
+  background:linear-gradient(180deg, var(--rh-paper) 0%, var(--rh-paper-2) 100%);
+  box-shadow:0 22px 48px -24px rgba(27,31,51,.2);
+  overflow:hidden;
+  isolation:isolate;
+  text-align:left;
+  justify-items:initial;
+}
+:root[data-theme="dark"] .retos-caso-result.retos-caso-result--v2{
+  box-shadow:0 22px 48px -24px rgba(0,0,0,.55);
+}
+.retos-caso-result.retos-caso-result--v2.is-pass,
+.retos-caso-result.retos-caso-result--v2.is-retry{
+  background:linear-gradient(180deg, var(--rh-paper) 0%, var(--rh-paper-2) 100%);
+  border-color:var(--rh-paper-shade);
+}
+.retos-caso-result.retos-caso-result--v2::before{
+  content:'';
+  position:absolute; inset:0;
+  background-image:repeating-linear-gradient(90deg, rgba(27,31,51,.012) 0 1px, transparent 1px 4px);
+  mix-blend-mode:multiply;
+  pointer-events:none;
+  z-index:0;
+}
+.retos-caso-result.retos-caso-result--v2::after{
+  content:'';
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:4px;
+  background:var(--rh-ocre);
+  z-index:0;
+  border-radius:0;
+  pointer-events:none;
+  right:auto;
+  height:auto;
+  opacity:1;
+}
+.retos-caso-result.retos-caso-result--v2.is-pass::after{ background:var(--rh-olive); }
+.retos-caso-result.retos-caso-result--v2.is-retry::after{ background:var(--rh-bordeaux); }
+.retos-caso-result.retos-caso-result--v2 > *{ position:relative; z-index:1; }
+
+/* Masthead del result */
+.retos-caso-result--v2 .rcr-mast{
+  display:flex; align-items:flex-end; justify-content:space-between; gap:24px;
+  padding:0 0 14px;
+  flex-wrap:wrap;
+}
+.retos-caso-result--v2 .rcr-dossier{ display:flex; flex-direction:column; gap:4px; min-width:0; }
+.retos-caso-result--v2 .rcr-file{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10.5px; font-weight:700;
+  letter-spacing:.24em; text-transform:uppercase;
+  color:var(--rh-ink-2);
+}
+.retos-caso-result--v2 .rcr-file code{
+  font-family:inherit;
+  color:var(--rh-ocre);
+  background:transparent;
+  padding:0;
+}
+.retos-caso-result--v2 .rcr-ref{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10px; font-weight:600;
+  letter-spacing:.2em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+.retos-caso-result--v2 .rcr-seal{
+  display:inline-flex; flex-direction:column; align-items:flex-end; gap:2px;
+  padding:8px 14px 10px;
+  border:1.5px solid var(--rh-ocre);
+  border-radius:4px;
+  background:transparent;
+  min-width:140px;
+}
+.retos-caso-result.retos-caso-result--v2.is-pass .rcr-seal{ border-color:var(--rh-olive); }
+.retos-caso-result.retos-caso-result--v2.is-retry .rcr-seal{ border-color:var(--rh-bordeaux); }
+.retos-caso-result--v2 .rcr-seal em{
+  font-style:normal;
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:9px; font-weight:700;
+  letter-spacing:.3em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+.retos-caso-result--v2 .rcr-seal strong{
+  font-family:var(--rh-serif);
+  font-weight:500;
+  font-style:italic;
+  font-size:19px; line-height:1.1;
+  letter-spacing:-0.01em;
+  color:var(--rh-ocre);
+}
+.retos-caso-result.retos-caso-result--v2.is-pass .rcr-seal strong{ color:var(--rh-olive); }
+.retos-caso-result.retos-caso-result--v2.is-retry .rcr-seal strong{ color:var(--rh-bordeaux); }
+
+/* Rules del result */
+.retos-caso-result--v2 .rcr-rule{ height:1px; background:var(--rh-rule-soft); }
+.retos-caso-result--v2 .rcr-rule--double{
+  height:4px;
+  background:linear-gradient(to bottom, var(--rh-rule-soft) 0 1px, transparent 1px 3px, var(--rh-rule-ghost) 3px 4px);
+  margin-bottom:4px;
+}
+.retos-caso-result--v2 .rcr-rule--thin{ margin-top:18px; }
+
+/* Body: score + verdict */
+.retos-caso-result--v2 .rcr-body{
+  display:grid;
+  grid-template-columns:minmax(220px, 290px) minmax(0, 1fr);
+  gap:40px;
+  padding:28px 0 24px;
+}
+.retos-caso-result--v2 .rcr-score{
+  display:flex; flex-direction:column; gap:10px;
+  padding-right:36px;
+  border-right:1px solid var(--rh-rule-ghost);
+}
+.retos-caso-result--v2 .rcr-score__label{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10px; font-weight:700;
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+.retos-caso-result--v2 .rcr-score__num{
+  display:flex; align-items:baseline; gap:6px;
+  color:var(--rh-ink);
+  font-variant-numeric:lining-nums tabular-nums;
+}
+.retos-caso-result--v2 .rcr-score__num b{
+  font-family:var(--rh-serif);
+  font-weight:500;
+  font-size:96px; line-height:.9;
+  letter-spacing:-0.03em;
+  font-variation-settings:"opsz" 144;
+}
+.retos-caso-result--v2 .rcr-score__num em{
+  font-style:italic;
+  font-family:var(--rh-serif);
+  font-weight:400;
+  font-size:22px;
+  color:var(--rh-ink-3);
+}
+.retos-caso-result.retos-caso-result--v2.is-pass .rcr-score__num b{ color:var(--rh-olive); }
+.retos-caso-result.retos-caso-result--v2.is-retry .rcr-score__num b{ color:var(--rh-bordeaux); }
+.retos-caso-result--v2 .rcr-score__bar{
+  height:2px; width:100%;
+  background:var(--rh-rule-ghost);
+  border-radius:0;
+  overflow:hidden;
+  margin:4px 0 2px;
+}
+.retos-caso-result--v2 .rcr-score__bar i{
+  display:block; height:100%;
+  background:var(--rh-ocre);
+  transition:width .4s cubic-bezier(.4,.2,.2,1);
+}
+.retos-caso-result.retos-caso-result--v2.is-pass .rcr-score__bar i{ background:var(--rh-olive); }
+.retos-caso-result.retos-caso-result--v2.is-retry .rcr-score__bar i{ background:var(--rh-bordeaux); }
+.retos-caso-result--v2 .rcr-score__meta{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10.5px; font-weight:600;
+  letter-spacing:.14em; text-transform:uppercase;
+  color:var(--rh-ink-2);
+}
+.retos-caso-result--v2 .rcr-score__meta b{
+  font-weight:800; color:var(--rh-ink);
+  font-variant-numeric:lining-nums tabular-nums;
+}
+
+/* Verdict */
+.retos-caso-result--v2 .rcr-verdict{ display:flex; flex-direction:column; gap:14px; min-width:0; }
+.retos-caso-result--v2 .rcr-verdict__eyebrow{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10.5px; font-weight:700;
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--rh-ocre);
+}
+.retos-caso-result--v2 .rcr-verdict h2{
+  font-family:var(--rh-serif);
+  font-weight:500;
+  font-size:clamp(26px, 2.4vw, 34px);
+  line-height:1.12;
+  letter-spacing:-0.012em;
+  color:var(--rh-ink);
+  margin:0;
+  font-variation-settings:"opsz" 144;
+  text-wrap:balance;
+}
+.retos-caso-result--v2 .rcr-verdict p{
+  color:var(--rh-ink-2);
+  font-size:14.5px; line-height:1.65;
+  margin:0;
+  max-width:58ch;
+  font-weight:420;
+}
+
+/* Ledger KPI */
+.retos-caso-result--v2 .rcr-ledger{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:0;
+  padding:18px 0 8px;
+  margin:0;
+  border-top:1px solid var(--rh-rule-ghost);
+}
+.retos-caso-result--v2 .rcr-ledger > div{
+  display:flex; flex-direction:column; gap:4px;
+  padding:14px 24px 10px 0;
+  border-right:1px solid var(--rh-rule-ghost);
+}
+.retos-caso-result--v2 .rcr-ledger > div + div{ padding-left:24px; }
+.retos-caso-result--v2 .rcr-ledger > div:last-child{ border-right:0; padding-right:0; }
+.retos-caso-result--v2 .rcr-ledger dt{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:9.5px; font-weight:700;
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+.retos-caso-result--v2 .rcr-ledger dd{
+  margin:0;
+  display:flex; align-items:baseline; gap:10px;
+}
+.retos-caso-result--v2 .rcr-ledger dd strong{
+  font-family:var(--rh-serif);
+  font-weight:500;
+  font-size:36px; line-height:1;
+  letter-spacing:-0.02em;
+  color:var(--rh-ink);
+  font-variant-numeric:lining-nums tabular-nums;
+  font-variation-settings:"opsz" 144;
+}
+.retos-caso-result--v2 .rcr-ledger dd em{
+  font-style:normal;
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:10px; font-weight:600;
+  letter-spacing:.18em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+
+/* Footer · sign + actions */
+.retos-caso-result--v2 .rcr-foot{
+  display:flex; align-items:center; justify-content:space-between; gap:24px;
+  padding-top:14px;
+  flex-wrap:wrap;
+}
+.retos-caso-result--v2 .rcr-sign{ display:flex; align-items:baseline; gap:10px; min-width:0; }
+.retos-caso-result--v2 .rcr-sign__label{
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-size:9.5px; font-weight:700;
+  letter-spacing:.26em; text-transform:uppercase;
+  color:var(--rh-ink-3);
+}
+.retos-caso-result--v2 .rcr-sign__body{
+  font-size:13px; color:var(--rh-ink-2);
+  font-weight:500; letter-spacing:0;
+}
+.retos-caso-result--v2 .rcr-sign__body em{
+  font-style:italic;
+  font-family:var(--rh-serif);
+  color:var(--rh-ink);
+  font-weight:500; font-size:14.5px;
+}
+
+.retos-caso-result--v2 .rcr-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-left:auto; }
+.retos-caso-result--v2 .rcr-btn{
+  display:inline-flex; align-items:center; gap:10px;
+  min-height:42px;
+  padding:0 20px;
+  border-radius:4px;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--rh-ink);
+  font-family:'JetBrains Mono', ui-monospace, monospace;
+  font-weight:700;
+  font-size:11px;
+  letter-spacing:.22em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:background .18s ease, color .18s ease, border-color .18s ease;
+}
+.retos-caso-result--v2 .rcr-btn .ic{ width:14px; height:14px; }
+.retos-caso-result--v2 .rcr-btn--primary{
+  background:var(--rh-ink);
+  color:var(--rh-paper);
+  border-color:var(--rh-ink);
+}
+.retos-caso-result--v2 .rcr-btn--primary:hover{
+  background:var(--rh-ocre);
+  border-color:var(--rh-ocre);
+  color:#fff;
+}
+.retos-caso-result--v2 .rcr-btn--ghost{
+  background:transparent;
+  color:var(--rh-ink-2);
+  border-color:var(--rh-rule-soft);
+}
+.retos-caso-result--v2 .rcr-btn--ghost:hover{
+  color:var(--rh-ink);
+  border-color:var(--rh-ink);
+}
+
+/* Responsive result */
+@media (max-width:900px){
+  .retos-caso-result.retos-caso-result--v2{ padding:24px 24px 20px 28px; }
+  .retos-caso-result--v2 .rcr-mast{ align-items:flex-start; }
+  .retos-caso-result--v2 .rcr-seal{ align-self:flex-start; }
+  .retos-caso-result--v2 .rcr-body{ grid-template-columns:1fr; gap:24px; padding:22px 0 18px; }
+  .retos-caso-result--v2 .rcr-score{ padding-right:0; border-right:0; padding-bottom:22px; border-bottom:1px solid var(--rh-rule-ghost); }
+  .retos-caso-result--v2 .rcr-score__num b{ font-size:84px; }
+  .retos-caso-result--v2 .rcr-ledger{ grid-template-columns:1fr; }
+  .retos-caso-result--v2 .rcr-ledger > div{ border-right:0; border-bottom:1px solid var(--rh-rule-ghost); padding:12px 0; }
+  .retos-caso-result--v2 .rcr-ledger > div + div{ padding-left:0; }
+  .retos-caso-result--v2 .rcr-ledger > div:last-child{ border-bottom:0; }
+  .retos-caso-result--v2 .rcr-foot{ flex-direction:column; align-items:flex-start; }
+  .retos-caso-result--v2 .rcr-actions{ margin-left:0; width:100%; }
+  .retos-caso-result--v2 .rcr-btn{ flex:1 1 auto; justify-content:center; }
+}
+@media (max-width:400px){
+  .retos-caso-result--v2 .rcr-ledger dd{ flex-direction:column; align-items:flex-start; gap:4px; }
+  .retos-caso-result--v2 .rcr-ledger dd strong{ font-size:30px; }
+  .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
 <script src="js/icadem-onboarding.js?v=1"></script>
