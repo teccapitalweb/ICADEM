@@ -1,5 +1,16 @@
 # CAMBIOS
 
+## 2026-10-09 — Ajuste responsive de módulos académicos
+
+**Archivos:** `vip-panel.html`, `css/panel-minimal.css`
+
+- Herramientas se redujo a un encabezado directo y cuatro recursos de lectura rápida, sin estados o textos redundantes.
+- Certificados y Logros ahora agrupan sus métricas en bandas compactas; la ruta de niveles vive dentro del mismo panel de avance.
+- Las medallas de Logros se convirtieron en filas breves que aprovechan todo el ancho y eliminan grandes espacios vacíos.
+- PDFs usa un estado próximo horizontal y breve; Retos conserva su estructura pero cambia grandes franjas de color por acentos discretos.
+- El widget de Comunidad se simplificó a miembros y una sola acción con color institucional.
+- Se validaron Herramientas, Certificados, Logros, PDFs y Retos a 1366 px, 820 px y 390 px sin desbordamiento horizontal ni errores de consola.
+
 ## 2026-10-09 — Refinamiento sobrio del panel ICADEM
 
 **Archivos:** `index.html`, `vip-auth.html`, `vip-panel.html`, `css/styles.css`, `css/auth-minimal.css`, `css/panel-minimal.css`

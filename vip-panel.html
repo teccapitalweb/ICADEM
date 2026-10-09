@@ -4386,9 +4386,8 @@ window.__setDisplayName = async (nombre) => {
 
     <div class="widget widget--wa">
       <div class="widget__label"><svg class="ic"><use href="#i-whatsapp"/></svg>Comunidad ICADEM</div>
-      <div class="widget__count">486<span style="font-size:13px; opacity:.6; font-weight:500"> miembros</span></div>
-      <div class="widget__count-sub">Profesionales activos compartiendo casos reales</div>
-      <button class="btn btn--wa btn--block btn--sm" id="btn-wa"><svg class="ic"><use href="#i-whatsapp"/></svg>Abrir grupo</button>
+      <div class="widget__count">486<span> profesionales</span></div>
+      <button class="btn btn--wa btn--block btn--sm" id="btn-wa"><svg class="ic"><use href="#i-whatsapp"/></svg>Entrar al grupo</button>
     </div>
 
     <div class="widget widget--disc" id="widget-disc">
@@ -6839,10 +6838,10 @@ const Sections = (function(){
   // etc.) que ya existe y sigue funcionando igual.
   // ═══════════════════════════════════════════════════════════════════
   const TOOLS_CATALOG = [
-    { id:'plantillas',   icon:'i-briefcase',    categoria:'Plantillas',   titulo:'Plantillas de negocio',  desc:'Formatos editables listos: contratos, facturas, nómina, flujo de caja y más.' },
-    { id:'calc-fiscal',  icon:'i-calculator',   categoria:'Fiscal',       titulo:'Calculadora fiscal',     desc:'ISR, IVA y retenciones con tarifas 2026, exporta a Excel y PDF.' },
-    { id:'calc-nomina',  icon:'i-cash',         categoria:'Nómina',       titulo:'Calculadora de nómina',  desc:'Nómina mensual con IMSS, Infonavit, ISR y subsidio al empleo.' },
-    { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas',     titulo:'Calculadora de crédito', desc:'Compara tasas, CAT, mensualidad y total pagado por producto.' }
+    { id:'plantillas',   icon:'i-briefcase',    categoria:'Plantillas',   titulo:'Plantillas de negocio',  desc:'Formatos editables listos para usar.' },
+    { id:'calc-fiscal',  icon:'i-calculator',   categoria:'Fiscal',       titulo:'Calculadora fiscal',     desc:'ISR, IVA y retenciones 2026.' },
+    { id:'calc-nomina',  icon:'i-cash',         categoria:'Nómina',       titulo:'Calculadora de nómina',  desc:'Cálculo mensual completo.' },
+    { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas',     titulo:'Calculadora de crédito', desc:'Tasas, CAT y mensualidades.' }
   ];
 
   function renderHerramientas(container){
@@ -6851,15 +6850,12 @@ const Sections = (function(){
     container.innerHTML = `<div class="fade-up tools-index">
       <section class="tools-index-hero">
         <div class="tools-index-hero__copy">
-          <span class="tools-index-hero__eyebrow">Herramientas ICADEM</span>
-          <h1>Decide mejor.</h1>
-          <p>Calculadoras y plantillas listas para tu trabajo.</p>
+          <span class="tools-index-hero__eyebrow">Recursos profesionales</span>
+          <h1>Herramientas</h1>
+          <p>Calcula, compara y trabaja con más claridad.</p>
         </div>
+        <div class="tools-index-hero__meta" aria-label="${TOOLS_CATALOG.length} recursos disponibles"><strong>${TOOLS_CATALOG.length}</strong><span>recursos listos</span></div>
       </section>
-      <div class="tools-index-head">
-        <div><span class="tools-index-head__eyebrow">Recursos disponibles</span><h2>Elige una herramienta</h2></div>
-        <span class="tools-index-head__count">${TOOLS_CATALOG.length} herramientas</span>
-      </div>
       <div class="tools-index-grid">
         ${TOOLS_CATALOG.map(t => `
           <button type="button" class="tool-index-card" data-tool-nav="${htmlEsc(t.id)}" ${!esVip ? 'data-locked="true"' : ''}>
@@ -6868,7 +6864,6 @@ const Sections = (function(){
               <span class="tool-index-card__kicker">${htmlEsc(t.categoria)}</span>
               <strong>${htmlEsc(t.titulo)}</strong>
               <small>${htmlEsc(t.desc)}</small>
-              <span class="tool-index-card__tag">${esVip?'Disponible':'Miembros VIP'}</span>
             </span>
             <svg class="ic tool-index-card__arrow"><use href="#i-arrow-right"/></svg>
           </button>
@@ -7284,8 +7279,8 @@ const Sections = (function(){
     return `<div class="retos-layout">
       <main class="retos-main">
         <div class="retos-head">
-          <div><span class="retos-head__eyebrow">Elige una modalidad</span><h2>¿Cómo quieres practicar hoy?</h2></div>
-          <small class="retos-head__count">3 modalidades · feedback inmediato</small>
+          <div><span class="retos-head__eyebrow">Práctica aplicada</span><h2>Elige cómo practicar</h2></div>
+          <small class="retos-head__count">3 modalidades</small>
         </div>
         <div class="retos-tiles">
           <article class="retos-tile retos-tile--casos" data-retos-nav="casos">
@@ -7294,7 +7289,7 @@ const Sections = (function(){
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-briefcase"/></svg></span>
               <span class="retos-tile__kicker">Casos de decisión</span>
               <h3>Casos de obra fiscal</h3>
-              <p>Decisiones encadenadas sobre situaciones reales de fiscal, nómina, contabilidad y RH.</p>
+              <p>Decisiones reales de fiscal, nómina, contabilidad y RH.</p>
               <div class="retos-tile__meta"><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div>
               <button type="button" class="retos-tile__cta">Abrir expedientes<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
@@ -7305,7 +7300,7 @@ const Sections = (function(){
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-book"/></svg></span>
               <span class="retos-tile__kicker">Repaso rápido</span>
               <h3>Flashcards técnicas</h3>
-              <p>Tarjetas con el término al frente y la definición técnica al reverso. Filtra por área.</p>
+              <p>Conceptos técnicos para repasar por área.</p>
               <div class="retos-tile__meta"><span>${totalFlash} tarjetas</span><span>${flashDom}/${totalFlash} dominadas</span></div>
               <button type="button" class="retos-tile__cta">Repasar<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
@@ -7316,7 +7311,7 @@ const Sections = (function(){
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-bolt"/></svg></span>
               <span class="retos-tile__kicker">Quiz express</span>
               <h3>12 preguntas rápidas</h3>
-              <p>Preguntas aleatorias del banco técnico ICADEM. Explicación al terminar; 70% para aprobar.</p>
+              <p>12 preguntas con explicación inmediata.</p>
               <div class="retos-tile__meta"><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Sin intentos'}</span></div>
               <button type="button" class="retos-tile__cta">Comenzar quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
@@ -8459,32 +8454,20 @@ const Sections = (function(){
           <div class="sec-hero">
             <span class="sec-hero__eyebrow">Tu trayectoria</span>
             <h1 class="sec-hero__title">Mis certificados</h1>
-            <p class="sec-hero__sub">Cada certificado ICADEM incluye <strong style="color:var(--primary);">folio único, código QR verificable y firma del instructor</strong>. Se otorgan al completar el 100% de las clases de un curso VIP.</p>
+            <p class="sec-hero__sub">Credenciales verificables, listas para compartir.</p>
           </div>
-          <div class="kpi-grid">
+          <div class="kpi-grid cert-kpis">
             <div class="kpi-card"><div class="kpi-card__label">Certificados</div><div class="kpi-card__value">0</div></div>
             <div class="kpi-card"><div class="kpi-card__label">Horas certificadas</div><div class="kpi-card__value">0</div></div>
             <div class="kpi-card"><div class="kpi-card__label">Áreas dominadas</div><div class="kpi-card__value">0</div></div>
             <div class="kpi-card"><div class="kpi-card__label">Verificables</div><div class="kpi-card__value">100<span class="kpi-card__value-sub">%</span></div></div>
           </div>
-          <div style="background:linear-gradient(160deg, var(--surface-2), var(--surface));border:1px solid var(--border-2);border-radius:18px;padding:48px 32px;text-align:center;margin-top:24px;">
-            <div style="width:88px;height:88px;border-radius:50%;background:color-mix(in srgb, var(--primary) 14%, transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:20px;">
+          <div class="cert-empty">
+            <div class="cert-empty__icon">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="42" height="42"><circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/></svg>
             </div>
-            <h2 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:22px;font-weight:800;letter-spacing:-.6px;line-height:1.2;margin-bottom:10px;">Aún no tienes certificados emitidos</h2>
-            <p style="font-size:14px;color:var(--text-2);line-height:1.6;max-width:480px;margin:0 auto 24px;">
-              Para emitir tu primer certificado oficial ICADEM, <strong style="color:var(--text);">activa tu membresía VIP</strong> y completa el 100% de las clases de cualquiera de nuestros cursos de negocios, fiscal y legal.
-            </p>
-            <div style="display:flex;flex-direction:column;gap:10px;align-items:center;max-width:380px;margin:0 auto 24px;text-align:left;">
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Folio único <code style="font-family:'JetBrains Mono',monospace;background:var(--surface-3);padding:2px 6px;border-radius:4px;font-size:11px;color:var(--primary);">ICADEM-2026-XXXXXX</code></span></div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Código QR verificable desde cualquier dispositivo</span></div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Descargable en PDF · listo para LinkedIn y currículum</span></div>
-              <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-2);width:100%;"><span style="color:var(--primary);font-size:18px;flex-shrink:0;">✓</span><span>Verificación pública en <strong style="color:var(--text);">icademx.com/verificar.html</strong></span></div>
-            </div>
-            <a class="btn btn--accent" data-go-cursos style="cursor:pointer;" onclick="window.navigateToSection && window.navigateToSection('cursos')">
-              <svg class="ic"><use href="#i-book"/></svg>
-              Empezar mi primer curso
-            </a>
+            <div class="cert-empty__copy"><span>Tu siguiente logro</span><h2>Tu primer certificado empieza aquí</h2><p>Completa un curso al 100% para recibir tu folio verificable.</p></div>
+            <a class="btn btn--accent" data-go-cursos style="cursor:pointer;" onclick="window.navigateToSection && window.navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Ver mis cursos</a>
           </div>
         </div>
       `;
@@ -8497,15 +8480,15 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Tu trayectoria</span>
           <h1 class="sec-hero__title">Mis certificados</h1>
-          <p class="sec-hero__sub">Cada certificado tiene un folio único <strong style="color:var(--primary);font-family:'JetBrains Mono',monospace;">ICADEM-2026-XXXXXX</strong> y código QR verificable. Compártelos en LinkedIn o descárgalos en PDF.</p>
+          <p class="sec-hero__sub">Credenciales verificables, listas para compartir.</p>
         </div>
-        <div class="kpi-grid">
+        <div class="kpi-grid cert-kpis">
           <div class="kpi-card"><div class="kpi-card__label">Certificados</div><div class="kpi-card__value">${certs.length}</div></div>
           <div class="kpi-card"><div class="kpi-card__label">Horas certificadas</div><div class="kpi-card__value">${totalHoras}</div></div>
           <div class="kpi-card"><div class="kpi-card__label">Áreas dominadas</div><div class="kpi-card__value">${areas}</div></div>
           <div class="kpi-card"><div class="kpi-card__label">Verificables</div><div class="kpi-card__value">100<span class="kpi-card__value-sub">%</span></div></div>
         </div>
-        <div class="section-header"><h2 class="section-header__title">Tus ${certs.length} certificado${certs.length!==1?'s':''}<span class="section-header__badge">${certs.length} activo${certs.length!==1?'s':''}</span></h2></div>
+        <div class="section-header section-header--compact"><h2 class="section-header__title">Certificados<span class="section-header__badge">${certs.length} emitido${certs.length!==1?'s':''}</span></h2></div>
         <div class="certs-list">${certs.map(c=>`
           <article class="certb" data-certid="${c.id}" tabindex="0">
             <div class="certb__seal">
@@ -8920,26 +8903,25 @@ const Sections = (function(){
           </div>
           <div class="logro-hero__xp-bar"><div class="logro-hero__xp-fill" style="width:${pct}%"></div></div>
           <div class="logro-hero__xp-text"><span><strong>${usuario.xp}</strong> XP</span><span>${xpRest>0?xpRest+' XP para '+proxNivel:'¡Nivel máximo!'}</span><span><strong>${nivelActual.hasta===99999?'∞':nivelActual.hasta}</strong> XP</span></div>
+          <section class="nivel-path" style="--nivel-progress:${Math.max(7,Math.min(93,((nivelActual.id-1)/(niveles.length-1))*100+(pct/100)*(100/(niveles.length-1))))}%">
+            <div class="nivel-path__title">De aprendiz a maestro</div>
+            <div class="nivel-path__track">
+              ${niveles.map((n,idx)=>{
+                const emojis=['<svg class="ic" style="width:24px;height:24px"><use href="#i-book"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-calculator"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-briefcase"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-users"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-crown"/></svg>'];
+                const isCurrent=n.id===nivelActual.id;
+                const isDone=n.id<nivelActual.id;
+                const cls=isCurrent?'is-current':isDone?'is-done':'is-locked';
+                return `<div class="nivel-step ${cls}">
+                  <div class="nivel-step__icon">${emojis[idx]||'·'}</div>
+                  <div class="nivel-step__name">${n.nombre}</div>
+                  <div class="nivel-step__xp">${isCurrent?'TÚ':n.desde+'+ XP'}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          </section>
         </div>
 
-        <section class="nivel-path" style="--nivel-progress:${Math.max(7,Math.min(93,((nivelActual.id-1)/(niveles.length-1))*100+(pct/100)*(100/(niveles.length-1))))}%">
-          <div class="nivel-path__title">Tu camino de aprendiz a maestro</div>
-          <div class="nivel-path__track">
-            ${niveles.map((n,idx)=>{
-              const emojis=['<svg class="ic" style="width:24px;height:24px"><use href="#i-book"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-calculator"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-briefcase"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-users"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-crown"/></svg>'];
-              const isCurrent=n.id===nivelActual.id;
-              const isDone=n.id<nivelActual.id;
-              const cls=isCurrent?'is-current':isDone?'is-done':'is-locked';
-              return `<div class="nivel-step ${cls}">
-                <div class="nivel-step__icon">${emojis[idx]||'·'}</div>
-                <div class="nivel-step__name">${n.nombre}</div>
-                <div class="nivel-step__xp">${isCurrent?'TÚ':n.desde+'+ XP'}</div>
-              </div>`;
-            }).join('')}
-          </div>
-        </section>
-
-        <div class="kpi-grid">
+        <div class="kpi-grid kpi-grid--logros">
           <div class="kpi-card"><div class="kpi-card__label">Logros ganados</div><div class="kpi-card__value">${ganados}<span class="kpi-card__value-sub">/${logros.length}</span></div></div>
           <div class="kpi-card"><div class="kpi-card__label">XP de logros</div><div class="kpi-card__value">${totalXp}</div></div>
           <div class="kpi-card"><div class="kpi-card__label">Días activos</div><div class="kpi-card__value">${usuario.diasActivos}</div></div>
@@ -9337,16 +9319,16 @@ const Sections = (function(){
       <div class="sec-hero">
         <span class="sec-hero__eyebrow">Materiales independientes</span>
         <h1 class="sec-hero__title">PDFs y material</h1>
-        <p class="sec-hero__sub">Esta biblioteca está reservada para materiales que podrás <strong style="color:var(--primary);">canjear con créditos</strong>. Los materiales que ya acompañan a cada curso siguen disponibles dentro de <a href="#cursos" style="color:var(--primary);font-weight:650;">Mis cursos</a>.</p>
+        <p class="sec-hero__sub">Recursos profesionales para consultar y descargar.</p>
       </div>
       <section class="pdfs-empty">
         <div class="pdfs-empty__badge"><svg class="ic"><use href="#i-news"/></svg></div>
         <span class="pdfs-empty__kicker">Próximamente</span>
-        <h2>Biblioteca de materiales canjeables</h2>
-        <p>Estamos preparando una colección de formatos editables, checklists técnicos y guías en PDF que podrás canjear con tus créditos ICADEM. Mantén tu racha activa para acumular créditos y acceder al catálogo en cuanto se publique.</p>
+        <h2>Materiales canjeables</h2>
+        <p>Muy pronto encontrarás formatos y guías. Tus recursos actuales siguen dentro de cada curso.</p>
         <div class="pdfs-empty__actions">
-          <button type="button" class="btn btn--primary" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Ver materiales de mis cursos</button>
-          <button type="button" class="btn btn--ghost" onclick="navigateToSection('libros')"><svg class="ic"><use href="#i-book"/></svg>Explorar la biblioteca</button>
+          <button type="button" class="btn btn--primary" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Ir a mis cursos</button>
+          <button type="button" class="btn btn--ghost" onclick="navigateToSection('libros')">Ver biblioteca</button>
         </div>
       </section>
     </div>`;
@@ -19877,7 +19859,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-<link rel="stylesheet" href="css/panel-minimal.css?v=7">
+<link rel="stylesheet" href="css/panel-minimal.css?v=9">
 <script src="js/icadem-onboarding.js?v=1"></script>
 </body>
 </html>
