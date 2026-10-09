@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="night">
+<html lang="es" data-theme="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -4518,7 +4518,7 @@ const PREFIX='imdiil:';
 const Storage={pref:{get(k,d){const v=localStorage.getItem(PREFIX+'pref:'+k);return v===null?d:v;},set(k,v){localStorage.setItem(PREFIX+'pref:'+k,String(v));}}};
 
 const Theme={
-  init(){this.apply(Storage.pref.get('theme','night'));document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
+  init(){this.apply(Storage.pref.get('theme','day'));document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
   apply(t){if(t!=='day'&&t!=='night')t='night';document.documentElement.setAttribute('data-theme',t);Storage.pref.set('theme',t);const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0f1626':'#eef3f9');},
   toggle(){this.apply(document.documentElement.getAttribute('data-theme')==='night'?'day':'night');}
 };
@@ -19922,6 +19922,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
+<link rel="stylesheet" href="css/panel-minimal.css?v=5">
 <script src="js/icadem-onboarding.js?v=1"></script>
 </body>
 </html>

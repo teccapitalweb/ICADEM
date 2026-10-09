@@ -1,0 +1,181 @@
+/* ICADEM VIP · refinamiento visual minimalista
+   Este archivo solo modifica presentación; la estructura y la lógica permanecen intactas. */
+
+:root[data-theme="day"] {
+  --bg: #f5f7fa;
+  --bg-deep: #edf1f6;
+  --surface: #ffffff;
+  --surface-2: #f7f9fc;
+  --surface-3: #edf2f8;
+  --border: #e3e8ef;
+  --border-2: #d8e0ea;
+  --border-strong: #becbdc;
+  --text: #142033;
+  --text-2: #536176;
+  --text-3: #8490a3;
+  --primary: #2f66e8;
+  --primary-soft: #7097f2;
+  --primary-deep: #1f4fc4;
+  --primary-glow: rgba(47, 102, 232, .14);
+  --highlight: #2f66e8;
+  --shadow-card: 0 12px 36px rgba(11, 31, 58, .07);
+}
+
+:root[data-theme="night"] {
+  --bg: #0d1728;
+  --bg-deep: #091220;
+  --surface: #142136;
+  --surface-2: #1a2941;
+  --surface-3: #21324d;
+  --border: rgba(208, 221, 239, .09);
+  --border-2: rgba(208, 221, 239, .15);
+  --border-strong: rgba(208, 221, 239, .24);
+  --text: #f2f6fb;
+  --text-2: #b8c4d4;
+  --text-3: #76869e;
+  --primary: #76a0ff;
+  --primary-soft: #9cbbff;
+  --primary-deep: #4c7be7;
+  --primary-glow: rgba(88, 132, 235, .18);
+  --highlight: #76a0ff;
+  --shadow-card: 0 16px 46px rgba(0, 0, 0, .22);
+}
+
+body::before,
+body::after,
+.banner::before,
+.banner::after,
+.content-row::before,
+.content-row__thumb::after,
+.banner__stat::before {
+  display: none !important;
+}
+
+.app { grid-template-columns: 216px minmax(0, 1fr) 288px; }
+
+.sidebar {
+  padding-top: 16px;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+.brand { border-bottom-color: var(--border); }
+.brand__logo,
+.brand__logo img { border-radius: 9px; }
+.brand__plan,
+.pill,
+.section-header__badge,
+.tag,
+.nav-item__badge { border-radius: 7px; }
+.nav-item { border-radius: 8px; }
+.nav-item.is-active { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+
+.main { gap: 18px; padding: calc(18px + env(safe-area-inset-top)) 26px 40px; }
+.icon-btn,
+.theme-toggle,
+.avatar,
+.section-header__link { box-shadow: none; }
+
+.banner {
+  padding: 26px 28px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--text);
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.banner__eyebrow {
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  backdrop-filter: none;
+}
+.banner__eyebrow__dot,
+.section-header__badge::before,
+.tag::before { animation: none !important; }
+.banner__title,
+.banner__stat-val {
+  color: var(--text);
+  background: none;
+  -webkit-text-fill-color: currentColor;
+}
+.banner__stats { gap: 8px; }
+.banner__stat {
+  min-width: 86px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  backdrop-filter: none;
+}
+
+.section-header__title { font-size: 18px; }
+.content-list { gap: 8px; }
+.content-row {
+  padding: 13px 14px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  box-shadow: none;
+}
+.content-row:hover {
+  transform: translateY(-1px);
+  border-color: var(--border-strong);
+  box-shadow: 0 10px 30px rgba(11, 31, 58, .07);
+}
+.content-row__thumb { border-radius: 9px; }
+.content-row:hover .content-row__thumb { transform: none; }
+.content-row__thumb--video,
+.content-row__thumb--live,
+.content-row__thumb--pdf,
+.content-row__thumb--tool { background: var(--primary); }
+.row-btn {
+  border-radius: 8px;
+  background: var(--primary);
+  box-shadow: none;
+}
+.row-btn:hover { box-shadow: none; filter: none; }
+
+.aside {
+  padding-left: 14px;
+  padding-right: 14px;
+  border-left: 1px solid var(--border);
+}
+.widget {
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface);
+  box-shadow: none;
+}
+.widget--next,
+.widget--disc,
+.widget--wa {
+  background: var(--surface) !important;
+}
+.cd-box { border: 1px solid var(--border); border-radius: 7px; }
+
+.card,
+.tool-card,
+.course-card,
+.video-card,
+.cert-card,
+.stat-card,
+.profile-card,
+.live-card {
+  border-color: var(--border) !important;
+  box-shadow: none !important;
+}
+
+[class*="glow"],
+[class*="aurora"],
+[class*="shine"] { animation: none !important; }
+
+@media (max-width: 1400px) {
+  .app { grid-template-columns: 228px minmax(0, 1fr) !important; }
+  .aside { display: none !important; }
+}
+
+@media (max-width: 760px) {
+  .app { display: block; grid-template-columns: minmax(0, 1fr); }
+  .main { padding: calc(14px + env(safe-area-inset-top)) 14px 84px; }
+  .banner { padding: 22px 18px; }
+  .banner__stats { width: 100%; }
+  .banner__stat { flex: 1; }
+}

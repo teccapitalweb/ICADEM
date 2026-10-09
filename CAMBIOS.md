@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-10-09 — Rediseño visual minimalista de ICADEM
+
+**Archivos:** `index.html`, `css/styles.css`, `vip-auth.html`, `vip-panel.html`, `css/auth-minimal.css`, `css/panel-minimal.css`
+
+- Se simplificó la página pública con una jerarquía más corta, fondo claro, mayor espacio en blanco y una paleta azul institucional.
+- Se mantuvieron la tipografía, los cursos, filtros, acceso VIP, galería, formulario por WhatsApp y enlaces de contacto.
+- Se eliminaron de la portada los efectos 3D, brillos y bloques redundantes para mejorar lectura y rendimiento.
+- El acceso y el panel VIP recibieron una capa visual más sobria, con modo claro predeterminado y modo oscuro conservado.
+- Se corrigió el ancho del panel VIP en pantallas móviles sin tocar su lógica de autenticación, contenido o herramientas.
+
 ## 2026-07-20 — Fix: "Recibo de nómina" y "Multi-empleado" rotos (ReferenceError) + causa raíz de `__ensureCfGenerators`
 
 **Archivo:** `vip-panel.html` (commiteado en `5994166` y pusheado a `main`)

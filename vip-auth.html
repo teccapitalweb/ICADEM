@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-theme="night">
+<html lang="es" data-theme="day">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -430,6 +430,7 @@ body::after{
   .hero-trust{text-align:center;letter-spacing:1px;font-size:8.5px;white-space:normal;padding:0 8px}
 }
 </style>
+<link rel="stylesheet" href="css/auth-minimal.css?v=3">
 </head>
 <body>
 
@@ -616,7 +617,7 @@ body::after{
 /* ===== Tema ===== */
 const Theme = {
   init() {
-    const s = localStorage.getItem('icadem-auth:theme') || 'night';
+    const s = localStorage.getItem('icadem-auth:theme') || 'day';
     document.documentElement.dataset.theme = s;
     this.updateIcon();
   },
