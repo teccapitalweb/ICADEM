@@ -2,23 +2,30 @@
    Este archivo solo modifica presentación; la estructura y la lógica permanecen intactas. */
 
 :root[data-theme="day"] {
-  --bg: #f5f7fa;
-  --bg-deep: #edf1f6;
+  --bg: #f4f5f2;
+  --bg-deep: #eceeea;
   --surface: #ffffff;
-  --surface-2: #f7f9fc;
-  --surface-3: #edf2f8;
-  --border: #e3e8ef;
-  --border-2: #d8e0ea;
-  --border-strong: #becbdc;
-  --text: #142033;
-  --text-2: #536176;
-  --text-3: #8490a3;
-  --primary: #2f66e8;
-  --primary-soft: #7097f2;
-  --primary-deep: #1f4fc4;
-  --primary-glow: rgba(47, 102, 232, .14);
-  --highlight: #2f66e8;
-  --shadow-card: 0 12px 36px rgba(11, 31, 58, .07);
+  --surface-2: #f6f7f4;
+  --surface-3: #ecefeb;
+  --border: #dfe3de;
+  --border-2: #d4dad4;
+  --border-strong: #bdc6bf;
+  --text: #17243a;
+  --text-2: #596572;
+  --text-3: #89918f;
+  --primary: #2c526f;
+  --primary-soft: #58788e;
+  --primary-deep: #1b3850;
+  --primary-glow: rgba(44, 82, 111, .12);
+  --highlight: #a17b45;
+  --accent: #a17b45;
+  --success: #467665;
+  --shadow-card: 0 10px 28px rgba(23, 36, 58, .06);
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-xl: 14px;
+  --r-2xl: 16px;
 }
 
 :root[data-theme="night"] {
@@ -33,12 +40,19 @@
   --text: #f2f6fb;
   --text-2: #b8c4d4;
   --text-3: #76869e;
-  --primary: #76a0ff;
-  --primary-soft: #9cbbff;
-  --primary-deep: #4c7be7;
-  --primary-glow: rgba(88, 132, 235, .18);
-  --highlight: #76a0ff;
+  --primary: #8aa8b8;
+  --primary-soft: #a7bcc7;
+  --primary-deep: #54788f;
+  --primary-glow: rgba(105, 145, 166, .16);
+  --highlight: #c2a371;
+  --accent: #c2a371;
+  --success: #79a795;
   --shadow-card: 0 16px 46px rgba(0, 0, 0, .22);
+  --r-sm: 8px;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-xl: 14px;
+  --r-2xl: 16px;
 }
 
 body::before,
@@ -178,4 +192,413 @@ body::after,
   .banner { padding: 22px 18px; }
   .banner__stats { width: 100%; }
   .banner__stat { flex: 1; }
+}
+
+/* Segunda revisión · dirección sobria ICADEM
+   Azul marino, grises cálidos y acento latón. Sin bloques chillantes. */
+
+body,
+.app,
+.main { background: var(--bg) !important; }
+
+.topbar {
+  min-height: 60px !important;
+  height: 60px !important;
+  margin: 0 !important;
+  padding: 0 24px !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: color-mix(in srgb, var(--bg) 94%, transparent) !important;
+  backdrop-filter: blur(12px) !important;
+}
+#topbar-pill { display: none !important; }
+.club-search-btn {
+  width: min(420px, 48vw) !important;
+  height: 40px !important;
+  margin: 0 !important;
+  padding: 0 14px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 9px !important;
+  color: var(--text-2) !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+.club-search-btn:hover { border-color: var(--border-strong) !important; }
+.club-search-btn kbd { display: none !important; }
+.icon-btn,
+.theme-toggle,
+.avatar,
+.install-app-btn {
+  border-color: var(--border) !important;
+  border-radius: 9px !important;
+  background: var(--surface) !important;
+}
+.avatar__circle {
+  color: #fff !important;
+  background: var(--primary-deep) !important;
+}
+.fomo-banner {
+  color: #f7f9fb !important;
+  background: var(--primary-deep) !important;
+  border-bottom-color: rgba(255, 255, 255, .1) !important;
+}
+.fomo-banner__timer { background: rgba(255, 255, 255, .1) !important; }
+.fomo-banner__cta {
+  color: var(--primary-deep) !important;
+  background: #fff !important;
+  box-shadow: none !important;
+}
+
+#inicio-content,
+#dynamic-section {
+  padding: 26px 30px 42px !important;
+}
+
+/* Inicio: bienvenida breve, sin tarjeta monumental. */
+.banner {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 30px !important;
+  min-height: 0 !important;
+  padding: 24px 28px !important;
+  border: 1px solid var(--border) !important;
+  border-left: 4px solid var(--primary-deep) !important;
+  border-radius: 13px !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.banner__info { min-width: 0 !important; }
+.banner__title {
+  max-width: none !important;
+  margin: 0 !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+  font-size: clamp(25px, 3vw, 34px) !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -.8px !important;
+}
+.banner__sub {
+  max-width: 500px !important;
+  margin: 7px 0 0 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+.club-hero-actions { margin-top: 15px !important; }
+.club-hero-btn {
+  min-height: 38px !important;
+  padding: 0 15px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  color: #fff !important;
+  background: var(--primary-deep) !important;
+  box-shadow: none !important;
+}
+.club-hero-btn:hover { transform: translateY(-1px) !important; }
+.banner__stats {
+  display: flex !important;
+  width: auto !important;
+  max-width: none !important;
+  gap: 0 !important;
+  align-items: stretch !important;
+}
+.banner__stat {
+  min-width: 84px !important;
+  padding: 4px 16px !important;
+  border: 0 !important;
+  border-left: 1px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+.banner__stat:first-child { border-left: 0 !important; }
+.banner__stat-lbl {
+  margin: 0 0 3px !important;
+  color: var(--text-3) !important;
+  font-size: 8px !important;
+  letter-spacing: 1.1px !important;
+}
+.banner__stat-lbl::before { display: none !important; }
+.banner__stat-val {
+  color: var(--text) !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+}
+
+.club-home-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+  gap: 0 !important;
+  margin: 16px 0 24px !important;
+}
+.club-home-card {
+  min-height: 0 !important;
+  padding: 20px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 13px !important;
+  background: var(--surface) !important;
+  box-shadow: none !important;
+}
+.club-home-card--learning { background: var(--surface) !important; }
+.club-home-card__kicker {
+  margin-bottom: 13px !important;
+  color: var(--text-3) !important;
+  letter-spacing: 1.1px !important;
+}
+.club-home-card__kicker::before { background: var(--accent) !important; box-shadow: none !important; }
+.club-learning { grid-template-columns: 154px minmax(0, 1fr) !important; gap: 20px !important; }
+.club-learning__cover { border-radius: 9px !important; box-shadow: none !important; }
+.club-learning__body h3 { font-size: 19px !important; }
+.club-learning__action {
+  border-radius: 8px !important;
+  color: #fff !important;
+  background: var(--primary-deep) !important;
+}
+.club-learning__fill { background: var(--primary) !important; box-shadow: none !important; }
+
+/* Encabezados de sección: más compactos y sin párrafos largos. */
+#dynamic-section > .fade-up { gap: 14px !important; }
+.sec-hero {
+  margin: 0 !important;
+  padding: 2px 0 8px !important;
+}
+.sec-hero__eyebrow {
+  color: var(--accent) !important;
+  font-size: 9px !important;
+  letter-spacing: 1.25px !important;
+}
+.sec-hero__title {
+  margin: 6px 0 5px !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+  font-size: clamp(28px, 3.4vw, 36px) !important;
+  line-height: 1.1 !important;
+  letter-spacing: -.9px !important;
+}
+.sec-hero__sub {
+  max-width: 560px !important;
+  margin: 0 !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+
+/* Retos: sustituye la portada tipo revista por un resumen útil. */
+.retos-page { gap: 14px !important; }
+.retos-hero.retos-hero--v3 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 30px !important;
+  padding: 24px 28px !important;
+  border: 1px solid var(--border) !important;
+  border-left: 4px solid var(--accent) !important;
+  border-radius: 13px !important;
+  color: var(--text) !important;
+  background: var(--surface) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.retos-hero.retos-hero--v3::before,
+.retos-hero.retos-hero--v3::after { display: none !important; }
+.retos-hero--v3 .retos-hero__copy { max-width: 520px !important; }
+.retos-hero--v3 .retos-hero__eyebrow {
+  margin: 0 0 7px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  color: var(--accent) !important;
+  background: transparent !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.35px !important;
+  text-transform: uppercase !important;
+}
+.retos-hero--v3 h1 {
+  max-width: none !important;
+  margin: 0 0 6px !important;
+  color: var(--text) !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+  font-size: clamp(27px, 3vw, 34px) !important;
+  font-weight: 700 !important;
+  line-height: 1.08 !important;
+  letter-spacing: -.8px !important;
+}
+.retos-hero--v3 p {
+  max-width: 440px !important;
+  margin: 0 !important;
+  color: var(--text-2) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+.retos-hero__summary {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+.retos-hero__metric {
+  min-width: 104px;
+  padding: 4px 18px;
+  border-left: 1px solid var(--border);
+}
+.retos-hero__metric strong {
+  display: block;
+  color: var(--text);
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 24px;
+  line-height: 1;
+}
+.retos-hero__metric span {
+  display: block;
+  margin-top: 5px;
+  color: var(--text-3);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.retos-hero--v3 .retos-hero__pillslot { margin-left: 12px !important; }
+.retos-hero--v3 .retos-hero__pill {
+  padding: 7px 10px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 7px !important;
+  color: var(--primary-deep) !important;
+  background: var(--surface-2) !important;
+  box-shadow: none !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+}
+.retos-level {
+  padding: 15px 18px !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+}
+.retos-level__text strong { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; font-size: 17px !important; }
+.retos-level__bar span { background: var(--primary) !important; }
+
+/* Herramientas y biblioteca: encabezados claros, sin degradados eléctricos. */
+.tools-index,
+.library-page { gap: 16px !important; }
+.tools-index-hero,
+.library-hero {
+  padding: 25px 28px !important;
+  border: 1px solid var(--border) !important;
+  border-left: 4px solid var(--primary-deep) !important;
+  border-radius: 13px !important;
+  color: var(--text) !important;
+  background: linear-gradient(90deg, var(--surface) 0%, var(--surface) 72%, var(--surface-2) 100%) !important;
+  box-shadow: var(--shadow-card) !important;
+}
+.library-hero { border-left-color: var(--accent) !important; }
+.tools-index-hero::after,
+.library-hero::after { display: none !important; }
+.tools-index-hero__eyebrow,
+.library-hero__eyebrow {
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+  color: var(--accent) !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  font-family: 'JetBrains Mono', monospace !important;
+  font-size: 9px !important;
+  letter-spacing: 1.2px !important;
+  text-transform: uppercase !important;
+}
+.tools-index-hero h1,
+.library-hero h1 {
+  margin: 0 0 6px !important;
+  color: var(--text) !important;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important;
+  font-size: clamp(27px, 3vw, 34px) !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -.8px !important;
+}
+.tools-index-hero p,
+.library-hero p {
+  margin: 0 !important;
+  color: var(--text-2) !important;
+  font-size: 13px !important;
+  line-height: 1.5 !important;
+}
+.tools-index-head,
+.library-head { align-items: center !important; }
+.tools-index-head h2,
+.library-head h2 { font-size: 20px !important; }
+.tools-index-head__eyebrow,
+.library-head__eyebrow { color: var(--accent) !important; }
+.tools-index-grid { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important; gap: 12px !important; }
+.tool-index-card {
+  min-height: 0 !important;
+  padding: 17px 18px !important;
+  border-radius: 11px !important;
+  box-shadow: none !important;
+}
+.tool-index-card__icon { width: 44px !important; height: 44px !important; border-radius: 9px !important; }
+.tool-index-card__body small { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.library-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)) !important; gap: 16px !important; }
+.library-card { border-radius: 12px !important; box-shadow: none !important; }
+.library-card__cover-inner,
+.library-card__cover-inner h3 { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; }
+.library-card__cover-inner h3 { font-style: normal !important; font-weight: 700 !important; }
+
+/* Logros: densidad útil y una sola jerarquía. */
+.logro-hero {
+  margin: 0 !important;
+  padding: 18px 20px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  background: var(--surface) !important;
+}
+.logro-hero__row { gap: 14px !important; margin-bottom: 12px !important; }
+.logro-hero__icon {
+  width: 48px !important;
+  height: 48px !important;
+  color: #fff !important;
+  background: var(--primary-deep) !important;
+  box-shadow: none !important;
+}
+.logro-hero__name { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; font-size: 20px !important; }
+.logro-hero__racha { padding: 6px 10px !important; border-radius: 7px !important; }
+.logro-hero__xp-fill { background: var(--primary) !important; }
+.nivel-path {
+  margin: 0 0 16px !important;
+  padding: 17px 20px !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+}
+.nivel-path__title { margin-bottom: 12px !important; font-size: 13px !important; }
+.nivel-step__icon { width: 44px !important; height: 44px !important; }
+.kpi-grid { gap: 10px !important; grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+.kpi-card { padding: 15px 17px !important; border-radius: 10px !important; box-shadow: none !important; }
+.kpi-card__value { font-family: 'Plus Jakarta Sans', 'Inter', sans-serif !important; }
+.logros-cat { margin-bottom: 20px !important; }
+.logros-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important; gap: 10px !important; }
+.logro { padding: 18px 14px 15px !important; border-radius: 11px !important; box-shadow: none !important; }
+.logro.is-unlocked .logro__icon { background: var(--primary-deep) !important; box-shadow: none !important; }
+.logros-cat__icon { color: var(--primary) !important; background: color-mix(in srgb, var(--primary) 9%, var(--surface-2)) !important; }
+
+@media (max-width: 980px) {
+  .banner,
+  .retos-hero.retos-hero--v3 { grid-template-columns: 1fr !important; gap: 18px !important; }
+  .banner__stats { justify-content: flex-start !important; }
+  .banner__stat:first-child { padding-left: 0 !important; }
+  .retos-hero__summary { justify-content: flex-start; flex-wrap: wrap; }
+  .retos-hero__metric:first-child { padding-left: 0; border-left: 0; }
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+
+@media (max-width: 760px) {
+  #inicio-content,
+  #dynamic-section { padding: 18px 14px 88px !important; }
+  .topbar { padding: 0 14px !important; }
+  .banner,
+  .retos-hero.retos-hero--v3,
+  .tools-index-hero,
+  .library-hero { padding: 20px 18px !important; }
+  .banner__stats { width: 100% !important; }
+  .banner__stat { flex: 1; min-width: 0 !important; padding: 3px 12px !important; }
+  .banner__stat:first-child { padding-left: 0 !important; }
+  .club-learning { grid-template-columns: 1fr !important; }
+  .club-learning__cover { max-height: 180px; }
+  .retos-hero__summary { gap: 10px; }
+  .retos-hero__metric { min-width: 0; padding: 2px 12px; }
+  .retos-hero--v3 .retos-hero__pillslot { width: 100%; margin: 4px 0 0 !important; }
+  .nivel-path { overflow-x: auto !important; }
+  .nivel-path__track { min-width: 560px; }
 }

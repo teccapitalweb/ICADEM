@@ -1,21 +1,21 @@
 /* ICADEM acceso · refinamiento visual minimalista */
 
 :root[data-theme="day"] {
-  --bg: #f5f7fa;
-  --bg-deep: #edf1f6;
+  --bg: #f4f5f2;
+  --bg-deep: #eceeea;
   --surface: #ffffff;
-  --surface-2: #f7f9fc;
-  --surface-3: #edf2f8;
-  --border: #e3e8ef;
-  --border-2: #d7e0ea;
-  --border-strong: #bdcadb;
-  --text: #142033;
-  --text-2: #536176;
-  --text-3: #8490a3;
-  --primary: #2f66e8;
-  --primary-soft: #7097f2;
-  --primary-deep: #1f4fc4;
-  --primary-glow: rgba(47, 102, 232, .14);
+  --surface-2: #f6f7f4;
+  --surface-3: #ecefeb;
+  --border: #dfe3de;
+  --border-2: #d4dad4;
+  --border-strong: #bdc6bf;
+  --text: #17243a;
+  --text-2: #596572;
+  --text-3: #89918f;
+  --primary: #2c526f;
+  --primary-soft: #58788e;
+  --primary-deep: #1b3850;
+  --primary-glow: rgba(44, 82, 111, .12);
 }
 
 :root[data-theme="night"] {
@@ -30,10 +30,10 @@
   --text: #f2f6fb;
   --text-2: #b8c4d4;
   --text-3: #76869e;
-  --primary: #76a0ff;
-  --primary-soft: #9cbbff;
-  --primary-deep: #4c7be7;
-  --primary-glow: rgba(88, 132, 235, .18);
+  --primary: #8aa8b8;
+  --primary-soft: #a7bcc7;
+  --primary-deep: #54788f;
+  --primary-glow: rgba(105, 145, 166, .16);
 }
 
 body::before,
@@ -57,6 +57,11 @@ body::after,
   font-size: clamp(2.7rem, 5vw, 4.8rem);
   line-height: 1.02;
   letter-spacing: -.05em;
+}
+.auth-hero__title em {
+  color: #c9b17a !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
 }
 .auth-hero__desc { max-width: 560px; color: #b9c8db !important; font-size: 16px; }
 .hero-marquee,

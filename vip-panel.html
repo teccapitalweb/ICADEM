@@ -4333,42 +4333,28 @@ window.__setDisplayName = async (nombre) => {
     </header>
 
     <div id="inicio-content">
-      <!-- Banner -->
+      <!-- Bienvenida compacta -->
       <section class="banner fade-up">
         <div class="banner__info">
-          <span class="banner__eyebrow"><span class="banner__eyebrow__dot"></span><span id="greeting-label">En vivo</span><span class="banner__version">v.2026.05</span></span>
           <h1 class="banner__title" id="hero-title">Buenas tardes</h1>
-          <p class="banner__sub">Todo tu aprendizaje en un solo lugar: cursos especializados, clases en vivo, herramientas profesionales y una comunidad que avanza contigo.</p>
+          <p class="banner__sub">Continúa tu formación y retoma donde te quedaste.</p>
           <div class="club-hero-actions">
-            <button class="club-hero-btn" type="button" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Explorar cursos</button>
-            <button class="club-hero-btn club-hero-btn--ghost" type="button" onclick="navigateToSection('webinars')"><svg class="ic"><use href="#i-broadcast"/></svg>Ver próximas clases</button>
+            <button class="club-hero-btn" type="button" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Ver mis cursos</button>
           </div>
         </div>
         <div class="banner__stats">
           <div class="banner__stat" data-section="cursos" style="cursor:pointer"><div class="banner__stat-lbl">Cursos</div><div class="banner__stat-val" id="bn-stat-cursos">0</div></div>
           <div class="banner__stat" data-section="webinars" style="cursor:pointer"><div class="banner__stat-lbl">Clases</div><div class="banner__stat-val" id="bn-stat-clases">0</div></div>
-          <div class="banner__stat" data-section="pdfs" style="cursor:pointer"><div class="banner__stat-lbl">PDFs</div><div class="banner__stat-val" id="bn-stat-pdfs">0</div></div>
-          <div class="banner__stat" style="cursor:default"><div class="banner__stat-lbl">Pro</div><div class="banner__stat-val" id="bn-stat-pro">8</div></div>
+          <div class="banner__stat" data-section="pdfs" style="cursor:pointer"><div class="banner__stat-lbl">Materiales</div><div class="banner__stat-val" id="bn-stat-pdfs">0</div></div>
         </div>
       </section>
 
-      <div style="height:22px"></div>
-
-      <section class="club-home-grid" aria-label="Tu aprendizaje y accesos rápidos">
+      <section class="club-home-grid" aria-label="Tu aprendizaje">
         <div class="club-home-card club-home-card--learning" id="home-learning-card">
           <div class="club-home-card__kicker">Tu siguiente paso</div>
           <div style="display:flex;align-items:center;gap:12px;color:var(--text-3);font-size:12px;">
             <span style="width:18px;height:18px;border:2px solid var(--border-2);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;"></span>
             Preparando tu ruta de aprendizaje…
-          </div>
-        </div>
-        <div class="club-home-card">
-          <div class="club-home-card__kicker">Accesos rápidos</div>
-          <div class="club-quick-grid">
-            <button class="club-quick" type="button" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg><span>Mis cursos</span></button>
-            <button class="club-quick" type="button" onclick="navigateToSection('webinars')"><svg class="ic"><use href="#i-broadcast"/></svg><span>Clases en vivo</span></button>
-            <button class="club-quick" type="button" onclick="navigateToSection('pdfs')"><svg class="ic"><use href="#i-news"/></svg><span>Materiales</span></button>
-            <button class="club-quick" type="button" onclick="navigateToSection('directorio')"><svg class="ic"><use href="#i-users"/></svg><span>Directorio VIP</span></button>
           </div>
         </div>
       </section>
@@ -5424,9 +5410,9 @@ const Sections = (function(){
     'Gestión Legal y Biotecnología Aplicada':'i-news'
   };
   const COLOR_CAT = {
-    'Fiscal':'#5b92c8','Contabilidad':'#8fbce6','Negocios':'#8fbce6',
-    'Finanzas':'#8fbce6','Marketing':'#fbbf24','Recursos Humanos':'#f472b6',
-    'Legal':'#34d399','Comunidad':'#8fbce6','Maestría':'#5b92c8'
+    'Fiscal':'#45677d','Contabilidad':'#6f8793','Negocios':'#596f7c',
+    'Finanzas':'#486579','Marketing':'#a17b45','Recursos Humanos':'#866671',
+    'Legal':'#4f7667','Comunidad':'#5f7683','Maestría':'#314e64'
   };
   const ICON_CAT = {
     'Fiscal':'i-clipboard-check','Contabilidad':'i-chart-bar','Negocios':'i-credit-card',
@@ -6866,8 +6852,8 @@ const Sections = (function(){
       <section class="tools-index-hero">
         <div class="tools-index-hero__copy">
           <span class="tools-index-hero__eyebrow">Herramientas ICADEM</span>
-          <h1>Apoyo profesional, en un solo lugar.</h1>
-          <p>Calculadoras y plantillas listas para acompañar decisiones fiscales, contables, de nómina y financieras — con criterio verificable y exportación profesional.</p>
+          <h1>Decide mejor.</h1>
+          <p>Calculadoras y plantillas listas para tu trabajo.</p>
         </div>
       </section>
       <div class="tools-index-head">
@@ -6903,12 +6889,12 @@ const Sections = (function(){
   // Diseño editorial inspirado en SYNOVA (biblioteca canjeable con créditos).
   // ═══════════════════════════════════════════════════════════════════
   const LIBROS_CATALOG = [
-    { id:'fiscal-2026',    categoria:'Fiscal',       titulo:'Prontuario fiscal 2026', autor:'Equipo ICADEM', costo:180, color:'#1F4FE5', estado:'proximamente' },
-    { id:'nif-2026',       categoria:'Contabilidad', titulo:'NIF comentadas 2026',    autor:'Equipo ICADEM', costo:220, color:'#097C58', estado:'proximamente' },
-    { id:'cff-comentado',  categoria:'Legal',        titulo:'Código Fiscal comentado',autor:'Equipo ICADEM', costo:260, color:'#6D3BC9', estado:'proximamente' },
-    { id:'nomina-practica',categoria:'Nómina',       titulo:'Nómina práctica 2026',   autor:'Equipo ICADEM', costo:180, color:'#C7971F', estado:'proximamente' },
-    { id:'finanzas-dueno', categoria:'Finanzas',     titulo:'Finanzas para dueños',   autor:'Equipo ICADEM', costo:200, color:'#B4252A', estado:'proximamente' },
-    { id:'auditoria-int',  categoria:'Auditoría',    titulo:'Auditoría integral',     autor:'Equipo ICADEM', costo:240, color:'#087A8A', estado:'proximamente' }
+    { id:'fiscal-2026',    categoria:'Fiscal',       titulo:'Prontuario fiscal 2026', autor:'Equipo ICADEM', costo:180, color:'#203a56', estado:'proximamente' },
+    { id:'nif-2026',       categoria:'Contabilidad', titulo:'NIF comentadas 2026',    autor:'Equipo ICADEM', costo:220, color:'#355a52', estado:'proximamente' },
+    { id:'cff-comentado',  categoria:'Legal',        titulo:'Código Fiscal comentado',autor:'Equipo ICADEM', costo:260, color:'#4b4b62', estado:'proximamente' },
+    { id:'nomina-practica',categoria:'Nómina',       titulo:'Nómina práctica 2026',   autor:'Equipo ICADEM', costo:180, color:'#80663d', estado:'proximamente' },
+    { id:'finanzas-dueno', categoria:'Finanzas',     titulo:'Finanzas para dueños',   autor:'Equipo ICADEM', costo:200, color:'#6e4548', estado:'proximamente' },
+    { id:'auditoria-int',  categoria:'Auditoría',    titulo:'Auditoría integral',     autor:'Equipo ICADEM', costo:240, color:'#3c6065', estado:'proximamente' }
   ];
 
   function renderLibros(container){
@@ -6917,8 +6903,8 @@ const Sections = (function(){
       <section class="library-hero">
         <div class="library-hero__copy">
           <span class="library-hero__eyebrow">Biblioteca ICADEM</span>
-          <h1>Conocimiento profesional para conservar.</h1>
-          <p>Pronto podrás canjear tus créditos por referencias técnicas que permanecen en tu biblioteca para consulta cuando las necesites.</p>
+          <h1>Consulta cuando lo necesites.</h1>
+          <p>Referencias técnicas para acompañar tu práctica profesional.</p>
         </div>
       </section>
       <div class="library-head">
@@ -7245,8 +7231,7 @@ const Sections = (function(){
     else if (__retosView === 'quiz-resultado') body = _retosQuizResultHtml();
     else body = _retosHubHtml(st, esVip, casosHechos, flashDom);
 
-    // Hero COMPACTO: título + stats pequeñas a la derecha + barra de nivel debajo.
-    // El estado VIP/Free aparece como pill discreta junto a los stats, no como banner lleno.
+    // Estado de acceso discreto dentro del resumen.
     const vipPill = esVip
       ? `<span class="retos-hero__pill retos-hero__pill--vip" title="Juegas sin límite"><svg class="ic"><use href="#i-trophy"/></svg>Miembro VIP</span>`
       : (st.retosJugados >= 1
@@ -7254,46 +7239,16 @@ const Sections = (function(){
           : `<span class="retos-hero__pill retos-hero__pill--free" title="Puedes jugar un reto gratis"><svg class="ic"><use href="#i-shield-check"/></svg>1 reto gratis</span>`);
 
     container.innerHTML = `<div class="fade-up retos-page">
-      <header class="retos-hero retos-hero--v2">
-        <div class="retos-hero__mast">
-          <span class="retos-hero__mark" aria-hidden="true"></span>
-          <span class="retos-hero__kicker">ICADEM · Sala de criterio</span>
-          <span class="retos-hero__hair" aria-hidden="true"></span>
-          <span class="retos-hero__edition">Edición N.º 01 · MMXXVI</span>
+      <header class="retos-hero retos-hero--v3">
+        <div class="retos-hero__copy">
+          <span class="retos-hero__eyebrow">Práctica profesional</span>
+          <h1>Decide con criterio.</h1>
+          <p>Casos breves para aplicar lo que aprendes.</p>
+        </div>
+        <div class="retos-hero__summary" aria-label="Tu progreso en retos">
+          <div class="retos-hero__metric"><strong>${st.racha}</strong><span>Días de racha</span></div>
+          <div class="retos-hero__metric"><strong>${st.xp}</strong><span>XP acumulada</span></div>
           <span class="retos-hero__pillslot">${vipPill}</span>
-        </div>
-        <div class="retos-hero__rule retos-hero__rule--top" aria-hidden="true"></div>
-        <div class="retos-hero__grid">
-          <div class="retos-hero__copy">
-            <span class="retos-hero__eyebrow">Programa de criterio profesional</span>
-            <h1>Practica para la decisión real.</h1>
-            <p>Casos de obra fiscal, flashcards técnicas y quiz express — cada paso con fundamento legal y explicación inmediata. Suma XP, sostén tu racha diaria y consolida criterio.</p>
-            <div class="retos-hero__byline" aria-label="Áreas cubiertas">
-              <span>Fiscal</span><i aria-hidden="true"></i>
-              <span>Contabilidad</span><i aria-hidden="true"></i>
-              <span>Nómina</span><i aria-hidden="true"></i>
-              <span>Legal</span>
-            </div>
-          </div>
-          <aside class="retos-hero__ledger" aria-label="Resumen de membresía">
-            <span class="retos-hero__ledger-title">Resumen de membresía</span>
-            <dl class="retos-hero__ledger-list">
-              <div class="retos-hero__row">
-                <dt>Racha activa</dt>
-                <dd><strong>${st.racha}</strong><em>día${st.racha===1?'':'s'} al cierre de hoy</em></dd>
-              </div>
-              <div class="retos-hero__row">
-                <dt>XP formativo</dt>
-                <dd><strong>${st.xp}</strong><em>puntos de criterio acumulados</em></dd>
-              </div>
-            </dl>
-          </aside>
-        </div>
-        <div class="retos-hero__rule retos-hero__rule--bottom" aria-hidden="true"></div>
-        <div class="retos-hero__colophon">
-          <span class="retos-hero__colophon-sign">Metodología <em>Decidir — Explicar — Aplicar</em></span>
-          <span class="retos-hero__colophon-dot" aria-hidden="true"></span>
-          <span class="retos-hero__colophon-mark">ICM · MMXXVI</span>
         </div>
       </header>
 
@@ -8263,7 +8218,7 @@ const Sections = (function(){
     root.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99999;overflow:hidden;contain:strict';
     document.body.appendChild(root);
 
-    const colors = opts.colors || ['#1F4FE5','#5B92C8','#8FBCE6','#34D399','#D4A017','#F472B6','#A78BFA','#FBBF24'];
+    const colors = opts.colors || ['#2C526F','#58788E','#7D929B','#4F7667','#A17B45','#866671','#746C83','#C2A371'];
     const count = opts.count || 140;
     const duration = opts.duration || 2800;
 
@@ -8948,7 +8903,7 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Tu progreso</span>
           <h1 class="sec-hero__title">Mis logros</h1>
-          <p class="sec-hero__sub">Cada curso, herramienta y participación te suma XP. Sube de nivel y desbloquea medallas. Llega a <em style="color:var(--primary);">Maestro</em>.</p>
+          <p class="sec-hero__sub">Tu avance, nivel y reconocimientos en un solo lugar.</p>
         </div>
         <div class="logro-hero">
           <div class="logro-hero__row">
@@ -19922,7 +19877,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-<link rel="stylesheet" href="css/panel-minimal.css?v=5">
+<link rel="stylesheet" href="css/panel-minimal.css?v=7">
 <script src="js/icadem-onboarding.js?v=1"></script>
 </body>
 </html>

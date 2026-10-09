@@ -1,5 +1,16 @@
 # CAMBIOS
 
+## 2026-10-09 — Refinamiento sobrio del panel ICADEM
+
+**Archivos:** `index.html`, `vip-auth.html`, `vip-panel.html`, `css/styles.css`, `css/auth-minimal.css`, `css/panel-minimal.css`
+
+- Se sustituyó el azul brillante por azul marino, grises cálidos y un acento latón discreto en sitio, acceso y panel.
+- Se compactó la bienvenida del panel y se eliminó el módulo redundante de accesos rápidos.
+- Retos dejó la portada beige y la tipografía serif; ahora usa un resumen breve de progreso con la tipografía del sistema.
+- Herramientas y Biblioteca cambiaron los degradados por encabezados claros, cortos y consistentes.
+- Logros redujo espacios, altura de tarjetas y texto para priorizar avance, nivel y reconocimientos.
+- Se verificaron portada, acceso, panel, Retos, Herramientas, Biblioteca y Logros sin errores de consola ni desbordamiento horizontal.
+
 ## 2026-10-09 — Rediseño visual minimalista de ICADEM
 
 **Archivos:** `index.html`, `css/styles.css`, `vip-auth.html`, `vip-panel.html`, `css/auth-minimal.css`, `css/panel-minimal.css`
