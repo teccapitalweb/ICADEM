@@ -4039,7 +4039,7 @@ window.__showWelcomeSplash = function(opts) {
   const beneficios = [
     { ic:'📚', t:'Cursos premium',   d:'Tu primer curso hoy y uno nuevo cada 6 días, con clases y materiales.' },
     { ic:'🎥', t:'Clases en vivo',   d:'Webinars con expertos y acceso a las grabaciones cuando quieras.' },
-    { ic:'📂', t:'PDFs y material',  d:'Plantillas, formatos y recursos descargables listos para usar.' },
+    { ic:'⚡', t:'Retos profesionales', d:'Casos, flashcards y quiz para practicar con criterio.' },
     { ic:'🛠️', t:'Herramientas pro', d:'Calculadora fiscal, nómina y crédito, documentos legales y plantillas de negocio listas para usar.' },
     { ic:'🎓', t:'Certificados',     d:'Con folio oficial ICADEM para respaldar lo que aprendes.' }
   ];
@@ -4264,7 +4264,6 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos</a>
       <a class="nav-item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo<span class="nav-item__dot"></span></a>
       <a class="nav-item" data-section="retos"><svg class="ic"><use href="#i-bolt"/></svg>Retos<span class="nav-item__badge">NUEVO</span></a>
-      <a class="nav-item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
       <a class="nav-item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
       <a class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
     </div>
@@ -4345,7 +4344,7 @@ window.__setDisplayName = async (nombre) => {
         <div class="banner__stats">
           <div class="banner__stat" data-section="cursos" style="cursor:pointer"><div class="banner__stat-lbl">Cursos</div><div class="banner__stat-val" id="bn-stat-cursos">0</div></div>
           <div class="banner__stat" data-section="webinars" style="cursor:pointer"><div class="banner__stat-lbl">Clases</div><div class="banner__stat-val" id="bn-stat-clases">0</div></div>
-          <div class="banner__stat" data-section="pdfs" style="cursor:pointer"><div class="banner__stat-lbl">Materiales</div><div class="banner__stat-val" id="bn-stat-pdfs">0</div></div>
+          <div class="banner__stat" data-section="retos" style="cursor:pointer"><div class="banner__stat-lbl">Retos</div><div class="banner__stat-val" id="bn-stat-retos">3</div></div>
         </div>
       </section>
 
@@ -4469,7 +4468,6 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos</a>
         <a class="mobile-drawer__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo</a>
         <a class="mobile-drawer__item" data-section="retos"><svg class="ic"><use href="#i-bolt"/></svg>Retos</a>
-        <a class="mobile-drawer__item" data-section="pdfs"><svg class="ic"><use href="#i-news"/></svg>PDFs y material</a>
         <a class="mobile-drawer__item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
         <a class="mobile-drawer__item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
       </div>
@@ -5381,7 +5379,7 @@ function navigateToSection(section, opciones){
 }
 
 function sectionPlaceholder(section){
-  const names={pdfs:'PDFs y material','mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Foro VIP',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
+  const names={'mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Foro VIP',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
   const name=names[section]||section;
   return `<div class="fade-up" style="padding:80px 20px;text-align:center;"><div style="width:80px;height:80px;margin:0 auto 18px;border-radius:20px;background:var(--surface);border:0.5px solid var(--border-2);display:flex;align-items:center;justify-content:center;color:var(--primary);"><svg class="ic ic--xl"><use href="#i-tools"/></svg></div><h2 style="font-size:22px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;">${name}</h2><p style="color:var(--text-2);max-width:380px;margin:0 auto;line-height:1.55;font-size:13.5px;">Sección en construcción. La entrego en el siguiente sprint.</p><button class="btn btn--ghost" style="margin-top:20px;" onclick="navigateToSection('inicio')">Volver al inicio</button></div>`;
 }
@@ -6077,8 +6075,7 @@ const Sections = (function(){
         var _ce=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
         _ce('bn-stat-cursos', cursos.length);
         _ce('bn-stat-clases', (typeof webinars!=='undefined' && webinars) ? webinars.length : 0);
-        var _pdfs=0; cursos.forEach(function(c){ if(c && Array.isArray(c.materiales)) _pdfs+=c.materiales.length; });
-        _ce('bn-stat-pdfs', _pdfs);
+        _ce('bn-stat-retos', 3);
       } catch(_e){}
       _cursosLoaded = true;
       actualizarInicioAprendizaje();
@@ -7234,11 +7231,11 @@ const Sections = (function(){
           : `<span class="retos-hero__pill retos-hero__pill--free" title="Puedes jugar un reto gratis"><svg class="ic"><use href="#i-shield-check"/></svg>1 reto gratis</span>`);
 
     container.innerHTML = `<div class="fade-up retos-page">
-      <header class="retos-hero retos-hero--v3">
+      <header class="retos-hero retos-hero--v4">
         <div class="retos-hero__copy">
-          <span class="retos-hero__eyebrow">Práctica profesional</span>
-          <h1>Decide con criterio.</h1>
-          <p>Casos breves para aplicar lo que aprendes.</p>
+          <span class="retos-hero__eyebrow">Retos ICADEM</span>
+          <h1>Practica para <em>decisiones reales.</em></h1>
+          <p>Casos, tarjetas y quiz para aplicar lo aprendido.</p>
         </div>
         <div class="retos-hero__summary" aria-label="Tu progreso en retos">
           <div class="retos-hero__metric"><strong>${st.racha}</strong><span>Días de racha</span></div>
@@ -7249,7 +7246,7 @@ const Sections = (function(){
 
       <section class="retos-level">
         <div class="retos-level__text">
-          <span class="retos-level__kicker">Nivel profesional</span>
+          <span class="retos-level__kicker">Ruta profesional</span>
           <strong>${_htmlEscRet(nivel.nombre)}</strong>
         </div>
         <div class="retos-level__bar"><span style="width:${nivelPct}%"></span></div>
@@ -7279,68 +7276,45 @@ const Sections = (function(){
     return `<div class="retos-layout">
       <main class="retos-main">
         <div class="retos-head">
-          <div><span class="retos-head__eyebrow">Práctica aplicada</span><h2>Elige cómo practicar</h2></div>
+          <div><span class="retos-head__eyebrow">Entrenamiento aplicado</span><h2>Elige una experiencia</h2></div>
           <small class="retos-head__count">3 modalidades</small>
         </div>
         <div class="retos-tiles">
           <article class="retos-tile retos-tile--casos" data-retos-nav="casos">
-            <div class="retos-tile__art" aria-hidden="true"><div class="retos-tile__art-dec"></div></div>
+            <div class="retos-tile__art" aria-hidden="true"><span>01</span><svg class="ic"><use href="#i-briefcase"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-briefcase"/></svg></span>
               <span class="retos-tile__kicker">Casos de decisión</span>
-              <h3>Casos de obra fiscal</h3>
-              <p>Decisiones reales de fiscal, nómina, contabilidad y RH.</p>
+              <h3>Decisiones profesionales</h3>
+              <p>Fiscal, nómina, contabilidad y RH.</p>
               <div class="retos-tile__meta"><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div>
               <button type="button" class="retos-tile__cta">Abrir expedientes<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
           <article class="retos-tile retos-tile--flash" data-retos-nav="flashcards">
-            <div class="retos-tile__art" aria-hidden="true"><div class="retos-tile__art-dec"></div></div>
+            <div class="retos-tile__art" aria-hidden="true"><span>02</span><svg class="ic"><use href="#i-book"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-book"/></svg></span>
               <span class="retos-tile__kicker">Repaso rápido</span>
               <h3>Flashcards técnicas</h3>
-              <p>Conceptos técnicos para repasar por área.</p>
+              <p>Conceptos clave, organizados por área.</p>
               <div class="retos-tile__meta"><span>${totalFlash} tarjetas</span><span>${flashDom}/${totalFlash} dominadas</span></div>
               <button type="button" class="retos-tile__cta">Repasar<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
           <article class="retos-tile retos-tile--quiz" data-retos-nav="quiz-intro">
-            <div class="retos-tile__art" aria-hidden="true"><div class="retos-tile__art-dec"></div></div>
+            <div class="retos-tile__art" aria-hidden="true"><span>03</span><svg class="ic"><use href="#i-bolt"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-bolt"/></svg></span>
               <span class="retos-tile__kicker">Quiz express</span>
-              <h3>12 preguntas rápidas</h3>
-              <p>12 preguntas con explicación inmediata.</p>
+              <h3>Quiz de criterio</h3>
+              <p>12 preguntas con retroalimentación inmediata.</p>
               <div class="retos-tile__meta"><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Sin intentos'}</span></div>
               <button type="button" class="retos-tile__cta">Comenzar quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
         </div>
 
-        <section class="retos-progreso">
-          <div class="retos-progreso__head">
-            <div><span class="retos-head__eyebrow">Tu avance total</span><h3>Resumen académico</h3></div>
-            <small>${casosHechos + st.quizCompletados} retos completados</small>
-          </div>
-          <div class="retos-progreso__grid">
-            <div class="retos-progreso__card">
-              <span class="retos-progreso__num">${casosHechos}<em>/${totalCasos}</em></span>
-              <small>Casos de obra resueltos</small>
-              <div class="retos-progreso__bar"><span style="width:${(casosHechos/totalCasos)*100}%"></span></div>
-            </div>
-            <div class="retos-progreso__card">
-              <span class="retos-progreso__num">${flashDom}<em>/${totalFlash}</em></span>
-              <small>Flashcards dominadas</small>
-              <div class="retos-progreso__bar"><span style="width:${(flashDom/totalFlash)*100}%"></span></div>
-            </div>
-            <div class="retos-progreso__card">
-              <span class="retos-progreso__num">${st.quizCompletados || 0}</span>
-              <small>Quizzes resueltos${quizMejor?` · mejor ${quizMejor}%`:''}</small>
-              <div class="retos-progreso__bar"><span style="width:${Math.min(100, (st.quizCompletados||0)*20)}%"></span></div>
-            </div>
-          </div>
-        </section>
       </main>
 
       <aside class="retos-aside">
@@ -8879,72 +8853,66 @@ const Sections = (function(){
     const xpRest=nivelActual.hasta-usuario.xp;
     const proxNivel=niveles[nivelActual.id]?.nombre||'Maestro';
     const ganados=logros.filter(l=>l.unlock).length;
-    const totalXp=logros.filter(l=>l.unlock).reduce((s,l)=>s+l.xp,0);
+    const avanceGeneral=logros.length?Math.round((ganados/logros.length)*100):0;
     const cats=['Fiscal','Nómina','Legal','Contabilidad','Recursos Humanos','Finanzas','Negocios','Herramientas','Comunidad','Maestría'];
     container.innerHTML=`
-      <div class="fade-up">
+      <div class="fade-up logros-page logros-page--v4">
         <div class="sec-hero">
-          <span class="sec-hero__eyebrow">Tu progreso</span>
+          <span class="sec-hero__eyebrow">Tu trayectoria</span>
           <h1 class="sec-hero__title">Mis logros</h1>
-          <p class="sec-hero__sub">Tu avance, nivel y reconocimientos en un solo lugar.</p>
+          <p class="sec-hero__sub">Formación, práctica y constancia. Solo lo que cuenta.</p>
         </div>
-        <div class="logro-hero">
-          <div class="logro-hero__row">
-            <div class="logro-hero__icon"><svg class="ic ic--xl"><use href="#i-trophy"/></svg></div>
-            <div>
-              <div class="logro-hero__lbl">Nivel ${nivelActual.id} de 5</div>
-              <div class="logro-hero__name">${nivelActual.nombre}</div>
-            </div>
-            <div class="logro-hero__racha">
-              <svg class="ic" style="width:14px;height:14px;color:var(--primary);"><use href="#i-bolt"/></svg>
-              <span class="logro-hero__racha-num">${usuario.racha}</span>
-              <span class="logro-hero__racha-lbl">días</span>
+        <section class="logros-overview">
+          <div class="logros-overview__identity">
+            <span class="logros-overview__icon"><svg class="ic"><use href="#i-trophy"/></svg></span>
+            <div class="logros-overview__copy">
+              <span>Progreso ICADEM</span>
+              <h2>${nivelActual.nombre}</h2>
+              <p>${usuario.xp} XP acumulados</p>
             </div>
           </div>
-          <div class="logro-hero__xp-bar"><div class="logro-hero__xp-fill" style="width:${pct}%"></div></div>
-          <div class="logro-hero__xp-text"><span><strong>${usuario.xp}</strong> XP</span><span>${xpRest>0?xpRest+' XP para '+proxNivel:'¡Nivel máximo!'}</span><span><strong>${nivelActual.hasta===99999?'∞':nivelActual.hasta}</strong> XP</span></div>
-          <section class="nivel-path" style="--nivel-progress:${Math.max(7,Math.min(93,((nivelActual.id-1)/(niveles.length-1))*100+(pct/100)*(100/(niveles.length-1))))}%">
-            <div class="nivel-path__title">De aprendiz a maestro</div>
-            <div class="nivel-path__track">
-              ${niveles.map((n,idx)=>{
-                const emojis=['<svg class="ic" style="width:24px;height:24px"><use href="#i-book"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-calculator"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-briefcase"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-users"/></svg>','<svg class="ic" style="width:24px;height:24px"><use href="#i-crown"/></svg>'];
-                const isCurrent=n.id===nivelActual.id;
-                const isDone=n.id<nivelActual.id;
-                const cls=isCurrent?'is-current':isDone?'is-done':'is-locked';
-                return `<div class="nivel-step ${cls}">
-                  <div class="nivel-step__icon">${emojis[idx]||'·'}</div>
-                  <div class="nivel-step__name">${n.nombre}</div>
-                  <div class="nivel-step__xp">${isCurrent?'TÚ':n.desde+'+ XP'}</div>
-                </div>`;
-              }).join('')}
-            </div>
-          </section>
-        </div>
+          <div class="logros-overview__metrics" aria-label="Resumen de progreso">
+            <div><strong>${nivelActual.id}</strong><span>de 5 niveles</span></div>
+            <div><strong>${usuario.racha}</strong><span>racha</span></div>
+            <div><strong>${avanceGeneral}%</strong><span>avance</span></div>
+          </div>
+          <div class="logros-overview__progress" aria-label="${pct}% hacia ${proxNivel}">
+            <span style="width:${Math.max(0,Math.min(100,pct))}%"></span>
+          </div>
+          <div class="logros-overview__foot">
+            <span>${ganados} de ${logros.length} logros</span>
+            <span>${xpRest>0?xpRest+' XP para '+proxNivel:'Nivel máximo'}</span>
+          </div>
+        </section>
 
-        <div class="kpi-grid kpi-grid--logros">
-          <div class="kpi-card"><div class="kpi-card__label">Logros ganados</div><div class="kpi-card__value">${ganados}<span class="kpi-card__value-sub">/${logros.length}</span></div></div>
-          <div class="kpi-card"><div class="kpi-card__label">XP de logros</div><div class="kpi-card__value">${totalXp}</div></div>
-          <div class="kpi-card"><div class="kpi-card__label">Días activos</div><div class="kpi-card__value">${usuario.diasActivos}</div></div>
-          <div class="kpi-card"><div class="kpi-card__label">Racha</div><div class="kpi-card__value">${usuario.racha}</div></div>
-        </div>
-        ${cats.map(cat=>`
+        <div class="logros-groups">
+        ${cats.map(cat=>{
+          const items=logros.filter(l=>l.cat===cat);
+          if(!items.length) return '';
+          const completados=items.filter(l=>l.unlock).length;
+          return `
           <section class="logros-cat" style="--cat-color:${COLOR_CAT[cat]};">
             <div class="logros-cat__header">
-              <div class="logros-cat__icon"><svg class="ic"><use href="#${ICON_CAT[cat]}"/></svg></div>
-              <h2 class="logros-cat__title">${cat}</h2>
-              <span class="logros-cat__count">${logros.filter(l=>l.cat===cat&&l.unlock).length}/${logros.filter(l=>l.cat===cat).length}</span>
+              <div class="logros-cat__heading">
+                <span class="logros-cat__icon"><svg class="ic"><use href="#${ICON_CAT[cat]}"/></svg></span>
+                <h2 class="logros-cat__title">${cat}</h2>
+              </div>
+              <span class="logros-cat__count">${completados}/${items.length}</span>
             </div>
             <div class="logros-grid">
-              ${logros.filter(l=>l.cat===cat).map(l=>`
-                <div class="logro ${l.unlock?'is-unlocked':'is-locked'}" data-lid="${l.id}" tabindex="0" style="--cat-color:${COLOR_CAT[cat]};">
+              ${items.map(l=>`
+                <article class="logro ${l.unlock?'is-unlocked':'is-locked'}" data-lid="${l.id}" tabindex="0" style="--cat-color:${COLOR_CAT[cat]};">
                   <div class="logro__icon">${l.unlock?`<svg class="ic"><use href="#${ICON_CAT[cat]}"/></svg>`:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>'}</div>
-                  <div class="logro__name">${l.nombre}</div>
+                  <div class="logro__copy"><h3 class="logro__name">${l.nombre}</h3><p>${l.criterio}</p></div>
+                  <span class="logro__status" aria-label="${l.unlock?'Completado':'Pendiente'}"><svg class="ic"><use href="#${l.unlock?'i-check-circle':'i-info'}"/></svg></span>
+                  <div class="logro__progress"><i><span style="width:${l.unlock?100:0}%"></span></i><strong>${l.unlock?'1/1':'0/1'}</strong></div>
                   <div class="logro__xp">+${l.xp} XP</div>
-                </div>
+                </article>
               `).join('')}
             </div>
           </section>
-        `).join('')}
+        `;}).join('')}
+        </div>
       </div>
     `;
     container.querySelectorAll('.logro').forEach(el=>{
@@ -9299,39 +9267,6 @@ const Sections = (function(){
     if (u.endsWith('.pptx') || u.endsWith('.ppt') || u.includes('presentation')) return 'ppt';
     if (u.endsWith('.docx') || u.endsWith('.doc') || u.includes('document')) return 'doc';
     return 'pdf'; // default
-  }
-
-  // ═══════════════════════════════════════════════════════════════════
-  // PDFs y material · reservado para materiales canjeables independientes
-  //
-  // Antes: aplanaba curso.materiales[] de TODOS los cursos aquí.
-  // Ahora: los materiales del curso viven DENTRO del detalle del curso
-  // (card "Material del curso"). Esta sección queda vacía con un estado
-  // "Próximamente" preparado para los materiales independientes que se
-  // podrán canjear con créditos (sistema que llega en siguiente iteración).
-  //
-  // Los helpers _allMaterialesFromCursos / _materialDisponible /
-  // _renderPdfCard se dejan vivos abajo porque son zero-cost dead code y
-  // los reutilizaremos cuando se active el canje con créditos.
-  // ═══════════════════════════════════════════════════════════════════
-  async function renderPDFs(container){
-    container.innerHTML = `<div class="fade-up pdfs-page">
-      <div class="sec-hero">
-        <span class="sec-hero__eyebrow">Materiales independientes</span>
-        <h1 class="sec-hero__title">PDFs y material</h1>
-        <p class="sec-hero__sub">Recursos profesionales para consultar y descargar.</p>
-      </div>
-      <section class="pdfs-empty">
-        <div class="pdfs-empty__badge"><svg class="ic"><use href="#i-news"/></svg></div>
-        <span class="pdfs-empty__kicker">Próximamente</span>
-        <h2>Materiales canjeables</h2>
-        <p>Muy pronto encontrarás formatos y guías. Tus recursos actuales siguen dentro de cada curso.</p>
-        <div class="pdfs-empty__actions">
-          <button type="button" class="btn btn--primary" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Ir a mis cursos</button>
-          <button type="button" class="btn btn--ghost" onclick="navigateToSection('libros')">Ver biblioteca</button>
-        </div>
-      </section>
-    </div>`;
   }
 
   function _renderPdfCard(m) {
@@ -11021,7 +10956,6 @@ const Sections = (function(){
       certificados:renderCertificados,
       logros:renderLogros,
       webinars:renderWebinars,
-      pdfs:renderPDFs,
       foro:renderForo,
       directorio:renderDirectorio,
       canal:renderCanal,
@@ -19859,7 +19793,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-<link rel="stylesheet" href="css/panel-minimal.css?v=9">
+<link rel="stylesheet" href="css/panel-minimal.css?v=10">
 <script src="js/icadem-onboarding.js?v=1"></script>
 </body>
 </html>

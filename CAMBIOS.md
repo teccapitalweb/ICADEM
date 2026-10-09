@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-10-09 — Retos y logros con dirección visual IMFRA/SYNOVA
+
+**Archivos:** `vip-panel.html`, `css/panel-minimal.css`
+
+- Retos adopta una portada fotográfica de alto contraste, progreso integrado y tres experiencias visuales con la paleta sobria de ICADEM.
+- Las funciones de casos, flashcards y quiz permanecen intactas; se redujo el texto y se priorizaron acciones, avance y misión semanal.
+- Mis logros ahora usa el patrón de tablero de retos: resumen de nivel, métricas verificables y tarjetas agrupadas con progreso individual.
+- Se retiró “PDFs y material” de escritorio, móvil, portada y rutas; los enlaces antiguos redirigen de forma segura al inicio.
+- Se verificaron Retos y Mis logros en laptop, tableta y móvil, sin desbordamiento horizontal ni errores de consola.
+
 ## 2026-10-09 — Ajuste responsive de módulos académicos
 
 **Archivos:** `vip-panel.html`, `css/panel-minimal.css`
