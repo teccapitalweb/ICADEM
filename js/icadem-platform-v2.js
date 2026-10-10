@@ -591,12 +591,39 @@
         items: [
           { position: 1, uid: 'demo-1', nombre: 'Mariana López', iniciales: 'ML', nivel: 'Profesional', xp: 860, isVip: true },
           { position: 2, uid: 'demo-2', nombre: 'Carlos Méndez', iniciales: 'CM', nivel: 'Técnico', xp: 620, isVip: true },
-          { position: 3, uid: 'demo', nombre: 'Tu posición', iniciales: 'TÚ', nivel: 'Aprendiz', xp: 0, isVip: false }
+          { position: 3, uid: 'demo', nombre: 'Tu posición', iniciales: 'TÚ', nivel: 'Aprendiz', xp: 285, isVip: false },
+          { position: 4, uid: 'demo-4', nombre: 'Daniela Ramírez', iniciales: 'DR', nivel: 'Técnico', xp: 210, isVip: true },
+          { position: 5, uid: 'demo-5', nombre: 'Edgar Hernández', iniciales: 'EH', nivel: 'Aprendiz', xp: 175, isVip: false },
+          { position: 6, uid: 'demo-6', nombre: 'Edna Martínez', iniciales: 'EM', nivel: 'Aprendiz', xp: 140, isVip: true },
+          { position: 7, uid: 'demo-7', nombre: 'Jesús Mateos', iniciales: 'JM', nivel: 'Aprendiz', xp: 95, isVip: true },
+          { position: 8, uid: 'demo-8', nombre: 'Leslie López', iniciales: 'LL', nivel: 'Aprendiz', xp: 65, isVip: false }
         ]
       } : await loadRanking();
       const current = data.currentUid;
       const items = data.items || [];
-      root.innerHTML = `<section class="ranking-card"><header><div><span class="game-kicker">Comunidad ICADEM</span><h2>Clasificación</h2></div><small>XP verificado</small></header><div class="ranking-list">${items.slice(0, 10).map(item => `<article class="ranking-row${item.uid === current ? ' is-me' : ''}"><b class="ranking-row__pos">${item.position}</b><span class="ranking-row__avatar">${item.foto ? `<img src="${esc(item.foto)}" alt="">` : esc(item.iniciales)}</span><span class="ranking-row__name"><strong>${esc(item.nombre)}</strong><small>${esc(item.nivel)}${item.isVip ? ' · VIP' : ''}</small></span><strong class="ranking-row__xp">${item.xp} XP</strong></article>`).join('') || '<p class="ranking-empty">Aún no hay actividad para mostrar.</p>'}</div></section>`;
+      const avatar = (item, className) => `<span class="${className}">${item.foto ? `<img src="${esc(item.foto)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : esc(item.iniciales || '?')}</span>`;
+      const badge = item => `<span class="ranking-badge ranking-badge--${item.isVip ? 'vip' : 'member'}">${item.isVip ? '★ VIP' : 'Miembro'}</span>`;
+      const podium = items.slice(0, 3);
+      const visibleRows = items.slice(3, 10);
+      const currentItem = items.find(item => item.uid === current);
+      if (currentItem && currentItem.position > 10) visibleRows.push(currentItem);
+      root.innerHTML = `<section class="ranking-card ranking-card--club">
+        <header class="ranking-head">
+          <span class="game-kicker">Avance verificado</span>
+          <h2>Clasificación ICADEM</h2>
+          <p>Cada reto y juego completado suma 5 XP.</p>
+        </header>
+        ${podium.length ? `<div class="ranking-podium" aria-label="Los tres primeros lugares">${podium.map(item => `<article class="ranking-podium__card ranking-podium__card--${item.position}${item.uid === current ? ' is-me' : ''}">
+          <b class="ranking-podium__position">#${item.position}</b>
+          ${avatar(item, 'ranking-podium__avatar')}
+          <strong class="ranking-podium__name">${esc(item.nombre)}</strong>
+          ${badge(item)}
+          <small>${esc(item.nivel)}</small>
+          <b class="ranking-podium__xp">${Number(item.xp) || 0} XP</b>
+        </article>`).join('')}</div>` : '<p class="ranking-empty">Aún no hay actividad para mostrar.</p>'}
+        ${visibleRows.length ? `<div class="ranking-list">${visibleRows.map(item => `<article class="ranking-row${item.uid === current ? ' is-me' : ''}"><b class="ranking-row__pos">#${item.position}</b>${avatar(item, 'ranking-row__avatar')}<span class="ranking-row__name"><strong>${esc(item.nombre)}</strong><small>${esc(item.nivel)}</small></span>${badge(item)}<strong class="ranking-row__xp">${Number(item.xp) || 0} XP</strong></article>`).join('')}</div>` : ''}
+        <footer class="ranking-foot"><span aria-hidden="true">♢</span> Solo mostramos nombre, foto y avance; nunca datos de contacto.</footer>
+      </section>`;
     } catch (error) {
       root.innerHTML = `<div class="ranking-error"><strong>No pudimos cargar la clasificación.</strong><button type="button">Reintentar</button></div>`;
       root.querySelector('button')?.addEventListener('click', () => mountRanking(root));
