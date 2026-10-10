@@ -764,6 +764,31 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 setPersistence(auth, browserLocalPersistence);
+const IDENTITY_API = 'https://icadem-webhook-production.up.railway.app';
+
+function destinoSeguro(isAdmin) {
+  if (isAdmin) return 'vip-admin.html';
+  const params = new URLSearchParams(window.location.search);
+  const requested = params.get('redirect');
+  if (requested) {
+    try {
+      const parsed = new URL(requested, window.location.origin);
+      if (parsed.origin === window.location.origin && /\/(vip-panel|curso|clase)[^/]*\.html$/i.test(parsed.pathname)) {
+        return parsed.pathname.replace(/^\//,'') + parsed.search + parsed.hash;
+      }
+    } catch (_) {}
+  }
+  const carry = new URLSearchParams();
+  ['curso','clase','origin','plan'].forEach(key=>{ if(params.get(key)) carry.set(key,params.get(key)); });
+  return `vip-panel.html${carry.toString()?`?${carry}`:''}`;
+}
+
+async function syncCentralIdentity(user) {
+  try {
+    const idToken = await user.getIdToken();
+    await fetch(`${IDENTITY_API}/api/identity/sync`, { method:'POST', headers:{ Authorization:`Bearer ${idToken}`, 'Content-Type':'application/json' }, body:'{}' });
+  } catch (error) { console.warn('[identity sync]', error.message); }
+}
 
 /* =========================================================
    Crear o actualizar documento del miembro en Firestore
@@ -791,6 +816,8 @@ async function ensureMiembroDoc(user, displayName, origen) {
       email: (user.email || '').toLowerCase(),
       nombre: displayName || user.displayName || (user.email || '').split('@')[0] || 'Sin nombre',
       displayName: displayName || user.displayName || '',
+      photoURL: user.photoURL || '',
+      providerIds: (user.providerData || []).map(p=>p.providerId).filter(Boolean),
       activa: false,
       plan: null,
       source: 'icadem',
@@ -814,9 +841,10 @@ async function ensureMiembroDoc(user, displayName, origen) {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     await ensureMiembroDoc(user, user.displayName, 'login-web');
+    await syncCentralIdentity(user);
     try { localStorage.setItem('icadem_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}
     const isAdmin = ADMINS.includes((user.email || "").toLowerCase());
-    window.location.href = isAdmin ? "vip-admin.html" : "vip-panel.html";
+    window.location.href = destinoSeguro(isAdmin);
   }
 });
 
@@ -854,7 +882,7 @@ document.getElementById('btn-login').addEventListener('click', async () => {
     await signInWithEmailAndPassword(auth, email, pass);
     const isAdmin = ADMINS.includes(email);
     showAlert('success', '¡Bienvenido!', 'Redirigiendo…');
-    setTimeout(() => { window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html'; }, 600);
+    setTimeout(() => { window.location.href = destinoSeguro(isAdmin); }, 600);
   } catch (e) {
     setLoading(btn, false, 'Iniciar sesión');
     showAlert('error', 'No pudimos iniciar sesión', translateError(e.code));
@@ -880,6 +908,7 @@ document.getElementById('btn-register').addEventListener('click', async () => {
 
     // ⚡ Crear doc en col `miembros` con activa:false + fechaRegistro
     const docResult = await ensureMiembroDoc(cred.user, name, 'registro-web');
+    await syncCentralIdentity(cred.user);
 
     const isAdmin = ADMINS.includes(email);
 
@@ -891,7 +920,7 @@ document.getElementById('btn-register').addEventListener('click', async () => {
         ? 'Tu cuenta SÍ se creó, pero falta actualizar las reglas Firestore para guardar tu perfil. Entrando a tu panel…'
         : 'Tu cuenta se creó pero hubo un problema al guardar tu perfil (' + motivo + '). Entrando a tu panel…';
       showAlert('error', 'Cuenta creada · advertencia', txt);
-      setTimeout(() => { window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html'; }, 4000);
+      setTimeout(() => { window.location.href = destinoSeguro(isAdmin); }, 4000);
       return;
     }
 
@@ -899,7 +928,7 @@ document.getElementById('btn-register').addEventListener('click', async () => {
     showAlert('success', '¡Cuenta creada!',
       isAdmin ? 'Redirigiendo al panel admin…'
               : (docResult && docResult.action === 'created' ? 'Perfil guardado · entrando a tu panel…' : 'Entrando a tu panel…'));
-    setTimeout(() => { window.location.href = isAdmin ? 'vip-admin.html' : 'vip-panel.html'; }, 900);
+    setTimeout(() => { window.location.href = destinoSeguro(isAdmin); }, 900);
   } catch (e) {
     setLoading(btn, false, 'Crear cuenta');
     showAlert('error', 'No pudimos crear tu cuenta', translateError(e.code));

@@ -21,6 +21,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/platform-v2.css?v=5">
+<script src="js/icadem-platform-v2.js?v=5" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -3801,7 +3803,8 @@ body.has-fomo .main{padding-top:18px}
 // UserState inicial (vacío) y detección de modo demo SIN depender de Firebase
 window.UserState = {
   modo: 'cargando',
-  uid: null, email: null, displayName: null, iniciales: 'IN',
+  uid: null, email: null, displayName: null, iniciales: 'IN', photoURL: '',
+  providerIds: [], credits: { balance:0, lifetimeEarned:0 }, directoryProfile: null,
   plan: null, isAdmin: false,
   membership: { activo:false, proximaRenovacion:null, historial:[], metodoPago:null },
   demo: { timerRestante:300, iniciado:null, visitas:0 }
@@ -3838,7 +3841,7 @@ window.UserState = {
 <!-- ===== AUTH GUARD (Firebase) ===== -->
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updateProfile, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -3855,6 +3858,15 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 window.__auth = auth;
 window.__db = db;
+window.__linkGoogleAccount = async function(){
+  const user = auth.currentUser;
+  if (!user) throw new Error('Inicia sesión para vincular Google');
+  const result = await linkWithPopup(user, new GoogleAuthProvider());
+  window.UserState.photoURL = result.user.photoURL || window.UserState.photoURL || '';
+  window.UserState.providerIds = result.user.providerData.map(p=>p.providerId).filter(Boolean);
+  document.dispatchEvent(new CustomEvent('icadem:user-ready'));
+  return result.user;
+};
 // Exponer funciones de Firestore para que el script no-module pueda usarlas
 window.__fs = { collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, serverTimestamp, Timestamp, db };
 setPersistence(auth, browserLocalPersistence);
@@ -3891,6 +3903,8 @@ if (window.__isDemoMode) {
     window.UserState.email = (user.email||'').toLowerCase();
     window.UserState.displayName = user.displayName || user.email?.split('@')[0] || 'Miembro';
     window.UserState.iniciales = calcIniciales(user.displayName || user.email);
+    window.UserState.photoURL = user.photoURL || '';
+    window.UserState.providerIds = (user.providerData || []).map(p=>p.providerId).filter(Boolean);
     window.UserState.isAdmin = ADMIN_EMAILS.includes(window.UserState.email);
 
     if (window.UserState.isAdmin) {
@@ -3951,6 +3965,7 @@ if (window.__isDemoMode) {
     })();
 
     document.body.style.visibility = 'visible';
+    document.dispatchEvent(new CustomEvent('icadem:user-ready', { detail:{ uid:user.uid } }));
 
     // Cargar noticias reales del home (Firestore noticias_auto)
     setTimeout(()=>{ if(typeof window.__cargarNoticiasHome==='function') window.__cargarNoticiasHome(); }, 300);
@@ -5942,24 +5957,36 @@ const Sections = (function(){
       }
     });
     // Handler del botón "Marcar como vista"
-    document.getElementById('visorMarkAsViewed')?.addEventListener('click', function() {
+    document.getElementById('visorMarkAsViewed')?.addEventListener('click', async function() {
       const cursoId = this.dataset.cursoId;
       const numClase = parseInt(this.dataset.numClase);
       if (!cursoId || !numClase) return;
-      window.marcarClaseVista(cursoId, numClase);
-      // Feedback visual
-      this.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><polyline points="20 6 9 17 4 12"/></svg> ¡Marcada!';
-      this.style.background = 'color-mix(in srgb, var(--success) 20%, transparent)';
-      this.style.borderColor = 'color-mix(in srgb, var(--success) 50%, transparent)';
-      this.style.color = 'var(--success)';
-      this.disabled = true;
-      // Cerrar después de 1.2s y refrescar el DETALLE del curso (no solo la lista)
-      // para que la siguiente clase se desbloquee al instante.
-      setTimeout(() => {
+      const prog = getProgresoCurso(cursoId);
+      if (prog.clasesVistas.includes(numClase)) {
         window.cerrarVisor();
         if (typeof window.__refrescarCursoDetalle === 'function') window.__refrescarCursoDetalle(cursoId);
-        if (typeof renderCursosList === 'function') renderCursosList();
-      }, 1200);
+        return;
+      }
+      const curso = cursos.find(c=>String(c.id)===String(cursoId));
+      const sesion = curso?.sesiones?.find((s,i)=>Number(s.numero||i+1)===numClase);
+      if (!window.ICADEMPlatform?.startLessonChallenge) return;
+      this.disabled = true;
+      this.textContent = 'Preparando actividad…';
+      window.cerrarVisor();
+      try {
+        await window.ICADEMPlatform.startLessonChallenge({
+          courseId, lessonNumber:numClase, title:sesion?.titulo || `Clase ${numClase}`,
+          legacyCompletedLessons:prog.clasesVistas,
+          onComplete:()=>window.marcarClaseVista(cursoId,numClase),
+          onContinue:()=>{
+            if (typeof window.__refrescarCursoDetalle === 'function') window.__refrescarCursoDetalle(cursoId);
+            if (typeof renderCursosList === 'function') renderCursosList();
+          }
+        });
+      } catch(e) {
+        this.disabled = false;
+        this.textContent = 'Completar clase';
+      }
     });
   });
 
@@ -7230,12 +7257,12 @@ const Sections = (function(){
           ? `<button type="button" class="retos-hero__pill retos-hero__pill--paywall" onclick="navigateToSection('suscripcion')" title="Reto gratuito usado · hazte VIP para seguir"><svg class="ic"><use href="#i-shield-check"/></svg>Hazte VIP</button>`
           : `<span class="retos-hero__pill retos-hero__pill--free" title="Puedes jugar un reto gratis"><svg class="ic"><use href="#i-shield-check"/></svg>1 reto gratis</span>`);
 
-    container.innerHTML = `<div class="fade-up retos-page">
+    container.innerHTML = `<div class="fade-up retos-page retos-page--v5">
       <header class="retos-hero retos-hero--v4">
         <div class="retos-hero__copy">
           <span class="retos-hero__eyebrow">Retos ICADEM</span>
-          <h1>Practica para <em>decisiones reales.</em></h1>
-          <p>Casos, tarjetas y quiz para aplicar lo aprendido.</p>
+          <h1>Convierte lo aprendido <em>en criterio.</em></h1>
+          <p>Retos breves, resultados claros y práctica que sí se siente.</p>
         </div>
         <div class="retos-hero__summary" aria-label="Tu progreso en retos">
           <div class="retos-hero__metric"><strong>${st.racha}</strong><span>Días de racha</span></div>
@@ -7244,7 +7271,7 @@ const Sections = (function(){
         </div>
       </header>
 
-      <section class="retos-level">
+      <section class="retos-level retos-level--v5">
         <div class="retos-level__text">
           <span class="retos-level__kicker">Ruta profesional</span>
           <strong>${_htmlEscRet(nivel.nombre)}</strong>
@@ -7277,40 +7304,62 @@ const Sections = (function(){
       <main class="retos-main">
         <div class="retos-head">
           <div><span class="retos-head__eyebrow">Entrenamiento aplicado</span><h2>Elige una experiencia</h2></div>
-          <small class="retos-head__count">3 modalidades</small>
+          <small class="retos-head__count">5 experiencias</small>
         </div>
-        <div class="retos-tiles">
+        <div class="retos-tiles retos-tiles--five">
           <article class="retos-tile retos-tile--casos" data-retos-nav="casos">
             <div class="retos-tile__art" aria-hidden="true"><span>01</span><svg class="ic"><use href="#i-briefcase"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-briefcase"/></svg></span>
-              <span class="retos-tile__kicker">Casos de decisión</span>
-              <h3>Decisiones profesionales</h3>
+              <span class="retos-tile__kicker">Desafío aplicado</span>
+              <h3>Decide con criterio</h3>
               <p>Fiscal, nómina, contabilidad y RH.</p>
               <div class="retos-tile__meta"><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div>
               <button type="button" class="retos-tile__cta">Abrir expedientes<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
-          <article class="retos-tile retos-tile--flash" data-retos-nav="flashcards">
+          <article class="retos-tile retos-tile--flash" data-platform-game="memory" data-game-title="Memoria técnica" tabindex="0">
             <div class="retos-tile__art" aria-hidden="true"><span>02</span><svg class="ic"><use href="#i-book"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-book"/></svg></span>
-              <span class="retos-tile__kicker">Repaso rápido</span>
-              <h3>Flashcards técnicas</h3>
-              <p>Conceptos clave, organizados por área.</p>
-              <div class="retos-tile__meta"><span>${totalFlash} tarjetas</span><span>${flashDom}/${totalFlash} dominadas</span></div>
-              <button type="button" class="retos-tile__cta">Repasar<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+              <span class="retos-tile__kicker">Memoria</span>
+              <h3>Conecta conceptos</h3>
+              <p>Encuentra cada término y su aplicación.</p>
+              <div class="retos-tile__meta"><span>3 pares</span><span>Toque o teclado</span></div>
+              <button type="button" class="retos-tile__cta">Entrenar memoria<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
-          <article class="retos-tile retos-tile--quiz" data-retos-nav="quiz-intro">
+          <article class="retos-tile retos-tile--pulse" data-platform-game="pulse" data-game-title="Pulso ICADEM" tabindex="0">
             <div class="retos-tile__art" aria-hidden="true"><span>03</span><svg class="ic"><use href="#i-bolt"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-bolt"/></svg></span>
-              <span class="retos-tile__kicker">Quiz express</span>
-              <h3>Quiz de criterio</h3>
-              <p>12 preguntas con retroalimentación inmediata.</p>
-              <div class="retos-tile__meta"><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Sin intentos'}</span></div>
-              <button type="button" class="retos-tile__cta">Comenzar quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+              <span class="retos-tile__kicker">Pulso</span>
+              <h3>Responde en 60 segundos</h3>
+              <p>Una pista. Un concepto. Sin rodeos.</p>
+              <span class="retos-tile__state"><i></i>Disponible hoy</span>
+              <button type="button" class="retos-tile__cta">Tomar el pulso<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            </div>
+          </article>
+          <article class="retos-tile retos-tile--games" data-platform-game="catalog" tabindex="0">
+            <div class="retos-tile__art" aria-hidden="true"><span>04</span><svg class="ic"><use href="#i-tools"/></svg><div class="retos-tile__art-dec"></div></div>
+            <div class="retos-tile__body">
+              <span class="retos-tile__badge"><svg class="ic"><use href="#i-tools"/></svg></span>
+              <span class="retos-tile__kicker">Juegos ICADEM</span>
+              <h3>Entrena a tu manera</h3>
+              <p>Seis dinámicas breves para practicar.</p>
+              <div class="retos-tile__meta"><span>6 juegos</span><span>Práctica libre</span></div>
+              <button type="button" class="retos-tile__cta">Ver juegos<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            </div>
+          </article>
+          <article class="retos-tile retos-tile--daily" data-retos-nav="quiz-intro" tabindex="0">
+            <div class="retos-tile__art" aria-hidden="true"><span>05</span><svg class="ic"><use href="#i-calendar"/></svg><div class="retos-tile__art-dec"></div></div>
+            <div class="retos-tile__body">
+              <span class="retos-tile__badge"><svg class="ic"><use href="#i-calendar"/></svg></span>
+              <span class="retos-tile__kicker">Reto diario</span>
+              <h3>12 preguntas clave</h3>
+              <p>Retroalimentación inmediata y nuevo intento.</p>
+              <div class="retos-tile__meta"><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div>
+              <button type="button" class="retos-tile__cta">Jugar hoy<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
         </div>
@@ -7354,7 +7403,7 @@ const Sections = (function(){
             <li><b>02</b><div><strong>Elige</strong><p>La actuación profesional entre las opciones.</p></div></li>
             <li><b>03</b><div><strong>Comprende</strong><p>La razón técnica detrás de la respuesta correcta.</p></div></li>
           </ol>
-          <footer>${esVip ? 'Suma XP y mantén tu racha. Los créditos canjeables se activan muy pronto.' : 'El XP mide tu práctica. Los miembros VIP ganan créditos canjeables por cada acierto.'}</footer>
+          <footer>${esVip ? 'Completa una clase, supera su juego y recibe 5 créditos ICADEM.' : 'Practica libremente. Los premios de clase se acreditan al iniciar sesión.'}</footer>
         </section>
       </aside>
     </div>`;
@@ -8070,7 +8119,9 @@ const Sections = (function(){
                 <small>${prog.clasesVistas.length} de ${totalSes} vistas · ${pct}%</small>
               </div>
             </div>
-            <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete>
+            <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete
+              data-course-id="${escapeHtml(String(cursoId))}" data-lesson-number="${numClase}"
+              data-lesson-title="${escapeHtml(sesion.titulo || `Clase ${numClase}`)}" data-next-index="${siguienteIdx}">
               ${yaVista ? 'Ya vista · continuar' : 'Marcar vista y seguir'}
               <svg class="ic"><use href="#${yaVista?'i-check':'i-arrow-right'}"/></svg>
             </button>
@@ -8147,23 +8198,30 @@ const Sections = (function(){
     });
 
     // ─── Botón "Marcar vista y seguir" ───
-    container.querySelector('[data-lesson-complete]')?.addEventListener('click', () => {
+    container.querySelector('[data-lesson-complete]')?.addEventListener('click', async () => {
       const esPrimeraVez = !yaVista;
-      if (esPrimeraVez && typeof window.marcarClaseVista === 'function') {
-        window.marcarClaseVista(cursoId, numClase);
+      if (!esPrimeraVez) {
+        if (siguienteIdx >= 0) window.abrirClaseICADEM(cursoId, siguienteIdx);
+        else window.__volverACurso(cursoId);
+        return;
       }
-      // Confeti SOLO la primera vez que se completa la clase (no en repasos),
-      // para que la celebración mantenga su peso y no se vuelva ruido.
-      if (esPrimeraVez && typeof window.__celebrar === 'function') {
-        try { window.__celebrar(); } catch(e){}
-      }
-      // Da un pelín más de tiempo (650ms) cuando hay confeti, para que la
-      // persona vea el "¡bien hecho!" antes de cambiar de vista.
-      const retraso = esPrimeraVez ? 650 : 350;
-      if (siguienteIdx >= 0) {
-        setTimeout(() => window.abrirClaseICADEM(cursoId, siguienteIdx), retraso);
-      } else {
-        setTimeout(() => window.__volverACurso(cursoId), retraso);
+      const button = container.querySelector('[data-lesson-complete]');
+      if (!window.ICADEMPlatform?.startLessonChallenge) return;
+      button.disabled = true;
+      button.textContent = 'Preparando actividad…';
+      try {
+        await window.ICADEMPlatform.startLessonChallenge({
+          courseId, lessonNumber:numClase, title:sesion.titulo || `Clase ${numClase}`,
+          legacyCompletedLessons:getProgresoCurso(cursoId).clasesVistas,
+          onComplete:()=>window.marcarClaseVista(cursoId,numClase),
+          onContinue:()=>{
+            if (siguienteIdx >= 0) window.abrirClaseICADEM(cursoId, siguienteIdx);
+            else window.__volverACurso(cursoId);
+          }
+        });
+      } catch(e) {
+        button.disabled = false;
+        button.textContent = 'Completar clase';
       }
     });
   }
@@ -8885,6 +8943,8 @@ const Sections = (function(){
           </div>
         </section>
 
+        <div class="logros-ranking" id="icadem-ranking" aria-live="polite"></div>
+
         <div class="logros-groups">
         ${cats.map(cat=>{
           const items=logros.filter(l=>l.cat===cat);
@@ -8919,6 +8979,7 @@ const Sections = (function(){
       el.addEventListener('click',()=>openLogroDetalle(el.dataset.lid));
       el.addEventListener('keydown',e=>{if(e.key==='Enter')openLogroDetalle(el.dataset.lid);});
     });
+    window.ICADEMPlatform?.mountRanking('icadem-ranking');
   }
   function openLogroDetalle(id){
     const l=logros.find(x=>x.id===id);if(!l)return;
@@ -9529,7 +9590,7 @@ const Sections = (function(){
   }
 
   function renderDirectorio(container){
-    const esVip = window.UserState?.modo==='vip' || esAdminReal();
+    const puedeEditar = window.UserState?.modo!=='invitado' && !!window.UserState?.uid;
     container.innerHTML = `
       <div class="fade-up">
         <div class="sec-hero">
@@ -9543,7 +9604,7 @@ const Sections = (function(){
             <svg class="ic"><use href="#i-search"/></svg>
             <input type="text" id="dir-buscar" placeholder="Buscar por nombre, empresa o puesto…">
           </div>
-          ${esVip?`<button class="btn btn--accent" id="dir-mi-tarjeta"><svg class="ic"><use href="#i-edit"/></svg>Mi tarjeta</button>`:''}
+          ${puedeEditar?`<button class="btn btn--accent" id="dir-mi-tarjeta"><svg class="ic"><use href="#i-edit"/></svg>Mi perfil</button>`:''}
         </div>
 
         <div class="dir-chips" id="dir-chips">
@@ -9570,12 +9631,19 @@ const Sections = (function(){
       });
     });
     // Mi tarjeta
-    if (esVip) container.querySelector('#dir-mi-tarjeta').addEventListener('click', dirEditarMiTarjeta);
+    if (puedeEditar) container.querySelector('#dir-mi-tarjeta').addEventListener('click', dirEditarMiTarjeta);
 
     dirSuscribir();
   }
 
-  function dirSuscribir(){
+  async function dirSuscribir(){
+    if (window.ICADEMPlatform?.loadDirectory && !window.__isDemoMode) {
+      try {
+        _dirCards = (await window.ICADEMPlatform.loadDirectory()).map(x=>({...x,id:x.id||x.uid}));
+        dirPintar();
+        return;
+      } catch (error) { console.warn('[directorio API]', error.message); }
+    }
     const fs = window.__fs;
     if (!fs || !fs.onSnapshot){ const g=document.getElementById('dir-grid'); if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio.</div>'; return; }
     if (_dirUnsub){ _dirUnsub(); _dirUnsub=null; }
@@ -9601,7 +9669,7 @@ const Sections = (function(){
     }
     const uid = window.UserState?.uid;
     grid.innerHTML = cards.map(c=>{
-      const inicial = (c.nombre||'?').trim().slice(0,2).toUpperCase();
+      const inicial = c.iniciales || (c.nombre||'?').trim().slice(0,2).toUpperCase();
       const foto = c.foto
         ? `<img src="${c.foto}" alt="${escapeHtml(c.nombre||'')}" class="dir-card__foto">`
         : `<div class="dir-card__foto dir-card__foto--ini" style="background:linear-gradient(135deg,${c.color||'#5b92c8'},${(c.color||'#5b92c8')}aa);">${escapeHtml(inicial)}</div>`;
@@ -9614,6 +9682,9 @@ const Sections = (function(){
       return `
       <article class="dir-card${esMia?' dir-card--mia':''}" data-dircard="${c.id}">
         ${esMia?'<span class="dir-card__badge-mia">Tú</span>':''}
+        <div class="dir-card__cover" style="--dir-cover:${escapeHtml(c.portadaColor||'#173b56')};${c.portadaUrl?`background-image:url('${escapeHtml(c.portadaUrl)}')`:''}">
+          ${c.isVip?'<span class="dir-card__vip">Miembro VIP</span>':''}
+        </div>
         <div class="dir-card__top">
           ${foto}
         </div>
@@ -9623,6 +9694,7 @@ const Sections = (function(){
           ${c.empresa?`<div class="dir-card__empresa"><svg class="ic"><use href="#i-briefcase"/></svg>${escapeHtml(c.empresa)}</div>`:''}
           ${c.sector?`<span class="dir-card__sector">${escapeHtml(c.sector)}</span>`:''}
           ${c.bio?`<div class="dir-card__bio">${escapeHtml(c.bio)}</div>`:''}
+          <div class="dir-card__profile-state ${c.perfilCompleto?'is-complete':''}">${c.perfilCompleto?'Perfil completo':'Perfil por completar'}</div>
           ${contactos.length?`<div class="dir-card__ctas">${contactos.join('')}</div>`:'<div class="dir-card__sincontacto">Sin datos de contacto</div>'}
         </div>
       </article>`;
@@ -9699,9 +9771,10 @@ const Sections = (function(){
     const uid = window.UserState?.uid;
     if (!uid){ Toast.error('Inicia sesión',''); return; }
     // Cargar tarjeta existente
-    let data = {};
+    let data = window.UserState?.directoryProfile || {};
     try { const ds = await fs.getDoc(fs.doc(fs.db,'directorio',uid)); if (ds.exists()) data = ds.data(); } catch(e){}
     _dirFotoTmp = undefined;
+    let dirCoverTmp = undefined;
 
     const fotoActual = data.foto || '';
     const body = `
@@ -9734,16 +9807,23 @@ const Sections = (function(){
         <input class="dir-form__in" id="dirf-wa" maxlength="20" value="${(data.whatsapp||'').replace(/"/g,'&quot;')}" placeholder="Ej. 52 238 123 4567">
         <label class="dir-form__lbl">Correo</label>
         <input class="dir-form__in" id="dirf-email" maxlength="80" value="${(data.email||'').replace(/"/g,'&quot;')}" placeholder="correo@ejemplo.com">
+        <label class="dir-form__check"><input type="checkbox" id="dirf-email-publico" ${data.contactoVisible?.email===true?'checked':''}> Mostrar mi correo públicamente</label>
+        <label class="dir-form__check"><input type="checkbox" id="dirf-wa-publico" ${data.contactoVisible?.whatsapp===true?'checked':''}> Mostrar mi WhatsApp públicamente</label>
         <label class="dir-form__lbl">LinkedIn</label>
         <input class="dir-form__in" id="dirf-linkedin" maxlength="120" value="${(data.linkedin||'').replace(/"/g,'&quot;')}" placeholder="linkedin.com/in/tu-perfil">
         <label class="dir-form__lbl">Sitio web</label>
         <input class="dir-form__in" id="dirf-web" maxlength="120" value="${(data.web||'').replace(/"/g,'&quot;')}" placeholder="tusitio.com">
+        ${window.UserState?.modo==='vip'?`<div class="dir-form__sep">Portada VIP</div>
+        <label class="dir-form__lbl">Color de portada</label>
+        <input class="dir-form__in" id="dirf-cover-color" type="color" value="${data.portadaColor||'#173b56'}">
+        <label class="btn btn--ghost btn--sm" for="dirf-cover-file"><svg class="ic"><use href="#i-image"/></svg>Subir imagen de portada</label>
+        <input type="file" id="dirf-cover-file" accept="image/jpeg,image/png,image/webp" style="display:none;">`:''}
         <label class="dir-form__check"><input type="checkbox" id="dirf-visible" ${data.visible!==false?'checked':''}> Mostrar mi tarjeta en el directorio</label>
       </div>
     `;
     const footer = document.createElement('div');
     footer.innerHTML = `<button class="btn btn--ghost" id="dirf-cancel">Cancelar</button><button class="btn btn--accent" id="dirf-guardar">Guardar tarjeta</button>`;
-    const m = Modal.open({id:'dir-form', title:'Mi tarjeta profesional', subtitle:'Aparecerá en el Directorio VIP', icon:'i-user', size:'md', body, footer});
+    const m = Modal.open({id:'dir-form', title:'Mi perfil profesional', subtitle:'Tu identidad en toda la plataforma', icon:'i-user', size:'md', body, footer});
 
     // Foto
     const fileInput = document.getElementById('dirf-foto-file');
@@ -9757,6 +9837,11 @@ const Sections = (function(){
     });
     const btnQuitar = document.getElementById('dirf-foto-quitar');
     if (btnQuitar) btnQuitar.addEventListener('click', ()=>{ _dirFotoTmp = null; document.getElementById('dirf-foto-prev').innerHTML = `<svg class="ic"><use href="#i-user"/></svg>`; });
+    document.getElementById('dirf-cover-file')?.addEventListener('change', event=>{
+      const file=event.target.files?.[0]; if(!file) return;
+      if(file.size>2*1024*1024){ Toast.error('Imagen demasiado grande','La portada debe pesar menos de 2 MB'); event.target.value=''; return; }
+      const reader=new FileReader(); reader.onload=()=>{ dirCoverTmp=reader.result; Toast.success('Portada lista','Se guardará junto con tu perfil'); }; reader.readAsDataURL(file);
+    });
 
     footer.querySelector('#dirf-cancel').addEventListener('click', ()=> m.close());
     footer.querySelector('#dirf-guardar').addEventListener('click', async ()=>{
@@ -9775,15 +9860,23 @@ const Sections = (function(){
         linkedin: document.getElementById('dirf-linkedin').value.trim(),
         web: document.getElementById('dirf-web').value.trim(),
         visible: document.getElementById('dirf-visible').checked,
-        color: dirColorFor(uid),
-        updatedAt: fs.serverTimestamp()
+        portadaColor: document.getElementById('dirf-cover-color')?.value || data.portadaColor || '#173b56',
+        contactoVisible: {
+          email: document.getElementById('dirf-email-publico').checked,
+          whatsapp: document.getElementById('dirf-wa-publico').checked,
+          linkedin: true,
+          web: true
+        }
       };
-      if (_dirFotoTmp !== undefined) payload.foto = _dirFotoTmp; // string o null
-      else if (data.foto) payload.foto = data.foto; // conservar
+      if (_dirFotoTmp === null) payload.removeCustomPhoto = true;
+      else if (typeof _dirFotoTmp === 'string') payload.avatarDataUrl = _dirFotoTmp;
+      if (typeof dirCoverTmp === 'string') payload.coverDataUrl = dirCoverTmp;
       try {
-        await fs.setDoc(fs.doc(fs.db,'directorio',uid), payload, { merge:true });
-        Toast.success('Tarjeta guardada','Ya apareces en el directorio');
+        if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible');
+        await window.ICADEMPlatform.saveProfile(payload);
+        Toast.success('Perfil guardado','Tu identidad ya se actualizó en ICADEM');
         m.close();
+        dirSuscribir();
       } catch(e){ console.error(e); Toast.error('No se pudo guardar', e.message||''); btn.disabled=false; btn.textContent='Guardar tarjeta'; }
     });
   }
@@ -9870,7 +9963,7 @@ const Sections = (function(){
 
         ${esVip ? `
         <div class="foro-composer">
-          <div class="foro-composer__avatar" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${ini}</div>
+          <div class="foro-composer__avatar${window.UserState?.photoURL?' has-photo':''}" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${window.UserState?.photoURL?`<img src="${escapeHtml(window.UserState.photoURL)}" alt="">`:ini}</div>
           <div class="foro-composer__main">
             <textarea class="foro-composer__input" id="foro-text" placeholder="¿Qué caso traes hoy? Comparte un caso o haz una pregunta…" rows="2" maxlength="1500"></textarea>
             <div id="foro-img-preview" class="foro-img-preview" style="display:none;">
@@ -9990,7 +10083,7 @@ const Sections = (function(){
       const dias = foroDiasRestantes(p.createdAt);
       return `
       <article class="post" data-post="${p.id}">
-        <div class="post__avatar" style="background:linear-gradient(135deg,${p.color||'#5b92c8'},${(p.color||'#5b92c8')}aa);">${escapeHtml(p.iniciales||'?')}</div>
+        <div class="post__avatar${p.foto?' has-photo':''}" style="background:linear-gradient(135deg,${p.color||'#5b92c8'},${(p.color||'#5b92c8')}aa);">${p.foto?`<img src="${escapeHtml(p.foto)}" alt="">`:escapeHtml(p.iniciales||'?')}</div>
         <div class="post__main">
           <div class="post__header">
             <span class="post__author">${escapeHtml(p.nombre||'Miembro')}</span>
@@ -10029,6 +10122,7 @@ const Sections = (function(){
         uid: window.UserState.uid,
         nombre: window.UserState?.nombre || window.UserState?.displayName || 'Miembro',
         iniciales: window.UserState?.iniciales || 'IN',
+        foto: window.UserState?.photoURL || '',
         color: foroColorFor(window.UserState?.uid),
         esAdmin: esAdminReal(),
         texto: contenido,
@@ -10110,7 +10204,7 @@ const Sections = (function(){
       snap.forEach(d=>{ const c=d.data(); c.id=d.id; arr.push(c); });
       cl.innerHTML = arr.map(c=>`
         <div class="com">
-          <div class="com__avatar" style="background:linear-gradient(135deg,${c.color||'#888'},${(c.color||'#888')}aa);">${escapeHtml(c.iniciales||'?')}</div>
+          <div class="com__avatar${c.foto?' has-photo':''}" style="background:linear-gradient(135deg,${c.color||'#888'},${(c.color||'#888')}aa);">${c.foto?`<img src="${escapeHtml(c.foto)}" alt="">`:escapeHtml(c.iniciales||'?')}</div>
           <div class="com__body">
             <div class="com__head"><span class="com__author">${escapeHtml(c.nombre||'Miembro')}</span><span class="com__time">${foroTiempoRel(c.createdAt)}</span>${(c.uid===uid||esAdmin)?`<button class="com__del" data-comdel="${postId}|${c.id}">&times;</button>`:''}</div>
             <div class="com__text">${escapeHtml(c.texto||'').replace(/\n/g,'<br>')}</div>
@@ -10132,6 +10226,7 @@ const Sections = (function(){
         uid: window.UserState.uid,
         nombre: window.UserState?.nombre || 'Miembro',
         iniciales: window.UserState?.iniciales || 'IN',
+        foto: window.UserState?.photoURL || '',
         color: foroColorFor(window.UserState?.uid),
         texto: t,
         createdAt: fs.serverTimestamp()
@@ -10240,6 +10335,8 @@ const Sections = (function(){
     const _nom = escapeHtml(S.nombre || S.displayName || 'Miembro');
     const _em  = escapeHtml(S.email || '—');
     const _ini = (S.iniciales || 'IN');
+    const _foto = S.photoURL ? `<img src="${escapeHtml(S.photoURL)}" alt="Foto de ${_nom}" referrerpolicy="no-referrer">` : _ini;
+    const _googleLinked = (S.providerIds||[]).includes('google.com');
     container.innerHTML = `
       <div class="fade-up">
         <div class="sec-hero">
@@ -10249,18 +10346,19 @@ const Sections = (function(){
         </div>
 
         <section class="perfil-hero">
-          <div class="perfil-hero__avatar">${_ini}</div>
+          <div class="perfil-hero__avatar${S.photoURL?' has-photo':''}">${_foto}</div>
           <div class="perfil-hero__info">
             <h2 class="perfil-hero__name">${_nom}</h2>
             <div class="perfil-hero__email">${_em}</div>
             <div class="perfil-hero__badges">
-              <span class="pill"><svg class="ic"><use href="#i-crown"/></svg>VIP Anual</span>
+              <span class="pill"><svg class="ic"><use href="#i-crown"/></svg>${S.modo==='vip'?'Miembro VIP':'Cuenta ICADEM'}</span>
               <span class="tag tag--new">Nivel 2 · Técnico</span>
-              <span class="tag tag--down">Miembro desde mar 2026</span>
+              <span class="tag tag--down"><b data-credit-balance>${Number(S.credits?.balance)||0}</b>&nbsp; créditos</span>
             </div>
           </div>
           <button class="btn btn--ghost" id="btn-edit-profile" style="align-self:flex-start;"><svg class="ic"><use href="#i-tools"/></svg>Editar perfil</button>
           <button class="btn btn--ghost" id="btn-mi-tarjeta-dir" style="align-self:flex-start;"><svg class="ic"><use href="#i-users"/></svg>Mi tarjeta del directorio</button>
+          ${_googleLinked?'':`<button class="btn btn--ghost" id="btn-link-google" style="align-self:flex-start;"><svg class="ic"><use href="#i-link"/></svg>Vincular Google</button>`}
         </section>
 
         <div class="perfil-grid">
@@ -11185,6 +11283,16 @@ function openEditField(field){
     const newVal=document.getElementById('edit-field-input').value.trim();
     if(!newVal){Toast.info('Campo vacío','Escribe un valor antes de guardar');return;}
 
+    try {
+      if (window.ICADEMPlatform?.saveProfile) {
+        const patch = { nombre: field==='nombre' ? newVal : (window.UserState?.nombre||window.UserState?.displayName||'Miembro') };
+        patch[field] = newVal;
+        await window.ICADEMPlatform.saveProfile(patch);
+      }
+    } catch(error) {
+      console.error(error); Toast.error('No se pudo guardar',error.message||'Intenta nuevamente'); return;
+    }
+
     // Guardar SIEMPRE en localStorage (todos los campos)
     const all=JSON.parse(localStorage.getItem('icadem_profile')||'{}');
     all[field]=newVal;localStorage.setItem('icadem_profile',JSON.stringify(all));
@@ -11788,7 +11896,7 @@ function initNav(){
 
   // ═══ EVENT DELEGATION para botones de secciones dinámicas ═══
   // (Perfil, Canal WhatsApp, y cualquier otra que se renderice con innerHTML)
-  document.addEventListener('click',(e)=>{
+  document.addEventListener('click',async (e)=>{
     const t=e.target;
     if(!t||!t.closest) return;
 
@@ -11812,7 +11920,19 @@ function initNav(){
 
     // Editar perfil (tip)
     if(t.closest('#btn-edit-profile')){
-      Toast.info('Edita cada campo','Da click en el ícono ✏️ junto al campo que quieres cambiar');
+      if(typeof window.__dirEditar==='function') window.__dirEditar();
+      return;
+    }
+
+    if(t.closest('#btn-link-google')){
+      const btn=t.closest('#btn-link-google'); btn.disabled=true;
+      try{
+        await window.__linkGoogleAccount();
+        Toast.success('Google vinculado','Tu foto y acceso quedaron asociados a la misma cuenta');
+        navigateToSection('perfil');
+      }catch(error){
+        console.error(error); Toast.error('No se pudo vincular Google',error.message||'Intenta nuevamente'); btn.disabled=false;
+      }
       return;
     }
 
@@ -11890,7 +12010,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const avatarCircle = document.querySelector('.avatar__circle');
     const avatarName = document.querySelector('.avatar__name');
     const avatarPlan = document.querySelector('.avatar__plan');
-    if (avatarCircle) avatarCircle.textContent = S.iniciales;
+    if (avatarCircle) {
+      avatarCircle.classList.toggle('has-photo', !!S.photoURL);
+      avatarCircle.innerHTML = S.photoURL
+        ? `<img src="${S.photoURL}" alt="Foto de ${(S.displayName||'Miembro').replace(/"/g,'&quot;')}" referrerpolicy="no-referrer">`
+        : S.iniciales;
+    }
     if (avatarName) {
       avatarName.textContent = S.modo === 'invitado'
         ? 'Invitado'
