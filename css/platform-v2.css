@@ -26,9 +26,16 @@ body.has-learning-game{overflow:hidden!important}
 .retos-page--v5 .retos-hero__metric{border-color:rgba(255,255,255,.18)}
 .retos-page--v5 .retos-hero__pill{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.25)}
 .retos-level--v5{box-shadow:0 12px 30px rgba(18,50,74,.07)}
-.retos-tiles--five{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
-.retos-tiles--five .retos-tile{grid-column:span 6;min-height:248px}
-.retos-tiles--five .retos-tile:nth-child(3),.retos-tiles--five .retos-tile:nth-child(4),.retos-tiles--five .retos-tile:nth-child(5){grid-column:span 4;min-height:224px}
+.retos-tiles--five{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:16px;align-items:stretch}
+.retos-tiles--five .retos-tile,.retos-tiles--five .retos-tile:nth-child(n){grid-column:auto;grid-template-rows:100px minmax(0,1fr);min-height:330px;height:100%}
+.retos-tiles--five .retos-tile__body{min-height:230px;padding:0 22px 22px}
+.retos-tiles--five .retos-tile__body p{min-height:42px;margin-bottom:2px}
+.retos-tiles--five .retos-tile__meta,.retos-tiles--five .retos-tile__state{min-height:27px;align-content:center}
+.retos-tiles--five .retos-tile__cta{margin-top:auto;width:100%;border-radius:11px}
+.retos-tiles--five .retos-tile.is-used{border-color:color-mix(in srgb,var(--ica-petrol) 45%,var(--border));box-shadow:none}
+.retos-tiles--five .retos-tile.is-used:hover{transform:none}
+.retos-tiles--five .retos-tile.is-used .retos-tile__art{filter:saturate(.45);opacity:.72}
+.retos-tiles--five .retos-tile.is-used .retos-tile__cta{background:#e7efeb;color:var(--ica-petrol);cursor:default}
 .retos-tile--pulse{--tile-accent:#8f6431}
 .retos-tile--games{--tile-accent:#245c6f}
 .retos-tile--daily{--tile-accent:#1a785f}
@@ -40,6 +47,7 @@ body.has-learning-game{overflow:hidden!important}
 .retos-tile__state{display:inline-flex;align-items:center;gap:6px;color:var(--text-2);font:600 10px/1 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em}
 .retos-tile__state i{width:7px;height:7px;border-radius:50%;background:var(--ica-petrol)}
 .retos-page--v5 .retos-methodcard footer{color:var(--ica-petrol)}
+.retos-ranking{grid-column:1/-1;margin-top:2px}.retos-ranking .ranking-card{box-shadow:0 12px 30px rgba(18,50,74,.06)}
 
 /* Juego de cierre */
 .learning-game{position:fixed;inset:0;z-index:120000;display:grid;place-items:center;padding:18px;font-family:'Inter',system-ui,sans-serif}
@@ -80,12 +88,12 @@ body.has-learning-game{overflow:hidden!important}
 .platform-notice{position:fixed;z-index:130000;right:20px;bottom:20px;width:min(360px,calc(100vw - 40px));padding:14px 16px;border-radius:12px;background:#fff;border:1px solid var(--ica-line);box-shadow:0 16px 40px rgba(9,24,35,.18);display:grid;gap:3px;color:#17253a}.platform-notice strong{font-size:13px}.platform-notice span{font-size:11px;color:#64736f}.platform-notice--error{border-left:4px solid #b44141}
 
 @media (max-width:1024px){
-  .retos-tiles--five .retos-tile,.retos-tiles--five .retos-tile:nth-child(n){grid-column:span 6}
+  .retos-tiles--five{grid-template-columns:repeat(2,minmax(0,1fr))}.retos-tiles--five .retos-tile,.retos-tiles--five .retos-tile:nth-child(n){grid-column:auto}
   .learning-game__content{min-height:480px}
 }
 @media (max-width:768px){
   .retos-page--v5 .retos-hero{padding:24px 22px}.retos-page--v5 .retos-hero__summary{width:100%}
-  .retos-tiles--five{display:grid;grid-template-columns:1fr}.retos-tiles--five .retos-tile,.retos-tiles--five .retos-tile:nth-child(n){grid-column:1;min-height:0}
+  .retos-tiles--five{display:grid;grid-template-columns:1fr}.retos-tiles--five .retos-tile,.retos-tiles--five .retos-tile:nth-child(n){grid-column:1;min-height:310px}.retos-tiles--five .retos-tile__body{min-height:214px}
   .learning-game{padding:0;align-items:stretch}.learning-game__panel{width:100%;height:100dvh;max-height:none;border-radius:0}.learning-game__header{height:64px;padding:0 14px}.learning-game__brand small{display:none}.learning-game__content{min-height:calc(100dvh - 64px);padding:24px 16px 32px}.learning-game__step i{width:18px}.memory-grid{grid-template-columns:repeat(3,1fr)}.memory-card{min-height:82px}.wordsearch{grid-template-columns:1fr;gap:12px}.wordsearch__list{display:flex;flex-wrap:wrap}.wordsearch__grid{width:min(100%,440px);margin:auto}.classify__zones{grid-template-columns:1fr}.game-actions{position:sticky;bottom:0;background:linear-gradient(transparent,var(--ica-paper) 20%);padding-top:24px}.game-actions button{flex:1;min-width:0}.practice-picker{padding:0;align-items:end}.practice-picker__box{max-height:92dvh;overflow:auto;border-radius:22px 22px 0 0;padding:30px 18px}.practice-picker__box>div{grid-template-columns:repeat(2,1fr)}
 }
 @media (max-width:430px){

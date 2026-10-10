@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/platform-v2.css?v=5">
-<script src="js/icadem-platform-v2.js?v=5" defer></script>
+<link rel="stylesheet" href="css/platform-v2.css?v=6">
+<script src="js/icadem-platform-v2.js?v=6" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -7250,12 +7250,8 @@ const Sections = (function(){
     else if (__retosView === 'quiz-resultado') body = _retosQuizResultHtml();
     else body = _retosHubHtml(st, esVip, casosHechos, flashDom);
 
-    // Estado de acceso discreto dentro del resumen.
-    const vipPill = esVip
-      ? `<span class="retos-hero__pill retos-hero__pill--vip" title="Juegas sin límite"><svg class="ic"><use href="#i-trophy"/></svg>Miembro VIP</span>`
-      : (st.retosJugados >= 1
-          ? `<button type="button" class="retos-hero__pill retos-hero__pill--paywall" onclick="navigateToSection('suscripcion')" title="Reto gratuito usado · hazte VIP para seguir"><svg class="ic"><use href="#i-shield-check"/></svg>Hazte VIP</button>`
-          : `<span class="retos-hero__pill retos-hero__pill--free" title="Puedes jugar un reto gratis"><svg class="ic"><use href="#i-shield-check"/></svg>1 reto gratis</span>`);
+    const saldoCreditos = Number(window.UserState?.credits?.balance ?? st.creditosDemo ?? 0);
+    const accessPill = `<span class="retos-hero__pill retos-hero__pill--free" data-retos-access><svg class="ic"><use href="#i-shield-check"/></svg>Un intento por reto</span>`;
 
     container.innerHTML = `<div class="fade-up retos-page retos-page--v5">
       <header class="retos-hero retos-hero--v4">
@@ -7267,7 +7263,8 @@ const Sections = (function(){
         <div class="retos-hero__summary" aria-label="Tu progreso en retos">
           <div class="retos-hero__metric"><strong>${st.racha}</strong><span>Días de racha</span></div>
           <div class="retos-hero__metric"><strong>${st.xp}</strong><span>XP acumulada</span></div>
-          <span class="retos-hero__pillslot">${vipPill}</span>
+          <div class="retos-hero__metric retos-hero__metric--credits"><strong data-credit-balance>${saldoCreditos}</strong><span>Créditos</span></div>
+          <span class="retos-hero__pillslot">${accessPill}</span>
         </div>
       </header>
 
@@ -7283,6 +7280,10 @@ const Sections = (function(){
       ${body}
     </div>`;
     _bindRetos(container);
+    if (__retosView === 'hub') {
+      window.ICADEMPlatform?.mountRetosStatus(container);
+      window.ICADEMPlatform?.mountRanking('retos-ranking');
+    }
   }
 
   function _retosHubHtml(st, esVip, casosHechos, flashDom){
@@ -7307,58 +7308,58 @@ const Sections = (function(){
           <small class="retos-head__count">5 experiencias</small>
         </div>
         <div class="retos-tiles retos-tiles--five">
-          <article class="retos-tile retos-tile--casos" data-retos-nav="casos">
+          <article class="retos-tile retos-tile--casos" data-platform-game="classify" data-reto-key="applied" data-game-title="Decide con criterio" tabindex="0">
             <div class="retos-tile__art" aria-hidden="true"><span>01</span><svg class="ic"><use href="#i-briefcase"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-briefcase"/></svg></span>
               <span class="retos-tile__kicker">Desafío aplicado</span>
               <h3>Decide con criterio</h3>
               <p>Fiscal, nómina, contabilidad y RH.</p>
-              <div class="retos-tile__meta"><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div>
+              <div class="retos-tile__meta" data-card-state><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div>
               <button type="button" class="retos-tile__cta">Abrir expedientes<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
-          <article class="retos-tile retos-tile--flash" data-platform-game="memory" data-game-title="Memoria técnica" tabindex="0">
+          <article class="retos-tile retos-tile--flash" data-platform-game="memory" data-reto-key="memory" data-game-title="Memoria técnica" tabindex="0">
             <div class="retos-tile__art" aria-hidden="true"><span>02</span><svg class="ic"><use href="#i-book"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-book"/></svg></span>
               <span class="retos-tile__kicker">Memoria</span>
               <h3>Conecta conceptos</h3>
               <p>Encuentra cada término y su aplicación.</p>
-              <div class="retos-tile__meta"><span>3 pares</span><span>Toque o teclado</span></div>
+              <div class="retos-tile__meta" data-card-state><span>3 pares</span><span>Toque o teclado</span></div>
               <button type="button" class="retos-tile__cta">Entrenar memoria<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
-          <article class="retos-tile retos-tile--pulse" data-platform-game="pulse" data-game-title="Pulso ICADEM" tabindex="0">
+          <article class="retos-tile retos-tile--pulse" data-platform-game="pulse" data-reto-key="pulse" data-game-title="Pulso ICADEM" tabindex="0">
             <div class="retos-tile__art" aria-hidden="true"><span>03</span><svg class="ic"><use href="#i-bolt"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-bolt"/></svg></span>
               <span class="retos-tile__kicker">Pulso</span>
               <h3>Responde en 60 segundos</h3>
               <p>Una pista. Un concepto. Sin rodeos.</p>
-              <span class="retos-tile__state"><i></i>Disponible hoy</span>
+              <span class="retos-tile__state" data-card-state><i></i>Disponible hoy</span>
               <button type="button" class="retos-tile__cta">Tomar el pulso<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
-          <article class="retos-tile retos-tile--games" data-platform-game="catalog" tabindex="0">
+          <article class="retos-tile retos-tile--games" data-platform-game="catalog" data-reto-key="catalog" tabindex="0">
             <div class="retos-tile__art" aria-hidden="true"><span>04</span><svg class="ic"><use href="#i-tools"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-tools"/></svg></span>
               <span class="retos-tile__kicker">Juegos ICADEM</span>
               <h3>Entrena a tu manera</h3>
               <p>Seis dinámicas breves para practicar.</p>
-              <div class="retos-tile__meta"><span>6 juegos</span><span>Práctica libre</span></div>
+              <div class="retos-tile__meta" data-card-state><span>6 juegos</span><span>5 créditos por juego</span></div>
               <button type="button" class="retos-tile__cta">Ver juegos<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
-          <article class="retos-tile retos-tile--daily" data-retos-nav="quiz-intro" tabindex="0">
+          <article class="retos-tile retos-tile--daily" data-platform-game="wordsearch" data-reto-key="daily" data-game-title="Reto diario" tabindex="0">
             <div class="retos-tile__art" aria-hidden="true"><span>05</span><svg class="ic"><use href="#i-calendar"/></svg><div class="retos-tile__art-dec"></div></div>
             <div class="retos-tile__body">
               <span class="retos-tile__badge"><svg class="ic"><use href="#i-calendar"/></svg></span>
               <span class="retos-tile__kicker">Reto diario</span>
               <h3>12 preguntas clave</h3>
               <p>Retroalimentación inmediata y nuevo intento.</p>
-              <div class="retos-tile__meta"><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div>
+              <div class="retos-tile__meta" data-card-state><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div>
               <button type="button" class="retos-tile__cta">Jugar hoy<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             </div>
           </article>
@@ -7403,9 +7404,10 @@ const Sections = (function(){
             <li><b>02</b><div><strong>Elige</strong><p>La actuación profesional entre las opciones.</p></div></li>
             <li><b>03</b><div><strong>Comprende</strong><p>La razón técnica detrás de la respuesta correcta.</p></div></li>
           </ol>
-          <footer>${esVip ? 'Completa una clase, supera su juego y recibe 5 créditos ICADEM.' : 'Practica libremente. Los premios de clase se acreditan al iniciar sesión.'}</footer>
+          <footer>Cada reto superado y cada juego de clase entrega 5 créditos ICADEM.</footer>
         </section>
       </aside>
+      <section class="retos-ranking" id="retos-ranking" aria-live="polite"></section>
     </div>`;
   }
 
@@ -8943,8 +8945,6 @@ const Sections = (function(){
           </div>
         </section>
 
-        <div class="logros-ranking" id="icadem-ranking" aria-live="polite"></div>
-
         <div class="logros-groups">
         ${cats.map(cat=>{
           const items=logros.filter(l=>l.cat===cat);
@@ -8979,7 +8979,6 @@ const Sections = (function(){
       el.addEventListener('click',()=>openLogroDetalle(el.dataset.lid));
       el.addEventListener('keydown',e=>{if(e.key==='Enter')openLogroDetalle(el.dataset.lid);});
     });
-    window.ICADEMPlatform?.mountRanking('icadem-ranking');
   }
   function openLogroDetalle(id){
     const l=logros.find(x=>x.id===id);if(!l)return;

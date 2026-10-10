@@ -148,7 +148,8 @@
     const local = {
       ok: true, local: true, challengeId: `practice-${Date.now()}`, type: selected,
       title: title || GAME_LABELS[selected], objective: 'Resuelve la actividad y comprueba tu criterio.',
-      instructions: ['Observa la consigna', 'Resuelve con calma', 'Comprueba tu respuesta'], reward: 0, balance: 0
+      instructions: ['Observa la consigna', 'Resuelve con calma', 'Comprueba tu respuesta'], reward: 5,
+      balance: Number(localStorage.getItem('icadem:demo:credits') || 0)
     };
     if (selected === 'crossword' || selected === 'guess') {
       local.content = { clue: 'Capacidad de decidir con fundamento', length: 8, maxAttempts: 3 };
@@ -403,14 +404,14 @@
     shell.content.innerHTML = `
       <div class="game-success">
         <span class="game-kicker">Actividad superada</span>
-        <h2 id="learning-game-title">Clase completada</h2>
-        <p>Tu avance ya quedó guardado.</p>
+        <h2 id="learning-game-title">${challenge.scope === 'reto' ? 'Reto superado' : 'Clase completada'}</h2>
+        <p>${challenge.scope === 'reto' ? 'Tu resultado y tus créditos ya quedaron guardados.' : 'Tu avance ya quedó guardado.'}</p>
         <button class="reward-chest" type="button" data-open-chest aria-label="Abrir recompensa"><span class="reward-chest__lid"></span><span class="reward-chest__box">ICA</span></button>
         <div class="reward-summary" hidden>
           <span>Recompensa</span><strong>+<b data-reward-count>0</b> créditos</strong>
           <div><small>Saldo anterior <b>${previous}</b></small><i>→</i><small>Nuevo saldo <b>${next}</b></small></div>
         </div>
-        <button class="game-primary" type="button" data-game-continue disabled>${result.nextLessonNumber ? 'Continuar a la siguiente clase' : 'Volver al curso'}</button>
+        <button class="game-primary" type="button" data-game-continue disabled>${result.nextLessonNumber ? 'Continuar a la siguiente clase' : (challenge.scope === 'reto' ? 'Volver a Retos' : 'Volver al curso')}</button>
       </div>`;
     const chest = shell.content.querySelector('[data-open-chest]');
     const summary = shell.content.querySelector('.reward-summary');
@@ -425,6 +426,7 @@
         const interval = setInterval(() => { value += 1; counter.textContent = String(Math.min(reward, value)); if (value >= reward) clearInterval(interval); }, 110);
       }
       if (window.UserState?.credits) window.UserState.credits.balance = next;
+      document.querySelectorAll('[data-credit-balance]').forEach(el => { el.textContent = String(next); });
       announce(`Ganaste ${reward} créditos. Nuevo saldo: ${next}.`);
     });
     continueButton.addEventListener('click', () => { shell.close(); onContinue?.(result); });
@@ -447,8 +449,12 @@
             else if (challenge.type === 'puzzle') correct = JSON.stringify(proof.order || []) === JSON.stringify(challenge.solution.order);
             else if (challenge.type === 'classify') correct = Object.keys(challenge.solution.assignments).every(key => proof.assignments?.[key] === challenge.solution.assignments[key]);
             if (!correct) { const error = new Error('Aún no está correcto. Revisa la actividad e inténtalo otra vez.'); error.status = 422; throw error; }
-            result = { ok: true, reward: 0, previousBalance: 0, newBalance: 0, nextLessonNumber: null, practice: true };
-          } else result = await request('/api/learning/complete', { method: 'POST', body: { challengeId: challenge.challengeId, proof } });
+            const previousBalance = Number(localStorage.getItem('icadem:demo:credits') || challenge.balance || 0);
+            const reward = Number(challenge.reward) || 5;
+            const newBalance = previousBalance + reward;
+            localStorage.setItem('icadem:demo:credits', String(newBalance));
+            result = { ok: true, reward, previousBalance, newBalance, nextLessonNumber: null, practice: true };
+          } else result = await request(challenge.completePath || '/api/learning/complete', { method: 'POST', body: { challengeId: challenge.challengeId, proof } });
           successView(challenge, shell, result, options?.onComplete, resultData => { options?.onContinue?.(resultData); resolve(resultData); });
         } catch (error) {
           frame.status.textContent = error.message;
@@ -488,8 +494,45 @@
     }
   }
 
+  async function startRetoChallenge(options) {
+    const type = options?.type === 'pulse' ? 'guess' : String(options?.type || 'guess');
+    const experienceId = String(options?.experienceId || type);
+    let challenge;
+    try {
+      if (window.__isDemoMode) {
+        challenge = localChallenge(type, options?.title || GAME_LABELS[type]);
+        challenge.scope = 'reto';
+        challenge.experienceId = experienceId;
+      } else {
+        challenge = await request('/api/retos/challenge', {
+          method: 'POST',
+          body: { experienceId, gameType: type }
+        });
+      }
+      challenge.scope = 'reto';
+      challenge.completePath = challenge.completePath || '/api/retos/complete';
+      return startChallenge(challenge, {
+        onComplete: result => {
+          options?.onComplete?.(result);
+          document.dispatchEvent(new CustomEvent('icadem:reto-completed', { detail: result }));
+          const page = document.querySelector('.retos-page');
+          if (page) mountRetosStatus(page);
+        },
+        onContinue: result => {
+          options?.onContinue?.(result);
+          const page = document.querySelector('.retos-page');
+          if (page) mountRetosStatus(page);
+        }
+      });
+    } catch (error) {
+      const alreadyPlayed = error.data?.code === 'reto-already-played';
+      showNotice(alreadyPlayed ? 'Reto ya completado' : 'No pudimos abrir el reto', error.message, alreadyPlayed ? 'info' : 'error');
+      throw error;
+    }
+  }
+
   function openPractice(type, title) {
-    return startChallenge(localChallenge(type, title), {});
+    return startRetoChallenge({ experienceId: 'catalog', type, title });
   }
 
   function openPracticePicker() {
@@ -498,15 +541,59 @@
     root.innerHTML = `<div class="practice-picker__box"><button type="button" class="practice-picker__close" aria-label="Cerrar">×</button><span class="game-kicker">Juegos ICADEM</span><h2>Elige cómo practicar</h2><p>Seis dinámicas breves con contenido profesional.</p><div>${Object.keys(GAME_LABELS).map(type => `<button type="button" data-practice="${type}"><span>${GAME_ICONS[type]}</span><strong>${GAME_LABELS[type]}</strong></button>`).join('')}</div></div>`;
     document.body.appendChild(root); document.body.classList.add('has-learning-game');
     root.querySelector('.practice-picker__close').addEventListener('click', () => { root.remove(); document.body.classList.remove('has-learning-game'); });
-    root.querySelectorAll('[data-practice]').forEach(button => button.addEventListener('click', () => { const type = button.dataset.practice; root.remove(); openPractice(type, GAME_LABELS[type]); }));
+    root.querySelectorAll('[data-practice]').forEach(button => button.addEventListener('click', () => {
+      const type = button.dataset.practice;
+      root.remove();
+      document.body.classList.remove('has-learning-game');
+      startRetoChallenge({ experienceId: 'catalog', type, title: GAME_LABELS[type] }).catch(() => {});
+    }));
+  }
+
+  async function mountRetosStatus(target) {
+    const root = typeof target === 'string' ? document.getElementById(target) : target;
+    if (!root) return;
+    let data;
+    if (window.__isDemoMode) {
+      data = { isAdmin: false, used: [], dailyUsedToday: false, catalogUsedCount: 0, balance: Number(localStorage.getItem('icadem:demo:credits') || 0), reward: 5 };
+    } else {
+      try { data = await request('/api/retos/status'); }
+      catch (error) {
+        root.querySelector('[data-retos-access]')?.replaceChildren(document.createTextNode('Estado no disponible'));
+        return;
+      }
+    }
+    document.querySelectorAll('[data-credit-balance]').forEach(el => { el.textContent = String(data.balance || 0); });
+    const used = new Set(data.used || []);
+    root.querySelectorAll('[data-reto-key]').forEach(card => {
+      const key = card.dataset.retoKey;
+      const isCatalog = key === 'catalog';
+      const completed = !data.isAdmin && (isCatalog ? Number(data.catalogUsedCount) >= 6 : key === 'daily' ? data.dailyUsedToday : used.has(key));
+      card.classList.toggle('is-used', completed);
+      card.setAttribute('aria-disabled', completed ? 'true' : 'false');
+      const state = card.querySelector('[data-card-state]');
+      if (state && isCatalog && !completed && Number(data.catalogUsedCount) > 0) {
+        state.innerHTML = `<span>6 juegos</span><span>${Number(data.catalogUsedCount)}/6 completados</span>`;
+      }
+      const cta = card.querySelector('.retos-tile__cta');
+      if (cta && completed) cta.innerHTML = 'Ya completado <span aria-hidden="true">✓</span>';
+    });
+    const access = root.querySelector('[data-retos-access]');
+    if (access) access.textContent = data.isAdmin ? 'Administrador · intentos ilimitados' : 'Un intento por reto';
   }
 
   async function mountRanking(target) {
     const root = typeof target === 'string' ? document.getElementById(target) : target;
-    if (!root || window.__isDemoMode) return;
+    if (!root) return;
     root.innerHTML = '<div class="ranking-loading">Cargando clasificación…</div>';
     try {
-      const data = await loadRanking();
+      const data = window.__isDemoMode ? {
+        currentUid: 'demo',
+        items: [
+          { position: 1, uid: 'demo-1', nombre: 'Mariana López', iniciales: 'ML', nivel: 'Profesional', xp: 860, isVip: true },
+          { position: 2, uid: 'demo-2', nombre: 'Carlos Méndez', iniciales: 'CM', nivel: 'Técnico', xp: 620, isVip: true },
+          { position: 3, uid: 'demo', nombre: 'Tu posición', iniciales: 'TÚ', nivel: 'Aprendiz', xp: 0, isVip: false }
+        ]
+      } : await loadRanking();
       const current = data.currentUid;
       const items = data.items || [];
       root.innerHTML = `<section class="ranking-card"><header><div><span class="game-kicker">Comunidad ICADEM</span><h2>Clasificación</h2></div><small>XP verificado</small></header><div class="ranking-list">${items.slice(0, 10).map(item => `<article class="ranking-row${item.uid === current ? ' is-me' : ''}"><b class="ranking-row__pos">${item.position}</b><span class="ranking-row__avatar">${item.foto ? `<img src="${esc(item.foto)}" alt="">` : esc(item.iniciales)}</span><span class="ranking-row__name"><strong>${esc(item.nombre)}</strong><small>${esc(item.nivel)}${item.isVip ? ' · VIP' : ''}</small></span><strong class="ranking-row__xp">${item.xp} XP</strong></article>`).join('') || '<p class="ranking-empty">Aún no hay actividad para mostrar.</p>'}</div></section>`;
@@ -520,9 +607,17 @@
     const trigger = event.target.closest('[data-platform-game]');
     if (!trigger) return;
     event.preventDefault();
+    if (trigger.getAttribute('aria-disabled') === 'true') {
+      showNotice('Reto ya completado', 'Cada usuario puede superar este reto una sola vez.', 'info');
+      return;
+    }
     const type = trigger.dataset.platformGame;
     if (type === 'catalog') openPracticePicker();
-    else openPractice(type === 'pulse' ? 'guess' : type, trigger.dataset.gameTitle || trigger.textContent.trim());
+    else startRetoChallenge({
+      experienceId: trigger.dataset.retoKey || type,
+      type,
+      title: trigger.dataset.gameTitle || trigger.textContent.trim()
+    }).catch(() => {});
   });
   document.addEventListener('click', event => {
     const button = event.target.closest?.('[data-lesson-complete]');
@@ -573,6 +668,6 @@
 
   window.ICADEMPlatform = {
     request, syncIdentity, applyIdentity, loadDirectory, loadRanking, mountRanking,
-    saveProfile, startLessonChallenge, openPractice, openPracticePicker
+    saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
   };
 })();
