@@ -1663,6 +1663,7 @@ body,
 .dir-card__profile-state { margin-top:auto!important; }
 .dir-card__ctas,.dir-card__sincontacto { margin-top:10px!important; }
 
+@media(max-width:1500px){.retos-tiles--five{grid-template-columns:1fr!important}.dir-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
 @media(max-width:1180px){.tools-index-grid,.dir-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.tool-index-card{min-height:200px!important}}
 @media(max-width:820px){.directory-hero{grid-template-columns:1fr}.retos-tiles--five{grid-template-columns:1fr!important}.dir-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.nav-section--account{margin-top:14px!important}}
 @media(max-width:620px){
