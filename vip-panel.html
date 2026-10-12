@@ -3769,7 +3769,7 @@ body.has-fomo .main{padding-top:18px}
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
 <div class="fomo-banner" id="fomo-banner" style="display:none">
   <span class="fomo-banner__icon" aria-hidden="true">⭐</span>
-  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Tus primeras 4 clases y el primer material son gratis.</strong> Activa tu suscripción para continuar y desbloquear un curso nuevo cada 6 días.</span>
+  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Elige un curso: sus primeras 4 clases y el primer material son gratis.</strong> Activa tu suscripción para continuar y desbloquear un curso nuevo cada 6 días.</span>
   <span class="fomo-banner__timer" id="fomo-banner-timer" style="display:none">5:00</span>
   <button class="fomo-banner__cta" id="fomo-banner-cta" type="button">
     Suscribirme
@@ -3804,10 +3804,18 @@ body.has-fomo .main{padding-top:18px}
 window.UserState = {
   modo: 'cargando',
   uid: null, email: null, displayName: null, iniciales: 'IN', photoURL: '', authPhotoURL: '',
-  providerIds: [], credits: { balance:0, lifetimeEarned:0 }, directoryProfile: null,
+  providerIds: [], freeCourseId: '', credits: { balance:0, lifetimeEarned:0 }, directoryProfile: null,
   plan: null, isAdmin: false,
   membership: { activo:false, proximaRenovacion:null, historial:[], metodoPago:null },
   demo: { timerRestante:300, iniciado:null, visitas:0 }
+};
+
+// Buzón temprano para que autenticación, instalación y perfil nunca abran
+// ventanas por su cuenta. El coordinador visual lo sustituye al final de la
+// carga y procesa una experiencia a la vez.
+window.__icademExperiencePending = window.__icademExperiencePending || [];
+window.__scheduleExperience = window.__scheduleExperience || function(id, payload){
+  window.__icademExperiencePending.push({ id:id, payload:payload || {} });
 };
 
 (function detectDemoMode(){
@@ -3818,6 +3826,9 @@ window.UserState = {
   window.UserState.modo = 'invitado';
   window.UserState.displayName = 'Invitado';
   window.UserState.iniciales = 'GU';
+  window.UserState.freeCourseId = localStorage.getItem('icadem:demo:free-course') || '';
+  if (localStorage.getItem('icadem:demo:credits') === null) localStorage.setItem('icadem:demo:credits', '200');
+  window.UserState.credits = { balance:Number(localStorage.getItem('icadem:demo:credits') || 200), lifetimeEarned:200, lifetimeSpent:0 };
   window.__isDemoMode = true;  // bandera para que el módulo Firebase NO redirija
 
   // Contar visitas al demo
@@ -4008,7 +4019,7 @@ if (window.__isDemoMode) {
     setTimeout(()=>{ if(typeof window.__actualizarWidgetsActividad==='function') window.__actualizarWidgetsActividad(); }, 400);
 
     if (isCheckoutSuccess && window.UserState.modo === 'vip') {
-      setTimeout(() => { window.__showWelcomeSplash && window.__showWelcomeSplash(); }, 600);
+      window.__scheduleExperience('membership-welcome', {});
     }
 
     // ─── Splash de activación MANUAL (admin) · lee notificacionPendiente ───
@@ -4018,14 +4029,12 @@ if (window.__isDemoMode) {
       try {
         const np = window.memberData && window.memberData.notificacionPendiente;
         if (np && !np.mostrada) {
-          setTimeout(() => {
-            window.__showWelcomeSplash && window.__showWelcomeSplash({
-              tipo: np.tipo || null,
-              plan: window.UserState.plan,
-              dias: np.dias || window.UserState.diasRegalo || null,
-              fromNotif: true
-            });
-          }, 700);
+          window.__scheduleExperience('membership-welcome', {
+            tipo: np.tipo || null,
+            plan: window.UserState.plan,
+            dias: np.dias || window.UserState.diasRegalo || null,
+            fromNotif: true
+          });
         }
       } catch(e) { console.warn('notificacionPendiente:', e.message); }
     }
@@ -4033,14 +4042,7 @@ if (window.__isDemoMode) {
     setTimeout(() => { window.__applyUserState && window.__applyUserState(); }, 50);
 
     // ─── Popup: confirmar/editar nombre (1ª vez) · evita certificados con el email ───
-    // Reservamos su turno desde ahora para que el recorrido guiado espere y
-    // ningún popup se monte encima del splash de bienvenida.
-    try {
-      if (localStorage.getItem('icadem_name_confirmed') !== '1') {
-        document.documentElement.dataset.icademNamePending = '1';
-      }
-    } catch(e) {}
-    setTimeout(() => { try { window.__maybeAskName && window.__maybeAskName(); } catch(e){} }, 900);
+    window.__scheduleExperience('profile-name', {});
 
     // Arrancar listener de notificaciones de Firestore (tiempo real)
     setTimeout(() => { if (typeof setupNotificacionesListener === 'function') setupNotificacionesListener(); }, 100);
@@ -5578,8 +5580,8 @@ const Sections = (function(){
   function cursoDesbloqueado(indexCurso, curso){
     if (esAdminReal()) return true;
     if (curso && curso.marcarProximamente === true) return false;
-    // Sin membresía solo se abre el primer curso para mostrar sus 4 clases y
-    // su primer material gratuitos. Para miembros, el acceso parte de la fecha
+    // Sin membresía se abre el curso que la persona eligió para mostrar sus
+    // 4 primeras clases y su primer material gratuitos. Para miembros, el acceso parte de la fecha
     // real de alta y respeta la cola progresiva del catálogo.
     if (!toolEsVIP()) return String(curso?.id || '') === primerCursoGratisId();
     if (curso?.disponibleSiempre === true) return true;
@@ -5693,8 +5695,10 @@ const Sections = (function(){
   };
 
   function primerCursoGratisId() {
-    const primero = cursos.find(c => c.activo !== false && c.publicado !== false && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length);
-    return primero ? String(primero.id) : '';
+    const selected = window.UserState?.freeCourseId
+      || (window.__isDemoMode ? localStorage.getItem('icadem:demo:free-course') : '');
+    if (!selected) return '';
+    return cursos.some(c => String(c.id) === String(selected)) ? String(selected) : '';
   }
 
   function esClaseGratisGlobal(cursoId, indexClase) {
@@ -6187,6 +6191,30 @@ const Sections = (function(){
     }
   }
   window.__cargarCursosFirestore = cargarCursosFirestore;
+  window.__getCursosGratisICADEM = async function(){
+    if (!_cursosLoaded && !_cursosLoading) await cargarCursosFirestore();
+    if (_cursosLoading) {
+      const limite = Date.now() + 8000;
+      while (_cursosLoading && Date.now() < limite) {
+        await new Promise(resolve => setTimeout(resolve, 120));
+      }
+    }
+    return cursos
+      .filter(c => c.activo !== false && c.publicado !== false && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length)
+      .map(c => ({
+        id:String(c.id), titulo:c.titulo || 'Curso ICADEM', area:c.area || 'Profesional',
+        descripcion:c.descripcion || c.desc || '', portada:c.portada || coverSVG(c.area, c.titulo),
+        sesiones:c.sesiones.length, materiales:Array.isArray(c.materiales) ? c.materiales.length : 0
+      }));
+  };
+  document.addEventListener('icadem:free-course-selected', function(){
+    if (location.hash === '#cursos') renderCursosList();
+    if (location.hash === '#curso-detalle') {
+      const container = document.getElementById('dynamic-section');
+      if (container) renderCursoDetalle(container);
+    }
+    actualizarInicioAprendizaje();
+  });
 
   const certificados = []; // se llenarán con los certificados reales emitidos
 
@@ -6354,7 +6382,7 @@ const Sections = (function(){
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Tu camino</span>
           <h1 class="sec-hero__title">Mis cursos</h1>
-          <p class="sec-hero__sub">Disfruta gratis las primeras 4 clases y el primer material del primer curso. Con tu membresía, los siguientes cursos se desbloquean cada 6 días desde tu fecha de pago.</p>
+          <p class="sec-hero__sub">Elige tu curso de inicio y disfruta gratis sus primeras 4 clases y el primer material. Con tu membresía, los siguientes cursos se desbloquean cada 6 días desde tu fecha de pago.</p>
         </div>
         <div class="tabs">
           <button class="tab ${cursosState.tab==='progreso'?'is-active':''}" data-curtab="progreso">Continuar · ${c.progreso}</button>
@@ -6631,7 +6659,7 @@ const Sections = (function(){
       const lockText = c.marcarProximamente === true
         ? 'Estamos terminando de preparar sus clases y materiales.'
         : (!esVip
-          ? 'Puedes probar gratis las primeras 4 clases y el primer material del primer curso. Al suscribirte, este curso se abrirá según tu calendario de 6 días.'
+          ? 'Puedes probar gratis las primeras 4 clases y el primer material del curso que elegiste. Al suscribirte, este curso se abrirá según tu calendario de 6 días.'
           : `Disponible en <strong>${diasFalta} día${diasFalta!==1?'s':''}</strong>, de acuerdo con la secuencia de tu membresía.`);
       const lockCta = !esVip && c.marcarProximamente !== true
         ? `<button type="button" class="course-detail-lock__cta" onclick="navigateToSection('suscripcion')">Ver membresía</button>`
@@ -6721,7 +6749,7 @@ const Sections = (function(){
       const lockText = c.marcarProximamente === true
         ? 'Estamos terminando de preparar sus clases y materiales.'
         : (!toolEsVIP()
-          ? 'Puedes probar gratis las primeras 4 clases y el primer material del primer curso. Al suscribirte, este curso se abrirá según tu calendario de 6 días.'
+          ? 'Puedes probar gratis las primeras 4 clases y el primer material del curso que elegiste. Al suscribirte, este curso se abrirá según tu calendario de 6 días.'
           : `Disponible en <strong style="color:var(--primary);">${diasFalta} día${diasFalta!==1?'s':''}</strong>. Los cursos se desbloquean cada 6 días desde tu fecha de alta.`);
       bodyContent += `
         <div class="empty-state" style="background:var(--surface-2);border:1px solid var(--border-2);border-radius:14px;padding:32px 24px;">
@@ -7003,12 +7031,12 @@ const Sections = (function(){
     try {
       const saved = JSON.parse(localStorage.getItem(_libraryDemoKey()) || 'null');
       const sharedRaw = localStorage.getItem('icadem:demo:credits');
-      const sharedBalance = sharedRaw === null ? Number(saved?.balance ?? 340) : Number(sharedRaw);
+      const sharedBalance = sharedRaw === null ? Number(saved?.balance ?? 200) : Number(sharedRaw);
       if (sharedRaw === null) localStorage.setItem('icadem:demo:credits', String(sharedBalance));
-      if (saved && Array.isArray(saved.redeemed)) return { balance:Number.isFinite(sharedBalance)?sharedBalance:340, redeemed:new Set(saved.redeemed) };
-      return { balance:Number.isFinite(sharedBalance)?sharedBalance:340, redeemed:new Set() };
+      if (saved && Array.isArray(saved.redeemed)) return { balance:Number.isFinite(sharedBalance)?sharedBalance:200, redeemed:new Set(saved.redeemed) };
+      return { balance:Number.isFinite(sharedBalance)?sharedBalance:200, redeemed:new Set() };
     } catch(error){}
-    return { balance:340, redeemed:new Set() };
+    return { balance:200, redeemed:new Set() };
   }
 
   function _openLibraryBook(book){
@@ -12388,7 +12416,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       } else { // sin-membresia
         banner.style.display = '';
         document.body.classList.add('has-fomo');
-        if (bannerText) bannerText.innerHTML = '<strong>Tus primeras 4 clases y el primer material son gratis.</strong> Activa tu suscripción para continuar y desbloquear un curso nuevo cada 6 días.';
+        if (bannerText) bannerText.innerHTML = '<strong>Elige un curso: sus primeras 4 clases y el primer material son gratis.</strong> Activa tu suscripción para continuar y desbloquear un curso nuevo cada 6 días.';
         if (bannerTimer) bannerTimer.style.display = 'none';
       }
     }
@@ -13073,6 +13101,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     e.preventDefault();
     deferredPrompt = e;
     mostrarBoton();
+    document.dispatchEvent(new CustomEvent('icadem:install-available'));
   });
   window.addEventListener('appinstalled', function(){
     deferredPrompt = null;
@@ -13086,7 +13115,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       deferredPrompt = null;
     });
   });
-  if (esIOS() && !yaInstalada()) mostrarBoton();
+  if (esIOS() && !yaInstalada()) {
+    mostrarBoton();
+    setTimeout(function(){ document.dispatchEvent(new CustomEvent('icadem:install-available')); }, 250);
+  }
 })();
 </script>
 
@@ -20195,7 +20227,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-  <link rel="stylesheet" href="css/panel-minimal.css?v=23">
-<script src="js/icadem-onboarding.js?v=4"></script>
+  <link rel="stylesheet" href="css/panel-minimal.css?v=24">
+<script src="js/icadem-onboarding.js?v=5"></script>
 </body>
 </html>

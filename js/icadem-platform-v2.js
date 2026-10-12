@@ -143,6 +143,7 @@
     state.photoURL = state.authPhotoURL || profile.photoURL || directory.foto || state.photoURL || '';
     state.iniciales = directory.iniciales || initials(state.nombre);
     state.providerIds = profile.providerIds || [];
+    state.freeCourseId = profile.freeCourseId || state.freeCourseId || '';
     state.credits = payload.credits || state.credits || { balance: 0 };
     state.directoryProfile = directory;
     if (payload.membership && state.modo !== 'invitado') {
@@ -223,6 +224,21 @@
     return data;
   }
 
+  async function selectFreeCourse(courseId) {
+    const selectedId = String(courseId || '').trim();
+    if (!selectedId) throw new Error('Elige un curso para continuar.');
+    if (window.__isDemoMode) {
+      localStorage.setItem('icadem:demo:free-course', selectedId);
+      if (window.UserState) window.UserState.freeCourseId = selectedId;
+      document.dispatchEvent(new CustomEvent('icadem:free-course-selected', { detail: { courseId: selectedId, demo: true } }));
+      return { ok: true, courseId: selectedId, newlySelected: true, demo: true, freeClasses: 4, freeMaterials: 1 };
+    }
+    const data = await request('/api/free-course', { method: 'POST', body: { courseId: selectedId } });
+    if (window.UserState) window.UserState.freeCourseId = data.courseId;
+    document.dispatchEvent(new CustomEvent('icadem:free-course-selected', { detail: data }));
+    return data;
+  }
+
   function demoCreditLedgerKey() {
     const account = window.UserState?.uid || window.UserState?.email || 'guest';
     return `icadem:demo:credit-ledger:${account}`;
@@ -289,7 +305,7 @@
     const rewardedIds = readDemoCreditIds();
     const movementId = String(details?.id || `demo:${Date.now()}`);
     const existing = ledger.find(item => item.id === movementId);
-    const previousBalance = Number(localStorage.getItem('icadem:demo:credits') || 340);
+    const previousBalance = Number(localStorage.getItem('icadem:demo:credits') || 200);
     if (rewardedIds.includes(movementId)) return { awarded: false, reward: 0, previousBalance, newBalance: previousBalance, movement: existing || null };
     if (numericAmount < 0 && previousBalance + numericAmount < 0) throw new Error('Créditos insuficientes para completar este canje.');
     const newBalance = previousBalance + numericAmount;
@@ -323,13 +339,14 @@
 
   function demoCreditWallet() {
     const ledger = readDemoCreditLedger();
-    const balance = Number(localStorage.getItem('icadem:demo:credits') || 340);
+    const balance = Number(localStorage.getItem('icadem:demo:credits') || 200);
     const stats = readDemoCreditStats();
     return {
       ok: true,
       credits: { balance, lifetimeEarned: stats.earned, lifetimeSpent: stats.spent },
       recentMovements: ledger.slice(0, 12),
       earnRules: [
+        { id: 'welcome', label: 'Regalo de bienvenida', amount: 200, note: 'Se acredita una sola vez al crear tu cuenta.' },
         { id: 'retos', label: 'Supera un reto', amount: 5, note: 'Una recompensa por reto.' },
         { id: 'class-games', label: 'Completa un juego de clase', amount: 5, note: 'Una sola recompensa por clase.' },
         { id: 'arcade', label: 'Entrena en Juegos ICADEM', amount: 5, note: 'Una recompensa por dinámica.' }
@@ -433,7 +450,7 @@
       ok: true, local: true, challengeId: `practice-${Date.now()}`, type: selected,
       title: title || GAME_LABELS[selected], objective: 'Resuelve la actividad y comprueba tu criterio.',
       instructions: ['Observa la consigna', 'Resuelve con calma', 'Comprueba tu respuesta'], reward: 5,
-      balance: Number(localStorage.getItem('icadem:demo:credits') || 340)
+      balance: Number(localStorage.getItem('icadem:demo:credits') || 200)
     };
     if (selected === 'quiz') {
       local.content = { questions: DEMO_QUIZ.map(({ answer, ...question }) => question), passingScore: 70, bankSize: 20 };
@@ -1012,7 +1029,7 @@
     if (window.__isDemoMode) {
       const demoStatus = readDemoRetoStatus();
       const today = mexicoDateKey();
-      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, catalogUsedTypes: demoStatus.catalogTypes, balance: Number(localStorage.getItem('icadem:demo:credits') || 340), reward: 5 };
+      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, catalogUsedTypes: demoStatus.catalogTypes, balance: Number(localStorage.getItem('icadem:demo:credits') || 200), reward: 5 };
     } else {
       try { data = await request('/api/retos/status'); }
       catch (error) {
@@ -1166,7 +1183,7 @@
   if (window.__currentUser) syncIdentity();
 
   window.ICADEMPlatform = {
-    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, mountRanking,
+    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, selectFreeCourse, mountRanking,
     loadLearningProgress,
     loadCreditWallet, openCreditWallet, applyDemoCreditMovement,
     saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
