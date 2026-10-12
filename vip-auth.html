@@ -730,7 +730,8 @@ import {
   browserLocalPersistence,
   onAuthStateChanged,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  reload
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   getFirestore,
@@ -785,7 +786,7 @@ function destinoSeguro(isAdmin) {
 
 async function syncCentralIdentity(user) {
   try {
-    const idToken = await user.getIdToken();
+    const idToken = await user.getIdToken(true);
     await fetch(`${IDENTITY_API}/api/identity/sync`, { method:'POST', headers:{ Authorization:`Bearer ${idToken}`, 'Content-Type':'application/json' }, body:'{}' });
   } catch (error) { console.warn('[identity sync]', error.message); }
 }
@@ -801,10 +802,18 @@ async function ensureMiembroDoc(user, displayName, origen) {
     const snap = await getDoc(ref);
     if (snap.exists()) {
       const data = snap.data();
+      const googleProvider = (user.providerData || []).find(provider => provider.providerId === 'google.com');
+      const currentPhotoURL = googleProvider?.photoURL || user.photoURL || '';
+      const update = {};
       if (data.activa !== true && displayName && !data.nombre) {
+        update.nombre = displayName;
+        update.displayName = displayName;
+      }
+      if (currentPhotoURL && currentPhotoURL !== data.photoURL) update.photoURL = currentPhotoURL;
+      if (Object.keys(update).length) {
         await setDoc(ref, {
-          nombre: displayName,
-          displayName: displayName,
+          ...update,
+          providerIds: (user.providerData || []).map(p=>p.providerId).filter(Boolean),
           lastUpdatedAt: serverTimestamp()
         }, { merge: true });
       }
@@ -840,6 +849,7 @@ async function ensureMiembroDoc(user, displayName, origen) {
 /* Si ya está logueado, redirige inmediatamente · pero PRIMERO asegura el doc */
 onAuthStateChanged(auth, async (user) => {
   if (user) {
+    try { await reload(user); user = auth.currentUser || user; } catch (error) { console.warn('[auth reload]', error.message); }
     await ensureMiembroDoc(user, user.displayName, 'login-web');
     await syncCentralIdentity(user);
     try { localStorage.setItem('icadem_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}

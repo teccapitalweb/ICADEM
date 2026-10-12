@@ -145,13 +145,17 @@
     state.providerIds = profile.providerIds || [];
     state.credits = payload.credits || state.credits || { balance: 0 };
     state.directoryProfile = directory;
-    if (payload.membership?.active && state.modo !== 'vip') state.modo = 'vip';
+    if (payload.membership && state.modo !== 'invitado') {
+      state.modo = payload.membership.active ? 'vip' : 'sin-membresia';
+      state.plan = payload.membership.active ? (payload.membership.plan || state.plan || 'mensual') : null;
+      state.membership = { ...(state.membership || {}), activo: payload.membership.active === true, plan: payload.membership.plan || null };
+    }
 
     const paintAvatar = element => {
       if (!element) return;
       element.classList.toggle('has-photo', Boolean(state.photoURL));
       element.innerHTML = state.photoURL
-        ? `<img src="${esc(state.photoURL)}" alt="Foto de ${esc(state.nombre)}" referrerpolicy="no-referrer">`
+        ? `<img src="${esc(window.__avatarSrc?.(state.photoURL) || state.photoURL)}" alt="Foto de ${esc(state.nombre)}" referrerpolicy="no-referrer">`
         : esc(state.iniciales);
     };
     document.querySelectorAll('.avatar__circle,.perfil-hero__avatar,.foro-composer__avatar').forEach(paintAvatar);
@@ -177,8 +181,7 @@
 
   async function loadDirectory(filters) {
     const params = new URLSearchParams({ pageSize: '100', ...(filters || {}) });
-    const data = await request(`/api/directory?${params}`);
-    return data.items || [];
+    return request(`/api/directory?${params}`);
   }
 
   async function loadRanking() {

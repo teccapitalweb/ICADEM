@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=14" defer></script>
+<script src="js/icadem-platform-v2.js?v=15" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -3841,7 +3841,7 @@ window.UserState = {
 <!-- ===== AUTH GUARD (Firebase) ===== -->
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updateProfile, GoogleAuthProvider, linkWithPopup } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updateProfile, GoogleAuthProvider, linkWithPopup, reauthenticateWithPopup, reload } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -3858,17 +3858,36 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 window.__auth = auth;
 window.__db = db;
-window.__linkGoogleAccount = async function(){
+window.__avatarSrc = function(url){
+  if (!url) return '';
+  try {
+    const parsed = new URL(url, window.location.origin);
+    if (/googleusercontent\.com$/i.test(parsed.hostname) || /googleusercontent\.com$/i.test(parsed.hostname.replace(/^lh\d+\./,''))) {
+      parsed.searchParams.set('icadem_avatar', String(Math.floor(Date.now() / 3600000)));
+    }
+    return parsed.toString();
+  } catch (_) { return url; }
+};
+window.__syncGoogleAccount = async function(){
   const user = auth.currentUser;
-  if (!user) throw new Error('Inicia sesión para vincular Google');
-  const result = await linkWithPopup(user, new GoogleAuthProvider());
+  if (!user) throw new Error('Inicia sesión para sincronizar Google');
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt:'select_account' });
+  const yaVinculado = (user.providerData || []).some(item => item.providerId === 'google.com');
+  const result = yaVinculado
+    ? await reauthenticateWithPopup(user, provider)
+    : await linkWithPopup(user, provider);
+  await reload(result.user);
+  await result.user.getIdToken(true);
   const googleProvider = (result.user.providerData || []).find(provider => provider.providerId === 'google.com');
   window.UserState.authPhotoURL = googleProvider?.photoURL || result.user.photoURL || window.UserState.authPhotoURL || '';
   window.UserState.photoURL = window.UserState.authPhotoURL || window.UserState.photoURL || '';
   window.UserState.providerIds = result.user.providerData.map(p=>p.providerId).filter(Boolean);
-  document.dispatchEvent(new CustomEvent('icadem:user-ready'));
+  await window.ICADEMPlatform?.syncIdentity?.(true);
+  window.__applyUserState?.();
   return result.user;
 };
+window.__linkGoogleAccount = window.__syncGoogleAccount;
 // Exponer funciones de Firestore para que el script no-module pueda usarlas
 window.__fs = { collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, serverTimestamp, Timestamp, db };
 setPersistence(auth, browserLocalPersistence);
@@ -3899,6 +3918,14 @@ if (window.__isDemoMode) {
   // ─── Auth normal · puede ser sin-membresia o vip ───
   onAuthStateChanged(auth, async (user) => {
     if (!user) { window.location.href = 'vip-auth.html'; return; }
+
+    try {
+      await reload(user);
+      user = auth.currentUser || user;
+      await user.getIdToken(true);
+    } catch (error) {
+      console.warn('No se pudo refrescar la identidad Google:', error.message);
+    }
 
     window.__currentUser = user;
     window.UserState.uid = user.uid;
@@ -9612,6 +9639,18 @@ const Sections = (function(){
   let _dirFiltroTier = 'todos';
   let _dirBusqueda = '';
   let _dirFotoTmp = undefined; // undefined=sin cambio, null=quitar, string=nueva
+  let _dirCanViewContacts = false;
+
+  function dirMostrarBloqueoContactos(){
+    if (typeof window.__showPaywallModal === 'function') {
+      window.__showPaywallModal({
+        title: 'Contactos exclusivos para miembros VIP',
+        sub: 'Tu tarjeta permanece en la comunidad, pero necesitas una membresía activa para ver o abrir WhatsApp, correo, LinkedIn y sitios web de otros profesionales.'
+      });
+    } else {
+      Toast.info('Solo VIP','Reactiva tu membresía para consultar los contactos del directorio.');
+    }
+  }
 
   function dirColorFor(uid){
     const colores = ['#5b92c8','#8fbce6','#8fbce6','#8fbce6','#F87171','#FBBF24','#8fbce6','#FB7185'];
@@ -9779,18 +9818,34 @@ const Sections = (function(){
   async function dirSuscribir(){
     if (window.ICADEMPlatform?.loadDirectory && !window.__isDemoMode) {
       try {
-        _dirCards = (await window.ICADEMPlatform.loadDirectory()).map(x=>({...x,id:x.id||x.uid}));
+        const response = await window.ICADEMPlatform.loadDirectory();
+        _dirCanViewContacts = response?.canViewContacts === true;
+        _dirCards = (response?.items || []).map(x=>({...x,id:x.id||x.uid}));
         dirPintar();
         return;
-      } catch (error) { console.warn('[directorio API]', error.message); }
+      } catch (error) {
+        console.warn('[directorio API]', error.message);
+        const g=document.getElementById('dir-results');
+        if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio de forma segura. Revisa tu conexión e intenta de nuevo.</div>';
+        return;
+      }
     }
     const fs = window.__fs;
     if (!fs || !fs.onSnapshot){ const g=document.getElementById('dir-results'); if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio.</div>'; return; }
+    _dirCanViewContacts = window.UserState?.modo === 'vip' || window.UserState?.isAdmin === true;
     if (_dirUnsub){ _dirUnsub(); _dirUnsub=null; }
     const q = fs.query(fs.collection(fs.db,'directorio'), fs.orderBy('updatedAt','desc'), fs.limit(300));
     _dirUnsub = fs.onSnapshot(q, (snap)=>{
       _dirCards = [];
-      snap.forEach(d=>{ const x=d.data(); x.id=d.id; if(x.visible!==false) _dirCards.push(x); });
+      snap.forEach(d=>{
+        const x={...d.data(),id:d.id};
+        if (!_dirCanViewContacts && x.id !== window.UserState?.uid) {
+          const hasPublicContact = Boolean(x.whatsapp || x.email || x.linkedin || x.web || x.contactoPublico?.whatsapp || x.contactoPublico?.email || x.contactoPublico?.linkedin || x.contactoPublico?.web);
+          x.whatsapp=''; x.email=''; x.linkedin=''; x.web=''; x.contactoPublico={};
+          x.contactLocked=hasPublicContact; x.hasPublicContact=hasPublicContact;
+        }
+        if(x.visible!==false) _dirCards.push(x);
+      });
       dirPintar();
     }, (err)=>{ console.error('dir snap',err); const g=document.getElementById('dir-results'); if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio.</div>'; });
   }
@@ -9829,6 +9884,7 @@ const Sections = (function(){
       if (c.linkedin) contactos.push(`<a class="dir-cta dir-cta--li" href="${escapeHtml(c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin)}" target="_blank" rel="noopener" title="Abrir LinkedIn" aria-label="Abrir LinkedIn de ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-linkedin"/></svg></a>`);
       if (c.web) contactos.push(`<a class="dir-cta" href="${escapeHtml(c.web.startsWith('http')?c.web:'https://'+c.web)}" target="_blank" rel="noopener" title="Abrir sitio web" aria-label="Abrir sitio web de ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-link"/></svg></a>`);
       const esMia = c.id===uid;
+      const contactoBloqueado = !esMia && c.contactLocked===true;
       return `
       <article class="dir-card ${esVip?'dir-card--vip':'dir-card--member'}${esMia?' dir-card--mia':''}" data-dircard="${escapeHtml(c.id)}">
         ${esMia?'<button class="dir-card__edit" type="button" data-dir-edit aria-label="Editar mi tarjeta"><svg class="ic"><use href="#i-edit"/></svg></button>':''}
@@ -9847,7 +9903,7 @@ const Sections = (function(){
           ${c.sector?`<span class="dir-card__sector">${escapeHtml(c.sector)}</span>`:''}
           ${c.bio?`<div class="dir-card__bio">${escapeHtml(c.bio)}</div>`:''}
           <div class="dir-card__profile-state ${c.perfilCompleto?'is-complete':''}">${c.perfilCompleto?'Perfil completo':'Perfil por completar'}</div>
-          ${contactos.length?`<div class="dir-card__ctas">${contactos.join('')}</div>`:'<div class="dir-card__sincontacto">Sin datos de contacto</div>'}
+          ${contactos.length?`<div class="dir-card__ctas">${contactos.join('')}</div>`:(contactoBloqueado?'<button type="button" class="dir-card__contact-lock" data-contact-lock><svg class="ic"><use href="#i-crown"/></svg>Contactos para VIP</button>':'<div class="dir-card__sincontacto">Sin datos de contacto</div>')}
         </div>
       </article>`;
     };
@@ -9870,6 +9926,7 @@ const Sections = (function(){
     grid.querySelectorAll('[data-dircard]').forEach(card=>{
       card.addEventListener('click', (e)=>{
         if (e.target.closest('.dir-cta')) return; // dejó pasar los enlaces de contacto
+        if (e.target.closest('[data-contact-lock]')) { e.stopPropagation(); dirMostrarBloqueoContactos(); return; }
         if (e.target.closest('[data-dir-edit]')) { dirEditarMiTarjeta(); return; }
         dirVerDetalle(card.dataset.dircard);
       });
@@ -9897,6 +9954,7 @@ const Sections = (function(){
            <span class="dir-det__row-tx"><span class="dir-det__row-lbl">${label}</span><span class="dir-det__row-val">${escapeHtml(val)}</span></span>
          </a>` : '';
     const waNum = (c.whatsapp||'').replace(/[^0-9]/g,'');
+    const contactoBloqueado = !esMia && c.contactLocked===true;
     const body = `
       <div class="dir-det">
         <div class="dir-det__head">
@@ -9916,7 +9974,7 @@ const Sections = (function(){
           ${row('i-linkedin','LinkedIn',c.linkedin, c.linkedin?(c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin):'', 'dir-det__row--li')}
           ${row('i-link','Sitio web',c.web, c.web?(c.web.startsWith('http')?c.web:'https://'+c.web):'')}
         </div>
-        ${(!c.whatsapp&&!c.email&&!c.linkedin&&!c.web)?'<div class="dir-det__sincontacto">Este miembro no agregó datos de contacto.</div>':''}
+        ${contactoBloqueado?'<button type="button" class="dir-det__contact-lock" data-contact-lock><svg class="ic"><use href="#i-crown"/></svg><span><strong>Contactos reservados para VIP</strong><small>Reactiva tu membresía para comunicarte con este profesional.</small></span></button>':((!c.whatsapp&&!c.email&&!c.linkedin&&!c.web)?'<div class="dir-det__sincontacto">Este miembro no agregó datos de contacto.</div>':'')}
       </div>
     `;
     const footer = document.createElement('div');
@@ -9931,6 +9989,7 @@ const Sections = (function(){
     if (mailRow) mailRow.addEventListener('click', ()=>{
       dirAbrirCorreo(mailRow.dataset.detmail);
     });
+    document.querySelector('.dir-det__contact-lock')?.addEventListener('click', dirMostrarBloqueoContactos);
   }
 
   async function dirEditarMiTarjeta(){
@@ -10502,7 +10561,7 @@ const Sections = (function(){
     const _nom = escapeHtml(S.nombre || S.displayName || 'Miembro');
     const _em  = escapeHtml(S.email || '—');
     const _ini = (S.iniciales || 'IN');
-    const _foto = S.photoURL ? `<img src="${escapeHtml(S.photoURL)}" alt="Foto de ${_nom}" referrerpolicy="no-referrer">` : _ini;
+    const _foto = S.photoURL ? `<img src="${escapeHtml(window.__avatarSrc?.(S.photoURL) || S.photoURL)}" alt="Foto de ${_nom}" referrerpolicy="no-referrer">` : _ini;
     const _googleLinked = (S.providerIds||[]).includes('google.com');
     container.innerHTML = `
       <div class="fade-up">
@@ -10525,7 +10584,7 @@ const Sections = (function(){
           </div>
           <button class="btn btn--ghost" id="btn-edit-profile" style="align-self:flex-start;"><svg class="ic"><use href="#i-tools"/></svg>Editar perfil</button>
           <button class="btn btn--ghost" id="btn-mi-tarjeta-dir" style="align-self:flex-start;"><svg class="ic"><use href="#i-users"/></svg>Mi tarjeta del directorio</button>
-          ${_googleLinked?'':`<button class="btn btn--ghost" id="btn-link-google" style="align-self:flex-start;"><svg class="ic"><use href="#i-link"/></svg>Vincular Google</button>`}
+          <button class="btn btn--ghost" id="btn-sync-google" style="align-self:flex-start;"><svg class="ic"><use href="#i-image"/></svg>${_googleLinked?'Actualizar foto de Google':'Vincular Google'}</button>
         </section>
 
         <div class="perfil-grid">
@@ -12091,14 +12150,14 @@ function initNav(){
       return;
     }
 
-    if(t.closest('#btn-link-google')){
-      const btn=t.closest('#btn-link-google'); btn.disabled=true;
+    if(t.closest('#btn-sync-google,#btn-link-google')){
+      const btn=t.closest('#btn-sync-google,#btn-link-google'); btn.disabled=true;
       try{
-        await window.__linkGoogleAccount();
-        Toast.success('Google vinculado','Tu foto y acceso quedaron asociados a la misma cuenta');
+        await window.__syncGoogleAccount();
+        Toast.success('Foto sincronizada','La identidad vigente de Google ya aparece en ICADEM');
         navigateToSection('perfil');
       }catch(error){
-        console.error(error); Toast.error('No se pudo vincular Google',error.message||'Intenta nuevamente'); btn.disabled=false;
+        console.error(error); Toast.error('No se pudo sincronizar Google',error.message||'Intenta nuevamente'); btn.disabled=false;
       }
       return;
     }
@@ -12180,7 +12239,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if (avatarCircle) {
       avatarCircle.classList.toggle('has-photo', !!S.photoURL);
       avatarCircle.innerHTML = S.photoURL
-        ? `<img src="${S.photoURL}" alt="Foto de ${(S.displayName||'Miembro').replace(/"/g,'&quot;')}" referrerpolicy="no-referrer">`
+        ? `<img src="${window.__avatarSrc?.(S.photoURL) || S.photoURL}" alt="Foto de ${(S.displayName||'Miembro').replace(/"/g,'&quot;')}" referrerpolicy="no-referrer">`
         : S.iniciales;
     }
     if (avatarName) {
@@ -12201,7 +12260,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const av=document.getElementById(`${scope}-account-avatar`);
       const nm=document.getElementById(`${scope}-account-name`);
       const pl=document.getElementById(`${scope}-account-plan`);
-      if(av){av.classList.toggle('has-photo',!!S.photoURL);av.innerHTML=S.photoURL?`<img src="${S.photoURL}" alt="" referrerpolicy="no-referrer">`:S.iniciales;}
+      if(av){av.classList.toggle('has-photo',!!S.photoURL);av.innerHTML=S.photoURL?`<img src="${window.__avatarSrc?.(S.photoURL) || S.photoURL}" alt="" referrerpolicy="no-referrer">`:S.iniciales;}
       if(nm) nm.textContent=accountName;
       if(pl) pl.textContent=accountPlan;
     });
@@ -20097,7 +20156,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-  <link rel="stylesheet" href="css/panel-minimal.css?v=22">
+  <link rel="stylesheet" href="css/panel-minimal.css?v=23">
 <script src="js/icadem-onboarding.js?v=2"></script>
 </body>
 </html>
