@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=7">
-<script src="js/icadem-platform-v2.js?v=7" defer></script>
+<script src="js/icadem-platform-v2.js?v=11" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -3803,7 +3803,7 @@ body.has-fomo .main{padding-top:18px}
 // UserState inicial (vacío) y detección de modo demo SIN depender de Firebase
 window.UserState = {
   modo: 'cargando',
-  uid: null, email: null, displayName: null, iniciales: 'IN', photoURL: '',
+  uid: null, email: null, displayName: null, iniciales: 'IN', photoURL: '', authPhotoURL: '',
   providerIds: [], credits: { balance:0, lifetimeEarned:0 }, directoryProfile: null,
   plan: null, isAdmin: false,
   membership: { activo:false, proximaRenovacion:null, historial:[], metodoPago:null },
@@ -3862,7 +3862,9 @@ window.__linkGoogleAccount = async function(){
   const user = auth.currentUser;
   if (!user) throw new Error('Inicia sesión para vincular Google');
   const result = await linkWithPopup(user, new GoogleAuthProvider());
-  window.UserState.photoURL = result.user.photoURL || window.UserState.photoURL || '';
+  const googleProvider = (result.user.providerData || []).find(provider => provider.providerId === 'google.com');
+  window.UserState.authPhotoURL = googleProvider?.photoURL || result.user.photoURL || window.UserState.authPhotoURL || '';
+  window.UserState.photoURL = window.UserState.authPhotoURL || window.UserState.photoURL || '';
   window.UserState.providerIds = result.user.providerData.map(p=>p.providerId).filter(Boolean);
   document.dispatchEvent(new CustomEvent('icadem:user-ready'));
   return result.user;
@@ -3903,7 +3905,9 @@ if (window.__isDemoMode) {
     window.UserState.email = (user.email||'').toLowerCase();
     window.UserState.displayName = user.displayName || user.email?.split('@')[0] || 'Miembro';
     window.UserState.iniciales = calcIniciales(user.displayName || user.email);
-    window.UserState.photoURL = user.photoURL || '';
+    const googleProvider = (user.providerData || []).find(provider => provider.providerId === 'google.com');
+    window.UserState.authPhotoURL = googleProvider?.photoURL || user.photoURL || '';
+    window.UserState.photoURL = window.UserState.authPhotoURL || user.photoURL || '';
     window.UserState.providerIds = (user.providerData || []).map(p=>p.providerId).filter(Boolean);
     window.UserState.isAdmin = ADMIN_EMAILS.includes(window.UserState.email);
 
@@ -6874,34 +6878,38 @@ const Sections = (function(){
   // etc.) que ya existe y sigue funcionando igual.
   // ═══════════════════════════════════════════════════════════════════
   const TOOLS_CATALOG = [
-    { id:'plantillas',   icon:'i-briefcase',    categoria:'Plantillas', titulo:'Plantillas de negocio', desc:'Formatos editables para trabajar.', tone:'petrol' },
-    { id:'calc-fiscal',  icon:'i-calculator',   categoria:'Fiscal', titulo:'Calculadora fiscal', desc:'ISR, IVA y retenciones 2026.', tone:'ochre' },
-    { id:'calc-nomina',  icon:'i-cash',         categoria:'Nómina', titulo:'Calculadora de nómina', desc:'Cálculo mensual completo.', tone:'moss' },
-    { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas', titulo:'Calculadora de crédito', desc:'Tasas, CAT y mensualidades.', tone:'ink' }
+    { id:'plantillas',   icon:'i-briefcase',    categoria:'Plantillas', titulo:'Plantillas de negocio', desc:'Formatos editables para documentar y presentar decisiones.', tone:'petrol' },
+    { id:'calc-fiscal',  icon:'i-calculator',   categoria:'Fiscal', titulo:'Calculadora fiscal', desc:'Proyecta ISR, IVA y retenciones con parámetros 2026.', tone:'ochre' },
+    { id:'calc-nomina',  icon:'i-cash',         categoria:'Nómina', titulo:'Calculadora de nómina', desc:'Calcula percepciones, deducciones y neto mensual.', tone:'moss' },
+    { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas', titulo:'Calculadora de crédito', desc:'Compara tasas, CAT, plazo y mensualidades.', tone:'ink' }
   ];
 
   function renderHerramientas(container){
     const esVip = typeof toolEsVIP === 'function' ? toolEsVIP() : false;
     const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    container.innerHTML = `<div class="fade-up tools-index">
-      <section class="tools-index-hero">
+    container.innerHTML = `<div class="fade-up tools-index tools-index--professional">
+      <section class="tools-index-hero tools-index-hero--professional">
         <div class="tools-index-hero__copy">
-          <span class="tools-index-hero__eyebrow">Recursos profesionales</span>
-          <h1>Herramientas</h1>
-          <p>Calcula, compara y trabaja con más claridad.</p>
+          <span class="tools-index-hero__eyebrow"><svg class="ic"><use href="#i-tools"/></svg> Herramientas ICADEM</span>
+          <h1>Apoyo profesional,<br>en un solo lugar.</h1>
+          <p>Calculadoras y formatos listos para acompañar decisiones fiscales, contables, de nómina y financieras.</p>
         </div>
-        <div class="tools-index-hero__meta" aria-label="${TOOLS_CATALOG.length} recursos disponibles"><strong>${TOOLS_CATALOG.length}</strong><span>recursos listos</span></div>
       </section>
+      <div class="tools-index-head">
+        <div><span class="tools-index-head__eyebrow">Recursos disponibles</span><h2>Elige una herramienta</h2></div>
+        <span class="tools-index-head__count">${TOOLS_CATALOG.length} herramientas</span>
+      </div>
       <div class="tools-index-grid">
-        ${TOOLS_CATALOG.map((t,i) => `
+        ${TOOLS_CATALOG.map(t => `
           <button type="button" class="tool-index-card tool-index-card--${htmlEsc(t.tone)}" data-tool-nav="${htmlEsc(t.id)}" ${!esVip ? 'data-locked="true"' : ''}>
-            <span class="tool-index-card__top"><span class="tool-index-card__icon"><svg class="ic"><use href="#${htmlEsc(t.icon)}"/></svg></span><span class="tool-index-card__number">0${i+1}</span></span>
+            <span class="tool-index-card__icon"><svg class="ic"><use href="#${htmlEsc(t.icon)}"/></svg></span>
             <span class="tool-index-card__body">
               <span class="tool-index-card__kicker">${htmlEsc(t.categoria)}</span>
               <strong>${htmlEsc(t.titulo)}</strong>
               <small>${htmlEsc(t.desc)}</small>
+              <em class="tool-index-card__access">${esVip?'Miembros VIP':'Vista previa'}</em>
             </span>
-            <span class="tool-index-card__foot"><span>${esVip?'Disponible':'Vista previa'}</span><svg class="ic tool-index-card__arrow"><use href="#i-arrow-right"/></svg></span>
+            <span class="tool-index-card__action" aria-hidden="true"><svg class="ic tool-index-card__arrow"><use href="#i-arrow-right"/></svg></span>
           </button>
         `).join('')}
       </div>
@@ -6920,52 +6928,165 @@ const Sections = (function(){
   // Diseño editorial inspirado en SYNOVA (biblioteca canjeable con créditos).
   // ═══════════════════════════════════════════════════════════════════
   const LIBROS_CATALOG = [
-    { id:'fiscal-2026',    categoria:'Fiscal',       titulo:'Prontuario fiscal 2026', autor:'Equipo ICADEM', costo:180, color:'#203a56', estado:'proximamente' },
-    { id:'nif-2026',       categoria:'Contabilidad', titulo:'NIF comentadas 2026',    autor:'Equipo ICADEM', costo:220, color:'#355a52', estado:'proximamente' },
-    { id:'cff-comentado',  categoria:'Legal',        titulo:'Código Fiscal comentado',autor:'Equipo ICADEM', costo:260, color:'#4b4b62', estado:'proximamente' },
-    { id:'nomina-practica',categoria:'Nómina',       titulo:'Nómina práctica 2026',   autor:'Equipo ICADEM', costo:180, color:'#80663d', estado:'proximamente' },
-    { id:'finanzas-dueno', categoria:'Finanzas',     titulo:'Finanzas para dueños',   autor:'Equipo ICADEM', costo:200, color:'#6e4548', estado:'proximamente' },
-    { id:'auditoria-int',  categoria:'Auditoría',    titulo:'Auditoría integral',     autor:'Equipo ICADEM', costo:240, color:'#3c6065', estado:'proximamente' }
+    { id:'fiscal-2026', categoria:'Fiscal', titulo:'Prontuario fiscal 2026', descripcion:'Fechas, obligaciones y criterios esenciales para tomar decisiones con orden.', costo:180, color:'#173f59', accent:'#5fb4be', icon:'i-calendar', capitulos:['Calendario de obligaciones','ISR e IVA en operación','Controles y evidencia'] },
+    { id:'nif-2026', categoria:'Contabilidad', titulo:'NIF comentadas 2026', descripcion:'Una guía visual para interpretar las normas y aplicarlas en casos cotidianos.', costo:220, color:'#315b55', accent:'#9bc4a3', icon:'i-book', capitulos:['Marco conceptual','Estados financieros','Casos de reconocimiento'] },
+    { id:'cff-comentado', categoria:'Legal', titulo:'Código Fiscal comentado', descripcion:'Artículos clave explicados desde su impacto práctico y documental.', costo:260, color:'#44455d', accent:'#aa9fc6', icon:'i-shield-check', capitulos:['Facultades y obligaciones','Comprobantes y conservación','Medios de defensa'] },
+    { id:'nomina-practica', categoria:'Nómina', titulo:'Nómina práctica 2026', descripcion:'Del salario integrado al recibo: cálculos, incidencias y verificaciones.', costo:180, color:'#725736', accent:'#d7b879', icon:'i-cash', capitulos:['Percepciones y deducciones','Seguridad social','Finiquitos y validación'] },
+    { id:'finanzas-dueno', categoria:'Finanzas', titulo:'Finanzas para dueños', descripcion:'Indicadores sencillos para leer la operación y proteger el flujo de efectivo.', costo:200, color:'#69434a', accent:'#d69aa4', icon:'i-credit-card', capitulos:['Flujo y liquidez','Costos y margen','Decisiones de financiamiento'] },
+    { id:'auditoria-int', categoria:'Auditoría', titulo:'Auditoría integral', descripcion:'Mapas de riesgo, evidencia y seguimiento para revisiones profesionales.', costo:240, color:'#315b63', accent:'#8ebbc0', icon:'i-check', capitulos:['Planeación por riesgos','Papeles de trabajo','Hallazgos y seguimiento'] }
   ];
+  let __libraryUiState = null;
+  let __libraryUiOwner = null;
+
+  function _libraryDemoKey(){
+    const cuenta = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `icadem:demo:library:${cuenta}`;
+  }
+
+  function _libraryDemoState(){
+    try {
+      const saved = JSON.parse(localStorage.getItem(_libraryDemoKey()) || 'null');
+      const sharedRaw = localStorage.getItem('icadem:demo:credits');
+      const sharedBalance = sharedRaw === null ? Number(saved?.balance ?? 340) : Number(sharedRaw);
+      if (sharedRaw === null) localStorage.setItem('icadem:demo:credits', String(sharedBalance));
+      if (saved && Array.isArray(saved.redeemed)) return { balance:Number.isFinite(sharedBalance)?sharedBalance:340, redeemed:new Set(saved.redeemed) };
+      return { balance:Number.isFinite(sharedBalance)?sharedBalance:340, redeemed:new Set() };
+    } catch(error){}
+    return { balance:340, redeemed:new Set() };
+  }
+
+  function _openLibraryBook(book){
+    const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    Modal.open({
+      id:`library-read-${book.id}`,
+      title:book.titulo,
+      subtitle:`Referencia ICADEM · ${book.categoria}`,
+      icon:book.icon,
+      size:'lg',
+      body:`<div class="library-reader">
+        <div class="library-reader__cover" style="--book-color:${book.color};--book-accent:${book.accent}"><svg class="ic"><use href="#${book.icon}"/></svg><span>ICADEM</span><strong>${htmlEsc(book.titulo)}</strong></div>
+        <div class="library-reader__copy"><span class="library-reader__eyebrow">Guía de consulta</span><h3>Tu ruta de lectura</h3><p>${htmlEsc(book.descripcion)}</p><ol>${book.capitulos.map((item,index)=>`<li><b>0${index+1}</b><span>${htmlEsc(item)}</span></li>`).join('')}</ol><small>Esta referencia permanece vinculada a tu cuenta y seguirá recibiendo actualizaciones editoriales.</small></div>
+      </div>`,
+      footer:`<button class="btn btn--accent" onclick="Modal.close('library-read-${book.id}')">Continuar en mi biblioteca</button>`
+    });
+  }
 
   function renderLibros(container){
-    const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    container.innerHTML = `<div class="fade-up library-page">
-      <section class="library-hero">
-        <div class="library-hero__copy">
-          <span class="library-hero__eyebrow">Biblioteca ICADEM</span>
-          <h1>Consulta cuando lo necesites.</h1>
-          <p>Referencias técnicas para acompañar tu práctica profesional.</p>
+    const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const demo = Boolean(window.__isDemoMode);
+    const uid = String(window.UserState?.uid || '');
+    const ownerKey = demo ? _libraryDemoKey() : (uid ? `uid:${uid}` : '');
+    if (!ownerKey) {
+      container.innerHTML = `<div class="fade-up library-page library-page--catalog"><section class="library-hero library-hero--catalog"><div class="library-hero__copy"><span class="library-hero__eyebrow"><svg class="ic"><use href="#i-book"/></svg> Biblioteca ICADEM</span><h1>Preparando tu<br>biblioteca.</h1><p>Estamos sincronizando tu identidad y tus referencias.</p></div></section></div>`;
+      window.setTimeout(() => { if (container.isConnected && !window.__isDemoMode) renderLibros(container); }, 300);
+      return;
+    }
+    if (!__libraryUiState || __libraryUiOwner !== ownerKey) {
+      const local = demo ? _libraryDemoState() : null;
+      __libraryUiOwner = ownerKey;
+      __libraryUiState = {
+        balance:local ? local.balance : Number(window.UserState?.credits?.balance || 0),
+        redeemed:local ? local.redeemed : new Set(),
+        busy:null,
+        loaded:demo
+      };
+    }
+    if (demo) {
+      const sharedBalance = Number(localStorage.getItem('icadem:demo:credits'));
+      if (Number.isFinite(sharedBalance)) __libraryUiState.balance = sharedBalance;
+    }
+
+    const paint = () => {
+      const state = __libraryUiState;
+      container.innerHTML = `<div class="fade-up library-page library-page--catalog">
+        <section class="library-hero library-hero--catalog">
+          <div class="library-hero__copy">
+            <span class="library-hero__eyebrow"><svg class="ic"><use href="#i-book"/></svg> Biblioteca ICADEM</span>
+            <h1>Tu biblioteca<br>profesional.</h1>
+            <p>Canjea créditos por referencias originales que conservarás en tu cuenta.</p>
+          </div>
+          <aside class="library-balance" aria-label="Saldo de créditos"><small>Saldo</small><strong><i>C</i><b data-credit-balance>${state.balance}</b></strong><span>Créditos ICADEM</span></aside>
+        </section>
+        <div class="library-head">
+          <div><span class="library-head__eyebrow">Catálogo canjeable</span><h2>Elige tu próxima referencia</h2></div>
+          <span class="library-head__count">${LIBROS_CATALOG.length} disponibles</span>
         </div>
-      </section>
-      <div class="library-head">
-        <div><span class="library-head__eyebrow">Catálogo canjeable</span><h2>Elige tu próxima referencia</h2></div>
-        <span class="library-head__count">${LIBROS_CATALOG.length} próximamente</span>
-      </div>
-      <div class="library-grid">
-        ${LIBROS_CATALOG.map(b => `
-          <article class="library-card" data-book-id="${htmlEsc(b.id)}">
-            <div class="library-card__cover" style="--book-color:${b.color}">
-              <span class="library-card__chip">PRÓXIMAMENTE</span>
-              <div class="library-card__cover-inner">
-                <span class="library-card__kicker">ICADEM · ${htmlEsc(b.categoria)}</span>
-                <h3>${htmlEsc(b.titulo)}</h3>
-                <span class="library-card__year">2026</span>
+        <div class="library-grid">
+          ${LIBROS_CATALOG.map((book,index) => {
+            const owned = state.redeemed.has(book.id);
+            const busy = state.busy === book.id;
+            return `<article class="library-card${owned?' is-owned':''}" data-book-id="${htmlEsc(book.id)}">
+              <div class="library-card__cover" style="--book-color:${book.color};--book-accent:${book.accent}">
+                <span class="library-card__chip">${owned?'EN TU BIBLIOTECA':'CANJEABLE'}</span>
+                <div class="library-card__cover-inner"><span class="library-card__brand">ICADEM</span><svg class="ic"><use href="#${book.icon}"/></svg><span class="library-card__kicker">${htmlEsc(book.categoria)}</span><h3>${htmlEsc(book.titulo)}</h3><span class="library-card__year">2026</span></div>
               </div>
-            </div>
-            <div class="library-card__body">
-              <small>${htmlEsc(b.categoria)}</small>
-              <strong>${htmlEsc(b.titulo)}</strong>
-              <span class="library-card__author">${htmlEsc(b.autor)}</span>
-              <div class="library-card__foot">
-                <span class="library-card__cost"><svg class="ic"><use href="#i-trophy"/></svg>${b.costo} créditos</span>
-                <span class="library-card__state">Pronto</span>
+              <div class="library-card__body">
+                <small>${htmlEsc(book.categoria)}</small><strong>${htmlEsc(book.titulo)}</strong><p>${htmlEsc(book.descripcion)}</p>
+                <div class="library-card__foot">
+                  <span class="library-card__cost">${owned?`<svg class="ic"><use href="#i-check"/></svg> Canjeado`:`<i>C</i> ${book.costo} créditos`}</span>
+                  <button type="button" class="library-card__action" data-library-action="${htmlEsc(book.id)}" aria-label="${owned?'Abrir':'Canjear'} ${htmlEsc(book.titulo)}" ${busy?'disabled':''}><svg class="ic"><use href="#${busy?'i-clock':'i-arrow-right'}"/></svg></button>
+                </div>
               </div>
-            </div>
-          </article>
-        `).join('')}
-      </div>
-    </div>`;
+            </article>`;
+          }).join('')}
+        </div>
+        <p class="library-note"><svg class="ic"><use href="#i-shield-check"/></svg> Tus canjes se guardan en tu cuenta. Cada operación se valida una sola vez.</p>
+      </div>`;
+
+      container.querySelectorAll('[data-library-action]').forEach(button => button.addEventListener('click', () => {
+        const book = LIBROS_CATALOG.find(item => item.id === button.dataset.libraryAction);
+        if (!book) return;
+        if (state.redeemed.has(book.id)) { _openLibraryBook(book); return; }
+        if (!demo && window.UserState?.modo !== 'vip' && !window.UserState?.isAdmin) {
+          Toast.info('Biblioteca VIP','Activa tu membresía para canjear referencias.');
+          return;
+        }
+        if (state.balance < book.costo) {
+          Toast.info('Créditos insuficientes',`Necesitas ${book.costo - state.balance} créditos más para esta referencia.`);
+          return;
+        }
+        const modalId = `library-redeem-${book.id}`;
+        Modal.open({ id:modalId, title:'Confirmar canje', subtitle:book.titulo, icon:'i-book', size:'sm', body:`<div class="library-confirm"><span>Saldo actual</span><strong>${state.balance} créditos</strong><i></i><span>Costo de la referencia</span><strong>− ${book.costo} créditos</strong><em>Tu nuevo saldo será de <b>${state.balance-book.costo}</b> créditos.</em></div>`, footer:`<button class="btn btn--ghost" onclick="Modal.close('${modalId}')">Cancelar</button><button class="btn btn--accent" id="library-confirm-${book.id}">Canjear referencia</button>` });
+        document.getElementById(`library-confirm-${book.id}`)?.addEventListener('click', async () => {
+          Modal.close(modalId); state.busy = book.id; paint();
+          try {
+            if (demo) {
+              state.balance -= book.costo; state.redeemed.add(book.id);
+              localStorage.setItem(_libraryDemoKey(), JSON.stringify({ balance:state.balance, redeemed:Array.from(state.redeemed) }));
+              localStorage.setItem('icadem:demo:credits', String(state.balance));
+              if (window.UserState?.credits) window.UserState.credits.balance = state.balance;
+            } else {
+              const data = await window.ICADEMPlatform.redeemBook(book.id);
+              state.balance = Number(data.balance ?? data.credits?.balance ?? state.balance-book.costo);
+              state.redeemed.add(book.id);
+            }
+            Toast.success('Referencia añadida','Ya forma parte de tu biblioteca ICADEM.');
+            state.busy = null; paint(); _openLibraryBook(book);
+          } catch(error) {
+            state.busy = null; paint();
+            Toast.error('No se pudo completar el canje',error.message || 'Intenta nuevamente.');
+          }
+        });
+      }));
+    };
+
+    paint();
+    if (!demo && !__libraryUiState.loaded && window.ICADEMPlatform?.loadLibrary) {
+      const stateForRequest = __libraryUiState;
+      const ownerForRequest = __libraryUiOwner;
+      stateForRequest.loaded = 'loading';
+      window.ICADEMPlatform.loadLibrary().then(data => {
+        if (__libraryUiOwner !== ownerForRequest || __libraryUiState !== stateForRequest) return;
+        const ids = data.redeemedBookIds || data.redeemed || data.books?.map(item => typeof item === 'string' ? item : item.id) || [];
+        stateForRequest.redeemed = new Set(ids);
+        stateForRequest.balance = Number(data.balance ?? data.credits?.balance ?? stateForRequest.balance);
+        stateForRequest.loaded = true;
+        paint();
+      }).catch(error => {
+        if (__libraryUiOwner === ownerForRequest && __libraryUiState === stateForRequest) stateForRequest.loaded = false;
+        console.error('No se pudo cargar la biblioteca', error);
+      });
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════
@@ -7319,61 +7440,31 @@ const Sections = (function(){
           <div><span class="retos-head__eyebrow">Entrenamiento aplicado</span><h2>Elige una experiencia</h2></div>
           <small class="retos-head__count">5 experiencias</small>
         </div>
-        <div class="retos-tiles retos-tiles--five">
-          <article class="retos-tile retos-tile--casos" data-platform-game="classify" data-reto-key="applied" data-game-title="Decide con criterio" tabindex="0">
-            <div class="retos-tile__art" aria-hidden="true"><span>01</span><svg class="ic"><use href="#i-briefcase"/></svg><div class="retos-tile__art-dec"></div></div>
-            <div class="retos-tile__body">
-              <span class="retos-tile__badge"><svg class="ic"><use href="#i-briefcase"/></svg></span>
-              <span class="retos-tile__kicker">Desafío aplicado</span>
-              <h3>Decide con criterio</h3>
-              <p>Fiscal, nómina, contabilidad y RH.</p>
-              <div class="retos-tile__meta" data-card-state><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div>
-              <button type="button" class="retos-tile__cta">Abrir expedientes<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-            </div>
+        <div class="retos-tiles retos-tiles--five retos-showcase">
+          <article class="retos-tile retos-tile--daily retos-daily-card" data-platform-game="wordsearch" data-reto-key="daily" data-game-title="Reto diario" tabindex="0">
+            <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-calendar"/></svg><span>HOY</span></div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Reto diario</span><h3>12 preguntas clave</h3><p>Una sesión rápida con retroalimentación inmediata · gana 5 créditos.</p><div class="retos-tile__meta" data-card-state><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div></div>
+            <button type="button" class="retos-tile__cta" aria-label="Jugar reto diario"><span>Jugar hoy</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--flash" data-platform-game="memory" data-reto-key="memory" data-game-title="Memoria técnica" tabindex="0">
-            <div class="retos-tile__art" aria-hidden="true"><span>02</span><svg class="ic"><use href="#i-book"/></svg><div class="retos-tile__art-dec"></div></div>
-            <div class="retos-tile__body">
-              <span class="retos-tile__badge"><svg class="ic"><use href="#i-book"/></svg></span>
-              <span class="retos-tile__kicker">Memoria</span>
-              <h3>Conecta conceptos</h3>
-              <p>Encuentra cada término y su aplicación.</p>
-              <div class="retos-tile__meta" data-card-state><span>3 pares</span><span>Toque o teclado</span></div>
-              <button type="button" class="retos-tile__cta">Entrenar memoria<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-            </div>
+          <article class="retos-tile retos-tile--pulse retos-experience-card" data-platform-game="pulse" data-reto-key="pulse" data-game-title="Pulso ICADEM" tabindex="0">
+            <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-bolt"/></svg><span>60 s</span></div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Agilidad</span><h3>Pulso ICADEM</h3><p>Una pista. Un concepto. Sin rodeos.</p><span class="retos-tile__state" data-card-state><i></i>Disponible hoy</span></div>
+            <button type="button" class="retos-tile__cta" aria-label="Tomar el pulso"><span>Tomar el pulso</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--pulse" data-platform-game="pulse" data-reto-key="pulse" data-game-title="Pulso ICADEM" tabindex="0">
-            <div class="retos-tile__art" aria-hidden="true"><span>03</span><svg class="ic"><use href="#i-bolt"/></svg><div class="retos-tile__art-dec"></div></div>
-            <div class="retos-tile__body">
-              <span class="retos-tile__badge"><svg class="ic"><use href="#i-bolt"/></svg></span>
-              <span class="retos-tile__kicker">Pulso</span>
-              <h3>Responde en 60 segundos</h3>
-              <p>Una pista. Un concepto. Sin rodeos.</p>
-              <span class="retos-tile__state" data-card-state><i></i>Disponible hoy</span>
-              <button type="button" class="retos-tile__cta">Tomar el pulso<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-            </div>
+          <article class="retos-tile retos-tile--casos retos-experience-card" data-platform-game="classify" data-reto-key="applied" data-game-title="Decide con criterio" tabindex="0">
+            <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-briefcase"/></svg><span>Criterio</span></div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Desafío aplicado</span><h3>Decide con criterio</h3><p>Fiscal, nómina, contabilidad y RH.</p><div class="retos-tile__meta" data-card-state><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div></div>
+            <button type="button" class="retos-tile__cta" aria-label="Abrir expedientes"><span>Abrir expedientes</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--games" data-platform-game="catalog" data-reto-key="catalog" tabindex="0">
-            <div class="retos-tile__art" aria-hidden="true"><span>04</span><svg class="ic"><use href="#i-tools"/></svg><div class="retos-tile__art-dec"></div></div>
-            <div class="retos-tile__body">
-              <span class="retos-tile__badge"><svg class="ic"><use href="#i-tools"/></svg></span>
-              <span class="retos-tile__kicker">Juegos ICADEM</span>
-              <h3>Entrena a tu manera</h3>
-              <p>Seis dinámicas breves para practicar.</p>
-              <div class="retos-tile__meta" data-card-state><span>6 juegos</span><span>5 créditos por juego</span></div>
-              <button type="button" class="retos-tile__cta">Ver juegos<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-            </div>
+          <article class="retos-tile retos-tile--flash retos-experience-card" data-platform-game="memory" data-reto-key="memory" data-game-title="Memoria técnica" tabindex="0">
+            <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-book"/></svg><span>Memoria</span></div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Repaso</span><h3>Memoria técnica</h3><p>Conecta cada término con su aplicación.</p><div class="retos-tile__meta" data-card-state><span>3 pares</span><span>Toque o teclado</span></div></div>
+            <button type="button" class="retos-tile__cta" aria-label="Entrenar memoria"><span>Entrenar memoria</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--daily" data-platform-game="wordsearch" data-reto-key="daily" data-game-title="Reto diario" tabindex="0">
-            <div class="retos-tile__art" aria-hidden="true"><span>05</span><svg class="ic"><use href="#i-calendar"/></svg><div class="retos-tile__art-dec"></div></div>
-            <div class="retos-tile__body">
-              <span class="retos-tile__badge"><svg class="ic"><use href="#i-calendar"/></svg></span>
-              <span class="retos-tile__kicker">Reto diario</span>
-              <h3>12 preguntas clave</h3>
-              <p>Retroalimentación inmediata y nuevo intento.</p>
-              <div class="retos-tile__meta" data-card-state><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div>
-              <button type="button" class="retos-tile__cta">Jugar hoy<svg class="ic"><use href="#i-arrow-right"/></svg></button>
-            </div>
+          <article class="retos-tile retos-tile--games retos-experience-card" data-platform-game="catalog" data-reto-key="catalog" tabindex="0">
+            <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-tools"/></svg><span>6 juegos</span></div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Arcade</span><h3>Juegos ICADEM</h3><p>Seis dinámicas breves para practicar.</p><div class="retos-tile__meta" data-card-state><span>6 juegos</span><span>5 créditos por juego</span></div></div>
+            <button type="button" class="retos-tile__cta" aria-label="Ver juegos"><span>Ver juegos</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
         </div>
 
@@ -19943,7 +20034,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-<link rel="stylesheet" href="css/panel-minimal.css?v=12">
+  <link rel="stylesheet" href="css/panel-minimal.css?v=16">
 <script src="js/icadem-onboarding.js?v=2"></script>
 </body>
 </html>

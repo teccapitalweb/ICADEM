@@ -85,7 +85,8 @@
     const state = window.UserState;
     state.nombre = profile.displayName || state.nombre;
     state.displayName = state.nombre;
-    state.photoURL = profile.photoURL || directory.foto || '';
+    state.authPhotoURL = profile.authPhotoURL || state.authPhotoURL || '';
+    state.photoURL = state.authPhotoURL || profile.photoURL || directory.foto || state.photoURL || '';
     state.iniciales = directory.iniciales || initials(state.nombre);
     state.providerIds = profile.providerIds || [];
     state.credits = payload.credits || state.credits || { balance: 0 };
@@ -131,6 +132,25 @@
     return data;
   }
 
+  async function loadLibrary() {
+    return request('/api/library');
+  }
+
+  async function redeemBook(bookId) {
+    const data = await request('/api/library/redeem', {
+      method: 'POST',
+      body: { bookId: String(bookId || '') }
+    });
+    const nextBalance = Number(data.balance ?? data.newBalance);
+    if (window.UserState?.credits && Number.isFinite(nextBalance)) {
+      window.UserState.credits.balance = nextBalance;
+      document.querySelectorAll('[data-credit-balance]').forEach(element => {
+        element.textContent = String(nextBalance);
+      });
+    }
+    return data;
+  }
+
   async function saveProfile(profile) {
     const data = await request('/api/profile', { method: 'PATCH', body: profile });
     applyIdentity(data);
@@ -149,7 +169,7 @@
       ok: true, local: true, challengeId: `practice-${Date.now()}`, type: selected,
       title: title || GAME_LABELS[selected], objective: 'Resuelve la actividad y comprueba tu criterio.',
       instructions: ['Observa la consigna', 'Resuelve con calma', 'Comprueba tu respuesta'], reward: 5,
-      balance: Number(localStorage.getItem('icadem:demo:credits') || 0)
+      balance: Number(localStorage.getItem('icadem:demo:credits') || 340)
     };
     if (selected === 'crossword' || selected === 'guess') {
       local.content = { clue: 'Capacidad de decidir con fundamento', length: 8, maxAttempts: 3 };
@@ -180,6 +200,38 @@
       local.solution = { words: words.slice().sort() };
     }
     return local;
+  }
+
+  function demoRetoStatusKey() {
+    const account = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `icadem:demo:reto-status:${account}`;
+  }
+
+  function readDemoRetoStatus() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(demoRetoStatusKey()) || '{}');
+      return {
+        used: Array.isArray(raw.used) ? raw.used : [],
+        dailyDate: String(raw.dailyDate || ''),
+        catalogTypes: Array.isArray(raw.catalogTypes) ? raw.catalogTypes : []
+      };
+    } catch (_) {
+      return { used: [], dailyDate: '', catalogTypes: [] };
+    }
+  }
+
+  function recordDemoReto(challenge) {
+    if (challenge?.scope !== 'reto') return;
+    const status = readDemoRetoStatus();
+    const experienceId = String(challenge.experienceId || challenge.type || '');
+    if (experienceId === 'catalog') {
+      if (!status.catalogTypes.includes(challenge.type)) status.catalogTypes.push(challenge.type);
+    } else if (experienceId === 'daily') {
+      status.dailyDate = new Date().toISOString().slice(0, 10);
+    } else if (experienceId && !status.used.includes(experienceId)) {
+      status.used.push(experienceId);
+    }
+    localStorage.setItem(demoRetoStatusKey(), JSON.stringify(status));
   }
 
   function modalShell(challenge, onClose) {
@@ -453,6 +505,7 @@
             const reward = Number(challenge.reward) || 5;
             const newBalance = previousBalance + reward;
             localStorage.setItem('icadem:demo:credits', String(newBalance));
+            recordDemoReto(challenge);
             result = { ok: true, reward, previousBalance, newBalance, nextLessonNumber: null, practice: true };
           } else result = await request(challenge.completePath || '/api/learning/complete', { method: 'POST', body: { challengeId: challenge.challengeId, proof } });
           successView(challenge, shell, result, options?.onComplete, resultData => { options?.onContinue?.(resultData); resolve(resultData); });
@@ -554,7 +607,9 @@
     if (!root) return;
     let data;
     if (window.__isDemoMode) {
-      data = { isAdmin: false, used: [], dailyUsedToday: false, catalogUsedCount: 0, balance: Number(localStorage.getItem('icadem:demo:credits') || 0), reward: 5 };
+      const demoStatus = readDemoRetoStatus();
+      const today = new Date().toISOString().slice(0, 10);
+      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, balance: Number(localStorage.getItem('icadem:demo:credits') || 340), reward: 5 };
     } else {
       try { data = await request('/api/retos/status'); }
       catch (error) {
@@ -575,7 +630,10 @@
         state.innerHTML = `<span>6 juegos</span><span>${Number(data.catalogUsedCount)}/6 completados</span>`;
       }
       const cta = card.querySelector('.retos-tile__cta');
-      if (cta && completed) cta.innerHTML = 'Ya completado <span aria-hidden="true">✓</span>';
+      if (cta && completed) {
+        cta.setAttribute('aria-label', 'Ya completado');
+        cta.innerHTML = '<span>Ya completado</span><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>';
+      }
     });
     const access = root.querySelector('[data-retos-access]');
     if (access) access.textContent = data.isAdmin ? 'Administrador · intentos ilimitados' : 'Un intento por reto';
@@ -610,8 +668,8 @@
       root.innerHTML = `<section class="ranking-card ranking-card--club">
         <header class="ranking-head">
           <span class="game-kicker">Avance verificado</span>
-          <h2>Clasificación ICADEM</h2>
-          <p>Cada reto y juego completado suma 5 XP.</p>
+          <h2>Clasificación del club</h2>
+          <p>Todo tu avance desde que entraste a ICADEM. Gana XP en Retos: cada reto o juego completado suma <strong>+5</strong>.</p>
         </header>
         ${podium.length ? `<div class="ranking-podium" aria-label="Los tres primeros lugares">${podium.map(item => `<article class="ranking-podium__card ranking-podium__card--${item.position}${item.uid === current ? ' is-me' : ''}">
           <b class="ranking-podium__position">#${item.position}</b>
@@ -694,7 +752,7 @@
   if (window.__currentUser) syncIdentity();
 
   window.ICADEMPlatform = {
-    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, mountRanking,
+    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, mountRanking,
     saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
   };
 })();
