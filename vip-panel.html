@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/platform-v2.css?v=7">
-<script src="js/icadem-platform-v2.js?v=11" defer></script>
+<link rel="stylesheet" href="css/platform-v2.css?v=9">
+<script src="js/icadem-platform-v2.js?v=13" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -7005,7 +7005,12 @@ const Sections = (function(){
             <h1>Tu biblioteca<br>profesional.</h1>
             <p>Canjea créditos por referencias originales que conservarás en tu cuenta.</p>
           </div>
-          <aside class="library-balance" aria-label="Saldo de créditos"><small>Saldo</small><strong><i>C</i><b data-credit-balance>${state.balance}</b></strong><span>Créditos ICADEM</span></aside>
+          <aside class="library-balance" aria-label="Cartera de créditos">
+            <small>Mi cartera</small>
+            <strong><i>C</i><b data-credit-balance>${state.balance}</b></strong>
+            <span>Créditos ICADEM</span>
+            <button type="button" class="library-balance__action" data-credit-wallet-open>Ver movimientos <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+          </aside>
         </section>
         <div class="library-head">
           <div><span class="library-head__eyebrow">Catálogo canjeable</span><h2>Elige tu próxima referencia</h2></div>
@@ -7051,10 +7056,11 @@ const Sections = (function(){
           Modal.close(modalId); state.busy = book.id; paint();
           try {
             if (demo) {
-              state.balance -= book.costo; state.redeemed.add(book.id);
+              const movement = window.ICADEMPlatform?.applyDemoCreditMovement
+                ? window.ICADEMPlatform.applyDemoCreditMovement(-book.costo, { id:`library:${book.id}`, type:'library-redemption', label:'Referencia canjeada', detail:book.titulo })
+                : { newBalance:state.balance-book.costo };
+              state.balance = Number(movement.newBalance ?? state.balance-book.costo); state.redeemed.add(book.id);
               localStorage.setItem(_libraryDemoKey(), JSON.stringify({ balance:state.balance, redeemed:Array.from(state.redeemed) }));
-              localStorage.setItem('icadem:demo:credits', String(state.balance));
-              if (window.UserState?.credits) window.UserState.credits.balance = state.balance;
             } else {
               const data = await window.ICADEMPlatform.redeemBook(book.id);
               state.balance = Number(data.balance ?? data.credits?.balance ?? state.balance-book.costo);
@@ -7107,14 +7113,10 @@ const Sections = (function(){
   // ═══════════════════════════════════════════════════════════════════
   // RETOS ICADEM · catálogo + helpers + hub + play views
   //
-  // Fase 1 (este PR): solo UI/UX. El progreso vive en localStorage.
-  // Al pasar un reto por primera vez: +25 XP + racha + mensaje de
-  // créditos "próximamente" (listo para cuando conectemos el backend).
-  //
-  // Lógica VIP vs Free:
-  //  · VIP: juega ilimitado, acumula XP y (en Fase 2) créditos.
-  //  · Free: puede jugar UNA sola vez cualquier reto; después aparece
-  //    paywall "Hazte VIP" al intentar un segundo reto.
+  // Estas vistas históricas conservan progreso académico local (XP, racha y
+  // misión semanal). Los créditos reales se otorgan exclusivamente mediante
+  // /api/retos para evitar saldos duplicados o manipulables en el navegador.
+  // Los usuarios no administradores completan cada experiencia una sola vez.
   //
   // Dominio: fiscal, contable, nómina, legal, RH, finanzas.
   // ═══════════════════════════════════════════════════════════════════
@@ -7288,19 +7290,31 @@ const Sections = (function(){
     return false;
   }
 
-  function puedeJugarReto(){
-    // VIP: ilimitado. Free: solo si no ha jugado ningún reto todavía.
-    if (_esRetosVip()) return { permitido: true };
+  function _esRetosAdmin(){
+    const S = window.UserState;
+    if (S?.isAdmin === true || S?.plan === 'admin') return true;
+    try { return typeof esAdminReal === 'function' && esAdminReal(); } catch(e) { return false; }
+  }
+
+  function puedeJugarReto(destino){
+    if (_esRetosAdmin()) return { permitido: true };
     const st = getRetosState();
-    if (st.retosJugados < 1) return { permitido: true };
-    return { permitido: false, razon: 'free-ya-jugo' };
+    if (destino === 'quiz-intro' && Number(st.quizCompletados || 0) >= 1) return { permitido: false, razon: 'reto-ya-completado' };
+    if (destino === 'casos' && Object.keys(st.casosCompletados || {}).length >= ICADEM_RETOS_CASOS.length) return { permitido: false, razon: 'retos-ya-completados' };
+    if (destino === 'flashcards' && (st.flashcardsDominadas || []).length >= ICADEM_RETOS_FLASHCARDS.length) return { permitido: false, razon: 'retos-ya-completados' };
+    return { permitido: true };
   }
 
   function marcarRetoCompletado(tipo, idOrNum, puntos){
     const st = getRetosState();
-    const esVip = _esRetosVip();
-    // XP siempre se acumula (incentivo visible); créditos solo VIP
-    st.xp += puntos || 25;
+    const esAdmin = _esRetosAdmin();
+    const casoYaCompletado = tipo === 'caso' && Boolean(st.casosCompletados?.[idOrNum]);
+    const flashYaDominada = tipo === 'flashcard-dominada' && (st.flashcardsDominadas || []).includes(idOrNum);
+    const quizYaCompletado = tipo === 'quiz' && Number(st.quizCompletados || 0) > 0;
+    const yaCompletado = casoYaCompletado || flashYaDominada || quizYaCompletado;
+    if (yaCompletado && !esAdmin) return st;
+    const xpGanada = tipo === 'flashcard-dominada' ? 5 : tipo === 'quiz' ? (Number(puntos) >= 70 ? 25 : 5) : 25;
+    st.xp += xpGanada;
     // Racha diaria (basada en año-mes-día construido manualmente ya que Date.now() está disponible en runtime)
     const hoy = new Date().toISOString().slice(0,10);
     if (st.ultimoDia !== hoy) {
@@ -7320,8 +7334,6 @@ const Sections = (function(){
       if (!st.flashcardsDominadas.includes(idOrNum)) st.flashcardsDominadas.push(idOrNum);
     }
     st.retosJugados = (st.retosJugados || 0) + 1;
-    // Créditos demo (solo VIP) · reemplazará saldo real cuando conectemos backend
-    if (esVip) st.creditosDemo = (st.creditosDemo || 0) + 25;
     saveRetosState(st);
     return st;
   }
@@ -7383,10 +7395,10 @@ const Sections = (function(){
     else if (__retosView === 'quiz-resultado') body = _retosQuizResultHtml();
     else body = _retosHubHtml(st, esVip, casosHechos, flashDom);
 
-    const saldoCreditos = Number(window.UserState?.credits?.balance ?? st.creditosDemo ?? 0);
+    const saldoCreditos = Number(window.UserState?.credits?.balance ?? 0);
     const accessPill = `<span class="retos-hero__pill retos-hero__pill--free" data-retos-access><svg class="ic"><use href="#i-shield-check"/></svg>Un intento por reto</span>`;
 
-    container.innerHTML = `<div class="fade-up retos-page retos-page--v5">
+    container.innerHTML = `<div class="fade-up retos-page retos-page--v5 retos-page--v6">
       <header class="retos-hero retos-hero--v4">
         <div class="retos-hero__copy">
           <span class="retos-hero__eyebrow">Retos ICADEM</span>
@@ -7435,42 +7447,51 @@ const Sections = (function(){
     const avanceSemanalPct = Math.round(((avanceCasos/metaCasos)+(avanceFlash/metaFlash)+(avanceQuiz/metaQuiz))/3*100);
 
     return `<div class="retos-layout">
-      <main class="retos-main">
+      <div class="retos-main">
         <div class="retos-head">
           <div><span class="retos-head__eyebrow">Entrenamiento aplicado</span><h2>Elige una experiencia</h2></div>
           <small class="retos-head__count">5 experiencias</small>
         </div>
-        <div class="retos-tiles retos-tiles--five retos-showcase">
-          <article class="retos-tile retos-tile--daily retos-daily-card" data-platform-game="wordsearch" data-reto-key="daily" data-game-title="Reto diario" tabindex="0">
+        <div class="retos-tiles retos-tiles--five retos-showcase retos-showcase--v6">
+          <article class="retos-tile reto-card reto-card--daily retos-tile--daily retos-daily-card" data-platform-game="quiz" data-reto-key="daily" data-game-title="12 preguntas clave">
             <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-calendar"/></svg><span>HOY</span></div>
             <div class="retos-tile__body"><span class="retos-tile__kicker">Reto diario</span><h3>12 preguntas clave</h3><p>Una sesión rápida con retroalimentación inmediata · gana 5 créditos.</p><div class="retos-tile__meta" data-card-state><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div></div>
             <button type="button" class="retos-tile__cta" aria-label="Jugar reto diario"><span>Jugar hoy</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--pulse retos-experience-card" data-platform-game="pulse" data-reto-key="pulse" data-game-title="Pulso ICADEM" tabindex="0">
+          <article class="retos-tile reto-card reto-card--pulse retos-tile--pulse retos-experience-card" data-platform-game="pulse" data-reto-key="pulse" data-game-title="Pulso ICADEM">
             <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-bolt"/></svg><span>60 s</span></div>
             <div class="retos-tile__body"><span class="retos-tile__kicker">Agilidad</span><h3>Pulso ICADEM</h3><p>Una pista. Un concepto. Sin rodeos.</p><span class="retos-tile__state" data-card-state><i></i>Disponible hoy</span></div>
             <button type="button" class="retos-tile__cta" aria-label="Tomar el pulso"><span>Tomar el pulso</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--casos retos-experience-card" data-platform-game="classify" data-reto-key="applied" data-game-title="Decide con criterio" tabindex="0">
+          <article class="retos-tile reto-card reto-card--applied retos-tile--casos retos-experience-card" data-platform-game="classify" data-reto-key="applied" data-game-title="Decide con criterio">
             <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-briefcase"/></svg><span>Criterio</span></div>
-            <div class="retos-tile__body"><span class="retos-tile__kicker">Desafío aplicado</span><h3>Decide con criterio</h3><p>Fiscal, nómina, contabilidad y RH.</p><div class="retos-tile__meta" data-card-state><span>${totalCasos} casos</span><span>${casosHechos}/${totalCasos} resueltos</span></div></div>
-            <button type="button" class="retos-tile__cta" aria-label="Abrir expedientes"><span>Abrir expedientes</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Desafío aplicado</span><h3>Decide con criterio</h3><p>Clasifica conceptos y aplicaciones de fiscal, nómina, contabilidad y RH.</p><div class="retos-tile__meta" data-card-state><span>6 tarjetas</span><span>Un intento</span></div></div>
+            <button type="button" class="retos-tile__cta" aria-label="Comenzar desafío"><span>Comenzar desafío</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--flash retos-experience-card" data-platform-game="memory" data-reto-key="memory" data-game-title="Memoria técnica" tabindex="0">
+          <article class="retos-tile reto-card reto-card--memory retos-tile--flash retos-experience-card" data-platform-game="memory" data-reto-key="memory" data-game-title="Memoria técnica">
             <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-book"/></svg><span>Memoria</span></div>
             <div class="retos-tile__body"><span class="retos-tile__kicker">Repaso</span><h3>Memoria técnica</h3><p>Conecta cada término con su aplicación.</p><div class="retos-tile__meta" data-card-state><span>3 pares</span><span>Toque o teclado</span></div></div>
             <button type="button" class="retos-tile__cta" aria-label="Entrenar memoria"><span>Entrenar memoria</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
-          <article class="retos-tile retos-tile--games retos-experience-card" data-platform-game="catalog" data-reto-key="catalog" tabindex="0">
+          <article class="retos-tile reto-card reto-card--games retos-tile--games retos-experience-card" data-platform-game="catalog" data-reto-key="catalog">
             <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-tools"/></svg><span>6 juegos</span></div>
             <div class="retos-tile__body"><span class="retos-tile__kicker">Arcade</span><h3>Juegos ICADEM</h3><p>Seis dinámicas breves para practicar.</p><div class="retos-tile__meta" data-card-state><span>6 juegos</span><span>5 créditos por juego</span></div></div>
             <button type="button" class="retos-tile__cta" aria-label="Ver juegos"><span>Ver juegos</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
         </div>
 
-      </main>
+      </div>
 
       <aside class="retos-aside">
+        <section class="credit-wallet-card" data-credit-wallet-card>
+          <span class="credit-wallet-card__gem" aria-hidden="true"><i></i></span>
+          <div class="credit-wallet-card__copy">
+            <small>Mi cartera ICADEM</small>
+            <strong><b data-credit-balance>${saldoCreditos}</b><em> créditos</em></strong>
+            <p>Tu saldo para desbloquear libros, materiales y próximos beneficios.</p>
+          </div>
+          <button type="button" data-credit-wallet-open>Ver recompensas <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+        </section>
         <section class="retos-misioncard">
           <header>
             <span class="retos-misioncard__icon"><svg class="ic"><use href="#i-trophy"/></svg></span>
@@ -7481,17 +7502,17 @@ const Sections = (function(){
           </header>
           <div class="retos-misioncard__bar"><span style="width:${avanceSemanalPct}%"></span></div>
           <ul>
-            <li class="${avanceCasos>=metaCasos?'is-done':''}" data-retos-nav="casos">
+            <li class="${avanceCasos>=metaCasos?'is-done':''}" data-retos-nav="casos" role="button" tabindex="0">
               <b>${avanceCasos>=metaCasos?'✓':`${avanceCasos}/${metaCasos}`}</b>
               <span><strong>Resuelve 2 casos de obra</strong><em>Decisiones encadenadas con criterio</em></span>
               <svg class="ic"><use href="#i-arrow-right"/></svg>
             </li>
-            <li class="${avanceFlash>=metaFlash?'is-done':''}" data-retos-nav="flashcards">
+            <li class="${avanceFlash>=metaFlash?'is-done':''}" data-retos-nav="flashcards" role="button" tabindex="0">
               <b>${avanceFlash>=metaFlash?'✓':`${avanceFlash}/${metaFlash}`}</b>
               <span><strong>Domina 8 flashcards</strong><em>Términos técnicos clave</em></span>
               <svg class="ic"><use href="#i-arrow-right"/></svg>
             </li>
-            <li class="${avanceQuiz>=metaQuiz?'is-done':''}" data-retos-nav="quiz-intro">
+            <li class="${avanceQuiz>=metaQuiz?'is-done':''}" data-retos-nav="quiz-intro" role="button" tabindex="0">
               <b>${avanceQuiz>=metaQuiz?'✓':`${avanceQuiz}/${metaQuiz}`}</b>
               <span><strong>Haz 1 quiz express</strong><em>12 preguntas aleatorias</em></span>
               <svg class="ic"><use href="#i-arrow-right"/></svg>
@@ -7507,7 +7528,7 @@ const Sections = (function(){
             <li><b>02</b><div><strong>Elige</strong><p>La actuación profesional entre las opciones.</p></div></li>
             <li><b>03</b><div><strong>Comprende</strong><p>La razón técnica detrás de la respuesta correcta.</p></div></li>
           </ol>
-          <footer>Cada reto superado y cada juego de clase entrega 5 créditos ICADEM.</footer>
+          <footer>Las experiencias del hub y los juegos de clase entregan 5 créditos verificados. La misión semanal es práctica complementaria.</footer>
         </section>
       </aside>
       <section class="retos-ranking" id="retos-ranking" aria-live="polite"></section>
@@ -7608,8 +7629,8 @@ const Sections = (function(){
           </div>
           <dl class="rcr-ledger" aria-label="Partidas de la sesión">
             <div>
-              <dt>XP sumado</dt>
-              <dd><strong>+${total*5}</strong><em>pts formativos</em></dd>
+              <dt>XP del expediente</dt>
+              <dd><strong>+25</strong><em>una sola vez</em></dd>
             </div>
             <div>
               <dt>Pasos del expediente</dt>
@@ -7670,7 +7691,7 @@ const Sections = (function(){
     return `<div class="retos-sub retos-sub--run">
       <button type="button" class="retos-back" data-retos-nav="casos"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Expedientes</button>
       <div class="retos-run-shell">
-        <main class="retos-caso-run" data-area="${_htmlEscRet(c.area)}">
+        <div class="retos-caso-run" data-area="${_htmlEscRet(c.area)}">
           <header class="retos-caso-run__head">
             <div class="retos-caso-run__area"><i></i>${_htmlEscRet(c.area)}</div>
             <h2>${_htmlEscRet(c.titulo)}</h2>
@@ -7688,7 +7709,7 @@ const Sections = (function(){
           </div>
           <div class="retos-caso-opts">${opciones}</div>
           ${feedback}
-        </main>
+        </div>
         <aside class="retos-run-aside">
           <section class="retos-run-aside__card">
             <span class="retos-run-aside__kicker">Progreso del caso</span>
@@ -7876,7 +7897,7 @@ const Sections = (function(){
     return `<div class="retos-sub retos-sub--run">
       <button type="button" class="retos-back" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Salir del quiz</button>
       <div class="retos-run-shell">
-        <main class="retos-caso-run" data-area="${_htmlEscRet(q.area)}">
+        <div class="retos-caso-run" data-area="${_htmlEscRet(q.area)}">
           <header class="retos-caso-run__head">
             <div class="retos-caso-run__area"><i></i>${_htmlEscRet(q.area)}</div>
             <h2>Pregunta ${idx+1} <em>de ${total}</em></h2>
@@ -7899,7 +7920,7 @@ const Sections = (function(){
             <p>${q.explicacion ? _htmlEscRet(q.explicacion) : (answer===q.correcta ? 'Buen criterio técnico.' : 'Repasa esta área en flashcards para consolidar.')}</p>
             <button type="button" class="btn btn--primary" data-retos-quiz-next>${idx===total-1?'Ver resultado':'Siguiente pregunta'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </div>` : ''}
-        </main>
+        </div>
         <aside class="retos-run-aside">
           <section class="retos-run-aside__card">
             <span class="retos-run-aside__kicker">Avance del quiz</span>
@@ -7922,6 +7943,7 @@ const Sections = (function(){
     const total = __retosQuizQuestions.length || 12;
     const pct = total > 0 ? Math.round((__retosQuizScore / total) * 100) : 0;
     const aprobado = pct >= 70;
+    const puedeReintentar = _esRetosAdmin();
     return `<div class="retos-sub retos-sub--result">
       <button type="button" class="retos-back" data-retos-nav="hub"><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg>Volver</button>
       <section class="retos-caso-result ${aprobado?'is-pass':'is-retry'}">
@@ -7940,7 +7962,7 @@ const Sections = (function(){
           </ul>
         </div>
         <div class="retos-caso-result__actions">
-          <button type="button" class="btn btn--primary" data-retos-quiz-restart>Nuevo quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          ${puedeReintentar ? '<button type="button" class="btn btn--primary" data-retos-quiz-restart>Nuevo quiz<svg class="ic"><use href="#i-arrow-right"/></svg></button>' : '<button type="button" class="btn btn--primary" data-retos-nav="hub">Volver a Retos<svg class="ic"><use href="#i-arrow-right"/></svg></button>'}
           <button type="button" class="btn btn--ghost" data-retos-nav="flashcards">Repasar flashcards</button>
           <button type="button" class="btn btn--ghost" data-retos-nav="casos">Casos de obra</button>
         </div>
@@ -7950,16 +7972,22 @@ const Sections = (function(){
 
   function _bindRetos(container){
     // Navegación entre vistas internas del hub de retos
-    container.querySelectorAll('[data-retos-nav]').forEach(btn => btn.addEventListener('click', () => {
+    container.querySelectorAll('[data-retos-nav]').forEach(btn => {
+      const activate = () => {
       const dest = btn.dataset.retosNav;
       // Chequeo paywall al intentar iniciar un reto
       if ((dest === 'casos' || dest === 'flashcards' || dest === 'quiz-intro') && __retosView === 'hub') {
-        const check = puedeJugarReto();
+        const check = puedeJugarReto(dest);
         if (!check.permitido) { _mostrarPaywallRetos(); return; }
       }
       __retosView = dest;
       _renderRetosShell(container);
-    }));
+      };
+      btn.addEventListener('click', activate);
+      if (!btn.matches('button,a')) btn.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); activate(); }
+      });
+    });
 
     // Click en una tarjeta de caso
     container.querySelectorAll('[data-retos-caso-id]').forEach(card => card.addEventListener('click', (e) => {
@@ -8079,16 +8107,9 @@ const Sections = (function(){
   }
 
   function _mostrarPaywallRetos(){
-    if (typeof window.__showPaywallModal === 'function') {
-      window.__showPaywallModal({
-        title: 'Hazte VIP para seguir jugando',
-        sub: 'Ya usaste tu reto gratuito. Los miembros VIP juegan sin límite, acumulan créditos y acceden a todos los cursos.',
-        cta: 'Hazte VIP'
-      });
-    } else {
-      try { if (typeof Toast !== 'undefined' && Toast.info) Toast.info('Solo VIP', 'Hazte miembro para seguir jugando.'); } catch(e){}
-      navigateToSection('suscripcion');
-    }
+    try {
+      if (typeof Toast !== 'undefined' && Toast.info) Toast.info('Experiencia completada', 'Cada usuario no administrador puede completar esta experiencia una sola vez. Continúa con otro reto.');
+    } catch(e){}
   }
 
   function renderClaseDetalle(container){
@@ -20034,7 +20055,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-  <link rel="stylesheet" href="css/panel-minimal.css?v=16">
+  <link rel="stylesheet" href="css/panel-minimal.css?v=18">
 <script src="js/icadem-onboarding.js?v=2"></script>
 </body>
 </html>

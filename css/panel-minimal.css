@@ -1698,7 +1698,7 @@ body,
 .tools-index-hero--professional .tools-index-hero__eyebrow .ic { width:14px;height:14px; }
 .tools-index-hero--professional h1 { max-width:620px;margin:18px 0 14px!important;color:#fff!important;font-size:clamp(36px,4.2vw,56px)!important;line-height:.98!important;letter-spacing:-2.4px!important; }
 .tools-index-hero--professional p { max-width:700px;margin:0!important;color:rgba(255,255,255,.82)!important;font-size:13px!important;line-height:1.65!important; }
-.tools-index-head { display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:2px 0 -12px; }
+.tools-index-head { display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:2px 0 2px; }
 .tools-index-head__eyebrow { color:#24718a;font:800 8px/1 'JetBrains Mono',monospace;letter-spacing:1.45px;text-transform:uppercase; }
 .tools-index-head h2 { margin:8px 0 0;color:var(--text);font-size:25px;line-height:1.05;letter-spacing:-.85px; }
 .tools-index-head__count { color:var(--text-3);font-size:10.5px;font-weight:600;white-space:nowrap; }
@@ -1744,7 +1744,10 @@ body,
 .library-balance>strong { display:flex;align-items:center;gap:10px;margin:10px 0 7px;font-size:34px;line-height:1;letter-spacing:-1px; }
 .library-balance>strong i,.library-card__cost i { display:grid;place-items:center;width:28px;height:28px;border-radius:50%;color:#17364a;background:#e4bd59;font:900 11px/1 'Plus Jakarta Sans',sans-serif;font-style:normal; }
 .library-balance>span { color:rgba(255,255,255,.68);font-size:9px; }
-.library-page--catalog .library-head { display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:20px;margin:2px 0 -12px!important; }
+.library-balance__action { display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin-top:14px;padding:10px 0 0;border:0;border-top:1px solid rgba(255,255,255,.18);color:#fff;background:transparent;font-size:9.5px;font-weight:750;text-align:left; }
+.library-balance__action:hover { color:#bde6ea; }
+.library-balance__action .ic { width:13px;height:13px; }
+.library-page--catalog .library-head { display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:20px;margin:2px 0 2px!important; }
 .library-page--catalog .library-head__eyebrow { color:#24718a!important;font:800 8px/1 'JetBrains Mono',monospace!important;letter-spacing:1.45px!important; }
 .library-page--catalog .library-head h2 { margin:8px 0 0!important;color:var(--text)!important;font-size:25px!important;line-height:1.05!important;letter-spacing:-.85px!important; }
 .library-page--catalog .library-head__count { color:var(--text-3)!important;font-size:10.5px!important;white-space:nowrap; }
@@ -1851,4 +1854,84 @@ body,
   .tools-index--professional .tool-index-card { grid-template-columns:52px minmax(0,1fr) 34px!important;gap:12px!important; }.tools-index--professional .tool-index-card__icon { width:52px!important;height:52px!important; }.tools-index--professional .tool-index-card__action { width:34px;height:34px; }
   .library-page--catalog .library-card { grid-template-columns:112px minmax(0,1fr)!important;min-height:218px!important; }.library-page--catalog .library-card__cover { min-height:218px!important; }.library-page--catalog .library-card__body { padding:16px 13px 13px!important; }.library-page--catalog .library-card__cover-inner { padding:48px 11px 13px!important; }.library-page--catalog .library-card__cover h3 { font-size:12px!important; }.library-page--catalog .library-card__body>p { -webkit-line-clamp:3; }.library-page--catalog .library-card__cost { font-size:9px!important; }.library-card__action { width:31px;height:31px; }
   .retos-page--v5 .retos-showcase > .retos-tile.retos-daily-card:nth-child(1) { grid-template-columns:58px minmax(0,1fr) 38px!important;min-height:112px!important;height:112px!important;padding:14px!important; }.retos-page--v5 .retos-showcase .retos-daily-card .retos-tile__art { width:54px!important;height:54px!important; }.retos-page--v5 .retos-showcase .retos-daily-card .retos-tile__body { padding:0 10px!important; }.retos-page--v5 .retos-showcase .retos-daily-card .retos-tile__body p { display:none; }.retos-page--v5 .retos-showcase .retos-daily-card .retos-tile__meta { position:static;transform:none;margin-top:7px!important; }.retos-page--v5 .retos-showcase .retos-daily-card .retos-tile__meta span:nth-child(2) { display:none; }.retos-page--v5 .retos-showcase .retos-daily-card .retos-tile__cta { width:36px!important;height:36px!important; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Retos v6 · composición única de cards y cartera
+   ═══════════════════════════════════════════════════════════ */
+.retos-page--v6 .retos-head { margin-bottom:4px; }
+.retos-page--v6 .retos-showcase--v6 { display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-auto-rows:auto!important;gap:18px!important;align-items:stretch; }
+.retos-page--v6 .retos-showcase--v6 .reto-card { --tile-color:#245b74;--tile-soft:#eaf3f7;position:relative!important;grid-column:auto!important;overflow:hidden!important;border:1px solid color-mix(in srgb,var(--tile-color) 24%,var(--border))!important;border-radius:19px!important;background:var(--surface)!important;box-shadow:0 14px 34px rgba(22,48,66,.06)!important;transition:transform .18s,border-color .18s,box-shadow .18s; }
+.retos-page--v6 .retos-showcase--v6 .reto-card:hover { transform:translateY(-3px);border-color:color-mix(in srgb,var(--tile-color) 52%,var(--border))!important;box-shadow:0 20px 42px rgba(18,49,68,.11)!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card--pulse { --tile-color:#6b5a78;--tile-soft:#f1ecf5; }
+.retos-page--v6 .retos-showcase--v6 .reto-card--memory { --tile-color:#9a7135;--tile-soft:#f8f0e3; }
+.retos-page--v6 .retos-showcase--v6 .reto-card--games { --tile-color:#317566;--tile-soft:#e8f3ef; }
+.retos-page--v6 .retos-showcase--v6 .reto-card--daily { --tile-color:#2a7182;--tile-soft:#eaf5f7; }
+[data-theme="night"] .retos-page--v6 .retos-showcase--v6 .reto-card { --tile-color:#75c4d7;--tile-soft:rgba(69,155,177,.14); }
+[data-theme="night"] .retos-page--v6 .retos-showcase--v6 .reto-card--pulse { --tile-color:#bca6c8;--tile-soft:rgba(142,111,157,.15); }
+[data-theme="night"] .retos-page--v6 .retos-showcase--v6 .reto-card--memory { --tile-color:#dfb974;--tile-soft:rgba(174,130,64,.15); }
+[data-theme="night"] .retos-page--v6 .retos-showcase--v6 .reto-card--games { --tile-color:#77c6ad;--tile-soft:rgba(62,149,122,.15); }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card { display:grid!important;grid-template-columns:1fr!important;grid-template-rows:68px minmax(0,1fr) 44px!important;min-height:286px!important;height:100%!important;padding:22px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card .retos-tile__art { position:relative!important;grid-column:1!important;grid-row:1!important;display:grid!important;place-items:center!important;width:64px!important;height:64px!important;min-height:0!important;overflow:visible!important;border:1px solid color-mix(in srgb,var(--tile-color) 18%,transparent)!important;border-radius:17px!important;color:var(--tile-color)!important;background:var(--tile-soft)!important;filter:none!important;opacity:1!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card .retos-tile__art .ic { width:27px!important;height:27px!important;color:inherit!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card .retos-tile__art>span { position:absolute!important;left:78px!important;right:auto!important;top:5px!important;bottom:auto!important;width:max-content!important;padding:6px 8px!important;border:1px solid color-mix(in srgb,var(--tile-color) 15%,var(--border))!important;border-radius:999px!important;color:var(--tile-color)!important;background:var(--surface)!important;box-shadow:none!important;font:800 7px/1 'JetBrains Mono',monospace!important;letter-spacing:.65px!important;text-transform:uppercase!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card .retos-tile__body { grid-column:1!important;grid-row:2!important;display:flex!important;flex-direction:column!important;min-height:0!important;padding:18px 0 14px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__kicker { margin-bottom:9px!important;color:var(--tile-color)!important;font:800 7.5px/1 'JetBrains Mono',monospace!important;letter-spacing:1.35px!important;text-transform:uppercase; }
+.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__body h3 { margin:0 0 7px!important;color:var(--text)!important;font-size:18px!important;line-height:1.15!important;letter-spacing:-.5px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__body p { min-height:31px!important;margin:0 0 12px!important;color:var(--text-3)!important;font-size:10.5px!important;line-height:1.5!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__meta { display:flex!important;flex-wrap:wrap!important;gap:6px!important;min-height:0!important;margin-top:auto!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__meta span,.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__state { padding:5px 8px!important;border-radius:999px!important;color:var(--text-3)!important;background:var(--surface-2)!important;font:700 7px/1 'JetBrains Mono',monospace!important;letter-spacing:.3px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__state { display:inline-flex!important;align-items:center!important;gap:6px!important;width:max-content!important;margin-top:auto; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card .retos-tile__cta { position:static!important;grid-column:1!important;grid-row:3!important;display:flex!important;align-items:center!important;justify-content:space-between!important;width:100%!important;height:44px!important;padding:0 14px!important;border:1px solid color-mix(in srgb,var(--tile-color) 18%,var(--border))!important;border-radius:12px!important;color:var(--tile-color)!important;background:var(--tile-soft)!important;font-size:10.5px!important;font-weight:750!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card .retos-tile__cta>span:first-child { position:static!important;width:auto!important;height:auto!important;overflow:visible!important;clip:auto!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card .retos-tile__cta .ic { width:14px!important;height:14px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card { grid-column:1/-1!important;display:grid!important;grid-template-columns:66px minmax(0,1fr) 138px!important;grid-template-rows:1fr!important;align-items:center!important;min-height:116px!important;height:auto!important;padding:18px 20px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art { position:relative!important;grid-column:1!important;grid-row:1!important;display:grid!important;place-items:center!important;width:62px!important;height:62px!important;min-height:0!important;border:1px solid color-mix(in srgb,var(--tile-color) 18%,transparent)!important;border-radius:16px!important;color:var(--tile-color)!important;background:var(--tile-soft)!important;filter:none!important;opacity:1!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art .ic { width:27px!important;height:27px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art span { position:absolute!important;right:-7px!important;bottom:-5px!important;padding:4px 6px!important;border-radius:999px!important;color:var(--tile-color)!important;background:var(--surface)!important;box-shadow:0 4px 10px rgba(20,43,58,.1)!important;font:800 6px/1 'JetBrains Mono',monospace!important;letter-spacing:.5px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__body { position:static!important;grid-column:2!important;grid-row:1!important;min-height:0!important;padding:0 22px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__body p { min-height:0!important;margin:0!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__meta { position:static!important;transform:none!important;margin-top:8px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__cta { position:static!important;grid-column:3!important;grid-row:1!important;display:flex!important;align-items:center!important;justify-content:space-between!important;width:138px!important;height:44px!important;padding:0 13px!important;border:1px solid color-mix(in srgb,var(--tile-color) 18%,var(--border))!important;border-radius:12px!important;color:var(--tile-color)!important;background:var(--tile-soft)!important;font-size:10px!important;font-weight:750!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__cta>span:first-child { position:static!important;width:auto!important;height:auto!important;overflow:visible!important;clip:auto!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.is-used { opacity:.76;transform:none!important;box-shadow:none!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.is-used::after { content:'Completado';right:14px!important;top:14px!important;bottom:auto!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.is-used .retos-tile__cta { color:#317566!important;background:#e8f3ef!important;cursor:not-allowed; }
+
+.retos-page--v6 .retos-aside { display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:18px!important;align-items:stretch; }
+.credit-wallet-card { position:relative;display:grid;grid-template-columns:58px minmax(0,1fr);grid-template-rows:1fr auto;gap:14px 16px;min-height:220px;padding:24px;overflow:hidden;border:0;border-radius:20px;color:#fff;background:linear-gradient(135deg,#103a55 0%,#116b7f 100%);box-shadow:0 18px 38px rgba(13,55,76,.16); }
+.credit-wallet-card::before,.credit-wallet-card::after { content:'';position:absolute;border:1px solid rgba(255,255,255,.12);border-radius:50%;pointer-events:none; }
+.credit-wallet-card::before { width:190px;height:190px;right:-92px;bottom:-106px; }.credit-wallet-card::after { width:125px;height:125px;right:-28px;bottom:-72px; }
+.credit-wallet-card__gem { position:relative;z-index:1;display:grid;place-items:center;width:58px;height:66px; }
+.credit-wallet-card__gem::before { content:'';width:44px;height:52px;clip-path:polygon(50% 0,100% 25%,84% 78%,50% 100%,16% 78%,0 25%);background:linear-gradient(145deg,#89e0e8,#3cb0c3 48%,#177591);box-shadow:inset 0 0 0 1px rgba(255,255,255,.35); }
+.credit-wallet-card__gem i { position:absolute;width:19px;height:24px;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);background:#0f5a75; }
+.credit-wallet-card__copy { position:relative;z-index:1;min-width:0; }.credit-wallet-card__copy small { color:#bce8ec;font:800 7.5px/1 'JetBrains Mono',monospace;letter-spacing:1.4px;text-transform:uppercase; }
+.credit-wallet-card__copy strong { display:flex;align-items:baseline;gap:7px;margin:8px 0 7px;color:#fff; }.credit-wallet-card__copy strong b { font-size:34px;line-height:1;letter-spacing:-1.3px; }.credit-wallet-card__copy strong em { font-size:9px;text-transform:uppercase;font-style:normal; }.credit-wallet-card__copy p { max-width:210px;margin:0;color:rgba(255,255,255,.72);font-size:10.5px;line-height:1.45; }
+.credit-wallet-card>button { position:relative;z-index:1;grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;width:100%;min-height:42px;padding:0 13px;border:1px solid rgba(255,255,255,.26);border-radius:12px;color:#fff;background:rgba(255,255,255,.08);font-size:10.5px;font-weight:750; }.credit-wallet-card>button:hover { background:rgba(255,255,255,.15); }.credit-wallet-card>button .ic { width:14px;height:14px; }
+.retos-page--v6 .retos-tile__cta:focus-visible,.credit-wallet-card>button:focus-visible,.library-balance__action:focus-visible,.library-card__action:focus-visible,.tools-index--professional .tool-index-card:focus-visible { outline:3px solid color-mix(in srgb,#49abc0 72%,white)!important;outline-offset:3px!important; }
+.retos-page--v6 .retos-misioncard li[role="button"]:focus-visible { outline:3px solid color-mix(in srgb,#49abc0 72%,white);outline-offset:3px;border-radius:10px; }
+
+@container retosmain (max-width:1080px){
+  .retos-page--v6 .retos-showcase--v6 { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+}
+@media(max-width:1100px){
+  .retos-page--v6 .retos-aside { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+  .retos-page--v6 .credit-wallet-card { grid-column:1/-1;grid-template-columns:58px minmax(0,1fr) minmax(160px,220px);grid-template-rows:1fr;align-items:center;min-height:150px; }
+  .retos-page--v6 .credit-wallet-card>button { grid-column:3; }
+}
+@container retosmain (max-width:620px){
+  .retos-page--v6 .retos-showcase--v6 { grid-template-columns:1fr!important; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card { grid-template-columns:58px minmax(0,1fr) 40px!important;min-height:118px!important;padding:15px!important; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art { width:54px!important;height:54px!important; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__body { padding:0 12px!important; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__body p { display:none; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__meta span:nth-child(2) { display:none; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__cta { width:38px!important;height:38px!important;padding:0!important;justify-content:center!important;border-radius:50%!important; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__cta>span:first-child { position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0 0 0 0)!important; }
+}
+@media(max-width:720px){
+  .retos-page--v6 .retos-aside { grid-template-columns:1fr!important; }
+  .retos-page--v6 .credit-wallet-card { grid-column:auto;grid-template-columns:58px minmax(0,1fr);grid-template-rows:1fr auto;min-height:220px; }
+  .retos-page--v6 .credit-wallet-card>button { grid-column:1/-1; }
+  .library-balance__action { grid-column:1/-1;width:100%; }
 }

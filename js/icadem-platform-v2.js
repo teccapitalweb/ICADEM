@@ -7,13 +7,38 @@
 
   const API = window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app';
   const REDUCED_MOTION = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const PRACTICE_TYPES = ['crossword', 'memory', 'wordsearch', 'puzzle', 'guess', 'classify'];
   const GAME_LABELS = {
     crossword: 'Crucigrama', memory: 'Memoria', wordsearch: 'Sopa de letras',
-    puzzle: 'Rompecabezas', guess: 'Adivina el concepto', classify: 'Clasifica'
+    puzzle: 'Rompecabezas', guess: 'Adivina el concepto', classify: 'Clasifica', quiz: 'Quiz profesional'
   };
   const GAME_ICONS = {
-    crossword: '⌗', memory: '◫', wordsearch: '⌕', puzzle: '◇', guess: '?', classify: '≡'
+    crossword: '⌗', memory: '◫', wordsearch: '⌕', puzzle: '◇', guess: '?', classify: '≡', quiz: '12'
   };
+  const GAME_META = {
+    crossword: { eyebrow: 'Precisión', title: 'Crucigrama técnico', description: 'Completa el concepto a partir de una pista profesional.', duration: '2 min', icon: 'i-edit' },
+    memory: { eyebrow: 'Memoria', title: 'Conecta conceptos', description: 'Relaciona cada término con su aplicación correcta.', duration: '2–3 min', icon: 'i-book' },
+    wordsearch: { eyebrow: 'Enfoque', title: 'Sopa de conceptos', description: 'Encuentra términos clave dentro del tablero.', duration: '3 min', icon: 'i-search' },
+    puzzle: { eyebrow: 'Análisis', title: 'Ordena el proceso', description: 'Reconstruye la secuencia y comprueba tu lógica.', duration: '2 min', icon: 'i-chart-bar' },
+    guess: { eyebrow: 'Agilidad', title: 'Pulso ICADEM', description: 'Descubre el concepto usando una sola pista.', duration: '60 s', icon: 'i-bolt' },
+    classify: { eyebrow: 'Criterio', title: 'Decide con criterio', description: 'Clasifica conceptos y aplicaciones profesionales.', duration: '3 min', icon: 'i-briefcase' },
+    quiz: { eyebrow: 'Reto diario', title: '12 preguntas clave', description: 'Comprueba tu criterio con preguntas de seis áreas profesionales.', duration: '5 min', icon: 'i-calendar' }
+  };
+
+  const DEMO_QUIZ = [
+    { id:'dq01', area:'Fiscal', question:'¿Cuál es la tasa general del IVA?', options:['0%','8%','11%','16%'], answer:3 },
+    { id:'dq02', area:'Fiscal', question:'¿Con qué frecuencia se actualiza la UMA?', options:['Mensualmente','Trimestralmente','Anualmente','Cada sexenio'], answer:2 },
+    { id:'dq03', area:'Legal', question:'¿Cuál es la prima dominical mínima?', options:['15%','20%','25%','50%'], answer:2 },
+    { id:'dq04', area:'Nómina', question:'¿Cuántos días de aguinaldo mínimo establece la LFT?', options:['10','12','15','20'], answer:2 },
+    { id:'dq05', area:'Nómina', question:'¿Qué salario se usa como base para el aguinaldo?', options:['Integrado','Diario ordinario','Mínimo general','SBC'], answer:1 },
+    { id:'dq06', area:'Contabilidad', question:'¿Qué NIF regula el flujo de efectivo?', options:['NIF A-1','NIF B-2','NIF B-3','NIF C-3'], answer:1 },
+    { id:'dq07', area:'Contabilidad', question:'Un cheque emitido y no cobrado se clasifica como:', options:['Depósito en tránsito','Cheque en circulación','Error bancario','Nota de cargo'], answer:1 },
+    { id:'dq08', area:'Finanzas', question:'¿Qué indicador mide la capacidad de pago de corto plazo?', options:['Endeudamiento','Razón corriente','Rotación','Margen operativo'], answer:1 },
+    { id:'dq09', area:'Finanzas', question:'El pago de dividendos es una actividad de:', options:['Operación','Inversión','Financiamiento','Impuestos'], answer:2 },
+    { id:'dq10', area:'RH', question:'¿En cuántos días hábiles se da de alta a un trabajador ante el IMSS?', options:['3','5','10','15'], answer:1 },
+    { id:'dq11', area:'Legal', question:'¿Qué regula el artículo 47 de la LFT?', options:['Jornada','Rescisión sin responsabilidad para el patrón','Vacaciones','PTU'], answer:1 },
+    { id:'dq12', area:'RH', question:'¿Qué deja evidencia del alta laboral?', options:['Una llamada','El expediente con acuses','Un mensaje','Solo el contrato'], answer:1 }
+  ];
 
   function esc(value) {
     return String(value == null ? '' : value).replace(/[&<>"']/g, char => ({
@@ -65,6 +90,35 @@
     }
     live.textContent = '';
     requestAnimationFrame(() => { live.textContent = message; });
+  }
+
+  function mexicoDateKey(value) {
+    const parts = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).formatToParts(value || new Date()).reduce((all, part) => ({ ...all, [part.type]: part.value }), {});
+    return `${parts.year}-${parts.month}-${parts.day}`;
+  }
+
+  function activateDialogA11y(root, onEscape) {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const inerted = Array.from(document.body.children).filter(element => element !== root && element.id !== 'icadem-platform-live' && !element.matches('script,style,link') && !element.hasAttribute('inert'));
+    inerted.forEach(element => element.setAttribute('inert', ''));
+    const focusables = () => Array.from(root.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),[tabindex]:not([tabindex="-1"])')).filter(element => !element.hidden && element.getClientRects().length);
+    const onKeydown = event => {
+      if (event.key === 'Escape') { event.preventDefault(); onEscape(); return; }
+      if (event.key !== 'Tab') return;
+      const items = focusables();
+      if (!items.length) { event.preventDefault(); return; }
+      const first = items[0], last = items[items.length - 1];
+      if (event.shiftKey && (document.activeElement === first || !root.contains(document.activeElement))) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || !root.contains(document.activeElement))) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKeydown);
+    return () => {
+      document.removeEventListener('keydown', onKeydown);
+      inerted.forEach(element => element.removeAttribute('inert'));
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
   }
 
   function showNotice(title, message, kind) {
@@ -143,12 +197,202 @@
     });
     const nextBalance = Number(data.balance ?? data.newBalance);
     if (window.UserState?.credits && Number.isFinite(nextBalance)) {
-      window.UserState.credits.balance = nextBalance;
-      document.querySelectorAll('[data-credit-balance]').forEach(element => {
-        element.textContent = String(nextBalance);
-      });
+      publishCredits({ ...window.UserState.credits, balance: nextBalance }, { source: 'library-redemption' });
     }
+    creditWalletCache = null;
     return data;
+  }
+
+  function demoCreditLedgerKey() {
+    const account = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `icadem:demo:credit-ledger:${account}`;
+  }
+
+  function demoCreditIdsKey() {
+    const account = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `icadem:demo:credit-ids:${account}`;
+  }
+
+  function demoCreditStatsKey() {
+    const account = window.UserState?.uid || window.UserState?.email || 'guest';
+    return `icadem:demo:credit-stats:${account}`;
+  }
+
+  function readDemoCreditLedger() {
+    try {
+      const items = JSON.parse(localStorage.getItem(demoCreditLedgerKey()) || '[]');
+      return Array.isArray(items) ? items.slice(0, 40) : [];
+    } catch (_) { return []; }
+  }
+
+  function readDemoCreditIds() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(demoCreditIdsKey()) || 'null');
+      if (Array.isArray(saved)) return saved;
+    } catch (_) {}
+    const migrated = readDemoCreditLedger().map(item => item.id).filter(Boolean);
+    try { localStorage.setItem(demoCreditIdsKey(), JSON.stringify(migrated)); } catch (_) {}
+    return migrated;
+  }
+
+  function readDemoCreditStats() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(demoCreditStatsKey()) || 'null');
+      if (saved && typeof saved === 'object') return { earned: Number(saved.earned) || 0, spent: Number(saved.spent) || 0 };
+    } catch (_) {}
+    const ledger = readDemoCreditLedger();
+    const migrated = {
+      earned: ledger.reduce((sum, item) => sum + Math.max(0, Number(item.amount) || 0), 0),
+      spent: ledger.reduce((sum, item) => sum + Math.max(0, -(Number(item.amount) || 0)), 0)
+    };
+    try { localStorage.setItem(demoCreditStatsKey(), JSON.stringify(migrated)); } catch (_) {}
+    return migrated;
+  }
+
+  function publishCredits(credits, meta) {
+    const normalized = {
+      balance: Number(credits?.balance) || 0,
+      lifetimeEarned: Number(credits?.lifetimeEarned) || 0,
+      lifetimeSpent: Number(credits?.lifetimeSpent) || 0
+    };
+    if (window.UserState) window.UserState.credits = { ...(window.UserState.credits || {}), ...normalized };
+    document.querySelectorAll('[data-credit-balance]').forEach(element => {
+      element.textContent = String(normalized.balance);
+    });
+    document.dispatchEvent(new CustomEvent('icadem:credits-changed', { detail: { credits: normalized, ...(meta || {}) } }));
+    return normalized;
+  }
+
+  function applyDemoCreditMovement(amount, details) {
+    const numericAmount = Number(amount) || 0;
+    const ledger = readDemoCreditLedger();
+    const rewardedIds = readDemoCreditIds();
+    const movementId = String(details?.id || `demo:${Date.now()}`);
+    const existing = ledger.find(item => item.id === movementId);
+    const previousBalance = Number(localStorage.getItem('icadem:demo:credits') || 340);
+    if (rewardedIds.includes(movementId)) return { awarded: false, reward: 0, previousBalance, newBalance: previousBalance, movement: existing || null };
+    if (numericAmount < 0 && previousBalance + numericAmount < 0) throw new Error('Créditos insuficientes para completar este canje.');
+    const newBalance = previousBalance + numericAmount;
+    const movement = {
+      id: movementId,
+      amount: numericAmount,
+      direction: numericAmount < 0 ? 'spend' : 'earn',
+      type: String(details?.type || 'demo-credit'),
+      label: String(details?.label || (numericAmount < 0 ? 'Canje de recompensa' : 'Créditos obtenidos')),
+      detail: String(details?.detail || ''),
+      createdAt: new Date().toISOString()
+    };
+    ledger.unshift(movement);
+    localStorage.setItem(demoCreditLedgerKey(), JSON.stringify(ledger.slice(0, 40)));
+    localStorage.setItem(demoCreditIdsKey(), JSON.stringify([movementId, ...rewardedIds].slice(0, 500)));
+    localStorage.setItem('icadem:demo:credits', String(newBalance));
+    const stats = readDemoCreditStats();
+    const nextStats = { earned: stats.earned + Math.max(0, numericAmount), spent: stats.spent + Math.max(0, -numericAmount) };
+    localStorage.setItem(demoCreditStatsKey(), JSON.stringify(nextStats));
+    publishCredits({
+      balance: newBalance,
+      lifetimeEarned: nextStats.earned,
+      lifetimeSpent: nextStats.spent
+    }, { source: movement.type, movement });
+    creditWalletCache = null;
+    return { awarded: true, reward: Math.max(0, numericAmount), charged: Math.max(0, -numericAmount), previousBalance, newBalance, movement };
+  }
+
+  let creditWalletCache = null;
+  let creditWalletPromise = null;
+
+  function demoCreditWallet() {
+    const ledger = readDemoCreditLedger();
+    const balance = Number(localStorage.getItem('icadem:demo:credits') || 340);
+    const stats = readDemoCreditStats();
+    return {
+      ok: true,
+      credits: { balance, lifetimeEarned: stats.earned, lifetimeSpent: stats.spent },
+      recentMovements: ledger.slice(0, 12),
+      earnRules: [
+        { id: 'retos', label: 'Supera un reto', amount: 5, note: 'Una recompensa por reto.' },
+        { id: 'class-games', label: 'Completa un juego de clase', amount: 5, note: 'Una sola recompensa por clase.' },
+        { id: 'arcade', label: 'Entrena en Juegos ICADEM', amount: 5, note: 'Una recompensa por dinámica.' }
+      ],
+      destinations: [
+        { id: 'library', label: 'Biblioteca profesional', description: 'Canjea referencias que conservarás en tu cuenta.', available: true, section: 'libros', count: 6 },
+        { id: 'resources', label: 'Nuevas recompensas', description: 'Próximamente: materiales, plantillas y beneficios.', available: false, section: null, count: 0 }
+      ],
+      redemptions: { books: 0 },
+      demo: true
+    };
+  }
+
+  async function loadCreditWallet(force) {
+    if (window.__isDemoMode) {
+      const data = demoCreditWallet();
+      publishCredits(data.credits, { source: 'wallet-demo' });
+      return data;
+    }
+    const fresh = creditWalletCache && Date.now() - creditWalletCache.at < 15000;
+    if (fresh && !force) return creditWalletCache.data;
+    if (creditWalletPromise && !force) return creditWalletPromise;
+    creditWalletPromise = request('/api/credits/wallet').then(data => {
+      creditWalletCache = { at: Date.now(), data };
+      publishCredits(data.credits, { source: 'wallet' });
+      return data;
+    }).finally(() => { creditWalletPromise = null; });
+    return creditWalletPromise;
+  }
+
+  function formatMovementDate(value) {
+    if (!value) return 'Reciente';
+    try {
+      return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+    } catch (_) { return 'Reciente'; }
+  }
+
+  function walletMarkup(data) {
+    const credits = data?.credits || { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0 };
+    const movements = Array.isArray(data?.recentMovements) ? data.recentMovements : [];
+    const rules = Array.isArray(data?.earnRules) ? data.earnRules : [];
+    const destinations = Array.isArray(data?.destinations) ? data.destinations : [];
+    return `<div class="credit-wallet-modal__grid">
+      <section class="credit-vault">
+        <span class="credit-vault__gem" aria-hidden="true"><i></i></span>
+        <div class="credit-vault__copy"><small>Mi cartera ICADEM</small><strong><b data-credit-balance>${Number(credits.balance) || 0}</b><em> créditos</em></strong><p>Tu saldo profesional, validado y listo para canjear.</p></div>
+        <div class="credit-vault__stats"><span><b>${Number(credits.lifetimeEarned) || 0}</b> ganados</span><span><b>${Number(credits.lifetimeSpent) || 0}</b> canjeados</span></div>
+      </section>
+      <section class="credit-wallet-panel credit-wallet-panel--earn"><header><span>Cómo sumar créditos</span><small>Cada premio se valida una sola vez</small></header><div>${rules.map(rule => `<article><i>+${Number(rule.amount) || 0}</i><span><strong>${esc(rule.label)}</strong><small>${esc(rule.note)}</small></span></article>`).join('')}</div></section>
+      <section class="credit-wallet-panel credit-wallet-panel--rewards"><header><span>Recompensas</span><small>Tu saldo, tus elecciones</small></header><div>${destinations.map(item => `<button type="button" ${item.available ? `data-wallet-destination="${esc(item.section || '')}"` : 'disabled'}><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span><em>${item.available ? 'Explorar' : 'Próximamente'}</em></button>`).join('')}</div></section>
+      <section class="credit-wallet-panel credit-wallet-panel--history"><header><span>Movimientos recientes</span><small>${movements.length ? `${movements.length} registrados` : 'Sin movimientos todavía'}</small></header><div>${movements.length ? movements.map(item => `<article><span class="credit-movement__icon credit-movement__icon--${Number(item.amount) < 0 ? 'spend' : 'earn'}">${Number(item.amount) < 0 ? '−' : '+'}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.detail || '')} · ${esc(formatMovementDate(item.createdAt))}</small></span><b class="credit-movement__amount credit-movement__amount--${Number(item.amount) < 0 ? 'spend' : 'earn'}">${Number(item.amount) > 0 ? '+' : ''}${Number(item.amount) || 0}</b></article>`).join('') : '<p class="credit-wallet-empty">Supera un reto o un juego de clase y aquí verás el movimiento.</p>'}</div></section>
+    </div>`;
+  }
+
+  async function openCreditWallet() {
+    document.querySelector('.credit-wallet-modal')?.remove();
+    const root = document.createElement('div');
+    root.className = 'credit-wallet-modal';
+    root.setAttribute('role', 'dialog');
+    root.setAttribute('aria-modal', 'true');
+    root.setAttribute('aria-labelledby', 'credit-wallet-title');
+    root.innerHTML = `<div class="credit-wallet-modal__veil" data-credit-wallet-close></div><section class="credit-wallet-modal__shell"><header><div><span>Créditos ICADEM</span><h2 id="credit-wallet-title">Tu cartera profesional</h2></div><button type="button" data-credit-wallet-close aria-label="Cerrar cartera">×</button></header><div class="credit-wallet-modal__body"><div class="credit-wallet-loading">Sincronizando tu saldo…</div></div></section>`;
+    document.body.appendChild(root);
+    document.body.classList.add('has-credit-wallet');
+    let releaseA11y = () => {};
+    const close = () => { root.remove(); document.body.classList.remove('has-credit-wallet'); releaseA11y(); };
+    releaseA11y = activateDialogA11y(root, close);
+    root.querySelectorAll('[data-credit-wallet-close]').forEach(button => button.addEventListener('click', close));
+    root.querySelector('[data-credit-wallet-close]:not(.credit-wallet-modal__veil)')?.focus();
+    try {
+      const data = await loadCreditWallet(true);
+      if (!root.isConnected) return;
+      root.querySelector('.credit-wallet-modal__body').innerHTML = walletMarkup(data);
+      root.querySelectorAll('[data-wallet-destination]').forEach(button => button.addEventListener('click', () => {
+        const section = button.dataset.walletDestination;
+        close();
+        if (section) location.hash = `#${section}`;
+      }));
+    } catch (error) {
+      if (!root.isConnected) return;
+      root.querySelector('.credit-wallet-modal__body').innerHTML = `<div class="credit-wallet-error"><strong>No pudimos sincronizar tu cartera.</strong><span>${esc(error.message)}</span><button type="button" data-wallet-retry>Reintentar</button></div>`;
+      root.querySelector('[data-wallet-retry]')?.addEventListener('click', () => { close(); openCreditWallet(); });
+    }
   }
 
   async function saveProfile(profile) {
@@ -158,7 +402,7 @@
   }
 
   function localChallenge(type, title) {
-    const selected = type || ['crossword', 'memory', 'wordsearch', 'puzzle', 'guess', 'classify'][Math.floor(Math.random() * 6)];
+    const selected = type || PRACTICE_TYPES[Math.floor(Math.random() * PRACTICE_TYPES.length)];
     const words = ['CRITERIO', 'PROCESO', 'CONTROL'];
     const pairs = [
       { id: 'a', left: 'Criterio', right: 'Decidir con fundamento' },
@@ -171,7 +415,10 @@
       instructions: ['Observa la consigna', 'Resuelve con calma', 'Comprueba tu respuesta'], reward: 5,
       balance: Number(localStorage.getItem('icadem:demo:credits') || 340)
     };
-    if (selected === 'crossword' || selected === 'guess') {
+    if (selected === 'quiz') {
+      local.content = { questions: DEMO_QUIZ.map(({ answer, ...question }) => question), passingScore: 70, bankSize: 20 };
+      local.solution = { answers: Object.fromEntries(DEMO_QUIZ.map(question => [question.id, question.answer])), minCorrect: 9, total: 12 };
+    } else if (selected === 'crossword' || selected === 'guess') {
       local.content = { clue: 'Capacidad de decidir con fundamento', length: 8, maxAttempts: 3 };
       local.solution = { answer: 'CRITERIO' };
     } else if (selected === 'memory') {
@@ -227,25 +474,34 @@
     if (experienceId === 'catalog') {
       if (!status.catalogTypes.includes(challenge.type)) status.catalogTypes.push(challenge.type);
     } else if (experienceId === 'daily') {
-      status.dailyDate = new Date().toISOString().slice(0, 10);
+      status.dailyDate = mexicoDateKey();
     } else if (experienceId && !status.used.includes(experienceId)) {
       status.used.push(experienceId);
     }
     localStorage.setItem(demoRetoStatusKey(), JSON.stringify(status));
   }
 
+  function demoRetoAlreadyUsed(experienceId, type) {
+    const status = readDemoRetoStatus();
+    const today = mexicoDateKey();
+    if (experienceId === 'catalog') return status.catalogTypes.includes(type);
+    if (experienceId === 'daily') return status.dailyDate === today;
+    return status.used.includes(experienceId);
+  }
+
   function modalShell(challenge, onClose) {
     document.querySelector('.learning-game')?.remove();
     const modal = document.createElement('div');
-    modal.className = 'learning-game';
+    modal.className = 'learning-game learning-game--v3';
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-labelledby', 'learning-game-title');
+    modal.setAttribute('aria-label', challenge?.scope === 'reto' ? 'Reto profesional ICADEM' : 'Actividad de cierre ICADEM');
     modal.innerHTML = `
-      <div class="learning-game__veil"></div>
+      <div class="learning-game__veil" data-game-close></div>
       <section class="learning-game__panel">
         <header class="learning-game__header">
-          <div class="learning-game__brand"><span>ICADEM</span><small>Actividad de cierre</small></div>
+          <div class="learning-game__brand"><span>ICADEM</span><small>${challenge?.scope === 'reto' ? 'Reto profesional' : 'Actividad de cierre'}</small></div>
           <div class="learning-game__step" aria-label="Progreso"><i class="is-current"></i><i></i><i></i></div>
           <button class="learning-game__close" type="button" aria-label="Cerrar actividad">×</button>
         </header>
@@ -253,12 +509,16 @@
       </section>`;
     document.body.appendChild(modal);
     document.body.classList.add('has-learning-game');
+    let releaseA11y = () => {};
     const close = () => {
       modal.remove();
       document.body.classList.remove('has-learning-game');
+      releaseA11y();
       onClose?.();
     };
+    releaseA11y = activateDialogA11y(modal, close);
     modal.querySelector('.learning-game__close').addEventListener('click', close);
+    modal.querySelector('[data-game-close]')?.addEventListener('click', close);
     modal.querySelector('.learning-game__close').focus();
     return { modal, content: modal.querySelector('#learning-game-content'), close };
   }
@@ -272,17 +532,26 @@
 
   function introView(challenge, shell, start) {
     const typeLabel = GAME_LABELS[challenge.type] || 'Actividad';
+    const meta = GAME_META[challenge.type] || { eyebrow: typeLabel, icon: 'i-trophy', duration: '2 min' };
     shell.content.innerHTML = `
       <div class="game-intro">
-        <span class="game-intro__icon" aria-hidden="true">${GAME_ICONS[challenge.type] || '◇'}</span>
-        <span class="game-kicker">${esc(typeLabel)}</span>
-        <h2 id="learning-game-title">${esc(challenge.title || 'Cierre de clase')}</h2>
-        <p>${esc(challenge.objective || 'Completa la actividad para continuar.')}</p>
-        <ol>${(challenge.instructions || []).slice(0, 3).map((line, i) => `<li><b>0${i + 1}</b><span>${esc(line)}</span></li>`).join('')}</ol>
-        <div class="game-intro__reward"><span>Recompensa</span><strong>${challenge.reward ? `+${challenge.reward} créditos` : 'Práctica libre'}</strong></div>
-        <button class="game-primary" type="button" data-game-start>Comenzar</button>
+        <section class="game-intro__main">
+          <span class="game-intro__icon" aria-hidden="true"><svg class="ic"><use href="#${esc(meta.icon)}"/></svg></span>
+          <span class="game-kicker">${esc(meta.eyebrow || typeLabel)}</span>
+          <h2 id="learning-game-title">${esc(challenge.title || meta.title || 'Cierre de clase')}</h2>
+          <p>${esc(challenge.objective || 'Completa la actividad para continuar.')}</p>
+          <div class="game-intro__facts"><span>${esc(meta.duration || '2 min')}</span><span>${esc(typeLabel)}</span></div>
+          <button class="game-primary" type="button" data-game-start>Comenzar reto <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+        </section>
+        <aside class="game-intro__brief">
+          <header><small>Antes de empezar</small><strong>Tu ruta en 3 pasos</strong></header>
+          <ol>${(challenge.instructions || []).slice(0, 3).map((line, i) => `<li><b>0${i + 1}</b><span>${esc(line)}</span></li>`).join('')}</ol>
+          <div class="game-intro__reward"><span>Recompensa verificada</span><strong>${challenge.reward ? `+${challenge.reward} créditos` : 'Práctica libre'}</strong></div>
+        </aside>
       </div>`;
-    shell.content.querySelector('[data-game-start]').addEventListener('click', start);
+    const startButton = shell.content.querySelector('[data-game-start]');
+    startButton.addEventListener('click', start);
+    requestAnimationFrame(() => startButton.focus());
   }
 
   function gameFrame(challenge, shell, inner) {
@@ -290,13 +559,20 @@
     shell.content.innerHTML = `
       <div class="game-run">
         <div class="game-run__heading">
-          <span class="game-kicker">${esc(GAME_LABELS[challenge.type])}</span>
-          <h2 id="learning-game-title">${esc(challenge.title)}</h2>
+          <span><span class="game-kicker">${esc(GAME_LABELS[challenge.type])}</span><h2 id="learning-game-title" tabindex="-1">${esc(challenge.title)}</h2></span>
+          <small>Resuelve con calma · tu avance se valida al comprobar</small>
         </div>
-        <div class="game-status" aria-live="polite"></div>
-        <div class="game-board">${inner}</div>
-        <div class="game-actions"><button class="game-secondary" type="button" data-game-reset>Reiniciar</button><button class="game-primary" type="button" data-game-check>Comprobar</button></div>
+        <section class="game-stage">
+          <div class="game-status" aria-live="polite"></div>
+          <div class="game-board">${inner}</div>
+          <div class="game-actions"><button class="game-secondary" type="button" data-game-reset>Reiniciar</button><button class="game-primary" type="button" data-game-check>Comprobar <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></button></div>
+        </section>
       </div>`;
+    const heading = shell.content.querySelector('#learning-game-title');
+    requestAnimationFrame(() => {
+      const active = document.activeElement;
+      if (!active || active === document.body || !shell.content.contains(active)) heading?.focus();
+    });
     return {
       board: shell.content.querySelector('.game-board'),
       status: shell.content.querySelector('.game-status'),
@@ -318,7 +594,7 @@
     const input = frame.board.querySelector('input');
     frame.check.addEventListener('click', () => submit({ answer: input.value }, frame));
     input.addEventListener('keydown', event => { if (event.key === 'Enter') frame.check.click(); });
-    frame.reset.addEventListener('click', () => { input.value = ''; frame.status.textContent = ''; input.focus(); });
+    frame.reset.addEventListener('click', () => { input.value = ''; frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
     input.focus();
   }
 
@@ -337,8 +613,8 @@
       if (open.length === 2) {
         if (open[0].dataset.pair === open[1].dataset.pair) {
           const id = open[0].dataset.pair;
-          setTimeout(() => { open.forEach(x => x.classList.add('is-matched')); matched.push(id); open = []; announce('Pareja encontrada'); }, 260);
-        } else setTimeout(() => { open.forEach(x => x.classList.remove('is-open')); open = []; }, 650);
+          setTimeout(() => { open.forEach(x => { x.classList.add('is-matched'); x.disabled = true; x.setAttribute('aria-label', `Pareja encontrada: ${x.textContent.trim()}`); }); matched.push(id); open = []; announce('Pareja encontrada'); }, 260);
+        } else setTimeout(() => { open.forEach(x => { x.classList.remove('is-open'); x.setAttribute('aria-label', 'Carta oculta'); }); open = []; }, 650);
       }
     }));
     frame.check.addEventListener('click', () => submit({ pairs: [...new Set(matched)] }, frame));
@@ -426,7 +702,7 @@
     const assignments = {};
     const frame = gameFrame(challenge, shell, `
       <div class="classify"><div class="classify__items">${(content.items || []).map(item => `<button type="button" draggable="true" data-item="${esc(item.id)}">${esc(item.label)}</button>`).join('')}</div>
-      <div class="classify__zones">${(content.categories || []).map(cat => `<section data-category="${esc(cat)}"><h3>${esc(cat)}</h3><div></div></section>`).join('')}</div></div>`);
+      <div class="classify__zones">${(content.categories || []).map(cat => `<section data-category="${esc(cat)}" role="group" tabindex="0" aria-label="Asignar tarjeta seleccionada a ${esc(cat)}"><h3>${esc(cat)}</h3><div></div></section>`).join('')}</div></div>`);
     let selected = null;
     const assign = (item, category) => {
       assignments[item.dataset.item] = category;
@@ -440,11 +716,70 @@
     });
     frame.board.querySelectorAll('[data-category]').forEach(zone => {
       zone.addEventListener('click', () => { if (selected) assign(selected, zone.dataset.category); });
+      zone.addEventListener('keydown', event => { if (selected && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); assign(selected, zone.dataset.category); } });
       zone.addEventListener('dragover', event => event.preventDefault());
       zone.addEventListener('drop', event => { event.preventDefault(); const id = event.dataTransfer.getData('text/plain'); const item = frame.board.querySelector(`[data-item="${CSS.escape(id)}"]`); if (item) assign(item, zone.dataset.category); });
     });
     frame.check.addEventListener('click', () => submit({ assignments }, frame));
     frame.reset.addEventListener('click', () => runClassify(challenge, shell, submit));
+  }
+
+  function runQuiz(challenge, shell, submit) {
+    const questions = Array.isArray(challenge.content?.questions) ? challenge.content.questions : [];
+    const answers = {};
+    let index = 0;
+    const frame = gameFrame(challenge, shell, '<div class="quiz-game"></div>');
+    const paint = (focusOption) => {
+      const question = questions[index];
+      if (!question) {
+        frame.board.innerHTML = '<p class="game-hint">No hay preguntas disponibles en este momento.</p>';
+        frame.check.disabled = true;
+        return;
+      }
+      const selected = answers[question.id];
+      const progress = Math.round(((index + 1) / questions.length) * 100);
+      frame.board.innerHTML = `<div class="quiz-game">
+        <div class="quiz-game__progress"><span>Pregunta ${index + 1} de ${questions.length}</span><i><b style="width:${progress}%"></b></i><em>${progress}%</em></div>
+        <span class="quiz-game__area">${esc(question.area || 'ICADEM')}</span>
+        <h3 tabindex="-1">${esc(question.question)}</h3>
+        <div class="quiz-game__options" role="radiogroup" aria-label="Opciones de respuesta">${(question.options || []).map((option, optionIndex) => `<button type="button" role="radio" aria-checked="${selected === optionIndex}" tabindex="${selected == null ? (optionIndex === 0 ? 0 : -1) : (selected === optionIndex ? 0 : -1)}" class="${selected === optionIndex ? 'is-selected' : ''}" data-quiz-option="${optionIndex}"><b>${String.fromCharCode(65 + optionIndex)}</b><span>${esc(option)}</span></button>`).join('')}</div>
+        <div class="quiz-game__nav"><button type="button" data-quiz-prev ${index === 0 ? 'disabled' : ''}>Pregunta anterior</button><small>${Object.keys(answers).length} respondidas</small></div>
+      </div>`;
+      frame.check.innerHTML = `${index === questions.length - 1 ? 'Comprobar resultado' : 'Siguiente pregunta'} <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>`;
+      frame.status.textContent = selected == null ? 'Elige una respuesta para continuar.' : 'Respuesta guardada.';
+      frame.status.classList.remove('is-error');
+      const optionButtons = Array.from(frame.board.querySelectorAll('[data-quiz-option]'));
+      const choose = button => { answers[question.id] = Number(button.dataset.quizOption); paint(true); };
+      optionButtons.forEach((button, buttonIndex) => {
+        button.addEventListener('click', () => choose(button));
+        button.addEventListener('keydown', event => {
+          const keys = ['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp', 'Home', 'End'];
+          if (!keys.includes(event.key)) return;
+          event.preventDefault();
+          let next = buttonIndex;
+          if (event.key === 'ArrowRight' || event.key === 'ArrowDown') next = (buttonIndex + 1) % optionButtons.length;
+          if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') next = (buttonIndex - 1 + optionButtons.length) % optionButtons.length;
+          if (event.key === 'Home') next = 0;
+          if (event.key === 'End') next = optionButtons.length - 1;
+          choose(optionButtons[next]);
+        });
+      });
+      frame.board.querySelector('[data-quiz-prev]')?.addEventListener('click', () => { index = Math.max(0, index - 1); paint(); });
+      if (focusOption) frame.board.querySelector(`[data-quiz-option="${answers[question.id]}"]`)?.focus();
+      else frame.board.querySelector('h3')?.focus();
+    };
+    frame.check.addEventListener('click', () => {
+      const question = questions[index];
+      if (!question || answers[question.id] == null) {
+        frame.status.textContent = 'Selecciona una respuesta antes de continuar.';
+        frame.status.classList.add('is-error');
+        return;
+      }
+      if (index < questions.length - 1) { index += 1; paint(); return; }
+      submit({ answers }, frame);
+    });
+    frame.reset.addEventListener('click', () => { Object.keys(answers).forEach(key => delete answers[key]); index = 0; paint(); });
+    paint();
   }
 
   function successView(challenge, shell, result, onComplete, onContinue) {
@@ -453,22 +788,32 @@
     const previous = Number(result.previousBalance ?? challenge.balance ?? 0);
     const reward = Number(result.reward ?? challenge.reward ?? 0);
     const next = Number(result.newBalance ?? previous + reward);
+    const hasReward = reward > 0;
     shell.content.innerHTML = `
       <div class="game-success">
         <span class="game-kicker">Actividad superada</span>
         <h2 id="learning-game-title">${challenge.scope === 'reto' ? 'Reto superado' : 'Clase completada'}</h2>
-        <p>${challenge.scope === 'reto' ? 'Tu resultado y tus créditos ya quedaron guardados.' : 'Tu avance ya quedó guardado.'}</p>
-        <button class="reward-chest" type="button" data-open-chest aria-label="Abrir recompensa"><span class="reward-chest__lid"></span><span class="reward-chest__box">ICA</span></button>
-        <div class="reward-summary" hidden>
-          <span>Recompensa</span><strong>+<b data-reward-count>0</b> créditos</strong>
-          <div><small>Saldo anterior <b>${previous}</b></small><i>→</i><small>Nuevo saldo <b>${next}</b></small></div>
-        </div>
-        <button class="game-primary" type="button" data-game-continue disabled>${result.nextLessonNumber ? 'Continuar a la siguiente clase' : (challenge.scope === 'reto' ? 'Volver a Retos' : 'Volver al curso')}</button>
+        <p>${hasReward ? (challenge.scope === 'reto' ? 'Tu resultado y tus créditos ya quedaron guardados.' : 'Tu avance y tu recompensa ya quedaron guardados.') : 'Práctica completada. Este intento no modifica tus créditos ni la clasificación.'}</p>
+        ${hasReward ? `
+          <button class="reward-chest" type="button" data-open-chest aria-label="Abrir recompensa"><span class="reward-chest__lid"></span><span class="reward-chest__box">ICA</span></button>
+          <div class="reward-summary" hidden>
+            <span>Recompensa</span><strong>+<b data-reward-count>0</b> créditos</strong>
+            <div><small>Saldo anterior <b>${previous}</b></small><i>→</i><small>Nuevo saldo <b>${next}</b></small></div>
+          </div>` : `
+          <div class="reward-summary reward-summary--practice">
+            <span>Modo práctica</span><strong>Sesión completada</strong>
+            <div><small>Tu saldo permanece en</small><small><b>${next}</b> créditos</small></div>
+          </div>`}
+        <button class="game-primary" type="button" data-game-continue${hasReward ? ' disabled' : ''}>${result.nextLessonNumber ? 'Continuar a la siguiente clase' : (challenge.scope === 'reto' ? 'Volver a Retos' : 'Volver al curso')}</button>
       </div>`;
     const chest = shell.content.querySelector('[data-open-chest]');
     const summary = shell.content.querySelector('.reward-summary');
     const continueButton = shell.content.querySelector('[data-game-continue]');
-    chest.addEventListener('click', () => {
+    if (!hasReward) {
+      publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: 'practice' });
+      announce(`Práctica completada. Tu saldo permanece en ${next} créditos.`);
+      continueButton.focus();
+    } else chest.addEventListener('click', () => {
       if (chest.classList.contains('is-open')) return;
       chest.classList.add('is-open'); summary.hidden = false; continueButton.disabled = false;
       const counter = shell.content.querySelector('[data-reward-count]');
@@ -477,12 +822,12 @@
         let value = 0;
         const interval = setInterval(() => { value += 1; counter.textContent = String(Math.min(reward, value)); if (value >= reward) clearInterval(interval); }, 110);
       }
-      if (window.UserState?.credits) window.UserState.credits.balance = next;
-      document.querySelectorAll('[data-credit-balance]').forEach(el => { el.textContent = String(next); });
+      publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: challenge.scope === 'reto' ? 'reto-game' : 'lesson-game' });
+      creditWalletCache = null;
       announce(`Ganaste ${reward} créditos. Nuevo saldo: ${next}.`);
     });
     continueButton.addEventListener('click', () => { shell.close(); onContinue?.(result); });
-    chest.focus();
+    if (hasReward) chest.focus();
   }
 
   function startChallenge(challenge, options) {
@@ -495,25 +840,46 @@
           let result;
           if (challenge.local) {
             let correct = false;
+            let quizScore = null;
             if (challenge.type === 'crossword' || challenge.type === 'guess') correct = normalize(proof.answer) === challenge.solution.answer;
             else if (challenge.type === 'memory') correct = JSON.stringify((proof.pairs || []).slice().sort()) === JSON.stringify(challenge.solution.pairs);
             else if (challenge.type === 'wordsearch') correct = JSON.stringify((proof.words || []).slice().sort()) === JSON.stringify(challenge.solution.words);
             else if (challenge.type === 'puzzle') correct = JSON.stringify(proof.order || []) === JSON.stringify(challenge.solution.order);
             else if (challenge.type === 'classify') correct = Object.keys(challenge.solution.assignments).every(key => proof.assignments?.[key] === challenge.solution.assignments[key]);
-            if (!correct) { const error = new Error('Aún no está correcto. Revisa la actividad e inténtalo otra vez.'); error.status = 422; throw error; }
-            const previousBalance = Number(localStorage.getItem('icadem:demo:credits') || challenge.balance || 0);
+            else if (challenge.type === 'quiz') {
+              const correctAnswers = Object.entries(challenge.solution.answers || {}).filter(([id, answer]) => {
+                const value = proof.answers?.[id];
+                return Number.isInteger(value) && value >= 0 && value <= 3 && value === answer;
+              }).length;
+              quizScore = Math.round((correctAnswers / Math.max(1, Number(challenge.solution.total) || 12)) * 100);
+              correct = correctAnswers >= Number(challenge.solution.minCorrect || 0);
+            }
+            if (!correct) { const error = new Error(quizScore == null ? 'Aún no está correcto. Revisa la actividad e inténtalo otra vez.' : `Obtuviste ${quizScore}%. Necesitas al menos 70%; revisa tus respuestas e inténtalo otra vez.`); error.status = 422; throw error; }
             const reward = Number(challenge.reward) || 5;
-            const newBalance = previousBalance + reward;
-            localStorage.setItem('icadem:demo:credits', String(newBalance));
+            const today = mexicoDateKey();
+            const movementId = challenge.demoRewardId || (challenge.scope === 'reto'
+              ? challenge.experienceId === 'daily'
+                ? `reto:daily:${today}`
+                : challenge.experienceId === 'catalog'
+                  ? `reto:catalog:${challenge.type}`
+                  : `reto:${challenge.experienceId}`
+              : `practice:${challenge.challengeId}`);
+            const demoResult = applyDemoCreditMovement(reward, {
+              id: movementId,
+              type: challenge.scope === 'reto' ? 'reto-game' : 'lesson-game',
+              label: challenge.scope === 'reto' ? 'Reto ICADEM superado' : 'Juego de clase completado',
+              detail: challenge.title || GAME_LABELS[challenge.type]
+            });
             recordDemoReto(challenge);
-            result = { ok: true, reward, previousBalance, newBalance, nextLessonNumber: null, practice: true };
+            result = { ok: true, reward: demoResult.reward, previousBalance: demoResult.previousBalance, newBalance: demoResult.newBalance, nextLessonNumber: null, practice: true, awarded: demoResult.awarded };
           } else result = await request(challenge.completePath || '/api/learning/complete', { method: 'POST', body: { challengeId: challenge.challengeId, proof } });
           successView(challenge, shell, result, options?.onComplete, resultData => { options?.onContinue?.(resultData); resolve(resultData); });
         } catch (error) {
           frame.status.textContent = error.message;
           frame.status.classList.add('is-error');
           frame.check.disabled = false;
-          if (error.status !== 422) showNotice('No se perdió tu avance', 'Revisa tu conexión y vuelve a comprobar.', 'error');
+          if (error.data?.code === 'challenge-too-fast') showNotice('Un momento', error.message, 'info');
+          else if (error.status !== 422) showNotice('No se perdió tu avance', 'Revisa tu conexión y vuelve a comprobar.', 'error');
         }
       };
       const start = () => {
@@ -521,6 +887,7 @@
         else if (challenge.type === 'wordsearch') runWordsearch(challenge, shell, submit);
         else if (challenge.type === 'puzzle') runPuzzle(challenge, shell, submit);
         else if (challenge.type === 'classify') runClassify(challenge, shell, submit);
+        else if (challenge.type === 'quiz') runQuiz(challenge, shell, submit);
         else runTextGame(challenge, shell, submit);
       };
       introView(challenge, shell, start);
@@ -536,10 +903,9 @@
         const types = Object.keys(GAME_LABELS);
         let hash = 0; for (const char of `${courseId}:${lessonNumber}`) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
         challenge = localChallenge(types[Math.abs(hash) % types.length], options?.title || `Clase ${lessonNumber}`);
+        challenge.demoRewardId = `lesson:${courseId}:${lessonNumber}`;
       }
-      else challenge = await request('/api/learning/challenge', { method: 'POST', body: {
-        courseId, lessonNumber, legacyCompletedLessons: options?.legacyCompletedLessons || []
-      }});
+      else challenge = await request('/api/learning/challenge', { method: 'POST', body: { courseId, lessonNumber } });
       return startChallenge(challenge, options);
     } catch (error) {
       showNotice('No pudimos abrir la actividad', error.message, 'error');
@@ -553,6 +919,12 @@
     let challenge;
     try {
       if (window.__isDemoMode) {
+        if (demoRetoAlreadyUsed(experienceId, type)) {
+          const error = new Error('Este reto ya fue completado. Cada usuario puede ganarlo una sola vez.');
+          error.status = 409;
+          error.data = { code: 'reto-already-played' };
+          throw error;
+        }
         challenge = localChallenge(type, options?.title || GAME_LABELS[type]);
         challenge.scope = 'reto';
         challenge.experienceId = experienceId;
@@ -590,16 +962,27 @@
 
   function openPracticePicker() {
     const existing = document.querySelector('.practice-picker'); existing?.remove();
-    const root = document.createElement('div'); root.className = 'practice-picker'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true');
-    root.innerHTML = `<div class="practice-picker__box"><button type="button" class="practice-picker__close" aria-label="Cerrar">×</button><span class="game-kicker">Juegos ICADEM</span><h2>Elige cómo practicar</h2><p>Seis dinámicas breves con contenido profesional.</p><div>${Object.keys(GAME_LABELS).map(type => `<button type="button" data-practice="${type}"><span>${GAME_ICONS[type]}</span><strong>${GAME_LABELS[type]}</strong></button>`).join('')}</div></div>`;
+    const liveStatus = window.__icademRetoStatus || {};
+    const demoStatus = window.__isDemoMode ? readDemoRetoStatus() : null;
+    const usedTypes = new Set(window.__isDemoMode ? demoStatus.catalogTypes : (liveStatus.catalogUsedTypes || []));
+    const isAdmin = liveStatus.isAdmin === true;
+    const root = document.createElement('div'); root.className = 'practice-picker practice-picker--v3'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'practice-picker-title');
+    root.innerHTML = `<div class="practice-picker__veil" data-practice-close></div><section class="practice-picker__box"><header class="practice-picker__head"><div><span class="game-kicker">Juegos ICADEM</span><h2 id="practice-picker-title">Entrena a tu manera</h2><p>Seis dinámicas profesionales, una recompensa validada por juego.</p></div><button type="button" class="practice-picker__close" data-practice-close aria-label="Cerrar">×</button></header><div class="practice-picker__grid">${PRACTICE_TYPES.map((type, index) => {
+      const meta = GAME_META[type] || { eyebrow: 'Práctica', title: GAME_LABELS[type], description: 'Actividad profesional ICADEM.', duration: '2 min', icon: 'i-trophy' };
+      const used = !isAdmin && usedTypes.has(type);
+      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-practice="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon"><svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg></span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Completado' : '+5 créditos'}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
+    }).join('')}</div></section>`;
     document.body.appendChild(root); document.body.classList.add('has-learning-game');
-    root.querySelector('.practice-picker__close').addEventListener('click', () => { root.remove(); document.body.classList.remove('has-learning-game'); });
+    let releaseA11y = () => {};
+    const close = () => { root.remove(); document.body.classList.remove('has-learning-game'); releaseA11y(); };
+    releaseA11y = activateDialogA11y(root, close);
+    root.querySelectorAll('[data-practice-close]').forEach(button => button.addEventListener('click', close));
     root.querySelectorAll('[data-practice]').forEach(button => button.addEventListener('click', () => {
       const type = button.dataset.practice;
-      root.remove();
-      document.body.classList.remove('has-learning-game');
+      close();
       startRetoChallenge({ experienceId: 'catalog', type, title: GAME_LABELS[type] }).catch(() => {});
     }));
+    root.querySelector('.practice-card:not(:disabled)')?.focus();
   }
 
   async function mountRetosStatus(target) {
@@ -608,8 +991,8 @@
     let data;
     if (window.__isDemoMode) {
       const demoStatus = readDemoRetoStatus();
-      const today = new Date().toISOString().slice(0, 10);
-      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, balance: Number(localStorage.getItem('icadem:demo:credits') || 340), reward: 5 };
+      const today = mexicoDateKey();
+      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, catalogUsedTypes: demoStatus.catalogTypes, balance: Number(localStorage.getItem('icadem:demo:credits') || 340), reward: 5 };
     } else {
       try { data = await request('/api/retos/status'); }
       catch (error) {
@@ -617,7 +1000,8 @@
         return;
       }
     }
-    document.querySelectorAll('[data-credit-balance]').forEach(el => { el.textContent = String(data.balance || 0); });
+    window.__icademRetoStatus = data;
+    publishCredits({ ...(window.UserState?.credits || {}), balance: Number(data.balance) || 0 }, { source: 'retos-status' });
     const used = new Set(data.used || []);
     root.querySelectorAll('[data-reto-key]').forEach(card => {
       const key = card.dataset.retoKey;
@@ -628,9 +1012,16 @@
       const state = card.querySelector('[data-card-state]');
       if (state && isCatalog && !completed && Number(data.catalogUsedCount) > 0) {
         state.innerHTML = `<span>6 juegos</span><span>${Number(data.catalogUsedCount)}/6 completados</span>`;
+      } else if (state && completed && key === 'daily') {
+        state.innerHTML = '<span>12 preguntas</span><span>Completado hoy</span>';
+      } else if (state && completed && !isCatalog) {
+        state.innerHTML = state.classList.contains('retos-tile__state')
+          ? '<i></i>Completado'
+          : '<span>Reto verificado</span><span>+5 créditos</span>';
       }
       const cta = card.querySelector('.retos-tile__cta');
       if (cta && completed) {
+        cta.disabled = true;
         cta.setAttribute('aria-label', 'Ya completado');
         cta.innerHTML = '<span>Ya completado</span><svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>';
       }
@@ -689,6 +1080,13 @@
   }
 
   document.addEventListener('click', event => {
+    const trigger = event.target.closest?.('[data-credit-wallet-open]');
+    if (!trigger) return;
+    event.preventDefault();
+    openCreditWallet();
+  });
+
+  document.addEventListener('click', event => {
     const trigger = event.target.closest('[data-platform-game]');
     if (!trigger) return;
     event.preventDefault();
@@ -713,12 +1111,6 @@
     const lessonNumber = Number(button.dataset.lessonNumber);
     const nextIndex = Number(button.dataset.nextIndex);
     if (!courseId || !lessonNumber) return;
-    let legacyCompletedLessons = [];
-    try {
-      const uid = window.UserState?.uid || 'demo';
-      const progress = JSON.parse(localStorage.getItem(`icadem_progress_${uid}`) || '{}');
-      legacyCompletedLessons = progress[courseId]?.clasesVistas || [];
-    } catch (_) {}
     button.dataset.gameBusy = '1';
     button.disabled = true;
     button.textContent = 'Preparando actividad…';
@@ -726,7 +1118,6 @@
       courseId,
       lessonNumber,
       title: button.dataset.lessonTitle || `Clase ${lessonNumber}`,
-      legacyCompletedLessons,
       onComplete: () => window.marcarClaseVista?.(courseId, lessonNumber),
       onContinue: () => {
         if (nextIndex >= 0) window.abrirClaseICADEM?.(courseId, nextIndex);
@@ -749,10 +1140,14 @@
     event.preventDefault(); trigger.click();
   });
   document.addEventListener('icadem:user-ready', () => syncIdentity());
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && !window.__isDemoMode && window.__currentUser) loadCreditWallet(true).catch(() => {});
+  });
   if (window.__currentUser) syncIdentity();
 
   window.ICADEMPlatform = {
     request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, mountRanking,
+    loadCreditWallet, openCreditWallet, applyDemoCreditMovement,
     saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
   };
 })();
