@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=15" defer></script>
+<script src="js/icadem-platform-v2.js?v=16" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -3944,7 +3944,11 @@ if (window.__isDemoMode) {
       window.UserState.membership = { activo:true, plan:'admin' };
     } else {
       try {
-        const res = await fetch(`${WEBHOOK_URL}/membership/${user.uid}`, { method:'GET' });
+        const idToken = await user.getIdToken();
+        const res = await fetch(`${WEBHOOK_URL}/membership/${user.uid}`, {
+          method:'GET',
+          headers:{ Authorization:`Bearer ${idToken}` }
+        });
         const data = await res.json();
         window.UserState.membership = data;
         if (data.activo) {
@@ -4029,6 +4033,13 @@ if (window.__isDemoMode) {
     setTimeout(() => { window.__applyUserState && window.__applyUserState(); }, 50);
 
     // ─── Popup: confirmar/editar nombre (1ª vez) · evita certificados con el email ───
+    // Reservamos su turno desde ahora para que el recorrido guiado espere y
+    // ningún popup se monte encima del splash de bienvenida.
+    try {
+      if (localStorage.getItem('icadem_name_confirmed') !== '1') {
+        document.documentElement.dataset.icademNamePending = '1';
+      }
+    } catch(e) {}
     setTimeout(() => { try { window.__maybeAskName && window.__maybeAskName(); } catch(e){} }, 900);
 
     // Arrancar listener de notificaciones de Firestore (tiempo real)
@@ -5613,6 +5624,39 @@ const Sections = (function(){
     try { localStorage.setItem(getProgresoKey(), JSON.stringify(p)); } catch {}
   }
 
+  // El servidor conserva el avance por UID. La unión siempre es acumulativa:
+  // un teléfono nuevo nunca puede reemplazar con vacío lo ya completado en PC.
+  window.__mergeServerProgress = function(coursesFromServer) {
+    const local = getProgreso();
+    Object.entries(coursesFromServer || {}).forEach(([courseId, cloud]) => {
+      const current = local[courseId] || { clasesVistas: [], completado: false, fechaCompletado: null };
+      const cloudLessons = Array.isArray(cloud?.completedLessons) ? cloud.completedLessons.map(Number).filter(Number.isFinite) : [];
+      current.clasesVistas = [...new Set([...(current.clasesVistas || []).map(Number), ...cloudLessons])].sort((a, b) => a - b);
+      current.completado = current.completado === true || cloud?.courseCompleted === true;
+      if (!current.fechaCompletado && cloud?.completedAt) {
+        const seconds = Number(cloud.completedAt?._seconds ?? cloud.completedAt?.seconds);
+        current.fechaCompletado = cloud.completedAt?.toDate?.()?.toISOString?.()
+          || (typeof cloud.completedAt === 'string' ? cloud.completedAt : null)
+          || (Number.isFinite(seconds) ? new Date(seconds * 1000).toISOString() : null);
+      }
+      local[courseId] = current;
+    });
+    setProgreso(local);
+    if (_cursosLoaded) {
+      cursos.forEach(curso => {
+        const p = local[curso.id] || { clasesVistas: [] };
+        const total = curso.sesiones?.length || 0;
+        curso.progreso = total ? Math.round(((p.clasesVistas || []).length / total) * 100) : 0;
+        curso.status = p.completado ? 'completado' : ((p.clasesVistas || []).length ? 'progreso' : 'catalogo');
+      });
+      actualizarInicioAprendizaje?.();
+    }
+  };
+  if (window.__pendingServerProgress) {
+    window.__mergeServerProgress(window.__pendingServerProgress);
+    delete window.__pendingServerProgress;
+  }
+
   function getProgresoCurso(cursoId) {
     const p = getProgreso();
     return p[cursoId] || { clasesVistas: [], completado: false, fechaCompletado: null };
@@ -5940,15 +5984,6 @@ const Sections = (function(){
     if (titleEl) titleEl.textContent = `Cargando · ${sesion.titulo || `Clase ${numClase}`}`;
     if (dlEl) dlEl.style.display = 'none';
 
-    const params = new URLSearchParams({
-      autoplay: 'true',
-      loop: 'false',
-      muted: 'false',
-      preload: 'true',
-      responsive: 'true'
-    });
-    const bunnyDirectUrl = `https://iframe.mediadelivery.net/embed/${window.BUNNY_VIDEO_LIBRARY_ID}/${encodeURIComponent(sesion.videoId)}?${params}`;
-
     try {
       const user = window.__auth?.currentUser;
       const idToken = user ? await user.getIdToken() : '';
@@ -5966,13 +6001,7 @@ const Sections = (function(){
       if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
     } catch (error) {
       console.error('[Bunny player]', error);
-      // Respaldo temporal: si Railway todavía no tiene la configuración de
-      // Bunny, la clase ya autorizada se mantiene abierta con el iframe oficial.
-      if (frame?.dataset.bunnyRequest === requestId) {
-        frame.src = bunnyDirectUrl;
-        if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
-        return;
-      }
+      if (frame?.dataset.bunnyRequest === requestId) window.cerrarVisor?.();
       Toast.error('No se pudo abrir la clase', error.message || 'Intenta nuevamente');
     }
   };
@@ -8312,13 +8341,8 @@ const Sections = (function(){
         });
         const data = await response.json().catch(() => ({}));
         if (!container.isConnected || location.hash !== '#clase-detalle') return;
-        if (!response.ok || !data.embedUrl) {
-          // Fallback al iframe directo de Bunny si el webhook no está configurado
-          const params = new URLSearchParams({ autoplay: 'true', loop: 'false', muted: 'false', preload: 'true', responsive: 'true' });
-          frameEl.src = `https://iframe.mediadelivery.net/embed/${window.BUNNY_VIDEO_LIBRARY_ID}/${encodeURIComponent(sesion.videoId)}?${params}`;
-        } else {
-          frameEl.src = data.embedUrl;
-        }
+        if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
+        frameEl.src = data.embedUrl;
         frameEl.hidden = false;
         statusEl.hidden = true;
       } catch (error) {
@@ -10783,14 +10807,12 @@ const Sections = (function(){
       }
       mountEl.innerHTML = `<div class="sub-loading"><div class="sub-loading__spin"></div><div>Cargando plan ${selectedPlan}…</div></div>`;
       try {
+        const idToken = await window.__currentUser?.getIdToken();
+        if (!idToken) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
         const res = await fetch(`${window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app'}/stripe/checkout`, {
           method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({
-            plan: selectedPlan,
-            uid: S.uid,
-            email: S.email
-          })
+          headers:{'Content-Type':'application/json', Authorization:`Bearer ${idToken}`},
+          body: JSON.stringify({ plan: selectedPlan })
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({error:'Error desconocido'}));
@@ -11037,24 +11059,26 @@ const Sections = (function(){
     btnSpinner.style.display = 'inline-flex';
 
     try {
+      const idToken = await window.__currentUser?.getIdToken();
+      if (!idToken) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
       const resp = await fetch(WEBHOOK_BASE_URL + '/stripe/cancel-subscription', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ uid: S.uid, email: S.email })
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: '{}'
       });
       const data = await resp.json();
       if (!resp.ok) throw new Error(data.error || 'No se pudo cancelar');
 
       // Actualizar estado en window.UserState
       window.UserState.cancelacionProgramada = true;
-      window.UserState.fechaFinAcceso = data.finAcceso;
+      window.UserState.fechaFinAcceso = data.fechaFinAcceso;
 
       // Cerrar modal de confirmación
       modal.remove();
       document.body.style.overflow = '';
 
       // Mostrar splash de éxito
-      mostrarSplashCancelacionExitosa(data.finAcceso);
+      mostrarSplashCancelacionExitosa(data.fechaFinAcceso);
 
       // Re-renderizar la pestaña suscripción para mostrar "Cancelación programada"
       setTimeout(() => {
@@ -11387,8 +11411,18 @@ function openPasswordResetModal(){
 // ═══════════════════════════════════════════════════════════════════
 window.__maybeAskName = function(){
   try {
-    if (localStorage.getItem('icadem_name_confirmed') === '1') return;
+    if (localStorage.getItem('icadem_name_confirmed') === '1') {
+      delete document.documentElement.dataset.icademNamePending;
+      return;
+    }
     if (document.getElementById('name-modal')) return;
+    const otroDialogo = document.querySelector(
+      '#splash-bienvenida,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible'
+    );
+    if (otroDialogo) {
+      setTimeout(() => window.__maybeAskName?.(), 250);
+      return;
+    }
     const S = window.UserState || {};
     const email = S.email || '';
     const emailPart = email.split('@')[0] || '';
@@ -11465,6 +11499,7 @@ window.__maybeAskName = function(){
       if (window.memberData) window.memberData.nombre = val;
       try { const ls=JSON.parse(localStorage.getItem('icadem_profile')||'{}'); ls.nombre=val; localStorage.setItem('icadem_profile',JSON.stringify(ls)); } catch(e){}
       localStorage.setItem('icadem_name_confirmed','1');
+      delete document.documentElement.dataset.icademNamePending;
       if (typeof window.__applyUserState==='function') window.__applyUserState();
       if (window.Toast) Toast.success('Nombre guardado', val);
       ov.remove();
@@ -11475,10 +11510,14 @@ window.__maybeAskName = function(){
       // No volver a molestar, pero NO marcamos como "confirmado" para que el
       // perfil siga sugiriendo completarlo. Marcamos solo "preguntado".
       localStorage.setItem('icadem_name_confirmed','1');
+      delete document.documentElement.dataset.icademNamePending;
       ov.remove();
       if (window.Toast) Toast.info('Puedes cambiarlo luego', 'Mi perfil → Nombre completo');
     });
-  } catch(e){ console.warn('maybeAskName:', e); }
+  } catch(e){
+    delete document.documentElement.dataset.icademNamePending;
+    console.warn('maybeAskName:', e);
+  }
 };
 
 function openEditField(field){
@@ -20157,6 +20196,6 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=23">
-<script src="js/icadem-onboarding.js?v=2"></script>
+<script src="js/icadem-onboarding.js?v=4"></script>
 </body>
 </html>

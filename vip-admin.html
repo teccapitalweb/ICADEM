@@ -4796,7 +4796,9 @@ const Pages={
         <div style="font-weight:700;font-size:12.5px;color:var(--text);margin-bottom:8px;">Lo que va a pasar:</div>
         <ul style="margin:0;padding-left:20px;font-size:12px;color:var(--text-2);line-height:1.7;">
           ${activo ? '<li style="color:#F59E0B;">Su suscripción Stripe se cancelará automáticamente</li>' : ''}
-          <li>Su documento en Firestore col <code style="background:var(--surface-3);padding:2px 5px;border-radius:3px;">miembros</code> será borrado</li>
+          <li>Se borrarán su perfil, membresía, directorio, ranking, créditos y progreso</li>
+          <li>Se eliminarán sus publicaciones, comentarios, reacciones y certificados</li>
+          <li>Se borrarán retos, canjes, movimientos y archivos asociados</li>
           <li>Su cuenta en Firebase Auth será eliminada</li>
           <li>NO podrá iniciar sesión nunca más</li>
           <li>Si vuelve a registrarse, será una cuenta NUEVA</li>
@@ -4834,7 +4836,9 @@ const Pages={
       btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Eliminando…`;
       const r = await Pages._llamarEliminar(m.uid || m.id);
       if (r.ok) {
-        Toast.success('Miembro eliminado', `${nombre} ya no existe en el sistema`);
+        const d = r.data?.eliminado || {};
+        const comunidad = Number(d.publicaciones || 0) + Number(d.comentarios || 0) + Number(d.reacciones || 0);
+        Toast.success('Cuenta y datos eliminados', `${nombre} ya no existe en ICADEM${comunidad ? ` · ${comunidad} registros de comunidad retirados` : ''}`);
         Modal.close();
       } else {
         Toast.error('No se pudo eliminar', r.error || 'Error desconocido');

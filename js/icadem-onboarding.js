@@ -62,8 +62,13 @@
     style.textContent = `
       .ica-tour-root{position:fixed;inset:0;z-index:2147483000;pointer-events:auto;font-family:'Inter',system-ui,sans-serif}
       .ica-tour-root[hidden]{display:none!important}
-      .ica-tour-shade{position:absolute;inset:0;background:transparent}
-      .ica-tour-spotlight{position:fixed;border:2px solid #d7b879;border-radius:14px;box-shadow:0 0 0 9999px rgba(5,14,22,.76),0 0 0 5px rgba(215,184,121,.16),0 16px 44px rgba(0,0,0,.3);pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease;z-index:1}
+      .ica-tour-shade{position:fixed;background:rgba(5,14,22,.76);z-index:0}
+      .ica-tour-shade--top{left:0;right:0;top:0;height:var(--ica-spot-top,100vh)}
+      .ica-tour-shade--bottom{left:0;right:0;top:calc(var(--ica-spot-top,0px) + var(--ica-spot-height,0px));bottom:0}
+      .ica-tour-shade--left{left:0;top:var(--ica-spot-top,0px);width:var(--ica-spot-left,0px);height:var(--ica-spot-height,0px)}
+      .ica-tour-shade--right{left:calc(var(--ica-spot-left,0px) + var(--ica-spot-width,0px));right:0;top:var(--ica-spot-top,0px);height:var(--ica-spot-height,0px)}
+      .ica-tour-no-target .ica-tour-shade--top{inset:0;height:auto}.ica-tour-no-target .ica-tour-shade:not(.ica-tour-shade--top){display:none}
+      .ica-tour-spotlight{position:fixed;border:2px solid #d7b879;border-radius:14px;box-shadow:0 0 0 5px rgba(215,184,121,.16),0 16px 44px rgba(0,0,0,.3);pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease;z-index:1}
       .ica-tour-card{position:fixed;z-index:2;width:min(374px,calc(100vw - 28px));padding:0;overflow:hidden;border:1px solid rgba(23,59,86,.16);border-radius:22px;background:#fbfaf7;color:#142238;box-shadow:0 28px 90px rgba(5,18,29,.36);outline:none}
       .ica-tour-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;padding:17px 20px 15px;border-bottom:1px solid #e5e8e8;background:linear-gradient(110deg,#f3efe6,#fbfaf7)}
       .ica-tour-brand{display:flex;align-items:center;gap:9px;color:#244960;font:800 9px/1.2 'JetBrains Mono',monospace;letter-spacing:1.35px;text-transform:uppercase}
@@ -145,7 +150,10 @@
     root.className = 'ica-tour-root';
     root.hidden = true;
     root.innerHTML = `
-      <div class="ica-tour-shade" aria-hidden="true"></div>
+      <div class="ica-tour-shade ica-tour-shade--top" aria-hidden="true"></div>
+      <div class="ica-tour-shade ica-tour-shade--right" aria-hidden="true"></div>
+      <div class="ica-tour-shade ica-tour-shade--bottom" aria-hidden="true"></div>
+      <div class="ica-tour-shade ica-tour-shade--left" aria-hidden="true"></div>
       <div class="ica-tour-spotlight" aria-hidden="true"></div>
       <section class="ica-tour-card" role="dialog" aria-modal="true" aria-labelledby="ica-tour-title" aria-describedby="ica-tour-text" tabindex="-1">
         <div class="ica-tour-top">
@@ -178,6 +186,7 @@
     if (!running || !card || !spotlight) return;
     const gap = 16;
     if (!currentTarget || !isVisible(currentTarget)) {
+      root.classList.add('ica-tour-no-target');
       spotlight.style.cssText = 'display:none';
       card.style.bottom = 'auto';
       card.style.maxHeight = '';
@@ -192,6 +201,11 @@
       width: Math.min(innerWidth - 12, raw.width + pad * 2),
       height: Math.min(innerHeight - 12, raw.height + pad * 2)
     };
+    root.classList.remove('ica-tour-no-target');
+    root.style.setProperty('--ica-spot-left', rect.left + 'px');
+    root.style.setProperty('--ica-spot-top', rect.top + 'px');
+    root.style.setProperty('--ica-spot-width', rect.width + 'px');
+    root.style.setProperty('--ica-spot-height', rect.height + 'px');
     spotlight.style.display = 'block';
     spotlight.style.left = rect.left + 'px'; spotlight.style.top = rect.top + 'px';
     spotlight.style.width = rect.width + 'px'; spotlight.style.height = rect.height + 'px';
@@ -323,8 +337,8 @@
   }
 
   function blockingDialogOpen() {
-    return Boolean(document.querySelector(
-      '#splash-bienvenida,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible'
+    return document.documentElement.dataset.icademNamePending === '1' || Boolean(document.querySelector(
+      '#splash-bienvenida,#name-modal,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible'
     ));
   }
 

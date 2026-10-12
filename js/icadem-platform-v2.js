@@ -165,12 +165,29 @@
     document.dispatchEvent(new CustomEvent('icadem:identity-ready', { detail: payload }));
   }
 
+  async function loadLearningProgress() {
+    if (window.__isDemoMode) return null;
+    const data = await request('/api/learning/progress');
+    if (typeof window.__mergeServerProgress === 'function') window.__mergeServerProgress(data.courses || {});
+    else window.__pendingServerProgress = data.courses || {};
+    if (data.credits && window.UserState) {
+      window.UserState.credits = { ...(window.UserState.credits || {}), ...data.credits };
+    }
+    document.dispatchEvent(new CustomEvent('icadem:progress-ready', { detail: data }));
+    return data;
+  }
+
   let identityPromise = null;
   async function syncIdentity(force) {
     if (window.__isDemoMode) return null;
     if (identityPromise && !force) return identityPromise;
     identityPromise = request('/api/identity/sync', { method: 'POST', body: {} })
-      .then(data => { applyIdentity(data); return data; })
+      .then(async data => {
+        applyIdentity(data);
+        try { await loadLearningProgress(); }
+        catch (error) { console.warn('[ICADEM progress]', error.message); }
+        return data;
+      })
       .catch(error => {
         console.warn('[ICADEM identity]', error.message);
         identityPromise = null;
@@ -1150,6 +1167,7 @@
 
   window.ICADEMPlatform = {
     request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, mountRanking,
+    loadLearningProgress,
     loadCreditWallet, openCreditWallet, applyDemoCreditMovement,
     saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
   };
