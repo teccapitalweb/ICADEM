@@ -7384,18 +7384,18 @@ const Sections = (function(){
     const rango = Math.max(1, nivel.hasta - nivel.desde);
     const nivelPct = Math.max(0, Math.min(100, Math.round(((st.xp - nivel.desde) / rango) * 100)));
     const faltaXp = Math.max(0, nivel.hasta - st.xp);
+    const saldoCreditos = Number(window.UserState?.credits?.balance ?? 0);
 
     let body = '';
-    if (__retosView === 'hub') body = _retosHubHtml(st, esVip, casosHechos, flashDom);
+    if (__retosView === 'hub') body = _retosHubHtml(st, esVip, casosHechos, flashDom, saldoCreditos);
     else if (__retosView === 'casos') body = _retosCasosListHtml(st);
     else if (__retosView === 'caso') body = _retosCasoRunHtml();
     else if (__retosView === 'flashcards') body = _retosFlashcardsHtml();
     else if (__retosView === 'quiz-intro') body = _retosQuizIntroHtml();
     else if (__retosView === 'quiz-run') body = _retosQuizRunHtml();
     else if (__retosView === 'quiz-resultado') body = _retosQuizResultHtml();
-    else body = _retosHubHtml(st, esVip, casosHechos, flashDom);
+    else body = _retosHubHtml(st, esVip, casosHechos, flashDom, saldoCreditos);
 
-    const saldoCreditos = Number(window.UserState?.credits?.balance ?? 0);
     const accessPill = `<span class="retos-hero__pill retos-hero__pill--free" data-retos-access><svg class="ic"><use href="#i-shield-check"/></svg>Un intento por reto</span>`;
 
     container.innerHTML = `<div class="fade-up retos-page retos-page--v5 retos-page--v6">
@@ -7431,7 +7431,7 @@ const Sections = (function(){
     }
   }
 
-  function _retosHubHtml(st, esVip, casosHechos, flashDom){
+  function _retosHubHtml(st, esVip, casosHechos, flashDom, saldoCreditos){
     const totalCasos = ICADEM_RETOS_CASOS.length;
     const totalFlash = ICADEM_RETOS_FLASHCARDS.length;
     const quizMejor = st.mejorQuiz || 0;
