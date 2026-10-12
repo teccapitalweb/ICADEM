@@ -1939,12 +1939,13 @@ body,
 /* ═══════════════════════════════════════════════════════════
    ICADEM · Retos v7 · reto diario editorial, sin espacios muertos
    ═══════════════════════════════════════════════════════════ */
-.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card {
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card:nth-child(1) {
   isolation:isolate!important;
   grid-template-columns:76px minmax(250px,1fr) minmax(124px,150px) 148px!important;
   gap:20px!important;
   min-width:0!important;
   min-height:146px!important;
+  height:auto!important;
   padding:24px 26px!important;
   border-color:color-mix(in srgb,#2a7182 32%,var(--border))!important;
   background:linear-gradient(112deg,var(--surface) 0 63%,color-mix(in srgb,#d9edf1 70%,var(--surface)) 100%)!important;
@@ -1976,13 +1977,13 @@ body,
 [data-theme="night"] .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card { background:linear-gradient(112deg,var(--surface) 0 63%,rgba(45,126,144,.12) 100%)!important; }
 [data-theme="night"] .retos-daily-card__reward strong { color:#75c4d7; }
 @container retosmain (max-width:900px){
-  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card { grid-template-columns:66px minmax(0,1fr) 138px!important;gap:16px!important;min-height:136px!important;padding:20px!important; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card:nth-child(1) { grid-template-columns:66px minmax(0,1fr) 138px!important;gap:16px!important;min-height:136px!important;padding:20px!important; }
   .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art { width:66px!important;height:66px!important; }
   .retos-daily-card__reward { display:none; }
   .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__cta { grid-column:3!important;width:138px!important; }
 }
 @container retosmain (max-width:560px){
-  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card { grid-template-columns:58px minmax(0,1fr)!important;grid-template-rows:auto 44px!important;gap:14px 13px!important;min-height:196px!important;padding:18px!important; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card:nth-child(1) { grid-template-columns:58px minmax(0,1fr)!important;grid-template-rows:auto 44px!important;gap:14px 13px!important;min-height:196px!important;padding:18px!important; }
   .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art { grid-column:1!important;grid-row:1!important;width:56px!important;height:56px!important;border-radius:16px!important; }
   .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__body { grid-column:2!important;grid-row:1!important; }
   .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__body p { display:block!important;font-size:10px!important; }
