@@ -22,21 +22,21 @@
       selectors: ['.sidebar .nav-item[data-section="webinars"]', '.mobile-nav__item[data-section="webinars"]']
     },
     {
-      title: 'Biblioteca de materiales',
-      text: 'En PDFs y material tendrás plantillas, guías y documentos prácticos para aplicar lo aprendido.',
-      selectors: ['.sidebar .nav-item[data-section="pdfs"]', '.mobile-drawer__item[data-section="pdfs"]'],
+      title: 'Practica y gana experiencia',
+      text: 'Retos breves para aplicar conceptos, sumar créditos y medir tu avance.',
+      selectors: ['.sidebar .nav-item[data-section="retos"]', '.mobile-drawer__item[data-section="retos"]'],
       mobileDrawer: true
     },
     {
-      title: 'Herramientas para tomar decisiones',
-      text: 'Accede a plantillas de negocio y calculadoras fiscal, de nómina y de crédito desde el panel de Herramientas Pro.',
-      selectors: ['.sidebar .nav-item[data-tool="plantillas"]', '.mobile-drawer__item[data-tool="plantillas"]'],
+      title: 'Decide con mejores herramientas',
+      text: 'Plantillas y calculadoras profesionales, listas cuando las necesites.',
+      selectors: ['.sidebar .nav-item[data-section="herramientas"]', '.mobile-drawer__item[data-section="herramientas"]'],
       mobileDrawer: true
     },
     {
       title: 'Tu perfil y membresía',
-      text: 'En Mi perfil administras tus datos y preferencias. La pestaña Suscripción reúne la información de tu plan.',
-      selectors: ['.sidebar .nav-item[data-section="perfil"]', '.mobile-drawer__item[data-section="perfil"]'],
+      text: 'Gestiona primero tu membresía y después edita tu identidad profesional.',
+      selectors: ['.sidebar [data-section="perfil"]', '.mobile-drawer__item[data-section="perfil"]'],
       mobileDrawer: true
     },
     {
@@ -63,31 +63,32 @@
       .ica-tour-root{position:fixed;inset:0;z-index:2147483000;pointer-events:auto;font-family:'Inter',system-ui,sans-serif}
       .ica-tour-root[hidden]{display:none!important}
       .ica-tour-shade{position:absolute;inset:0;background:transparent}
-      .ica-tour-spotlight{position:fixed;border:2px solid #8fbce6;border-radius:14px;box-shadow:0 0 0 9999px rgba(5,11,25,.78),0 0 0 5px rgba(91,146,200,.2),0 16px 44px rgba(0,0,0,.34);pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease;z-index:1}
-      .ica-tour-card{position:fixed;z-index:2;width:min(390px,calc(100vw - 28px));padding:22px;border:1px solid rgba(143,188,230,.3);border-radius:18px;background:linear-gradient(145deg,#18233a,#10192b);color:#f0f4fa;box-shadow:0 24px 70px rgba(0,0,0,.55);outline:none}
-      .ica-tour-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:15px}
-      .ica-tour-brand{display:flex;align-items:center;gap:9px;color:#8fbce6;font:700 10px/1.2 'JetBrains Mono',monospace;letter-spacing:1.4px;text-transform:uppercase}
-      .ica-tour-brand::before{content:'';width:9px;height:9px;border-radius:3px;background:#5b92c8;transform:rotate(45deg);box-shadow:0 0 0 5px rgba(91,146,200,.13)}
-      .ica-tour-skip{min-height:36px;padding:7px 9px;border-radius:9px;color:#b6c2d8;font-size:12px}
-      .ica-tour-skip:hover,.ica-tour-skip:focus-visible{background:#212e48;color:#fff;outline:2px solid #8fbce6;outline-offset:2px}
-      .ica-tour-title{margin:0 0 8px;font:800 clamp(20px,4vw,25px)/1.18 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.5px;color:#fff}
-      .ica-tour-text{margin:0;color:#b6c2d8;font-size:14px;line-height:1.65}
-      .ica-tour-progress{display:flex;align-items:center;gap:10px;margin:19px 0 17px;color:#8997b0;font:600 10px/1 'JetBrains Mono',monospace;letter-spacing:.7px;text-transform:uppercase}
-      .ica-tour-track{height:4px;flex:1;overflow:hidden;border-radius:20px;background:#2a3852}
-      .ica-tour-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#3e6fa8,#8fbce6);transition:width .25s ease}
-      .ica-tour-actions{display:flex;justify-content:flex-end;gap:9px}
-      .ica-tour-btn{min-height:42px;padding:10px 16px;border-radius:11px;border:1px solid rgba(143,188,230,.22);font-weight:700;font-size:13px}
-      .ica-tour-btn:focus-visible{outline:3px solid rgba(143,188,230,.42);outline-offset:2px}
-      .ica-tour-prev{margin-right:auto;color:#b6c2d8;background:#10192b}.ica-tour-prev[hidden]{display:none}
-      .ica-tour-next{color:#07131f;border-color:transparent;background:linear-gradient(135deg,#8fbce6,#5b92c8);box-shadow:0 8px 24px rgba(91,146,200,.3)}
+      .ica-tour-spotlight{position:fixed;border:2px solid #d7b879;border-radius:14px;box-shadow:0 0 0 9999px rgba(5,14,22,.76),0 0 0 5px rgba(215,184,121,.16),0 16px 44px rgba(0,0,0,.3);pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease;z-index:1}
+      .ica-tour-card{position:fixed;z-index:2;width:min(374px,calc(100vw - 28px));padding:0;overflow:hidden;border:1px solid rgba(23,59,86,.16);border-radius:22px;background:#fbfaf7;color:#142238;box-shadow:0 28px 90px rgba(5,18,29,.36);outline:none}
+      .ica-tour-top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:0;padding:17px 20px 15px;border-bottom:1px solid #e5e8e8;background:linear-gradient(110deg,#f3efe6,#fbfaf7)}
+      .ica-tour-brand{display:flex;align-items:center;gap:9px;color:#244960;font:800 9px/1.2 'JetBrains Mono',monospace;letter-spacing:1.35px;text-transform:uppercase}
+      .ica-tour-brand::before{content:'';width:9px;height:9px;border-radius:3px;background:#a67c3d;transform:rotate(45deg);box-shadow:0 0 0 5px rgba(166,124,61,.11)}
+      .ica-tour-skip{min-height:34px;padding:7px 9px;border-radius:9px;color:#71808a;font-size:11.5px}
+      .ica-tour-skip:hover,.ica-tour-skip:focus-visible{background:#ebe9e3;color:#17364a;outline:2px solid #a67c3d;outline-offset:2px}
+      .ica-tour-title{margin:22px 22px 8px;font:800 clamp(21px,4vw,25px)/1.14 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.72px;color:#142238}
+      .ica-tour-title::before{content:'';display:block;width:42px;height:42px;margin-bottom:17px;border-radius:13px;background:linear-gradient(145deg,#244960,#142d40);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 10px 22px rgba(23,54,74,.13)}
+      .ica-tour-text{margin:0 22px;color:#61707b;font-size:13.5px;line-height:1.55}
+      .ica-tour-progress{display:flex;align-items:center;gap:10px;margin:20px 22px 17px;color:#7a878f;font:700 9px/1 'JetBrains Mono',monospace;letter-spacing:.8px;text-transform:uppercase}
+      .ica-tour-track{height:4px;flex:1;overflow:hidden;border-radius:20px;background:#e2e7e6}
+      .ica-tour-track span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#a67c3d,#517c70);transition:width .25s ease}
+      .ica-tour-actions{display:flex;justify-content:flex-end;gap:9px;padding:0 22px 20px}
+      .ica-tour-btn{min-height:42px;padding:10px 16px;border-radius:11px;border:1px solid #d7dedf;font-weight:750;font-size:12.5px}
+      .ica-tour-btn:focus-visible{outline:3px solid rgba(166,124,61,.28);outline-offset:2px}
+      .ica-tour-prev{margin-right:auto;color:#60707b;background:#fff}.ica-tour-prev[hidden]{display:none}
+      .ica-tour-next{color:#fff;border-color:#17364a;background:#17364a;box-shadow:0 8px 22px rgba(23,54,74,.2)}
       .ica-tour-help{position:relative;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:15px}
       .ica-tour-profile-btn{display:inline-flex;align-items:center;gap:8px;align-self:flex-start}
       .ica-tour-profile-btn::before{content:'?';display:grid;place-items:center;width:18px;height:18px;border:1px solid currentColor;border-radius:50%;font-size:12px}
       @media (max-width:880px){
-        .ica-tour-card{left:14px!important;right:14px!important;bottom:calc(14px + env(safe-area-inset-bottom));top:auto;width:auto;max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;padding:19px;border-radius:17px}
+        .ica-tour-card{left:14px!important;right:14px!important;bottom:calc(14px + env(safe-area-inset-bottom));top:auto;width:auto;max-height:calc(100dvh - 28px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;border-radius:18px}
         .ica-tour-spotlight{border-radius:12px}.ica-tour-title{font-size:20px}.ica-tour-text{font-size:13px;line-height:1.55}.ica-tour-progress{margin:16px 0 14px}
       }
-      @media (max-width:380px){.ica-tour-card{left:9px!important;right:9px!important;padding:16px}.ica-tour-actions{gap:6px}.ica-tour-btn{padding:9px 12px}}
+      @media (max-width:380px){.ica-tour-card{left:9px!important;right:9px!important}.ica-tour-title,.ica-tour-text{margin-left:18px;margin-right:18px}.ica-tour-progress{margin-left:18px;margin-right:18px}.ica-tour-actions{gap:6px;padding-left:18px;padding-right:18px}.ica-tour-btn{padding:9px 12px}}
       @media (prefers-reduced-motion:reduce){.ica-tour-spotlight,.ica-tour-track span{transition:none!important}}
     `;
     document.head.appendChild(style);

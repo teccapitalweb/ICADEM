@@ -4296,11 +4296,21 @@ window.__setDisplayName = async (nombre) => {
       <a class="nav-item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
     </div>
 
-    <div class="nav-section">
+    <div class="nav-section nav-section--account">
       <div class="nav-label">Mi cuenta</div>
-      <a class="nav-item" data-section="perfil"><svg class="ic"><use href="#i-user"/></svg>Mi perfil</a>
-      <a class="nav-item" data-section="suscripcion"><svg class="ic"><use href="#i-credit-card"/></svg>Suscripción</a>
-      <a class="nav-item" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
+      <div class="account-dock">
+        <a class="account-dock__membership" data-section="suscripcion">
+          <span class="account-dock__membership-icon"><svg class="ic"><use href="#i-crown"/></svg></span>
+          <span>Gestionar membresía</span>
+          <svg class="ic account-dock__arrow"><use href="#i-arrow-right"/></svg>
+        </a>
+        <a class="account-dock__identity" data-section="perfil">
+          <span class="account-dock__avatar" id="sidebar-account-avatar">IN</span>
+          <span class="account-dock__copy"><strong id="sidebar-account-name">Miembro ICADEM</strong><small id="sidebar-account-plan">VIP ANUAL</small></span>
+          <svg class="ic account-dock__edit"><use href="#i-edit"/></svg>
+        </a>
+        <a class="account-dock__logout nav-item--logout" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
+      </div>
     </div>
 
   </aside>
@@ -4501,11 +4511,13 @@ window.__setDisplayName = async (nombre) => {
         <a class="mobile-drawer__item" id="drawer-whatsapp-support"><svg class="ic"><use href="#i-whatsapp"/></svg>Soporte por WhatsApp</a>
       </div>
 
-      <div class="mobile-drawer__section">
+      <div class="mobile-drawer__section mobile-drawer__section--account">
         <div class="mobile-drawer__label">Mi cuenta</div>
-        <a class="mobile-drawer__item" data-section="perfil"><svg class="ic"><use href="#i-user"/></svg>Mi perfil</a>
-        <a class="mobile-drawer__item" data-section="suscripcion"><svg class="ic"><use href="#i-credit-card"/></svg>Suscripción</a>
-        <a class="mobile-drawer__item" id="drawer-logout-btn" style="color:#EF4444;"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
+        <div class="account-dock account-dock--mobile">
+          <a class="account-dock__membership mobile-drawer__item" data-section="suscripcion"><span class="account-dock__membership-icon"><svg class="ic"><use href="#i-crown"/></svg></span><span>Gestionar membresía</span><svg class="ic account-dock__arrow"><use href="#i-arrow-right"/></svg></a>
+          <a class="account-dock__identity mobile-drawer__item" data-section="perfil"><span class="account-dock__avatar" id="drawer-account-avatar">IN</span><span class="account-dock__copy"><strong id="drawer-account-name">Miembro ICADEM</strong><small id="drawer-account-plan">VIP ANUAL</small></span><svg class="ic account-dock__edit"><use href="#i-edit"/></svg></a>
+          <a class="account-dock__logout nav-item--logout" id="drawer-logout-btn"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
+        </div>
       </div>
     </div>
   </div>
@@ -4516,9 +4528,9 @@ const PREFIX='imdiil:';
 const Storage={pref:{get(k,d){const v=localStorage.getItem(PREFIX+'pref:'+k);return v===null?d:v;},set(k,v){localStorage.setItem(PREFIX+'pref:'+k,String(v));}}};
 
 const Theme={
-  init(){this.apply(Storage.pref.get('theme','day'));document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
-  apply(t){if(t!=='day'&&t!=='night')t='night';document.documentElement.setAttribute('data-theme',t);Storage.pref.set('theme',t);const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0f1626':'#eef3f9');},
-  toggle(){this.apply(document.documentElement.getAttribute('data-theme')==='night'?'day':'night');}
+  init(){const saved=Storage.pref.get('theme',null);const normalized=(saved==='night'||saved==='dark')?'night':'day';this.apply(normalized,{persist:saved!==null});document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
+  apply(t,{persist=true}={}){t=t==='night'?'night':'day';document.documentElement.setAttribute('data-theme',t);if(persist)Storage.pref.set('theme',t);const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0f1626':'#eef3f9');},
+  toggle(){this.apply(document.documentElement.getAttribute('data-theme')==='night'?'day':'night',{persist:true});}
 };
 
 function applyGreeting(){
@@ -6862,10 +6874,10 @@ const Sections = (function(){
   // etc.) que ya existe y sigue funcionando igual.
   // ═══════════════════════════════════════════════════════════════════
   const TOOLS_CATALOG = [
-    { id:'plantillas',   icon:'i-briefcase',    categoria:'Plantillas',   titulo:'Plantillas de negocio',  desc:'Formatos editables listos para usar.' },
-    { id:'calc-fiscal',  icon:'i-calculator',   categoria:'Fiscal',       titulo:'Calculadora fiscal',     desc:'ISR, IVA y retenciones 2026.' },
-    { id:'calc-nomina',  icon:'i-cash',         categoria:'Nómina',       titulo:'Calculadora de nómina',  desc:'Cálculo mensual completo.' },
-    { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas',     titulo:'Calculadora de crédito', desc:'Tasas, CAT y mensualidades.' }
+    { id:'plantillas',   icon:'i-briefcase',    categoria:'Plantillas', titulo:'Plantillas de negocio', desc:'Formatos editables para trabajar.', tone:'petrol' },
+    { id:'calc-fiscal',  icon:'i-calculator',   categoria:'Fiscal', titulo:'Calculadora fiscal', desc:'ISR, IVA y retenciones 2026.', tone:'ochre' },
+    { id:'calc-nomina',  icon:'i-cash',         categoria:'Nómina', titulo:'Calculadora de nómina', desc:'Cálculo mensual completo.', tone:'moss' },
+    { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas', titulo:'Calculadora de crédito', desc:'Tasas, CAT y mensualidades.', tone:'ink' }
   ];
 
   function renderHerramientas(container){
@@ -6881,15 +6893,15 @@ const Sections = (function(){
         <div class="tools-index-hero__meta" aria-label="${TOOLS_CATALOG.length} recursos disponibles"><strong>${TOOLS_CATALOG.length}</strong><span>recursos listos</span></div>
       </section>
       <div class="tools-index-grid">
-        ${TOOLS_CATALOG.map(t => `
-          <button type="button" class="tool-index-card" data-tool-nav="${htmlEsc(t.id)}" ${!esVip ? 'data-locked="true"' : ''}>
-            <span class="tool-index-card__icon"><svg class="ic"><use href="#${htmlEsc(t.icon)}"/></svg></span>
+        ${TOOLS_CATALOG.map((t,i) => `
+          <button type="button" class="tool-index-card tool-index-card--${htmlEsc(t.tone)}" data-tool-nav="${htmlEsc(t.id)}" ${!esVip ? 'data-locked="true"' : ''}>
+            <span class="tool-index-card__top"><span class="tool-index-card__icon"><svg class="ic"><use href="#${htmlEsc(t.icon)}"/></svg></span><span class="tool-index-card__number">0${i+1}</span></span>
             <span class="tool-index-card__body">
               <span class="tool-index-card__kicker">${htmlEsc(t.categoria)}</span>
               <strong>${htmlEsc(t.titulo)}</strong>
               <small>${htmlEsc(t.desc)}</small>
             </span>
-            <svg class="ic tool-index-card__arrow"><use href="#i-arrow-right"/></svg>
+            <span class="tool-index-card__foot"><span>${esVip?'Disponible':'Vista previa'}</span><svg class="ic tool-index-card__arrow"><use href="#i-arrow-right"/></svg></span>
           </button>
         `).join('')}
       </div>
@@ -9591,19 +9603,18 @@ const Sections = (function(){
   function renderDirectorio(container){
     const puedeEditar = window.UserState?.modo!=='invitado' && !!window.UserState?.uid;
     container.innerHTML = `
-      <div class="fade-up">
-        <div class="sec-hero">
-          <span class="sec-hero__eyebrow">Networking profesional</span>
-          <h1 class="sec-hero__title">Directorio VIP</h1>
-          <p class="sec-hero__sub">Conecta con la comunidad ICADEM. Crea tu tarjeta profesional y descubre a otros profesionales de negocios, fiscal y legal.</p>
-        </div>
+      <div class="fade-up directory-page">
+        <section class="directory-hero">
+          <div class="directory-hero__copy"><span class="directory-hero__eyebrow">Comunidad profesional</span><h1>Directorio VIP</h1><p>Encuentra experiencia, crea alianzas y presenta tu trabajo.</p></div>
+          ${puedeEditar?`<button class="directory-hero__action" id="dir-mi-tarjeta"><span class="directory-hero__action-icon"><svg class="ic"><use href="#i-edit"/></svg></span><span><small>Tu espacio profesional</small><strong>Crear o editar mi tarjeta</strong></span><svg class="ic"><use href="#i-arrow-right"/></svg></button>`:''}
+        </section>
 
         <div class="dir-bar">
           <div class="dir-search">
             <svg class="ic"><use href="#i-search"/></svg>
             <input type="text" id="dir-buscar" placeholder="Buscar por nombre, empresa o puesto…">
           </div>
-          ${puedeEditar?`<button class="btn btn--accent" id="dir-mi-tarjeta"><svg class="ic"><use href="#i-edit"/></svg>Mi perfil</button>`:''}
+          <span class="dir-bar__hint"><svg class="ic"><use href="#i-users"/></svg><span id="dir-result-count">Comunidad ICADEM</span></span>
         </div>
 
         <div class="dir-chips" id="dir-chips">
@@ -9656,17 +9667,19 @@ const Sections = (function(){
 
   function dirPintar(){
     const grid = document.getElementById('dir-grid'); if(!grid) return;
-    let cards = _dirCards.slice();
+    const uid = window.UserState?.uid;
+    let cards = _dirCards.slice().sort((a,b)=>Number(b.id===uid)-Number(a.id===uid));
     if (_dirFiltroSector!=='todos') cards = cards.filter(c=>c.sector===_dirFiltroSector);
     if (_dirBusqueda) cards = cards.filter(c=>{
       const blob = ((c.nombre||'')+' '+(c.empresa||'')+' '+(c.puesto||'')+' '+(c.sector||'')).toLowerCase();
       return blob.includes(_dirBusqueda);
     });
+    const count = document.getElementById('dir-result-count');
+    if (count) count.textContent = cards.length===1?'1 profesional':`${cards.length} profesionales`;
     if (!cards.length){
       grid.innerHTML = `<div class="foro-empty">${_dirBusqueda||_dirFiltroSector!=='todos'?'No hay miembros que coincidan con tu búsqueda.':'Aún no hay tarjetas en el directorio. ¡Sé el primero en crear la tuya!'}</div>`;
       return;
     }
-    const uid = window.UserState?.uid;
     grid.innerHTML = cards.map(c=>{
       const inicial = c.iniciales || (c.nombre||'?').trim().slice(0,2).toUpperCase();
       const foto = c.foto
@@ -9680,9 +9693,9 @@ const Sections = (function(){
       const esMia = c.id===uid;
       return `
       <article class="dir-card${esMia?' dir-card--mia':''}" data-dircard="${c.id}">
-        ${esMia?'<span class="dir-card__badge-mia">Tú</span>':''}
+        ${esMia?'<button class="dir-card__edit" type="button" data-dir-edit aria-label="Editar mi tarjeta"><svg class="ic"><use href="#i-edit"/></svg></button>':''}
         <div class="dir-card__cover" style="--dir-cover:${escapeHtml(c.portadaColor||'#173b56')};${c.portadaUrl?`background-image:url('${escapeHtml(c.portadaUrl)}')`:''}">
-          ${c.isVip?'<span class="dir-card__vip">Miembro VIP</span>':''}
+          <span class="dir-card__vip">${esMia?'Tú · ':''}${c.isVip?'Miembro VIP':'Miembro'}</span>
         </div>
         <div class="dir-card__top">
           ${foto}
@@ -9703,6 +9716,7 @@ const Sections = (function(){
     grid.querySelectorAll('[data-dircard]').forEach(card=>{
       card.addEventListener('click', (e)=>{
         if (e.target.closest('.dir-cta')) return; // dejó pasar los enlaces de contacto
+        if (e.target.closest('[data-dir-edit]')) { dirEditarMiTarjeta(); return; }
         dirVerDetalle(card.dataset.dircard);
       });
     });
@@ -11772,7 +11786,7 @@ function injectSupportFAB(){
 }
 
 function initNav(){
-  document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(it=>{
+  document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item, .account-dock [data-section]').forEach(it=>{
     it.addEventListener('click',e=>{
       e.preventDefault();
       // Si es item del drawer móvil, cerrar el drawer al elegir
@@ -12025,6 +12039,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       // El estado (VIP / Sin membresía) aparece en el brand del sidebar, no junto al avatar
       avatarPlan.style.display = 'none';
     }
+
+    // Identidad compacta del pie del menú: membresía → usuario → salida.
+    const accountName = S.modo==='invitado' ? 'Invitado' : (S.displayName || S.email?.split('@')[0] || 'Miembro ICADEM');
+    const accountPlan = S.modo==='vip' ? (PLAN_LABELS[S.plan] || PLAN_LABELS.mensual).name : (S.modo==='invitado'?'Modo demo':'Sin membresía');
+    ['sidebar','drawer'].forEach(scope=>{
+      const av=document.getElementById(`${scope}-account-avatar`);
+      const nm=document.getElementById(`${scope}-account-name`);
+      const pl=document.getElementById(`${scope}-account-plan`);
+      if(av){av.classList.toggle('has-photo',!!S.photoURL);av.innerHTML=S.photoURL?`<img src="${S.photoURL}" alt="" referrerpolicy="no-referrer">`:S.iniciales;}
+      if(nm) nm.textContent=accountName;
+      if(pl) pl.textContent=accountPlan;
+    });
 
     // ─── Brand badge del sidebar (ICADEM · estado real) ───
     const brandPlan = document.getElementById('brand-plan-badge');
@@ -19917,7 +19943,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-<link rel="stylesheet" href="css/panel-minimal.css?v=10">
-<script src="js/icadem-onboarding.js?v=1"></script>
+<link rel="stylesheet" href="css/panel-minimal.css?v=11">
+<script src="js/icadem-onboarding.js?v=2"></script>
 </body>
 </html>

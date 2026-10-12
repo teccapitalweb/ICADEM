@@ -1556,3 +1556,120 @@ body,
   .logros-page--v4 .logro { grid-template-columns: 40px minmax(0, 1fr) 16px !important; gap: 11px !important; }
   .logros-page--v4 .logro__icon { width: 40px !important; height: 40px !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   ICADEM · pulido de experiencia (tour, retos, tools, directorio y cuenta)
+   ═══════════════════════════════════════════════════════════ */
+.nav-section--account { margin-top: auto !important; padding-top: 12px !important; }
+.account-dock { display: grid; gap: 8px; padding: 0 2px; }
+.account-dock a { cursor: pointer; text-decoration: none; }
+.account-dock__membership,
+.account-dock__identity { display: grid; align-items: center; min-width: 0; border-radius: 13px; }
+.account-dock__membership {
+  grid-template-columns: 28px minmax(0,1fr) 14px; gap: 8px; min-height: 48px; padding: 8px 10px;
+  border: 1px solid color-mix(in srgb,#a67c3d 42%,var(--border)); color: var(--text);
+  background: color-mix(in srgb,#a67c3d 8%,var(--surface)); box-shadow: inset 0 0 0 2px color-mix(in srgb,#a67c3d 7%,transparent);
+  font-size: 11.5px; font-weight: 750;
+}
+.account-dock__membership:hover { border-color: #a67c3d; transform: translateY(-1px); }
+.account-dock__membership-icon { display:grid;place-items:center;width:28px;height:28px;border-radius:8px;color:#a67c3d;background:color-mix(in srgb,#a67c3d 12%,var(--surface)); }
+.account-dock__membership-icon .ic,.account-dock__arrow { width:14px!important;height:14px!important; }
+.account-dock__arrow { color:var(--text-3); }
+.account-dock__identity { grid-template-columns: 40px minmax(0,1fr) 16px; gap: 9px; min-height: 58px; padding: 8px; border:1px solid var(--border); background:var(--surface-2); }
+.account-dock__identity:hover { border-color:color-mix(in srgb,var(--primary) 30%,var(--border)); }
+.account-dock__avatar { display:grid;place-items:center;width:40px;height:40px;overflow:hidden;border-radius:11px;color:#fff;background:linear-gradient(145deg,#315b70,#17364a);font-size:12px;font-weight:800; }
+.account-dock__avatar img { width:100%;height:100%;object-fit:cover; }
+.account-dock__copy { display:grid;gap:3px;min-width:0; }
+.account-dock__copy strong { overflow:hidden;color:var(--text);font-size:11px;line-height:1.2;text-overflow:ellipsis;white-space:nowrap; }
+.account-dock__copy small { overflow:hidden;color:#a67c3d;font:800 7.5px/1.2 'JetBrains Mono',monospace;letter-spacing:.8px;text-transform:uppercase;text-overflow:ellipsis;white-space:nowrap; }
+.account-dock__edit { width:14px!important;height:14px!important;color:var(--text-3); }
+.account-dock__logout { display:flex;align-items:center;justify-content:center;gap:8px;min-height:36px;color:#c33f48;font-size:11px;font-weight:700; }
+.account-dock__logout:hover { color:#ef4653; }
+.account-dock__logout .ic { width:14px;height:14px; }
+.account-dock--mobile { padding:0; }
+.account-dock--mobile .mobile-drawer__item { display:grid!important; }
+
+/* Retos: cinco experiencias con el mismo ritmo, no cinco cajas vacías. */
+.retos-tiles--five { grid-template-columns:repeat(2,minmax(0,1fr))!important;grid-auto-rows:1fr!important;gap:14px!important; }
+.retos-tiles--five .retos-tile,
+.retos-tiles--five .retos-tile:nth-child(n) {
+  --tile-color:#244960;--tile-soft:#eaf0f2;
+  grid-column:auto!important;grid-template-columns:minmax(0,1fr) 104px!important;grid-template-rows:1fr!important;
+  min-height:244px!important;height:100%!important;border-radius:16px!important;
+}
+.retos-tiles--five .retos-tile--flash { --tile-color:#9b7640;--tile-soft:#f5eee2; }
+.retos-tiles--five .retos-tile--pulse { --tile-color:#745d70;--tile-soft:#f0eaf0; }
+.retos-tiles--five .retos-tile--games { --tile-color:#356b68;--tile-soft:#e7f0ee; }
+.retos-tiles--five .retos-tile--daily { --tile-color:#587049;--tile-soft:#ebf0e7; }
+.retos-tiles--five .retos-tile__art { grid-column:2!important;grid-row:1!important;min-height:100%!important;background:linear-gradient(155deg,var(--tile-color),color-mix(in srgb,var(--tile-color) 70%,#101b24))!important;opacity:1!important;filter:none!important; }
+.retos-tiles--five .retos-tile__body { grid-column:1!important;grid-row:1!important;min-height:0!important;padding:20px 18px!important; }
+.retos-tiles--five .retos-tile__body p { min-height:0!important;max-width:250px;margin-bottom:3px!important; }
+.retos-tiles--five .retos-tile__meta,.retos-tiles--five .retos-tile__state { min-height:22px!important; }
+.retos-tiles--five .retos-tile__cta { width:auto!important;border-radius:0!important; }
+.retos-tile.is-used::after { content:'Completado';position:absolute;right:12px;bottom:12px;z-index:3;padding:5px 8px;border-radius:999px;color:#356b68;background:#edf4f1;font:800 7px/1 'JetBrains Mono',monospace;letter-spacing:.7px;text-transform:uppercase; }
+
+/* Herramientas: catálogo visual, claro y accionable. */
+.tools-index-grid { grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important; }
+.tool-index-card {
+  --tool-color:#244960;--tool-soft:#e9f0f2;
+  position:relative!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:16px!important;
+  min-height:230px!important;padding:18px!important;overflow:hidden;border:1px solid var(--border)!important;border-radius:16px!important;
+  background:var(--surface)!important;text-align:left!important;box-shadow:0 10px 28px rgba(23,36,58,.045)!important;
+}
+.tool-index-card::after { content:'';position:absolute;inset:auto -28px -38px auto;width:110px;height:110px;border-radius:50%;background:var(--tool-soft);opacity:.78; }
+.tool-index-card--ochre { --tool-color:#9b7640;--tool-soft:#f5eee2; }
+.tool-index-card--moss { --tool-color:#557052;--tool-soft:#ebf1e8; }
+.tool-index-card--ink { --tool-color:#35455d;--tool-soft:#e9edf2; }
+.tool-index-card:hover { transform:translateY(-4px)!important;border-color:color-mix(in srgb,var(--tool-color) 42%,var(--border))!important;box-shadow:0 18px 38px rgba(23,36,58,.10)!important; }
+.tool-index-card__top { display:flex;align-items:flex-start;justify-content:space-between; }
+.tool-index-card__icon { display:grid!important;place-items:center!important;width:44px!important;height:44px!important;border-radius:12px!important;color:var(--tool-color)!important;background:var(--tool-soft)!important; }
+.tool-index-card__number { color:var(--text-3);font:800 8px/1 'JetBrains Mono',monospace;letter-spacing:1px; }
+.tool-index-card__body { display:grid!important;gap:5px!important; }
+.tool-index-card__kicker { color:var(--tool-color)!important;font-size:8px!important;letter-spacing:1.15px!important; }
+.tool-index-card__body strong { color:var(--text);font-size:15px!important;line-height:1.25; }
+.tool-index-card__body small { display:block!important;color:var(--text-3);font-size:11px!important;line-height:1.45; }
+.tool-index-card__foot { position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;margin-top:auto;color:var(--tool-color);font-size:9.5px;font-weight:750; }
+.tool-index-card__arrow { display:block!important;width:14px!important;height:14px!important;color:var(--tool-color)!important; }
+
+/* Directorio: tarjeta profesional editable, con el usuario siempre primero. */
+.directory-page { display:grid;gap:18px; }
+.directory-hero { display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,390px);align-items:center;gap:24px;padding:24px 26px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(135deg,var(--surface),color-mix(in srgb,#d7b879 8%,var(--surface))); }
+.directory-hero__eyebrow { color:#9b7640;font:800 8.5px/1 'JetBrains Mono',monospace;letter-spacing:1.35px;text-transform:uppercase; }
+.directory-hero h1 { margin:7px 0 5px;color:var(--text);font-size:32px;letter-spacing:-1px; }
+.directory-hero p { margin:0;color:var(--text-2);font-size:12.5px; }
+.directory-hero__action { display:grid;grid-template-columns:42px minmax(0,1fr) 16px;align-items:center;gap:12px;min-height:70px;padding:12px 14px;border:1px solid color-mix(in srgb,#a67c3d 34%,var(--border));border-radius:14px;color:var(--text);background:var(--surface);text-align:left;box-shadow:0 10px 24px rgba(23,36,58,.05); }
+.directory-hero__action:hover { transform:translateY(-2px);border-color:#a67c3d; }
+.directory-hero__action-icon { display:grid;place-items:center;width:42px;height:42px;border-radius:12px;color:#d7b879;background:#17364a; }
+.directory-hero__action-icon .ic { width:18px;height:18px; }
+.directory-hero__action span:nth-child(2) { display:grid;gap:4px; }
+.directory-hero__action small { color:var(--text-3);font:700 7.5px/1 'JetBrains Mono',monospace;letter-spacing:.85px;text-transform:uppercase; }
+.directory-hero__action strong { font-size:12px; }
+.directory-hero__action > .ic { width:15px;height:15px;color:#a67c3d; }
+.dir-bar { margin:0!important; }
+.dir-bar__hint { display:flex;align-items:center;gap:7px;padding:0 4px;color:var(--text-3);font:700 9px/1 'JetBrains Mono',monospace;letter-spacing:.5px;white-space:nowrap; }
+.dir-bar__hint .ic { width:14px;height:14px; }
+.dir-grid { grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important; }
+.dir-card { min-height:390px;padding:0 18px 18px!important;border-radius:17px!important;background:var(--surface)!important;box-shadow:0 10px 26px rgba(23,36,58,.045); }
+.dir-card::before { display:none!important; }
+.dir-card__cover { width:calc(100% + 36px);height:64px!important;margin:0 -18px!important; }
+.dir-card__top { margin-top:-28px!important;margin-bottom:11px!important; }
+.dir-card__foto { width:78px!important;height:78px!important;border-width:4px!important; }
+.dir-card__vip { left:50%!important;right:auto!important;top:10px!important;transform:translateX(-50%);white-space:nowrap; }
+.dir-card__edit { position:absolute;z-index:4;right:10px;top:10px;display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:9px;color:#fff;background:rgba(12,29,42,.66);backdrop-filter:blur(8px); }
+.dir-card__edit .ic { width:13px;height:13px; }
+.dir-card__body-m { display:flex!important;flex:1;flex-direction:column;align-items:center;min-width:0;width:100%; }
+.dir-card__name { font-size:15px!important; }
+.dir-card__bio { min-height:36px;margin-bottom:9px!important; }
+.dir-card__profile-state { margin-top:auto!important; }
+.dir-card__ctas,.dir-card__sincontacto { margin-top:10px!important; }
+
+@media(max-width:1180px){.tools-index-grid,.dir-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.tool-index-card{min-height:200px!important}}
+@media(max-width:820px){.directory-hero{grid-template-columns:1fr}.retos-tiles--five{grid-template-columns:1fr!important}.dir-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}.nav-section--account{margin-top:14px!important}}
+@media(max-width:620px){
+  .tools-index-grid,.dir-grid{grid-template-columns:1fr!important}
+  .tool-index-card{min-height:176px!important;padding:16px!important}
+  .directory-hero{padding:20px 18px}.directory-hero h1{font-size:28px}.directory-hero__action{min-width:0}
+  .dir-card{min-height:0!important;display:grid!important;grid-template-columns:72px minmax(0,1fr)!important;grid-template-rows:auto!important;align-items:center!important;gap:13px!important;padding:14px!important;text-align:left!important}
+  .dir-card__cover{display:none!important}.dir-card__top{margin:0!important}.dir-card__foto{width:66px!important;height:66px!important}.dir-card__body-m{align-items:flex-start!important}.dir-card__bio{min-height:0;text-align:left!important}.dir-card__edit{right:9px;top:9px;color:var(--text-2);background:var(--surface-2)}.dir-card__vip{display:none}.dir-card__ctas{justify-content:flex-start!important}
+  .retos-tiles--five .retos-tile,.retos-tiles--five .retos-tile:nth-child(n){grid-template-columns:minmax(0,1fr) 82px!important;min-height:224px!important}
+}
