@@ -10,7 +10,7 @@
   const PRACTICE_TYPES = ['crossword', 'memory', 'wordsearch', 'puzzle', 'guess', 'classify'];
   const GAME_LABELS = {
     crossword: 'Crucigrama', memory: 'Memoria', wordsearch: 'Sopa de letras',
-    puzzle: 'Rompecabezas', guess: 'Adivina el concepto', classify: 'Clasifica', quiz: 'Quiz profesional'
+    puzzle: 'Rompecabezas', guess: 'Veredicto exprés', classify: 'Clasifica', quiz: 'Quiz profesional'
   };
   const GAME_ICONS = {
     crossword: '⌗', memory: '◫', wordsearch: '⌕', puzzle: '◇', guess: '?', classify: '≡', quiz: '12'
@@ -20,7 +20,7 @@
     memory: { eyebrow: 'Memoria', title: 'Conecta conceptos', description: 'Relaciona cada término con su aplicación correcta.', duration: '2–3 min', icon: 'i-book' },
     wordsearch: { eyebrow: 'Enfoque', title: 'Sopa de conceptos', description: 'Encuentra términos clave dentro del tablero.', duration: '3 min', icon: 'i-search' },
     puzzle: { eyebrow: 'Análisis', title: 'Ordena el proceso', description: 'Reconstruye la secuencia y comprueba tu lógica.', duration: '2 min', icon: 'i-chart-bar' },
-    guess: { eyebrow: 'Agilidad', title: 'Pulso ICADEM', description: 'Descubre el concepto usando una sola pista.', duration: '60 s', icon: 'i-bolt' },
+    guess: { eyebrow: 'Criterio jurídico', title: 'Veredicto exprés', description: 'Identifica el concepto legal y decide con fundamento.', duration: '60 s', icon: 'i-scale' },
     classify: { eyebrow: 'Criterio', title: 'Decide con criterio', description: 'Clasifica conceptos y aplicaciones profesionales.', duration: '3 min', icon: 'i-briefcase' },
     quiz: { eyebrow: 'Reto diario', title: '12 preguntas clave', description: 'Comprueba tu criterio con preguntas de seis áreas profesionales.', duration: '5 min', icon: 'i-calendar' }
   };
