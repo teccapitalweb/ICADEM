@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v41';
+const CACHE = 'icadem-vip-v42';
 const SHELL = [
   './vip-panel.html',
   './vip-auth.html',
@@ -10,7 +10,7 @@ const SHELL = [
   './icon-maskable-512.png?v=20260815',
   './apple-touch-icon.png?v=20260815',
   './css/platform-v2.css?v=10',
-  './js/icadem-platform-v2.js?v=21',
+  './js/icadem-platform-v2.js?v=22',
   './css/panel-minimal.css?v=26',
   './js/icadem-onboarding.js?v=12'
 ];

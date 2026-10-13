@@ -49,6 +49,8 @@ assert.match(panel, /if \(np && !np\.mostrada\)/);
 assert.doesNotMatch(panel, /if \(isCheckoutSuccess && window\.UserState\.modo === 'vip'\)/);
 assert.match(platform, /\/api\/membership\/welcome-seen/);
 assert.match(platform, /request\('\/api\/courses\/catalog'\)/);
+assert.match(platform, /if \(window\.__isDemoMode\) return '';/);
+assert.match(panel, /const user = window\.__isDemoMode \? null : \(window\.__auth\?\.currentUser \|\| window\.__currentUser\);/);
 assert.match(onboarding, /result\?\.marked!==true/);
 assert.match(onboarding, /serverClaimed:true/);
 assert.match(platform, /\/api\/forum\/posts\/\$\{encodeURIComponent\(id\)\}\/delete/);

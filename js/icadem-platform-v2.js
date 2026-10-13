@@ -56,6 +56,9 @@
   }
 
   async function token() {
+    // El demo debe ser una sesión estrictamente anónima. Un navegador que ya
+    // tenga Firebase Auth no puede heredar permisos ni mutaciones de esa cuenta.
+    if (window.__isDemoMode) return '';
     const user = window.__auth?.currentUser || window.__currentUser;
     return user ? user.getIdToken() : '';
   }

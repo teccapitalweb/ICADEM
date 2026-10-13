@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=21" defer></script>
+<script src="js/icadem-platform-v2.js?v=22" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -6049,7 +6049,7 @@ const Sections = (function(){
     if (dlEl) dlEl.style.display = 'none';
 
     try {
-      const user = window.__auth?.currentUser;
+      const user = window.__isDemoMode ? null : window.__auth?.currentUser;
       const idToken = user ? await user.getIdToken() : '';
       const headers = { 'Content-Type': 'application/json' };
       if (idToken) headers.Authorization = `Bearer ${idToken}`;
@@ -6190,7 +6190,7 @@ const Sections = (function(){
   // debe recibir URLs, Video IDs ni respuestas de contenido bloqueado.
   async function pedirCatalogoCursos(){
     if (window.ICADEMPlatform?.loadCourseCatalog) return window.ICADEMPlatform.loadCourseCatalog();
-    const user = window.__auth?.currentUser || window.__currentUser;
+    const user = window.__isDemoMode ? null : (window.__auth?.currentUser || window.__currentUser);
     const idToken = user ? await user.getIdToken() : '';
     const headers = { Accept:'application/json' };
     if (idToken) headers.Authorization = `Bearer ${idToken}`;
@@ -8531,7 +8531,7 @@ const Sections = (function(){
           statusEl.innerHTML = `<span class="lesson-player__empty-icon"><svg class="ic"><use href="#i-play"/></svg></span><strong>Video en preparación</strong><small>El contenido de esta clase estará disponible muy pronto.</small>`;
           return;
         }
-        const user = window.__auth?.currentUser;
+        const user = window.__isDemoMode ? null : window.__auth?.currentUser;
         const idToken = user ? await user.getIdToken() : '';
         const headers = { 'Content-Type': 'application/json' };
         if (idToken) headers.Authorization = `Bearer ${idToken}`;
