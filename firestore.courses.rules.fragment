@@ -1,0 +1,33 @@
+// ICADEM · fragmento para integrar en las reglas Firestore de producción.
+//
+// IMPORTANTE: este archivo es deliberadamente un fragmento y no se despliega
+// por sí solo. Debe fusionarse con las reglas vigentes del proyecto
+// `icadem-vip`, porque este repositorio no contiene el ruleset completo.
+// Firebase Admin (Railway) omite estas reglas y seguirá leyendo/escribiendo.
+//
+// Firestore combina con OR todos los `allow` de bloques coincidentes: un
+// catch-all permisivo (por ejemplo `match /{document=**}`) anularía en la
+// práctica esta restricción. Al fusionar hay que retirar o acotar cualquier
+// otro `allow` que también alcance `cursos` y sus subcolecciones.
+
+function isIcademCourseAdmin() {
+  return request.auth != null
+    && request.auth.token.email in [
+      'teccapitalweb@gmail.com',
+      'icademconsultoria2024@gmail.com',
+      'sinergiaagricola789@gmail.com',
+      'ipcilinstituto@gmail.com'
+    ];
+}
+
+// Los documentos contienen URLs de materiales, Video IDs y datos internos.
+// El panel de miembros consume únicamente GET /api/courses/catalog.
+match /cursos/{courseId} {
+  allow read, create, update, delete: if isIcademCourseAdmin();
+}
+
+// Mantiene la misma política si en el futuro sesiones o actividades se
+// separan en subcolecciones del curso.
+match /cursos/{courseId}/{nestedDocument=**} {
+  allow read, create, update, delete: if isIcademCourseAdmin();
+}

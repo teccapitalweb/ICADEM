@@ -2,12 +2,16 @@
   'use strict';
 
   const VERSION = 'v3';
-  const MOBILE_BREAKPOINT = 880;
+  const MOBILE_BREAKPOINT = 1200;
   const STORAGE_PREFIX = `icadem:experience:${VERSION}:`;
+  const TOUR_EXPERIENCE = { id:'panel-tour', version:'v3' };
+  const CREDIT_EXPERIENCE = { id:'welcome-credits', version:'v1' };
+  const experienceClaims = new Map();
   const steps = [
     { icon:'✦', title:name=>`¡Bienvenido/a, ${name}!`, text:'Te mostramos lo esencial de ICADEM en menos de 30 segundos. Después podrás explorar a tu ritmo.', selectors:['#inicio-content .banner','.topbar'] },
     { icon:'▤', title:'Tu ruta de cursos', text:'En Mis cursos eliges tu ruta de inicio, retomas clases y consultas tu avance y materiales.', selectors:['.sidebar .nav-item[data-section="cursos"]','.mobile-nav__item[data-section="cursos"]'] },
-    { icon:'◉', title:'Clases en vivo', text:'Consulta las próximas sesiones con especialistas y vuelve a las transmisiones que queden disponibles.', selectors:['.sidebar .nav-item[data-section="webinars"]','.mobile-nav__item[data-section="webinars"]'] },
+    { icon:'✓', title:'Retos aplicados', text:'Practica con dinámicas breves, suma créditos verificados y refuerza lo aprendido sin perder tu avance.', selectors:['.sidebar .nav-item[data-section="retos"]','.mobile-nav__item[data-section="retos"]'] },
+    { icon:'◎', title:'Tu red profesional', text:'Encuentra a otros integrantes de ICADEM y administra con claridad qué datos compartes en el Directorio VIP.', selectors:['.sidebar .nav-item[data-section="directorio"]','.mobile-nav__item[data-section="directorio"]'] },
     { icon:'⌁', title:'Recursos profesionales', text:'Usa calculadoras, plantillas y la biblioteca para resolver decisiones fiscales, legales y de negocio.', selectors:['.sidebar .nav-item[data-section="herramientas"]','.mobile-drawer__item[data-section="herramientas"]'], mobileDrawer:true },
     { icon:'✓', title:'¡Listo para empezar!', text:'Tu panel quedó preparado. Puedes repetir este recorrido cuando quieras desde el botón de ayuda de la barra superior.', selectors:[], final:true }
   ];
@@ -29,15 +33,33 @@
   function markTourSeen() { write('tour', 'complete'); }
   function creditGiftWasSeen() { return read('credit-gift', '') === 'complete'; }
   function markCreditGiftSeen() { write('credit-gift', 'complete'); }
-  function freeCourseOfferWasSeen() { return window.UserState?.freeCourseOfferSeen === true || read('free-course-offer-seen', '') === 'complete' || read('free-course-deferred', '') !== ''; }
-  function markFreeCourseOfferSeen() {
-    write('free-course-offer-seen', 'complete');
-    if (window.UserState) window.UserState.freeCourseOfferSeen = true;
-    return window.ICADEMPlatform?.markFreeCourseOfferSeen?.();
+  function claimExperience(experience) {
+    if (window.__isDemoMode) return Promise.resolve({ claimed:true, demo:true });
+    const claimKey=`${experience.id}:${experience.version}`;
+    if (experienceClaims.has(claimKey)) return experienceClaims.get(claimKey);
+    const claim=window.ICADEMPlatform?.claimExperience;
+    if(typeof claim!=='function') return Promise.reject(new Error('La sincronización de experiencias aún no está disponible'));
+    const promise=Promise.resolve(claim(experience.id,experience.version))
+      .then(result=>{if(!result)throw new Error('El servidor no confirmó la experiencia');return result;})
+      .catch(error=>{experienceClaims.delete(claimKey);throw error;});
+    experienceClaims.set(claimKey,promise);
+    return promise;
+  }
+  function migrateLocalExperience(name, experience) {
+    if (read(name, '') !== 'complete' || window.__isDemoMode) return;
+    claimExperience(experience).catch(error=>console.warn(`[ICADEM ${experience.id}] Sincronización pendiente`,error.message));
+  }
+  function freeCourseDeferredThisSession() {
+    try { return sessionStorage.getItem(key('free-course-deferred-session')) === '1'; }
+    catch (_) { return false; }
+  }
+  function deferFreeCourseForSession() {
+    try { sessionStorage.setItem(key('free-course-deferred-session'), '1'); }
+    catch (_) {}
   }
   function canOfferFreeCourse() {
     const state=window.UserState;
-    return Boolean(state && state.modo !== 'vip' && !state.freeCourseId && !freeCourseOfferWasSeen() && (window.__isDemoMode || state.identityReady === true));
+    return Boolean(state && state.modo !== 'vip' && !state.freeCourseId && !freeCourseDeferredThisSession() && (window.__isDemoMode || state.identityReady === true));
   }
   function userReady() { const state=window.UserState; return Boolean(state && state.modo && state.modo !== 'cargando'); }
   function firstName() { return String(window.UserState?.displayName || window.UserState?.nombre || 'colega').trim().split(/\s+/)[0] || 'colega'; }
@@ -102,22 +124,35 @@
   }
   function focusables(){return Array.from(card.querySelectorAll('button:not([hidden]):not([disabled]),[href],[tabindex]:not([tabindex="-1"])')).filter(isVisible);}
   function onKeydown(event){if(!running)return;if(event.key==='Escape'){event.preventDefault();stop('skip');return;}if(event.key==='ArrowRight'){event.preventDefault();stepIndex===steps.length-1?stop('finish'):go(stepIndex+1);return;}if(event.key==='ArrowLeft'){event.preventDefault();go(stepIndex-1);return;}if(event.key!=='Tab')return;const nodes=focusables();if(!nodes.length)return;const first=nodes[0],last=nodes[nodes.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
-  function start(options){options=options||{};if(running)return Promise.resolve('already-running');if(!options.force&&tourWasSeen())return Promise.resolve('seen');window.navigateToSection?.('inicio');previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';running=true;root.hidden=false;document.documentElement.classList.add('ica-tour-active');document.addEventListener('keydown',onKeydown);window.addEventListener('resize',placeSpotlight);window.addEventListener('scroll',placeSpotlight,true);go(0);setTimeout(()=>card?.focus(),80);return new Promise(resolve=>{resolveTour=resolve;});}
+  async function start(options){options=options||{};if(running)return'already-running';if(!options.force){if(tourWasSeen()){migrateLocalExperience('tour',TOUR_EXPERIENCE);return'seen';}let claim;try{claim=await claimExperience(TOUR_EXPERIENCE);}catch(error){console.warn('[ICADEM panel tour]',error.message);return'unavailable';}markTourSeen();if(claim?.claimed!==true)return'seen';}window.navigateToSection?.('inicio');previousFocus=document.activeElement;previousOverflow=document.body.style.overflow;document.body.style.overflow='hidden';running=true;root.hidden=false;document.documentElement.classList.add('ica-tour-active');document.addEventListener('keydown',onKeydown);window.addEventListener('resize',placeSpotlight);window.addEventListener('scroll',placeSpotlight,true);go(0);setTimeout(()=>card?.focus(),80);return new Promise(resolve=>{resolveTour=resolve;});}
   function stop(reason){if(!running)return;running=false;renderToken+=1;markTourSeen();setMobileDrawer(false);root.hidden=true;document.body.style.overflow=previousOverflow;document.documentElement.classList.remove('ica-tour-active');document.removeEventListener('keydown',onKeydown);window.removeEventListener('resize',placeSpotlight);window.removeEventListener('scroll',placeSpotlight,true);currentTarget=null;if(previousFocus&&previousFocus.isConnected)previousFocus.focus();document.dispatchEvent(new CustomEvent('icadem:tour-ended',{detail:{reason}}));const done=resolveTour;resolveTour=null;done?.(reason);}
 
   function installEntryPoints(){const topbar=document.querySelector('.topbar__right');if(topbar&&!document.getElementById('icadem-tour-help')){const button=document.createElement('button');button.id='icadem-tour-help';button.className='icon-btn ica-tour-help';button.type='button';button.textContent='?';button.title='Recorrido por ICADEM';button.setAttribute('aria-label','Repetir recorrido guiado');button.addEventListener('click',()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}));topbar.insertBefore(button,topbar.firstChild);}const profile=document.querySelector('.perfil-hero');if(profile&&!document.getElementById('icadem-tour-profile')){const button=document.createElement('button');button.id='icadem-tour-profile';button.className='btn btn--ghost ica-tour-profile-btn';button.type='button';button.textContent='Repetir recorrido';button.addEventListener('click',()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}));profile.appendChild(button);}}
-  function blockingDialogOpen(){return Boolean(document.querySelector('#splash-bienvenida,#name-modal,#icadem-credit-gift,.modal-backdrop.is-open,.paywall-modal.is-open,.credit-wallet-modal,.learning-game,.practice-picker--v3,#tpl-modal-overlay.tpl-modal-visible'));}
+  function blockingDialogOpen(){
+    const selectors = [
+      '#splash-bienvenida','#name-modal','#icadem-credit-gift',
+      '.modal-backdrop.is-open','.paywall-modal.is-open','.credit-wallet-modal',
+      '.learning-game','.practice-picker--v3','#tpl-modal-overlay.tpl-modal-visible',
+      '.mobile-drawer.is-open','#visorOverlay','#foro-lightbox','#cf-modal',
+      '#splash-completado','#cancel-success-splash','#cancel-sub-modal'
+    ].join(',');
+    return Array.from(document.querySelectorAll(selectors)).some(element => {
+      if (element.hidden) return false;
+      const style = window.getComputedStyle(element);
+      return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
+    });
+  }
   function waitForGone(selector){return new Promise(resolve=>{let observed=false;const observer=new MutationObserver(()=>{if(document.querySelector(selector))observed=true;if(observed&&!document.querySelector(selector)){observer.disconnect();resolve();}});observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class','hidden']});if(document.querySelector(selector))observed=true;setTimeout(()=>{if(!observed){observer.disconnect();resolve();}},700);});}
   function visitCount(){const sessionKey=key('visit-session');try{if(!sessionStorage.getItem(sessionKey)){const next=Number(read('visits','0'))+1;write('visits',next);sessionStorage.setItem(sessionKey,'1');return next;}}catch(_){}return Number(read('visits','1'))||1;}
 
   async function openFreeCourseChooser(){
     if(!canOfferFreeCourse())return'not-needed';let courses=[];try{courses=await window.__getCursosGratisICADEM?.();}catch(_){}if(!Array.isArray(courses)||!courses.length)return'unavailable';
-    markFreeCourseOfferSeen()?.catch?.(error=>console.warn('[ICADEM free course offer]',error.message));
-    return new Promise(resolve=>{const modal=document.createElement('div');modal.className='ica-experience ica-course-picker';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','ica-free-course-title');modal.innerHTML=`<div class="ica-experience__shade"></div><section class="ica-experience__dialog"><header class="ica-experience__head"><div><span>Tu primera ruta</span><h2 id="ica-free-course-title">Elige dónde quieres empezar</h2></div><button class="ica-experience__close" type="button" aria-label="Elegir después">×</button></header><p class="ica-course-picker__intro">El curso que elijas guardará <strong>sus primeras 4 clases y el primer material gratis</strong> en tu cuenta. Esta elección se realiza una sola vez.</p><div class="ica-course-picker__grid">${courses.slice(0,8).map(course=>`<button type="button" class="ica-course-option" data-free-course="${esc(course.id)}"><img src="${esc(course.portada)}" alt="" loading="lazy"><span class="ica-course-option__copy"><em>${esc(course.area)}</em><strong>${esc(course.titulo)}</strong><small>${esc(course.descripcion||`${course.sesiones} clases disponibles`)}</small><b>Elegir este curso →</b></span></button>`).join('')}</div><p class="ica-course-picker__status" aria-live="polite"></p><footer class="ica-experience__foot"><p>Podrás activar la membresía cuando quieras para abrir el programa completo y los cursos siguientes.</p><button class="ica-experience__later" type="button">Elegir después</button></footer></section>`;document.body.appendChild(modal);const previous=document.activeElement,savedOverflow=document.body.style.overflow;document.body.style.overflow='hidden';const close=result=>{modal.remove();document.body.style.overflow=savedOverflow;previous?.isConnected&&previous.focus();resolve(result);};const later=()=>close('seen');modal.querySelector('.ica-experience__close').addEventListener('click',later);modal.querySelector('.ica-experience__later').addEventListener('click',later);modal.querySelectorAll('[data-free-course]').forEach(button=>button.addEventListener('click',async()=>{const status=modal.querySelector('.ica-course-picker__status');modal.querySelectorAll('button').forEach(item=>{item.disabled=true;});status.textContent='Guardando tu elección…';try{const result=await window.ICADEMPlatform?.selectFreeCourse(button.dataset.freeCourse);if(!result?.courseId)throw new Error('No pudimos confirmar el curso.');window.UserState.freeCourseId=result.courseId;write('free-course-selected',result.courseId);window.Toast?.success?.('Curso gratuito guardado','Ya puedes comenzar sus primeras 4 clases');close('selected');setTimeout(()=>window.navigateToSection?.('cursos'),80);}catch(error){status.textContent=error.message||'No pudimos guardar tu elección. Intenta nuevamente.';modal.querySelectorAll('button').forEach(item=>{item.disabled=false;});}}));modal.querySelector('[data-free-course]')?.focus();});
+    return new Promise(resolve=>{const modal=document.createElement('div');modal.className='ica-experience ica-course-picker';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','ica-free-course-title');modal.innerHTML=`<div class="ica-experience__shade"></div><section class="ica-experience__dialog"><header class="ica-experience__head"><div><span>Tu primera ruta</span><h2 id="ica-free-course-title">Elige dónde quieres empezar</h2></div><button class="ica-experience__close" type="button" aria-label="Elegir después">×</button></header><p class="ica-course-picker__intro">El curso que elijas guardará <strong>sus primeras 4 clases y el primer material gratis</strong> en tu cuenta. Esta elección se realiza una sola vez.</p><div class="ica-course-picker__grid">${courses.slice(0,8).map(course=>`<button type="button" class="ica-course-option" data-free-course="${esc(course.id)}"><img src="${esc(course.portada)}" alt="" loading="lazy"><span class="ica-course-option__copy"><em>${esc(course.area)}</em><strong>${esc(course.titulo)}</strong><small>${esc(course.descripcion||`${course.sesiones} clases disponibles`)}</small><b>Elegir este curso →</b></span></button>`).join('')}</div><p class="ica-course-picker__status" aria-live="polite"></p><footer class="ica-experience__foot"><p>Podrás activar la membresía cuando quieras para abrir el programa completo y los cursos siguientes.</p><button class="ica-experience__later" type="button">Elegir después</button></footer></section>`;document.body.appendChild(modal);const previous=document.activeElement,savedOverflow=document.body.style.overflow;document.body.style.overflow='hidden';const close=result=>{modal.remove();document.body.style.overflow=savedOverflow;previous?.isConnected&&previous.focus();resolve(result);};const later=()=>{deferFreeCourseForSession();close('deferred');};modal.querySelector('.ica-experience__close').addEventListener('click',later);modal.querySelector('.ica-experience__later').addEventListener('click',later);modal.querySelectorAll('[data-free-course]').forEach(button=>button.addEventListener('click',async()=>{const status=modal.querySelector('.ica-course-picker__status');modal.querySelectorAll('button').forEach(item=>{item.disabled=true;});status.textContent='Guardando tu elección…';try{const result=await window.ICADEMPlatform?.selectFreeCourse(button.dataset.freeCourse);if(!result?.courseId)throw new Error('No pudimos confirmar el curso.');window.UserState.freeCourseId=result.courseId;window.UserState.freeCourseOfferSeen=true;write('free-course-selected',result.courseId);write('free-course-offer-seen','complete');await window.__reloadCourseCatalog?.();window.Toast?.success?.('Curso gratuito guardado','Ya puedes comenzar sus primeras 4 clases');close('selected');setTimeout(()=>window.navigateToSection?.('cursos'),80);}catch(error){status.textContent=error.message||'No pudimos guardar tu elección. Intenta nuevamente.';modal.querySelectorAll('button').forEach(item=>{item.disabled=false;});}}));modal.querySelector('[data-free-course]')?.focus();});
   }
 
   async function openWelcomeCreditGift(){
-    if(creditGiftWasSeen()||document.getElementById('icadem-credit-gift'))return'seen';
+    if(creditGiftWasSeen()){migrateLocalExperience('credit-gift',CREDIT_EXPERIENCE);return'seen';}
+    if(document.getElementById('icadem-credit-gift'))return'seen';
     if(window.UserState?.modo==='invitado')return'not-available';
     let wallet;
     try{wallet=await window.ICADEMPlatform?.loadCreditWallet?.(true);}catch(error){console.warn('[ICADEM welcome credits]',error);return'unavailable';}
@@ -127,11 +162,14 @@
     const amount=Math.max(0,Number(welcomeMovement?.amount||welcomeRule?.amount||(window.__isDemoMode?200:0))||0);
     const balance=Math.max(0,Number(wallet.credits?.balance)||0);
     if(!amount)return'unavailable';
+    let claim;
+    try{claim=await claimExperience(CREDIT_EXPERIENCE);}catch(error){console.warn('[ICADEM welcome credits claim]',error.message);return'unavailable';}
     markCreditGiftSeen();
+    if(claim?.claimed!==true)return'seen';
     return new Promise(resolve=>{
       const modal=document.createElement('div');
       modal.id='icadem-credit-gift';modal.className='ica-experience';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','icadem-credit-gift-title');
-      modal.innerHTML=`<div class="ica-experience__shade" data-credit-gift-close></div><section class="ica-experience__dialog ica-credit-gift"><button class="ica-credit-gift__close" type="button" aria-label="Cerrar aviso" data-credit-gift-close>×</button><div class="ica-credit-gift__body"><div class="ica-credit-gift__coin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 12 8 12 8s2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg><b>+${amount.toLocaleString('es-MX')}</b></div><span class="ica-credit-gift__kicker">Regalo de bienvenida</span><h2 id="icadem-credit-gift-title">¡Tienes <em>${amount.toLocaleString('es-MX')} créditos</em> de regalo!</h2><p>Te los damos por unirte a ICADEM. Ya están en tu cuenta y puedes sumar más al completar retos y juegos para canjear libros y próximas recompensas.</p><div class="ica-credit-gift__balance"><span>Tu saldo actual</span><strong>${balance.toLocaleString('es-MX')} <small>créditos</small></strong></div></div><div class="ica-credit-gift__actions"><button class="ica-credit-gift__later" type="button" data-credit-gift-close>Más tarde</button><button class="ica-credit-gift__cta" type="button">Ver libros para canjear →</button></div></section>`;
+      modal.innerHTML=`<div class="ica-experience__shade" data-credit-gift-close></div><section class="ica-experience__dialog ica-credit-gift"><button class="ica-credit-gift__close" type="button" aria-label="Cerrar aviso" data-credit-gift-close>×</button><div class="ica-credit-gift__body"><div class="ica-credit-gift__coin" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 12 8 12 8s2.5-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg><b>+${amount.toLocaleString('es-MX')}</b></div><span class="ica-credit-gift__kicker">Regalo de bienvenida</span><h2 id="icadem-credit-gift-title">¡Recibiste <em>${amount.toLocaleString('es-MX')} créditos</em> de bienvenida!</h2><p>Este fue tu regalo único por unirte a ICADEM. Ya está incluido en tu saldo y puedes sumar más al completar retos y juegos para canjear libros y próximas recompensas.</p><div class="ica-credit-gift__balance"><span>Tu saldo actual</span><strong>${balance.toLocaleString('es-MX')} <small>créditos</small></strong></div></div><div class="ica-credit-gift__actions"><button class="ica-credit-gift__later" type="button" data-credit-gift-close>Más tarde</button><button class="ica-credit-gift__cta" type="button">Ver libros para canjear →</button></div></section>`;
       const previous=document.activeElement,savedOverflow=document.body.style.overflow;document.body.style.overflow='hidden';document.body.appendChild(modal);
       let closed=false;
       const onKey=event=>{if(event.key==='Escape'){event.preventDefault();close('later');}};
@@ -144,8 +182,78 @@
 
   function openInstallInvitation(){const installButton=document.getElementById('install-app-btn');if(!installButton||installButton.hidden||read('install-invited','')==='1')return Promise.resolve('not-available');return new Promise(resolve=>{const modal=document.createElement('div');modal.className='ica-experience';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.innerHTML=`<div class="ica-experience__shade"></div><section class="ica-experience__dialog ica-install-card"><div class="ica-install-body"><div class="ica-install-icon" aria-hidden="true">⇩</div><h2>Ten ICADEM siempre a la mano</h2><p>Instala el panel en tu teléfono o tableta para entrar más rápido, con una experiencia limpia y sin la barra del navegador.</p></div><div class="ica-install-actions"><button class="ica-install-secondary" type="button">Ahora no</button><button class="ica-install-primary" type="button">Instalar ICADEM</button></div></section>`;document.body.appendChild(modal);const close=result=>{write('install-invited','1');modal.remove();resolve(result);};modal.querySelector('.ica-install-secondary').addEventListener('click',()=>close('later'));modal.querySelector('.ica-install-primary').addEventListener('click',()=>{installButton.click();close('install');});modal.querySelector('.ica-install-primary').focus();});}
 
-  const Experience=(()=>{const queue=[];let busy=false,activeId='',sequence=0;const priorities={'membership-welcome':120,tour:100,'credit-gift':90,'free-course':80,'profile-name':50,install:30};function enqueue(id,payload,options){options=options||{};const unique=options.unique!==false;if(unique&&(activeId===id||queue.some(item=>item.id===id)))return;queue.push({id,payload:payload||{},priority:options.priority??priorities[id]??10,sequence:sequence++});queue.sort((a,b)=>b.priority-a.priority||a.sequence-b.sequence);pump();}async function run(job){if(job.id==='membership-welcome'){if(typeof window.__showWelcomeSplash!=='function')return;window.__showWelcomeSplash(job.payload);await waitForGone('#splash-bienvenida');return;}if(job.id==='tour'){await start({force:job.payload.force===true});if(!creditGiftWasSeen())enqueue('credit-gift');if(canOfferFreeCourse())enqueue('free-course');return;}if(job.id==='credit-gift'){if(!tourWasSeen())return;await openWelcomeCreditGift();return;}if(job.id==='free-course'){if(!tourWasSeen())return;await openFreeCourseChooser();return;}if(job.id==='profile-name'){if(!tourWasSeen()||visitCount()<2)return;if(window.UserState?.modo!=='vip'&&!window.UserState?.freeCourseId)return;window.__maybeAskName?.();await waitForGone('#name-modal');return;}if(job.id==='install'){if(!tourWasSeen()||visitCount()<3)return;await openInstallInvitation();}}async function pump(){if(busy||!userReady()||!queue.length)return;if(blockingDialogOpen()){setTimeout(pump,400);return;}busy=true;const job=queue.shift();activeId=job.id;try{await run(job);}catch(error){console.warn('[ICADEM experience]',job.id,error);}finally{activeId='';busy=false;setTimeout(pump,500);}}return{enqueue,pump};})();
-  function scheduleAutomatic(){if(!userReady()){setTimeout(scheduleAutomatic,250);return;}visitCount();if(!tourWasSeen())Experience.enqueue('tour');else{if(!creditGiftWasSeen())Experience.enqueue('credit-gift');if(canOfferFreeCourse())Experience.enqueue('free-course');}Experience.enqueue('profile-name');if(document.getElementById('install-app-btn')?.hidden===false)Experience.enqueue('install');Experience.pump();}
-  function init(){addStyles();createRoot();installEntryPoints();const dynamic=document.getElementById('dynamic-section');if(dynamic)new MutationObserver(installEntryPoints).observe(dynamic,{childList:true,subtree:true});const pending=Array.isArray(window.__icademExperiencePending)?window.__icademExperiencePending.splice(0):[];window.__scheduleExperience=(id,payload)=>Experience.enqueue(id,payload);pending.forEach(item=>Experience.enqueue(item.id,item.payload));window.IcademGuidedTour={start:()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}),stop};window.ICADEMExperience=Experience;document.addEventListener('icadem:user-ready',scheduleAutomatic);document.addEventListener('icadem:identity-ready',event=>{const profile=event.detail?.profile||{};window.UserState.identityReady=true;if(profile.freeCourseId)window.UserState.freeCourseId=profile.freeCourseId;if(profile.freeCourseOfferSeen===true)window.UserState.freeCourseOfferSeen=true;else if(freeCourseOfferWasSeen())markFreeCourseOfferSeen()?.catch?.(()=>{});scheduleAutomatic();});document.addEventListener('icadem:install-available',()=>Experience.enqueue('install'));setTimeout(scheduleAutomatic,650);}
+  const Experience=(()=>{
+    const queue=[];
+    let busy=false,activeId='',sequence=0;
+    const priorities={'membership-welcome':120,tour:100,'credit-gift':90,'free-course':80,'profile-name':50,install:30};
+    const retryDelays=[1200,3000,7000,15000];
+    function enqueue(id,payload,options){
+      options=options||{};
+      const unique=options.unique!==false;
+      if(unique&&(activeId===id||queue.some(item=>item.id===id)))return;
+      queue.push({id,payload:payload||{},priority:options.priority??priorities[id]??10,sequence:sequence++});
+      queue.sort((a,b)=>b.priority-a.priority||a.sequence-b.sequence);
+      pump();
+    }
+    function retry(job){
+      const attempt=Number(job.payload?.retryAttempt||0);
+      if(attempt>=retryDelays.length)return;
+      setTimeout(()=>enqueue(job.id,{...job.payload,retryAttempt:attempt+1}),retryDelays[attempt]);
+    }
+    async function run(job){
+      if(job.id==='membership-welcome'){
+        if(typeof window.__showWelcomeSplash!=='function')return;
+        let payload=job.payload||{};
+        if(payload.fromNotif&&!window.__isDemoMode){
+          const claim=window.ICADEMPlatform?.markMembershipWelcomeSeen;
+          if(typeof claim!=='function'){retry(job);return;}
+          let result;
+          try{result=await claim();}
+          catch(error){console.warn('[ICADEM bienvenida claim]',error.message);retry(job);return;}
+          if(result?.marked!==true)return;
+          payload={...payload,fromNotif:false,serverClaimed:true};
+        }
+        window.__showWelcomeSplash(payload);
+        await waitForGone('#splash-bienvenida');
+        return;
+      }
+      if(job.id==='tour'){
+        const result=await start({force:job.payload.force===true});
+        if(result==='unavailable'){if(job.payload.force!==true)retry(job);return;}
+        if(!creditGiftWasSeen())enqueue('credit-gift');
+        if(canOfferFreeCourse())enqueue('free-course');
+        return;
+      }
+      if(job.id==='credit-gift'){
+        if(!tourWasSeen())return;
+        const result=await openWelcomeCreditGift();
+        if(result==='unavailable')retry(job);
+        return;
+      }
+      if(job.id==='free-course'){if(!tourWasSeen())return;await openFreeCourseChooser();return;}
+      if(job.id==='profile-name'){
+        if(!tourWasSeen()||visitCount()<2)return;
+        if(window.UserState?.modo!=='vip'&&!window.UserState?.freeCourseId)return;
+        window.__maybeAskName?.();
+        await waitForGone('#name-modal');
+        return;
+      }
+      if(job.id==='install'){if(!tourWasSeen()||visitCount()<3)return;await openInstallInvitation();}
+    }
+    async function pump(){
+      if(busy||!userReady()||!queue.length)return;
+      if(blockingDialogOpen()){setTimeout(pump,400);return;}
+      busy=true;
+      const job=queue.shift();
+      activeId=job.id;
+      try{await run(job);}
+      catch(error){console.warn('[ICADEM experience]',job.id,error);}
+      finally{activeId='';busy=false;setTimeout(pump,500);}
+    }
+    return{enqueue,pump};
+  })();
+  let scheduleTimer=0;
+  function scheduleAutomatic(){if(scheduleTimer){clearTimeout(scheduleTimer);scheduleTimer=0;}if(!userReady()||(!window.__isDemoMode&&window.UserState?.identityReady!==true)){scheduleTimer=setTimeout(scheduleAutomatic,250);return;}visitCount();if(tourWasSeen())migrateLocalExperience('tour',TOUR_EXPERIENCE);else Experience.enqueue('tour');if(creditGiftWasSeen())migrateLocalExperience('credit-gift',CREDIT_EXPERIENCE);else if(tourWasSeen())Experience.enqueue('credit-gift');if(tourWasSeen()&&canOfferFreeCourse())Experience.enqueue('free-course');Experience.enqueue('profile-name');if(document.getElementById('install-app-btn')?.hidden===false)Experience.enqueue('install');Experience.pump();}
+  function init(){addStyles();createRoot();installEntryPoints();const dynamic=document.getElementById('dynamic-section');if(dynamic)new MutationObserver(installEntryPoints).observe(dynamic,{childList:true,subtree:true});const pending=Array.isArray(window.__icademExperiencePending)?window.__icademExperiencePending.splice(0):[];window.__scheduleExperience=(id,payload)=>Experience.enqueue(id,payload);pending.forEach(item=>Experience.enqueue(item.id,item.payload));window.IcademGuidedTour={start:()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}),stop};window.ICADEMExperience=Experience;document.addEventListener('icadem:user-ready',scheduleAutomatic);document.addEventListener('icadem:identity-ready',event=>{const profile=event.detail?.profile||{};window.UserState.identityReady=true;if(profile.freeCourseId)window.UserState.freeCourseId=profile.freeCourseId;if(profile.freeCourseOfferSeen===true)window.UserState.freeCourseOfferSeen=true;scheduleAutomatic();});document.addEventListener('icadem:install-available',()=>Experience.enqueue('install'));setTimeout(scheduleAutomatic,650);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

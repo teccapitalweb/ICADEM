@@ -143,6 +143,8 @@
     state.photoURL = state.authPhotoURL || profile.photoURL || directory.foto || state.photoURL || '';
     state.iniciales = directory.iniciales || initials(state.nombre);
     state.providerIds = profile.providerIds || [];
+    state.customName = profile.customName || state.customName || '';
+    state.profileComplete = profile.profileComplete === true;
     state.freeCourseId = profile.freeCourseId || state.freeCourseId || '';
     state.freeCourseOfferSeen = profile.freeCourseOfferSeen === true;
     state.identityReady = true;
@@ -212,6 +214,10 @@
     return data;
   }
 
+  async function loadCourseCatalog() {
+    return request('/api/courses/catalog');
+  }
+
   async function loadLibrary() {
     return request('/api/library');
   }
@@ -248,6 +254,62 @@
     if (window.UserState) window.UserState.freeCourseOfferSeen = true;
     if (window.__isDemoMode) return { ok: true, offerSeen: true, demo: true };
     return request('/api/free-course/offer-seen', { method: 'POST', body: {} });
+  }
+
+  async function claimExperience(experience, version) {
+    if (window.__isDemoMode) {
+      return { ok: true, claimed: true, experience, version, demo: true };
+    }
+    return request('/api/credits/experience/claim', {
+      method: 'POST',
+      body: { experience: String(experience || ''), version: String(version || '') }
+    });
+  }
+
+  async function markMembershipWelcomeSeen() {
+    if (window.__isDemoMode) return { ok: true, demo: true };
+    return request('/api/membership/welcome-seen', { method: 'POST', body: {} });
+  }
+
+  async function deleteForumPost(postId) {
+    const id = String(postId || '').trim();
+    if (!id) throw new Error('Publicación inválida.');
+    return request(`/api/forum/posts/${encodeURIComponent(id)}/delete`, { method: 'POST', body: {} });
+  }
+
+  async function toggleForumLike(postId) {
+    const id = String(postId || '').trim();
+    if (!id) throw new Error('Publicación inválida.');
+    return request(`/api/forum/posts/${encodeURIComponent(id)}/like`, { method: 'POST', body: {} });
+  }
+
+  async function createForumPost(post) {
+    return request('/api/forum/posts', {
+      method: 'POST',
+      body: {
+        texto: String(post?.texto || '').trim(),
+        imagen: typeof post?.imagen === 'string' ? post.imagen : null
+      }
+    });
+  }
+
+  async function createForumComment(postId, comment) {
+    const id = String(postId || '').trim();
+    if (!id) throw new Error('Publicación inválida.');
+    return request(`/api/forum/posts/${encodeURIComponent(id)}/comments`, {
+      method: 'POST',
+      body: { texto: String(comment?.texto || '').trim() }
+    });
+  }
+
+  async function deleteForumComment(postId, commentId) {
+    const post = String(postId || '').trim();
+    const comment = String(commentId || '').trim();
+    if (!post || !comment) throw new Error('Comentario inválido.');
+    return request(`/api/forum/posts/${encodeURIComponent(post)}/comments/${encodeURIComponent(comment)}/delete`, {
+      method: 'POST',
+      body: {}
+    });
   }
 
   function demoCreditLedgerKey() {
@@ -1201,7 +1263,8 @@
   if (window.__currentUser) syncIdentity();
 
   window.ICADEMPlatform = {
-    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, selectFreeCourse, markFreeCourseOfferSeen, mountRanking,
+    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadCourseCatalog, loadLibrary, redeemBook, selectFreeCourse, markFreeCourseOfferSeen, claimExperience, markMembershipWelcomeSeen,
+    createForumPost, deleteForumPost, toggleForumLike, createForumComment, deleteForumComment, mountRanking,
     loadLearningProgress,
     loadCreditWallet, openCreditWallet, applyDemoCreditMovement,
     saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus

@@ -109,19 +109,8 @@ button:disabled{opacity:.55;cursor:not-allowed;transform:none}
   <p class="foot">Registro oficial de certificados de ICADEM · <a href="https://www.icademx.com">icademx.com</a></p>
 </div>
 
-<script type="module">
-import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-
-const app = initializeApp({
-  apiKey: 'AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA',
-  authDomain: 'icadem-vip.firebaseapp.com',
-  projectId: 'icadem-vip',
-  storageBucket: 'icadem-vip.firebasestorage.app',
-  messagingSenderId: '12508983783',
-  appId: '1:12508983783:web:b12be6f1fab9bb91fb8d42'
-});
-const db = getFirestore(app);
+<script>
+const API_BASE = 'https://icadem-webhook-production.up.railway.app';
 
 const $in = document.getElementById('folio-input');
 const $btn = document.getElementById('btn-verify');
@@ -146,8 +135,13 @@ async function verificar(folio){
   $btn.disabled = true; const orig = $btn.innerHTML; $btn.innerHTML = '<span class="spinner"></span>';
   $res.style.display = 'none';
   try {
-    const snap = await getDoc(doc(db, 'certificados', folio));
-    if (!snap.exists()) {
+    const response = await fetch(`${API_BASE}/api/certificates/verify?folio=${encodeURIComponent(folio)}`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      cache: 'no-store'
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.status === 404) {
       $res.innerHTML = `
         <div class="res res--err">
           <div class="res__head">
@@ -158,8 +152,10 @@ async function verificar(folio){
           <p style="font-size:13px;color:var(--text-2);line-height:1.6;">Revisa que el folio esté escrito exactamente como aparece en el certificado (por ejemplo <span style="font-family:'JetBrains Mono',monospace;color:var(--gold);">ICADEM-2026-A1B2C3</span>). Si crees que es un error, escríbenos desde <a href="https://www.icademx.com" style="color:var(--primary-soft);">icademx.com</a>.</p>
         </div>`;
     } else {
-      const c = snap.data();
-      // Esquema nuevo con fallback al viejo (nombreAlumno / fecha)
+      if (!response.ok) throw new Error(data.error || 'El servicio de verificación no está disponible.');
+      const c = data.certificate || data.certificado || data;
+      if (!c || c.valid === false || c.ok === false) throw new Error('La respuesta de verificación no es válida.');
+      // Todos estos campos proceden del endpoint público autoritativo.
       const nombre = c.nombre || c.nombreAlumno || '—';
       const emitido = c.emitido || c.fecha || c.createdAt || null;
       const carga = [c.sesiones ? `${c.sesiones} sesiones` : null, c.horas ? `${c.horas} horas` : null].filter(Boolean).join(' · ') || '—';
@@ -178,7 +174,7 @@ async function verificar(folio){
             <div class="it"><div class="k">Instructor</div><div class="v">${esc(c.instructor || 'Equipo ICADEM')}</div></div>
             <div class="it"><div class="k">Fecha de emisión</div><div class="v">${fmtFecha(emitido)}</div></div>
           </div>
-          <span class="folio-pill">Folio · ${esc(snap.id)}</span>
+          <span class="folio-pill">Folio · ${esc(c.folio || folio)}</span>
         </div>`;
     }
   } catch (e) {

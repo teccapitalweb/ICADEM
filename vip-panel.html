@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=17" defer></script>
+<script src="js/icadem-platform-v2.js?v=21" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -760,6 +760,10 @@ body::after{
 }
 @keyframes shimmerSlide{0%{transform:translateX(-100%)}100%{transform:translateX(100%)}}
 .curso-card__progress-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--primary);font-weight:700;min-width:38px;text-align:right}
+.curso-card__free-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:42px;padding:0 16px;border:1px solid color-mix(in srgb,var(--primary) 34%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--primary) 10%,var(--surface));color:var(--primary);font:700 12.5px/1 'Inter',sans-serif;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
+.curso-card__free-cta:hover{background:var(--primary);border-color:var(--primary);color:#fff;transform:translateY(-1px)}
+.curso-card__free-cta:disabled{opacity:.62;cursor:wait;transform:none}
+.curso-card__free-cta .ic{width:15px;height:15px}
 
 /* CERTIFICADOS — cards estilo Sinergia */
 .certs-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
@@ -3160,6 +3164,9 @@ body.has-fomo .main{padding-top:18px}
 .course-detail-lock strong{font-size:15px}
 .course-detail-lock p{margin:4px 0 0;color:var(--text-2);font-size:12px}
 .course-detail-lock__cta{margin-left:auto;padding:11px 18px;border:0;border-radius:11px;background:var(--primary);color:#0f1626;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;flex-shrink:0}
+.course-detail-lock__actions{display:flex;align-items:center;gap:9px;margin-left:auto;flex-shrink:0}
+.course-detail-lock__actions .course-detail-lock__cta{margin-left:0}
+.course-detail-lock__cta--free{background:var(--surface);color:var(--primary);border:1px solid color-mix(in srgb,var(--primary) 38%,var(--border))}
 
 @media (max-width:820px){
   .course-detail-hero{min-height:270px;align-items:flex-start;flex-direction:column;justify-content:flex-end;padding:24px}
@@ -3190,6 +3197,7 @@ body.has-fomo .main{padding-top:18px}
   .course-lesson__action{width:32px;height:32px}
   .course-detail-progress{padding:18px}
   .course-detail-lock{flex-direction:column;align-items:flex-start}
+  .course-detail-lock__actions{width:100%;margin-left:0;flex-direction:column}
   .course-detail-lock__cta{margin-left:0;width:100%}
 }
 @media (max-width:380px){
@@ -4053,14 +4061,11 @@ if (window.__isDemoMode) {
     // Llenar widgets de actividad con datos reales
     setTimeout(()=>{ if(typeof window.__actualizarWidgetsActividad==='function') window.__actualizarWidgetsActividad(); }, 400);
 
-    if (isCheckoutSuccess && window.UserState.modo === 'vip') {
-      window.__scheduleExperience('membership-welcome', {});
-    }
-
-    // ─── Splash de activación MANUAL (admin) · lee notificacionPendiente ───
-    // El admin (activar mensual/anual o regalar días) siembra notificacionPendiente
-    // en miembros/{uid}. Aquí lo detectamos, mostramos el splash y lo marcamos.
-    if (!isCheckoutSuccess && window.UserState.modo === 'vip') {
+    // ─── Splash único por activación ───
+    // Stripe y las activaciones manuales siembran la misma marca autoritativa.
+    // El parámetro `checkout=success` por sí solo nunca debe volver a abrir el
+    // recorrido si la cuenta ya confirmó esa bienvenida en otro dispositivo.
+    if (window.UserState.modo === 'vip') {
       try {
         const np = window.memberData && window.memberData.notificacionPendiente;
         if (np && !np.mostrada) {
@@ -4072,6 +4077,12 @@ if (window.__isDemoMode) {
           });
         }
       } catch(e) { console.warn('notificacionPendiente:', e.message); }
+    }
+    if (isCheckoutSuccess && window.history.replaceState) {
+      const cleanUrl = new URL(window.location.href);
+      cleanUrl.searchParams.delete('checkout');
+      cleanUrl.searchParams.delete('session_id');
+      window.history.replaceState({}, '', cleanUrl.toString());
     }
 
     setTimeout(() => { window.__applyUserState && window.__applyUserState(); }, 50);
@@ -4091,8 +4102,8 @@ window.__signOut = async () => {
 
 // ═══════════════════════════════════════════════════════════════
 // 🎉 SPLASH DE BIENVENIDA · cinematográfico
-// Se dispara: (a) post-pago Stripe (?checkout=success, sin args)
-//             (b) activación manual del admin (notificacionPendiente)
+// Se dispara cuando el servidor deja `notificacionPendiente.mostrada=false`,
+// tanto para pagos Stripe como para activaciones manuales.
 // opts = { tipo, plan, dias, fromNotif }
 // ═══════════════════════════════════════════════════════════════
 window.__showWelcomeSplash = function(opts) {
@@ -4107,6 +4118,7 @@ window.__showWelcomeSplash = function(opts) {
   if (window.history.replaceState) {
     const url = new URL(window.location.href);
     url.searchParams.delete('checkout');
+    url.searchParams.delete('session_id');
     window.history.replaceState({}, '', url.toString());
   }
 
@@ -4189,7 +4201,7 @@ window.__showWelcomeSplash = function(opts) {
   dotsEl.innerHTML = slides.map((_,i)=>`<span class="splash-film__dot" data-i="${i}"></span>`).join('');
   const dots = Array.from(dotsEl.querySelectorAll('.splash-film__dot'));
 
-  let cur = -1, timer = null, marcado = false;
+  let cur = -1, timer = null;
 
   function confetti(){
     confEl.innerHTML = Array.from({length:32}).map((_,i)=>
@@ -4239,20 +4251,8 @@ window.__showWelcomeSplash = function(opts) {
     timer = setInterval(() => goTo(cur+1), AUTO_MS);
   }
 
-  function marcarMostrada(){
-    if (marcado || !opts.fromNotif) return;
-    marcado = true;
-    try {
-      const fs = window.__fs;
-      if (fs && fs.updateDoc && S.uid) {
-        fs.updateDoc(fs.doc(fs.db, 'miembros', S.uid), { 'notificacionPendiente.mostrada': true }).catch(()=>{});
-      }
-    } catch(e){ /* noop */ }
-  }
-
   function close(){
     if (timer) clearInterval(timer);
-    marcarMostrada();
     splash.style.animation = 'bnvFadeOut .3s ease forwards';
     setTimeout(() => splash.remove(), 300);
   }
@@ -4421,7 +4421,7 @@ window.__setDisplayName = async (nombre) => {
           <svg class="ic"><use href="#i-bell"/></svg>
           <span class="dot"></span>
         </button>
-        <button class="theme-toggle" id="theme-toggle">
+        <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a modo noche" title="Cambiar a modo noche">
           <svg class="ic" id="theme-icon"><use href="#i-moon"/></svg>
           <span id="theme-label">Noche</span>
         </button>
@@ -4541,8 +4541,8 @@ window.__setDisplayName = async (nombre) => {
 <nav class="mobile-nav" aria-label="Navegación principal">
   <button class="mobile-nav__item is-active" type="button" data-section="inicio"><svg class="ic"><use href="#i-home"/></svg>Inicio</button>
   <button class="mobile-nav__item" type="button" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos</button>
-  <button class="mobile-nav__item" type="button" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</button>
-  <button class="mobile-nav__item" type="button" data-section="suscripcion"><svg class="ic"><use href="#i-credit-card"/></svg>Plan</button>
+  <button class="mobile-nav__item" type="button" data-section="retos"><svg class="ic"><use href="#i-bolt"/></svg>Retos</button>
+  <button class="mobile-nav__item" type="button" data-section="directorio"><svg class="ic"><use href="#i-users"/></svg>Directorio</button>
   <button class="mobile-nav__item" type="button" id="mobile-nav-more"><svg class="ic"><use href="#i-menu"/></svg>Más</button>
 </nav>
 
@@ -4608,7 +4608,7 @@ const Storage={pref:{get(k,d){const v=localStorage.getItem(PREFIX+'pref:'+k);ret
 
 const Theme={
   init(){const saved=Storage.pref.get('theme',null);const normalized=(saved==='night'||saved==='dark')?'night':'day';this.apply(normalized,{persist:saved!==null});document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
-  apply(t,{persist=true}={}){t=t==='night'?'night':'day';document.documentElement.setAttribute('data-theme',t);if(persist)Storage.pref.set('theme',t);const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0f1626':'#eef3f9');},
+  apply(t,{persist=true}={}){t=t==='night'?'night':'day';document.documentElement.setAttribute('data-theme',t);if(persist)Storage.pref.set('theme',t);const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');const toggle=document.getElementById('theme-toggle');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';if(toggle){const next=t==='night'?'claro':'noche';toggle.setAttribute('aria-label',`Cambiar a modo ${next}`);toggle.title=`Cambiar a modo ${next}`;}const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0f1626':'#eef3f9');},
   toggle(){this.apply(document.documentElement.getAttribute('data-theme')==='night'?'day':'night',{persist:true});}
 };
 
@@ -5465,6 +5465,15 @@ function navigateToSection(section, opciones){
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
   document.querySelectorAll(`[data-section="${section}"]`).forEach(ni => ni.classList.add('is-active'));
+  const dockSection = ['curso-detalle','clase-detalle'].includes(section) ? 'cursos' : section;
+  if (dockSection !== section) {
+    document.querySelectorAll(`[data-section="${dockSection}"]`).forEach(ni => ni.classList.add('is-active'));
+  }
+  // El dock solo expone cuatro destinos. Para cualquier sección secundaria,
+  // deja claro que el usuario se encuentra dentro del menú "Más".
+  if(!['inicio','cursos','retos','directorio'].includes(dockSection)){
+    document.getElementById('mobile-nav-more')?.classList.add('is-active');
+  }
   // Si es una herramienta-sección (tool-iper, tool-oee...), resaltar su item data-tool
   if(section.startsWith('tool-')){
     const toolKey=section.slice(5);
@@ -5532,13 +5541,14 @@ const Sections = (function(){
   };
 
   /* ═══════════════════════════════════════════════════════════════════
-     CURSOS · sistema dinámico desde Firestore (flujo Sinergia)
+     CURSOS · catálogo sanitizado y autorizado por el backend
      ═══════════════════════════════════════════════════════════════════ */
 
-  // Array global de cursos cargados desde Firestore
+  // Array global de cursos cargados desde el catálogo seguro del backend
   let cursos = [];
   let _cursosLoaded = false;
   let _cursosLoading = false;
+  let _cursosLoadPromise = null;
 
   // ─── Lógica de desbloqueo progresivo (copiada de Sinergia) ───
   // Un curso se desbloquea cada 6 días desde fechaAlta del miembro
@@ -5621,20 +5631,26 @@ const Sections = (function(){
   }
 
   function cursoDesbloqueado(indexCurso, curso){
-    if (esAdminReal()) return true;
-    if (curso && curso.marcarProximamente === true) return false;
-    // Sin membresía se abre el curso que la persona eligió para mostrar sus
-    // 4 primeras clases y su primer material gratuitos. Para miembros, el acceso parte de la fecha
-    // real de alta y respeta la cola progresiva del catálogo.
-    if (!toolEsVIP()) return String(curso?.id || '') === primerCursoGratisId();
-    if (curso?.disponibleSiempre === true) return true;
-    return calcularDiasMembresia() >= cursoUnlockDay(curso);
+    if (!curso || curso.marcarProximamente === true) return false;
+    // La vista `?como=user&dias=N` es una herramienta exclusiva de admin:
+    // simula visualmente el goteo sin ampliar permisos reales.
+    if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
+      if (curso.disponibleSiempre === true) return true;
+      return calcularDiasMembresia() >= cursoUnlockDay(curso);
+    }
+    // El backend entrega el catálogo ya personalizado y es la única autoridad
+    // sobre membresía, curso gratuito y goteo. No se recalcula acceso desde
+    // valores manipulables del navegador.
+    return curso.access?.unlocked === true;
   }
 
   function diasParaDesbloquear(indexCurso, curso){
     if (cursoDesbloqueado(indexCurso, curso)) return 0;
-    if (!toolEsVIP() || curso?.marcarProximamente === true) return null;
-    return Math.max(0, cursoUnlockDay(curso) - calcularDiasMembresia());
+    if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
+      return Math.max(0, cursoUnlockDay(curso) - calcularDiasMembresia());
+    }
+    const remaining = Number(curso?.access?.daysRemaining);
+    return Number.isFinite(remaining) ? Math.max(0, remaining) : null;
   }
 
   // Mostrar banner si está en modo preview (solo admins lo ven)
@@ -5722,8 +5738,9 @@ const Sections = (function(){
       p[cursoId].completado = true;
       p[cursoId].fechaCompletado = new Date().toISOString();
       setProgreso(p);
-      // Emitir el certificado a Firestore (para que se acumule y sea verificable)
-      emitirCertificadoFirestore(curso);
+      // En producción el servidor emite el certificado al validar la última
+      // actividad. El modo demo conserva una copia para la vista previa.
+      if (window.__isDemoMode) emitirCertificadoFirestore(curso);
       // Mostrar splash de felicitación
       setTimeout(() => mostrarSplashCompletado(curso), 400);
     }
@@ -5753,13 +5770,12 @@ const Sections = (function(){
   }
 
   function claseDesbloqueada(cursoId, indexClase, sesiones) {
-    if (esAdminReal()) return true;
-    if (window.UserState?.modo === 'vip') {
-      const cursoIdx = cursos.findIndex(c => String(c.id) === String(cursoId));
-      const curso = cursoIdx >= 0 ? cursos[cursoIdx] : null;
-      return !!curso && cursoDesbloqueado(cursoIdx, curso);
+    if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
+      const courseIndex = cursos.findIndex(c => String(c.id) === String(cursoId));
+      return courseIndex >= 0 && cursoDesbloqueado(courseIndex, cursos[courseIndex]);
     }
-    return esClaseGratisGlobal(cursoId, indexClase);
+    const session = Array.isArray(sesiones) ? sesiones[indexClase] : null;
+    return session?.accessible === true;
   }
 
   function progresoCursoPct(cursoId, totalClases) {
@@ -5788,6 +5804,7 @@ const Sections = (function(){
 
   async function emitirCertificadoFirestore(curso) {
     try {
+      if (!window.__isDemoMode) return;
       const fs = window.__fs;
       const uid = window.UserState?.uid;
       if (!fs || !fs.setDoc || !uid) return;
@@ -6146,7 +6163,10 @@ const Sections = (function(){
       const p = getProgresoCurso(c.id);
       return p.clasesVistas?.length > 0 && !p.completado;
     });
-    const curso = enCurso || cursos.find(c => c.activo !== false && c.publicado !== false && Array.isArray(c.sesiones) && c.sesiones.length) || cursos[0];
+    const cursoGratis = window.UserState?.modo !== 'vip'
+      ? cursos.find(c => String(c.id) === primerCursoGratisId())
+      : null;
+    const curso = enCurso || cursoGratis || cursos.find(c => c.activo !== false && c.publicado !== false && Array.isArray(c.sesiones) && c.sesiones.length) || cursos[0];
     const total = curso.sesiones?.length || 0;
     const pct = progresoCursoPct(curso.id, total);
     const portada = curso.portada || coverSVG(curso.area, curso.titulo);
@@ -6165,57 +6185,68 @@ const Sections = (function(){
   }
   window.__actualizarInicioAprendizaje = actualizarInicioAprendizaje;
 
-  // ─── Cargar cursos desde Firestore ───
-  async function cargarCursosFirestore(){
-    if (_cursosLoading) return;
+  // ─── Cargar catálogo sanitizado desde el backend ───
+  // Firestore conserva los documentos editoriales completos, pero el panel no
+  // debe recibir URLs, Video IDs ni respuestas de contenido bloqueado.
+  async function pedirCatalogoCursos(){
+    if (window.ICADEMPlatform?.loadCourseCatalog) return window.ICADEMPlatform.loadCourseCatalog();
+    const user = window.__auth?.currentUser || window.__currentUser;
+    const idToken = user ? await user.getIdToken() : '';
+    const headers = { Accept:'application/json' };
+    if (idToken) headers.Authorization = `Bearer ${idToken}`;
+    const base = window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app';
+    const response = await fetch(`${base}/api/courses/catalog`, { headers, cache:'no-store' });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'No pudimos cargar el catálogo');
+    return data;
+  }
+
+  async function cargarCursosFirestore(force){
+    if (_cursosLoadPromise) {
+      await _cursosLoadPromise;
+      return force ? cargarCursosFirestore(true) : cursos;
+    }
+    if (_cursosLoaded && !force) return cursos;
     _cursosLoading = true;
-    try {
-      const db = window.__db;
-      const fs = window.__fs;
-      if (!db || !fs) throw new Error('Firestore no inicializado');
-      const q = fs.query(fs.collection(db, 'cursos'), fs.orderBy('orden', 'asc'));
-      const snap = await fs.getDocs(q);
-      cursos = snap.docs.map((d, i) => {
-        const data = d.data();
-        const progresoGuardado = getProgresoCurso(d.id);
+    _cursosLoadPromise = (async () => { try {
+      const payload = await pedirCatalogoCursos();
+      if (!payload?.ok || !Array.isArray(payload.courses)) throw new Error('Respuesta de catálogo inválida');
+      window.__icademDefaultPreviewCourseId = String(payload.viewer?.defaultPreviewCourseId || '');
+      if (window.__isDemoMode && window.__icademDefaultPreviewCourseId) {
+        window.UserState.freeCourseId = window.__icademDefaultPreviewCourseId;
+        try { localStorage.setItem('icadem:demo:free-course', window.__icademDefaultPreviewCourseId); } catch (_) {}
+      }
+      cursos = payload.courses.map((data, i) => {
+        const id = String(data.id || '');
+        const progresoGuardado = getProgresoCurso(id);
         const clasesVistas = Array.isArray(progresoGuardado.clasesVistas) ? progresoGuardado.clasesVistas.length : 0;
+        const sesiones = Array.isArray(data.sesiones) ? data.sesiones : [];
+        const materiales = Array.isArray(data.materiales) ? data.materiales : [];
         return {
-          id: d.id,
+          id,
           titulo: data.titulo || 'Sin título',
-          descripcion: data.descripcion || data.desc || '',
-          desc: data.descripcion || data.desc || '',
+          descripcion: data.descripcion || '',
+          desc: data.descripcion || '',
           emoji: data.emoji || '📚',
-          // Campos ricos opcionales (modelo híbrido)
           area: data.area || 'General',
           nivel: data.nivel || 'Intermedio',
           instructor: data.instructor || 'Equipo ICADEM',
-          horas: data.horas || (data.sesiones?.length) || 0,
-          modulos: data.sesiones?.length || data.modulos || 0,
-          // Sesiones (clases) y materiales (PDFs)
-          sesiones: Array.isArray(data.sesiones) ? data.sesiones : [],
-          materiales: Array.isArray(data.materiales) ? data.materiales : [],
-          // Flags de desbloqueo
+          horas: data.horas || sesiones.length || 0,
+          modulos: data.modulos || sesiones.length || 0,
+          sesiones,
+          materiales,
           disponibleSiempre: data.disponibleSiempre === true,
           marcarProximamente: data.marcarProximamente === true,
-          activo: data.activo !== false,
-          publicado: data.publicado !== false,
-          archivado: data.archivado === true,
+          activo: true,
+          publicado: true,
+          archivado: false,
           orden: data.orden || (i + 1),
-          // Portada automática
           portada: data.portada || getPortadaCurso({ titulo: data.titulo, portada: data.portada }),
-          // Compatibilidad con UI vieja
+          access: data.access || { unlocked:false, unlockDay:0, daysRemaining:null, previewSelected:false },
+          _unlockDay: Number(data.access?.unlockDay) || 0,
           status: progresoGuardado.completado ? 'completado' : (clasesVistas > 0 ? 'progreso' : 'catalogo'),
-          progreso: data.sesiones?.length ? Math.round((clasesVistas / data.sesiones.length) * 100) : 0
+          progreso: sesiones.length ? Math.round((clasesVistas / sesiones.length) * 100) : 0
         };
-      }).filter(c => c.archivado !== true);
-      // ─── Día de desbloqueo por ORDEN · los "disponibleSiempre" NO consumen turno ───
-      // cursos viene ordenado por `orden` asc. El 1er curso normal = día 0 (abierto
-      // para miembros activos), el siguiente = día 6, etc. Los "siempre abierto" = día 0
-      // y no recorren la fila, así el orden de desbloqueo nunca se desordena.
-      let _rank = 0;
-      cursos.forEach(c => {
-        if (c.disponibleSiempre) { c._unlockDay = 0; }
-        else { c._unlockDay = _rank * CURSO_UNLOCK_INTERVAL_DAYS; _rank++; }
       });
       try {
         var _ce=function(id,v){var el=document.getElementById(id);if(el)el.textContent=v;};
@@ -6226,14 +6257,31 @@ const Sections = (function(){
       _cursosLoaded = true;
       actualizarInicioAprendizaje();
     } catch (e) {
-      console.warn('No se pudieron cargar cursos de Firestore:', e.message);
-      cursos = [];
+      console.warn('No se pudo cargar el catálogo seguro:', e.message);
+      if (!_cursosLoaded) cursos = [];
       _cursosLoaded = true;
     } finally {
       _cursosLoading = false;
-    }
+    } })();
+    try { await _cursosLoadPromise; }
+    finally { _cursosLoadPromise = null; }
+    return cursos;
   }
   window.__cargarCursosFirestore = cargarCursosFirestore;
+  window.__reloadCourseCatalog = async function(){
+    await cargarCursosFirestore(true);
+    actualizarInicioAprendizaje();
+    return cursos;
+  };
+  document.addEventListener('icadem:identity-ready', () => {
+    window.__reloadCourseCatalog().then(() => {
+      const section = String(location.hash || '').replace(/^#/,'');
+      const host = document.getElementById('dynamic-section');
+      if (host?.isConnected && section === 'cursos') renderCursos(host);
+      else if (host?.isConnected && section === 'curso-detalle') renderCursoDetalle(host);
+      else if (host?.isConnected && section === 'clase-detalle') renderClaseDetalle(host);
+    }).catch(() => {});
+  });
   window.__getCursosGratisICADEM = async function(){
     if (!_cursosLoaded && !_cursosLoading) await cargarCursosFirestore();
     if (_cursosLoading) {
@@ -6244,11 +6292,51 @@ const Sections = (function(){
     }
     return cursos
       .filter(c => c.activo !== false && c.publicado !== false && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length)
+      .filter(c => !window.__isDemoMode || c.access?.anonymousPreview === true)
       .map(c => ({
         id:String(c.id), titulo:c.titulo || 'Curso ICADEM', area:c.area || 'Profesional',
         descripcion:c.descripcion || c.desc || '', portada:c.portada || coverSVG(c.area, c.titulo),
         sesiones:c.sesiones.length, materiales:Array.isArray(c.materiales) ? c.materiales.length : 0
       }));
+  };
+  let _freeCourseSelectionBusy = false;
+  window.__elegirCursoGratis = async function(courseId, trigger){
+    const id = String(courseId || '');
+    if (!id || _freeCourseSelectionBusy) return null;
+    const selected = primerCursoGratisId();
+    if (selected) {
+      if (selected === id) openCursoDetalle(id);
+      else Toast.info('Tu curso gratuito ya está elegido','Puedes activarlo desde Mis cursos o abrir el catálogo completo con la membresía.');
+      return null;
+    }
+    const course = cursos.find(item => String(item.id) === id);
+    if (!course || course.marcarProximamente === true || !Array.isArray(course.sesiones) || !course.sesiones.length) {
+      Toast.info('Este curso aún no está disponible','Elige otro curso publicado para comenzar gratis.');
+      return null;
+    }
+    if (!window.ICADEMPlatform?.selectFreeCourse) {
+      Toast.error('No se pudo guardar','El servicio de cursos no está disponible.');
+      return null;
+    }
+    const original = trigger?.innerHTML;
+    _freeCourseSelectionBusy = true;
+    if (trigger) { trigger.disabled = true; trigger.setAttribute('aria-busy','true'); trigger.textContent = 'Guardando…'; }
+    try {
+      const result = await window.ICADEMPlatform.selectFreeCourse(id);
+      if (!result?.courseId) throw new Error('No pudimos confirmar tu curso gratuito.');
+      window.UserState.freeCourseId = result.courseId;
+      window.UserState.freeCourseOfferSeen = true;
+      await window.__reloadCourseCatalog?.();
+      Toast.success('Curso gratuito guardado','Ya puedes comenzar sus primeras 4 clases y abrir el primer material.');
+      setTimeout(() => openCursoDetalle(result.courseId), 100);
+      return result;
+    } catch(error) {
+      Toast.error('No se pudo guardar',error.message || 'Intenta nuevamente.');
+      return null;
+    } finally {
+      _freeCourseSelectionBusy = false;
+      if (trigger?.isConnected) { trigger.disabled = false; trigger.removeAttribute('aria-busy'); trigger.innerHTML = original; }
+    }
   };
   document.addEventListener('icadem:free-course-selected', function(){
     if (location.hash === '#cursos') renderCursosList();
@@ -6466,7 +6554,7 @@ const Sections = (function(){
       renderCursosList();
     });
 
-    // ─── Cargar cursos de Firestore si aún no se cargaron ───
+    // ─── Cargar catálogo seguro si aún no se cargó ───
     if (!_cursosLoaded && !_cursosLoading) {
       const list = document.getElementById('cur-list');
       if (list) list.innerHTML = `<div class="empty-state"><div class="empty-state__icon"><div style="width:42px;height:42px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--primary);animation:spin .8s linear infinite;"></div></div><h3>Cargando cursos…</h3></div>`;
@@ -6478,7 +6566,7 @@ const Sections = (function(){
 
   function renderCursosList(){
     const list=document.getElementById('cur-list');if(!list)return;
-    // Empty state: si no hay cursos publicados en Firestore todavía
+    // Empty state: si todavía no hay cursos publicados
     if (cursos.length === 0) {
       list.innerHTML = `<div class="empty-state">
         <div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div>
@@ -6505,6 +6593,8 @@ const Sections = (function(){
       const diasFalta = diasParaDesbloquear(cursoIdx, c);
       const portada = c.portada || coverSVG(c.area, c.titulo);
       const pct = progresoCursoPct(c.id, c.sesiones?.length || 0);
+      const puedeElegirGratis = !toolEsVIP() && !primerCursoGratisId()
+        && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 0;
       return `
       <article class="curso-card ${!desbloqueado?'curso-card--locked':''}" data-cid="${c.id}" tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#5b92c8'};">
         <div class="curso-card__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)),url('${portada}');background-size:cover;background-position:center;">
@@ -6527,12 +6617,17 @@ const Sections = (function(){
             ${c.materiales?.length ? `<span><svg class="ic"><use href="#i-news"/></svg>${c.materiales.length} PDF${c.materiales.length!==1?'s':''}</span>` : ''}
           </div>
           ${pct > 0 ? `<div class="curso-card__progress"><div class="curso-card__progress-bar"><div class="curso-card__progress-fill" style="width:${pct}%"></div></div><span class="curso-card__progress-pct">${pct}%</span></div>` : ''}
+          ${puedeElegirGratis ? `<button type="button" class="curso-card__free-cta" data-free-course-cta="${String(c.id).replace(/"/g,'&quot;')}"><svg class="ic"><use href="#i-play"/></svg>Elegir gratis</button>` : ''}
         </div>
       </article>
     `;}).join('')}</div>`;
+    list.querySelectorAll('[data-free-course-cta]').forEach(button=>button.addEventListener('click',event=>{
+      event.stopPropagation();
+      window.__elegirCursoGratis(button.dataset.freeCourseCta, button);
+    }));
     list.querySelectorAll('.curso-card').forEach(card=>{
-      card.addEventListener('click',()=>openCursoDetalle(card.dataset.cid));
-      card.addEventListener('keydown',e=>{if(e.key==='Enter')openCursoDetalle(card.dataset.cid);});
+      card.addEventListener('click',event=>{if(!event.target.closest('button,a'))openCursoDetalle(card.dataset.cid);});
+      card.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button,a'))openCursoDetalle(card.dataset.cid);});
     });
   }
 
@@ -6599,6 +6694,8 @@ const Sections = (function(){
     const pct = progresoCursoPct(cursoId, totalSes);
     const vistas = progCurso.clasesVistas.length;
     const esVip = toolEsVIP();
+    const puedeElegirGratis = !esVip && !primerCursoGratisId()
+      && c.marcarProximamente !== true && sesiones.length > 0;
 
     // Primera clase desbloqueada no vista todavía — para botón "Continuar"
     let siguienteClase = 0;
@@ -6656,9 +6753,19 @@ const Sections = (function(){
     const esPrimerCurso = typeof primerCursoGratisId === 'function' && String(cursoId) === primerCursoGratisId();
     const freeMatCount = (typeof FREE_MATERIAL_COUNT !== 'undefined') ? FREE_MATERIAL_COUNT : 1;
     const materialesHtml = materialesCurso.length ? materialesCurso.map((m, i) => {
-      const tipoLbl = tipoMat(m.url);
+      const tipoLbl = m.kind === 'excel' ? 'Excel'
+        : m.kind === 'presentation' ? 'Presentación'
+        : m.kind === 'document' ? 'Word'
+        : m.kind === 'folder' ? 'Carpeta'
+        : tipoMat(m.url);
       const esMaterialGratis = esPrimerCurso && i < freeMatCount;
-      const disponible = esVip || esMaterialGratis;
+      const disponible = _materialDisponible({
+        ...m,
+        cursoId,
+        materialIndex:i,
+        cursoUnlockDay:cursoUnlockDay(c),
+        cursoDisponibleSiempre:c.disponibleSiempre === true
+      });
       const tituloEsc = htmlEsc(m.titulo || 'Material del curso');
       const tituloAttr = (m.titulo || 'Material del curso').replace(/'/g,"\\'").replace(/"/g,'&quot;');
       const urlAttr = (m.url || '').replace(/'/g,"\\'");
@@ -6698,14 +6805,16 @@ const Sections = (function(){
     if (!desbloqueado) {
       const lockTitle = c.marcarProximamente === true
         ? 'Este curso estará disponible próximamente'
-        : (!esVip ? 'Activa tu membresía para abrir este curso' : 'Tu siguiente curso está en camino');
+        : (!esVip ? (puedeElegirGratis ? 'Empieza gratis con este curso' : 'Activa tu membresía para abrir este curso') : 'Tu siguiente curso está en camino');
       const lockText = c.marcarProximamente === true
         ? 'Estamos terminando de preparar sus clases y materiales.'
         : (!esVip
-          ? 'Puedes probar gratis las primeras 4 clases y el primer material del curso que elegiste. Al suscribirte, este curso se abrirá según tu calendario de 6 días.'
+          ? (puedeElegirGratis
+            ? 'Elige este curso una sola vez y abre ahora sus primeras 4 clases y el primer material, sin pagar.'
+            : 'Puedes probar gratis las primeras 4 clases y el primer material del curso que elegiste. Al suscribirte, este curso se abrirá según tu calendario de 6 días.')
           : `Disponible en <strong>${diasFalta} día${diasFalta!==1?'s':''}</strong>, de acuerdo con la secuencia de tu membresía.`);
       const lockCta = !esVip && c.marcarProximamente !== true
-        ? `<button type="button" class="course-detail-lock__cta" onclick="navigateToSection('suscripcion')">Ver membresía</button>`
+        ? `<div class="course-detail-lock__actions">${puedeElegirGratis ? `<button type="button" class="course-detail-lock__cta course-detail-lock__cta--free" onclick="window.__elegirCursoGratis('${String(cursoId).replace(/'/g,"\\'")}',this)">Elegir gratis</button>` : ''}<button type="button" class="course-detail-lock__cta" onclick="navigateToSection('suscripcion')">Ver membresía</button></div>`
         : '';
       lockHtml = `<section class="course-detail-lock"><svg class="ic"><use href="#i-shield-check"/></svg><div><strong>${lockTitle}</strong><p>${lockText}</p></div>${lockCta}</section>`;
     }
@@ -8280,6 +8389,13 @@ const Sections = (function(){
       container.innerHTML = `<div class="fade-up course-page lesson-page"><button type="button" class="course-detail-back" onclick="navigateToSection('cursos')"><span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>Catálogo de cursos</button><div class="empty-state" style="padding:64px 24px;text-align:center;"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Clase no encontrada</h3><p>Vuelve al curso para elegir otra clase.</p></div></div>`;
       return;
     }
+    // Defensa de interfaz: una navegación manual al hash nunca monta una
+    // clase que el catálogo personalizado marcó como bloqueada. El backend
+    // vuelve a validar igualmente cada video y actividad.
+    if (!claseDesbloqueada(cursoId, sesionIdx, sesiones)) {
+      container.innerHTML = `<div class="fade-up course-page lesson-page"><button type="button" class="course-detail-back" onclick="window.__volverACurso('${String(cursoId).replace(/'/g,"\\'")}')"><span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>${escapeHtml(curso.titulo)}</button><div class="empty-state" style="padding:64px 24px;text-align:center;"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-shield-check"/></svg></div><h3>Esta clase aún está bloqueada</h3><p>Continúa con las clases disponibles o activa tu membresía para abrir el programa completo.</p><button class="btn btn--accent" style="margin-top:14px" type="button" onclick="window.__showPaywallModal?.({title:'Desbloquea el curso completo',sub:'Activa tu membresía para continuar con el programa completo.'})">Ver membresía</button></div></div>`;
+      return;
+    }
 
     const htmlEsc = (s) => String(s == null ? '' : s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -8315,7 +8431,8 @@ const Sections = (function(){
       </button>`;
     }).join('');
 
-    // Resumen (si viene en Firestore se usa; si no, uno genérico)
+    // Resumen autorizado por el catálogo seguro; si no existe, usa el texto
+    // público del curso.
     const resumen = sesion.resumen || sesion.descripcion || curso.descripcion || '';
 
     const sideHtml = `<aside class="lesson-side">
@@ -8586,8 +8703,8 @@ const Sections = (function(){
   }
 
   /* ============================ CERTIFICADOS ============================ */
-  // Genera lista REAL de certificados leyendo el progreso del usuario (localStorage)
-  // + los cursos publicados en Firestore. NO usa el array hardcoded `certificados`.
+  // Genera la lista REAL de certificados emitidos. Solo el modo demo reconcilia
+  // progreso local; en producción un folio verificable siempre viene del servidor.
   async function getCertificadosReales() {
     const fs = window.__fs;
     const uid = window.UserState?.uid;
@@ -8598,6 +8715,10 @@ const Sections = (function(){
         const qs = await fs.getDocs(fs.query(fs.collection(fs.db, 'certificados'), fs.where('uid', '==', uid)));
         qs.forEach(d => {
           const x = d.data();
+          // Un certificado solo es oficial cuando fue emitido por el backend.
+          // Los registros históricos creados por el navegador se omiten hasta
+          // que la reconciliación del servidor los valide y marque.
+          if (x.serverIssued !== true) return;
           lista.push({
             id: x.cursoId || x.folio,
             titulo: x.curso || 'Curso',
@@ -8612,25 +8733,24 @@ const Sections = (function(){
         });
       } catch (e) { console.warn('[cert] lectura Firestore falló, uso local:', e); }
     }
-    // 2) Reconciliar con el progreso local: muestra TODOS los completados y
-    //    respalda en Firestore (backfill idempotente) los que aún no estén,
-    //    para que cualquier certificado sea verificable por folio.
-    const yaEnFs = new Set(lista.map(x => x.folio));
-    const progreso = getProgreso ? getProgreso() : {};
-    if (cursos && cursos.length) for (const c of cursos) {
-      const prog = progreso[c.id];
-      if (prog && prog.completado) {
-        const fecha = prog.fechaCompletado || new Date().toISOString();
-        const folio = folioCert(c.id, fecha);
-        if (!yaEnFs.has(folio)) {
-          try { emitirCertificadoFirestore(c); } catch (e) {}
-          lista.push({
-            id: c.id, titulo: c.titulo, area: c.area || 'General',
-            horas: c.horas || 8, sesiones: (c.sesiones && c.sesiones.length) || 0,
-            calificacion: 100, folio,
-            emitido: fecha, instructor: c.instructor || 'Equipo ICADEM'
-          });
-          yaEnFs.add(folio);
+    // 2) El demo no tiene backend: ahí sí representamos completados locales.
+    if (window.__isDemoMode) {
+      const yaEnFs = new Set(lista.map(x => x.folio));
+      const progreso = getProgreso ? getProgreso() : {};
+      if (cursos && cursos.length) for (const c of cursos) {
+        const prog = progreso[c.id];
+        if (prog && prog.completado) {
+          const fecha = prog.fechaCompletado || new Date().toISOString();
+          const folio = folioCert(c.id, fecha);
+          if (!yaEnFs.has(folio)) {
+            lista.push({
+              id: c.id, titulo: c.titulo, area: c.area || 'General',
+              horas: c.horas || 8, sesiones: (c.sesiones && c.sesiones.length) || 0,
+              calificacion: 100, folio,
+              emitido: fecha, instructor: c.instructor || 'Equipo ICADEM'
+            });
+            yaEnFs.add(folio);
+          }
         }
       }
     }
@@ -9526,7 +9646,7 @@ const Sections = (function(){
   }
 
   /* ============================ PDFs Y MATERIAL ============================ */
-  // ⚡ AHORA conectado a Firestore · agrega los materiales de TODOS los cursos
+  // Agrega los materiales autorizados que devolvió el catálogo del backend
   // Respeta desbloqueo progresivo (6 días), el primer material gratuito y "siempre disponible"
 
   // Recorre todos los cursos y aplana sus materiales con metadata del curso de origen
@@ -9547,6 +9667,9 @@ const Sections = (function(){
           cursoDisponibleSiempre: c.disponibleSiempre === true,
           titulo: m.titulo || 'Sin título',
           url: m.url || '',
+          kind: m.kind || '',
+          accessible: m.accessible === true,
+          daysRemaining: Number.isFinite(Number(m.daysRemaining)) ? Math.max(0, Number(m.daysRemaining)) : null,
           disponibleSiempre: m.disponibleSiempre === true,
           desbloquearEnDias: typeof m.desbloquearEnDias === 'number' ? m.desbloquearEnDias : null
         });
@@ -9557,26 +9680,25 @@ const Sections = (function(){
 
   // Determina si un material está disponible para este usuario AHORA
   function _materialDisponible(mat) {
-    if (esAdminReal()) return true;
-    if (!toolEsVIP()) return esMaterialGratisGlobal(mat.cursoId, mat.materialIndex);
-    if (mat.disponibleSiempre === true) return true;
-    if (mat.cursoDisponibleSiempre === true) return true;
-    const dias = calcularDiasMembresia();
-    // Si tiene día manual, usar ese · si no, usar la cola por orden del curso
-    const diaDesbloqueo = (mat.desbloquearEnDias !== null && mat.desbloquearEnDias !== undefined)
-      ? mat.desbloquearEnDias
-      : mat.cursoUnlockDay;
-    return dias >= diaDesbloqueo;
+    if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
+      if (mat.disponibleSiempre === true || mat.cursoDisponibleSiempre === true) return true;
+      const unlockDay = mat.desbloquearEnDias !== null && mat.desbloquearEnDias !== undefined
+        ? mat.desbloquearEnDias
+        : mat.cursoUnlockDay;
+      return calcularDiasMembresia() >= unlockDay;
+    }
+    return mat?.accessible === true;
   }
 
   function _diasParaMaterial(mat) {
     if (_materialDisponible(mat)) return 0;
-    if (!toolEsVIP()) return null;
-    const dias = calcularDiasMembresia();
-    const diaDesbloqueo = (mat.desbloquearEnDias !== null && mat.desbloquearEnDias !== undefined)
-      ? mat.desbloquearEnDias
-      : mat.cursoUnlockDay;
-    return Math.max(0, diaDesbloqueo - dias);
+    if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
+      const unlockDay = mat.desbloquearEnDias !== null && mat.desbloquearEnDias !== undefined
+        ? mat.desbloquearEnDias
+        : mat.cursoUnlockDay;
+      return Math.max(0, unlockDay - calcularDiasMembresia());
+    }
+    return Number.isFinite(mat?.daysRemaining) ? Math.max(0, mat.daysRemaining) : null;
   }
 
   // Inferir tamaño desde la URL (heurística simple · solo si no hay metadata)
@@ -9597,7 +9719,10 @@ const Sections = (function(){
       'General':'#5b92c8'
     };
     const c = colorMap[m.cursoArea] || '#5b92c8';
-    const tipo = _inferirTipoMaterial(m.url);
+    const tipo = m.kind === 'excel' ? 'excel'
+      : m.kind === 'presentation' ? 'ppt'
+      : m.kind === 'document' ? 'doc'
+      : _inferirTipoMaterial(m.url);
     const iconMap = { excel:'i-chart-bar', pdf:'i-news', ppt:'i-chart-bar', doc:'i-news' };
     const ic = iconMap[tipo] || 'i-news';
     const tipoLabel = { excel:'Excel', pdf:'PDF', ppt:'PPT', doc:'DOC' }[tipo] || 'Archivo';
@@ -10400,10 +10525,10 @@ const Sections = (function(){
       const ahora = Date.now();
       snap.forEach(d=>{
         const p = d.data(); p.id = d.id;
-        // Auto-borrado: si pasó la vida útil, lo eliminamos y no lo mostramos
+        // Si pasó la vida útil, no lo mostramos. El borrado real se hace en
+        // el servidor para eliminar también comentarios y datos asociados.
         const cd = p.createdAt && p.createdAt.toDate ? p.createdAt.toDate().getTime() : null;
         if (cd && (ahora - cd) > FORO_DIAS_VIDA*86400000) {
-          try { fs.deleteDoc(fs.doc(fs.db,'posts',d.id)); } catch(e){}
           return;
         }
         _foroPosts.push(p);
@@ -10465,20 +10590,10 @@ const Sections = (function(){
     const btn = container.querySelector('#foro-publicar');
     const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Publicando…';
     try {
-      const fs = window.__fs;
-      await fs.addDoc(fs.collection(fs.db,'posts'), {
-        uid: window.UserState.uid,
-        nombre: window.UserState?.nombre || window.UserState?.displayName || 'Miembro',
-        iniciales: window.UserState?.iniciales || 'IN',
-        foto: window.UserState?.photoURL || '',
-        color: foroColorFor(window.UserState?.uid),
-        esAdmin: esAdminReal(),
+      if (!window.ICADEMPlatform?.createForumPost) throw new Error('El servicio del foro no está disponible.');
+      await window.ICADEMPlatform.createForumPost({
         texto: contenido,
-        imagen: _foroImg || null,
-        likes: 0,
-        likedBy: {},
-        comentariosCount: 0,
-        createdAt: fs.serverTimestamp()
+        imagen: _foroImg || null
       });
       txt.value = ''; container.querySelector('#foro-char').textContent = '0 / 1500';
       _foroImg = null; container.querySelector('#foro-img-preview').style.display = 'none';
@@ -10489,17 +10604,8 @@ const Sections = (function(){
 
   async function foroToggleLike(postId){
     if (!(window.UserState?.modo==='vip' || esAdminReal())) { Toast.info('Solo VIP','Activa tu membresía para reaccionar'); return; }
-    const fs = window.__fs;
-    const uid = window.UserState.uid;
-    const p = _foroPosts.find(x=>x.id===postId); if(!p) return;
-    const liked = p.likedBy && p.likedBy[uid];
     try {
-      const upd = {};
-      upd['likedBy.'+uid] = liked ? null : true;
-      upd.likes = (p.likes||0) + (liked?-1:1);
-      // Firestore: para borrar un campo del map usamos deleteField; aquí usamos merge con null y limpiamos al leer
-      if (liked) { upd['likedBy.'+uid] = fs.deleteField ? fs.deleteField() : null; }
-      await fs.updateDoc(fs.doc(fs.db,'posts',postId), upd);
+      await window.ICADEMPlatform.toggleForumLike(postId);
     } catch(e){ console.error(e); Toast.error('No se pudo reaccionar',''); }
   }
 
@@ -10507,8 +10613,7 @@ const Sections = (function(){
     const ok = await confirmModal('¿Eliminar esta publicación?','Esta acción no se puede deshacer.');
     if (!ok) return;
     try {
-      const fs = window.__fs;
-      await fs.deleteDoc(fs.doc(fs.db,'posts',postId));
+      await window.ICADEMPlatform.deleteForumPost(postId);
       Toast.success('Publicación eliminada','');
     } catch(e){ console.error(e); Toast.error('No se pudo eliminar','Solo el autor o un admin puede'); }
   }
@@ -10567,27 +10672,20 @@ const Sections = (function(){
   async function foroEnviarComentario(postId){
     const inp = document.getElementById('cominput-'+postId);
     const t = (inp.value||'').trim(); if(!t) return;
-    inp.value = '';
+    const btn = document.querySelector(`[data-com-send="${CSS.escape(postId)}"]`);
+    inp.disabled = true;
+    if (btn) btn.disabled = true;
     try {
-      const fs = window.__fs;
-      await fs.addDoc(fs.collection(fs.db,'posts',postId,'comentarios'), {
-        uid: window.UserState.uid,
-        nombre: window.UserState?.nombre || 'Miembro',
-        iniciales: window.UserState?.iniciales || 'IN',
-        foto: window.UserState?.photoURL || '',
-        color: foroColorFor(window.UserState?.uid),
-        texto: t,
-        createdAt: fs.serverTimestamp()
-      });
-      // incrementar contador en el post
-      try { await fs.updateDoc(fs.doc(fs.db,'posts',postId), { comentariosCount: fs.increment(1) }); } catch(e){}
-    } catch(e){ console.error(e); Toast.error('No se pudo responder',''); }
+      if (!window.ICADEMPlatform?.createForumComment) throw new Error('El servicio del foro no está disponible.');
+      await window.ICADEMPlatform.createForumComment(postId, { texto: t });
+      inp.value = '';
+    } catch(e){ console.error(e); Toast.error('No se pudo responder',e.message||'Intenta de nuevo'); }
+    finally { inp.disabled = false; if (btn) btn.disabled = false; }
   }
   async function foroBorrarComentario(postId, comId){
     try {
-      const fs = window.__fs;
-      await fs.deleteDoc(fs.doc(fs.db,'posts',postId,'comentarios',comId));
-      try { await fs.updateDoc(fs.doc(fs.db,'posts',postId), { comentariosCount: fs.increment(-1) }); } catch(e){}
+      if (!window.ICADEMPlatform?.deleteForumComment) throw new Error('El servicio del foro no está disponible.');
+      await window.ICADEMPlatform.deleteForumComment(postId, comId);
     } catch(e){ console.error(e); Toast.error('No se pudo eliminar','Solo el autor o un admin'); }
   }
 
@@ -11509,7 +11607,17 @@ function openPasswordResetModal(){
 // ═══════════════════════════════════════════════════════════════════
 window.__maybeAskName = function(){
   try {
-    if (localStorage.getItem('icadem_name_confirmed') === '1') {
+    const S = window.UserState || {};
+    const account = encodeURIComponent(String(S.uid || S.email || 'guest').toLowerCase());
+    const nameConfirmedKey = `icadem_name_confirmed:${account}`;
+    // Un nombre personalizado ya sincronizado por el servidor es la fuente
+    // más fuerte y evita repetir este aviso en otro dispositivo.
+    if (S.customName) {
+      localStorage.setItem(nameConfirmedKey, '1');
+      delete document.documentElement.dataset.icademNamePending;
+      return;
+    }
+    if (localStorage.getItem(nameConfirmedKey) === '1') {
       delete document.documentElement.dataset.icademNamePending;
       return;
     }
@@ -11521,7 +11629,6 @@ window.__maybeAskName = function(){
       setTimeout(() => window.__maybeAskName?.(), 250);
       return;
     }
-    const S = window.UserState || {};
     const email = S.email || '';
     const emailPart = email.split('@')[0] || '';
     const actual = (S.nombre || S.displayName || '').trim();
@@ -11583,20 +11690,25 @@ window.__maybeAskName = function(){
       let val = (input.value||'').trim().replace(/\s+/g,' ');
       if (val.length < 3 || !val.includes(' ')) { hint.textContent = 'Escribe tu nombre y al menos un apellido.'; input.focus(); return; }
       if (val.length > 38) { val = val.slice(0,38).trim(); }  // tope duro estético
-      // Guardar igual que openEditField: Auth + Firestore + UserState
-      try { if (window.__setDisplayName) await window.__setDisplayName(val); } catch(e){}
+      // En producción, el backend actualiza de forma coherente Auth, perfil,
+      // directorio, ranking y membresía. Nunca escribimos miembros desde aquí.
       try {
-        const fs = window.__fs;
-        if (fs && fs.updateDoc && window.UserState?.uid) {
-          await fs.updateDoc(fs.doc(fs.db,'miembros',window.UserState.uid), { nombre: val });
+        if (!window.__isDemoMode) {
+          if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible.');
+          await window.ICADEMPlatform.saveProfile({ nombre: val });
         }
-      } catch(e){}
+      } catch(error) {
+        hint.textContent = error.message || 'No se pudo guardar. Intenta nuevamente.';
+        input.focus();
+        return;
+      }
       window.UserState.nombre = val;
       window.UserState.displayName = val;
+      window.UserState.customName = val;
       window.UserState.iniciales = (window.calcIniciales ? window.calcIniciales(val) : val.slice(0,2).toUpperCase());
       if (window.memberData) window.memberData.nombre = val;
       try { const ls=JSON.parse(localStorage.getItem('icadem_profile')||'{}'); ls.nombre=val; localStorage.setItem('icadem_profile',JSON.stringify(ls)); } catch(e){}
-      localStorage.setItem('icadem_name_confirmed','1');
+      localStorage.setItem(nameConfirmedKey,'1');
       delete document.documentElement.dataset.icademNamePending;
       if (typeof window.__applyUserState==='function') window.__applyUserState();
       if (window.Toast) Toast.success('Nombre guardado', val);
@@ -11607,7 +11719,7 @@ window.__maybeAskName = function(){
     document.getElementById('nm-skip').addEventListener('click', ()=>{
       // No volver a molestar, pero NO marcamos como "confirmado" para que el
       // perfil siga sugiriendo completarlo. Marcamos solo "preguntado".
-      localStorage.setItem('icadem_name_confirmed','1');
+      localStorage.setItem(nameConfirmedKey,'1');
       delete document.documentElement.dataset.icademNamePending;
       ov.remove();
       if (window.Toast) Toast.info('Puedes cambiarlo luego', 'Mi perfil → Nombre completo');
@@ -11651,6 +11763,8 @@ function openEditField(field){
         const patch = { nombre: field==='nombre' ? newVal : (window.UserState?.nombre||window.UserState?.displayName||'Miembro') };
         patch[field] = newVal;
         await window.ICADEMPlatform.saveProfile(patch);
+      } else if (!window.__isDemoMode) {
+        throw new Error('El servicio de perfil no está disponible.');
       }
     } catch(error) {
       console.error(error); Toast.error('No se pudo guardar',error.message||'Intenta nuevamente'); return;
@@ -11663,20 +11777,17 @@ function openEditField(field){
     if (field==='nombre') {
       const saveBtn=document.getElementById('save-edit-nombre');
       if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Guardando…';}
-      // 1) Firebase Auth (displayName vinculado a la cuenta)
-      try { if (window.__setDisplayName) await window.__setDisplayName(newVal); } catch(e){}
-      // 2) Firestore miembros/{uid}.nombre (fuente para certificados y dashboard)
-      try {
-        const fs=window.__fs;
-        if (fs && fs.updateDoc && window.UserState?.uid) {
-          await fs.updateDoc(fs.doc(fs.db,'miembros',window.UserState.uid), { nombre:newVal });
-        }
-      } catch(e){}
-      // 3) Estado en memoria + refrescar TODO el panel
+      // El backend ya sincronizó Auth, perfil, directorio, ranking y membresía.
+      // Solo actualizamos la representación local para el modo demo y el DOM.
       window.UserState.nombre=newVal;
       window.UserState.displayName=newVal;
+      window.UserState.customName=newVal;
       window.UserState.iniciales=(window.calcIniciales?window.calcIniciales(newVal):newVal.trim().slice(0,2).toUpperCase());
       if (window.memberData) window.memberData.nombre=newVal;
+      try {
+        const account=encodeURIComponent(String(window.UserState?.uid||window.UserState?.email||'guest').toLowerCase());
+        localStorage.setItem(`icadem_name_confirmed:${account}`,'1');
+      } catch(e){}
       if (typeof window.__applyUserState==='function') window.__applyUserState();
       // Refresco visual directo de lo que está en pantalla del perfil
       try {
@@ -12158,9 +12269,13 @@ function initNav(){
   const drawer = document.getElementById('mobile-drawer');
   const drawerOverlay = document.getElementById('mobile-drawer-overlay');
   const drawerClose = document.getElementById('mobile-drawer-close');
+  let drawerPreviousOverflow = '';
+  let drawerOwnsOverflow = false;
 
   function abrirDrawerMovil(){
-    if (drawer) {
+    if (drawer && !drawer.classList.contains('is-open')) {
+      drawerPreviousOverflow = document.body.style.overflow;
+      drawerOwnsOverflow = true;
       drawer.classList.add('is-open');
       drawer.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
@@ -12170,7 +12285,8 @@ function initNav(){
     if (drawer) {
       drawer.classList.remove('is-open');
       drawer.setAttribute('aria-hidden', 'true');
-      document.body.style.overflow = '';
+      if (drawerOwnsOverflow) document.body.style.overflow = drawerPreviousOverflow;
+      drawerOwnsOverflow = false;
     }
   };
 
@@ -12992,7 +13108,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <style>
 /* ═══ Drawer móvil · menú completo con todas las opciones ═══ */
 .mobile-drawer{display:none}
-@media (max-width:880px){
+@media (max-width:1200px){
   .mobile-drawer{display:block}
   .mobile-drawer{position:fixed;inset:0;z-index:9500;visibility:hidden;pointer-events:none}
   .mobile-drawer.is-open{visibility:visible;pointer-events:auto}
@@ -18859,7 +18975,8 @@ window.ToolCalcCredito = {
   .topbar{margin-left:-2px;margin-right:-2px}
   .theme-toggle{width:44px;padding:0}
   .theme-toggle span{display:none}
-  .install-app-btn{padding:0 10px;font-size:10px;gap:5px}
+  .install-app-btn{width:44px;padding:0;gap:0}
+  .install-app-btn span{display:none}
   .banner{padding:22px 18px}
   .banner__title{font-size:clamp(26px,9vw,30px);letter-spacing:-.9px}
   .banner__sub{font-size:12.5px;line-height:1.55}
@@ -18915,7 +19032,7 @@ window.ToolCalcCredito = {
      Dark mode intacto; esto solo refina modo claro.
      ═══════════════════════════════════════════════════════════════════ -->
 <style id="icadem-academic-refresh">
-:root:not([data-theme="dark"]){
+:root[data-theme="day"]{
   /* Papel cálido · nunca blanco frío ni gris plano */
   --bg: #f6f5f1;
   --bg-elev: #fbfaf7;
@@ -19012,8 +19129,10 @@ html, body { font-family: 'Inter','Outfit',ui-sans-serif,system-ui,-apple-system
 /* Reduce la columna derecha de 320px a 288px (más aire al centro).
    Agrega gap entre nav-content-right para que no se peguen. */
 .app{ grid-template-columns: 228px minmax(0, 1fr) 288px !important; }
-@media (max-width: 1200px){ .app{ grid-template-columns: 220px minmax(0, 1fr) !important; } }
-@media (max-width: 1200px){ .right-sidebar, .club-sidebar-right, aside.right, [data-club-right]{ display: none !important; } }
+@media (max-width: 1380px){
+  .app{ grid-template-columns: 220px minmax(0, 1fr) !important; }
+  .aside,.right-sidebar,.club-sidebar-right,aside.right,[data-club-right]{ display: none !important; }
+}
 
 /* ═══ Sec-hero genérico · más editorial ═══ */
 .sec-hero{ padding: 0 2px 24px; border-bottom: 0; margin-bottom: 24px; }
@@ -19178,6 +19297,21 @@ h1, h2, h3, h4{ color: var(--text); }
 
 /* Hero del detalle de curso: menos tall para no abrumar */
 .course-detail-hero{ min-height: 280px !important; padding: 36px !important; }
+
+/* Las proporciones de escritorio anteriores usan !important; restablecerlas
+   explícitamente evita que el panel de avance comprima o cubra el temario en
+   tableta y móvil. */
+@media (max-width: 900px){
+  .course-detail-layout{ grid-template-columns: minmax(0,1fr) !important; gap: 24px !important; }
+  .course-detail-progress{ position: static; grid-column: 1; grid-row: 1; }
+  .course-detail-main{ grid-column: 1; grid-row: 2; }
+  .lesson-layout{ grid-template-columns: minmax(0,1fr) !important; gap: 24px !important; }
+  .lesson-side{ position: static; }
+}
+@media (max-width: 560px){
+  .course-detail-hero{ min-height: 245px !important; padding: 22px !important; }
+  .course-detail-layout{ gap: 20px !important; }
+}
 
 /* ═══════════════════════════════════════════════════════════════════
    RETOS ICADEM · hub, tiles, play views, flashcard flip, quiz
@@ -19763,7 +19897,7 @@ h1, h2, h3, h4{ color: var(--text); }
   --rh-olive:#4e5a24;
   --rh-serif:'Fraunces','Cormorant Garamond',Georgia,'Times New Roman',serif;
 }
-:root[data-theme="dark"]{
+:root[data-theme="night"]{
   --rh-paper:#121828;
   --rh-paper-2:#171f33;
   --rh-paper-shade:#242d47;
@@ -19795,7 +19929,7 @@ h1, h2, h3, h4{ color: var(--text); }
   overflow:hidden;
   isolation:isolate;
 }
-:root[data-theme="dark"] .retos-hero.retos-hero--v2{
+:root[data-theme="night"] .retos-hero.retos-hero--v2{
   box-shadow:0 26px 56px -36px rgba(0,0,0,.6);
 }
 .retos-hero.retos-hero--v2::before{
@@ -20021,7 +20155,7 @@ h1, h2, h3, h4{ color: var(--text); }
   text-align:left;
   justify-items:initial;
 }
-:root[data-theme="dark"] .retos-caso-result.retos-caso-result--v2{
+:root[data-theme="night"] .retos-caso-result.retos-caso-result--v2{
   box-shadow:0 22px 48px -24px rgba(0,0,0,.55);
 }
 .retos-caso-result.retos-caso-result--v2.is-pass,
@@ -20334,7 +20468,61 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-  <link rel="stylesheet" href="css/panel-minimal.css?v=25">
-<script src="js/icadem-onboarding.js?v=7"></script>
+  <link rel="stylesheet" href="css/panel-minimal.css?v=26">
+<style id="icadem-wide-shell-fix">
+/* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
+@media (min-width:1201px) and (max-width:1380px){
+  .app{grid-template-columns:220px minmax(0,1fr)!important}
+  .aside{display:none!important}
+}
+</style>
+<style id="icadem-tablet-shell-fix">
+/* Tabletas usan el mismo shell táctil que móvil, sin comprimir la barra lateral. */
+@media (min-width:881px) and (max-width:1200px){
+  :root{--club-mobile-nav-h:74px}
+  html,body{width:100%;max-width:100%;overflow-x:hidden;overscroll-behavior-x:none}
+  .app{
+    width:100%;min-width:0;max-width:100%;min-height:100dvh;
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  .sidebar,.aside{display:none!important}
+  .main{
+    width:100%;min-width:0;max-width:100%;grid-column:1/-1!important;
+    gap:18px;
+    padding:calc(16px + env(safe-area-inset-top)) clamp(20px,3vw,34px) calc(var(--club-mobile-nav-h) + 34px + env(safe-area-inset-bottom))!important;
+  }
+  body.has-fomo .main{padding-top:16px!important}
+  .topbar{margin:0!important;padding:0 2px!important;min-height:60px!important;height:60px!important;flex-wrap:nowrap}
+  .topbar__left{display:flex!important;min-width:0;flex:1}
+  .topbar__right .avatar{display:none}
+  #inicio-content,#dynamic-section{width:100%;min-width:0;max-width:100%;padding:0!important}
+  .mobile-nav{
+    position:fixed!important;left:50%!important;right:auto!important;
+    bottom:max(10px,env(safe-area-inset-bottom))!important;z-index:9400!important;
+    display:flex!important;align-items:center;justify-content:space-around;
+    width:min(720px,calc(100% - 32px));min-height:var(--club-mobile-nav-h);
+    padding:7px 8px!important;border:1px solid var(--border-2)!important;border-radius:22px;
+    background:color-mix(in srgb,var(--surface) 94%,transparent)!important;
+    box-shadow:0 18px 48px rgba(7,24,36,.2)!important;
+    backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+    transform:translateX(-50%);
+  }
+  .mobile-nav__item{
+    display:flex!important;flex:1 1 0;min-width:0;min-height:56px;
+    flex-direction:column;align-items:center;justify-content:center;gap:4px;
+    padding:6px 10px;border:0;border-radius:15px;color:var(--text-3);background:transparent;
+    font-size:10px;font-weight:700;letter-spacing:.15px;cursor:pointer;
+  }
+  .mobile-nav__item.is-active{color:var(--primary);background:color-mix(in srgb,var(--primary) 11%,transparent)}
+  .mobile-nav__item .ic{width:20px;height:20px}
+  .mobile-drawer{height:100dvh;min-height:100svh}
+  .mobile-drawer__panel{top:0;bottom:auto;width:min(390px,88vw);max-width:390px;height:100dvh;min-height:100svh}
+  .mobile-drawer__sections{padding-bottom:calc(30px + env(safe-area-inset-bottom))}
+  .mobile-drawer__item{min-height:46px}
+  .directory-page .dir-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .directory-page .directory-tier{min-width:0!important}
+}
+</style>
+<script src="js/icadem-onboarding.js?v=12"></script>
 </body>
 </html>
