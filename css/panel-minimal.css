@@ -73,8 +73,30 @@ body::after,
   background: var(--surface);
 }
 .brand { border-bottom-color: var(--border); }
-.brand__logo,
-.brand__logo img { border-radius: 9px; }
+.sidebar > .brand {
+  min-height: 88px;
+  justify-content: center !important;
+  gap: 0 !important;
+  padding: 7px 8px 18px !important;
+}
+.sidebar > .brand .brand__logo,
+.mobile-drawer__brand .brand__logo {
+  width: min(164px, 100%) !important;
+  height: 72px !important;
+  flex: 0 1 164px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent url('../assets/logo/icadem-wordmark.png?v=1') center / contain no-repeat !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+.sidebar > .brand .brand__logo img,
+.mobile-drawer__brand .brand__logo img { display: none !important; }
+.mobile-drawer__brand {
+  min-height: 82px;
+  justify-content: center !important;
+  gap: 0 !important;
+}
 .brand__plan,
 .pill,
 .section-header__badge,
@@ -82,6 +104,12 @@ body::after,
 .nav-item__badge { border-radius: 7px; }
 .nav-item { border-radius: 8px; }
 .nav-item.is-active { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+
+/* Cursos y foro: encabezados editoriales sin controles redundantes. */
+.courses-page--clean .sec-hero { margin-bottom: 2px !important; padding-bottom: 8px !important; }
+.courses-page--clean .sec-hero__title { margin: 0 !important; }
+.foro-page--clean .sec-hero { margin-bottom: 2px !important; padding-bottom: 8px !important; }
+.foro-page--clean .sec-hero__title { margin-bottom: 0 !important; }
 
 .main { gap: 18px; padding: calc(18px + env(safe-area-inset-top)) 26px 40px; }
 .icon-btn,
