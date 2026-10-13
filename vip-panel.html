@@ -7110,7 +7110,7 @@ const Sections = (function(){
     const uid = String(window.UserState?.uid || '');
     const ownerKey = demo ? _libraryDemoKey() : (uid ? `uid:${uid}` : '');
     if (!ownerKey) {
-      container.innerHTML = `<div class="fade-up library-page library-page--catalog"><section class="library-hero library-hero--catalog"><div class="library-hero__copy"><span class="library-hero__eyebrow"><svg class="ic"><use href="#i-book"/></svg> Biblioteca ICADEM</span><h1>Preparando tu<br>biblioteca.</h1><p>Estamos sincronizando tu identidad y tus referencias.</p></div></section></div>`;
+      container.innerHTML = `<div class="fade-up library-page library-page--catalog"><section class="library-hero library-hero--catalog"><div class="library-hero__copy"><h1>Preparando tu<br>biblioteca.</h1><p>Estamos sincronizando tu identidad y tus referencias.</p></div></section></div>`;
       window.setTimeout(() => { if (container.isConnected && !window.__isDemoMode) renderLibros(container); }, 300);
       return;
     }
@@ -7134,7 +7134,6 @@ const Sections = (function(){
       container.innerHTML = `<div class="fade-up library-page library-page--catalog">
         <section class="library-hero library-hero--catalog">
           <div class="library-hero__copy">
-            <span class="library-hero__eyebrow"><svg class="ic"><use href="#i-book"/></svg> Biblioteca ICADEM</span>
             <h1>Tu biblioteca<br>profesional.</h1>
             <p>Canjea créditos por referencias originales que conservarás en tu cuenta.</p>
           </div>
@@ -20335,7 +20334,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-  <link rel="stylesheet" href="css/panel-minimal.css?v=24">
+  <link rel="stylesheet" href="css/panel-minimal.css?v=25">
 <script src="js/icadem-onboarding.js?v=7"></script>
 </body>
 </html>
