@@ -18270,12 +18270,11 @@ window.ToolCalcCredito = {
 .tplx-cbadge--feat{background:color-mix(in srgb,var(--primary) 55%,rgba(0,0,0,.4));border-color:color-mix(in srgb,var(--primary-soft,#8fbce6) 60%,transparent)}
 [data-theme="day"] .tplx-cbadge{background:rgba(22,32,63,.78)}
 /* Modal del visor */
-#tpl-modal-overlay{position:fixed;inset:0;z-index:9999;display:none;align-items:center;justify-content:center;padding:clamp(16px,3vw,42px);background:color-mix(in srgb,var(--bg) 96%,transparent);backdrop-filter:blur(14px) saturate(.8);-webkit-backdrop-filter:blur(14px) saturate(.8)}
-[data-theme="day"] #tpl-modal-overlay{background:rgba(246,248,247,.96)}
-#tpl-modal-overlay.tpl-modal-visible{display:flex;animation:cffIn .22s ease}
-#tpl-modal{position:relative;width:100%;max-width:1080px;max-height:min(900px,calc(100vh - 44px));display:flex;flex-direction:column;background:var(--surface);border:1px solid color-mix(in srgb,var(--primary) 18%,var(--border-2));border-radius:22px;overflow:hidden;box-shadow:0 26px 70px rgba(22,39,51,.18),0 4px 14px rgba(22,39,51,.08)}
+#tpl-modal-overlay{position:fixed;inset:0;z-index:2147482500;display:none;place-items:center;padding:24px;background:rgba(7,24,36,.68);overflow:hidden;isolation:isolate}
+#tpl-modal-overlay.tpl-modal-visible{display:grid;animation:cffIn .2s ease}
+#tpl-modal{position:relative;width:min(1180px,100%);height:min(820px,calc(100dvh - 48px));min-height:520px;display:flex;flex-direction:column;margin:auto;background:var(--surface);border:1px solid color-mix(in srgb,var(--primary) 24%,var(--border-2));border-radius:22px;overflow:hidden;box-shadow:0 30px 90px rgba(2,16,25,.34),0 6px 20px rgba(2,16,25,.18)}
 #tpl-modal::before{content:'';position:absolute;z-index:4;inset:0 0 auto;height:4px;background:var(--highlight,#c99b45);pointer-events:none}
-.tpl-modal-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px 24px 18px;border-bottom:1px solid var(--border-2);background:var(--surface)}
+.tpl-modal-header{display:flex;align-items:center;justify-content:space-between;gap:16px;flex:0 0 auto;padding:18px 22px 16px;border-bottom:1px solid var(--border-2);background:var(--surface)}
 .tpl-modal-header-left{display:flex;gap:14px;align-items:center;min-width:0}
 .tpl-modal-icon{width:48px;height:48px;border:1px solid color-mix(in srgb,var(--primary) 16%,transparent);border-radius:14px;background:color-mix(in srgb,var(--primary) 9%,var(--surface));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
 .tpl-modal-tag{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--primary-soft,#8fbce6)}
@@ -18284,8 +18283,8 @@ window.ToolCalcCredito = {
 .tpl-modal-subtitle{font-size:12.5px;color:var(--text-2);margin:0;line-height:1.5}
 .tpl-modal-close{border:1px solid var(--border-2);background:var(--surface);color:var(--text-2);width:38px;height:38px;border-radius:50%;cursor:pointer;font-size:15px;flex-shrink:0;transition:all .15s}
 .tpl-modal-close:hover{color:var(--primary);border-color:color-mix(in srgb,var(--primary) 35%,var(--border-2));background:color-mix(in srgb,var(--primary) 6%,var(--surface))}
-.tpl-modal-body{flex:1;min-height:0;display:flex;padding:16px 18px;background:var(--bg)}
-.tpl-modal-preview{position:relative;flex:1;min-height:440px;background:#fff;border:1px solid var(--border-2);border-radius:14px;overflow:hidden;box-shadow:0 1px 3px rgba(22,39,51,.05)}
+.tpl-modal-body{flex:1;min-height:0;display:grid;place-items:center;padding:14px;background:color-mix(in srgb,var(--bg) 90%,#dbe8ec);overflow:hidden}
+.tpl-modal-preview{position:relative;width:100%;height:100%;min-height:0;margin:auto;background:#fff;border:1px solid var(--border-2);border-radius:14px;overflow:hidden;box-shadow:0 7px 24px rgba(22,39,51,.08)}
 .tpl-modal-iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
 .tpl-modal-iframe-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--text-2);font-size:13px;z-index:2}
 .tpl-modal-iframe-loading .spinner{width:34px;height:34px;border:3px solid var(--border-2);border-top-color:var(--primary);border-radius:50%;animation:tplSpin .8s linear infinite}
@@ -18294,26 +18293,39 @@ window.ToolCalcCredito = {
 .tpl-modal-preview-pending .preview-icon{font-size:34px;opacity:.6}
 .tpl-modal-preview-pending h3{font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:800;color:var(--text);margin:0}
 .tpl-modal-preview-pending p{font-size:12.5px;color:var(--text-2);max-width:380px;margin:0;line-height:1.55}
-.tpl-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:15px 22px;border-top:1px solid var(--border-2);background:var(--surface);flex-wrap:wrap}
+.tpl-modal-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:0 0 auto;padding:13px 20px;border-top:1px solid var(--border-2);background:var(--surface)}
 .tpl-modal-footer-info{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-3)}
 .tpl-modal-footer-info .ic,.tpl-modal-footer-info svg{width:13px;height:13px}
 .tpl-modal-footer-actions{display:flex;gap:8px;flex-wrap:wrap}
+@media(max-width:1100px){
+  #tpl-modal-overlay{padding:14px}
+  #tpl-modal{width:100%;height:calc(100dvh - 28px);min-height:0;border-radius:18px}
+}
 @media(max-width:720px){
-  #tpl-modal-overlay{padding:0;background:var(--surface);backdrop-filter:none;-webkit-backdrop-filter:none}
-  #tpl-modal{max-height:100vh;height:100%;border:0;border-radius:0;box-shadow:none}
-  .tpl-modal-header{padding:18px 16px 14px}
+  #tpl-modal-overlay{padding:0;background:var(--surface)}
+  #tpl-modal{width:100dvw;height:100dvh;min-height:0;border:0;border-radius:0;box-shadow:none}
+  .tpl-modal-header{padding:calc(13px + env(safe-area-inset-top)) 14px 12px}
   .tpl-modal-icon{width:42px;height:42px;border-radius:12px}
   .tpl-modal-title{font-size:16px}
   .tpl-modal-subtitle{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-  .tpl-modal-body{padding:10px}
-  .tpl-modal-preview{min-height:320px;border-radius:12px}
-  .tpl-modal-footer{padding:12px 14px}
+  .tpl-modal-body{padding:8px}
+  .tpl-modal-preview{border-radius:11px}
+  .tpl-modal-footer{padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
+  .tpl-modal-footer-info{display:none}
   .tpl-modal-footer-actions{width:100%}
   .tpl-modal-footer-actions .btn{flex:1;justify-content:center}
   .tplx-toolbar{flex-direction:column;align-items:stretch}
   .tpl-filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .tpl-filters::-webkit-scrollbar{display:none}
   .tpl-filter{flex:0 0 auto}
+}
+@media(max-width:480px){
+  .tpl-modal-header{gap:10px}.tpl-modal-header-left{gap:10px}.tpl-modal-icon{width:38px;height:38px}.tpl-modal-tag{font-size:8px}.tpl-modal-title{font-size:15px}.tpl-modal-subtitle{display:none}.tpl-modal-close{width:36px;height:36px}
+  .tpl-modal-body{padding:0}.tpl-modal-preview{border:0;border-radius:0;box-shadow:none}
+  .tpl-modal-footer-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tpl-modal-footer-actions>button:first-child{display:none}.tpl-modal-footer-actions .btn{width:100%;min-width:0}
+}
+@media(max-height:560px) and (orientation:landscape){
+  #tpl-modal-overlay{padding:0}#tpl-modal{height:100dvh;width:100dvw;border:0;border-radius:0}.tpl-modal-header{padding:8px 12px}.tpl-modal-icon{width:36px;height:36px}.tpl-modal-subtitle{display:none}.tpl-modal-body{padding:5px}.tpl-modal-footer{padding:7px 10px}.tpl-modal-footer-info{display:none}
 }
 </style>
 <template id="tpl-plantillas">
@@ -18364,12 +18376,12 @@ window.ToolCalcCredito = {
           <p class="tpl-modal-subtitle" id="tpl-modal-desc">Descripción de la plantilla.</p>
         </div>
       </div>
-      <button class="tpl-modal-close" onclick="closeTemplateModal()" aria-label="Cerrar">✕</button>
+      <button class="tpl-modal-close" id="tpl-modal-close" onclick="closeTemplateModal()" aria-label="Cerrar visor">✕</button>
     </div>
     <div class="tpl-modal-body">
       <div class="tpl-modal-preview" id="tpl-modal-preview">
         <div class="tpl-modal-iframe-loading" id="tpl-modal-loading"><div class="spinner"></div><p>Cargando vista previa...</p></div>
-        <iframe class="tpl-modal-iframe" id="tpl-modal-iframe" src="" title="Vista previa de plantilla" sandbox="allow-scripts allow-same-origin allow-forms" allow="fullscreen"></iframe>
+        <iframe class="tpl-modal-iframe" id="tpl-modal-iframe" src="" title="Vista previa de plantilla" loading="eager" sandbox="allow-scripts allow-same-origin allow-forms" referrerpolicy="strict-origin-when-cross-origin" allow="fullscreen"></iframe>
         <div class="tpl-modal-preview-pending" id="tpl-modal-pending" style="display:none">
           <div class="preview-icon" id="tpl-pending-icon"><svg class="ic" style="width:34px;height:34px"><use href="#i-briefcase"/></svg></div>
           <h3>Vista previa disponible próximamente</h3>
@@ -18411,6 +18423,8 @@ window.ToolCalcCredito = {
 
   let cache = null;
   const state = { cat:'todas', q:'', view:'grid' };
+  let modalTrigger = null;
+  let bodyOverflowBeforeModal = '';
 
   async function cargar(){
     if (cache) return cache;
@@ -18431,7 +18445,12 @@ window.ToolCalcCredito = {
   function gPreview(url){
     if (!valida(url)) return null;
     let m = String(url).match(/docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)/i);
-    if (m) return 'https://docs.google.com/' + m[1] + '/d/' + m[2] + '/preview';
+    if (m) {
+      const options = m[1].toLowerCase() === 'spreadsheets'
+        ? '?rm=minimal&widget=true&headers=false'
+        : '?rm=minimal';
+      return 'https://docs.google.com/' + m[1] + '/d/' + m[2] + '/preview' + options;
+    }
     m = String(url).match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/i);
     if (m) return 'https://drive.google.com/file/d/' + m[1] + '/preview';
     return null;
@@ -18514,7 +18533,8 @@ window.ToolCalcCredito = {
     const iframe = $('tpl-modal-iframe'), loading = $('tpl-modal-loading'), pending = $('tpl-modal-pending');
     if (prev) {
       pending.style.display='none'; loading.style.display='flex';
-      iframe.style.display='block'; iframe.src = prev;
+      iframe.style.display='block'; iframe.src = 'about:blank';
+      requestAnimationFrame(() => { iframe.src = prev; });
       iframe.onload = () => { loading.style.display='none'; };
     } else {
       iframe.style.display='none'; iframe.src=''; loading.style.display='none'; pending.style.display='flex';
@@ -18523,15 +18543,20 @@ window.ToolCalcCredito = {
     const openUrl = valida(p.urlEdit) ? p.urlEdit : (valida(p.urlDownload) ? p.urlDownload : null);
     drive.style.display = openUrl ? 'inline-flex' : 'none'; if (openUrl) drive.href = openUrl;
     copy.style.display = valida(p.urlCopy) ? 'inline-flex' : 'none'; if (valida(p.urlCopy)) copy.href = p.urlCopy;
+    modalTrigger = document.activeElement;
+    bodyOverflowBeforeModal = document.body.style.overflow;
     $('tpl-modal-overlay').classList.add('tpl-modal-visible');
     document.body.style.overflow = 'hidden';
+    setTimeout(() => $('tpl-modal-close')?.focus(), 60);
   }
 
   function cerrar(){
     const ov = $('tpl-modal-overlay'); if (!ov) return;
     ov.classList.remove('tpl-modal-visible');
     const f = $('tpl-modal-iframe'); if (f) f.src = '';
-    document.body.style.overflow = '';
+    document.body.style.overflow = bodyOverflowBeforeModal;
+    if (modalTrigger && modalTrigger.isConnected) modalTrigger.focus();
+    modalTrigger = null;
   }
   window.closeTemplateModal = cerrar;
 
@@ -18573,6 +18598,10 @@ window.ToolCalcCredito = {
       });
       const host = c.querySelector('.bn-tool');
       host.appendChild(document.getElementById('tpl-plantillas').content.cloneNode(true));
+      const previousOverlay = document.body.querySelector(':scope > #tpl-modal-overlay');
+      if (previousOverlay) previousOverlay.remove();
+      const overlay = host.querySelector('#tpl-modal-overlay');
+      if (overlay) document.body.appendChild(overlay);
       bind();
       if (cache) { render(); }
       else {
@@ -20250,6 +20279,6 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=24">
-<script src="js/icadem-onboarding.js?v=5"></script>
+<script src="js/icadem-onboarding.js?v=6"></script>
 </body>
 </html>
