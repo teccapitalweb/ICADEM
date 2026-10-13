@@ -3540,9 +3540,13 @@ body.has-fomo .main{padding-top:18px}
 .library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
 .library-card{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all .22s;box-shadow:0 1px 2px rgba(10,15,35,.04)}
 .library-card:hover{transform:translateY(-3px);box-shadow:0 20px 40px -20px rgba(10,15,35,.18);border-color:color-mix(in srgb,var(--primary) 25%,var(--border))}
-.library-card__cover{aspect-ratio:3/4;position:relative;background:var(--book-color);overflow:hidden;display:grid;place-items:center}
+.library-card__cover{aspect-ratio:2/3;position:relative;background:color-mix(in srgb,var(--book-color) 10%,var(--surface-2));overflow:hidden;display:grid;place-items:center}
 .library-card__cover::before{content:'';position:absolute;top:0;bottom:0;left:16px;width:1px;background:rgba(255,255,255,.18);z-index:1}
 .library-card__cover::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 50%,rgba(0,0,0,.3));pointer-events:none}
+.library-card__cover:has(.library-card__cover-image)::before{display:none}
+.library-card__cover:has(.library-card__cover-image)::after{background:linear-gradient(180deg,transparent 64%,rgba(5,20,40,.16));z-index:1}
+.library-card__cover-image{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;background:#fff;transition:transform .28s ease}
+.library-card:hover .library-card__cover-image{transform:scale(1.018)}
 .library-card__chip{position:absolute;top:12px;right:12px;z-index:2;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.92);color:var(--book-color);font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800;letter-spacing:.6px}
 .library-card__cover-inner{position:relative;z-index:1;padding:22px 20px;text-align:center;color:#fff;max-width:85%;font-family:'Instrument Serif',Georgia,serif}
 .library-card__kicker{display:block;color:rgba(255,255,255,.78);font-family:'JetBrains Mono',monospace;font-weight:700;font-size:8px;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:14px}
@@ -3556,6 +3560,24 @@ body.has-fomo .main{padding-top:18px}
 .library-card__cost{display:inline-flex;align-items:center;gap:5px;color:var(--text-2);font-size:11px;font-weight:600}
 .library-card__cost .ic{width:12px;height:12px;color:var(--accent,#C7971F)}
 .library-card__state{padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--primary) 10%,transparent);color:var(--primary);font-size:10px;font-weight:700}
+.library-reader{display:grid;grid-template-columns:minmax(190px,240px) minmax(0,1fr);gap:28px;align-items:start}
+.library-reader__cover{position:relative;aspect-ratio:2/3;border-radius:16px;overflow:hidden;background:color-mix(in srgb,var(--book-color) 12%,var(--surface-2));box-shadow:0 20px 42px -24px rgba(8,24,46,.45);display:grid;place-items:center;color:#fff}
+.library-reader__cover img{width:100%;height:100%;object-fit:cover;object-position:center;background:#fff}
+.library-reader__cover--fallback{padding:28px;text-align:center;background:var(--book-color)}
+.library-reader__cover--fallback .ic{width:42px;height:42px;margin-bottom:28px}
+.library-reader__cover--fallback span{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:1.7px;margin-bottom:16px}
+.library-reader__cover--fallback strong{font-family:'Instrument Serif',Georgia,serif;font-size:25px;line-height:1.1;font-style:italic;font-weight:400}
+.library-reader__copy{min-width:0;padding:4px 0}
+.library-reader__eyebrow{display:block;color:var(--primary);font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;margin-bottom:8px}
+.library-reader__copy h3{font-size:25px;line-height:1.15;letter-spacing:-.65px;margin:0 0 10px}
+.library-reader__copy>p{font-size:13.5px;line-height:1.65;color:var(--text-2);margin:0 0 18px}
+.library-reader__copy ol{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.library-reader__copy li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2)}
+.library-reader__copy li b{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--primary)}
+.library-reader__copy li span{font-size:12.5px;font-weight:620;color:var(--text)}
+.library-reader__availability{display:flex;align-items:center;gap:8px;margin-top:16px;padding:11px 12px;border-radius:11px;background:color-mix(in srgb,var(--success,#168568) 9%,transparent);color:var(--success,#168568);font-size:11.5px;font-weight:650}
+.library-reader__availability .ic{width:15px;height:15px;flex:0 0 auto}
+.library-reader__copy>small{display:block;color:var(--text-3);font-size:10.5px;line-height:1.5;margin-top:13px}
 
 /* ═══════════════════════════════════════════════════════════════════
    MIS LOGROS · refresh editorial tipo SYNOVA
@@ -3640,6 +3662,9 @@ body.has-fomo .main{padding-top:18px}
   .library-grid{grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:14px}
   .library-card__cover-inner{padding:16px 14px}
   .library-card__cover-inner h3{font-size:17px;margin-bottom:12px}
+  .library-reader{grid-template-columns:1fr;gap:20px}
+  .library-reader__cover{width:min(210px,72vw);margin:0 auto}
+  .library-reader__copy h3{font-size:22px}
   .logro-hero{padding:22px 20px;border-radius:18px}
   .logro-hero__name{font-size:20px}
   .nivel-path{padding:20px 18px}
@@ -7021,17 +7046,17 @@ const Sections = (function(){
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // LIBROS · catálogo canjeable (hardcoded por ahora; mañana se puede
-  // migrar a una colección Firestore sin cambiar el renderer)
+  // LIBROS · catálogo canjeable. Producción recibe el catálogo autoritativo
+  // del backend; esta copia permite que el modo demo conserve la experiencia.
   // Diseño editorial inspirado en SYNOVA (biblioteca canjeable con créditos).
   // ═══════════════════════════════════════════════════════════════════
-  const LIBROS_CATALOG = [
-    { id:'fiscal-2026', categoria:'Fiscal', titulo:'Prontuario fiscal 2026', descripcion:'Fechas, obligaciones y criterios esenciales para tomar decisiones con orden.', costo:800, color:'#173f59', accent:'#5fb4be', icon:'i-calendar', capitulos:['Calendario de obligaciones','ISR e IVA en operación','Controles y evidencia'] },
-    { id:'nif-2026', categoria:'Contabilidad', titulo:'NIF comentadas 2026', descripcion:'Una guía visual para interpretar las normas y aplicarlas en casos cotidianos.', costo:800, color:'#315b55', accent:'#9bc4a3', icon:'i-book', capitulos:['Marco conceptual','Estados financieros','Casos de reconocimiento'] },
-    { id:'cff-comentado', categoria:'Legal', titulo:'Código Fiscal comentado', descripcion:'Artículos clave explicados desde su impacto práctico y documental.', costo:800, color:'#44455d', accent:'#aa9fc6', icon:'i-shield-check', capitulos:['Facultades y obligaciones','Comprobantes y conservación','Medios de defensa'] },
-    { id:'nomina-practica', categoria:'Nómina', titulo:'Nómina práctica 2026', descripcion:'Del salario integrado al recibo: cálculos, incidencias y verificaciones.', costo:800, color:'#725736', accent:'#d7b879', icon:'i-cash', capitulos:['Percepciones y deducciones','Seguridad social','Finiquitos y validación'] },
-    { id:'finanzas-dueno', categoria:'Finanzas', titulo:'Finanzas para dueños', descripcion:'Indicadores sencillos para leer la operación y proteger el flujo de efectivo.', costo:800, color:'#69434a', accent:'#d69aa4', icon:'i-credit-card', capitulos:['Flujo y liquidez','Costos y margen','Decisiones de financiamiento'] },
-    { id:'auditoria-int', categoria:'Auditoría', titulo:'Auditoría integral', descripcion:'Mapas de riesgo, evidencia y seguimiento para revisiones profesionales.', costo:800, color:'#315b63', accent:'#8ebbc0', icon:'i-check', capitulos:['Planeación por riesgos','Papeles de trabajo','Hallazgos y seguimiento'] }
+  let LIBROS_CATALOG = [
+    { id:'nomina-prestaciones-2026', categoria:'Nómina', titulo:'Nómina, prestaciones y finiquitos en México 2026', descripcion:'Guía práctica para integrar salarios, prestaciones, retenciones, seguridad social y finiquitos con criterio profesional.', costo:800, color:'#173f59', accent:'#d5b35b', icon:'i-cash', capitulos:['Integración de la nómina','Prestaciones y seguridad social','Finiquitos y controles'], coverUrl:'https://icadembooks.b-cdn.net/covers/N%C3%B3minas%2C%20presentaciones%20y%20finiquitos.png', fileUrl:'https://icadembooks.b-cdn.net/books/Nomina_Prestaciones_Finiquitos_2026_ICADEM.pdf' },
+    { id:'defensa-sat-2026', categoria:'Fiscal', titulo:'Defensa ante el SAT 2026', descripcion:'Una ruta clara para atender actos de fiscalización, integrar evidencia y responder con orden ante la autoridad.', costo:800, color:'#234b6a', accent:'#d8b867', icon:'i-shield-check', capitulos:['Facultades de comprobación','Pruebas y documentación','Medios de defensa'], coverUrl:'https://icadembooks.b-cdn.net/covers/Defensa%20ante%20el%20sat.png', fileUrl:'https://icadembooks.b-cdn.net/books/Defensa_ante_el_SAT_2026_ICADEM.pdf' },
+    { id:'despido-laboral-2026', categoria:'Derecho laboral', titulo:'Despido, conciliación y juicio laboral', descripcion:'Criterios y procedimientos para documentar la terminación, conciliar y preparar una defensa laboral sólida.', costo:800, color:'#182f4b', accent:'#d5b35b', icon:'i-briefcase', capitulos:['Despido y documentación','Conciliación prejudicial','Demanda y juicio laboral'], coverUrl:'https://icadembooks.b-cdn.net/covers/Despido%2C%20conciliaci%C3%B3n%20y%20juicio%20laboral.png', fileUrl:'https://icadembooks.b-cdn.net/books/Despido_Conciliacion_Juicio_Laboral_ICADEM.pdf' },
+    { id:'importacion-exportacion-2026', categoria:'Comercio exterior', titulo:'Importación y exportación sin errores', descripcion:'Manual operativo para preparar expedientes, validar documentos y reducir contingencias en comercio exterior.', costo:800, color:'#315b63', accent:'#d7b879', icon:'i-check', capitulos:['Preparación de la operación','Documentación y aduana','Prevención de errores'], coverUrl:'https://icadembooks.b-cdn.net/covers/Importaci%C3%B3n%20y%20exportaci%C3%B3n%20sin%20errores.png', fileUrl:'https://icadembooks.b-cdn.net/books/Importacion_Exportacion_sin_Errores_ICADEM.pdf' },
+    { id:'contratos-corporativo-pymes-2026', categoria:'Derecho corporativo', titulo:'Contratos y derecho corporativo para PyMEs', descripcion:'Herramientas legales para estructurar acuerdos, proteger operaciones y fortalecer el gobierno de una PyME.', costo:800, color:'#44455d', accent:'#d5b35b', icon:'i-briefcase', capitulos:['Estructura corporativa','Contratos esenciales','Riesgos y cumplimiento'], coverUrl:'https://icadembooks.b-cdn.net/covers/Contratos%20y%20derecho%20corporativo%20para%20PYMEs.png', fileUrl:'https://icadembooks.b-cdn.net/books/Contratos_Derecho_Corporativo_PyMEs_ICADEM.pdf' },
+    { id:'prevencion-lavado-2026', categoria:'Cumplimiento', titulo:'Prevención de lavado de dinero y actividades vulnerables', descripcion:'Referencia aplicada para identificar obligaciones, integrar expedientes y cumplir con actividades vulnerables.', costo:800, color:'#315b55', accent:'#d5b35b', icon:'i-shield-check', capitulos:['Sujetos y actividades vulnerables','Identificación y expedientes','Avisos y seguimiento'], coverUrl:'https://icadembooks.b-cdn.net/covers/Presentaci%C3%B3n%20de%20lavado%20de%20dinero%20y%20actividades%20vulnerables.png', fileUrl:'https://icadembooks.b-cdn.net/books/Prevencion_Lavado_Dinero_Actividades_Vulnerables_ICADEM.pdf' }
   ];
   let __libraryUiState = null;
   let __libraryUiOwner = null;
@@ -7054,7 +7079,13 @@ const Sections = (function(){
   }
 
   function _openLibraryBook(book){
-    const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const cover = book.coverUrl
+      ? `<div class="library-reader__cover" style="--book-color:${htmlEsc(book.color)};--book-accent:${htmlEsc(book.accent)}"><img src="${htmlEsc(book.coverUrl)}" alt="Portada de ${htmlEsc(book.titulo)}"></div>`
+      : `<div class="library-reader__cover library-reader__cover--fallback" style="--book-color:${htmlEsc(book.color)};--book-accent:${htmlEsc(book.accent)}"><div><svg class="ic"><use href="#${htmlEsc(book.icon)}"/></svg><span>ICADEM</span><strong>${htmlEsc(book.titulo)}</strong></div></div>`;
+    const openAction = book.fileUrl
+      ? `<a class="btn btn--accent" href="${htmlEsc(book.fileUrl)}" target="_blank" rel="noopener"><svg class="ic"><use href="#i-book"/></svg>Abrir libro en PDF</a>`
+      : `<button class="btn btn--accent" type="button" disabled>Archivo en sincronización</button>`;
     Modal.open({
       id:`library-read-${book.id}`,
       title:book.titulo,
@@ -7062,10 +7093,10 @@ const Sections = (function(){
       icon:book.icon,
       size:'lg',
       body:`<div class="library-reader">
-        <div class="library-reader__cover" style="--book-color:${book.color};--book-accent:${book.accent}"><svg class="ic"><use href="#${book.icon}"/></svg><span>ICADEM</span><strong>${htmlEsc(book.titulo)}</strong></div>
-        <div class="library-reader__copy"><span class="library-reader__eyebrow">Guía de consulta</span><h3>Tu ruta de lectura</h3><p>${htmlEsc(book.descripcion)}</p><ol>${book.capitulos.map((item,index)=>`<li><b>0${index+1}</b><span>${htmlEsc(item)}</span></li>`).join('')}</ol><small>Esta referencia permanece vinculada a tu cuenta y seguirá recibiendo actualizaciones editoriales.</small></div>
+        ${cover}
+        <div class="library-reader__copy"><span class="library-reader__eyebrow">Referencia profesional ICADEM</span><h3>Tu libro ya está disponible</h3><p>${htmlEsc(book.descripcion)}</p><ol>${(book.capitulos||[]).map((item,index)=>`<li><b>0${index+1}</b><span>${htmlEsc(item)}</span></li>`).join('')}</ol><div class="library-reader__availability"><svg class="ic"><use href="#i-check"/></svg>Libro completo en PDF vinculado a tu cuenta.</div><small>Podrás volver a abrir esta referencia desde tu biblioteca sin hacer otro canje.</small></div>
       </div>`,
-      footer:`<button class="btn btn--accent" onclick="Modal.close('library-read-${book.id}')">Continuar en mi biblioteca</button>`
+      footer:`<button class="btn btn--ghost" onclick="Modal.close('library-read-${book.id}')">Cerrar</button>${openAction}`
     });
   }
 
@@ -7121,7 +7152,7 @@ const Sections = (function(){
             return `<article class="library-card${owned?' is-owned':''}" data-book-id="${htmlEsc(book.id)}">
               <div class="library-card__cover" style="--book-color:${book.color};--book-accent:${book.accent}">
                 <span class="library-card__chip">${owned?'EN TU BIBLIOTECA':'CANJEABLE'}</span>
-                <div class="library-card__cover-inner"><span class="library-card__brand">ICADEM</span><svg class="ic"><use href="#${book.icon}"/></svg><span class="library-card__kicker">${htmlEsc(book.categoria)}</span><h3>${htmlEsc(book.titulo)}</h3><span class="library-card__year">2026</span></div>
+                ${book.coverUrl?`<img class="library-card__cover-image" src="${htmlEsc(book.coverUrl)}" alt="Portada de ${htmlEsc(book.titulo)}" loading="lazy">`:`<div class="library-card__cover-inner"><span class="library-card__brand">ICADEM</span><svg class="ic"><use href="#${book.icon}"/></svg><span class="library-card__kicker">${htmlEsc(book.categoria)}</span><h3>${htmlEsc(book.titulo)}</h3><span class="library-card__year">2026</span></div>`}
               </div>
               <div class="library-card__body">
                 <small>${htmlEsc(book.categoria)}</small><strong>${htmlEsc(book.titulo)}</strong><p>${htmlEsc(book.descripcion)}</p>
@@ -7162,6 +7193,8 @@ const Sections = (function(){
             } else {
               const data = await window.ICADEMPlatform.redeemBook(book.id);
               state.balance = Number(data.balance ?? data.credits?.balance ?? state.balance-book.costo);
+              if (data.fileUrl) book.fileUrl = data.fileUrl;
+              if (data.coverUrl) book.coverUrl = data.coverUrl;
               state.redeemed.add(book.id);
             }
             Toast.success('Referencia añadida','Ya forma parte de tu biblioteca ICADEM.');
@@ -7181,6 +7214,12 @@ const Sections = (function(){
       stateForRequest.loaded = 'loading';
       window.ICADEMPlatform.loadLibrary().then(data => {
         if (__libraryUiOwner !== ownerForRequest || __libraryUiState !== stateForRequest) return;
+        if (Array.isArray(data.catalog) && data.catalog.length) {
+          LIBROS_CATALOG = data.catalog.map(serverBook => ({
+            ...(LIBROS_CATALOG.find(localBook => localBook.id === serverBook.id) || {}),
+            ...serverBook
+          }));
+        }
         const ids = data.redeemedBookIds || data.redeemed || data.books?.map(item => typeof item === 'string' ? item : item.id) || [];
         stateForRequest.redeemed = new Set(ids);
         stateForRequest.balance = Number(data.balance ?? data.credits?.balance ?? stateForRequest.balance);
