@@ -10,6 +10,7 @@ const panel = read('vip-panel.html');
 const onboarding = read('js/icadem-onboarding.js');
 const platform = read('js/icadem-platform-v2.js');
 const serviceWorker = read('sw.js');
+const panelMinimal = read('css/panel-minimal.css');
 const verifier = read('verificar.html');
 const courseRules = read('firestore.courses.rules.fragment');
 
@@ -20,6 +21,21 @@ for (const [section, label] of [
 }
 assert.match(panel, /id="mobile-nav-more"[\s\S]*?>Más<\/button>/);
 assert.doesNotMatch(panel, /mobile-nav__item[^>]+data-section="(?:webinars|suscripcion)"/);
+assert.match(panel, /nav-item" data-section="materiales"/);
+assert.match(panel, /mobile-drawer__item" data-section="materiales"/);
+assert.match(panel, /materiales:renderMateriales/);
+const materialsRenderer = panel.slice(panel.indexOf('function renderMateriales'), panel.indexOf('// RENDER CLASE DETALLE'));
+assert.ok(materialsRenderer.length > 0, 'falta renderer de Materiales');
+assert.doesNotMatch(materialsRenderer, /toolEsVIP|modo\s*!==?\s*['"]vip['"]/, 'Materiales no debe exigir membresía VIP');
+assert.match(materialsRenderer, /data\.content \|\| data\.contenido/);
+assert.match(materialsRenderer, /__seccionActualVIP !== 'materiales'/);
+assert.match(materialsRenderer, /const anyRedemptionBusy = Boolean\(state\.busy \|\| state\.syncing\)/);
+assert.match(materialsRenderer, /!__materialsUiState\.syncing/);
+assert.match(materialsRenderer, /stateForRequest\.syncRevision !== requestRevision/);
+assert.doesNotMatch(materialsRenderer, /if \(state\.balance < cost\)/);
+assert.doesNotMatch(panel, /<button class="club-search-btn"/);
+assert.doesNotMatch(panel, /id="(?:cur-search|dir-buscar|tpl-search-input)"/);
+assert.match(panelMinimal, /\.sec-hero__eyebrow,[\s\S]*?\.directory-hero__eyebrow \{ display:none!important; \}/);
 
 assert.match(panel, /@media \(min-width:881px\) and \(max-width:1200px\)/);
 assert.match(panel, /@media \(max-width: 1380px\)\{[\s\S]*?grid-template-columns: 220px minmax\(0, 1fr\) !important;[\s\S]*?\.aside/);
@@ -49,6 +65,15 @@ assert.match(panel, /if \(np && !np\.mostrada\)/);
 assert.doesNotMatch(panel, /if \(isCheckoutSuccess && window\.UserState\.modo === 'vip'\)/);
 assert.match(platform, /\/api\/membership\/welcome-seen/);
 assert.match(platform, /request\('\/api\/courses\/catalog'\)/);
+assert.match(platform, /request\('\/api\/materials'\)/);
+assert.match(platform, /function syncCreditSnapshot\(credits, meta\)/);
+assert.match(materialsRenderer, /source:\s*'materials-sync'/);
+assert.match(platform, /request\('\/api\/materials\/redeem'/);
+assert.match(onboarding, /navigateToSection\?\.\('materiales'\)/);
+assert.match(panel, /data-news-cover data-fallback=/);
+assert.match(panel, /\^https:\\\/\\\//);
+assert.ok(panel.includes("const safeColor = /^#[0-9a-f]{3,8}$/i.test"), 'falta validar el color de las portadas');
+assert.match(panel, /image\.onerror = \(\) => \{ image\.onerror = null; image\.src = image\.dataset\.fallback; \}/);
 assert.match(platform, /if \(window\.__isDemoMode\) return '';/);
 assert.match(panel, /const user = window\.__isDemoMode \? null : \(window\.__auth\?\.currentUser \|\| window\.__currentUser\);/);
 assert.match(onboarding, /result\?\.marked!==true/);
@@ -95,9 +120,11 @@ assert.doesNotMatch(verifier, /firebase(?:-app|-firestore)|getFirestore|getDoc\(
 
 const platformVersion = panel.match(/icadem-platform-v2\.js\?v=(\d+)/)?.[1];
 const onboardingVersion = panel.match(/icadem-onboarding\.js\?v=(\d+)/)?.[1];
-assert.ok(platformVersion && onboardingVersion, 'faltan versiones de assets');
+const panelMinimalVersion = panel.match(/panel-minimal\.css\?v=(\d+)/)?.[1];
+assert.ok(platformVersion && onboardingVersion && panelMinimalVersion, 'faltan versiones de assets');
 assert.ok(serviceWorker.includes(`icadem-platform-v2.js?v=${platformVersion}`), 'versión platform desalineada');
 assert.ok(serviceWorker.includes(`icadem-onboarding.js?v=${onboardingVersion}`), 'versión onboarding desalineada');
+assert.ok(serviceWorker.includes(`panel-minimal.css?v=${panelMinimalVersion}`), 'versión panel minimal desalineada');
 assert.doesNotMatch(panel, /data-theme="dark"/);
 
-console.log('OK: contratos de navegación, tablet, experiencias, foro y certificados verificados.');
+console.log('OK: contratos de navegación, Materiales, noticias, tablet, experiencias, foro y certificados verificados.');

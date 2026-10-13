@@ -238,6 +238,27 @@
     return data;
   }
 
+  async function loadMaterials() {
+    return request('/api/materials');
+  }
+
+  function syncCreditSnapshot(credits, meta) {
+    return publishCredits(credits, meta);
+  }
+
+  async function redeemMaterial(materialId) {
+    const data = await request('/api/materials/redeem', {
+      method: 'POST',
+      body: { materialId: String(materialId || '') }
+    });
+    const nextBalance = Number(data.balance ?? data.newBalance ?? data.credits?.balance);
+    if (window.UserState?.credits && Number.isFinite(nextBalance)) {
+      publishCredits({ ...window.UserState.credits, balance: nextBalance }, { source: 'material-redemption' });
+    }
+    creditWalletCache = null;
+    return data;
+  }
+
   async function selectFreeCourse(courseId) {
     const selectedId = String(courseId || '').trim();
     if (!selectedId) throw new Error('Elige un curso para continuar.');
@@ -428,10 +449,10 @@
         { id: 'arcade', label: 'Entrena en Juegos ICADEM', amount: 5, note: 'Una recompensa por dinámica.' }
       ],
       destinations: [
-        { id: 'library', label: 'Biblioteca profesional', description: 'Canjea referencias que conservarás en tu cuenta.', available: true, section: 'libros', count: 6 },
-        { id: 'resources', label: 'Nuevas recompensas', description: 'Próximamente: materiales, plantillas y beneficios.', available: false, section: null, count: 0 }
+        { id: 'materials', label: 'Materiales profesionales', description: 'Canjea formatos prácticos desde 25 créditos.', available: true, section: 'materiales', count: 6 },
+        { id: 'library', label: 'Biblioteca profesional', description: 'Canjea referencias que conservarás en tu cuenta.', available: true, section: 'libros', count: 6 }
       ],
-      redemptions: { books: 0 },
+      redemptions: { books: 0, materials: 0 },
       demo: true
     };
   }
@@ -1266,10 +1287,10 @@
   if (window.__currentUser) syncIdentity();
 
   window.ICADEMPlatform = {
-    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadCourseCatalog, loadLibrary, redeemBook, selectFreeCourse, markFreeCourseOfferSeen, claimExperience, markMembershipWelcomeSeen,
+    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadCourseCatalog, loadLibrary, redeemBook, loadMaterials, redeemMaterial, selectFreeCourse, markFreeCourseOfferSeen, claimExperience, markMembershipWelcomeSeen,
     createForumPost, deleteForumPost, toggleForumLike, createForumComment, deleteForumComment, mountRanking,
     loadLearningProgress,
-    loadCreditWallet, openCreditWallet, applyDemoCreditMovement,
+    loadCreditWallet, openCreditWallet, applyDemoCreditMovement, syncCreditSnapshot,
     saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
   };
 })();
