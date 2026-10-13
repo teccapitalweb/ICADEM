@@ -105,11 +105,39 @@ body::after,
 .nav-item { border-radius: 8px; }
 .nav-item.is-active { background: color-mix(in srgb, var(--primary) 10%, transparent); }
 
-/* Cursos y foro: encabezados editoriales sin controles redundantes. */
+/* Cursos, clases en vivo y foro: encabezados editoriales sin texto redundante. */
 .courses-page--clean .sec-hero { margin-bottom: 2px !important; padding-bottom: 8px !important; }
 .courses-page--clean .sec-hero__title { margin: 0 !important; }
+.webinars-page--clean { gap: 12px !important; }
+.webinars-page--clean .sec-hero { margin: 0 !important; padding: 0 0 8px !important; }
+.webinars-page--clean .sec-hero__title { margin: 0 !important; }
+.webinars-page--clean .tabs {
+  width: max-content !important;
+  max-width: 100%;
+  margin: 0 0 16px !important;
+  padding: 3px !important;
+  gap: 3px !important;
+  border-radius: 12px !important;
+}
+.webinars-page--clean .tab {
+  min-height: 36px !important;
+  padding: 7px 13px !important;
+  border-radius: 9px !important;
+}
 .foro-page--clean .sec-hero { margin-bottom: 2px !important; padding-bottom: 8px !important; }
 .foro-page--clean .sec-hero__title { margin-bottom: 0 !important; }
+
+@media (max-width: 560px) {
+  .webinars-page--clean .tabs {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+  .webinars-page--clean .tab {
+    min-width: 0 !important;
+    padding-inline: 6px !important;
+  }
+}
 
 .main { gap: 18px; padding: calc(18px + env(safe-area-inset-top)) 26px 40px; }
 .icon-btn,

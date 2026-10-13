@@ -9647,11 +9647,10 @@ const Sections = (function(){
     // Cargar de Firestore si aún no se cargó
     if (!_webinarsLoaded && !_webinarsLoading) {
       container.innerHTML = `
-        <div class="fade-up">
+        <div class="fade-up webinars-page--clean">
           <div class="sec-hero">
             <span class="sec-hero__eyebrow">Aprende en directo</span>
             <h1 class="sec-hero__title">Clases en vivo</h1>
-            <p class="sec-hero__sub">Cargando próximas clases…</p>
           </div>
         </div>`;
       await cargarWebinarsFirestore();
@@ -9660,11 +9659,10 @@ const Sections = (function(){
     // Sin webinars → empty state limpio
     if (webinars.length === 0) {
       container.innerHTML = `
-        <div class="fade-up">
+        <div class="fade-up webinars-page--clean">
           <div class="sec-hero">
             <span class="sec-hero__eyebrow">Aprende en directo</span>
             <h1 class="sec-hero__title">Clases en vivo</h1>
-            <p class="sec-hero__sub">Sesiones en directo con especialistas en negocios, fiscal y legal. Pregunta en vivo, las grabaciones quedan disponibles.</p>
           </div>
           <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
             <div style="width:64px;height:64px;border-radius:50%;background:color-mix(in srgb, var(--primary) 12%, transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
@@ -9684,11 +9682,10 @@ const Sections = (function(){
     const mias=proximas.filter(w=>w.registrado);
     const prox=proximas[0];
     container.innerHTML=`
-      <div class="fade-up">
+      <div class="fade-up webinars-page--clean">
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Aprende en directo</span>
           <h1 class="sec-hero__title">Clases en vivo</h1>
-          <p class="sec-hero__sub">Sesiones en directo con especialistas en negocios, fiscal y legal. Pregunta en vivo, las grabaciones quedan disponibles.</p>
         </div>
         ${prox?renderProxHero(prox):''}
         <div class="tabs">
@@ -20695,7 +20692,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .retos-caso-result--v2 .rcr-score__num b{ font-size:70px; }
 }
 </style>
-  <link rel="stylesheet" href="css/panel-minimal.css?v=29">
+  <link rel="stylesheet" href="css/panel-minimal.css?v=30">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){
