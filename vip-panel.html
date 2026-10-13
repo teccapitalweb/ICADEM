@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=16" defer></script>
+<script src="js/icadem-platform-v2.js?v=17" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -3835,7 +3835,7 @@ body.has-fomo .main{padding-top:18px}
 window.UserState = {
   modo: 'cargando',
   uid: null, email: null, displayName: null, iniciales: 'IN', photoURL: '', authPhotoURL: '',
-  providerIds: [], freeCourseId: '', credits: { balance:0, lifetimeEarned:0 }, directoryProfile: null,
+  providerIds: [], freeCourseId: '', freeCourseOfferSeen: false, identityReady: false, credits: { balance:0, lifetimeEarned:0 }, directoryProfile: null,
   plan: null, isAdmin: false,
   membership: { activo:false, proximaRenovacion:null, historial:[], metodoPago:null },
   demo: { timerRestante:300, iniciado:null, visitas:0 }
@@ -3858,6 +3858,8 @@ window.__scheduleExperience = window.__scheduleExperience || function(id, payloa
   window.UserState.displayName = 'Invitado';
   window.UserState.iniciales = 'GU';
   window.UserState.freeCourseId = localStorage.getItem('icadem:demo:free-course') || '';
+  window.UserState.freeCourseOfferSeen = localStorage.getItem('icadem:experience:v3:demo:free-course-offer-seen') === 'complete';
+  window.UserState.identityReady = true;
   if (localStorage.getItem('icadem:demo:credits') === null) localStorage.setItem('icadem:demo:credits', '200');
   window.UserState.credits = { balance:Number(localStorage.getItem('icadem:demo:credits') || 200), lifetimeEarned:200, lifetimeSpent:0 };
   window.__isDemoMode = true;  // bandera para que el módulo Firebase NO redirija
@@ -3900,12 +3902,14 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 window.__auth = auth;
 window.__db = db;
+let avatarCacheVersion = Date.now().toString(36);
+window.__refreshAvatarCache = function(){ avatarCacheVersion = Date.now().toString(36); };
 window.__avatarSrc = function(url){
   if (!url) return '';
   try {
     const parsed = new URL(url, window.location.origin);
     if (/googleusercontent\.com$/i.test(parsed.hostname) || /googleusercontent\.com$/i.test(parsed.hostname.replace(/^lh\d+\./,''))) {
-      parsed.searchParams.set('icadem_avatar', String(Math.floor(Date.now() / 3600000)));
+      parsed.searchParams.set('icadem_avatar', avatarCacheVersion);
     }
     return parsed.toString();
   } catch (_) { return url; }
@@ -9762,6 +9766,10 @@ const Sections = (function(){
     let h=0; const s=String(uid||'x'); for(let i=0;i<s.length;i++) h=((h<<5)-h+s.charCodeAt(i))|0;
     return colores[Math.abs(h)%colores.length];
   }
+  function dirFotoSrc(card){
+    const url = card?.foto || '';
+    return card?.fotoOrigen === 'google' ? (window.__avatarSrc?.(url) || url) : url;
+  }
   function dirComprimirFoto(file){
     return new Promise((resolve,reject)=>{
       const r=new FileReader();
@@ -9955,6 +9963,16 @@ const Sections = (function(){
     }, (err)=>{ console.error('dir snap',err); const g=document.getElementById('dir-results'); if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio.</div>'; });
   }
 
+  document.addEventListener('icadem:identity-ready', event=>{
+    const current = event.detail?.directory;
+    if (!current?.uid || !document.getElementById('dir-results')) return;
+    const index = _dirCards.findIndex(card => (card.id || card.uid) === current.uid);
+    const merged = { ...(index >= 0 ? _dirCards[index] : {}), ...current, id:current.uid };
+    if (index >= 0) _dirCards[index] = merged;
+    else _dirCards.push(merged);
+    dirPintar();
+  });
+
   function dirPintar(){
     const grid = document.getElementById('dir-results'); if(!grid) return;
     const uid = window.UserState?.uid;
@@ -9981,7 +9999,7 @@ const Sections = (function(){
     const renderCard = (c, esVip)=>{
       const inicial = c.iniciales || (c.nombre||'?').trim().slice(0,2).toUpperCase();
       const foto = c.foto
-        ? `<img src="${escapeHtml(c.foto)}" alt="${escapeHtml(c.nombre||'')}" class="dir-card__foto">`
+        ? `<img src="${escapeHtml(dirFotoSrc(c))}" alt="${escapeHtml(c.nombre||'')}" class="dir-card__foto" referrerpolicy="no-referrer">`
         : `<div class="dir-card__foto dir-card__foto--ini" style="background:linear-gradient(135deg,${c.color||'#5b92c8'},${(c.color||'#5b92c8')}aa);">${escapeHtml(inicial)}</div>`;
       const contactos = [];
       if (c.whatsapp) contactos.push(`<a class="dir-cta dir-cta--wa" href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" rel="noopener" title="Abrir WhatsApp" aria-label="Abrir WhatsApp de ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-whatsapp"/></svg></a>`);
@@ -10051,7 +10069,7 @@ const Sections = (function(){
     const esMia = c.id===uid;
     const inicial = (c.nombre||'?').trim().slice(0,2).toUpperCase();
     const foto = c.foto
-      ? `<img src="${c.foto}" alt="" class="dir-det__foto">`
+      ? `<img src="${escapeHtml(dirFotoSrc(c))}" alt="" class="dir-det__foto" referrerpolicy="no-referrer">`
       : `<div class="dir-det__foto dir-det__foto--ini" style="background:linear-gradient(135deg,${c.color||'#5b92c8'},${(c.color||'#5b92c8')}aa);">${escapeHtml(inicial)}</div>`;
     const row = (icon,label,val,href,extraClass='') => val
       ? `<a class="dir-det__row ${extraClass}" ${href?`href="${href}" target="_blank" rel="noopener"`:''}>
@@ -10107,7 +10125,7 @@ const Sections = (function(){
     _dirFotoTmp = undefined;
     let dirCoverTmp = undefined;
 
-    const fotoActual = data.foto || '';
+    const fotoActual = dirFotoSrc(data);
     const body = `
       <div class="dir-form">
         <div class="dir-form__foto-wrap">
@@ -20318,6 +20336,6 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=24">
-<script src="js/icadem-onboarding.js?v=6"></script>
+<script src="js/icadem-onboarding.js?v=7"></script>
 </body>
 </html>

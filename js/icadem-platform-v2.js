@@ -144,8 +144,11 @@
     state.iniciales = directory.iniciales || initials(state.nombre);
     state.providerIds = profile.providerIds || [];
     state.freeCourseId = profile.freeCourseId || state.freeCourseId || '';
+    state.freeCourseOfferSeen = profile.freeCourseOfferSeen === true;
+    state.identityReady = true;
     state.credits = payload.credits || state.credits || { balance: 0 };
     state.directoryProfile = directory;
+    window.__refreshAvatarCache?.();
     if (payload.membership && state.modo !== 'invitado') {
       state.modo = payload.membership.active ? 'vip' : 'sin-membresia';
       state.plan = payload.membership.active ? (payload.membership.plan || state.plan || 'mensual') : null;
@@ -182,7 +185,9 @@
   async function syncIdentity(force) {
     if (window.__isDemoMode) return null;
     if (identityPromise && !force) return identityPromise;
-    identityPromise = request('/api/identity/sync', { method: 'POST', body: {} })
+    const currentUser = window.__auth?.currentUser || window.__currentUser;
+    const googleProvider = (currentUser?.providerData || []).find(provider => provider.providerId === 'google.com');
+    identityPromise = request('/api/identity/sync', { method: 'POST', body: { googlePhotoURL: googleProvider?.photoURL || '' } })
       .then(async data => {
         applyIdentity(data);
         try { await loadLearningProgress(); }
@@ -229,14 +234,20 @@
     if (!selectedId) throw new Error('Elige un curso para continuar.');
     if (window.__isDemoMode) {
       localStorage.setItem('icadem:demo:free-course', selectedId);
-      if (window.UserState) window.UserState.freeCourseId = selectedId;
+      if (window.UserState) { window.UserState.freeCourseId = selectedId; window.UserState.freeCourseOfferSeen = true; }
       document.dispatchEvent(new CustomEvent('icadem:free-course-selected', { detail: { courseId: selectedId, demo: true } }));
       return { ok: true, courseId: selectedId, newlySelected: true, demo: true, freeClasses: 4, freeMaterials: 1 };
     }
     const data = await request('/api/free-course', { method: 'POST', body: { courseId: selectedId } });
-    if (window.UserState) window.UserState.freeCourseId = data.courseId;
+    if (window.UserState) { window.UserState.freeCourseId = data.courseId; window.UserState.freeCourseOfferSeen = true; }
     document.dispatchEvent(new CustomEvent('icadem:free-course-selected', { detail: data }));
     return data;
+  }
+
+  async function markFreeCourseOfferSeen() {
+    if (window.UserState) window.UserState.freeCourseOfferSeen = true;
+    if (window.__isDemoMode) return { ok: true, offerSeen: true, demo: true };
+    return request('/api/free-course/offer-seen', { method: 'POST', body: {} });
   }
 
   function demoCreditLedgerKey() {
@@ -1177,13 +1188,20 @@
     event.preventDefault(); trigger.click();
   });
   document.addEventListener('icadem:user-ready', () => syncIdentity());
+  let lastVisibleIdentitySync = 0;
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !window.__isDemoMode && window.__currentUser) loadCreditWallet(true).catch(() => {});
+    if (document.visibilityState === 'visible' && !window.__isDemoMode && window.__currentUser) {
+      loadCreditWallet(true).catch(() => {});
+      if (Date.now() - lastVisibleIdentitySync > 5 * 60 * 1000) {
+        lastVisibleIdentitySync = Date.now();
+        syncIdentity(true).catch(() => {});
+      }
+    }
   });
   if (window.__currentUser) syncIdentity();
 
   window.ICADEMPlatform = {
-    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, selectFreeCourse, mountRanking,
+    request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadLibrary, redeemBook, selectFreeCourse, markFreeCourseOfferSeen, mountRanking,
     loadLearningProgress,
     loadCreditWallet, openCreditWallet, applyDemoCreditMovement,
     saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
