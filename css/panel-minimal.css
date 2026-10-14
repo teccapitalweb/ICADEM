@@ -2188,3 +2188,95 @@ body,
 .news-card__date,.news-card__cat { z-index:2!important; }
 @media(max-width:1080px){.materials-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.materials-hero{grid-template-columns:minmax(0,1fr) 230px}}
 @media(max-width:700px){.materials-page{gap:18px}.materials-hero{grid-template-columns:1fr;padding:23px 20px;border-radius:20px}.materials-hero__copy h1{font-size:31px}.materials-wallet{padding:16px}.materials-head{align-items:flex-start;flex-direction:column}.materials-grid{grid-template-columns:1fr}.material-card__cover{height:170px}.material-reader,.material-reader--content{grid-template-columns:1fr}.material-reader__cover,.material-reader--content .material-reader__cover{width:min(220px,100%);height:270px;margin:0 auto}.dir-bar--summary{justify-content:flex-end!important}.material-reader__footer{flex-wrap:wrap}.material-reader__footer .btn{flex:1 1 150px}}
+
+/* Inicio móvil · densidad compacta y navegación de marca visible. */
+.mobile-drawer__wordmark {
+  display: block;
+  width: 142px;
+  max-width: 58vw;
+  height: 56px;
+  object-fit: contain;
+  object-position: left center;
+}
+.mobile-drawer__brand > .brand__logo { display: none !important; }
+
+@media (max-width: 760px) {
+  .fomo-banner {
+    min-height: 48px !important;
+    padding: calc(5px + env(safe-area-inset-top)) 9px 5px !important;
+    gap: 7px !important;
+    font-size: 10.5px !important;
+    line-height: 1.18 !important;
+  }
+  .fomo-banner__text {
+    flex: 1 1 auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+  }
+  .fomo-banner__cta {
+    min-height: 34px !important;
+    padding: 0 10px !important;
+    border-radius: 9px !important;
+    font-size: 10px !important;
+  }
+
+  #inicio-content { padding: 12px 10px 88px !important; }
+  .banner {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 12px !important;
+    padding: 16px !important;
+    border-left-width: 3px !important;
+    border-radius: 12px !important;
+  }
+  .banner__title {
+    font-size: clamp(21px, 6.4vw, 25px) !important;
+    line-height: 1.08 !important;
+    letter-spacing: -.55px !important;
+  }
+  .banner__sub {
+    margin-top: 4px !important;
+    font-size: 11.5px !important;
+    line-height: 1.35 !important;
+  }
+  .club-hero-actions { margin-top: 10px !important; }
+  .club-hero-btn {
+    width: max-content !important;
+    min-height: 34px !important;
+    padding: 0 12px !important;
+    font-size: 10.5px !important;
+  }
+  .banner__stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    width: 100% !important;
+    padding-top: 10px !important;
+    border-top: 1px solid var(--border) !important;
+  }
+  .banner__stat {
+    min-width: 0 !important;
+    padding: 0 10px !important;
+  }
+  .banner__stat:first-child { padding-left: 0 !important; }
+  .banner__stat-lbl {
+    margin-bottom: 2px !important;
+    font-size: 7px !important;
+    letter-spacing: .85px !important;
+  }
+  .banner__stat-val { font-size: 18px !important; }
+
+  .mobile-drawer__header {
+    min-height: 76px !important;
+    padding: calc(8px + env(safe-area-inset-top)) 16px 8px !important;
+  }
+  .mobile-drawer__brand {
+    min-height: 0 !important;
+    justify-content: flex-start !important;
+  }
+}
+
+@media (max-width: 370px) {
+  .fomo-banner { font-size: 10px !important; }
+  .fomo-banner__cta { padding: 0 8px !important; font-size: 9.5px !important; }
+  .banner { padding: 14px !important; }
+  .banner__stat { padding-right: 7px !important; padding-left: 7px !important; }
+}
