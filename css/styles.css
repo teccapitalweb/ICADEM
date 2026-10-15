@@ -349,3 +349,16 @@ button { cursor: pointer; }
   .footer-links { gap: 12px 18px; }
   .whatsapp-float { right: 14px; bottom: 14px; }
 }
+
+/* Menú móvil: fondo quieto y cierre al tocar fuera */
+.nav-backdrop { position: fixed; inset: 0; z-index: 90; background: rgba(8, 20, 34, .38); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); opacity: 0; pointer-events: none; transition: opacity .2s ease; }
+.nav-backdrop.is-visible { opacity: 1; pointer-events: auto; }
+html.nav-locked { overflow: hidden; overscroll-behavior: none; }
+.menu-toggle span { transition: transform .22s ease, opacity .18s ease; }
+.menu-toggle.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.menu-toggle.is-open span:nth-child(2) { opacity: 0; }
+.menu-toggle.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+@media (max-width: 780px) {
+  .nav.open { max-height: calc(100dvh - 110px); overflow-y: auto; overscroll-behavior: contain; }
+}
+@media (min-width: 781px) { .nav-backdrop { display: none; } }

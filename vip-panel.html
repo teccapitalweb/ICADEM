@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=1" defer></script>
-<script src="js/icadem-platform-v2.js?v=31" defer></script>
+<script src="js/icadem-platform-v2.js?v=32" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -4681,9 +4681,30 @@ const PREFIX='imdiil:';
 const Storage={pref:{get(k,d){const v=localStorage.getItem(PREFIX+'pref:'+k);return v===null?d:v;},set(k,v){localStorage.setItem(PREFIX+'pref:'+k,String(v));}}};
 
 const Theme={
-  init(){const saved=Storage.pref.get('theme',null);const normalized=(saved==='night'||saved==='dark')?'night':'day';this.apply(normalized,{persist:saved!==null});document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());},
-  apply(t,{persist=true}={}){t=t==='night'?'night':'day';document.documentElement.setAttribute('data-theme',t);if(persist)Storage.pref.set('theme',t);const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');const toggle=document.getElementById('theme-toggle');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';if(toggle){const next=t==='night'?'claro':'noche';toggle.setAttribute('aria-label',`Cambiar a modo ${next}`);toggle.title=`Cambiar a modo ${next}`;}const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0f1626':'#eef3f9');},
-  toggle(){this.apply(document.documentElement.getAttribute('data-theme')==='night'?'day':'night',{persist:true});}
+  // Tema por CUENTA (no por dispositivo): la primera vez que una cuenta entra
+  // en cualquier equipo ve modo día; si el usuario lo cambia, se guarda en su
+  // cuenta y sus otros dispositivos lo adoptan al sincronizar la identidad.
+  _key(uid){return 'icadem:theme:'+String(uid||'').toLowerCase();},
+  _uid(){const S=window.UserState||{};return (!window.__isDemoMode&&S.uid&&S.modo!=='invitado')?S.uid:'';},
+  init(){
+    let last=null;try{last=JSON.parse(localStorage.getItem('icadem:theme:last')||'null');}catch(_){}
+    // Mientras carga la cuenta se usa el último tema de este equipo (evita un parpadeo
+    // al mismo usuario); al llegar la identidad se aplica el de la cuenta.
+    this.apply(last&&last.theme==='night'?'night':'day',{persist:false});
+    document.getElementById('theme-toggle')?.addEventListener('click',()=>this.toggle());
+    document.addEventListener('icadem:identity-ready',e=>this.fromAccount(e.detail?.profile||{}));
+    if(window.UserState?.identityReady)this.fromAccount({theme:window.UserState.theme});
+  },
+  fromAccount(profile){
+    const uid=this._uid();if(!uid)return;
+    let local='';try{local=localStorage.getItem(this._key(uid))||'';}catch(_){}
+    const theme=profile.theme==='night'||profile.theme==='day'?profile.theme:(local==='night'||local==='day'?local:'day');
+    this.apply(theme,{persist:true});
+    // Un cambio hecho en este equipo antes de que existiera la sincronización se sube a la cuenta.
+    if(!profile.theme&&local&&window.ICADEMPlatform?.request)window.ICADEMPlatform.request('/api/preferences/theme',{method:'POST',body:{theme}}).catch(()=>{});
+  },
+  apply(t,{persist=true}={}){t=t==='night'?'night':'day';document.documentElement.setAttribute('data-theme',t);if(persist){const uid=this._uid();try{if(uid)localStorage.setItem(this._key(uid),t);localStorage.setItem('icadem:theme:last',JSON.stringify({uid,theme:t}));}catch(_){}}const icon=document.getElementById('theme-icon')?.querySelector('use');const lbl=document.getElementById('theme-label');const toggle=document.getElementById('theme-toggle');if(icon)icon.setAttribute('href',t==='night'?'#i-moon':'#i-sun');if(lbl)lbl.textContent=t==='night'?'Noche':'Día';if(toggle){const next=t==='night'?'claro':'noche';toggle.setAttribute('aria-label',`Cambiar a modo ${next}`);toggle.title=`Cambiar a modo ${next}`;}const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute('content',t==='night'?'#0f1626':'#eef3f9');},
+  toggle(){const next=document.documentElement.getAttribute('data-theme')==='night'?'day':'night';this.apply(next,{persist:true});if(this._uid()&&window.ICADEMPlatform?.request)window.ICADEMPlatform.request('/api/preferences/theme',{method:'POST',body:{theme:next}}).catch(e=>console.warn('[tema] no se sincronizó',e?.message));}
 };
 
 function applyGreeting(){
@@ -5567,13 +5588,26 @@ function navigateToSection(section, opciones){
     try { window.__icademCheckout.destroy(); } catch(e) {}
     window.__icademCheckout = null;
   }
-  if(section==='inicio'){inicio.style.display='';dyn.style.display='none';if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();if(typeof window.__actualizarInicioAprendizaje==='function')window.__actualizarInicioAprendizaje();return;}
+  if(section==='inicio'){inicio.style.display='';dyn.style.display='none';__subirAlInicioVIP();if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();if(typeof window.__actualizarInicioAprendizaje==='function')window.__actualizarInicioAprendizaje();return;}
   inicio.style.display='none';dyn.style.display='';
   const renderer=Sections.renderers[section];
   if(renderer){dyn.innerHTML='';renderer(dyn);}
   else{dyn.innerHTML=sectionPlaceholder(section);}
-  window.scrollTo({top:0,left:0,behavior:'auto'});
-  document.querySelector('main.main')?.scrollTo({top:0,left:0,behavior:'auto'});
+  __subirAlInicioVIP();
+}
+
+// Cada sección abre arriba. En celular quien se desplaza es <body> (no la
+// ventana), así que se reinician todos los contenedores posibles; se repite
+// tras el pintado por si la sección carga su contenido un instante después.
+function __subirAlInicioVIP(){
+  const reset = () => {
+    try { window.scrollTo({top:0,left:0,behavior:'instant'}); } catch(_) { window.scrollTo(0,0); }
+    [document.scrollingElement, document.documentElement, document.body, document.querySelector('main.main'), document.getElementById('dynamic-section')]
+      .forEach(el => { if (el && el.scrollTop) el.scrollTop = 0; });
+  };
+  reset();
+  requestAnimationFrame(reset);
+  setTimeout(reset, 120);
 }
 
 function sectionPlaceholder(section){

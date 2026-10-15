@@ -165,6 +165,7 @@
     state.freeCourseOfferSeen = profile.freeCourseOfferSeen === true;
     state.profileIntakeSeen = profile.profileIntakeSeen === true || state.profileIntakeSeen === true;
     state.hasWhatsapp = profile.hasWhatsapp === true;
+    state.theme = profile.theme === 'night' || profile.theme === 'day' ? profile.theme : '';
     state.identityReady = true;
     state.credits = payload.credits || state.credits || { balance: 0 };
     state.directoryProfile = directory;
