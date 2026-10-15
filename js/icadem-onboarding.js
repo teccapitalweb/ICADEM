@@ -88,7 +88,7 @@
       .ica-tour-root,.ica-experience{position:fixed;inset:0;z-index:2147483000;font-family:'Inter',system-ui,sans-serif}.ica-tour-root[hidden],.ica-experience[hidden]{display:none!important}
       .ica-tour-shade{position:absolute;inset:0;background:transparent}
       .ica-experience__shade{position:absolute;inset:0;background:rgba(5,12,18,.74)}
-      .ica-tour-spotlight{position:fixed;z-index:1;border:0;border-radius:16px;box-shadow:0 0 0 9999px rgba(5,12,18,.74),0 0 0 2px rgba(227,188,100,.85),0 0 30px 6px rgba(227,188,100,.28);pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease,border-radius .2s ease}.ica-tour-card.is-anchored{transform:none;transition:top .2s ease,left .2s ease}
+      .ica-tour-spotlight{position:fixed;z-index:1;border:0;border-radius:16px;box-shadow:0 0 0 9999px rgba(5,12,18,.74),0 0 0 2px rgba(227,188,100,.85),0 0 30px 6px rgba(227,188,100,.28);pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease,border-radius .2s ease}.ica-tour-card.is-anchored{transform:none;transition:top .2s ease,left .2s ease}.ica-tour-card.is-compact .ica-tour-icon{display:none}.ica-tour-card.is-compact .ica-tour-top{padding:12px 18px 2px}.ica-tour-card.is-compact .ica-tour-body{padding:2px 18px 0}.ica-tour-card.is-compact .ica-tour-title{font-size:18px;margin-bottom:4px}.ica-tour-card.is-compact .ica-tour-text{font-size:12.5px;line-height:1.45}.ica-tour-card.is-compact .ica-tour-progress{margin:10px 0 10px}.ica-tour-card.is-compact .ica-tour-actions{padding:0 18px 14px}.ica-tour-card.is-compact .ica-tour-btn{min-height:36px;padding:7px 14px}.ica-tour-card.is-compact{width:min(380px,calc(100vw - 24px))}
       .ica-tour-card{position:absolute;z-index:3;top:50%;left:50%;width:min(470px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;transform:translate(-50%,-50%);border:1px solid rgba(20,52,72,.18);border-top:4px solid #c79a43;border-radius:18px;background:#fffdfa;color:#142238;box-shadow:0 32px 100px rgba(3,14,23,.42);outline:none}
       .ica-tour-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 26px 8px}.ica-tour-brand{color:#9c6d17;font:800 9px/1.2 'JetBrains Mono',monospace;letter-spacing:1.6px;text-transform:uppercase}.ica-tour-skip{min-height:34px;padding:6px 2px;border:0;color:#69737a;background:transparent;font-size:12px;font-weight:700;cursor:pointer}.ica-tour-skip:hover,.ica-tour-skip:focus-visible{color:#173b56;text-decoration:underline;text-underline-offset:4px;outline:none}
       .ica-tour-body{padding:8px 26px 0}.ica-tour-icon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 17px;border-radius:19px;color:#fff;background:linear-gradient(145deg,#24536e,#12354b);box-shadow:0 12px 28px rgba(23,59,86,.2);font:800 25px/1 'Plus Jakarta Sans',sans-serif}.ica-tour-card.is-final .ica-tour-icon{background:linear-gradient(145deg,#28ad70,#188c57);box-shadow:0 12px 28px rgba(26,143,89,.24)}
@@ -124,20 +124,31 @@
   // La tarjeta del recorrido se coloca en el espacio libre (debajo o arriba del
   // elemento resaltado) para no taparlo; si no cabe, queda centrada.
   function placeCard(raw,pad){
-    if(!card)return; const gap=16,margin=12,h=card.offsetHeight,w=card.offsetWidth;
+    if(!card)return; const gap=16,margin=12,vw=innerWidth,vh=innerHeight;
+    // Pantallas bajas (celular horizontal): versión compacta de la tarjeta.
+    card.classList.toggle('is-compact',vh<540);
+    const h=card.offsetHeight,w=card.offsetWidth;
+    const clampTop=t=>Math.min(Math.max(margin,vh-h-margin),Math.max(margin,t));
+    const clampLeft=l=>Math.min(vw-w-margin,Math.max(margin,l));
     const below=raw.bottom+pad+gap, above=raw.top-pad-gap-h;
-    let top=null;
-    if(below+h<=innerHeight-margin)top=below; else if(above>=margin)top=above;
-    // Sin espacio arriba ni abajo (celular): la tarjeta baja al pie de la
-    // pantalla y el elemento resaltado queda visible arriba.
-    if(top===null){ if(innerWidth>720){resetCard();return;} top=Math.max(margin,innerHeight-h-margin); }
-    const left=Math.min(innerWidth-w-margin,Math.max(margin,raw.left+raw.width/2-w/2));
-    card.classList.add('is-anchored'); card.style.top=top+'px'; card.style.left=left+'px';
+    let top=null,left=null;
+    if(below+h<=vh-margin)top=below; else if(above>=margin)top=above;
+    if(top!==null){left=clampLeft(raw.left+raw.width/2-w/2);}
+    else{
+      // Sin espacio arriba ni abajo: a un costado del elemento si cabe.
+      const right=raw.right+pad+gap, leftSide=raw.left-pad-gap-w;
+      if(right+w<=vw-margin)left=right; else if(leftSide>=margin)left=leftSide;
+      if(left!==null)top=clampTop(raw.top+raw.height/2-h/2);
+      else if(vw>720&&raw.width>vw*.6){left=vw-w-margin;top=clampTop(raw.top+raw.height/2-h/2);}
+      else if(vw>720){resetCard();return;}
+      else{top=Math.max(margin,vh-h-margin);left=clampLeft(raw.left+raw.width/2-w/2);}
+    }
+    card.classList.add('is-anchored'); card.style.top=clampTop(top)+'px'; card.style.left=left+'px';
   }
-  function resetCard(){if(!card)return;card.classList.remove('is-anchored');card.style.top='';card.style.left='';}
+  function resetCard(){if(!card)return;card.classList.remove('is-anchored');card.classList.toggle('is-compact',innerHeight<540);card.style.top='';card.style.left='';}
   function go(nextIndex) {
     if(!running)return; stepIndex=Math.max(0,Math.min(steps.length-1,nextIndex)); const token=++renderToken,step=steps[stepIndex]; setMobileDrawer(Boolean(step.mobileDrawer));
-    setTimeout(()=>{if(!running||token!==renderToken)return;currentTarget=firstVisible(step.selectors);const title=typeof step.title==='function'?step.title(firstName()):step.title;card.classList.toggle('is-final',Boolean(step.final));card.querySelector('.ica-tour-icon').textContent=step.icon;card.querySelector('#ica-tour-title').textContent=title;card.querySelector('#ica-tour-text').textContent=step.text;card.querySelector('[data-tour-count]').textContent=`${stepIndex+1} de ${steps.length}`;card.querySelector('.ica-tour-track span').style.width=`${((stepIndex+1)/steps.length)*100}%`;card.querySelector('[data-tour-action="prev"]').hidden=stepIndex===0;card.querySelector('[data-tour-action="next"]').textContent=step.final?'Finalizar':'Siguiente';placeSpotlight();},onMobile()?180:20);
+    setTimeout(()=>{if(!running||token!==renderToken)return;currentTarget=firstVisible(step.selectors);const title=typeof step.title==='function'?step.title(firstName()):step.title;card.classList.toggle('is-final',Boolean(step.final));card.querySelector('.ica-tour-icon').textContent=step.icon;card.querySelector('#ica-tour-title').textContent=title;card.querySelector('#ica-tour-text').textContent=step.text;card.querySelector('[data-tour-count]').textContent=`${stepIndex+1} de ${steps.length}`;card.querySelector('.ica-tour-track span').style.width=`${((stepIndex+1)/steps.length)*100}%`;card.querySelector('[data-tour-action="prev"]').hidden=stepIndex===0;card.querySelector('[data-tour-action="next"]').textContent=step.final?'Finalizar':'Siguiente';if(currentTarget){const rr=currentTarget.getBoundingClientRect();if(rr.top<8||rr.bottom>innerHeight-8)currentTarget.scrollIntoView({block:'center',inline:'nearest'});}placeSpotlight();setTimeout(()=>{if(running&&token===renderToken)placeSpotlight();},420);},onMobile()?180:20);
   }
   function focusables(){return Array.from(card.querySelectorAll('button:not([hidden]):not([disabled]),[href],[tabindex]:not([tabindex="-1"])')).filter(isVisible);}
   function onKeydown(event){if(!running)return;if(event.key==='Escape'){event.preventDefault();stop('skip');return;}if(event.key==='ArrowRight'){event.preventDefault();stepIndex===steps.length-1?stop('finish'):go(stepIndex+1);return;}if(event.key==='ArrowLeft'){event.preventDefault();go(stepIndex-1);return;}if(event.key!=='Tab')return;const nodes=focusables();if(!nodes.length)return;const first=nodes[0],last=nodes[nodes.length-1];if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}
