@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v57';
+const CACHE = 'icadem-vip-v58';
 const SHELL = [
   './vip-panel.html',
   './vip-auth.html',
@@ -15,7 +15,7 @@ const SHELL = [
   './css/icadem-games-v4.css?v=1',
   './css/panel-minimal.css?v=31',
   './assets/logo/icadem-wordmark.png?v=1',
-  './js/icadem-onboarding.js?v=14'
+  './js/icadem-onboarding.js?v=15'
 ];
 
 self.addEventListener('install', (e) => {

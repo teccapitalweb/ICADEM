@@ -763,6 +763,66 @@ body::after{
 .curso-card__free-cta{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:42px;padding:0 16px;border:1px solid color-mix(in srgb,var(--primary) 34%,var(--border));border-radius:12px;background:color-mix(in srgb,var(--primary) 10%,var(--surface));color:var(--primary);font:700 12.5px/1 'Inter',sans-serif;cursor:pointer;transition:background .18s,border-color .18s,transform .18s}
 .curso-card__free-cta:hover{background:var(--primary);border-color:var(--primary);color:#fff;transform:translateY(-1px)}
 .curso-card__free-cta:disabled{opacity:.62;cursor:wait;transform:none}
+/* Curso gratis: aviso en Mis cursos, confirmación e invitación inicial (igual que IMFRA y Synova) */
+.free-course-banner{position:relative;display:flex;align-items:center;gap:16px;margin:0 0 20px;padding:18px 20px;border-radius:18px;overflow:hidden;border:1px solid color-mix(in srgb,#c79a43 45%,transparent);background:radial-gradient(120% 160% at 0% 0%,color-mix(in srgb,#c79a43 16%,transparent),transparent 55%),var(--surface);box-shadow:0 12px 30px color-mix(in srgb,#c79a43 12%,transparent)}
+.free-course-banner.is-pulse{animation:fcbPulse 1.4s ease 2}
+@keyframes fcbPulse{50%{box-shadow:0 0 0 6px color-mix(in srgb,#c79a43 28%,transparent),0 12px 30px color-mix(in srgb,#c79a43 18%,transparent)}}
+.free-course-banner__copy{flex:1;min-width:0}
+.free-course-banner__copy>span{display:block;margin-bottom:3px;font:700 10px/1 'JetBrains Mono',monospace;letter-spacing:1.4px;text-transform:uppercase;color:#9c6d17}
+.free-course-banner__hint{display:inline-flex;align-items:center;gap:6px;flex:none;padding:8px 13px;border-radius:999px;background:#173b56;color:#fff;font-size:12px;font-weight:800}
+.free-course-banner__hint .ic{width:14px;height:14px;transform:rotate(90deg)}
+.free-course-banner__icon{width:46px;height:46px;flex-shrink:0;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,#f0d48c,#c79a43);color:#173b56;box-shadow:0 8px 18px color-mix(in srgb,#c79a43 30%,transparent)}
+.free-course-banner__icon .ic{width:22px;height:22px}
+.free-course-banner strong{display:block;font:800 16px/1.25 'Plus Jakarta Sans','Inter',sans-serif;color:var(--text)}
+.free-course-banner p{margin:3px 0 0;color:var(--text-2);font-size:13px;line-height:1.5}
+[data-theme="night"] .free-course-banner__copy>span{color:#e0bb6c}
+[data-theme="night"] .free-course-banner__hint{background:#2b6a8f}
+.free-course-confirm{display:grid;gap:10px}
+.free-course-confirm__cover{aspect-ratio:16/8;border-radius:12px;background:var(--surface-2) center/cover no-repeat}
+.free-course-confirm h3{margin:4px 0 0;font:800 18px/1.3 'Plus Jakarta Sans','Inter',sans-serif;color:var(--text)}
+.free-course-confirm p{margin:0;color:var(--text-2);font-size:13.5px;line-height:1.55}
+.free-course-confirm strong{color:var(--text)}
+.free-course-confirm__warn{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;border-radius:10px;background:color-mix(in srgb,#c79a43 12%,transparent);color:var(--text)!important;font-weight:600}
+.free-course-confirm__warn .ic{flex-shrink:0;width:16px;height:16px;color:#9c6d17;margin-top:1px}
+@media(max-width:560px){.free-course-banner{flex-wrap:wrap;align-items:flex-start;padding:16px}.free-course-banner__hint{width:100%;justify-content:center}}
+#free-course-intro{position:fixed;inset:0;z-index:2147483100;display:grid;place-items:center;padding:16px;opacity:0;transition:opacity .25s ease;font-family:'Inter',sans-serif}
+#free-course-intro.is-open{opacity:1}
+#free-course-intro.is-closing{opacity:0}
+.fci__backdrop{position:absolute;inset:0;background:rgba(6,16,28,.6);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.fci__card{position:relative;width:min(440px,100%);max-height:calc(100dvh - 32px);overflow-y:auto;overscroll-behavior:contain;padding:26px 26px 22px;border-radius:24px;text-align:center;background:var(--surface);border:1px solid var(--border);box-shadow:0 30px 80px rgba(3,14,23,.4);transform:translateY(14px) scale(.98);transition:transform .35s cubic-bezier(.2,1,.3,1)}
+#free-course-intro.is-open .fci__card{transform:none}
+.fci__close{position:absolute;top:12px;right:14px;width:32px;height:32px;border:0;border-radius:50%;background:transparent;color:var(--text-3);font-size:22px;line-height:1;cursor:pointer}
+.fci__close:hover{background:var(--surface-2);color:var(--text)}
+.fci__art{position:relative;height:132px;margin:4px auto 18px;width:250px}
+.fci__cover{position:absolute;top:10px;left:50%;width:120px;height:96px;margin-left:-60px;border-radius:14px;background:var(--surface-2) center/cover no-repeat;border:3px solid var(--surface);box-shadow:0 12px 26px rgba(0,0,0,.22);transition:transform .5s cubic-bezier(.2,1.2,.4,1)}
+.fci__cover--0{transform:translateX(-70px) rotate(-10deg) scale(.9)}
+.fci__cover--1{z-index:2;transform:translateY(-6px)}
+.fci__cover--2{transform:translateX(70px) rotate(10deg) scale(.9)}
+#free-course-intro.is-open .fci__cover--0{animation:fciFanL .6s cubic-bezier(.2,1.2,.4,1)}
+#free-course-intro.is-open .fci__cover--2{animation:fciFanR .6s cubic-bezier(.2,1.2,.4,1)}
+@keyframes fciFanL{from{transform:translateX(0) rotate(0) scale(.9)}}
+@keyframes fciFanR{from{transform:translateX(0) rotate(0) scale(.9)}}
+.fci__badge{position:absolute;z-index:3;left:50%;bottom:0;transform:translateX(-50%);display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:999px;background:linear-gradient(135deg,#f0d48c,#c79a43);color:#173b56;font:800 11px/1 'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;box-shadow:0 8px 18px rgba(199,154,67,.35)}
+.fci__badge .ic{width:14px;height:14px}
+.fci__kicker{display:block;font:700 10.5px/1 'JetBrains Mono',monospace;letter-spacing:1.6px;text-transform:uppercase;color:#9c6d17}
+.fci__card h2{margin:10px 0 8px;font:800 24px/1.18 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.5px;color:var(--text)}
+.fci__card h2 em{font-style:normal;color:#c79a43}
+.fci__card p{margin:0 auto 16px;max-width:36ch;color:var(--text-2);font-size:13.5px;line-height:1.6}
+.fci__card p strong{color:var(--text)}
+.fci__steps{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:0 0 20px;padding:0}
+.fci__steps li{display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 6px;border-radius:999px;background:var(--surface-2);border:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text-2)}
+.fci__steps b{width:20px;height:20px;display:grid;place-items:center;border-radius:50%;background:color-mix(in srgb,#c79a43 18%,transparent);color:#9c6d17;font:800 11px/1 'JetBrains Mono',monospace}
+.fci__actions{display:grid;grid-template-columns:1fr 1.7fr;gap:10px}
+.fci__actions button{min-height:46px;border-radius:12px;font:700 14px 'Inter',sans-serif;cursor:pointer;transition:transform .15s ease,filter .15s ease}
+.fci__later{border:1px solid var(--border-2,var(--border));background:transparent;color:var(--text-2)}
+.fci__later:hover{background:var(--surface-2)}
+.fci__cta{border:0;background:linear-gradient(135deg,#173b56,#2b6a8f);color:#fff;box-shadow:0 10px 24px rgba(23,59,86,.28)}
+.fci__cta:hover{transform:translateY(-1px);filter:brightness(1.06)}
+.fci__card button:focus-visible{outline:2px solid #c79a43;outline-offset:2px}
+[data-theme="night"] .fci__kicker,[data-theme="night"] .fci__steps b{color:#e0bb6c}
+[data-theme="night"] .fci__cta{background:linear-gradient(135deg,#2b6a8f,#3f8fb4)}
+@media(max-width:480px){.fci__card{padding:24px 18px 18px}.fci__card h2{font-size:21px}.fci__actions{grid-template-columns:1fr}.fci__cta{order:-1}.fci__art{width:220px}}
+@media(prefers-reduced-motion:reduce){#free-course-intro,.fci__card{transition:none}#free-course-intro.is-open .fci__cover--0,#free-course-intro.is-open .fci__cover--2,.free-course-banner.is-pulse{animation:none}}
 .curso-card__free-cta .ic{width:15px;height:15px}
 
 /* CERTIFICADOS — cards estilo Sinergia */
@@ -4330,6 +4390,7 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></symbol>
 <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6l9 -6"/></symbol>
 <symbol id="i-link" viewBox="0 0 24 24"><path d="M9 15l6 -6"/><path d="M11 6l.5 -.5a4 4 0 0 1 6 6l-.5 .5"/><path d="M13 18l-.5 .5a4 4 0 0 1 -6 -6l.5 -.5"/></symbol>
+<symbol id="i-gift" viewBox="0 0 24 24"><rect x="3" y="9" width="18" height="12" rx="2"/><path d="M12 9v12M3 13h18M7.5 9c-1.7 0-3-1-3-2.5S5.6 4 7 4c2.5 0 5 5 5 5s2.5-5 5-5c1.4 0 2.5 1 2.5 2.5S18.2 9 16.5 9"/></symbol>
 <symbol id="i-facebook" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></symbol>
 <symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8A4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></symbol>
 <symbol id="i-linkedin" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5a2.5 2.5 0 0 1 0 -5M3 8.98h4v12H3zM9 8.98h3.8v1.64h.05c.53 -1 1.83 -2.05 3.76 -2.05c4.02 0 4.76 2.65 4.76 6.1v6.31h-4v-5.6c0 -1.33 -.02 -3.05 -1.86 -3.05c-1.86 0 -2.14 1.45 -2.14 2.95v5.7H9z"/></symbol>
@@ -6310,6 +6371,63 @@ const Sections = (function(){
         sesiones:c.sesiones.length, materiales:Array.isArray(c.materiales) ? c.materiales.length : 0
       }));
   };
+  // Invitación "Elige tu curso gratis" (primera entrada, una sola vez).
+  window.__mostrarInvitacionCursoGratis = async function(){
+    if (document.getElementById('free-course-intro')) return 'open';
+    let opciones = [];
+    try { opciones = await window.__getCursosGratisICADEM(); } catch (_) {}
+    if (!opciones.length) return 'unavailable';
+    const portadas = opciones.slice(0, 3).map((c, i) => `<span class="fci__cover fci__cover--${i}" style="background-image:url('${String(c.portada || '').replace(/'/g, '%27')}')"></span>`).join('');
+    const nombre = String(window.UserState?.nombre || window.UserState?.displayName || '').trim().split(' ')[0];
+    return new Promise(resolve => {
+      const pop = document.createElement('div');
+      pop.id = 'free-course-intro';
+      pop.innerHTML = `<div class="fci__backdrop" data-fci-later></div>
+        <section class="fci__card" role="dialog" aria-modal="true" aria-labelledby="fci-title">
+          <button type="button" class="fci__close" data-fci-later aria-label="Cerrar">×</button>
+          <div class="fci__art" aria-hidden="true">${portadas}<span class="fci__badge"><svg class="ic"><use href="#i-gift"/></svg>Gratis</span></div>
+          <span class="fci__kicker">Para usuarios nuevos</span>
+          <h2 id="fci-title">${nombre && !window.__isDemoMode ? `${escapeHtml(nombre)}, elige` : 'Elige'} tu <em>curso gratis</em></h2>
+          <p>Te regalamos las primeras <strong>${FREE_CLASS_COUNT} clases</strong> del curso que tú elijas. Solo puedes elegir uno, así que escoge el que más te sirva.</p>
+          <ol class="fci__steps">
+            <li><b>1</b>Elige tu curso</li>
+            <li><b>2</b>Ve ${FREE_CLASS_COUNT} clases gratis</li>
+            <li><b>3</b>Gana créditos en cada reto</li>
+          </ol>
+          <div class="fci__actions">
+            <button type="button" class="fci__later" data-fci-later>Más tarde</button>
+            <button type="button" class="fci__cta" data-fci-go>Elegir mi curso gratis <span aria-hidden="true">→</span></button>
+          </div>
+        </section>`;
+      document.body.appendChild(pop);
+      requestAnimationFrame(() => pop.classList.add('is-open'));
+      const previo = document.activeElement;
+      const cerrar = (resultado, despues) => {
+        document.removeEventListener('keydown', onKey, true);
+        pop.classList.add('is-closing');
+        setTimeout(() => { pop.remove(); if (previo?.isConnected) previo.focus?.(); resolve(resultado); if (despues) despues(); }, 220);
+      };
+      const onKey = e => {
+        if (e.key === 'Escape') { e.preventDefault(); cerrar('later'); return; }
+        if (e.key !== 'Tab') return;
+        const nodes = [...pop.querySelectorAll('button')]; const first = nodes[0], last = nodes[nodes.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      document.addEventListener('keydown', onKey, true);
+      pop.querySelectorAll('[data-fci-later]').forEach(el => el.addEventListener('click', () => cerrar('later')));
+      pop.querySelector('[data-fci-go]').addEventListener('click', () => cerrar('go', () => {
+        navigateToSection('cursos');
+        setTimeout(() => {
+          const banner = document.querySelector('.free-course-banner');
+          if (!banner) return;
+          banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          banner.classList.remove('is-pulse'); void banner.offsetWidth; banner.classList.add('is-pulse');
+        }, 450);
+      }));
+      setTimeout(() => pop.querySelector('[data-fci-go]')?.focus({ preventScroll: true }), 120);
+    });
+  };
   let _freeCourseSelectionBusy = false;
   window.__elegirCursoGratis = async function(courseId, trigger){
     const id = String(courseId || '');
@@ -6329,6 +6447,27 @@ const Sections = (function(){
       Toast.error('No se pudo guardar','El servicio de cursos no está disponible.');
       return null;
     }
+    // Confirmación (igual que IMFRA y Synova): la elección es única y no se cambia.
+    const confirmado = await new Promise(resolve => {
+      const footer = document.createElement('div');
+      footer.innerHTML = `<button type="button" class="btn btn--ghost" data-free-no>No, ver otros cursos</button><button type="button" class="btn btn--accent" data-free-yes>Sí, es mi curso gratis</button>`;
+      let decidido = false;
+      const portada = String(course.portada || coverSVG(course.area, course.titulo)).replace(/'/g, '%27');
+      const modal = Modal.open({
+        id: 'curso-gratis-confirmar', title: '¿Seguro que deseas este curso?', subtitle: 'Tu curso gratis', icon: 'i-play', size: 'sm',
+        body: `<div class="free-course-confirm">
+          <div class="free-course-confirm__cover" style="background-image:url('${portada}')"></div>
+          <h3>${escapeHtml(course.titulo || 'Curso ICADEM')}</h3>
+          <p>Será tu curso gratis: podrás ver sus primeras <strong>${FREE_CLASS_COUNT} clases</strong>, una tras otra, y su primer material.</p>
+          <p class="free-course-confirm__warn"><svg class="ic"><use href="#i-shield-check"/></svg>Solo puedes elegir uno y después no se puede cambiar.</p>
+        </div>`,
+        footer,
+        onClose: () => { if (!decidido) resolve(false); }
+      });
+      footer.querySelector('[data-free-no]').addEventListener('click', () => { decidido = true; resolve(false); modal.close(); });
+      footer.querySelector('[data-free-yes]').addEventListener('click', () => { decidido = true; resolve(true); modal.close(); });
+    });
+    if (!confirmado) return null;
     const original = trigger?.innerHTML;
     _freeCourseSelectionBusy = true;
     if (trigger) { trigger.disabled = true; trigger.setAttribute('aria-busy','true'); trigger.textContent = 'Guardando…'; }
@@ -6563,7 +6702,13 @@ const Sections = (function(){
       list.innerHTML=`<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Sin resultados</h3><p>Cambia el filtro o búsqueda para ver más cursos.</p></div>`;
       return;
     }
-    list.innerHTML=`<div class="cursos-grid">${items.map((c, idx)=>{
+    const eligiendoGratis = !toolEsVIP() && !primerCursoGratisId() && cursos.some(c => c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length);
+    const bannerGratis = eligiendoGratis ? `<section class="free-course-banner">
+        <span class="free-course-banner__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
+        <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca «Elegir gratis» en el curso que más te interese y verás gratis sus primeras ${FREE_CLASS_COUNT} clases. Solo puedes elegir uno.</p></div>
+        <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
+      </section>` : '';
+    list.innerHTML=`${bannerGratis}<div class="cursos-grid">${items.map((c, idx)=>{
       const cursoIdx = cursos.findIndex(x => x.id === c.id);
       const desbloqueado = cursoDesbloqueado(cursoIdx, c);
       const diasFalta = diasParaDesbloquear(cursoIdx, c);
@@ -21031,6 +21176,6 @@ h1, h2, h3, h4{ color: var(--text); }
   .directory-page .directory-tier{min-width:0!important}
 }
 </style>
-<script src="js/icadem-onboarding.js?v=14"></script>
+<script src="js/icadem-onboarding.js?v=15"></script>
 </body>
 </html>
