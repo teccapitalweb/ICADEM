@@ -310,3 +310,42 @@
   .credit-wallet-card__coins { position:relative; right:auto; top:auto; grid-column:2; grid-row:1; justify-self:center; }
   .retos-page--v6 .credit-wallet-card>button { grid-column:3!important; grid-row:1; }
 }
+
+/* ═══ Retos v9 · ajuste fino ═══ */
+/* Reto diario: hoja de calendario con la fecha real */
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art.retos-daily-date {
+  display:flex!important; flex-direction:column!important; align-items:center!important; justify-content:flex-start!important; gap:0!important;
+  width:74px!important; height:82px!important; padding:0!important; overflow:hidden!important;
+  border:1px solid color-mix(in srgb,#173b56 18%,var(--border))!important; border-radius:16px!important;
+  color:#173b56!important; background:var(--surface)!important; box-shadow:0 12px 24px rgba(23,59,86,.16)!important; transform:rotate(-4deg);
+  transition:transform .35s cubic-bezier(.2,1,.3,1);
+}
+.reto-card.retos-daily-card:hover .retos-daily-date { transform:rotate(0) translateY(-2px); }
+.retos-daily-date small { display:block; width:100%; padding:6px 0 5px; text-align:center; color:#fff; background:linear-gradient(135deg,#173b56,#2a788b); font:800 10px/1 'JetBrains Mono',monospace; letter-spacing:1.6px; }
+.retos-daily-date strong { margin-top:5px; font:800 30px/1 'Plus Jakarta Sans','Inter',sans-serif; letter-spacing:-1px; color:#173b56; }
+.retos-daily-date em { margin-top:3px; font:800 8.5px/1 'JetBrains Mono',monospace; letter-spacing:1.2px; text-transform:uppercase; font-style:normal; color:#b4862e; }
+[data-theme="night"] .retos-daily-date strong { color:#e8f1f8; }
+[data-theme="night"] .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art.retos-daily-date { background:rgba(255,255,255,.06)!important; border-color:rgba(255,255,255,.14)!important; }
+/* Tarjetas de experiencia: sin ícono repetido, tamaño medio */
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card:not(.retos-pro-card) { min-height:206px!important; padding:22px 22px 20px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card:not(.retos-pro-card) .retos-tile__art {
+  width:auto!important; height:auto!important; border:0!important; background:none!important; box-shadow:none!important; justify-self:start!important; place-items:start!important;
+}
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card:not(.retos-pro-card) .retos-tile__art .ic { display:none!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card:not(.retos-pro-card) .retos-tile__art>span {
+  position:static!important; display:inline-flex!important; padding:5px 10px!important; border-radius:999px!important;
+  color:var(--tile-color)!important; background:color-mix(in srgb,var(--tile-color) 10%,var(--surface))!important; border:1px solid color-mix(in srgb,var(--tile-color) 20%,transparent)!important;
+}
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card:not(.retos-pro-card) .retos-tile__body { padding:12px 0 14px!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card:not(.retos-pro-card) .retos-tile__body h3 { font-size:20px!important; }
+.retos-tile__illus--icon span { width:min(124px,100%); border-radius:34%; }
+.retos-tile__illus--icon .ic { width:44%; height:44%; }
+@container retosmain (max-width:1080px){ .retos-tile__illus--icon span { width:min(100px,100%); } }
+@container retosmain (max-width:620px){
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-experience-card:not(.retos-pro-card) { padding:18px!important; grid-template-columns:minmax(0,1fr) 88px!important; }
+  .retos-tile__illus--icon span { width:80px; }
+  .retos-page--v6 .retos-showcase--v6 .reto-card.retos-daily-card .retos-tile__art.retos-daily-date { width:62px!important; height:70px!important; }
+  .retos-daily-date strong { font-size:25px; }
+}
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-pro-card .retos-tile__meta { margin-top:0!important; }
+.retos-page--v6 .retos-showcase--v6 .reto-card.retos-pro-card .retos-tile__body { align-self:end!important; }

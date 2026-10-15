@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=25" defer></script>
+<script src="js/icadem-platform-v2.js?v=26" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -5759,9 +5759,14 @@ const Sections = (function(){
 
   // El servidor conserva el avance por UID. La unión siempre es acumulativa:
   // un teléfono nuevo nunca puede reemplazar con vacío lo ya completado en PC.
+  // El avance de cuentas reales vive en el servidor (progress/{uid}/courses),
+  // así una clase completada en la PC aparece igual en el teléfono. Para no
+  // mostrar distinto en cada dispositivo, el servidor manda: el registro local
+  // solo es una copia para pintar rápido mientras llega la respuesta.
   window.__mergeServerProgress = function(coursesFromServer) {
-    const local = getProgreso();
-    Object.entries(coursesFromServer || {}).forEach(([courseId, cloud]) => {
+    const servidor = coursesFromServer || {};
+    const local = window.__isDemoMode ? getProgreso() : {};
+    Object.entries(servidor).forEach(([courseId, cloud]) => {
       const current = local[courseId] || { clasesVistas: [], completado: false, fechaCompletado: null };
       const cloudLessons = Array.isArray(cloud?.completedLessons) ? cloud.completedLessons.map(Number).filter(Number.isFinite) : [];
       current.clasesVistas = [...new Set([...(current.clasesVistas || []).map(Number), ...cloudLessons])].sort((a, b) => a - b);
@@ -5783,6 +5788,20 @@ const Sections = (function(){
         curso.status = p.completado ? 'completado' : ((p.clasesVistas || []).length ? 'progreso' : 'catalogo');
       });
       actualizarInicioAprendizaje?.();
+      // Re-dibuja la sección abierta (lista de cursos, curso o clase) con el
+      // avance real; sin esto, un teléfono abierto directo en un curso seguía
+      // mostrando 0% hasta cambiar de sección.
+      clearTimeout(window.__progressRepaintTimer);
+      window.__progressRepaintTimer = setTimeout(() => {
+        const section = String(location.hash || '').replace(/^#/,'');
+        const host = document.getElementById('dynamic-section');
+        if (!host?.isConnected || document.querySelector('.learning-game')) return;
+        try {
+          if (section === 'cursos') renderCursos(host);
+          else if (section === 'curso-detalle') renderCursoDetalle(host);
+          else if (section === 'clase-detalle') renderClaseDetalle(host);
+        } catch (e) { console.warn('[ICADEM progreso] No se pudo actualizar la vista', e); }
+      }, 60);
     }
   };
   if (window.__pendingServerProgress) {
@@ -6183,8 +6202,7 @@ const Sections = (function(){
       window.cerrarVisor();
       try {
         await window.ICADEMPlatform.startLessonChallenge({
-          courseId, lessonNumber:numClase, title:sesion?.titulo || `Clase ${numClase}`,
-          legacyCompletedLessons:prog.clasesVistas,
+          courseId:cursoId, lessonNumber:numClase, title:sesion?.titulo || `Clase ${numClase}`,
           onComplete:()=>window.marcarClaseVista(cursoId,numClase),
           onContinue:()=>{
             if (typeof window.__refrescarCursoDetalle === 'function') window.__refrescarCursoDetalle(cursoId);
@@ -8133,9 +8151,9 @@ const Sections = (function(){
         </div>
         <div class="retos-tiles retos-tiles--five retos-showcase retos-showcase--v6">
           <article class="retos-tile reto-card reto-card--daily retos-tile--daily retos-daily-card" data-platform-game="quiz" data-reto-key="daily" data-game-title="12 preguntas clave">
-            <div class="retos-tile__art" aria-hidden="true">${RETOS_ART_DISPONIBLES.includes('diario') ? '<img src="assets/retos/diario.webp" alt="" loading="lazy" decoding="async">' : '<svg class="ic"><use href="#i-calendar"/></svg>'}<span>HOY</span></div>
+            <div class="retos-tile__art retos-daily-date" aria-hidden="true">${(()=>{ const f=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Mexico_City'})); const mes=['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][f.getMonth()]; return `<small>${mes}</small><strong>${f.getDate()}</strong><em>Hoy</em>`; })()}</div>
             <div class="retos-tile__body"><span class="retos-tile__kicker">Reto diario</span><h3>12 preguntas clave</h3><p>Pon a prueba tu criterio fiscal, contable y legal con retroalimentación inmediata.</p><div class="retos-tile__meta" data-card-state><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div></div>
-            <div class="retos-daily-card__reward" aria-label="Recompensa del reto"><span>Recompensa</span><strong>+5 créditos</strong><small>Un intento diario</small></div>
+            <div class="retos-daily-card__reward" aria-label="Recompensa del reto"><span>Recompensa</span><strong>+30 créditos</strong><small>Un intento diario</small></div>
             <button type="button" class="retos-tile__cta" aria-label="Jugar reto diario"><span>Jugar hoy</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
           <article class="retos-tile reto-card retos-pro-card retos-experience-card" data-platform-game="pro" data-reto-key="pro" data-game-title="Práctica profesional">
@@ -8146,7 +8164,7 @@ const Sections = (function(){
               <figure><img src="assets/juegos/foto-nomina.webp" alt="" loading="lazy" decoding="async"><figcaption>Nómina</figcaption></figure>
               <figure><img src="assets/juegos/foto-fiscal.webp" alt="" loading="lazy" decoding="async"><figcaption>Fiscal</figcaption></figure>
             </div>
-            <div class="retos-tile__body"><span class="retos-tile__kicker">Práctica profesional · Nuevo</span><h3>Practica como en tu trabajo</h3><p>Rompecabezas, riesgos en escena, documentos con errores, cálculos reales y más. Siete dinámicas visuales que cambian cada semana.</p><div class="retos-tile__meta" data-card-state><span>7 dinámicas</span><span>+5 créditos c/u</span></div></div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Práctica profesional · Nuevo</span><h3>Practica como en tu trabajo</h3><p>Rompecabezas, riesgos en escena, documentos con errores, cálculos reales y más. Siete dinámicas visuales que cambian cada semana.</p><div class="retos-tile__meta" data-card-state><span>7 dinámicas</span><span>+30 créditos c/u</span></div></div>
             <button type="button" class="retos-tile__cta" aria-label="Elegir dinámica profesional"><span>Elegir dinámica</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
           <article class="retos-tile reto-card reto-card--pulse retos-tile--pulse retos-experience-card" data-platform-game="pulse" data-reto-key="pulse" data-game-title="Veredicto exprés">
@@ -8169,7 +8187,7 @@ const Sections = (function(){
           </article>
           <article class="retos-tile reto-card reto-card--games retos-tile--games retos-experience-card" data-platform-game="catalog" data-reto-key="catalog">
             <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-tools"/></svg><span>6 juegos</span></div>
-            <div class="retos-tile__body"><span class="retos-tile__kicker">Arcade</span><h3>Juegos ICADEM</h3><p>Seis dinámicas breves para practicar.</p><div class="retos-tile__meta" data-card-state><span>6 juegos</span><span>5 créditos por juego</span></div></div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Arcade</span><h3>Juegos ICADEM</h3><p>Seis dinámicas breves para practicar.</p><div class="retos-tile__meta" data-card-state><span>6 juegos</span><span>30 créditos por juego</span></div></div>
             <button type="button" class="retos-tile__cta" aria-label="Ver juegos"><span>Ver juegos</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
             ${_retoArte('juegos','i-tools')}
           </article>
@@ -8224,7 +8242,7 @@ const Sections = (function(){
             <li><b>02</b><div><strong>Elige</strong><p>La actuación profesional entre las opciones.</p></div></li>
             <li><b>03</b><div><strong>Comprende</strong><p>La razón técnica detrás de la respuesta correcta.</p></div></li>
           </ol>
-          <footer>Las experiencias del hub y los juegos de clase entregan 5 créditos verificados. La misión semanal es práctica complementaria.</footer>
+          <footer>Cada reto ganado entrega 30 créditos y cada juego de clase, 10. Todos se verifican en el servidor. La misión semanal es práctica complementaria.</footer>
         </section>
       </aside>
       <section class="retos-ranking" id="retos-ranking" aria-live="polite"></section>
@@ -9036,8 +9054,7 @@ const Sections = (function(){
       button.textContent = 'Preparando actividad…';
       try {
         await window.ICADEMPlatform.startLessonChallenge({
-          courseId, lessonNumber:numClase, title:sesion.titulo || `Clase ${numClase}`,
-          legacyCompletedLessons:getProgresoCurso(cursoId).clasesVistas,
+          courseId:cursoId, lessonNumber:numClase, title:sesion.titulo || `Clase ${numClase}`,
           onComplete:()=>window.marcarClaseVista(cursoId,numClase),
           onContinue:()=>{
             if (siguienteIdx >= 0) window.abrirClaseICADEM(cursoId, siguienteIdx);
@@ -21133,7 +21150,7 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
-  <link rel="stylesheet" href="css/icadem-games-v4.css?v=2">
+  <link rel="stylesheet" href="css/icadem-games-v4.css?v=3">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){

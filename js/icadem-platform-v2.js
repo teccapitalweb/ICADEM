@@ -6,6 +6,9 @@
   window.__platformV2LoadedAt = Date.now();
 
   const API = window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app';
+  // Créditos (iguales a IMFRA y Synova; el servidor es quien los acredita).
+  const CLASS_CREDITS = 10;
+  const RETO_CREDITS = 30;
   const REDUCED_MOTION = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const PRACTICE_TYPES = ['crossword', 'memory', 'wordsearch', 'puzzle', 'guess', 'classify'];
   const GAME_LABELS = {
@@ -186,8 +189,10 @@
     document.dispatchEvent(new CustomEvent('icadem:identity-ready', { detail: payload }));
   }
 
+  let lastProgressLoad = 0;
   async function loadLearningProgress() {
     if (window.__isDemoMode) return null;
+    lastProgressLoad = Date.now();
     const data = await request('/api/learning/progress');
     if (typeof window.__mergeServerProgress === 'function') window.__mergeServerProgress(data.courses || {});
     else window.__pendingServerProgress = data.courses || {};
@@ -207,8 +212,13 @@
     identityPromise = request('/api/identity/sync', { method: 'POST', body: { googlePhotoURL: googleProvider?.photoURL || '' } })
       .then(async data => {
         applyIdentity(data);
-        try { await loadLearningProgress(); }
-        catch (error) { console.warn('[ICADEM progress]', error.message); }
+        // El avance se reintenta si falla (red móvil inestable): sin él, otro
+        // dispositivo no vería las clases completadas.
+        for (const wait of [0, 2500, 6000]) {
+          if (wait) await new Promise(resolve => setTimeout(resolve, wait));
+          try { await loadLearningProgress(); break; }
+          catch (error) { console.warn('[ICADEM progress]', error.message); }
+        }
         return data;
       })
       .catch(error => {
@@ -456,9 +466,9 @@
       recentMovements: ledger.slice(0, 12),
       earnRules: [
         { id: 'welcome', label: 'Regalo de bienvenida', amount: 200, note: 'Se acredita una sola vez al crear tu cuenta.' },
-        { id: 'retos', label: 'Supera un reto', amount: 5, note: 'Una recompensa por reto.' },
-        { id: 'class-games', label: 'Completa un juego de clase', amount: 5, note: 'Una sola recompensa por clase.' },
-        { id: 'arcade', label: 'Entrena en Juegos ICADEM', amount: 5, note: 'Una recompensa por dinámica.' }
+        { id: 'retos', label: 'Supera un reto', amount: RETO_CREDITS, note: 'Una recompensa por reto.' },
+        { id: 'class-games', label: 'Completa un juego de clase', amount: CLASS_CREDITS, note: 'Una sola recompensa por clase.' },
+        { id: 'arcade', label: 'Entrena en Juegos ICADEM', amount: RETO_CREDITS, note: 'Una recompensa por dinámica.' }
       ],
       destinations: [
         { id: 'materials', label: 'Materiales profesionales', description: 'Canjea formatos prácticos desde 25 créditos.', available: true, section: 'materiales', count: 6 },
@@ -1254,7 +1264,7 @@
       if (REDUCED_MOTION?.matches || reward <= 0) counter.textContent = String(reward);
       else {
         let value = 0;
-        const interval = setInterval(() => { value += 1; counter.textContent = String(Math.min(reward, value)); if (value >= reward) clearInterval(interval); }, 110);
+        const interval = setInterval(() => { value += Math.max(1, Math.ceil(reward / 12)); counter.textContent = String(Math.min(reward, value)); if (value >= reward) clearInterval(interval); }, 70);
       }
       publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: challenge.scope === 'reto' ? 'reto-game' : 'lesson-game' });
       creditWalletCache = null;
@@ -1291,7 +1301,7 @@
               correct = correctAnswers >= Number(challenge.solution.minCorrect || 0);
             }
             if (!correct) { const error = new Error(quizScore == null ? 'Aún no está correcto. Revisa la actividad e inténtalo otra vez.' : `Obtuviste ${quizScore}%. Necesitas al menos 70%; revisa tus respuestas e inténtalo otra vez.`); error.status = 422; throw error; }
-            const reward = Number(challenge.reward) || 5;
+            const reward = Number(challenge.reward) || (challenge.scope === 'reto' ? RETO_CREDITS : CLASS_CREDITS);
             const today = mexicoDateKey();
             const movementId = challenge.demoRewardId || (challenge.scope === 'reto'
               ? challenge.experienceId === 'daily'
@@ -1348,6 +1358,7 @@
         const types = [...PRACTICE_TYPES, 'quiz'];
         let hash = 0; for (const char of `${courseId}:${lessonNumber}`) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
         challenge = localChallenge(types[Math.abs(hash) % types.length], options?.title || `Clase ${lessonNumber}`);
+        challenge.reward = CLASS_CREDITS;
         challenge.demoRewardId = `lesson:${courseId}:${lessonNumber}`;
       }
       else challenge = await request('/api/learning/challenge', { method: 'POST', body: { courseId, lessonNumber } });
@@ -1371,6 +1382,7 @@
           throw error;
         }
         challenge = localChallenge(type, options?.title || GAME_LABELS[type]);
+        challenge.reward = RETO_CREDITS;
         challenge.scope = 'reto';
         challenge.experienceId = experienceId;
       } else {
@@ -1415,7 +1427,7 @@
     root.innerHTML = `<div class="practice-picker__veil" data-practice-close></div><section class="practice-picker__box"><header class="practice-picker__head"><div><span class="game-kicker">Juegos ICADEM</span><h2 id="practice-picker-title">Entrena a tu manera</h2><p>Seis dinámicas profesionales, una recompensa validada por juego.</p></div><button type="button" class="practice-picker__close" data-practice-close aria-label="Cerrar">×</button></header><div class="practice-picker__grid">${PRACTICE_TYPES.map((type, index) => {
       const meta = GAME_META[type] || { eyebrow: 'Práctica', title: GAME_LABELS[type], description: 'Actividad profesional ICADEM.', duration: '2 min', icon: 'i-trophy' };
       const used = !isAdmin && usedTypes.has(type);
-      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-practice="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon"><svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg></span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Completado' : '+5 créditos'}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
+      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-practice="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon"><svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg></span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Completado' : `+${RETO_CREDITS} créditos`}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
     }).join('')}</div></section>`;
     document.body.appendChild(root); document.body.classList.add('has-learning-game');
     let releaseA11y = () => {};
@@ -1441,10 +1453,10 @@
     const usedTypes = new Set(window.__isDemoMode ? demoUsed : (liveStatus.proUsedTypes || []));
     const isAdmin = liveStatus.isAdmin === true;
     const root = document.createElement('div'); root.className = 'practice-picker practice-picker--v3 practice-picker--pro'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'pro-picker-title');
-    root.innerHTML = `<div class="practice-picker__veil" data-practice-close></div><section class="practice-picker__box"><header class="practice-picker__head"><div><span class="game-kicker">Práctica profesional</span><h2 id="pro-picker-title">Practica como en tu trabajo</h2><p>Siete dinámicas con escenas, documentos y casos reales. Cada una da +5 créditos por semana y su tablero cambia cada lunes.</p></div><button type="button" class="practice-picker__close" data-practice-close aria-label="Cerrar">×</button></header><div class="practice-picker__grid">${PRO_TYPES.map((type, index) => {
+    root.innerHTML = `<div class="practice-picker__veil" data-practice-close></div><section class="practice-picker__box"><header class="practice-picker__head"><div><span class="game-kicker">Práctica profesional</span><h2 id="pro-picker-title">Practica como en tu trabajo</h2><p>Siete dinámicas con escenas, documentos y casos reales. Cada una da +${RETO_CREDITS} créditos por semana y su tablero cambia cada lunes.</p></div><button type="button" class="practice-picker__close" data-practice-close aria-label="Cerrar">×</button></header><div class="practice-picker__grid">${PRO_TYPES.map((type, index) => {
       const meta = GAME_META[type];
       const used = !isAdmin && usedTypes.has(type);
-      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-pro-type="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon"><svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg></span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Hecho esta semana' : '+5 créditos'}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
+      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-pro-type="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon"><svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg></span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Hecho esta semana' : `+${RETO_CREDITS} créditos`}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
     }).join('')}</div></section>`;
     document.body.appendChild(root); document.body.classList.add('has-learning-game');
     let releaseA11y = () => {};
@@ -1500,7 +1512,7 @@
       } else if (state && completed && !isCatalog && !isPro) {
         state.innerHTML = state.classList.contains('retos-tile__state')
           ? '<i></i>Completado'
-          : '<span>Reto verificado</span><span>+5 créditos</span>';
+          : `<span>Reto verificado</span><span>+${RETO_CREDITS} créditos</span>`;
       }
       const cta = card.querySelector('.retos-tile__cta');
       if (cta && completed) {
@@ -1631,6 +1643,9 @@
       if (Date.now() - lastVisibleIdentitySync > 5 * 60 * 1000) {
         lastVisibleIdentitySync = Date.now();
         syncIdentity(true).catch(() => {});
+      } else if (Date.now() - lastProgressLoad > 45 * 1000) {
+        // Al volver a la pestaña (p. ej. tras avanzar en la PC) trae el avance real.
+        loadLearningProgress().catch(() => {});
       }
     }
   });
