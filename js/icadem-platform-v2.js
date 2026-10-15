@@ -1558,17 +1558,19 @@
     return startRetoChallenge({ experienceId: 'catalog', type, title });
   }
 
+  // Íconos 3D de Juegos ICADEM (assets/mascotas/juegos/).
+  const JUEGOS_ICONS = { crossword: '01_crucigrama_tecnico', memory: '02_conecta_conceptos', wordsearch: '03_sopa_de_conceptos', puzzle: '04_rompecabezas_profesional', guess: '05_veredicto_expres', classify: '06_decide_con_criterio' };
   function openPracticePicker() {
     const existing = document.querySelector('.practice-picker'); existing?.remove();
     const liveStatus = window.__icademRetoStatus || {};
     const demoStatus = window.__isDemoMode ? readDemoRetoStatus() : null;
     const usedTypes = new Set(window.__isDemoMode ? demoStatus.catalogTypes : (liveStatus.catalogUsedTypes || []));
     const isAdmin = liveStatus.isAdmin === true;
-    const root = document.createElement('div'); root.className = 'practice-picker practice-picker--v3'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'practice-picker-title');
+    const root = document.createElement('div'); root.className = 'practice-picker practice-picker--v3 practice-picker--juegos'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'practice-picker-title');
     root.innerHTML = `<div class="practice-picker__veil" data-practice-close></div><section class="practice-picker__box"><header class="practice-picker__head"><div><span class="game-kicker">Juegos ICADEM</span><h2 id="practice-picker-title">Entrena a tu manera</h2><p>Seis dinámicas profesionales, una recompensa validada por juego.</p></div><button type="button" class="practice-picker__close" data-practice-close aria-label="Cerrar">×</button></header><div class="practice-picker__grid">${PRACTICE_TYPES.map((type, index) => {
       const meta = GAME_META[type] || { eyebrow: 'Práctica', title: GAME_LABELS[type], description: 'Actividad profesional ICADEM.', duration: '2 min', icon: 'i-trophy' };
       const used = !isAdmin && usedTypes.has(type);
-      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-practice="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon"><svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg></span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Completado' : `+${RETO_CREDITS} créditos`}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
+      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-practice="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon">${JUEGOS_ICONS[type] ? `<img class="practice-card__art" src="assets/mascotas/juegos/${JUEGOS_ICONS[type]}.webp" alt="" width="256" height="256" decoding="async" draggable="false">` : `<svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg>`}</span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Completado' : `+${RETO_CREDITS} créditos`}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
     }).join('')}</div></section>`;
     document.body.appendChild(root); document.body.classList.add('has-learning-game');
     let releaseA11y = () => {};
@@ -1620,6 +1622,7 @@
   async function mountRetosStatus(target) {
     const root = typeof target === 'string' ? document.getElementById(target) : target;
     if (!root) return;
+    if (!window.__icademJuegosPreload) { window.__icademJuegosPreload = Object.values(JUEGOS_ICONS).map(name => { const img = new Image(); img.decoding = 'async'; img.src = `assets/mascotas/juegos/${name}.webp`; return img; }); }
     let data;
     if (window.__isDemoMode) {
       const demoStatus = readDemoRetoStatus();
