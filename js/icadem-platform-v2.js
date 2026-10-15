@@ -1225,53 +1225,145 @@
     order: () => { const steps = ['Recibir la notificación en el buzón tributario', 'Identificar el plazo y lo que se solicita', 'Reunir CFDI, contabilidad y estados de cuenta', 'Conciliar la información contra lo declarado', 'Entregar la respuesta con su soporte'].map((text, i) => ({ id: `s${i + 1}`, text })); return { content: { prompt: 'Ordena la atención de una revisión del SAT.', steps: [steps[2], steps[0], steps[4], steps[1], steps[3]] }, solution: { order: steps.map(s => s.id) } }; }
   };
 
-  function successView(challenge, shell, result, onComplete, onContinue) {
+  // Cofre de monedas (mismo patrón que IMFRA y Synova): aparece solo cuando
+  // el servidor confirmó créditos, cuenta el monto y muestra el saldo total.
+  const CHEST_COIN = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="#c98a12"/><circle cx="20" cy="20" r="15" fill="#f4c64d"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#b97a0c" stroke-width="2"/><text x="20" y="25" text-anchor="middle" font-family="Plus Jakarta Sans,Inter,sans-serif" font-size="13" font-weight="800" fill="#8a5a06">C</text></svg>';
+  const CHEST_SVG = `<svg class="cc-chest" viewBox="0 0 200 170" aria-hidden="true">
+    <defs>
+      <linearGradient id="ica-cc-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a5c86"/><stop offset="1" stop-color="#143651"/></linearGradient>
+      <linearGradient id="ica-cc-lid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a74a3"/><stop offset="1" stop-color="#1d4a6e"/></linearGradient>
+      <linearGradient id="ica-cc-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe39a"/><stop offset=".55" stop-color="#e3a62a"/><stop offset="1" stop-color="#b9780c"/></linearGradient>
+      <radialGradient id="ica-cc-inner" cx=".5" cy=".2" r=".9"><stop offset="0" stop-color="#ffe7a1"/><stop offset="1" stop-color="#c88915"/></radialGradient>
+    </defs>
+    <ellipse cx="100" cy="164" rx="78" ry="6" fill="rgba(0,0,0,.28)"/>
+    <rect x="32" y="74" width="136" height="86" rx="12" fill="url(#ica-cc-wood)"/>
+    <rect x="34" y="70" width="132" height="14" rx="5" fill="url(#ica-cc-inner)"/>
+    <g class="cc-pile"><ellipse cx="78" cy="72" rx="15" ry="7" fill="#f4c64d"/><ellipse cx="100" cy="68" rx="17" ry="8" fill="#ffd96e"/><ellipse cx="122" cy="72" rx="15" ry="7" fill="#f0b934"/><ellipse cx="100" cy="74" rx="40" ry="6" fill="#e9aa2c"/></g>
+    <rect x="32" y="96" width="136" height="9" fill="url(#ica-cc-gold)" opacity=".95"/>
+    <rect x="50" y="74" width="12" height="86" fill="url(#ica-cc-gold)"/>
+    <rect x="138" y="74" width="12" height="86" fill="url(#ica-cc-gold)"/>
+    <rect x="86" y="90" width="28" height="32" rx="6" fill="url(#ica-cc-gold)" stroke="#9a6409" stroke-width="1.5"/>
+    <circle cx="100" cy="103" r="4" fill="#5b3a05"/><rect x="98.3" y="104" width="3.4" height="9" rx="1.5" fill="#5b3a05"/>
+    <g class="cc-lid">
+      <path d="M30 76 Q30 30 100 28 Q170 30 170 76 Z" fill="url(#ica-cc-lid)"/>
+      <path d="M48 76 Q50 36 62 33 L62 76 Z" fill="url(#ica-cc-gold)"/>
+      <path d="M152 76 Q150 36 138 33 L138 76 Z" fill="url(#ica-cc-gold)"/>
+      <rect x="28" y="70" width="144" height="10" rx="4" fill="url(#ica-cc-gold)"/>
+      <text x="100" y="60" text-anchor="middle" font-family="Plus Jakarta Sans,Inter,sans-serif" font-size="15" font-weight="800" fill="#ffe7a1" letter-spacing="1">ICADEM</text>
+    </g>
+  </svg>`;
+  function showCoinChest(options) {
+    const amount = Math.max(0, Number(options?.amount) || 0);
+    if (!amount) return;
+    document.querySelector('.cc-overlay')?.remove();
+    const coins = Math.min(8, Math.max(3, Math.ceil(amount / 4)));
+    const total = Number(options?.total);
+    const overlay = document.createElement('div');
+    overlay.className = 'cc-overlay';
+    overlay.setAttribute('role', 'status');
+    overlay.innerHTML = `<div class="cc-card">
+      <div class="cc-stage">
+        <div class="cc-rays" aria-hidden="true"></div>
+        ${Array.from({ length: coins }, (_, i) => `<span class="cc-coin" style="--i:${i};--x:${(i % 2 ? 1 : -1) * (8 + (i * 7) % 26)}px">${CHEST_COIN}</span>`).join('')}
+        ${CHEST_SVG}
+        ${Array.from({ length: 6 }, (_, i) => `<i class="cc-spark" style="--a:${i * 60}deg"></i>`).join('')}
+      </div>
+      <span class="cc-kicker">${esc(options?.title || '¡Créditos ganados!')}</span>
+      <strong class="cc-amount">+<b data-cc-count>0</b> créditos</strong>
+      <span class="cc-total">Se sumaron a tu saldo${Number.isFinite(total) ? ` · Total <b>${total.toLocaleString('es-MX')}</b>` : ''}</span>
+      <small class="cc-hint">Toca para continuar</small>
+    </div>`;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('is-open'));
+    const counter = overlay.querySelector('[data-cc-count]');
+    if (REDUCED_MOTION?.matches) counter.textContent = String(amount);
+    else {
+      const startAt = performance.now() + 650; const duration = Math.max(600, coins * 260);
+      const tick = now => { const t = Math.min(1, Math.max(0, (now - startAt) / duration)); counter.textContent = String(Math.round(amount * t)); if (t < 1 && overlay.isConnected) requestAnimationFrame(tick); };
+      requestAnimationFrame(tick);
+    }
+    let closed = false;
+    const close = () => { if (closed) return; closed = true; overlay.classList.add('is-closing'); setTimeout(() => overlay.remove(), 380); };
+    overlay.addEventListener('click', close);
+    setTimeout(close, 3800);
+  }
+  window.ICADEMCoinChest = { show: showCoinChest };
+
+  function celebrate(big) {
+    if (REDUCED_MOTION?.matches) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'ica-confetti' + (big ? ' is-big' : '');
+    const colors = ['#1f6f8b', '#245b74', '#e3a62a', '#ffd96e', '#34d399', '#8fbce6', '#ffffff'];
+    wrap.innerHTML = Array.from({ length: big ? 64 : 36 }, (_, i) => `<i style="--x:${(Math.random() * 100).toFixed(1)}vw;--d:${(Math.random() * .5).toFixed(2)}s;--r:${(Math.random() * 720 - 360) | 0}deg;--t:${(1.8 + Math.random() * 1.2).toFixed(2)}s;--c:${colors[i % colors.length]}"></i>`).join('');
+    document.body.appendChild(wrap);
+    setTimeout(() => wrap.remove(), 3600);
+  }
+
+  function clockText(seconds) {
+    const s = Math.max(0, Math.round(seconds || 0));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  }
+
+  function successView(challenge, shell, result, onComplete, onContinue, stats) {
     setStep(shell.modal, 3);
     onComplete?.(result);
     const previous = Number(result.previousBalance ?? challenge.balance ?? 0);
     const reward = Number(result.reward ?? challenge.reward ?? 0);
     const next = Number(result.newBalance ?? previous + reward);
     const hasReward = reward > 0;
+    const isReto = challenge.scope === 'reto';
+    const seconds = Math.max(1, Math.round(stats?.seconds || 0));
+    const mistakes = Math.max(0, Number(stats?.mistakes) || 0);
+    const par = challenge.type === 'quiz' ? 240 : 120;
+    const stars = mistakes === 0 && seconds <= par ? 3 : mistakes <= 1 && seconds <= par * 2 ? 2 : 1;
+    const bonus = Math.max(0, (par - seconds) * 2);
+    const points = 100 * stars + bonus;
+    const titles = ['', '¡Reto resuelto!', '¡Muy bien hecho!', '¡Excelente!'];
+    const kicker = isReto ? 'Reto superado' : 'Clase superada';
+    const gameName = GAME_META[challenge.type]?.title || GAME_LABELS[challenge.type] || 'Actividad';
+    const subtitle = [challenge.displayTitle || challenge.title, isReto ? '' : gameName].filter((v, i, all) => v && all.indexOf(v) === i).join(' · ');
+    const star = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="currentColor"/></svg>';
+    const rewardLine = hasReward
+      ? `<span class="gw-coin" aria-hidden="true">${CHEST_COIN}</span><span class="gw-reward__copy"><span><b>+${reward} créditos</b> ${isReto ? 'sumados a tu saldo' : 'por superar la clase'}</span><small>Saldo total: <b>${next.toLocaleString('es-MX')}</b> créditos</small></span>`
+      : `<span>${isReto ? 'Modo práctica · este reto ya estaba registrado, sin créditos' : 'Modo práctica · esta clase ya había sumado sus créditos'}</span>`;
+    const primaryLabel = result.nextLessonNumber ? 'Abrir siguiente clase' : (isReto ? 'Volver a Retos' : 'Volver al curso');
+    const anotherLabel = isReto && challenge.experienceId === 'pro' ? 'Elegir otra dinámica' : isReto && challenge.experienceId === 'catalog' ? 'Elegir otro juego' : '';
+    shell.modal.classList.add('is-won');
     shell.content.innerHTML = `
-      <div class="game-success">
-        <span class="game-kicker">Actividad superada</span>
-        <h2 id="learning-game-title">${challenge.scope === 'reto' ? 'Reto superado' : 'Clase completada'}</h2>
-        <p>${hasReward ? (challenge.scope === 'reto' ? 'Tu resultado y tus créditos ya quedaron guardados.' : 'Tu avance y tu recompensa ya quedaron guardados.') : 'Práctica completada. Este intento no modifica tus créditos ni la clasificación.'}</p>
+      <div class="game-success gw" data-stars="${stars}">
+        <div class="gw-stars" aria-label="${stars} de 3 estrellas">${[1, 2, 3].map(n => `<span class="${n <= stars ? 'is-on' : ''}" style="--d:${n * 180}ms">${star}</span>`).join('')}</div>
+        <span class="game-kicker gw-kicker">${kicker}</span>
+        <h2 id="learning-game-title">${titles[stars]}</h2>
+        <p class="gw-sub">${esc(subtitle)}</p>
+        <div class="gw-stats">
+          <div><span>Tiempo</span><b>${clockText(seconds)}</b></div>
+          <div><span>Puntos</span><b>${points}</b>${bonus ? `<small>+${bonus} por rapidez</small>` : ''}</div>
+          <div><span>Errores</span><b>${mistakes}</b></div>
+        </div>
+        <div class="gw-reward${hasReward ? ' is-earned' : ''}" data-reward>${rewardLine}</div>
         ${debriefMarkup(result.debrief)}
-        ${hasReward ? `
-          <button class="reward-chest" type="button" data-open-chest aria-label="Abrir recompensa"><span class="reward-chest__lid"></span><span class="reward-chest__box">ICA</span></button>
-          <div class="reward-summary" hidden>
-            <span>Recompensa</span><strong>+<b data-reward-count>0</b> créditos</strong>
-            <div><small>Saldo anterior <b>${previous}</b></small><i>→</i><small>Nuevo saldo <b>${next}</b></small></div>
-          </div>` : `
-          <div class="reward-summary reward-summary--practice">
-            <span>Modo práctica</span><strong>Sesión completada</strong>
-            <div><small>Tu saldo permanece en</small><small><b>${next}</b> créditos</small></div>
-          </div>`}
-        <button class="game-primary" type="button" data-game-continue${hasReward ? ' disabled' : ''}>${result.nextLessonNumber ? 'Continuar a la siguiente clase' : (challenge.scope === 'reto' ? 'Volver a Retos' : 'Volver al curso')}</button>
+        <div class="gw-actions${anotherLabel ? '' : ' is-single'}">
+          ${anotherLabel ? `<button class="game-secondary gw-btn" type="button" data-game-another>${anotherLabel}</button>` : ''}
+          <button class="game-primary gw-btn gw-btn--primary" type="button" data-game-continue>${primaryLabel} <span aria-hidden="true">→</span></button>
+        </div>
       </div>`;
-    const chest = shell.content.querySelector('[data-open-chest]');
-    const summary = shell.content.querySelector('.reward-summary');
     const continueButton = shell.content.querySelector('[data-game-continue]');
-    if (!hasReward) {
-      publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: 'practice' });
-      announce(`Práctica completada. Tu saldo permanece en ${next} créditos.`);
-      continueButton.focus();
-    } else chest.addEventListener('click', () => {
-      if (chest.classList.contains('is-open')) return;
-      chest.classList.add('is-open'); summary.hidden = false; continueButton.disabled = false;
-      const counter = shell.content.querySelector('[data-reward-count]');
-      if (REDUCED_MOTION?.matches || reward <= 0) counter.textContent = String(reward);
-      else {
-        let value = 0;
-        const interval = setInterval(() => { value += Math.max(1, Math.ceil(reward / 12)); counter.textContent = String(Math.min(reward, value)); if (value >= reward) clearInterval(interval); }, 70);
-      }
-      publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: challenge.scope === 'reto' ? 'reto-game' : 'lesson-game' });
+    publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: hasReward ? (isReto ? 'reto-game' : 'lesson-game') : 'practice' });
+    if (hasReward) {
       creditWalletCache = null;
+      celebrate(stars === 3);
+      setTimeout(() => showCoinChest({ amount: reward, total: next, title: isReto ? '¡Reto superado!' : '¡Mini juego superado!' }), 450);
       announce(`Ganaste ${reward} créditos. Nuevo saldo: ${next}.`);
-    });
+    } else {
+      celebrate(false);
+      announce(`Actividad completada. Tu saldo permanece en ${next} créditos.`);
+    }
     continueButton.addEventListener('click', () => { shell.close(); onContinue?.(result); });
-    if (hasReward) chest.focus();
+    shell.content.querySelector('[data-game-another]')?.addEventListener('click', () => {
+      shell.close(); onContinue?.(result);
+      if (challenge.experienceId === 'pro') openProPicker(); else openPracticePicker();
+    });
+    continueButton.focus();
   }
 
   // Abre la ventana del juego al instante (mismo fondo y panel) mientras el
@@ -1305,6 +1397,7 @@
   function startChallenge(challenge, options) {
     return new Promise(resolve => {
       const shell = modalShell(challenge, () => resolve({ closed: true }));
+      const playStats = { startedAt: 0, mistakes: 0 };
       const submit = async (proof, frame) => {
         frame.check.disabled = true;
         frame.status.textContent = 'Comprobando…';
@@ -1349,16 +1442,19 @@
             recordDemoReto(challenge);
             result = { ok: true, reward: demoResult.reward, previousBalance: demoResult.previousBalance, newBalance: demoResult.newBalance, nextLessonNumber: null, practice: true, awarded: demoResult.awarded };
           } else result = await request(challenge.completePath || '/api/learning/complete', { method: 'POST', body: { challengeId: challenge.challengeId, proof } });
-          successView(challenge, shell, result, options?.onComplete, resultData => { options?.onContinue?.(resultData); resolve(resultData); });
+          successView(challenge, shell, result, options?.onComplete, resultData => { options?.onContinue?.(resultData); resolve(resultData); }, { seconds: (Date.now() - (playStats.startedAt || Date.now())) / 1000, mistakes: playStats.mistakes });
         } catch (error) {
           frame.status.textContent = error.message;
           frame.status.classList.add('is-error');
           frame.check.disabled = false;
+          if (error.status === 422) playStats.mistakes += 1;
+          if (error.data?.code === 'vip-challenge-required') { shell.close(); showRetoPaywall(); return; }
           if (error.data?.code === 'challenge-too-fast') showNotice('Un momento', error.message, 'info');
           else if (error.status !== 422) showNotice('No se perdió tu avance', 'Revisa tu conexión y vuelve a comprobar.', 'error');
         }
       };
       const start = () => {
+        playStats.startedAt = Date.now();
         if (challenge.type === 'memory') runMemory(challenge, shell, submit);
         else if (challenge.type === 'crossword' && Array.isArray(challenge.content?.words)) runCrosswordGrid(challenge, shell, submit);
         else if (challenge.type === 'order') runOrder(challenge, shell, submit);
@@ -1424,6 +1520,7 @@
         });
       }
       challenge.scope = 'reto';
+      if (options?.title) challenge.displayTitle = options.title;
       challenge.completePath = challenge.completePath || '/api/retos/complete';
       if (loader.cancelled()) return { closed: true };
       return startChallenge(challenge, {
@@ -1441,10 +1538,20 @@
       });
     } catch (error) {
       loader.done();
+      if (error.data?.code === 'vip-challenge-required') { showRetoPaywall(); throw error; }
       const alreadyPlayed = error.data?.code === 'reto-already-played';
       showNotice(alreadyPlayed ? 'Reto ya completado' : 'No pudimos abrir el reto', error.message, alreadyPlayed ? 'info' : 'error');
       throw error;
     }
+  }
+
+  function showRetoPaywall() {
+    const title = 'Tu partida gratuita ya terminó';
+    const sub = 'Hazte VIP para seguir jugando en Retos ICADEM, practicar sin límites y ganar créditos en cada reto.';
+    if (typeof window.__showPaywallModal === 'function') window.__showPaywallModal({ title, sub });
+    else showNotice(title, sub, 'info');
+    const page = document.querySelector('.retos-page');
+    if (page) mountRetosStatus(page);
   }
 
   function openPractice(type, title) {
@@ -1558,7 +1665,23 @@
       }
     });
     const access = root.querySelector('[data-retos-access]');
-    if (access) access.textContent = data.isAdmin ? 'Administrador · intentos ilimitados' : 'Un intento por reto';
+    const trial = data.trial || 'vip';
+    if (access) {
+      access.textContent = data.isAdmin ? 'Administrador · intentos ilimitados'
+        : trial === 'available' ? 'Tu primera partida es gratis'
+        : trial === 'active' ? 'Partida gratuita en curso'
+        : trial === 'used' ? 'Partida gratuita usada · Hazte VIP'
+        : 'Un intento por reto';
+      access.classList.toggle('is-locked', trial === 'used');
+    }
+    const note = root.querySelector('[data-retos-access-note]');
+    if (note) {
+      note.hidden = trial === 'vip';
+      note.textContent = trial === 'available' ? `Tu primera partida es gratis y sí puede darte créditos ICADEM (+${RETO_CREDITS}). Después necesitarás ser VIP para seguir jugando.`
+        : trial === 'active' ? 'Tu partida gratuita está activa: termina ese reto para ganar tus créditos. Después necesitarás ser VIP.'
+        : trial === 'used' ? 'Ya utilizaste tu partida gratuita. Hazte VIP para seguir jugando y ganando créditos en todos los retos.'
+        : '';
+    }
   }
 
   async function mountRanking(target) {
