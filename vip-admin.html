@@ -1031,6 +1031,7 @@ body{
   .modal__footer .btn{flex:1;min-width:100px}
 }
 </style>
+<link rel="stylesheet" href="css/icadem-admin-metrics.css?v=1">
 </head>
 <body style="visibility:hidden">
 
@@ -1151,6 +1152,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Resumen</div>
       <a class="nav-item is-active" data-section="dashboard"><svg class="ic"><use href="#i-home"/></svg>Dashboard</a>
+      <a class="nav-item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
     </div>
 
     <div class="nav-section">
@@ -1207,6 +1209,7 @@ window.__signOut = async () => {
     <a class="mobile-nav__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos</a>
     <a class="mobile-nav__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</a>
     <a class="mobile-nav__item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros</a>
+    <a class="mobile-nav__item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas</a>
     <a class="mobile-nav__item" data-section="config"><svg class="ic"><use href="#i-settings"/></svg>Config</a>
   </nav>
 
@@ -6008,5 +6011,24 @@ if (window.__currentAdmin) {
 }
 </script>
 
+<script src="js/icadem-admin-metrics.js?v=1" defer></script>
+<script>
+// ── Métricas (como IMFRA y Synova): la sección la pinta js/icadem-admin-metrics.js ──
+(function(){
+  function tokenAdmin(){
+    if (window._fb && window._fb.auth && window._fb.auth.currentUser) return Pages._getAuthToken();
+    return new Promise(function(resolve, reject){
+      var t = setTimeout(function(){ reject(new Error('Tu sesión de administrador aún no está lista. Intenta de nuevo.')); }, 20000);
+      window.addEventListener('adminready', function(){ clearTimeout(t); resolve(Pages._getAuthToken()); }, { once: true });
+    });
+  }
+  Pages.metricas = function(p){
+    var montar = function(){ window.ICADEMMetricsAdmin.mount(p, { getToken: tokenAdmin, api: Pages._webhookUrl }); };
+    if (window.ICADEMMetricsAdmin) return montar();
+    p.innerHTML = '<div class="mx-page fade-up"><div class="mx-empty"><span class="mx-spin"></span>Cargando métricas…</div></div>';
+    window.addEventListener('icadem:metrics-admin-ready', function(){ if (__seccionActual === 'metricas') montar(); }, { once: true });
+  };
+})();
+</script>
 </body>
 </html>

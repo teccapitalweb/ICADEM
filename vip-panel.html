@@ -23,6 +23,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
 <script src="js/icadem-mascots.js?v=1"></script>
+<script src="js/icadem-analytics.js?v=1" defer></script>
 <script src="js/icadem-platform-v2.js?v=30" defer></script>
 
 <style>
@@ -5535,6 +5536,7 @@ function navigateToSection(section, opciones){
     if(opciones && opciones.reemplazar) history.replaceState(null, '', __destino);
     else history.pushState(null, '', __destino);
   }
+  try { window.dispatchEvent(new CustomEvent('icadem:navigation', { detail: { section } })); } catch(_) {}
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
   document.querySelectorAll(`[data-section="${section}"]`).forEach(ni => ni.classList.add('is-active'));
