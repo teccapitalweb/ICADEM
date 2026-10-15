@@ -82,6 +82,17 @@
   function handleAccountDeleted() {
     if (accountDeletedHandled || window.__isDemoMode) return;
     accountDeletedHandled = true;
+    // Nunca en ciclo: si esta cuenta ya fue enviada al acceso hace poco, no se
+    // vuelve a cerrar la sesión; solo se avisa.
+    const uid = String(window.UserState?.uid || '');
+    const key = 'icadem:account-deleted-signout';
+    let last = null;
+    try { last = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) {}
+    if (last && last.uid === uid && Date.now() - Number(last.at || 0) < 30 * 60 * 1000) {
+      showNotice('No pudimos cargar tu cuenta', 'Recarga la página en unos minutos. Si continúa, escríbenos por WhatsApp.', 'error');
+      return;
+    }
+    try { localStorage.setItem(key, JSON.stringify({ uid, at: Date.now() })); } catch (_) {}
     try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
     if (typeof window.__signOut === 'function') window.__signOut();
     else window.location.href = 'vip-auth.html';
