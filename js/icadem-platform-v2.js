@@ -76,26 +76,25 @@
     return user ? user.getIdToken() : '';
   }
 
-  // La cuenta de esta sesión fue eliminada: se cierra la sesión y se manda al
-  // acceso, donde la persona puede registrarse de nuevo como cuenta nueva.
+  // Si el servidor indica que la cuenta de esta sesión está eliminada, NUNCA
+  // se cierra la sesión automáticamente (evita ciclos con la pantalla de
+  // acceso): solo se avisa una vez y la persona decide cerrar sesión.
   let accountDeletedHandled = false;
   function handleAccountDeleted() {
     if (accountDeletedHandled || window.__isDemoMode) return;
     accountDeletedHandled = true;
-    // Nunca en ciclo: si esta cuenta ya fue enviada al acceso hace poco, no se
-    // vuelve a cerrar la sesión; solo se avisa.
-    const uid = String(window.UserState?.uid || '');
-    const key = 'icadem:account-deleted-signout';
-    let last = null;
-    try { last = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) {}
-    if (last && last.uid === uid && Date.now() - Number(last.at || 0) < 30 * 60 * 1000) {
-      showNotice('No pudimos cargar tu cuenta', 'Recarga la página en unos minutos. Si continúa, escríbenos por WhatsApp.', 'error');
-      return;
-    }
-    try { localStorage.setItem(key, JSON.stringify({ uid, at: Date.now() })); } catch (_) {}
-    try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
-    if (typeof window.__signOut === 'function') window.__signOut();
-    else window.location.href = 'vip-auth.html';
+    if (document.getElementById('ica-account-deleted')) return;
+    const box = document.createElement('div');
+    box.id = 'ica-account-deleted';
+    box.setAttribute('role', 'alert');
+    box.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483000;width:min(460px,calc(100vw - 24px));padding:16px 18px;border-radius:16px;background:#12324a;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,.35);font:14px/1.45 Inter,system-ui,sans-serif;display:grid;gap:10px';
+    box.innerHTML = '<strong style="font-size:15px">Tu cuenta se está actualizando</strong><span style="color:rgba(255,255,255,.8)">Algunas secciones no cargaron. Recarga en unos minutos o cierra sesión y vuelve a entrar.</span><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" data-x style="padding:9px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-weight:700;cursor:pointer">Entendido</button><button type="button" data-out style="padding:9px 14px;border-radius:10px;border:0;background:#e3a62a;color:#1a1206;font-weight:800;cursor:pointer">Cerrar sesión</button></div>';
+    document.body.appendChild(box);
+    box.querySelector('[data-x]').addEventListener('click', () => box.remove());
+    box.querySelector('[data-out]').addEventListener('click', () => {
+      try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
+      if (typeof window.__signOut === 'function') window.__signOut(); else window.location.href = 'vip-auth.html';
+    });
   }
 
   async function request(path, options) {
