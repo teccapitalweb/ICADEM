@@ -160,6 +160,8 @@
     state.profileComplete = profile.profileComplete === true;
     state.freeCourseId = profile.freeCourseId || state.freeCourseId || '';
     state.freeCourseOfferSeen = profile.freeCourseOfferSeen === true;
+    state.profileIntakeSeen = profile.profileIntakeSeen === true || state.profileIntakeSeen === true;
+    state.hasWhatsapp = profile.hasWhatsapp === true;
     state.identityReady = true;
     state.credits = payload.credits || state.credits || { balance: 0 };
     state.directoryProfile = directory;
@@ -537,6 +539,11 @@
       root.querySelector('.credit-wallet-modal__body').innerHTML = `<div class="credit-wallet-error"><strong>No pudimos sincronizar tu cartera.</strong><span>${esc(error.message)}</span><button type="button" data-wallet-retry>Reintentar</button></div>`;
       root.querySelector('[data-wallet-retry]')?.addEventListener('click', () => { close(); openCreditWallet(); });
     }
+  }
+
+  async function markProfileIntakeSeen() {
+    if (window.__isDemoMode) return { ok: true };
+    return request('/api/profile/intake-seen', { method: 'POST', body: {} });
   }
 
   async function saveProfile(profile) {
@@ -1634,6 +1641,6 @@
     createForumPost, deleteForumPost, toggleForumLike, createForumComment, deleteForumComment, mountRanking,
     loadLearningProgress,
     loadCreditWallet, openCreditWallet, applyDemoCreditMovement, syncCreditSnapshot,
-    saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, openProPicker, mountRetosStatus
+    saveProfile, markProfileIntakeSeen, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, openProPicker, mountRetosStatus
   };
 })();

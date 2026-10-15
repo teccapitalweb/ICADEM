@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=24" defer></script>
+<script src="js/icadem-platform-v2.js?v=25" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -11893,135 +11893,244 @@ function openPasswordResetModal(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Popup: confirmar/editar nombre la 1ª vez (para que el certificado
-// no salga con el email). Si el nombre parece venir del correo o es
-// genérico, ofrecemos editarlo; si no, igual avisamos con qué nombre
-// se emitirán los certificados.
+// Ficha inicial (primera entrada, después del recorrido). Pide una sola
+// vez los datos que usa la plataforma:
+//  · Nombre completo → certificados, directorio, ranking y foro.
+//  · WhatsApp → soporte y directorio (privado salvo que el usuario lo muestre).
+//  · Puesto y área → tarjeta del Directorio VIP y su filtro por sector.
+//  · Empresa y ciudad (opcionales) → tarjeta del directorio.
+// El correo viene de la cuenta y no se edita. Se guarda por /api/profile,
+// que actualiza Auth, users, directorio, ranking y miembros en un solo paso.
+// "Ahora no" se recuerda en la cuenta para no repetirla en otro dispositivo.
 // ═══════════════════════════════════════════════════════════════════
-window.__maybeAskName = function(){
+window.__maybeAskName = async function(){
+  const S = window.UserState || {};
   try {
-    const S = window.UserState || {};
-    const account = encodeURIComponent(String(S.uid || S.email || 'guest').toLowerCase());
-    const nameConfirmedKey = `icadem_name_confirmed:${account}`;
-    // Un nombre personalizado ya sincronizado por el servidor es la fuente
-    // más fuerte y evita repetir este aviso en otro dispositivo.
-    if (S.customName) {
-      localStorage.setItem(nameConfirmedKey, '1');
-      delete document.documentElement.dataset.icademNamePending;
-      return;
-    }
-    if (localStorage.getItem(nameConfirmedKey) === '1') {
-      delete document.documentElement.dataset.icademNamePending;
-      return;
-    }
     if (document.getElementById('name-modal')) return;
+    if (window.__isDemoMode || !S.uid || S.modo === 'invitado' || S.modo === 'demo' || S.identityReady !== true) return;
+    const account = encodeURIComponent(String(S.uid || S.email || 'guest').toLowerCase());
+    const intakeKey = `icadem:profile-intake:v1:${account}`;
+    let seenHere = false;
+    try { seenHere = localStorage.getItem(intakeKey) === '1'; } catch(e){}
+    if (S.profileIntakeSeen === true || seenHere) return;
+    // Cuentas que ya tenían nombre personalizado y WhatsApp no necesitan la ficha.
+    if (S.customName && S.hasWhatsapp === true) return;
     const otroDialogo = document.querySelector(
-      '#splash-bienvenida,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible'
+      '#splash-bienvenida,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible,.ica-tour-root:not([hidden])'
     );
-    if (otroDialogo) {
-      setTimeout(() => window.__maybeAskName?.(), 250);
-      return;
-    }
-    const email = S.email || '';
+    if (otroDialogo) { setTimeout(() => window.__maybeAskName?.(), 300); return; }
+
+    // Tarjeta actual del directorio (solo la propia): permite precargar datos
+    // y conservar las preferencias de contacto que el usuario ya eligió.
+    let card = Object.assign({}, S.directoryProfile || {});
+    try {
+      const fs = window.__fs;
+      if (fs?.getDoc) { const snap = await fs.getDoc(fs.doc(fs.db, 'directorio', S.uid)); if (snap.exists()) card = Object.assign(card, snap.data()); }
+    } catch(e){}
+    if (document.getElementById('name-modal')) return;
+
+    const AREAS = ['Fiscal y Contable','Nómina y RH','Legal y Corporativo','Finanzas','Consultoría de Negocios','Marketing y Ventas','Tecnología','Educación','Otro'];
+    const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const email = String(S.email || '');
     const emailPart = email.split('@')[0] || '';
-    const actual = (S.nombre || S.displayName || '').trim();
-    // ¿el nombre parece "feo"? = igual al inicio del correo, sin espacio, o con dígitos
-    const pareceEmail = actual && (actual.toLowerCase() === emailPart.toLowerCase());
-    const sinApellido = actual && !actual.includes(' ');
-    const tieneNumeros = /\d/.test(actual);
-    const esGenerico = !actual || ['ingeniero','profesional','miembro','usuario vip','usuario'].includes(actual.toLowerCase());
-    const sugerido = (pareceEmail || esGenerico) ? '' : actual;
+    const actual = String(S.customName || S.nombre || S.displayName || card.nombre || '').trim();
+    const generico = !actual || !actual.includes(' ') || /\d/.test(actual) || actual.toLowerCase() === emailPart.toLowerCase() || ['ingeniero','profesional','miembro','miembro icadem','usuario vip','usuario'].includes(actual.toLowerCase());
+    const nombreInicial = generico ? '' : actual.slice(0, 38);
+    const primerNombre = (nombreInicial || 'colega').split(' ')[0];
+    const area = AREAS.includes(card.sector) ? card.sector : '';
+    const contacto = card.contactoVisible || {};
+    const foto = S.photoURL ? `<img src="${esc(window.__avatarSrc?.(S.photoURL) || S.photoURL)}" alt="" referrerpolicy="no-referrer">` : esc(S.iniciales || 'IC');
 
     const ov = document.createElement('div');
     ov.id = 'name-modal';
+    ov.className = 'pf-intake';
     ov.innerHTML = `
-      <div class="nm-ov"></div>
-      <div class="nm-box">
-        <div class="nm-ic">🎓</div>
-        <h2 class="nm-title">¿Cómo quieres que aparezca tu nombre?</h2>
-        <p class="nm-desc">Este es el nombre que aparecerá en <strong>tus certificados oficiales ICADEM</strong>. Escríbelo completo y bien escrito (nombre y apellidos).</p>
-        <input id="nm-input" class="nm-input" type="text" value="${(sugerido||'').replace(/"/g,'&quot;')}" placeholder="Ej. Felipe Estrada Ramírez" autocomplete="name" maxlength="38">
-        <div class="nm-hint" id="nm-hint"></div>
-        <button class="nm-save" id="nm-save">Guardar y continuar</button>
-        <button class="nm-skip" id="nm-skip">Lo dejo así por ahora</button>
-        <p class="nm-foot">Podrás cambiarlo cuando quieras en <strong>Mi perfil → Nombre completo</strong>.</p>
-      </div>`;
+      <div class="pf-veil" data-pf-later></div>
+      <section class="pf-panel" role="dialog" aria-modal="true" aria-labelledby="pf-title" aria-describedby="pf-intro">
+        <button class="pf-close" type="button" data-pf-later aria-label="Completar después"><svg class="ic"><use href="#i-x"/></svg></button>
+        <header class="pf-head">
+          <div class="pf-identity"><div class="pf-avatar">${foto}</div>
+            <div><span class="pf-kicker">Tu ficha profesional</span><h2 id="pf-title">Bienvenido a ICADEM, ${esc(primerNombre)}</h2></div></div>
+          <p class="pf-intro" id="pf-intro">Completa estos datos una sola vez. Con ellos emitimos tus certificados, armamos tu tarjeta del Directorio VIP y te damos soporte.</p>
+        </header>
+        <form class="pf-body" novalidate>
+          <div class="pf-grid">
+            <div class="pf-field pf-field--wide"><label for="pf-nombre">Nombre completo <b>*</b> <span>· así saldrá en tus certificados</span></label>
+              <input class="pf-input" id="pf-nombre" name="nombre" maxlength="38" autocomplete="name" placeholder="Ej. Felipe Estrada Ramírez" value="${esc(nombreInicial)}">
+              <div class="pf-cert" aria-live="polite"><small>Vista previa del certificado</small><strong data-pf-cert>${esc(nombreInicial || 'Tu nombre y apellidos')}</strong></div>
+            </div>
+            <div class="pf-field"><label for="pf-email">Correo de tu cuenta</label><input class="pf-input" id="pf-email" type="email" value="${esc(email)}" readonly></div>
+            <div class="pf-field"><label for="pf-wa">WhatsApp <b>*</b></label><input class="pf-input" id="pf-wa" name="whatsapp" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Ej. 238 123 4567" value="${esc(card.whatsapp || '')}"></div>
+            <div class="pf-field"><label for="pf-puesto">Profesión o puesto <b>*</b></label><input class="pf-input" id="pf-puesto" name="puesto" maxlength="80" placeholder="Ej. Contador público" value="${esc(card.puesto || card.profesion || '')}"></div>
+            <div class="pf-field"><label for="pf-area">Área profesional <b>*</b></label><select class="pf-input" id="pf-area" name="sector"><option value="">Selecciona…</option>${AREAS.map(a => `<option ${a === area ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
+            <div class="pf-field"><label for="pf-empresa">Empresa o despacho <span>· opcional</span></label><input class="pf-input" id="pf-empresa" name="empresa" maxlength="100" autocomplete="organization" placeholder="Ej. Despacho Contable del Centro" value="${esc(card.empresa || card.institucion || '')}"></div>
+            <div class="pf-field"><label for="pf-ciudad">Ciudad <span>· opcional</span></label><input class="pf-input" id="pf-ciudad" name="ubicacion" maxlength="100" autocomplete="address-level2" placeholder="Ciudad y estado" value="${esc(card.ubicacion || '')}"></div>
+          </div>
+          <label class="pf-check"><input type="checkbox" id="pf-wa-public" ${contacto.whatsapp === true ? 'checked' : ''}><span>Mostrar mi WhatsApp en mi tarjeta del Directorio VIP</span></label>
+          <p class="pf-note"><svg class="ic"><use href="#i-shield-check"/></svg><span>Tu correo no se publica. Tu WhatsApp solo aparece en el directorio si activas la casilla. Puedes cambiar todo después en <strong>Mi perfil</strong> o en tu tarjeta del directorio.</span></p>
+          <p class="pf-error" role="alert" hidden></p>
+          <div class="pf-actions"><button class="btn btn--ghost" type="button" data-pf-later>Ahora no</button><button class="btn btn--accent pf-save" type="submit">Guardar y continuar <svg class="ic"><use href="#i-arrow-right"/></svg></button></div>
+        </form>
+      </section>`;
     document.body.appendChild(ov);
-    if (!document.getElementById('nm-css')) {
-      const st=document.createElement('style'); st.id='nm-css';
+    if (!document.getElementById('pf-css')) {
+      const st = document.createElement('style'); st.id = 'pf-css';
       st.textContent = `
-        #name-modal{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px}
-        #name-modal .nm-ov{position:absolute;inset:0;background:rgba(10,12,20,.72);backdrop-filter:blur(4px)}
-        #name-modal .nm-box{position:relative;width:100%;max-width:440px;background:var(--surface,#15110C);border:1px solid var(--border-2,rgba(143,188,230,.14));border-radius:20px;padding:30px 26px 24px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.55);animation:nmIn .25s ease}
-        @keyframes nmIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
-        #name-modal .nm-ic{font-size:34px;margin-bottom:10px}
-        #name-modal .nm-title{font-family:'Plus Jakarta Sans',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.4px;color:var(--text,#F5EFE6);line-height:1.25;margin-bottom:8px}
-        #name-modal .nm-desc{font-size:13.5px;color:var(--text-2,#B8AC9C);line-height:1.6;margin-bottom:18px}
-        #name-modal .nm-input{width:100%;padding:14px 16px;border-radius:12px;border:1.5px solid var(--border-2,rgba(143,188,230,.18));background:var(--surface-2,#1E1812);color:var(--text,#F5EFE6);font-size:16px;font-family:inherit;outline:none;transition:border .15s;text-align:center}
-        #name-modal .nm-input:focus{border-color:var(--primary,#5b92c8)}
-        #name-modal .nm-hint{font-size:12px;color:#E0894A;min-height:16px;margin:8px 0 4px}
-        #name-modal .nm-save{width:100%;margin-top:12px;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--primary,#5b92c8),var(--highlight,#8fbce6));color:#16203f;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit}
-        #name-modal .nm-save:active{transform:translateY(1px)}
-        #name-modal .nm-skip{width:100%;margin-top:9px;padding:11px;border:1px solid var(--border-2,rgba(143,188,230,.16));border-radius:12px;background:none;color:var(--text-2,#B8AC9C);font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit}
-        #name-modal .nm-foot{font-size:11.5px;color:var(--text-3,#8A7E6E);margin-top:14px;line-height:1.5}`;
+        .pf-intake{position:fixed;inset:0;z-index:100000;display:grid;place-items:center;padding:20px;font-family:'Inter',system-ui,sans-serif}
+        .pf-veil{position:absolute;inset:0;background:rgba(6,16,28,.74);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+        .pf-panel{position:relative;width:min(720px,100%);max-height:calc(100dvh - 40px);overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:var(--surface,#fff);border:1px solid var(--border,rgba(20,52,72,.14));border-radius:24px;box-shadow:0 34px 100px rgba(3,14,23,.42);animation:pfIn .38s cubic-bezier(.16,1,.3,1)}
+        @keyframes pfIn{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+        .pf-close{position:absolute;z-index:2;top:14px;right:14px;width:36px;height:36px;display:grid;place-items:center;border:1px solid var(--border,rgba(20,52,72,.14));border-radius:50%;background:var(--surface,#fff);color:var(--text-2,#4c5a66);cursor:pointer}
+        .pf-close .ic{width:16px;height:16px}
+        .pf-head{position:relative;overflow:hidden;padding:26px 30px 22px;border-top:4px solid #c79a43;background:linear-gradient(135deg,color-mix(in srgb,#173b56 10%,var(--surface,#fff)),color-mix(in srgb,#c79a43 9%,var(--surface,#fff)))}
+        .pf-identity{display:flex;align-items:center;gap:15px;padding-right:40px}
+        .pf-avatar{flex:0 0 auto;width:62px;height:62px;border-radius:50%;overflow:hidden;display:grid;place-items:center;background:linear-gradient(135deg,#173b56,#2b6a8f);color:#fff;font:800 19px 'Plus Jakarta Sans',sans-serif;border:3px solid var(--surface,#fff);box-shadow:0 8px 24px rgba(23,59,86,.22)}
+        .pf-avatar img{width:100%;height:100%;object-fit:cover}
+        .pf-kicker{display:block;margin-bottom:5px;color:#9c6d17;font:800 9.5px/1.2 'JetBrains Mono',monospace;letter-spacing:1.5px;text-transform:uppercase}
+        .pf-head h2{margin:0;color:var(--text,#142238);font:800 clamp(21px,2.6vw,27px)/1.12 'Plus Jakarta Sans',sans-serif;letter-spacing:-.6px}
+        .pf-intro{margin:12px 0 0;max-width:560px;color:var(--text-2,#4c5a66);font-size:13px;line-height:1.55}
+        .pf-body{padding:22px 30px 26px}
+        .pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 16px}
+        .pf-field{display:flex;flex-direction:column;gap:6px;min-width:0}
+        .pf-field--wide{grid-column:1/-1}
+        .pf-field label{color:var(--text-2,#4c5a66);font-size:11.5px;font-weight:750}
+        .pf-field label b{color:#b5443c}
+        .pf-field label span{color:var(--text-3,#7b8791);font-weight:550}
+        .pf-input{width:100%;min-height:46px;padding:11px 13px;border:1px solid var(--border,rgba(20,52,72,.16));border-radius:12px;background:var(--surface-2,#f5f7f9);color:var(--text,#142238);font:inherit;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s;box-sizing:border-box}
+        .pf-input:focus{border-color:#2b6a8f;box-shadow:0 0 0 3px rgba(43,106,143,.16)}
+        .pf-input[readonly]{color:var(--text-3,#7b8791);cursor:not-allowed}
+        .pf-input.is-invalid{border-color:#b5443c;box-shadow:0 0 0 3px rgba(181,68,60,.12)}
+        .pf-cert{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:2px;padding:10px 14px;border:1px dashed color-mix(in srgb,#c79a43 55%,transparent);border-radius:12px;background:color-mix(in srgb,#c79a43 7%,var(--surface,#fff))}
+        .pf-cert small{flex:0 0 auto;color:#9c6d17;font:800 8.5px/1.2 'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+        .pf-cert strong{min-width:0;overflow:hidden;color:var(--text,#142238);font:600 italic 17px/1.2 'Fraunces',Georgia,serif;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+        .pf-cert.is-empty strong{color:var(--text-3,#7b8791);font-weight:400}
+        .pf-cert.is-long{border-color:#c46a2f}
+        .pf-check{display:flex;align-items:flex-start;gap:9px;margin:16px 0 0;color:var(--text-2,#4c5a66);font-size:12.5px;line-height:1.4;cursor:pointer}
+        .pf-check input{width:17px;height:17px;margin:1px 0 0;accent-color:#173b56;flex:0 0 auto}
+        .pf-note{display:flex;align-items:flex-start;gap:9px;margin:14px 0 0;padding:11px 13px;border-radius:12px;background:color-mix(in srgb,#173b56 6%,var(--surface,#fff));border:1px solid color-mix(in srgb,#173b56 14%,var(--border,transparent));color:var(--text-2,#4c5a66);font-size:11.5px;line-height:1.5}
+        .pf-note .ic{flex:0 0 auto;width:16px;height:16px;margin-top:1px;color:#2b6a8f}
+        .pf-error{margin:12px 0 0;color:#b5443c;font-size:12.5px;font-weight:650}
+        .pf-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:20px}
+        .pf-actions .btn{min-height:46px}
+        .pf-intake .pf-save{border:0;color:#fff;background:linear-gradient(135deg,#173b56,#2b6a8f);box-shadow:0 10px 24px rgba(23,59,86,.24)}
+        .pf-intake .pf-save:disabled{opacity:.7;cursor:progress}
+        [data-theme="night"] .pf-intake .pf-save{background:linear-gradient(135deg,#2b6a8f,#3f8fb4)}
+        .pf-intake.is-closing .pf-panel{opacity:0;transform:translateY(10px);transition:.18s}
+        .pf-intake.is-closing .pf-veil{opacity:0;transition:.18s}
+        [data-theme="night"] .pf-kicker,[data-theme="night"] .pf-cert small{color:#e0bb6c}
+        [data-theme="night"] .pf-input:focus{border-color:#75c4d7}
+        @media(max-width:640px){
+          .pf-intake{padding:0;place-items:end center}
+          .pf-panel{width:100%;max-height:94dvh;border-radius:22px 22px 0 0;border-bottom:0}
+          .pf-head{padding:20px 18px 18px}.pf-identity{padding-right:42px}.pf-avatar{width:52px;height:52px;font-size:16px}
+          .pf-intro{font-size:12.5px}
+          .pf-body{padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+          .pf-grid{grid-template-columns:1fr;gap:12px}
+          .pf-input{min-height:48px;font-size:16px}
+          .pf-cert{flex-direction:column;align-items:flex-start;gap:4px}.pf-cert strong{text-align:left;max-width:100%}
+          .pf-actions{flex-direction:column-reverse}.pf-actions .btn{width:100%}
+        }
+        @media(max-height:520px) and (orientation:landscape){.pf-intake{padding:8px}.pf-panel{max-height:calc(100dvh - 16px)}.pf-intro{display:none}}
+        @media(prefers-reduced-motion:reduce){.pf-panel{animation:none}}`;
       document.head.appendChild(st);
     }
-    const input = document.getElementById('nm-input');
-    const hint = document.getElementById('nm-hint');
-    setTimeout(()=>input.focus(), 100);
 
-    // Aviso en vivo: si el nombre se acerca al límite estético del certificado
-    const LIMITE_OK = 32;  // hasta aquí se ve bien centrado en el certificado
-    input.addEventListener('input', ()=>{
-      const v = (input.value||'').trim();
-      if (v.length >= 34) hint.textContent = 'Es el máximo que se ve bien en el certificado. Usa nombre + 1 o 2 apellidos.';
-      else if (v.length >= LIMITE_OK) hint.textContent = 'Procura que no sea más largo para que luzca bien.';
-      else hint.textContent = '';
-    });
+    const form = ov.querySelector('form');
+    const $ = id => ov.querySelector('#' + id);
+    const nameInput = $('pf-nombre'), waInput = $('pf-wa');
+    const cert = ov.querySelector('.pf-cert'), certName = ov.querySelector('[data-pf-cert]');
+    const error = ov.querySelector('.pf-error'), save = ov.querySelector('.pf-save');
+    const paintCert = () => {
+      const v = nameInput.value.trim().replace(/\s+/g, ' ');
+      certName.textContent = v || 'Tu nombre y apellidos';
+      cert.classList.toggle('is-empty', !v);
+      cert.classList.toggle('is-long', v.length >= 34);
+    };
+    nameInput.addEventListener('input', paintCert); paintCert();
+    form.addEventListener('input', event => { event.target.classList?.remove('is-invalid'); if (!ov.querySelector('.is-invalid')) error.hidden = true; });
 
-    async function guardar(){
-      let val = (input.value||'').trim().replace(/\s+/g,' ');
-      if (val.length < 3 || !val.includes(' ')) { hint.textContent = 'Escribe tu nombre y al menos un apellido.'; input.focus(); return; }
-      if (val.length > 38) { val = val.slice(0,38).trim(); }  // tope duro estético
-      // En producción, el backend actualiza de forma coherente Auth, perfil,
-      // directorio, ranking y membresía. Nunca escribimos miembros desde aquí.
+    let previousFocus = document.activeElement, closed = false;
+    const closeModal = () => {
+      if (closed) return; closed = true;
+      document.removeEventListener('keydown', onKey, true);
+      ov.classList.add('is-closing');
+      setTimeout(() => { ov.remove(); if (previousFocus?.isConnected) previousFocus.focus?.(); }, 190);
+    };
+    const later = async () => {
+      try { localStorage.setItem(intakeKey, '1'); } catch(e){}
+      S.profileIntakeSeen = true;
+      closeModal();
+      if (window.Toast) Toast.info('Puedes completarlo después', 'Mi perfil → Nombre completo y tu tarjeta del directorio');
+      try { await window.ICADEMPlatform?.markProfileIntakeSeen?.(); } catch(e){ console.warn('[ficha inicial] Pendiente de sincronizar', e?.message); }
+    };
+    const onKey = event => {
+      if (event.key === 'Escape') { event.preventDefault(); later(); return; }
+      if (event.key !== 'Tab') return;
+      const nodes = Array.from(ov.querySelectorAll('button,input:not([readonly]),select')).filter(n => !n.disabled && n.offsetParent !== null);
+      if (!nodes.length) return;
+      const first = nodes[0], last = nodes[nodes.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    ov.querySelectorAll('[data-pf-later]').forEach(el => el.addEventListener('click', later));
+    setTimeout(() => (nameInput.value ? waInput : nameInput).focus(), 120);
+
+    const fail = (message, input) => {
+      error.textContent = message; error.hidden = false;
+      ov.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+      if (input) { input.classList.add('is-invalid'); input.focus(); }
+    };
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      error.hidden = true;
+      ov.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+      const nombre = nameInput.value.trim().replace(/\s+/g, ' ').slice(0, 38);
+      const whatsapp = waInput.value.trim();
+      const puesto = $('pf-puesto').value.trim();
+      const sector = $('pf-area').value;
+      if (nombre.length < 4 || !nombre.includes(' ')) return fail('Escribe tu nombre y al menos un apellido, como quieres que aparezca en tus certificados.', nameInput);
+      if (!/^\+?[0-9 ()\-.]{7,20}$/.test(whatsapp) || whatsapp.replace(/\D/g, '').length < 10) return fail('Escribe un WhatsApp válido de al menos 10 dígitos (con lada).', waInput);
+      if (puesto.length < 2) return fail('Indica tu profesión o puesto.', $('pf-puesto'));
+      if (!sector) return fail('Elige tu área profesional.', $('pf-area'));
+      save.disabled = true; const label = save.innerHTML; save.textContent = 'Guardando…';
       try {
-        if (!window.__isDemoMode) {
-          if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible.');
-          await window.ICADEMPlatform.saveProfile({ nombre: val });
-        }
-      } catch(error) {
-        hint.textContent = error.message || 'No se pudo guardar. Intenta nuevamente.';
-        input.focus();
-        return;
+        if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible. Intenta de nuevo en unos segundos.');
+        await window.ICADEMPlatform.saveProfile({
+          nombre, whatsapp, puesto, profesion: puesto, sector, especialidad: sector,
+          empresa: $('pf-empresa').value.trim(), ubicacion: $('pf-ciudad').value.trim(),
+          email: card.email || email,
+          contactoVisible: {
+            email: contacto.email === true,
+            whatsapp: $('pf-wa-public').checked,
+            linkedin: contacto.linkedin !== false,
+            web: contacto.web !== false
+          },
+          profileIntake: true
+        });
+        Object.assign(S, { nombre, displayName: nombre, customName: nombre, profileIntakeSeen: true, hasWhatsapp: true });
+        S.iniciales = window.calcIniciales ? window.calcIniciales(nombre) : nombre.slice(0, 2).toUpperCase();
+        if (window.memberData) window.memberData.nombre = nombre;
+        try {
+          const ls = JSON.parse(localStorage.getItem('icadem_profile') || '{}');
+          localStorage.setItem('icadem_profile', JSON.stringify(Object.assign(ls, { nombre })));
+          localStorage.setItem(intakeKey, '1');
+          localStorage.setItem(`icadem_name_confirmed:${account}`, '1');
+        } catch(e){}
+        if (typeof window.__applyUserState === 'function') window.__applyUserState();
+        closeModal();
+        if (window.Toast) Toast.success('Ficha guardada', `Tus certificados saldrán a nombre de ${nombre}.`);
+      } catch(err) {
+        fail(err?.message || 'No pudimos guardar tus datos. Intenta nuevamente.');
+        save.disabled = false; save.innerHTML = label;
       }
-      window.UserState.nombre = val;
-      window.UserState.displayName = val;
-      window.UserState.customName = val;
-      window.UserState.iniciales = (window.calcIniciales ? window.calcIniciales(val) : val.slice(0,2).toUpperCase());
-      if (window.memberData) window.memberData.nombre = val;
-      try { const ls=JSON.parse(localStorage.getItem('icadem_profile')||'{}'); ls.nombre=val; localStorage.setItem('icadem_profile',JSON.stringify(ls)); } catch(e){}
-      localStorage.setItem(nameConfirmedKey,'1');
-      delete document.documentElement.dataset.icademNamePending;
-      if (typeof window.__applyUserState==='function') window.__applyUserState();
-      if (window.Toast) Toast.success('Nombre guardado', val);
-      ov.remove();
-    }
-    document.getElementById('nm-save').addEventListener('click', guardar);
-    input.addEventListener('keydown', e=>{ if(e.key==='Enter') guardar(); });
-    document.getElementById('nm-skip').addEventListener('click', ()=>{
-      // No volver a molestar, pero NO marcamos como "confirmado" para que el
-      // perfil siga sugiriendo completarlo. Marcamos solo "preguntado".
-      localStorage.setItem(nameConfirmedKey,'1');
-      delete document.documentElement.dataset.icademNamePending;
-      ov.remove();
-      if (window.Toast) Toast.info('Puedes cambiarlo luego', 'Mi perfil → Nombre completo');
     });
   } catch(e){
-    delete document.documentElement.dataset.icademNamePending;
-    console.warn('maybeAskName:', e);
+    console.warn('ficha inicial:', e);
+    document.getElementById('name-modal')?.remove();
   }
 };
+window.__maybeAskProfile = window.__maybeAskName;
 
 function openEditField(field){
   const wrap=document.querySelector(`[data-field="${field}"]`);
@@ -20771,6 +20880,6 @@ h1, h2, h3, h4{ color: var(--text); }
   .directory-page .directory-tier{min-width:0!important}
 }
 </style>
-<script src="js/icadem-onboarding.js?v=13"></script>
+<script src="js/icadem-onboarding.js?v=14"></script>
 </body>
 </html>

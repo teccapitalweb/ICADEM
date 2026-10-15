@@ -185,7 +185,7 @@
   const Experience=(()=>{
     const queue=[];
     let busy=false,activeId='',sequence=0;
-    const priorities={'membership-welcome':120,tour:100,'credit-gift':90,'free-course':80,'profile-name':50,install:30};
+    const priorities={'membership-welcome':120,tour:100,'credit-gift':90,'free-course':80,'profile-name':95,install:30};
     const retryDelays=[1200,3000,7000,15000];
     function enqueue(id,payload,options){
       options=options||{};
@@ -220,6 +220,7 @@
       if(job.id==='tour'){
         const result=await start({force:job.payload.force===true});
         if(result==='unavailable'){if(job.payload.force!==true)retry(job);return;}
+        enqueue('profile-name');
         if(!creditGiftWasSeen())enqueue('credit-gift');
         if(canOfferFreeCourse())enqueue('free-course');
         return;
@@ -232,9 +233,10 @@
       }
       if(job.id==='free-course'){if(!tourWasSeen())return;await openFreeCourseChooser();return;}
       if(job.id==='profile-name'){
-        if(!tourWasSeen()||visitCount()<2)return;
-        if(window.UserState?.modo!=='vip'&&!window.UserState?.freeCourseId)return;
-        window.__maybeAskName?.();
+        // Ficha inicial: justo después del primer recorrido (nombre del
+        // certificado, WhatsApp, puesto y área para el directorio).
+        if(!tourWasSeen())return;
+        await window.__maybeAskName?.();
         await waitForGone('#name-modal');
         return;
       }
