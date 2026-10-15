@@ -10,16 +10,26 @@
   const PRACTICE_TYPES = ['crossword', 'memory', 'wordsearch', 'puzzle', 'guess', 'classify'];
   const GAME_LABELS = {
     crossword: 'Crucigrama', memory: 'Memoria', wordsearch: 'Sopa de letras',
-    puzzle: 'Rompecabezas', guess: 'Veredicto exprés', classify: 'Clasifica', quiz: 'Quiz profesional'
+    puzzle: 'Rompecabezas', guess: 'Veredicto exprés', classify: 'Clasifica', quiz: 'Quiz profesional',
+    order: 'Ordena el proceso', hazard: 'Encuentra la irregularidad', spot: 'Señala en la escena',
+    document: 'Revisa el documento', calc: 'Calcula y comprueba', vmemory: 'Memorama visual'
   };
+  const PRO_TYPES = ['puzzle', 'hazard', 'spot', 'document', 'calc', 'vmemory', 'order'];
   const GAME_ICONS = {
-    crossword: '⌗', memory: '◫', wordsearch: '⌕', puzzle: '◇', guess: '?', classify: '≡', quiz: '12'
+    crossword: '⌗', memory: '◫', wordsearch: '⌕', puzzle: '◇', guess: '?', classify: '≡', quiz: '12',
+    order: '↕', hazard: '!', spot: '⌖', document: '✎', calc: '∑', vmemory: '◫'
   };
   const GAME_META = {
     crossword: { eyebrow: 'Precisión', title: 'Crucigrama técnico', description: 'Completa el concepto a partir de una pista profesional.', duration: '2 min', icon: 'i-edit' },
     memory: { eyebrow: 'Memoria', title: 'Conecta conceptos', description: 'Relaciona cada término con su aplicación correcta.', duration: '2–3 min', icon: 'i-book' },
     wordsearch: { eyebrow: 'Enfoque', title: 'Sopa de conceptos', description: 'Encuentra términos clave dentro del tablero.', duration: '3 min', icon: 'i-search' },
-    puzzle: { eyebrow: 'Análisis', title: 'Ordena el proceso', description: 'Reconstruye la secuencia y comprueba tu lógica.', duration: '2 min', icon: 'i-chart-bar' },
+    puzzle: { eyebrow: 'Percepción', title: 'Rompecabezas profesional', description: 'Reconstruye una escena real de tu profesión pieza por pieza.', duration: '2 min', icon: 'i-image' },
+    order: { eyebrow: 'Procedimiento', title: 'Ordena el proceso', description: 'Acomoda los pasos de un trámite real en su orden correcto.', duration: '2 min', icon: 'i-chart-bar' },
+    hazard: { eyebrow: 'Ojo profesional', title: 'Encuentra la irregularidad', description: 'Detecta las cuatro fallas escondidas en una escena real.', duration: '2 min', icon: 'i-alert-circle' },
+    spot: { eyebrow: 'Ubicación', title: 'Señala en la escena', description: 'Ubica cada área clave en una vista real desde arriba.', duration: '2 min', icon: 'i-gauge' },
+    document: { eyebrow: 'Revisión', title: 'Revisa el documento', description: 'Encuentra los errores de una factura, contrato o pedimento.', duration: '3 min', icon: 'i-clipboard-check' },
+    calc: { eyebrow: 'Cálculo', title: 'Calcula y comprueba', description: 'Resuelve un caso real con números y valida tu resultado.', duration: '3 min', icon: 'i-calculator' },
+    vmemory: { eyebrow: 'Memoria visual', title: 'Memorama visual', description: 'Une cada imagen con su concepto profesional.', duration: '2 min', icon: 'i-book-2' },
     guess: { eyebrow: 'Criterio jurídico', title: 'Veredicto exprés', description: 'Identifica el concepto legal y decide con fundamento.', duration: '60 s', icon: 'i-scale' },
     classify: { eyebrow: 'Criterio', title: 'Decide con criterio', description: 'Clasifica conceptos y aplicaciones profesionales.', duration: '3 min', icon: 'i-briefcase' },
     quiz: { eyebrow: 'Reto diario', title: '12 preguntas clave', description: 'Comprueba tu criterio con preguntas de seis áreas profesionales.', duration: '5 min', icon: 'i-calendar' }
@@ -549,6 +559,12 @@
       instructions: ['Observa la consigna', 'Resuelve con calma', 'Comprueba tu respuesta'], reward: 5,
       balance: Number(localStorage.getItem('icadem:demo:credits') || 200)
     };
+    if (DEMO_PRO[selected]) {
+      const board = DEMO_PRO[selected]();
+      local.content = board.content;
+      local.solution = board.solution;
+      return local;
+    }
     if (selected === 'quiz') {
       local.content = { questions: DEMO_QUIZ.map(({ answer, ...question }) => question), passingScore: 70, bankSize: 20 };
       local.solution = { answers: Object.fromEntries(DEMO_QUIZ.map(question => [question.id, question.answer])), minCorrect: 9, total: 12 };
@@ -605,6 +621,7 @@
     if (challenge?.scope !== 'reto') return;
     const status = readDemoRetoStatus();
     const experienceId = String(challenge.experienceId || challenge.type || '');
+    if (experienceId === 'pro') return;
     if (experienceId === 'catalog') {
       if (!status.catalogTypes.includes(challenge.type)) status.catalogTypes.push(challenge.type);
     } else if (experienceId === 'daily') {
@@ -619,6 +636,7 @@
     const status = readDemoRetoStatus();
     const today = mexicoDateKey();
     if (experienceId === 'catalog') return status.catalogTypes.includes(type);
+    if (experienceId === 'pro') { try { return JSON.parse(localStorage.getItem(demoProStatusKey()) || '[]').includes(type); } catch (_) { return false; } }
     if (experienceId === 'daily') return status.dailyDate === today;
     return status.used.includes(experienceId);
   }
@@ -810,7 +828,7 @@
     const order = Array.from({ length: size * size }, (_, i) => i).sort(() => Math.random() - .5);
     if (order.every((n, i) => n === i)) [order[0], order[1]] = [order[1], order[0]];
     const image = challenge.content?.image || '';
-    const frame = gameFrame(challenge, shell, `<div class="puzzle-grid" style="--puzzle-size:${size}"></div><p class="game-hint">Toca dos piezas para intercambiarlas.</p>`);
+    const frame = gameFrame(challenge, shell, `<div class="puzzle-wrap${image ? ' has-ref' : ''}"><div class="puzzle-grid" style="--puzzle-size:${size}"></div>${image ? `<figure class="puzzle-ref"><img src="${encodeURI(image).replace(/'/g, '%27')}" alt="" decoding="async"><figcaption>Imagen de referencia</figcaption></figure>` : ''}</div><p class="game-hint">Toca dos piezas para intercambiarlas.</p>`);
     let selected = null;
     const paint = () => {
       const grid = frame.board.querySelector('.puzzle-grid');
@@ -841,11 +859,16 @@
     const assign = (item, category) => {
       assignments[item.dataset.item] = category;
       const zone = frame.board.querySelector(`[data-category="${CSS.escape(category)}"] div`);
-      zone.appendChild(item); item.classList.add('is-assigned'); selected = null;
+      zone.appendChild(item); item.classList.add('is-assigned'); item.classList.remove('is-selected'); selected = null;
       frame.status.textContent = `${Object.keys(assignments).length} de ${content.items.length} tarjetas clasificadas.`;
     };
     frame.board.querySelectorAll('[data-item]').forEach(item => {
-      item.addEventListener('click', () => { selected = item; frame.board.querySelectorAll('[data-item]').forEach(x => x.classList.toggle('is-selected', x === item)); });
+      item.addEventListener('click', event => {
+        // Con otra tarjeta seleccionada, tocar una ya clasificada equivale a tocar su categoría.
+        if (selected && selected !== item && item.classList.contains('is-assigned')) return;
+        event.stopPropagation();
+        selected = item; frame.board.querySelectorAll('[data-item]').forEach(x => x.classList.toggle('is-selected', x === item));
+      });
       item.addEventListener('dragstart', event => event.dataTransfer.setData('text/plain', item.dataset.item));
     });
     frame.board.querySelectorAll('[data-category]').forEach(zone => {
@@ -854,7 +877,11 @@
       zone.addEventListener('dragover', event => event.preventDefault());
       zone.addEventListener('drop', event => { event.preventDefault(); const id = event.dataTransfer.getData('text/plain'); const item = frame.board.querySelector(`[data-item="${CSS.escape(id)}"]`); if (item) assign(item, zone.dataset.category); });
     });
-    frame.check.addEventListener('click', () => submit({ assignments }, frame));
+    frame.check.addEventListener('click', () => {
+      const pending = (content.items || []).length - Object.keys(assignments).length;
+      if (pending > 0) { frame.status.textContent = `Te ${pending === 1 ? 'falta 1 tarjeta' : `faltan ${pending} tarjetas`} por clasificar.`; frame.status.classList.add('is-error'); return; }
+      submit({ assignments }, frame);
+    });
     frame.reset.addEventListener('click', () => runClassify(challenge, shell, submit));
   }
 
@@ -916,6 +943,271 @@
     paint();
   }
 
+  // ─── Dinámicas profesionales v4 ───────────────────────────────────────
+  const IMG_BASE = 'assets/juegos/';
+  function imgUrl(path) { return encodeURI(String(path || '')).replace(/'/g, '%27'); }
+  function shuffleLocal(list) { const out = list.slice(); for (let i = out.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [out[i], out[j]] = [out[j], out[i]]; } return out; }
+
+  function runCrosswordGrid(challenge, shell, submit) {
+    const c = challenge.content || {};
+    const words = Array.isArray(c.words) ? c.words : [];
+    const cellsOf = w => Array.from({ length: w.len }, (_, k) => `${w.r + (w.dir === 'v' ? k : 0)}-${w.c + (w.dir === 'h' ? k : 0)}`);
+    const used = new Map(), numbers = new Map();
+    words.forEach(w => { cellsOf(w).forEach(k => used.set(k, true)); numbers.set(`${w.r}-${w.c}`, w.num); });
+    let grid = '';
+    for (let r = 0; r < c.rows; r++) for (let col = 0; col < c.cols; col++) {
+      const k = `${r}-${col}`;
+      grid += used.has(k)
+        ? `<label class="cw4__cell">${numbers.has(k) ? `<small>${numbers.get(k)}</small>` : ''}<input data-k="${k}" maxlength="1" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-label="Casilla"></label>`
+        : '<span class="cw4__void"></span>';
+    }
+    const clues = dir => words.filter(w => w.dir === dir).sort((a, b) => a.num - b.num)
+      .map(w => `<li data-clue="${esc(w.id)}"><b>${w.num}</b><span>${esc(w.clue)}</span><em>${w.len}</em></li>`).join('');
+    const frame = gameFrame(challenge, shell, `<div class="cw4${c.image ? ' has-photo' : ''}">
+      ${c.image ? `<figure class="cw4__photo"><img src="${imgUrl(c.image)}" alt="" decoding="async"></figure>` : ''}
+      <div class="cw4__board"><div class="cw4__grid" style="--cols:${Number(c.cols) || 1}">${grid}</div></div>
+      <div class="cw4__clues">${words.some(w => w.dir === 'h') ? `<span>Horizontales</span><ol>${clues('h')}</ol>` : ''}${words.some(w => w.dir === 'v') ? `<span>Verticales</span><ol>${clues('v')}</ol>` : ''}</div>
+    </div>`);
+    const input = k => frame.board.querySelector(`input[data-k="${k}"]`);
+    let active = words[0]?.id;
+    const wordById = id => words.find(w => w.id === id);
+    const highlight = () => {
+      frame.board.querySelectorAll('.is-active').forEach(el => el.classList.remove('is-active'));
+      const w = wordById(active); if (!w) return;
+      cellsOf(w).forEach(k => input(k)?.parentElement.classList.add('is-active'));
+      frame.board.querySelector(`[data-clue="${CSS.escape(w.id)}"]`)?.classList.add('is-active');
+    };
+    const wordsAt = k => words.filter(w => cellsOf(w).includes(k));
+    frame.board.querySelectorAll('input').forEach(el => {
+      el.addEventListener('focus', () => { const opts = wordsAt(el.dataset.k); if (!opts.some(w => w.id === active)) active = opts[0].id; highlight(); });
+      el.addEventListener('click', () => { const opts = wordsAt(el.dataset.k); if (opts.length > 1) { active = (opts.find(w => w.id !== active) || opts[0]).id; highlight(); } });
+      el.addEventListener('input', () => {
+        el.value = normalize(el.value).replace(/[^A-Z]/g, '').slice(-1);
+        if (!el.value) return;
+        const list = cellsOf(wordById(active)); const next = list[list.indexOf(el.dataset.k) + 1];
+        if (next) input(next)?.focus();
+      });
+      el.addEventListener('keydown', event => {
+        if (event.key === 'Enter') { event.preventDefault(); frame.check.click(); return; }
+        if (event.key !== 'Backspace' || el.value) return;
+        const list = cellsOf(wordById(active)); const prev = list[list.indexOf(el.dataset.k) - 1];
+        if (prev) { event.preventDefault(); const p = input(prev); if (p) { p.value = ''; p.focus(); } }
+      });
+    });
+    frame.board.querySelectorAll('[data-clue]').forEach(li => li.addEventListener('click', () => {
+      active = li.dataset.clue; const w = wordById(active);
+      const first = cellsOf(w).find(k => !input(k)?.value) || cellsOf(w)[0];
+      input(first)?.focus(); highlight();
+    }));
+    const collect = () => Object.fromEntries(words.map(w => [w.id, cellsOf(w).map(k => input(k)?.value || '').join('')]));
+    frame.check.addEventListener('click', () => {
+      const answers = collect();
+      if (words.some(w => answers[w.id].length !== w.len)) { frame.status.textContent = 'Completa todas las casillas antes de comprobar.'; frame.status.classList.add('is-error'); return; }
+      submit({ answers }, frame);
+    });
+    frame.reset.addEventListener('click', () => runCrosswordGrid(challenge, shell, submit));
+    highlight();
+  }
+
+  function runOrder(challenge, shell, submit) {
+    const c = challenge.content || {};
+    let steps = (c.steps || []).slice();
+    const frame = gameFrame(challenge, shell, `<div class="ord4"><p class="ord4__prompt">${esc(c.prompt || 'Ordena el proceso')}</p><ol class="ord4__list"></ol></div>`);
+    const list = frame.board.querySelector('.ord4__list');
+    const paint = focusId => {
+      list.innerHTML = steps.map((s, i) => `<li data-step="${esc(s.id)}"><b>${i + 1}</b><span>${esc(s.text)}</span><div class="ord4__moves"><button type="button" data-move="-1" aria-label="Subir paso" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" aria-label="Bajar paso" ${i === steps.length - 1 ? 'disabled' : ''}>↓</button></div></li>`).join('');
+      if (focusId) list.querySelector(`[data-step="${CSS.escape(focusId.id)}"] [data-move="${focusId.dir}"]:not(:disabled)`)?.focus();
+    };
+    list.addEventListener('click', event => {
+      const btn = event.target.closest('[data-move]'); if (!btn) return;
+      const id = btn.closest('[data-step]').dataset.step; const i = steps.findIndex(s => s.id === id); const j = i + Number(btn.dataset.move);
+      if (j < 0 || j >= steps.length) return;
+      [steps[i], steps[j]] = [steps[j], steps[i]];
+      frame.status.textContent = ''; frame.status.classList.remove('is-error');
+      paint({ id, dir: btn.dataset.move });
+    });
+    paint();
+    frame.check.addEventListener('click', () => submit({ order: steps.map(s => s.id) }, frame));
+    frame.reset.addEventListener('click', () => runOrder(challenge, shell, submit));
+  }
+
+  function pointPercent(el, event) { const r = el.getBoundingClientRect(); return { x: (event.clientX - r.left) / r.width * 100, y: (event.clientY - r.top) / r.height * 100 }; }
+
+  function runHazard(challenge, shell, submit) {
+    const c = challenge.content || {};
+    const items = Array.isArray(c.items) ? c.items : [];
+    const found = [];
+    const frame = gameFrame(challenge, shell, `<div class="hz4"><div class="hz4__scene" data-scene><img src="${imgUrl(c.image)}" alt="${esc(c.scene || 'Escena')}" draggable="false" decoding="async"><div class="hz4__marks" data-marks></div></div>
+      <aside class="hz4__side"><span>Irregularidades · <b data-hz-count>0/${items.length}</b></span><ol>${items.map((_, i) => `<li data-hz-slot="${i}"><b>${i + 1}</b><span>Por encontrar</span></li>`).join('')}</ol><p>Toca en la imagen cada condición incorrecta. Observa el piso, los equipos, las personas y los documentos.</p></aside></div>`);
+    const scene = frame.board.querySelector('[data-scene]'), marks = frame.board.querySelector('[data-marks]');
+    const pad = 2.5;
+    const reveal = it => {
+      found.push(it.id); const n = found.length;
+      const ring = document.createElement('span'); ring.className = 'hz4__ring';
+      ring.style.cssText = `left:${it.x}%;top:${it.y}%;width:${it.w}%;height:${it.h}%`; ring.innerHTML = `<b>${n}</b>`; marks.appendChild(ring);
+      const slot = frame.board.querySelector(`[data-hz-slot="${n - 1}"]`);
+      if (slot) { slot.classList.add('is-found'); slot.innerHTML = `<b>${n}</b><span><strong>${esc(it.label)}</strong>${esc(it.tip)}</span>`; }
+      frame.board.querySelector('[data-hz-count]').textContent = `${n}/${items.length}`;
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = n === items.length ? '¡Encontraste todas! Pulsa Comprobar.' : `¡Bien visto! ${it.label}.`;
+      announce(it.label);
+    };
+    scene.addEventListener('click', event => {
+      const p = pointPercent(scene, event);
+      const hit = items.find(it => !found.includes(it.id) && p.x >= it.x - pad && p.x <= it.x + it.w + pad && p.y >= it.y - pad && p.y <= it.y + it.h + pad);
+      if (hit) { reveal(hit); return; }
+      if (items.some(it => found.includes(it.id) && p.x >= it.x && p.x <= it.x + it.w && p.y >= it.y && p.y <= it.y + it.h)) return;
+      const miss = document.createElement('span'); miss.className = 'hz4__miss'; miss.style.left = `${p.x}%`; miss.style.top = `${p.y}%`; marks.appendChild(miss);
+      setTimeout(() => miss.remove(), 900);
+      frame.status.textContent = 'Ahí no hay una irregularidad. Observa con calma.'; frame.status.classList.add('is-error');
+    });
+    frame.check.addEventListener('click', () => {
+      if (found.length < items.length) { frame.status.textContent = `Te faltan ${items.length - found.length} por encontrar.`; frame.status.classList.add('is-error'); return; }
+      submit({ found: found.slice() }, frame);
+    });
+    frame.reset.addEventListener('click', () => runHazard(challenge, shell, submit));
+  }
+
+  function runSpot(challenge, shell, submit) {
+    const c = challenge.content || {};
+    const zones = Array.isArray(c.zones) ? c.zones : [], rounds = Array.isArray(c.rounds) ? c.rounds : [];
+    const answers = []; let round = 0, locked = false, misses = 0;
+    const frame = gameFrame(challenge, shell, `<div class="sp4"><p class="sp4__q" data-sp-q></p><div class="sp4__frame"><div class="sp4__map" data-sp-map><img src="${imgUrl(c.image)}" alt="Vista de la escena" draggable="false" decoding="async">${zones.map((z, i) => `<button type="button" class="sp4__hit" data-zone="${esc(z.id)}" style="left:${z.x}%;top:${z.y}%;width:${z.w}%;height:${z.h}%" aria-label="Área ${i + 1}"></button><span class="sp4__label" data-zone-label="${esc(z.id)}" style="left:${z.x + z.w / 2}%;top:${z.y + z.h / 2}%">${esc(z.label)}</span>`).join('')}</div></div></div>`);
+    const map = frame.board.querySelector('[data-sp-map]'), q = frame.board.querySelector('[data-sp-q]');
+    const show = () => {
+      misses = 0; map.querySelectorAll('.is-hint').forEach(el => el.classList.remove('is-hint'));
+      if (round >= rounds.length) { q.innerHTML = '<span>Listo</span>Ubicaste todas las áreas. Pulsa Comprobar.'; return; }
+      q.innerHTML = `<span>Situación ${round + 1} de ${rounds.length}</span>${esc(rounds[round].q)}`;
+    };
+    map.addEventListener('click', event => {
+      const btn = event.target.closest('[data-zone]'); if (!btn || locked || round >= rounds.length) return;
+      const r = rounds[round];
+      if (btn.dataset.zone === r.zone) {
+        locked = true; answers.push(r.zone); btn.classList.remove('is-hint'); btn.classList.add('is-correct');
+        map.querySelectorAll(`[data-zone-label="${CSS.escape(r.zone)}"]`).forEach(el => el.classList.add('is-visible'));
+        frame.status.classList.remove('is-error'); frame.status.textContent = r.tip || '¡Correcto!';
+        round += 1; setTimeout(() => { locked = false; show(); }, 900); return;
+      }
+      btn.classList.remove('is-wrong'); void btn.offsetWidth; btn.classList.add('is-wrong'); misses += 1;
+      frame.status.classList.add('is-error');
+      if (misses >= 2) { map.querySelector(`[data-zone="${CSS.escape(r.zone)}"]`)?.classList.add('is-hint'); frame.status.textContent = 'El área correcta está iluminada. Tócala para continuar.'; }
+      else frame.status.textContent = 'Esa no es el área correcta. Lee de nuevo la situación.';
+    });
+    show();
+    frame.check.addEventListener('click', () => {
+      if (answers.length < rounds.length) { frame.status.textContent = `Resuelve las ${rounds.length} situaciones antes de comprobar.`; frame.status.classList.add('is-error'); return; }
+      submit({ answers: answers.slice() }, frame);
+    });
+    frame.reset.addEventListener('click', () => runSpot(challenge, shell, submit));
+  }
+
+  function runDocument(challenge, shell, submit) {
+    const c = challenge.content || {};
+    const fields = Array.isArray(c.fields) ? c.fields : [];
+    const flagged = new Set();
+    const frame = gameFrame(challenge, shell, `<div class="doc4"><p class="doc4__intro">Este documento tiene <b>${Number(c.errorCount) || 3} errores</b>. Toca los datos incorrectos para marcarlos.</p>
+      <article class="doc4__paper"><header><small>${esc(c.docType || 'Documento')}</small><strong>${esc(c.title || '')}</strong>${c.subtitle ? `<em>${esc(c.subtitle)}</em>` : ''}</header>
+      <div class="doc4__fields">${fields.map(f => `<button type="button" class="doc4__field" data-field="${esc(f.id)}" aria-pressed="false"><span>${esc(f.label)}</span><b>${esc(f.value)}</b><i aria-hidden="true">!</i></button>`).join('')}</div></article>
+      <p class="doc4__count"><span data-doc-count>0</span> de ${Number(c.errorCount) || 3} marcados</p></div>`);
+    frame.board.querySelectorAll('[data-field]').forEach(btn => btn.addEventListener('click', () => {
+      const id = btn.dataset.field;
+      if (flagged.has(id)) flagged.delete(id); else flagged.add(id);
+      btn.classList.toggle('is-flagged', flagged.has(id)); btn.setAttribute('aria-pressed', String(flagged.has(id)));
+      frame.board.querySelector('[data-doc-count]').textContent = String(flagged.size);
+      frame.status.textContent = ''; frame.status.classList.remove('is-error');
+    }));
+    frame.check.addEventListener('click', () => {
+      if (!flagged.size) { frame.status.textContent = 'Marca al menos un dato antes de comprobar.'; frame.status.classList.add('is-error'); return; }
+      submit({ flagged: [...flagged] }, frame);
+    });
+    frame.reset.addEventListener('click', () => runDocument(challenge, shell, submit));
+  }
+
+  function runCalc(challenge, shell, submit) {
+    const c = challenge.content || {};
+    const unit = String(c.unit || '');
+    const money = unit === 'MXN';
+    const frame = gameFrame(challenge, shell, `<div class="calc4"><section class="calc4__case"><small>Caso práctico</small><strong>${esc(c.title || 'Calcula')}</strong><p>${esc(c.scenario || '')}</p>
+      <dl>${(c.data || []).map(d => `<div><dt>${esc(d.label)}</dt><dd>${esc(d.value)}</dd></div>`).join('')}</dl></section>
+      <section class="calc4__answer"><label for="calc4-input">${esc(c.question || 'Resultado')}</label><div class="calc4__field">${money ? '<span>$</span>' : ''}<input id="calc4-input" inputmode="decimal" autocomplete="off" placeholder="0.00">${!money && unit ? `<span>${esc(unit)}</span>` : ''}</div>
+      <small>${money ? 'Escribe la cantidad en pesos, con o sin centavos.' : 'Escribe solo el número.'}</small></section></div>`);
+    const input = frame.board.querySelector('input');
+    input.addEventListener('keydown', event => { if (event.key === 'Enter') frame.check.click(); });
+    frame.check.addEventListener('click', () => {
+      const raw = input.value.trim();
+      if (!raw) { frame.status.textContent = 'Escribe tu resultado antes de comprobar.'; frame.status.classList.add('is-error'); return; }
+      submit({ value: raw.replace(/[^0-9.,-]/g, '') }, frame);
+    });
+    frame.reset.addEventListener('click', () => { input.value = ''; frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
+  }
+
+  function runVisualMemory(challenge, shell, submit) {
+    const cards = [];
+    (challenge.content?.pairs || []).forEach(pair => {
+      cards.push({ key: `${pair.id}-img`, id: pair.id, image: pair.image });
+      cards.push({ key: `${pair.id}-txt`, id: pair.id, text: pair.label });
+    });
+    const deck = shuffleLocal(cards);
+    const frame = gameFrame(challenge, shell, `<div class="vm4">${deck.map(card => `<button type="button" class="vm4__card" data-pair="${esc(card.id)}" aria-label="Carta oculta"><span class="vm4__back">ICA</span><span class="vm4__front${card.image ? ' is-image' : ''}">${card.image ? `<img src="${imgUrl(card.image)}" alt="" decoding="async">` : esc(card.text)}</span></button>`).join('')}</div>`);
+    let open = [], matched = [];
+    frame.board.querySelectorAll('.vm4__card').forEach(card => card.addEventListener('click', () => {
+      if (card.classList.contains('is-open') || card.classList.contains('is-matched') || open.length === 2) return;
+      card.classList.add('is-open'); open.push(card);
+      if (open.length < 2) return;
+      if (open[0].dataset.pair === open[1].dataset.pair) {
+        const id = open[0].dataset.pair;
+        setTimeout(() => { open.forEach(x => { x.classList.add('is-matched'); x.disabled = true; }); matched.push(id); open = []; frame.status.textContent = `${matched.length} de ${challenge.content.pairs.length} parejas.`; announce('Pareja encontrada'); }, 280);
+      } else setTimeout(() => { open.forEach(x => x.classList.remove('is-open')); open = []; }, 800);
+    }));
+    frame.check.addEventListener('click', () => submit({ pairs: [...new Set(matched)] }, frame));
+    frame.reset.addEventListener('click', () => runVisualMemory(challenge, shell, submit));
+  }
+
+  function debriefMarkup(debrief) {
+    if (!debrief || !Array.isArray(debrief.items) || !debrief.items.length) return '';
+    return `<section class="game-debrief"><strong>${esc(debrief.title || 'Repaso')}</strong><ul>${debrief.items.map(item => `<li>${esc(item)}</li>`).join('')}</ul></section>`;
+  }
+
+  // Validación local (solo modo invitado): mismas reglas que el servidor.
+  function localProofOk(type, solution, proof) {
+    const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+    const word = value => normalize(value);
+    if (type === 'crossword' && solution.answers) return Object.entries(solution.answers).every(([id, w]) => word(proof.answers?.[id]) === w);
+    if (type === 'vmemory') return same([...(proof.pairs || [])].sort(), solution.pairs);
+    if (type === 'order') return same(proof.order || [], solution.order);
+    if (type === 'document') return same([...new Set(proof.flagged || [])].sort(), solution.errors);
+    if (type === 'hazard') return same([...new Set(proof.found || [])].sort(), solution.found);
+    if (type === 'spot') return same(proof.answers || [], solution.answers);
+    if (type === 'calc') { let t = String(proof.value || '').trim(); if (!t.includes('.') && /^-?\d+,\d{1,2}$/.test(t)) t = t.replace(',', '.'); const v = Number(t.replace(/,/g, '')); return Number.isFinite(v) && Math.abs(v - solution.value) <= solution.tolerance; }
+    return null;
+  }
+
+  // Tableros de demostración para el modo invitado (sin servidor).
+  const DEMO_PRO = {
+    puzzle: () => ({ content: { image: IMG_BASE + 'foto-fiscal.webp', size: 3, title: 'Arma la escena profesional' }, solution: { order: [0, 1, 2, 3, 4, 5, 6, 7, 8] } }),
+    hazard: () => ({ content: { image: IMG_BASE + 'riesgo-oficina.webp', scene: 'Oficina contable', items: [
+      { id: 'nota', x: 13, y: 26, w: 8, h: 9, label: 'Contraseña en una nota adhesiva', tip: 'Las contraseñas no se anotan a la vista.' },
+      { id: 'sesion', x: 78, y: 31, w: 12, h: 20, label: 'Equipo desbloqueado y sin vigilancia', tip: 'Al levantarte se bloquea la sesión.' },
+      { id: 'basura', x: 56, y: 70, w: 17, h: 28, label: 'Documentos con datos en la basura', tip: 'La información confidencial se tritura.' },
+      { id: 'usb', x: 72, y: 50, w: 6, h: 9, label: 'Memoria USB desconocida conectada', tip: 'Un USB desconocido puede instalar malware.' }] }, solution: { found: ['basura', 'nota', 'sesion', 'usb'] } }),
+    spot: () => ({ content: { image: IMG_BASE + 'escena-oficina.webp', zones: [
+      { id: 'recepcion', label: 'Recepción', x: 13, y: 71, w: 25, h: 16 }, { id: 'juntas', label: 'Sala de juntas', x: 36, y: 2, w: 25, h: 21 },
+      { id: 'archivo', label: 'Archivo', x: 77, y: 24, w: 18, h: 25 }, { id: 'servidores', label: 'Site de servidores', x: 79, y: 51, w: 18, h: 24 },
+      { id: 'operacion', label: 'Área operativa', x: 33, y: 36, w: 34, h: 20 }], rounds: [
+      { q: 'Llega un visitante. ¿Dónde se registra su entrada?', zone: 'recepcion', tip: 'La recepción controla el acceso.' },
+      { q: '¿Dónde se resguardan los expedientes físicos?', zone: 'archivo', tip: 'El archivo tiene acceso controlado.' },
+      { q: '¿Dónde viven los respaldos de la contabilidad?', zone: 'servidores', tip: 'El site debe tener acceso restringido.' },
+      { q: 'Se reúne el comité directivo. ¿A qué área va?', zone: 'juntas', tip: 'La sala de juntas da privacidad.' }] }, solution: { answers: ['recepcion', 'archivo', 'servidores', 'juntas'] } }),
+    document: () => ({ content: { docType: 'CFDI 4.0 · Factura de ingreso', title: 'Factura F-1842', subtitle: 'Despacho Contable Alfa, S.C. → Laura Méndez Ortiz', errorCount: 3, fields: [
+      { id: 'tipo', label: 'Tipo de comprobante', value: 'I · Ingreso' }, { id: 'rfc', label: 'RFC del receptor', value: 'MEOL850214K73' },
+      { id: 'cp', label: 'Código postal del receptor', value: '7240' }, { id: 'uso', label: 'Uso del CFDI', value: 'G03 · Gastos en general' },
+      { id: 'metodo', label: 'Método de pago', value: 'PPD · Pago en parcialidades o diferido' }, { id: 'forma', label: 'Forma de pago', value: '03 · Transferencia electrónica' },
+      { id: 'tasa', label: 'Tasa de IVA trasladado', value: '18%' }] }, solution: { errors: ['cp', 'forma', 'tasa'] } }),
+    calc: () => ({ content: { title: 'IVA a pagar del mes', scenario: 'Determina el IVA a pagar del mes. Los importes no incluyen IVA.', data: [{ label: 'Ventas del mes', value: '$250,000.00' }, { label: 'Compras con IVA acreditable', value: '$140,000.00' }, { label: 'Tasa', value: '16%' }], question: 'IVA a pagar', unit: 'MXN' }, solution: { value: 17600, tolerance: 1 } }),
+    vmemory: () => ({ content: { pairs: [['contenedor', 'Contenedor sellado: integridad de la carga'], ['buque', 'Transporte marítimo de gran volumen'], ['avion', 'Carga aérea urgente o de alto valor'], ['camion', 'Autotransporte terrestre'], ['tarima', 'Unidad de carga paletizada'], ['rayosx', 'Revisión no intrusiva en aduana']].map(([img, label], i) => ({ id: `v${i + 1}`, image: `${IMG_BASE}objeto-${img}.webp`, label })) }, solution: { pairs: ['v1', 'v2', 'v3', 'v4', 'v5', 'v6'] } }),
+    order: () => { const steps = ['Recibir la notificación en el buzón tributario', 'Identificar el plazo y lo que se solicita', 'Reunir CFDI, contabilidad y estados de cuenta', 'Conciliar la información contra lo declarado', 'Entregar la respuesta con su soporte'].map((text, i) => ({ id: `s${i + 1}`, text })); return { content: { prompt: 'Ordena la atención de una revisión del SAT.', steps: [steps[2], steps[0], steps[4], steps[1], steps[3]] }, solution: { order: steps.map(s => s.id) } }; }
+  };
+
   function successView(challenge, shell, result, onComplete, onContinue) {
     setStep(shell.modal, 3);
     onComplete?.(result);
@@ -928,6 +1220,7 @@
         <span class="game-kicker">Actividad superada</span>
         <h2 id="learning-game-title">${challenge.scope === 'reto' ? 'Reto superado' : 'Clase completada'}</h2>
         <p>${hasReward ? (challenge.scope === 'reto' ? 'Tu resultado y tus créditos ya quedaron guardados.' : 'Tu avance y tu recompensa ya quedaron guardados.') : 'Práctica completada. Este intento no modifica tus créditos ni la clasificación.'}</p>
+        ${debriefMarkup(result.debrief)}
         ${hasReward ? `
           <button class="reward-chest" type="button" data-open-chest aria-label="Abrir recompensa"><span class="reward-chest__lid"></span><span class="reward-chest__box">ICA</span></button>
           <div class="reward-summary" hidden>
@@ -975,7 +1268,9 @@
           if (challenge.local) {
             let correct = false;
             let quizScore = null;
-            if (challenge.type === 'crossword' || challenge.type === 'guess') correct = normalize(proof.answer) === challenge.solution.answer;
+            const proLocal = localProofOk(challenge.type, challenge.solution || {}, proof || {});
+            if (typeof proLocal === 'boolean') correct = proLocal;
+            else if (challenge.type === 'crossword' || challenge.type === 'guess') correct = normalize(proof.answer) === challenge.solution.answer;
             else if (challenge.type === 'memory') correct = JSON.stringify((proof.pairs || []).slice().sort()) === JSON.stringify(challenge.solution.pairs);
             else if (challenge.type === 'wordsearch') correct = JSON.stringify((proof.words || []).slice().sort()) === JSON.stringify(challenge.solution.words);
             else if (challenge.type === 'puzzle') correct = JSON.stringify(proof.order || []) === JSON.stringify(challenge.solution.order);
@@ -996,6 +1291,8 @@
                 ? `reto:daily:${today}`
                 : challenge.experienceId === 'catalog'
                   ? `reto:catalog:${challenge.type}`
+                  : challenge.experienceId === 'pro'
+                  ? `reto:pro:${challenge.type}:${demoProStatusKey()}`
                   : `reto:${challenge.experienceId}`
               : `practice:${challenge.challengeId}`);
             const demoResult = applyDemoCreditMovement(reward, {
@@ -1018,6 +1315,13 @@
       };
       const start = () => {
         if (challenge.type === 'memory') runMemory(challenge, shell, submit);
+        else if (challenge.type === 'crossword' && Array.isArray(challenge.content?.words)) runCrosswordGrid(challenge, shell, submit);
+        else if (challenge.type === 'order') runOrder(challenge, shell, submit);
+        else if (challenge.type === 'hazard') runHazard(challenge, shell, submit);
+        else if (challenge.type === 'spot') runSpot(challenge, shell, submit);
+        else if (challenge.type === 'document') runDocument(challenge, shell, submit);
+        else if (challenge.type === 'calc') runCalc(challenge, shell, submit);
+        else if (challenge.type === 'vmemory') runVisualMemory(challenge, shell, submit);
         else if (challenge.type === 'wordsearch') runWordsearch(challenge, shell, submit);
         else if (challenge.type === 'puzzle') runPuzzle(challenge, shell, submit);
         else if (challenge.type === 'classify') runClassify(challenge, shell, submit);
@@ -1034,7 +1338,7 @@
     let challenge;
     try {
       if (window.__isDemoMode) {
-        const types = Object.keys(GAME_LABELS);
+        const types = [...PRACTICE_TYPES, 'quiz'];
         let hash = 0; for (const char of `${courseId}:${lessonNumber}`) hash = ((hash << 5) - hash + char.charCodeAt(0)) | 0;
         challenge = localChallenge(types[Math.abs(hash) % types.length], options?.title || `Clase ${lessonNumber}`);
         challenge.demoRewardId = `lesson:${courseId}:${lessonNumber}`;
@@ -1119,6 +1423,38 @@
     root.querySelector('.practice-card:not(:disabled)')?.focus();
   }
 
+  // Práctica profesional: siete dinámicas visuales y de casos reales; cada
+  // una da créditos una vez por semana y su tablero cambia cada semana.
+  function demoProStatusKey() { return `icadem:demo:pro:${mexicoDateKey().slice(0, 7)}`; }
+  function openProPicker() {
+    document.querySelector('.practice-picker')?.remove();
+    const liveStatus = window.__icademRetoStatus || {};
+    let demoUsed = [];
+    if (window.__isDemoMode) { try { demoUsed = JSON.parse(localStorage.getItem(demoProStatusKey()) || '[]'); } catch (_) { demoUsed = []; } }
+    const usedTypes = new Set(window.__isDemoMode ? demoUsed : (liveStatus.proUsedTypes || []));
+    const isAdmin = liveStatus.isAdmin === true;
+    const root = document.createElement('div'); root.className = 'practice-picker practice-picker--v3 practice-picker--pro'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'pro-picker-title');
+    root.innerHTML = `<div class="practice-picker__veil" data-practice-close></div><section class="practice-picker__box"><header class="practice-picker__head"><div><span class="game-kicker">Práctica profesional</span><h2 id="pro-picker-title">Practica como en tu trabajo</h2><p>Siete dinámicas con escenas, documentos y casos reales. Cada una da +5 créditos por semana y su tablero cambia cada lunes.</p></div><button type="button" class="practice-picker__close" data-practice-close aria-label="Cerrar">×</button></header><div class="practice-picker__grid">${PRO_TYPES.map((type, index) => {
+      const meta = GAME_META[type];
+      const used = !isAdmin && usedTypes.has(type);
+      return `<button type="button" class="practice-card${used ? ' is-complete' : ''}" data-pro-type="${type}" ${used ? 'disabled' : ''}><span class="practice-card__number">0${index + 1}</span><span class="practice-card__icon"><svg class="ic" aria-hidden="true"><use href="#${esc(meta.icon)}"/></svg></span><span class="practice-card__copy"><small>${esc(meta.eyebrow)}</small><strong>${esc(meta.title)}</strong><em>${esc(meta.description)}</em></span><span class="practice-card__foot"><i>${esc(meta.duration)}</i><b>${used ? 'Hecho esta semana' : '+5 créditos'}</b><svg class="ic" aria-hidden="true"><use href="#${used ? 'i-check' : 'i-arrow-right'}"/></svg></span></button>`;
+    }).join('')}</div></section>`;
+    document.body.appendChild(root); document.body.classList.add('has-learning-game');
+    let releaseA11y = () => {};
+    const close = () => { root.remove(); document.body.classList.remove('has-learning-game'); releaseA11y(); };
+    releaseA11y = activateDialogA11y(root, close);
+    root.querySelectorAll('[data-practice-close]').forEach(button => button.addEventListener('click', close));
+    root.querySelectorAll('[data-pro-type]').forEach(button => button.addEventListener('click', () => {
+      const type = button.dataset.proType;
+      close();
+      startRetoChallenge({ experienceId: 'pro', type, title: GAME_META[type].title, onComplete: () => {
+        if (!window.__isDemoMode) return;
+        try { const list = JSON.parse(localStorage.getItem(demoProStatusKey()) || '[]'); if (!list.includes(type)) list.push(type); localStorage.setItem(demoProStatusKey(), JSON.stringify(list)); } catch (_) {}
+      } }).catch(() => {});
+    }));
+    root.querySelector('.practice-card:not(:disabled)')?.focus();
+  }
+
   async function mountRetosStatus(target) {
     const root = typeof target === 'string' ? document.getElementById(target) : target;
     if (!root) return;
@@ -1126,7 +1462,7 @@
     if (window.__isDemoMode) {
       const demoStatus = readDemoRetoStatus();
       const today = mexicoDateKey();
-      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, catalogUsedTypes: demoStatus.catalogTypes, balance: Number(localStorage.getItem('icadem:demo:credits') || 200), reward: 5 };
+      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, catalogUsedTypes: demoStatus.catalogTypes, proUsedTypes: (() => { try { return JSON.parse(localStorage.getItem(demoProStatusKey()) || '[]'); } catch (_) { return []; } })(), balance: Number(localStorage.getItem('icadem:demo:credits') || 200), reward: 5 };
     } else {
       try { data = await request('/api/retos/status'); }
       catch (error) {
@@ -1140,7 +1476,13 @@
     root.querySelectorAll('[data-reto-key]').forEach(card => {
       const key = card.dataset.retoKey;
       const isCatalog = key === 'catalog';
-      const completed = !data.isAdmin && (isCatalog ? Number(data.catalogUsedCount) >= 6 : key === 'daily' ? data.dailyUsedToday : used.has(key));
+      const isPro = key === 'pro';
+      const proDone = Array.isArray(data.proUsedTypes) ? data.proUsedTypes.length : 0;
+      const completed = !data.isAdmin && (isPro ? proDone >= PRO_TYPES.length : isCatalog ? Number(data.catalogUsedCount) >= 6 : key === 'daily' ? data.dailyUsedToday : used.has(key));
+      if (isPro) {
+        const state = card.querySelector('[data-card-state]');
+        if (state) state.innerHTML = `<span>7 dinámicas</span><span>${completed ? 'Completada esta semana' : `${proDone}/7 esta semana`}</span>`;
+      }
       card.classList.toggle('is-used', completed);
       card.setAttribute('aria-disabled', completed ? 'true' : 'false');
       const state = card.querySelector('[data-card-state]');
@@ -1148,7 +1490,7 @@
         state.innerHTML = `<span>6 juegos</span><span>${Number(data.catalogUsedCount)}/6 completados</span>`;
       } else if (state && completed && key === 'daily') {
         state.innerHTML = '<span>12 preguntas</span><span>Completado hoy</span>';
-      } else if (state && completed && !isCatalog) {
+      } else if (state && completed && !isCatalog && !isPro) {
         state.innerHTML = state.classList.contains('retos-tile__state')
           ? '<i></i>Completado'
           : '<span>Reto verificado</span><span>+5 créditos</span>';
@@ -1230,6 +1572,7 @@
     }
     const type = trigger.dataset.platformGame;
     if (type === 'catalog') openPracticePicker();
+    else if (type === 'pro') openProPicker();
     else startRetoChallenge({
       experienceId: trigger.dataset.retoKey || type,
       type,
@@ -1291,6 +1634,6 @@
     createForumPost, deleteForumPost, toggleForumLike, createForumComment, deleteForumComment, mountRanking,
     loadLearningProgress,
     loadCreditWallet, openCreditWallet, applyDemoCreditMovement, syncCreditSnapshot,
-    saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, mountRetosStatus
+    saveProfile, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, openProPicker, mountRetosStatus
   };
 })();

@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
-<script src="js/icadem-platform-v2.js?v=23" defer></script>
+<script src="js/icadem-platform-v2.js?v=24" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -7956,7 +7956,7 @@ const Sections = (function(){
       <div class="retos-main">
         <div class="retos-head">
           <div><span class="retos-head__eyebrow">Entrenamiento aplicado</span><h2>Elige una experiencia</h2></div>
-          <small class="retos-head__count">5 experiencias</small>
+          <small class="retos-head__count">6 experiencias</small>
         </div>
         <div class="retos-tiles retos-tiles--five retos-showcase retos-showcase--v6">
           <article class="retos-tile reto-card reto-card--daily retos-tile--daily retos-daily-card" data-platform-game="quiz" data-reto-key="daily" data-game-title="12 preguntas clave">
@@ -7964,6 +7964,17 @@ const Sections = (function(){
             <div class="retos-tile__body"><span class="retos-tile__kicker">Reto diario</span><h3>12 preguntas clave</h3><p>Pon a prueba tu criterio fiscal, contable y legal con retroalimentación inmediata.</p><div class="retos-tile__meta" data-card-state><span>${ICADEM_RETOS_QUIZ_BANK.length} en banco</span><span>${quizMejor?`Mejor ${quizMejor}%`:'Pendiente'}</span></div></div>
             <div class="retos-daily-card__reward" aria-label="Recompensa del reto"><span>Recompensa</span><strong>+5 créditos</strong><small>Un intento diario</small></div>
             <button type="button" class="retos-tile__cta" aria-label="Jugar reto diario"><span>Jugar hoy</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          </article>
+          <article class="retos-tile reto-card retos-pro-card retos-experience-card" data-platform-game="pro" data-reto-key="pro" data-game-title="Práctica profesional">
+            <div class="retos-pro-card__mosaic" aria-hidden="true">
+              <figure><img src="assets/juegos/foto-aduana.webp" alt="" loading="lazy" decoding="async"><figcaption>Comercio exterior</figcaption></figure>
+              <figure><img src="assets/juegos/riesgo-oficina.webp" alt="" loading="lazy" decoding="async"><figcaption>Riesgos</figcaption></figure>
+              <figure><img src="assets/juegos/escena-juicio-oral.webp" alt="" loading="lazy" decoding="async"><figcaption>Litigio</figcaption></figure>
+              <figure><img src="assets/juegos/foto-nomina.webp" alt="" loading="lazy" decoding="async"><figcaption>Nómina</figcaption></figure>
+              <figure><img src="assets/juegos/foto-fiscal.webp" alt="" loading="lazy" decoding="async"><figcaption>Fiscal</figcaption></figure>
+            </div>
+            <div class="retos-tile__body"><span class="retos-tile__kicker">Práctica profesional · Nuevo</span><h3>Practica como en tu trabajo</h3><p>Rompecabezas, riesgos en escena, documentos con errores, cálculos reales y más. Siete dinámicas visuales que cambian cada semana.</p><div class="retos-tile__meta" data-card-state><span>7 dinámicas</span><span>+5 créditos c/u</span></div></div>
+            <button type="button" class="retos-tile__cta" aria-label="Elegir dinámica profesional"><span>Elegir dinámica</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </article>
           <article class="retos-tile reto-card reto-card--pulse retos-tile--pulse retos-experience-card" data-platform-game="pulse" data-reto-key="pulse" data-game-title="Veredicto exprés">
             <div class="retos-tile__art" aria-hidden="true"><svg class="ic"><use href="#i-scale"/></svg><span>60 s</span></div>
@@ -20705,6 +20716,7 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
+  <link rel="stylesheet" href="css/icadem-games-v4.css?v=1">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){
