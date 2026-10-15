@@ -635,3 +635,46 @@
 .credit-vault__gem--bag img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 10px 16px rgba(0,0,0,.3)); animation:icaCoinFloat 3.6s ease-in-out infinite; }
 @media (max-width:620px) { .credit-wallet-card__coins--bag { width:80px; height:80px; } .credit-vault__gem--bag { width:58px !important; height:58px !important; } }
 @media (prefers-reduced-motion:reduce) { .credit-vault__gem--bag img { animation:none; } }
+
+/* ===== Celular: bloques más compactos y con menos texto ===== */
+.retos-access-note{display:flex;align-items:center;gap:8px}
+.retos-access-note::before{content:'';flex:none;width:7px;height:7px;border-radius:50%;background:#d39a1c;box-shadow:0 0 0 4px rgba(227,166,42,.18)}
+@media (max-width:620px){
+  /* Retos: encabezado */
+  .retos-page--v6 .retos-hero.retos-hero--v4{padding:20px 18px 18px!important;min-height:0!important;gap:14px!important;border-radius:20px!important}
+  .retos-page--v6 .retos-hero--v4 h1{font-size:25px!important;line-height:1.08!important;margin:0!important}
+  .retos-page--v6 .retos-hero--v4 .retos-hero__copy p,.retos-page--v6 .retos-hero--v4 .retos-hero__eyebrow{display:none!important}
+  .retos-page--v6 .retos-hero--v4 .retos-hero__summary{width:100%!important;margin:0!important;border-radius:14px!important}
+  .retos-page--v6 .retos-hero--v4 .retos-hero__metric{padding:10px 12px!important;min-height:0!important}
+  .retos-page--v6 .retos-hero--v4 .retos-hero__metric strong{font-size:21px!important}
+  .retos-page--v6 .retos-hero--v4 .retos-hero__metric span{font-size:8.5px!important;margin-top:2px!important}
+  .retos-page--v6 .retos-hero--v4 .retos-hero__pillslot{padding:8px 10px!important;min-height:0!important}
+  .retos-page--v6.has-access-note .retos-hero__pillslot{display:none!important}
+  .retos-access-note{margin:10px 0 0!important;padding:10px 13px!important;font-size:12.5px!important;line-height:1.4!important;border-radius:12px!important}
+  /* Cartera */
+  .retos-page--v6 .credit-wallet-card{padding:16px 18px!important;min-height:0!important;gap:12px!important;border-radius:18px!important}
+  .retos-page--v6 .credit-wallet-card__copy{padding-right:72px!important}
+  .retos-page--v6 .credit-wallet-card__copy p{display:none!important}
+  .retos-page--v6 .credit-wallet-card__copy strong b{font-size:34px!important}
+  .retos-page--v6 .credit-wallet-card [data-credit-wallet-open]{min-height:42px!important;padding:0 14px!important;margin-top:0!important}
+  .credit-wallet-card__coins--bag{width:64px!important;height:64px!important;top:12px!important;right:12px!important}
+  /* Misión semanal */
+  .retos-misioncard{padding:16px!important;gap:10px!important;border-radius:18px!important}
+  .retos-misioncard header{gap:12px!important}
+  .retos-misioncard__icon{width:40px!important;height:40px!important;border-radius:12px!important}
+  .retos-misioncard header strong{font-size:16px!important}
+  .retos-misioncard li{padding:9px 0!important;gap:12px!important;min-height:0!important}
+  .retos-misioncard li em{display:none!important}
+  .retos-misioncard li strong{font-size:14px!important}
+  .retos-misioncard li b{min-width:42px!important;height:30px!important;font-size:12px!important}
+  /* Directorio: encabezado */
+  .directory-hero{padding:20px 18px!important;gap:14px!important;min-height:0!important;border-radius:20px!important}
+  .directory-hero h1{font-size:25px!important;line-height:1.1!important;margin:4px 0 0!important}
+  .directory-hero p,.directory-hero__eyebrow{display:none!important}
+  .directory-hero__stats{gap:8px!important}
+  .directory-hero__stats span{padding:10px 12px!important;min-height:0!important;border-radius:12px!important}
+  .directory-hero__stats strong{font-size:20px!important}
+  .directory-hero__action{padding:10px 12px!important;grid-template-columns:34px minmax(0,1fr) 16px!important;min-height:0!important;border-radius:13px!important}
+  .directory-hero__action-icon{width:34px!important;height:34px!important;border-radius:10px!important}
+  .directory-hero__action small{display:none!important}
+}

@@ -1681,11 +1681,12 @@
     const note = root.querySelector('[data-retos-access-note]');
     if (note) {
       note.hidden = trial === 'vip';
-      note.textContent = trial === 'available' ? `Tu primera partida es gratis y sí puede darte créditos ICADEM (+${RETO_CREDITS}). Después necesitarás ser VIP para seguir jugando.`
-        : trial === 'active' ? 'Tu partida gratuita está activa: termina ese reto para ganar tus créditos. Después necesitarás ser VIP.'
-        : trial === 'used' ? 'Ya utilizaste tu partida gratuita. Hazte VIP para seguir jugando y ganando créditos en todos los retos.'
+      note.textContent = trial === 'available' ? `Tienes 1 partida gratis que sí da créditos (+${RETO_CREDITS}). Después, solo VIP.`
+        : trial === 'active' ? 'Termina tu partida gratis para ganar tus créditos.'
+        : trial === 'used' ? 'Ya usaste tu partida gratis. Hazte VIP para seguir jugando.'
         : '';
     }
+    root.classList.toggle('has-access-note', trial !== 'vip');
   }
 
   async function mountRanking(target) {
