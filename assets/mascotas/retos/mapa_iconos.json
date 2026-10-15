@@ -1,0 +1,57 @@
+[
+  {
+    "archivo": "01_veredicto_expres_criterio_juridico.png",
+    "titulo_card": "Veredicto exprés",
+    "ubicacion": "card principal: Criterio jurídico"
+  },
+  {
+    "archivo": "02_decide_con_criterio_desafio_aplicado.png",
+    "titulo_card": "Decide con criterio",
+    "ubicacion": "card principal: Desafío aplicado"
+  },
+  {
+    "archivo": "03_memoria_tecnica_repaso.png",
+    "titulo_card": "Memoria técnica",
+    "ubicacion": "card principal: Repaso"
+  },
+  {
+    "archivo": "04_juegos_icadem_arcade.png",
+    "titulo_card": "Juegos ICADEM",
+    "ubicacion": "card principal: Arcade"
+  },
+  {
+    "archivo": "05_rompecabezas_profesional.png",
+    "titulo_card": "Rompecabezas profesional",
+    "ubicacion": "Práctica profesional, actividad 01"
+  },
+  {
+    "archivo": "06_encuentra_la_irregularidad.png",
+    "titulo_card": "Encuentra la irregularidad",
+    "ubicacion": "Práctica profesional, actividad 02"
+  },
+  {
+    "archivo": "07_senala_en_la_escena.png",
+    "titulo_card": "Señala en la escena",
+    "ubicacion": "Práctica profesional, actividad 03"
+  },
+  {
+    "archivo": "08_revisa_el_documento.png",
+    "titulo_card": "Revisa el documento",
+    "ubicacion": "Práctica profesional, actividad 04"
+  },
+  {
+    "archivo": "09_calcula_y_comprueba.png",
+    "titulo_card": "Calcula y comprueba",
+    "ubicacion": "Práctica profesional, actividad 05"
+  },
+  {
+    "archivo": "10_memorama_visual.png",
+    "titulo_card": "Memorama visual",
+    "ubicacion": "Práctica profesional, actividad 06"
+  },
+  {
+    "archivo": "11_ordena_el_proceso.png",
+    "titulo_card": "Ordena el proceso",
+    "ubicacion": "Práctica profesional, actividad 07"
+  }
+]

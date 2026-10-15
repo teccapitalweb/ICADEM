@@ -1,0 +1,25 @@
+MASCOTAS ICADEM — GUÍA DE COLOCACIÓN
+
+Incluye 11 imágenes PNG originales y dos manifiestos (JSON y CSV).
+
+INSTRUCCIONES PARA LA IA QUE INTEGRE LOS ÍCONOS:
+- Identifica cada card por su título visible, no por su posición en pantalla.
+- Sustituye solamente el ícono actual de cada card por el PNG que corresponde a ese título.
+- No cambies textos, botones, tamaños de cards, colores de fondos ni estructura.
+- Mantén proporciones originales de la mascota (object-fit: contain); evita recortes.
+- Las imágenes son ilustraciones PNG estáticas; no son archivos animados.
+- Los PNG pueden contener fondo claro: comprueba el resultado en la card antes de publicarlo.
+
+MAPEO EXACTO:
+
+01_veredicto_expres_criterio_juridico.png  ->  Veredicto exprés (card principal: Criterio jurídico)
+02_decide_con_criterio_desafio_aplicado.png  ->  Decide con criterio (card principal: Desafío aplicado)
+03_memoria_tecnica_repaso.png  ->  Memoria técnica (card principal: Repaso)
+04_juegos_icadem_arcade.png  ->  Juegos ICADEM (card principal: Arcade)
+05_rompecabezas_profesional.png  ->  Rompecabezas profesional (Práctica profesional, actividad 01)
+06_encuentra_la_irregularidad.png  ->  Encuentra la irregularidad (Práctica profesional, actividad 02)
+07_senala_en_la_escena.png  ->  Señala en la escena (Práctica profesional, actividad 03)
+08_revisa_el_documento.png  ->  Revisa el documento (Práctica profesional, actividad 04)
+09_calcula_y_comprueba.png  ->  Calcula y comprueba (Práctica profesional, actividad 05)
+10_memorama_visual.png  ->  Memorama visual (Práctica profesional, actividad 06)
+11_ordena_el_proceso.png  ->  Ordena el proceso (Práctica profesional, actividad 07)
