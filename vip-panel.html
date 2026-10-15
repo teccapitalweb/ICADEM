@@ -1979,6 +1979,7 @@ body::after{
 .dir-cta .ic{width:17px;height:17px}
 .dir-cta--wa:hover{color:#25D366;border-color:#25D366}
 .dir-cta--li:hover{color:#0a66c2;border-color:#0a66c2}
+.dir-cta--ig:hover{color:#C13584;border-color:#C13584}
 .dir-card__sincontacto{font-size:11px;color:var(--text-3);margin-top:auto;padding-top:6px;font-style:italic}
 /* Form de tarjeta */
 .dir-form{display:flex;flex-direction:column;gap:0}
@@ -2035,6 +2036,7 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .dir-det__row-ic .ic{width:18px;height:18px}
 .dir-det__row--wa:hover .dir-det__row-ic{color:#25D366}
 .dir-det__row--li:hover .dir-det__row-ic{color:#0a66c2}
+.dir-det__row--ig:hover .dir-det__row-ic{color:#C13584}
 .dir-det__row-tx{display:flex;flex-direction:column;min-width:0;flex:1}
 .dir-det__row-lbl{font-size:11px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
 .dir-det__row-val{font-size:13.5px;color:var(--text);font-weight:600;word-break:break-word}
@@ -4311,6 +4313,7 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-briefcase" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2 -2h4a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></symbol>
 <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6l9 -6"/></symbol>
 <symbol id="i-link" viewBox="0 0 24 24"><path d="M9 15l6 -6"/><path d="M11 6l.5 -.5a4 4 0 0 1 6 6l-.5 .5"/><path d="M13 18l-.5 .5a4 4 0 0 1 -6 -6l.5 -.5"/></symbol>
+<symbol id="i-instagram" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8A4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></symbol>
 <symbol id="i-linkedin" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M4.98 3.5a2.5 2.5 0 1 1 0 5a2.5 2.5 0 0 1 0 -5M3 8.98h4v12H3zM9 8.98h3.8v1.64h.05c.53 -1 1.83 -2.05 3.76 -2.05c4.02 0 4.76 2.65 4.76 6.1v6.31h-4v-5.6c0 -1.33 -.02 -3.05 -1.86 -3.05c-1.86 0 -2.14 1.45 -2.14 2.95v5.7H9z"/></symbol>
 <symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.83 2.83 0 0 0 -4 -4l-10.5 10.5z"/><path d="M13.5 6.5l4 4"/></symbol>
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35 -4.35"/></symbol>
@@ -10139,11 +10142,33 @@ const Sections = (function(){
   let _dirFotoTmp = undefined; // undefined=sin cambio, null=quitar, string=nueva
   let _dirCanViewContacts = false;
 
+  // Instagram: acepta @usuario o la URL del perfil; siempre abre el perfil.
+  function dirInstagramPerfil(value){
+    const raw = String(value || '').trim();
+    if (!raw) return '';
+    let usuario = raw.replace(/^@/, '');
+    const pareceUrl = /^(?:https?:\/\/)?(?:www\.|m\.)?instagram\.com\//i.test(raw);
+    if (/^https?:\/\//i.test(raw) || pareceUrl) {
+      try {
+        const u = new URL(/^https?:\/\//i.test(raw) ? raw : 'https://' + raw);
+        if (!['instagram.com','www.instagram.com','m.instagram.com'].includes(u.hostname.toLowerCase())) return '';
+        const partes = u.pathname.split('/').filter(Boolean);
+        if (partes.length !== 1) return '';
+        [usuario] = partes;
+      } catch(e) { return ''; }
+    }
+    if (!/^[A-Za-z0-9._]{1,30}$/.test(usuario) || ['accounts','direct','directory','explore','p','reel','reels','stories'].includes(usuario.toLowerCase())) return '';
+    return `https://www.instagram.com/${usuario}/`;
+  }
+  function dirInstagramUsuario(value){
+    const url = dirInstagramPerfil(value);
+    return url ? '@' + new URL(url).pathname.split('/').filter(Boolean)[0] : '';
+  }
   function dirMostrarBloqueoContactos(){
     if (typeof window.__showPaywallModal === 'function') {
       window.__showPaywallModal({
         title: 'Contactos exclusivos para miembros VIP',
-        sub: 'Tu tarjeta permanece en la comunidad, pero necesitas una membresía activa para ver o abrir WhatsApp, correo, LinkedIn y sitios web de otros profesionales.'
+        sub: 'Tu tarjeta permanece en la comunidad, pero necesitas una membresía activa para ver o abrir WhatsApp, correo, LinkedIn, Instagram y sitios web de otros profesionales.'
       });
     } else {
       Toast.info('Solo VIP','Reactiva tu membresía para consultar los contactos del directorio.');
@@ -10422,6 +10447,8 @@ const Sections = (function(){
       if (c.whatsapp) contactos.push(`<a class="dir-cta dir-cta--wa" href="https://wa.me/${(c.whatsapp||'').replace(/[^0-9]/g,'')}" target="_blank" rel="noopener" title="Abrir WhatsApp" aria-label="Abrir WhatsApp de ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-whatsapp"/></svg></a>`);
       if (c.email) contactos.push(`<button type="button" class="dir-cta dir-cta--mail" data-email="${escapeHtml(c.email)}" title="Enviar correo" aria-label="Enviar correo a ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-mail"/></svg></button>`);
       if (c.linkedin) contactos.push(`<a class="dir-cta dir-cta--li" href="${escapeHtml(c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin)}" target="_blank" rel="noopener" title="Abrir LinkedIn" aria-label="Abrir LinkedIn de ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-linkedin"/></svg></a>`);
+      const igUrl = dirInstagramPerfil(c.instagram);
+      if (igUrl) contactos.push(`<a class="dir-cta dir-cta--ig" href="${escapeHtml(igUrl)}" target="_blank" rel="noopener" title="Abrir Instagram" aria-label="Abrir Instagram de ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-instagram"/></svg></a>`);
       if (c.web) contactos.push(`<a class="dir-cta" href="${escapeHtml(c.web.startsWith('http')?c.web:'https://'+c.web)}" target="_blank" rel="noopener" title="Abrir sitio web" aria-label="Abrir sitio web de ${escapeHtml(c.nombre||'este miembro')}"><svg class="ic"><use href="#i-link"/></svg></a>`);
       const esMia = c.id===uid;
       const contactoBloqueado = !esMia && c.contactLocked===true;
@@ -10512,9 +10539,10 @@ const Sections = (function(){
              <span class="dir-det__row-tx"><span class="dir-det__row-lbl">Correo · toca para copiar</span><span class="dir-det__row-val">${escapeHtml(c.email)}</span></span>
            </button>`:''}
           ${row('i-linkedin','LinkedIn',c.linkedin, c.linkedin?(c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin):'', 'dir-det__row--li')}
+          ${row('i-instagram','Instagram',dirInstagramUsuario(c.instagram), dirInstagramPerfil(c.instagram), 'dir-det__row--ig')}
           ${row('i-link','Sitio web',c.web, c.web?(c.web.startsWith('http')?c.web:'https://'+c.web):'')}
         </div>
-        ${contactoBloqueado?'<button type="button" class="dir-det__contact-lock" data-contact-lock><svg class="ic"><use href="#i-crown"/></svg><span><strong>Contactos reservados para VIP</strong><small>Reactiva tu membresía para comunicarte con este profesional.</small></span></button>':((!c.whatsapp&&!c.email&&!c.linkedin&&!c.web)?'<div class="dir-det__sincontacto">Este miembro no agregó datos de contacto.</div>':'')}
+        ${contactoBloqueado?'<button type="button" class="dir-det__contact-lock" data-contact-lock><svg class="ic"><use href="#i-crown"/></svg><span><strong>Contactos reservados para VIP</strong><small>Reactiva tu membresía para comunicarte con este profesional.</small></span></button>':((!c.whatsapp&&!c.email&&!c.linkedin&&!dirInstagramPerfil(c.instagram)&&!c.web)?'<div class="dir-det__sincontacto">Este miembro no agregó datos de contacto.</div>':'')}
       </div>
     `;
     const footer = document.createElement('div');
@@ -10577,6 +10605,8 @@ const Sections = (function(){
         <label class="dir-form__check"><input type="checkbox" id="dirf-wa-publico" ${data.contactoVisible?.whatsapp===true?'checked':''}> Mostrar mi WhatsApp públicamente</label>
         <label class="dir-form__lbl">LinkedIn</label>
         <input class="dir-form__in" id="dirf-linkedin" maxlength="120" value="${(data.linkedin||'').replace(/"/g,'&quot;')}" placeholder="linkedin.com/in/tu-perfil">
+        <label class="dir-form__lbl">Instagram</label>
+        <input class="dir-form__in" id="dirf-instagram" maxlength="180" autocomplete="url" value="${(data.instagram||'').replace(/"/g,'&quot;')}" placeholder="@usuario o instagram.com/usuario">
         <label class="dir-form__lbl">Sitio web</label>
         <input class="dir-form__in" id="dirf-web" maxlength="120" value="${(data.web||'').replace(/"/g,'&quot;')}" placeholder="tusitio.com">
         ${window.UserState?.modo==='vip'?`<div class="dir-form__sep">Portada VIP</div>
@@ -10613,6 +10643,9 @@ const Sections = (function(){
     footer.querySelector('#dirf-guardar').addEventListener('click', async ()=>{
       const nombre = document.getElementById('dirf-nombre').value.trim();
       if (nombre.length<3){ Toast.error('Falta tu nombre','Escribe tu nombre completo'); return; }
+      const instagramRaw = document.getElementById('dirf-instagram').value.trim();
+      const instagram = dirInstagramPerfil(instagramRaw);
+      if (instagramRaw && !instagram){ Toast.error('Instagram inválido','Escribe @usuario o la URL de un perfil de Instagram.'); return; }
       const btn = footer.querySelector('#dirf-guardar'); btn.disabled=true; btn.textContent='Guardando…';
       const payload = {
         uid,
@@ -10624,6 +10657,7 @@ const Sections = (function(){
         whatsapp: document.getElementById('dirf-wa').value.trim(),
         email: document.getElementById('dirf-email').value.trim(),
         linkedin: document.getElementById('dirf-linkedin').value.trim(),
+        instagram,
         web: document.getElementById('dirf-web').value.trim(),
         visible: document.getElementById('dirf-visible').checked,
         portadaColor: document.getElementById('dirf-cover-color')?.value || data.portadaColor || '#173b56',
@@ -10631,6 +10665,7 @@ const Sections = (function(){
           email: document.getElementById('dirf-email-publico').checked,
           whatsapp: document.getElementById('dirf-wa-publico').checked,
           linkedin: true,
+          instagram: true,
           web: true
         }
       };
@@ -11969,8 +12004,6 @@ window.__maybeAskName = async function(){
             <div class="pf-field"><label for="pf-area">Área profesional <b>*</b></label><select class="pf-input" id="pf-area" name="sector"><option value="">Selecciona…</option>${AREAS.map(a => `<option ${a === area ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
             <div class="pf-field pf-field--wide"><label for="pf-empresa">Empresa o despacho <span>· opcional</span></label><input class="pf-input" id="pf-empresa" name="empresa" maxlength="100" autocomplete="organization" placeholder="Ej. Despacho Contable del Centro" value="${esc(card.empresa || card.institucion || '')}"></div>
           </div>
-          <label class="pf-check"><input type="checkbox" id="pf-wa-public" ${contacto.whatsapp === true ? 'checked' : ''}><span>Mostrar mi WhatsApp en mi tarjeta del Directorio VIP</span></label>
-          <p class="pf-note"><svg class="ic"><use href="#i-shield-check"/></svg><span>Tu correo no se publica. Tu WhatsApp solo aparece en el directorio si activas la casilla.</span></p>
           <p class="pf-error" role="alert" hidden></p>
           <div class="pf-actions"><button class="btn btn--ghost" type="button" data-pf-later>Ahora no</button><button class="btn btn--accent pf-save" type="submit">Guardar y continuar <svg class="ic"><use href="#i-arrow-right"/></svg></button></div>
         </form>
@@ -12013,10 +12046,6 @@ window.__maybeAskName = async function(){
         .pf-cert strong{min-width:0;overflow:hidden;color:var(--text,#142238);font:600 italic 17px/1.2 'Fraunces',Georgia,serif;text-overflow:ellipsis;white-space:nowrap;text-align:right}
         .pf-cert.is-empty strong{color:var(--text-3,#7b8791);font-weight:400}
         .pf-cert.is-long{border-color:#c46a2f}
-        .pf-check{display:flex;align-items:flex-start;gap:9px;margin:16px 0 0;color:var(--text-2,#4c5a66);font-size:12.5px;line-height:1.4;cursor:pointer}
-        .pf-check input{width:17px;height:17px;margin:1px 0 0;accent-color:#173b56;flex:0 0 auto}
-        .pf-note{display:flex;align-items:flex-start;gap:9px;margin:14px 0 0;padding:11px 13px;border-radius:12px;background:color-mix(in srgb,#173b56 6%,var(--surface,#fff));border:1px solid color-mix(in srgb,#173b56 14%,var(--border,transparent));color:var(--text-2,#4c5a66);font-size:11.5px;line-height:1.5}
-        .pf-note .ic{flex:0 0 auto;width:16px;height:16px;margin-top:1px;color:#2b6a8f}
         .pf-error{margin:12px 0 0;color:#b5443c;font-size:12.5px;font-weight:650}
         .pf-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;margin-top:20px}
         .pf-actions .btn{min-height:46px}
@@ -12106,10 +12135,13 @@ window.__maybeAskName = async function(){
           nombre, whatsapp, puesto, profesion: puesto, sector, especialidad: sector,
           empresa: $('pf-empresa').value.trim(),
           email: card.email || email,
+          // El contacto aparece en el Directorio VIP (solo lo ven miembros VIP);
+          // se respeta si el usuario ya lo había ocultado en su tarjeta.
           contactoVisible: {
-            email: contacto.email === true,
-            whatsapp: $('pf-wa-public').checked,
+            email: contacto.email !== false,
+            whatsapp: contacto.whatsapp !== false,
             linkedin: contacto.linkedin !== false,
+            instagram: contacto.instagram !== false,
             web: contacto.web !== false
           },
           profileIntake: true
