@@ -10643,6 +10643,9 @@ const Sections = (function(){
         Toast.success('Perfil guardado','Tu identidad ya se actualizó en ICADEM');
         m.close();
         dirSuscribir();
+        if (window.UserState) { window.UserState.nombre = nombre; window.UserState.displayName = nombre; window.UserState.customName = nombre; }
+        document.querySelectorAll('.perfil-hero__name,[data-field="nombre"] .perfil-field__val').forEach(el => el.textContent = nombre);
+        window.__refreshPerfilDatos?.();
       } catch(e){ console.error(e); Toast.error('No se pudo guardar', e.message||''); btn.disabled=false; btn.textContent='Guardar tarjeta'; }
     });
   }
@@ -11104,9 +11107,10 @@ const Sections = (function(){
             <div class="perfil-card__title">Datos personales</div>
             <div class="perfil-field" data-field="nombre"><span class="perfil-field__lbl">Nombre</span><span class="perfil-field__val">${_nom}</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
             <div class="perfil-field" data-field="email" data-readonly="1"><span class="perfil-field__lbl">Email</span><span class="perfil-field__val">${_em}</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
-            <div class="perfil-field" data-field="whatsapp"><span class="perfil-field__lbl">WhatsApp</span><span class="perfil-field__val">+52 238 ··· ··43</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
+            <div class="perfil-field" data-field="whatsapp"><span class="perfil-field__lbl">WhatsApp</span><span class="perfil-field__val">—</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
+            <div class="perfil-field" data-field="puesto"><span class="perfil-field__lbl">Profesión</span><span class="perfil-field__val">—</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
             <div class="perfil-field" data-field="empresa"><span class="perfil-field__lbl">Empresa</span><span class="perfil-field__val">—</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
-            <div class="perfil-field" data-field="especialidad"><span class="perfil-field__lbl">Especialidad</span><span class="perfil-field__val" id="pf-especialidad">—</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
+            <div class="perfil-field" data-field="sector"><span class="perfil-field__lbl">Área</span><span class="perfil-field__val">—</span><button class="perfil-field__edit"><svg class="ic"><use href="#i-tools"/></svg></button></div>
           </div>
 
           <div class="perfil-card">
@@ -11137,7 +11141,7 @@ const Sections = (function(){
         </div>
       </div>
     `;
-    if (typeof loadProfileFromLS==='function') loadProfileFromLS();
+    if (typeof window.__refreshPerfilDatos==='function') window.__refreshPerfilDatos();
   }
 
   /* ============================ SUSCRIPCIÓN ============================ */
@@ -11898,10 +11902,10 @@ function openPasswordResetModal(){
 //  · Nombre completo → certificados, directorio, ranking y foro.
 //  · WhatsApp → soporte y directorio (privado salvo que el usuario lo muestre).
 //  · Puesto y área → tarjeta del Directorio VIP y su filtro por sector.
-//  · Empresa y ciudad (opcionales) → tarjeta del directorio.
+//  · Empresa (opcional) → tarjeta del directorio.
 // El correo viene de la cuenta y no se edita. Se guarda por /api/profile,
 // que actualiza Auth, users, directorio, ranking y miembros en un solo paso.
-// "Ahora no" se recuerda en la cuenta para no repetirla en otro dispositivo.
+// Se muestra una sola vez por cuenta (se registra al abrirse, en todos los dispositivos).
 // ═══════════════════════════════════════════════════════════════════
 window.__maybeAskName = async function(){
   const S = window.UserState || {};
@@ -11963,16 +11967,20 @@ window.__maybeAskName = async function(){
             <div class="pf-field"><label for="pf-wa">WhatsApp <b>*</b></label><input class="pf-input" id="pf-wa" name="whatsapp" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Ej. 238 123 4567" value="${esc(card.whatsapp || '')}"></div>
             <div class="pf-field"><label for="pf-puesto">Profesión o puesto <b>*</b></label><input class="pf-input" id="pf-puesto" name="puesto" maxlength="80" placeholder="Ej. Contador público" value="${esc(card.puesto || card.profesion || '')}"></div>
             <div class="pf-field"><label for="pf-area">Área profesional <b>*</b></label><select class="pf-input" id="pf-area" name="sector"><option value="">Selecciona…</option>${AREAS.map(a => `<option ${a === area ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
-            <div class="pf-field"><label for="pf-empresa">Empresa o despacho <span>· opcional</span></label><input class="pf-input" id="pf-empresa" name="empresa" maxlength="100" autocomplete="organization" placeholder="Ej. Despacho Contable del Centro" value="${esc(card.empresa || card.institucion || '')}"></div>
-            <div class="pf-field"><label for="pf-ciudad">Ciudad <span>· opcional</span></label><input class="pf-input" id="pf-ciudad" name="ubicacion" maxlength="100" autocomplete="address-level2" placeholder="Ciudad y estado" value="${esc(card.ubicacion || '')}"></div>
+            <div class="pf-field pf-field--wide"><label for="pf-empresa">Empresa o despacho <span>· opcional</span></label><input class="pf-input" id="pf-empresa" name="empresa" maxlength="100" autocomplete="organization" placeholder="Ej. Despacho Contable del Centro" value="${esc(card.empresa || card.institucion || '')}"></div>
           </div>
           <label class="pf-check"><input type="checkbox" id="pf-wa-public" ${contacto.whatsapp === true ? 'checked' : ''}><span>Mostrar mi WhatsApp en mi tarjeta del Directorio VIP</span></label>
-          <p class="pf-note"><svg class="ic"><use href="#i-shield-check"/></svg><span>Tu correo no se publica. Tu WhatsApp solo aparece en el directorio si activas la casilla. Puedes cambiar todo después en <strong>Mi perfil</strong> o en tu tarjeta del directorio.</span></p>
+          <p class="pf-note"><svg class="ic"><use href="#i-shield-check"/></svg><span>Tu correo no se publica. Tu WhatsApp solo aparece en el directorio si activas la casilla.</span></p>
           <p class="pf-error" role="alert" hidden></p>
           <div class="pf-actions"><button class="btn btn--ghost" type="button" data-pf-later>Ahora no</button><button class="btn btn--accent pf-save" type="submit">Guardar y continuar <svg class="ic"><use href="#i-arrow-right"/></svg></button></div>
         </form>
       </section>`;
     document.body.appendChild(ov);
+    // Se muestra una sola vez por cuenta: queda registrada al abrirse, aunque
+    // el usuario recargue o cierre la página sin responder.
+    try { localStorage.setItem(intakeKey, '1'); } catch(e){}
+    S.profileIntakeSeen = true;
+    Promise.resolve(window.ICADEMPlatform?.markProfileIntakeSeen?.()).catch(e => console.warn('[ficha inicial] Pendiente de sincronizar', e?.message));
     if (!document.getElementById('pf-css')) {
       const st = document.createElement('style'); st.id = 'pf-css';
       st.textContent = `
@@ -12060,8 +12068,6 @@ window.__maybeAskName = async function(){
       try { localStorage.setItem(intakeKey, '1'); } catch(e){}
       S.profileIntakeSeen = true;
       closeModal();
-      if (window.Toast) Toast.info('Puedes completarlo después', 'Mi perfil → Nombre completo y tu tarjeta del directorio');
-      try { await window.ICADEMPlatform?.markProfileIntakeSeen?.(); } catch(e){ console.warn('[ficha inicial] Pendiente de sincronizar', e?.message); }
     };
     const onKey = event => {
       if (event.key === 'Escape') { event.preventDefault(); later(); return; }
@@ -12098,7 +12104,7 @@ window.__maybeAskName = async function(){
         if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible. Intenta de nuevo en unos segundos.');
         await window.ICADEMPlatform.saveProfile({
           nombre, whatsapp, puesto, profesion: puesto, sector, especialidad: sector,
-          empresa: $('pf-empresa').value.trim(), ubicacion: $('pf-ciudad').value.trim(),
+          empresa: $('pf-empresa').value.trim(),
           email: card.email || email,
           contactoVisible: {
             email: contacto.email === true,
@@ -12139,10 +12145,12 @@ function openEditField(field){
     Toast.info('Este campo no se puede editar','El email viene de tu cuenta de acceso');
     return;
   }
-  const labels={nombre:'Nombre completo',whatsapp:'WhatsApp',empresa:'Empresa donde trabajas',especialidad:'Especialidad / área'};
-  const placeholders={nombre:'Ej: Dra. Ana Martínez',whatsapp:'+52 238 123 4567',empresa:'Ej: Despacho Contable del Centro',especialidad:'Ej: Contabilidad y fiscal'};
-  const currentVal=wrap.querySelector('.perfil-field__val').textContent.trim();
-  const cleanVal=(currentVal==='—'||currentVal.includes('···'))?'':currentVal;
+  const labels={nombre:'Nombre completo',whatsapp:'WhatsApp',empresa:'Empresa o despacho',puesto:'Profesión o puesto',sector:'Área profesional'};
+  const placeholders={nombre:'Ej: Felipe Estrada Ramírez',whatsapp:'+52 238 123 4567',empresa:'Ej: Despacho Contable del Centro',puesto:'Ej: Contador público'};
+  const valEl=wrap.querySelector('.perfil-field__val');
+  const currentVal=(valEl.dataset.value ?? valEl.textContent).trim();
+  const cleanVal=(currentVal==='—')?'':currentVal;
+  const inputStyle="width:100%;padding:11px 14px;background:var(--surface-2);border:0.5px solid var(--border-2);border-radius:9px;color:var(--text);font:14px 'Inter',sans-serif;outline:none;";
   const subt = field==='nombre'
     ? 'Se actualiza en tu panel, tus certificados y tu cuenta'
     : 'Se guarda en tu perfil';
@@ -12152,18 +12160,24 @@ function openEditField(field){
     subtitle:subt,
     icon:'i-tools',
     size:'sm',
-    body:`<input type="text" id="edit-field-input" class="input" value="${cleanVal.replace(/"/g,'&quot;')}" placeholder="${placeholders[field]||''}" style="width:100%;padding:11px 14px;background:var(--surface-2);border:0.5px solid var(--border-2);border-radius:9px;color:var(--text);font:14px 'Inter',sans-serif;outline:none;">`,
+    body: field==='sector'
+      ? `<select id="edit-field-input" class="input" style="${inputStyle}"><option value="">Selecciona…</option>${PERFIL_AREAS.map(a=>`<option ${a===cleanVal?'selected':''}>${a}</option>`).join('')}</select>`
+      : `<input type="${field==='whatsapp'?'tel':'text'}" id="edit-field-input" class="input" value="${cleanVal.replace(/"/g,'&quot;')}" placeholder="${placeholders[field]||''}" maxlength="${field==='nombre'?38:field==='whatsapp'?20:100}" style="${inputStyle}">`,
     footer:`<button class="btn btn--ghost" onclick="Modal.close('edit-${field}')">Cancelar</button><button class="btn btn--accent" id="save-edit-${field}">Guardar</button>`
   });
   setTimeout(()=>document.getElementById('edit-field-input')?.focus(),100);
   document.getElementById('save-edit-'+field)?.addEventListener('click',async ()=>{
     const newVal=document.getElementById('edit-field-input').value.trim();
     if(!newVal){Toast.info('Campo vacío','Escribe un valor antes de guardar');return;}
+    if(field==='nombre'&&(newVal.length<4||!newVal.includes(' '))){Toast.info('Nombre incompleto','Escribe tu nombre y al menos un apellido');return;}
+    if(field==='whatsapp'&&newVal.replace(/\D/g,'').length<10){Toast.info('WhatsApp incompleto','Escribe al menos 10 dígitos, con lada');return;}
 
     try {
       if (window.ICADEMPlatform?.saveProfile) {
         const patch = { nombre: field==='nombre' ? newVal : (window.UserState?.nombre||window.UserState?.displayName||'Miembro') };
         patch[field] = newVal;
+        if (field==='puesto') patch.profesion = newVal;
+        if (field==='sector') patch.especialidad = newVal;
         await window.ICADEMPlatform.saveProfile(patch);
       } else if (!window.__isDemoMode) {
         throw new Error('El servicio de perfil no está disponible.');
@@ -12202,13 +12216,35 @@ function openEditField(field){
       return;
     }
 
-    // Resto de campos: solo perfil
-    wrap.querySelector('.perfil-field__val').textContent=newVal;
+    // Resto de campos: misma tarjeta que el directorio
+    valEl.textContent=newVal; valEl.dataset.value=newVal;
     Modal.close('edit-'+field);
     Toast.success('Guardado',(labels[field]||field)+' actualizado');
   });
 }
 
+// Datos personales de "Mi perfil": se leen de la misma tarjeta del directorio
+// que editan la ficha inicial y "Mi tarjeta del directorio".
+const PERFIL_AREAS = ['Fiscal y Contable','Nómina y RH','Legal y Corporativo','Finanzas','Consultoría de Negocios','Marketing y Ventas','Tecnología','Educación','Otro'];
+async function leerTarjetaPropia(){
+  const S = window.UserState || {};
+  let card = Object.assign({}, S.directoryProfile || {});
+  try {
+    const fs = window.__fs;
+    if (fs?.getDoc && S.uid && !window.__isDemoMode) { const snap = await fs.getDoc(fs.doc(fs.db, 'directorio', S.uid)); if (snap.exists()) card = Object.assign(card, snap.data()); }
+    else if (window.__isDemoMode) card = Object.assign(card, JSON.parse(localStorage.getItem('icadem_profile') || '{}'));
+  } catch(e){}
+  return card;
+}
+window.__refreshPerfilDatos = async function(){
+  if (!document.querySelector('.perfil-grid [data-field="whatsapp"]')) return;
+  const card = await leerTarjetaPropia();
+  const values = { whatsapp: card.whatsapp, puesto: card.puesto || card.profesion, empresa: card.empresa || card.institucion, sector: card.sector || card.especialidad };
+  Object.entries(values).forEach(([field, value]) => {
+    const el = document.querySelector(`.perfil-grid [data-field="${field}"] .perfil-field__val`);
+    if (el) { el.textContent = String(value || '').trim() || '—'; el.dataset.value = String(value || '').trim(); }
+  });
+};
 function loadProfileFromLS(){
   const all=JSON.parse(localStorage.getItem('icadem_profile')||'{}');
   Object.entries(all).forEach(([field,val])=>{
@@ -12824,7 +12860,7 @@ function initNav(){
         const field=wrap.dataset.field;
         if(wrap.dataset.readonly==='1'){
           Toast.info('Email no editable','El email viene de tu cuenta de acceso');
-        } else if(['nombre','whatsapp','empresa','especialidad'].includes(field)){
+        } else if(['nombre','whatsapp','empresa','puesto','sector'].includes(field)){
           openEditField(field);
         }
         return;
