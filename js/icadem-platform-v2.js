@@ -510,7 +510,7 @@
     const destinations = Array.isArray(data?.destinations) ? data.destinations : [];
     return `<div class="credit-wallet-modal__grid">
       <section class="credit-vault">
-        <span class="credit-vault__gem" aria-hidden="true"><i></i></span>
+        <span class="credit-vault__gem credit-vault__gem--bag" aria-hidden="true"><img src="assets/mascotas/cartera-creditos.webp?v=1" alt="" width="320" height="320" decoding="async" draggable="false"></span>
         <div class="credit-vault__copy"><small>Mi cartera ICADEM</small><strong><b data-credit-balance>${Number(credits.balance) || 0}</b><em> créditos</em></strong><p>Tu saldo profesional, validado y listo para canjear.</p></div>
         <div class="credit-vault__stats"><span><b>${Number(credits.lifetimeEarned) || 0}</b> ganados</span><span><b>${Number(credits.lifetimeSpent) || 0}</b> canjeados</span></div>
       </section>

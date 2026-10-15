@@ -4842,6 +4842,7 @@ const Pages={
         const d = r.data?.eliminado || {};
         const comunidad = Number(d.publicaciones || 0) + Number(d.comentarios || 0) + Number(d.reacciones || 0);
         Toast.success('Cuenta y datos eliminados', `${nombre} ya no existe en ICADEM${comunidad ? ` · ${comunidad} registros de comunidad retirados` : ''}`);
+        if (r.data?.advertencia) setTimeout(() => Toast.info('Limpieza de imágenes en proceso', r.data.advertencia), 600);
         Modal.close();
       } else {
         Toast.error('No se pudo eliminar', r.error || 'Error desconocido');

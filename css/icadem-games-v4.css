@@ -625,3 +625,13 @@
   .practice-picker--juegos .practice-card__art{width:62px;height:62px}
 }
 @media (prefers-reduced-motion:reduce){.practice-picker--juegos .practice-card__art{transition:none;transform:none!important}}
+
+/* Cartera: bolsa de créditos (nuevo ícono) */
+.credit-wallet-card__coins--bag { width:78px; height:78px; top:12px !important; right:12px !important; }
+.credit-wallet-card__coins--bag img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 12px 18px rgba(0,0,0,.3)); pointer-events:none; }
+.credit-wallet-card__coins--bag::after { background:radial-gradient(circle,rgba(242,199,92,.22),transparent 62%) !important; }
+.credit-vault__gem--bag { width:84px !important; height:84px !important; }
+.credit-vault__gem--bag::before, .credit-vault__gem--bag::after { display:none !important; }
+.credit-vault__gem--bag img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 10px 16px rgba(0,0,0,.3)); animation:icaCoinFloat 3.6s ease-in-out infinite; }
+@media (max-width:620px) { .credit-wallet-card__coins--bag { width:80px; height:80px; } .credit-vault__gem--bag { width:58px !important; height:58px !important; } }
+@media (prefers-reduced-motion:reduce) { .credit-vault__gem--bag img { animation:none; } }

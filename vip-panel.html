@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=1" defer></script>
-<script src="js/icadem-platform-v2.js?v=30" defer></script>
+<script src="js/icadem-platform-v2.js?v=31" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -8202,7 +8202,7 @@ const Sections = (function(){
       <aside class="retos-aside">
         <section class="credit-wallet-card" data-credit-wallet-card>
           <span class="credit-wallet-card__gem" aria-hidden="true"><i></i></span>
-          <span class="credit-wallet-card__coins" aria-hidden="true"><svg viewBox="0 0 96 96"><defs><linearGradient id="ica-coin-gold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff2b8"/><stop offset=".45" stop-color="#f2c75c"/><stop offset="1" stop-color="#b9842a"/></linearGradient><linearGradient id="ica-coin-edge" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9a640"/><stop offset="1" stop-color="#8a5b16"/></linearGradient></defs><ellipse cx="48" cy="80" rx="31" ry="9" fill="#06263a" opacity=".45"/><path d="M17 65v10c0 6 14 11 31 11s31-5 31-11V65z" fill="url(#ica-coin-edge)"/><ellipse cx="48" cy="65" rx="31" ry="11" fill="url(#ica-coin-gold)" stroke="#ffe7a3" stroke-width="1.5"/><path d="M21 52v10c0 6 12 10 27 10s27-4 27-10V52z" fill="url(#ica-coin-edge)"/><ellipse cx="48" cy="52" rx="27" ry="10" fill="url(#ica-coin-gold)" stroke="#ffe7a3" stroke-width="1.5"/><circle cx="48" cy="33" r="27" fill="url(#ica-coin-gold)" stroke="#ffeab0" stroke-width="2"/><circle cx="48" cy="33" r="21" fill="none" stroke="#a8761f" stroke-width="1.5" stroke-dasharray="2 3"/><path d="M48 17 59 28 48 46 37 28z" fill="#173b56"/><path d="m48 17 4 11-4 18-4-18z" fill="#75c4d7" opacity=".85"/><ellipse cx="39" cy="22" rx="6" ry="3" fill="#fff" opacity=".55" transform="rotate(-30 39 22)"/></svg></span>
+          <span class="credit-wallet-card__coins credit-wallet-card__coins--bag" aria-hidden="true"><img src="assets/mascotas/cartera-creditos.webp?v=1" alt="" width="320" height="320" decoding="async" draggable="false"></span>
           <div class="credit-wallet-card__copy">
             <small>Mi cartera ICADEM</small>
             <strong><b data-credit-balance>${saldoCreditos}</b><em> créditos</em></strong>
@@ -12208,10 +12208,12 @@ window.__maybeAskName = async function(){
     if (S.profileIntakeSeen === true || seenHere) return;
     // Cuentas que ya tenían nombre personalizado y WhatsApp no necesitan la ficha.
     if (S.customName && S.hasWhatsapp === true) return;
+    // Nunca encima de otra ventana: si hay una abierta, la cola de bienvenida
+    // (icadem-onboarding.js) vuelve a intentarlo cuando se cierre.
     const otroDialogo = document.querySelector(
-      '#splash-bienvenida,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible,.ica-tour-root:not([hidden])'
+      '#splash-bienvenida,.modal-backdrop.is-open,.paywall-modal.is-open,#icadem-install-pop.show:not([hidden]),#tpl-modal-overlay.tpl-modal-visible,.ica-tour-root:not([hidden]),.ica-experience:not([hidden]),#icadem-credit-gift,#free-course-intro,.learning-game,.practice-picker'
     );
-    if (otroDialogo) { setTimeout(() => window.__maybeAskName?.(), 300); return; }
+    if (otroDialogo) return 'busy';
 
     // Tarjeta actual del directorio (solo la propia): permite precargar datos
     // y conservar las preferencias de contacto que el usuario ya eligió.
@@ -12254,8 +12256,8 @@ window.__maybeAskName = async function(){
             </div>
             <div class="pf-field"><label for="pf-email">Correo de tu cuenta</label><input class="pf-input" id="pf-email" type="email" value="${esc(email)}" readonly></div>
             <div class="pf-field"><label for="pf-wa">WhatsApp <b>*</b></label><input class="pf-input" id="pf-wa" name="whatsapp" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="Ej. 238 123 4567" value="${esc(card.whatsapp || '')}"></div>
-            <div class="pf-field"><label for="pf-puesto">Profesión o puesto <b>*</b></label><input class="pf-input" id="pf-puesto" name="puesto" maxlength="80" placeholder="Ej. Contador público" value="${esc(card.puesto || card.profesion || '')}"></div>
-            <div class="pf-field"><label for="pf-area">Área profesional <b>*</b></label><select class="pf-input" id="pf-area" name="sector"><option value="">Selecciona…</option>${AREAS.map(a => `<option ${a === area ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
+            <div class="pf-field"><label for="pf-puesto">Profesión o puesto <span>· opcional</span></label><input class="pf-input" id="pf-puesto" name="puesto" maxlength="80" placeholder="Ej. Contador público" value="${esc(card.puesto || card.profesion || '')}"></div>
+            <div class="pf-field"><label for="pf-area">Área profesional <span>· opcional</span></label><select class="pf-input" id="pf-area" name="sector"><option value="">Selecciona…</option>${AREAS.map(a => `<option ${a === area ? 'selected' : ''}>${esc(a)}</option>`).join('')}</select></div>
             <div class="pf-field pf-field--wide"><label for="pf-empresa">Empresa o despacho <span>· opcional</span></label><input class="pf-input" id="pf-empresa" name="empresa" maxlength="100" autocomplete="organization" placeholder="Ej. Despacho Contable del Centro" value="${esc(card.empresa || card.institucion || '')}"></div>
           </div>
           <p class="pf-error" role="alert" hidden></p>
@@ -12380,13 +12382,13 @@ window.__maybeAskName = async function(){
       const sector = $('pf-area').value;
       if (nombre.length < 4 || !nombre.includes(' ')) return fail('Escribe tu nombre y al menos un apellido, como quieres que aparezca en tus certificados.', nameInput);
       if (!/^\+?[0-9 ()\-.]{7,20}$/.test(whatsapp) || whatsapp.replace(/\D/g, '').length < 10) return fail('Escribe un WhatsApp válido de al menos 10 dígitos (con lada).', waInput);
-      if (puesto.length < 2) return fail('Indica tu profesión o puesto.', $('pf-puesto'));
-      if (!sector) return fail('Elige tu área profesional.', $('pf-area'));
       save.disabled = true; const label = save.innerHTML; save.textContent = 'Guardando…';
       try {
         if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible. Intenta de nuevo en unos segundos.');
         await window.ICADEMPlatform.saveProfile({
-          nombre, whatsapp, puesto, profesion: puesto, sector, especialidad: sector,
+          nombre, whatsapp,
+          ...(puesto ? { puesto, profesion: puesto } : {}),
+          ...(sector ? { sector, especialidad: sector } : {}),
           empresa: $('pf-empresa').value.trim(),
           email: card.email || email,
           // El contacto aparece en el Directorio VIP (solo lo ven miembros VIP);
@@ -21154,7 +21156,7 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
-  <link rel="stylesheet" href="css/icadem-games-v4.css?v=7">
+  <link rel="stylesheet" href="css/icadem-games-v4.css?v=8">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){
@@ -21209,6 +21211,6 @@ h1, h2, h3, h4{ color: var(--text); }
   .directory-page .directory-tier{min-width:0!important}
 }
 </style>
-<script src="js/icadem-onboarding.js?v=15"></script>
+<script src="js/icadem-onboarding.js?v=16"></script>
 </body>
 </html>

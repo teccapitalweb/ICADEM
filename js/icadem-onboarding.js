@@ -88,7 +88,7 @@
       .ica-tour-root,.ica-experience{position:fixed;inset:0;z-index:2147483000;font-family:'Inter',system-ui,sans-serif}.ica-tour-root[hidden],.ica-experience[hidden]{display:none!important}
       .ica-tour-shade{position:absolute;inset:0;background:transparent}
       .ica-experience__shade{position:absolute;inset:0;background:rgba(5,12,18,.74)}
-      .ica-tour-spotlight{position:fixed;z-index:1;border:2px solid #d0a853;border-radius:13px;box-shadow:0 0 0 9999px rgba(5,12,18,.76),0 0 0 4px rgba(208,168,83,.18);pointer-events:none;transition:top .18s ease,left .18s ease,width .18s ease,height .18s ease}
+      .ica-tour-spotlight{position:fixed;z-index:1;border:0;border-radius:16px;box-shadow:0 0 0 9999px rgba(5,12,18,.74),0 0 0 2px rgba(227,188,100,.85),0 0 30px 6px rgba(227,188,100,.28);pointer-events:none;transition:top .2s ease,left .2s ease,width .2s ease,height .2s ease,border-radius .2s ease}.ica-tour-card.is-anchored{transform:none;transition:top .2s ease,left .2s ease}
       .ica-tour-card{position:absolute;z-index:3;top:50%;left:50%;width:min(470px,calc(100vw - 32px));max-height:calc(100dvh - 32px);overflow:auto;transform:translate(-50%,-50%);border:1px solid rgba(20,52,72,.18);border-top:4px solid #c79a43;border-radius:18px;background:#fffdfa;color:#142238;box-shadow:0 32px 100px rgba(3,14,23,.42);outline:none}
       .ica-tour-top{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 26px 8px}.ica-tour-brand{color:#9c6d17;font:800 9px/1.2 'JetBrains Mono',monospace;letter-spacing:1.6px;text-transform:uppercase}.ica-tour-skip{min-height:34px;padding:6px 2px;border:0;color:#69737a;background:transparent;font-size:12px;font-weight:700;cursor:pointer}.ica-tour-skip:hover,.ica-tour-skip:focus-visible{color:#173b56;text-decoration:underline;text-underline-offset:4px;outline:none}
       .ica-tour-body{padding:8px 26px 0}.ica-tour-icon{display:grid;place-items:center;width:64px;height:64px;margin:0 auto 17px;border-radius:19px;color:#fff;background:linear-gradient(145deg,#24536e,#12354b);box-shadow:0 12px 28px rgba(23,59,86,.2);font:800 25px/1 'Plus Jakarta Sans',sans-serif}.ica-tour-card.is-final .ica-tour-icon{background:linear-gradient(145deg,#28ad70,#188c57);box-shadow:0 12px 28px rgba(26,143,89,.24)}
@@ -115,9 +115,26 @@
   }
   function placeSpotlight() {
     if(!running||!spotlight)return; const shade=root.querySelector('.ica-tour-shade');
-    if(!currentTarget||!isVisible(currentTarget)){spotlight.style.display='none';shade.style.background='rgba(5,12,18,.72)';return;}
-    shade.style.background='transparent'; const raw=currentTarget.getBoundingClientRect(),pad=7; spotlight.style.display='block'; spotlight.style.left=Math.max(5,raw.left-pad)+'px'; spotlight.style.top=Math.max(5,raw.top-pad)+'px'; spotlight.style.width=Math.min(innerWidth-10,raw.width+pad*2)+'px'; spotlight.style.height=Math.min(innerHeight-10,raw.height+pad*2)+'px';
+    if(!currentTarget||!isVisible(currentTarget)){spotlight.style.display='none';shade.style.background='rgba(5,12,18,.72)';resetCard();return;}
+    shade.style.background='transparent'; const raw=currentTarget.getBoundingClientRect(),pad=5; spotlight.style.display='block'; spotlight.style.left=Math.max(5,raw.left-pad)+'px'; spotlight.style.top=Math.max(5,raw.top-pad)+'px'; spotlight.style.width=Math.min(innerWidth-10,raw.width+pad*2)+'px'; spotlight.style.height=Math.min(innerHeight-10,raw.height+pad*2)+'px';
+    // Un solo halo que sigue la forma del elemento (sin marco encima de su borde).
+    const radius=parseFloat(getComputedStyle(currentTarget).borderTopLeftRadius)||12; spotlight.style.borderRadius=(radius+pad)+'px';
+    placeCard(raw,pad);
   }
+  // La tarjeta del recorrido se coloca en el espacio libre (debajo o arriba del
+  // elemento resaltado) para no taparlo; si no cabe, queda centrada.
+  function placeCard(raw,pad){
+    if(!card)return; const gap=16,margin=12,h=card.offsetHeight,w=card.offsetWidth;
+    const below=raw.bottom+pad+gap, above=raw.top-pad-gap-h;
+    let top=null;
+    if(below+h<=innerHeight-margin)top=below; else if(above>=margin)top=above;
+    // Sin espacio arriba ni abajo (celular): la tarjeta baja al pie de la
+    // pantalla y el elemento resaltado queda visible arriba.
+    if(top===null){ if(innerWidth>720){resetCard();return;} top=Math.max(margin,innerHeight-h-margin); }
+    const left=Math.min(innerWidth-w-margin,Math.max(margin,raw.left+raw.width/2-w/2));
+    card.classList.add('is-anchored'); card.style.top=top+'px'; card.style.left=left+'px';
+  }
+  function resetCard(){if(!card)return;card.classList.remove('is-anchored');card.style.top='';card.style.left='';}
   function go(nextIndex) {
     if(!running)return; stepIndex=Math.max(0,Math.min(steps.length-1,nextIndex)); const token=++renderToken,step=steps[stepIndex]; setMobileDrawer(Boolean(step.mobileDrawer));
     setTimeout(()=>{if(!running||token!==renderToken)return;currentTarget=firstVisible(step.selectors);const title=typeof step.title==='function'?step.title(firstName()):step.title;card.classList.toggle('is-final',Boolean(step.final));card.querySelector('.ica-tour-icon').textContent=step.icon;card.querySelector('#ica-tour-title').textContent=title;card.querySelector('#ica-tour-text').textContent=step.text;card.querySelector('[data-tour-count]').textContent=`${stepIndex+1} de ${steps.length}`;card.querySelector('.ica-tour-track span').style.width=`${((stepIndex+1)/steps.length)*100}%`;card.querySelector('[data-tour-action="prev"]').hidden=stepIndex===0;card.querySelector('[data-tour-action="next"]').textContent=step.final?'Finalizar':'Siguiente';placeSpotlight();},onMobile()?180:20);
@@ -245,7 +262,8 @@
         // Ficha inicial: justo después del primer recorrido (nombre del
         // certificado, WhatsApp, puesto y área para el directorio).
         if(!tourWasSeen())return;
-        await window.__maybeAskName?.();
+        const shown=await window.__maybeAskName?.();
+        if(shown==='busy'){retry(job);return;}
         await waitForGone('#name-modal');
         return;
       }
