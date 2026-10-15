@@ -512,3 +512,15 @@
     transform:none!important;
   }
 }
+
+/* Carga instantánea del reto: la ventana aparece al clic y se llena al llegar el reto */
+.learning-game--loading .lg-loading{display:grid;justify-items:center;gap:16px;text-align:center;color:#24405c;width:100%}
+.learning-game--loading .lg-loading strong{font-size:15px;font-weight:700;letter-spacing:.01em}
+.lg-loading__spin{width:38px;height:38px;border-radius:50%;border:3px solid rgba(36,64,92,.15);border-top-color:#1f6f8b;animation:lgSpin .8s linear infinite}
+.lg-loading__sk{display:grid;gap:10px;width:min(420px,100%);margin-top:6px}
+.lg-loading__sk i{display:block;height:12px;border-radius:8px;background:linear-gradient(90deg,rgba(36,64,92,.07),rgba(36,64,92,.14),rgba(36,64,92,.07));background-size:200% 100%;animation:lgShimmer 1.2s ease-in-out infinite}
+.lg-loading__sk i:nth-child(2){width:82%;justify-self:center}.lg-loading__sk i:nth-child(3){width:60%;justify-self:center}
+@keyframes lgSpin{to{transform:rotate(360deg)}}
+@keyframes lgShimmer{0%{background-position:100% 0}100%{background-position:-100% 0}}
+@media (prefers-reduced-motion:reduce){.lg-loading__spin,.lg-loading__sk i{animation:none}}
+.learning-game--loading .learning-game__content{display:grid!important;align-items:center!important;align-content:center!important;min-height:min(520px,70vh)}

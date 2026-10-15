@@ -1274,6 +1274,34 @@
     if (hasReward) chest.focus();
   }
 
+  // Abre la ventana del juego al instante (mismo fondo y panel) mientras el
+  // servidor prepara el reto; así nunca se ve la página detrás entre clics.
+  function openLoadingShell(scope) {
+    document.querySelector('.learning-game')?.remove();
+    const modal = document.createElement('div');
+    modal.className = 'learning-game learning-game--v3 learning-game--loading';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-busy', 'true');
+    modal.setAttribute('aria-label', scope === 'reto' ? 'Preparando reto ICADEM' : 'Preparando actividad ICADEM');
+    modal.innerHTML = `
+      <div class="learning-game__veil" data-game-close></div>
+      <section class="learning-game__panel">
+        <header class="learning-game__header">
+          <div class="learning-game__brand"><span>ICADEM</span><small>${scope === 'reto' ? 'Reto profesional' : 'Actividad de cierre'}</small></div>
+          <div class="learning-game__step" aria-hidden="true"><i class="is-current"></i><i></i><i></i></div>
+          <button class="learning-game__close" type="button" aria-label="Cancelar">×</button>
+        </header>
+        <div class="learning-game__content"><div class="lg-loading" role="status"><span class="lg-loading__spin" aria-hidden="true"></span><strong>Preparando tu reto…</strong><div class="lg-loading__sk" aria-hidden="true"><i></i><i></i><i></i></div></div></div>
+      </section>`;
+    document.body.appendChild(modal);
+    document.body.classList.add('has-learning-game');
+    const cancel = () => { modal.remove(); if (!document.querySelector('.learning-game, .practice-picker')) document.body.classList.remove('has-learning-game'); };
+    modal.querySelector('.learning-game__close').addEventListener('click', cancel);
+    modal.querySelector('[data-game-close]').addEventListener('click', cancel);
+    return { modal, cancelled: () => !modal.isConnected, done: cancel };
+  }
+
   function startChallenge(challenge, options) {
     return new Promise(resolve => {
       const shell = modalShell(challenge, () => resolve({ closed: true }));
@@ -1353,6 +1381,7 @@
     const courseId = String(options?.courseId || '');
     const lessonNumber = Number(options?.lessonNumber);
     let challenge;
+    const loader = openLoadingShell('lesson');
     try {
       if (window.__isDemoMode) {
         const types = [...PRACTICE_TYPES, 'quiz'];
@@ -1362,8 +1391,10 @@
         challenge.demoRewardId = `lesson:${courseId}:${lessonNumber}`;
       }
       else challenge = await request('/api/learning/challenge', { method: 'POST', body: { courseId, lessonNumber } });
+      if (loader.cancelled()) return { closed: true };
       return startChallenge(challenge, options);
     } catch (error) {
+      loader.done();
       showNotice('No pudimos abrir la actividad', error.message, 'error');
       throw error;
     }
@@ -1373,6 +1404,7 @@
     const type = options?.type === 'pulse' ? 'guess' : String(options?.type || 'guess');
     const experienceId = String(options?.experienceId || type);
     let challenge;
+    const loader = openLoadingShell('reto');
     try {
       if (window.__isDemoMode) {
         if (demoRetoAlreadyUsed(experienceId, type)) {
@@ -1393,6 +1425,7 @@
       }
       challenge.scope = 'reto';
       challenge.completePath = challenge.completePath || '/api/retos/complete';
+      if (loader.cancelled()) return { closed: true };
       return startChallenge(challenge, {
         onComplete: result => {
           options?.onComplete?.(result);
@@ -1407,6 +1440,7 @@
         }
       });
     } catch (error) {
+      loader.done();
       const alreadyPlayed = error.data?.code === 'reto-already-played';
       showNotice(alreadyPlayed ? 'Reto ya completado' : 'No pudimos abrir el reto', error.message, alreadyPlayed ? 'info' : 'error');
       throw error;
