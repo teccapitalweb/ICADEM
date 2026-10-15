@@ -215,6 +215,8 @@
       position: absolute;
       inset: 0;
       z-index: -2;
+      width: 100%;
+      max-width: none;
       margin: 0;
     }
 
@@ -233,6 +235,43 @@
       object-position: center 48%;
       box-shadow: none;
       filter: saturate(.82) contrast(1.03);
+    }
+
+    .whatsapp-float {
+      position: fixed;
+      left: max(20px, env(safe-area-inset-left));
+      right: auto;
+      bottom: max(20px, env(safe-area-inset-bottom));
+      z-index: 160;
+      display: grid;
+      width: 58px;
+      height: 58px;
+      padding: 0;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, .72);
+      border-radius: 50%;
+      color: #fff;
+      background: #20a761;
+      box-shadow: 0 16px 38px rgba(7, 77, 43, .3), 0 0 0 7px rgba(32, 167, 97, .1);
+      transition: transform .2s ease, box-shadow .2s ease, background .2s ease;
+    }
+
+    .whatsapp-float:hover {
+      color: #fff;
+      background: #168d50;
+      box-shadow: 0 19px 42px rgba(7, 77, 43, .36), 0 0 0 9px rgba(32, 167, 97, .12);
+      transform: translateY(-3px);
+    }
+
+    .whatsapp-float:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 4px;
+    }
+
+    .whatsapp-float svg {
+      width: 28px;
+      height: 28px;
+      fill: currentColor;
     }
 
     .hero-media figcaption {
@@ -474,11 +513,23 @@
       .trust-grid strong {
         font-size: 16px;
       }
+
+      .whatsapp-float {
+        left: max(14px, env(safe-area-inset-left));
+        right: auto;
+        bottom: max(14px, env(safe-area-inset-bottom));
+        width: 54px;
+        height: 54px;
+      }
     }
 
     @media (prefers-reduced-motion: reduce) {
       .hero-media img {
         filter: saturate(.82) contrast(1.03);
+      }
+
+      .whatsapp-float {
+        transition: none;
       }
     }
   </style>
@@ -521,7 +572,7 @@
   <main id="principal">
     <section class="hero">
       <figure class="hero-media">
-        <img src="assets/hero/hero-icadem.jpg" alt="Equipo profesional revisando información financiera" fetchpriority="high" decoding="async">
+        <img src="assets/hero/hero-icadem-legal.jpg?v=20261015" alt="Mesa de trabajo jurídica con mazo y libro abierto" fetchpriority="high" decoding="async">
         <figcaption>
           <span>Formación profesional</span>
           <strong>Aprende. Aplica. Avanza.</strong>
@@ -791,7 +842,11 @@
     </div>
   </footer>
 
-  <a class="whatsapp-float" href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20quiero%20informaci%C3%B3n." target="_blank" rel="noopener" aria-label="Contactar por WhatsApp">WhatsApp</a>
+  <a class="whatsapp-float" href="https://wa.me/522383738143?text=Hola%20ICADEM%2C%20quiero%20informaci%C3%B3n." target="_blank" rel="noopener noreferrer" aria-label="Contactar por WhatsApp" title="Contactar por WhatsApp">
+    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+      <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93a7.898 7.898 0 0 0-2.327-5.607M7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.493.654.666-2.431-.156-.25a6.57 6.57 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.59-6.584a6.56 6.56 0 0 1 4.66 1.931 6.558 6.558 0 0 1 1.928 4.66c-.004 3.639-2.961 6.589-6.592 6.589m3.615-4.934c-.197-.099-1.17-.578-1.353-.642-.181-.065-.313-.099-.445.099-.132.197-.511.642-.627.775-.115.132-.23.148-.428.05-.197-.1-.836-.308-1.592-.984-.59-.525-.987-1.174-1.102-1.371-.116-.198-.013-.305.086-.403.09-.088.197-.23.296-.345.1-.116.132-.198.198-.33.065-.132.033-.247-.017-.346-.05-.099-.445-1.073-.61-1.47-.16-.389-.323-.336-.445-.342-.115-.006-.247-.007-.379-.007s-.346.05-.527.247c-.181.198-.692.677-.692 1.654 0 .977.709 1.916.808 2.049.099.132 1.394 2.132 3.377 2.992.472.203.84.324 1.127.415.474.15.905.129 1.246.078.38-.057 1.17-.478 1.335-.94.164-.462.164-.858.115-.94-.049-.083-.181-.132-.379-.231"/>
+    </svg>
+  </a>
 
   <div class="image-modal" id="image-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Vista ampliada">
     <button class="image-modal__close" type="button" aria-label="Cerrar">×</button>
