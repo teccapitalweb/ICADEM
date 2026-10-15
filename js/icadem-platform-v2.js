@@ -76,6 +76,17 @@
     return user ? user.getIdToken() : '';
   }
 
+  // La cuenta de esta sesión fue eliminada: se cierra la sesión y se manda al
+  // acceso, donde la persona puede registrarse de nuevo como cuenta nueva.
+  let accountDeletedHandled = false;
+  function handleAccountDeleted() {
+    if (accountDeletedHandled || window.__isDemoMode) return;
+    accountDeletedHandled = true;
+    try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
+    if (typeof window.__signOut === 'function') window.__signOut();
+    else window.location.href = 'vip-auth.html';
+  }
+
   async function request(path, options) {
     const authToken = await token();
     const config = { method: options?.method || 'GET', headers: { Accept: 'application/json' } };
@@ -87,6 +98,7 @@
     const response = await fetch(`${API}${path}`, config);
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
+      if (response.status === 410 && data.code === 'account-deleted') handleAccountDeleted();
       const error = new Error(data.error || 'No pudimos completar la solicitud.');
       error.status = response.status;
       error.data = data;

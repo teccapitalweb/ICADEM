@@ -742,6 +742,13 @@ window.showAlert = function(type, title, msg) {
   z.innerHTML = `<div class="alert alert--${type}">${type==='error'?ICON_ERR:ICON_OK}<div class="alert__msg"><strong>${title}</strong>${msg?'<br>'+msg:''}</div></div>`;
 };
 window.clearAlert = function() { document.getElementById('alert-zone').innerHTML = ''; };
+// Venimos de una cuenta eliminada: se avisa y se invita a crear una nueva.
+try {
+  if (sessionStorage.getItem('icadem:account-deleted') === '1') {
+    sessionStorage.removeItem('icadem:account-deleted');
+    window.showAlert('ok', 'Tu cuenta anterior fue eliminada', 'Inicia sesión o regístrate para comenzar con una cuenta nueva desde cero.');
+  }
+} catch (_) {}
 
 /* ===== Loading state (compartido) ===== */
 window.setLoading = function(btn, isLoading, originalLabel) {
