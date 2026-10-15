@@ -76,24 +76,55 @@
     return user ? user.getIdToken() : '';
   }
 
-  // Si el servidor indica que la cuenta de esta sesión está eliminada, NUNCA
-  // se cierra la sesión automáticamente (evita ciclos con la pantalla de
-  // acceso): solo se avisa una vez y la persona decide cerrar sesión.
+  // Si el servidor indica que esta sesión pertenece a una cuenta eliminada,
+  // se limpia una sola vez y se vuelve al acceso. El sello por UID impide que
+  // una incidencia del backend pueda convertir la recuperación en un ciclo.
   let accountDeletedHandled = false;
-  function handleAccountDeleted() {
-    if (accountDeletedHandled || window.__isDemoMode) return;
+  async function handleAccountDeleted() {
+    if (accountDeletedHandled || window.__isDemoMode) return false;
     accountDeletedHandled = true;
+
+    document.querySelector('.credit-wallet-modal')?.remove();
+    document.body.classList.remove('has-credit-wallet');
+
+    const uid = String(window.UserState?.uid || window.__auth?.currentUser?.uid || 'desconocido');
+    const key = 'icadem:account-deleted-signout';
+    let last = null;
+    try { last = JSON.parse(localStorage.getItem(key) || 'null'); } catch (_) {}
+
+    if (last && last.uid === uid && Date.now() - Number(last.at || 0) < 30 * 60 * 1000) {
+      showAccountDeletedRecovery();
+      return false;
+    }
+
+    try { localStorage.setItem(key, JSON.stringify({ uid, at: Date.now() })); } catch (_) {}
+    try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
+
+    try {
+      if (typeof window.__signOut === 'function') await window.__signOut();
+      else if (typeof window.__auth?.signOut === 'function') await window.__auth.signOut();
+    } catch (_) {
+      // El acceso vuelve a validar Firebase; el sello anterior evita ciclos.
+    }
+    window.location.replace('vip-auth.html');
+    return true;
+  }
+
+  function showAccountDeletedRecovery() {
     if (document.getElementById('ica-account-deleted')) return;
     const box = document.createElement('div');
     box.id = 'ica-account-deleted';
     box.setAttribute('role', 'alert');
     box.style.cssText = 'position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:2147483000;width:min(460px,calc(100vw - 24px));padding:16px 18px;border-radius:16px;background:#12324a;color:#fff;box-shadow:0 20px 50px rgba(0,0,0,.35);font:14px/1.45 Inter,system-ui,sans-serif;display:grid;gap:10px';
-    box.innerHTML = '<strong style="font-size:15px">Tu cuenta se está actualizando</strong><span style="color:rgba(255,255,255,.8)">Algunas secciones no cargaron. Recarga en unos minutos o cierra sesión y vuelve a entrar.</span><div style="display:flex;gap:8px;justify-content:flex-end"><button type="button" data-x style="padding:9px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:transparent;color:#fff;font-weight:700;cursor:pointer">Entendido</button><button type="button" data-out style="padding:9px 14px;border-radius:10px;border:0;background:#e3a62a;color:#1a1206;font-weight:800;cursor:pointer">Cerrar sesión</button></div>';
+    box.innerHTML = '<strong style="font-size:15px">La cuenta ya fue eliminada</strong><span style="color:rgba(255,255,255,.8)">Vuelve al acceso para iniciar o crear una cuenta nueva. Si el borrado acaba de comenzar, espera unos minutos.</span><div style="display:flex;justify-content:flex-end"><button type="button" data-out style="padding:9px 14px;border-radius:10px;border:0;background:#e3a62a;color:#1a1206;font-weight:800;cursor:pointer">Volver al acceso</button></div>';
     document.body.appendChild(box);
-    box.querySelector('[data-x]').addEventListener('click', () => box.remove());
-    box.querySelector('[data-out]').addEventListener('click', () => {
+    box.querySelector('[data-out]').addEventListener('click', async () => {
       try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
-      if (typeof window.__signOut === 'function') window.__signOut(); else window.location.href = 'vip-auth.html';
+      try {
+        if (typeof window.__signOut === 'function') await window.__signOut();
+        else if (typeof window.__auth?.signOut === 'function') await window.__auth.signOut();
+      } catch (_) {}
+      window.location.replace('vip-auth.html');
     });
   }
 
@@ -108,7 +139,7 @@
     const response = await fetch(`${API}${path}`, config);
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
-      if (response.status === 410 && data.code === 'account-deleted') handleAccountDeleted();
+      if (response.status === 410 && data.code === 'account-deleted') await handleAccountDeleted();
       const error = new Error(data.error || 'No pudimos completar la solicitud.');
       error.status = response.status;
       error.data = data;
@@ -569,6 +600,7 @@
       }));
     } catch (error) {
       if (!root.isConnected) return;
+      if (error?.status === 410 && error?.data?.code === 'account-deleted') { close(); return; }
       root.querySelector('.credit-wallet-modal__body').innerHTML = `<div class="credit-wallet-error"><strong>No pudimos sincronizar tu cartera.</strong><span>${esc(error.message)}</span><button type="button" data-wallet-retry>Reintentar</button></div>`;
       root.querySelector('[data-wallet-retry]')?.addEventListener('click', () => { close(); openCreditWallet(); });
     }

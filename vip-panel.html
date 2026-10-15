@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=2" defer></script>
-<script src="js/icadem-platform-v2.js?v=36" defer></script>
+<script src="js/icadem-platform-v2.js?v=37" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -4061,6 +4061,18 @@ if (window.__isDemoMode) {
       user = auth.currentUser || user;
       await user.getIdToken(true);
     } catch (error) {
+      const invalidatedAccount = [
+        'auth/user-token-expired',
+        'auth/invalid-user-token',
+        'auth/user-disabled',
+        'auth/user-not-found'
+      ].includes(String(error?.code || ''));
+      if (invalidatedAccount) {
+        try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
+        try { await signOut(auth); } catch (_) {}
+        window.location.replace('vip-auth.html');
+        return;
+      }
       console.warn('No se pudo refrescar la identidad Google:', error.message);
     }
 
