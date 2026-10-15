@@ -231,6 +231,32 @@
       return '<div class="mx-three">' + campaigns + web + entries + '</div>';
     }
 
+    function indexExperience(d) {
+      var x = d.indexExperience;
+      if (!x || !x.ok) return '';
+      var events = (x.assistant && x.assistant.events) || {};
+      var assistant = x.assistant || {};
+      var trial = x.trial || {};
+      var funnel = '<div class="mx-cards mx-cards--mini">' +
+        miniCard('Guía ICADEM', num(assistant.visitors), 'visitantes interactuaron', '<div class="mx-card__split"><span>' + num(events.assistant_question) + ' preguntas</span></div>') +
+        miniCard('Diagnósticos', num(events.questionnaire_complete), 'formularios terminados', '<div class="mx-card__split"><span>' + num(events.questionnaire_start) + ' iniciados</span></div>') +
+        miniCard('Contactos', num(assistant.leads), 'rutas guardadas con consentimiento', '<div class="mx-card__split"><span>' + num(events.course_click) + ' clics en cursos</span></div>') +
+        miniCard('Cortesía VIP', num(trial.activated), 'activaciones acumuladas', '<div class="mx-card__split"><span>' + num(trial.sent) + ' invitaciones enviadas</span><span>' + num(trial.pending) + ' pendientes</span></div>') +
+        '</div>';
+      var rolePanel = panel('Diagnóstico ICADEM', 'Perfiles profesionales', (x.roles || []).length ? rank(x.roles, function (r) { return esc(r.label); }, function (r) { return num(r.count); }, function () { return 'respuestas'; }, function (r) { return r.count; }) : empty('Aún no hay diagnósticos completados.'));
+      var objectivePanel = panel('Diagnóstico ICADEM', 'Objetivos principales', (x.objectives || []).length ? rank(x.objectives, function (r) { return esc(r.label); }, function (r) { return num(r.count); }, function () { return 'respuestas'; }, function (r) { return r.count; }) : empty('Aún no hay objetivos registrados.'));
+      var leads = x.recentLeads || [];
+      var leadRows = leads.map(function (lead) {
+        var role = lead.answers && lead.answers[0] ? lead.answers[0].answer : '—';
+        var objective = lead.answers && lead.answers[1] ? lead.answers[1].answer : '—';
+        var courses = (lead.recommendations || []).map(function (c) { return c.title; }).join(', ') || '—';
+        return '<tr><td><strong>' + esc(lead.name) + '</strong><small style="display:block">' + esc(lead.email) + (lead.phone ? ' · ' + esc(lead.phone) : '') + '</small></td><td>' + esc(role) + '</td><td>' + esc(objective) + '</td><td>' + esc(courses) + '</td><td class="mx-when">' + esc(lead.createdAt ? ago(lead.createdAt) : '—') + '</td></tr>';
+      }).join('');
+      var leadPanel = panel('Contactos del index · ' + x.days + ' días', 'Rutas profesionales guardadas', leads.length ? '<div class="mx-table-wrap"><table class="mx-table"><thead><tr><th>Contacto</th><th>Perfil</th><th>Objetivo</th><th>Cursos sugeridos</th><th>Recibido</th></tr></thead><tbody>' + leadRows + '</tbody></table></div>' : empty('Aún no hay contactos guardados desde el diagnóstico.'));
+      return panel('Index público', 'Asistente, diagnóstico y cortesía', funnel + '<div class="mx-two">' + rolePanel + objectivePanel + '</div>' + leadPanel,
+        '<span class="mx-badge">' + num(events.cookie_accept) + ' consentimientos</span>');
+    }
+
     function users(d) {
       var list = d.usuarios.slice().sort(function (a, b) { return order === 'visitas' ? b.sesiones - a.sesiones || b.minutos - a.minutos : b.minutos - a.minutos || b.sesiones - a.sesiones; });
       var rows = list.map(function (u, i) {
@@ -275,7 +301,7 @@
         engagement(d) + daily(d) + online(d) +
         '<div class="mx-two">' + hours(d) + weekdays(d) + '</div>' +
         '<div class="mx-two">' + sections(d) + courses(d) + '</div>' +
-        activity(d) + activityDetail(d) + audience(d) + webAndCampaigns(d) + users(d) +
+        activity(d) + activityDetail(d) + audience(d) + webAndCampaigns(d) + indexExperience(d) + users(d) +
         '<p class="mx-foot">Actualizado ' + new Date(d.generado).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + ' · No se cuentan las visitas de administradores ni de buscadores. No se guarda la IP de nadie.</p>';
       container.querySelector('[data-mx-live]').textContent = num(d.enLinea) + ' en línea ahora';
       var tbtn = body.querySelector('[data-mx-table]');
@@ -291,10 +317,17 @@
       if (body) body.classList.add('is-loading');
       try {
         var token = await opts.getToken();
-        var r = await fetch(opts.api + '/admin/metricas?dias=' + days, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+        var responses = await Promise.all([
+          fetch(opts.api + '/admin/metricas?dias=' + days, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' }),
+          fetch(opts.api + '/admin/index-experience?dias=' + days, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' })
+        ]);
+        var r = responses[0], rx = responses[1];
         var json = await r.json().catch(function () { return {}; });
+        var experience = await rx.json().catch(function () { return {}; });
         if (!r.ok || !json.ok) throw new Error(json.error || 'No se pudieron cargar las métricas');
+        if (!rx.ok || !experience.ok) throw new Error(experience.error || 'No se pudieron cargar los datos del asistente');
         if (!alive()) return;
+        json.indexExperience = experience;
         data = json; paint();
       } catch (e) {
         body = container.querySelector('[data-mx-body]');

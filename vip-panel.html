@@ -23,7 +23,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=10">
 <script src="js/icadem-mascots.js?v=1"></script>
-<script src="js/icadem-analytics.js?v=1" defer></script>
+<script src="js/icadem-analytics.js?v=2" defer></script>
 <script src="js/icadem-platform-v2.js?v=34" defer></script>
 
 <style>
@@ -4045,6 +4045,8 @@ function calcIniciales(nameOrEmail){
 window.calcIniciales = calcIniciales;
 
 const isCheckoutSuccess = new URLSearchParams(window.location.search).get('checkout') === 'success';
+const shouldActivateTrial = new URLSearchParams(window.location.search).get('trial') === 'activate';
+let trialActivationFeedback = null;
 
 // Si ya estamos en modo demo (configurado en script anterior), aplicar UserState y salir
 if (window.__isDemoMode) {
@@ -4080,6 +4082,26 @@ if (window.__isDemoMode) {
     } else {
       try {
         const idToken = await user.getIdToken();
+        if (shouldActivateTrial) {
+          try {
+            const trialRes = await fetch(`${WEBHOOK_URL}/api/trial/activate`, {
+              method:'POST',
+              headers:{ 'Content-Type':'application/json', Authorization:`Bearer ${idToken}` },
+              body:JSON.stringify({ source:'email' })
+            });
+            const trialData = await trialRes.json().catch(()=>({}));
+            if (!trialRes.ok || !trialData.ok) throw new Error(trialData.error || 'No pudimos activar la cortesía.');
+            trialActivationFeedback = { type:'success', message:trialData.alreadyActive ? 'Tu cortesía ya estaba activa.' : 'Tu cortesía de 3 días ya está activa.' };
+          } catch (trialError) {
+            trialActivationFeedback = { type:'error', message:trialError.message || 'No pudimos activar la cortesía.' };
+          } finally {
+            if (window.history.replaceState) {
+              const cleanTrialUrl = new URL(window.location.href);
+              cleanTrialUrl.searchParams.delete('trial');
+              window.history.replaceState({}, '', cleanTrialUrl.toString());
+            }
+          }
+        }
         const res = await fetch(`${WEBHOOK_URL}/membership/${user.uid}`, {
           method:'GET',
           headers:{ Authorization:`Bearer ${idToken}` }
@@ -4136,6 +4158,12 @@ if (window.__isDemoMode) {
 
     document.body.style.visibility = 'visible';
     document.dispatchEvent(new CustomEvent('icadem:user-ready', { detail:{ uid:user.uid } }));
+    if (trialActivationFeedback) {
+      setTimeout(() => {
+        if (trialActivationFeedback.type === 'success') Toast.success('Cortesía activada', trialActivationFeedback.message);
+        else Toast.error('No pudimos activar', trialActivationFeedback.message);
+      }, 350);
+    }
 
     // Cargar noticias reales del home (Firestore noticias_auto)
     setTimeout(()=>{ if(typeof window.__cargarNoticiasHome==='function') window.__cargarNoticiasHome(); }, 300);
@@ -11685,6 +11713,41 @@ const Sections = (function(){
 
   /* ─── Estado: VIP activo · muestra plan real y historial ─── */
   async function renderSuscripcionVIP(container, S){
+    if (S.plan === 'trial' || S.membership?.accessType === 'trial') {
+      const trialEndsRaw = S.membership?.trialEndsAt || S.membership?.trial?.expiresAt || S.membership?.expiraEn;
+      const trialEnds = trialEndsRaw ? new Date(trialEndsRaw) : null;
+      const trialEndsText = trialEnds && !Number.isNaN(trialEnds.getTime())
+        ? trialEnds.toLocaleString('es-MX', { day:'numeric', month:'long', hour:'numeric', minute:'2-digit' })
+        : 'al terminar el tercer día';
+      container.innerHTML = `
+        <div class="fade-up">
+          <div class="sec-hero">
+            <span class="sec-hero__eyebrow">Cortesía ICADEM</span>
+            <h1 class="sec-hero__title">3 días para conocer VIP</h1>
+            <p class="sec-hero__sub">Sin tarjeta y sin cobros automáticos. Tus cursos conservan la liberación progresiva normal de ICADEM.</p>
+          </div>
+          <section class="plan-card">
+            <div class="plan-card__header">
+              <div><div class="plan-card__lbl">Acceso temporal activo</div><h2 class="plan-card__name">Cortesía VIP · 3 días</h2></div>
+              <div class="plan-card__price"><div class="plan-card__price-num">$0</div><div class="plan-card__price-sub">sin tarjeta</div></div>
+            </div>
+            <div class="plan-card__features">
+              <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Acceso VIP durante la cortesía</div>
+              <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Primer curso y clases disponibles según tu avance</div>
+              <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Retos, herramientas y comunidad disponibles</div>
+              <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Sin renovación ni cargo automático</div>
+            </div>
+            <div class="plan-card__footer"><span><strong>Finaliza:</strong> ${trialEndsText}</span><span><strong>Después:</strong> vuelves al acceso gratuito</span></div>
+          </section>
+          <div class="sub-empty" style="margin-top:18px;">
+            <div class="sub-empty__title">Aprovecha tu cortesía</div>
+            <div class="sub-empty__sub">Comienza por el curso disponible y conserva tu avance. La cortesía no inicia ningún cobro.</div>
+            <button class="btn btn--primary btn--lg" type="button" id="trial-see-courses">Explorar mis cursos <svg class="ic"><use href="#i-arrow-right"/></svg></button>
+          </div>
+        </div>`;
+      container.querySelector('#trial-see-courses')?.addEventListener('click', () => { location.hash = 'cursos'; });
+      return;
+    }
     // MODIFICADO: precios en vivo desde config/club (precio vigente; las
     // suscripciones activas conservan el precio con el que se contrataron)
     const precios = await leerPreciosVIP();   // null → se pinta "$—"

@@ -297,7 +297,7 @@ button { cursor: pointer; }
   .testimonials-layout { grid-template-columns: 1fr; }
 }
 
-@media (max-width: 780px) {
+@media (max-width: 900px) {
   .announcement__inner > span { display: none; }
   .announcement__inner { justify-content: flex-end; }
   .header-inner { min-height: 68px; }
@@ -358,7 +358,7 @@ html.nav-locked { overflow: hidden; overscroll-behavior: none; }
 .menu-toggle.is-open span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
 .menu-toggle.is-open span:nth-child(2) { opacity: 0; }
 .menu-toggle.is-open span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-@media (max-width: 780px) {
+@media (max-width: 900px) {
   .nav.open { max-height: calc(100dvh - 110px); overflow-y: auto; overscroll-behavior: contain; }
 }
-@media (min-width: 781px) { .nav-backdrop { display: none; } }
+@media (min-width: 901px) { .nav-backdrop { display: none; } }

@@ -16,7 +16,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter+Tight:wght@700;800;900&family=Plus+Jakarta+Sans:wght@600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css?v=20261015-menu">
+  <link rel="stylesheet" href="css/styles.css?v=20261015-assistant">
+  <link rel="stylesheet" href="assistant/icadem-assistant.css?v=1">
   <style id="icadem-index-hero-refresh">
     /* Rediseño aislado del encabezado público: no afecta auth, membresía ni panel VIP. */
     .announcement {
@@ -319,7 +320,7 @@
       }
     }
 
-    @media (max-width: 780px) {
+    @media (max-width: 900px) {
       .announcement__inner {
         min-height: 34px;
       }
@@ -838,6 +839,9 @@
     modal.addEventListener('click', (event) => { if (event.target === modal) closeModal(); });
     document.addEventListener('keydown', (event) => { if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(); });
   </script>
-<script src="js/icadem-analytics.js?v=1" defer></script>
+<script src="assistant/icadem-assistant-config.js?v=1" defer></script>
+<script src="assistant/icadem-assistant-knowledge.js?v=1" defer></script>
+<script src="assistant/icadem-assistant.js?v=1" defer></script>
+<script src="js/icadem-analytics.js?v=2" defer></script>
 </body>
 </html>

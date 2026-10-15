@@ -72,6 +72,7 @@
   var currentSection = section();
   var currentItem = item();
   var cachedToken = '';
+  var trialActivityTimer = 0;
 
   function warmToken(attempts) {
     if (area !== 'panel' || cachedToken) return;
@@ -84,6 +85,30 @@
       pending += (performance.now() - visibleSince) / 1000;
       visibleSince = document.visibilityState === 'visible' ? performance.now() : 0;
     }
+  }
+  async function sendTrialActivity(final) {
+    if (area !== 'panel') return;
+    try {
+      var token = cachedToken;
+      if (!final && window.__currentUser && window.__currentUser.getIdToken) {
+        token = await window.__currentUser.getIdToken();
+        if (token) cachedToken = token;
+      }
+      if (!token) return;
+      await fetch((window.WEBHOOK_URL || API) + '/api/trial/activity', {
+        method: 'POST', keepalive: true,
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+        body: JSON.stringify({ sid: sessionId(), section: currentSection, final: !!final })
+      });
+    } catch (_) { /* la invitación es secundaria y nunca interrumpe el panel */ }
+  }
+  function noteHumanActivity() {
+    if (area !== 'panel') return;
+    if (trialActivityTimer) return;
+    trialActivityTimer = setTimeout(function () {
+      trialActivityTimer = 0;
+      void sendTrialActivity(false);
+    }, 45000);
   }
   async function send(final) {
     collect();
@@ -127,16 +152,19 @@
 
   if (!LOCAL || window.__ICADEM_ANALYTICS_TEST) {
     warmToken(40);
-    setTimeout(function () { currentItem = item(); void send(false); }, 4000);
+    setTimeout(function () { currentItem = item(); void send(false); void sendTrialActivity(false); }, 4000);
     setInterval(function () { if (document.visibilityState === 'visible') void send(false); }, 60000);
+    ['pointerdown', 'keydown', 'touchstart', 'scroll'].forEach(function (eventName) {
+      window.addEventListener(eventName, noteHumanActivity, { passive: true });
+    });
     document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden') void send(true);
+      if (document.visibilityState === 'hidden') { void send(true); void sendTrialActivity(true); }
       else visibleSince = performance.now();
     });
-    window.addEventListener('pagehide', function () { void send(true); });
+    window.addEventListener('pagehide', function () { void send(true); void sendTrialActivity(true); });
     window.addEventListener('hashchange', move);
     window.addEventListener('popstate', move);
     window.addEventListener('icadem:navigation', move);
   }
-  window.__icademAnalytics = { flush: function () { return send(false); } };
+  window.__icademAnalytics = { flush: function () { return send(false); }, trialActivity: sendTrialActivity };
 })();
