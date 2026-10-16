@@ -743,8 +743,12 @@ window.showAlert = function(type, title, msg) {
 };
 window.clearAlert = function() { document.getElementById('alert-zone').innerHTML = ''; };
 // Venimos de una cuenta eliminada: se avisa y se invita a crear una nueva.
+window.__icademDeletedAccountRecovery = false;
 try {
-  if (sessionStorage.getItem('icadem:account-deleted') === '1') {
+  const deletedRecoveryRequested = sessionStorage.getItem('icadem:account-deleted') === '1'
+    || new URLSearchParams(window.location.search).get('deleted') === '1';
+  if (deletedRecoveryRequested) {
+    window.__icademDeletedAccountRecovery = true;
     sessionStorage.removeItem('icadem:account-deleted');
     window.showAlert('ok', 'Tu cuenta anterior fue eliminada', 'Inicia sesión o regístrate para comenzar con una cuenta nueva desde cero.');
   }
@@ -804,6 +808,7 @@ import {
   onAuthStateChanged,
   GoogleAuthProvider,
   signInWithPopup,
+  signOut,
   reload
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
@@ -837,8 +842,18 @@ const ADMINS = [
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-setPersistence(auth, browserLocalPersistence);
 const IDENTITY_API = 'https://icadem-webhook-production.up.railway.app';
+
+// Una cuenta borrada puede dejar una credencial local durante unos instantes.
+// La limpiamos ANTES de escuchar onAuthStateChanged; de otro modo la pantalla
+// de acceso podría regresar al panel con la identidad eliminada y formar un ciclo.
+try {
+  await setPersistence(auth, browserLocalPersistence);
+  if (typeof auth.authStateReady === 'function') await auth.authStateReady();
+  if (window.__icademDeletedAccountRecovery && auth.currentUser) await signOut(auth);
+} catch (error) {
+  console.warn('[auth recovery]', error.message);
+}
 
 function destinoSeguro(isAdmin) {
   if (isAdmin) return 'vip-admin.html';
@@ -858,10 +873,30 @@ function destinoSeguro(isAdmin) {
 }
 
 async function syncCentralIdentity(user) {
-  try {
-    const idToken = await user.getIdToken(true);
-    await fetch(`${IDENTITY_API}/api/identity/sync`, { method:'POST', headers:{ Authorization:`Bearer ${idToken}`, 'Content-Type':'application/json' }, body:'{}' });
-  } catch (error) { console.warn('[identity sync]', error.message); }
+  const idToken = await user.getIdToken(true);
+  const response = await fetch(`${IDENTITY_API}/api/identity/sync`, {
+    method:'POST',
+    headers:{ Authorization:`Bearer ${idToken}`, 'Content-Type':'application/json' },
+    body:'{}'
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const error = new Error(data.error || 'No pudimos preparar tu cuenta.');
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+  return data;
+}
+
+function isDeletedAccountError(error) {
+  return error?.status === 410 && error?.data?.code === 'account-deleted';
+}
+
+async function returnToFreshRegistration() {
+  try { await signOut(auth); } catch (_) {}
+  switchTab('register');
+  window.showAlert('ok', 'Tu cuenta anterior fue eliminada', 'Ya puedes registrarte nuevamente y comenzar desde cero.');
 }
 
 /* =========================================================
@@ -923,8 +958,19 @@ async function ensureMiembroDoc(user, displayName, origen) {
 onAuthStateChanged(auth, async (user) => {
   if (user) {
     try { await reload(user); user = auth.currentUser || user; } catch (error) { console.warn('[auth reload]', error.message); }
-    await ensureMiembroDoc(user, user.displayName, 'login-web');
-    await syncCentralIdentity(user);
+    try {
+      // El backend primero libera/archiva cualquier borrado ya concluido. Solo
+      // después reconstruimos el perfil de Firestore para la identidad vigente.
+      await syncCentralIdentity(user);
+      await ensureMiembroDoc(user, user.displayName, 'login-web');
+    } catch (error) {
+      if (isDeletedAccountError(error)) {
+        await returnToFreshRegistration();
+        return;
+      }
+      console.warn('[identity bootstrap]', error.message);
+      await ensureMiembroDoc(user, user.displayName, 'login-web');
+    }
     try { localStorage.setItem('icadem_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}
     const isAdmin = ADMINS.includes((user.email || "").toLowerCase());
     window.location.href = destinoSeguro(isAdmin);
@@ -963,9 +1009,8 @@ document.getElementById('btn-login').addEventListener('click', async () => {
   setLoading(btn, true);
   try {
     await signInWithEmailAndPassword(auth, email, pass);
-    const isAdmin = ADMINS.includes(email);
     showAlert('success', '¡Bienvenido!', 'Redirigiendo…');
-    setTimeout(() => { window.location.href = destinoSeguro(isAdmin); }, 600);
+    // onAuthStateChanged valida primero la identidad en el backend y redirige.
   } catch (e) {
     setLoading(btn, false, 'Iniciar sesión');
     showAlert('error', 'No pudimos iniciar sesión', translateError(e.code));
@@ -989,9 +1034,19 @@ document.getElementById('btn-register').addEventListener('click', async () => {
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(cred.user, { displayName: name });
 
+    try {
+      await syncCentralIdentity(cred.user);
+    } catch (error) {
+      if (isDeletedAccountError(error)) {
+        await returnToFreshRegistration();
+        return;
+      }
+      // La cuenta ya existe en Firebase: conservamos el comportamiento tolerante
+      // ante una caída temporal del backend y completamos el perfil en Firestore.
+      console.warn('[identity sync]', error.message);
+    }
     // ⚡ Crear doc en col `miembros` con activa:false + fechaRegistro
     const docResult = await ensureMiembroDoc(cred.user, name, 'registro-web');
-    await syncCentralIdentity(cred.user);
 
     const isAdmin = ADMINS.includes(email);
 
@@ -1014,6 +1069,10 @@ document.getElementById('btn-register').addEventListener('click', async () => {
     setTimeout(() => { window.location.href = destinoSeguro(isAdmin); }, 900);
   } catch (e) {
     setLoading(btn, false, 'Crear cuenta');
+    if (isDeletedAccountError(e)) {
+      await returnToFreshRegistration();
+      return;
+    }
     showAlert('error', 'No pudimos crear tu cuenta', translateError(e.code));
   }
 });
