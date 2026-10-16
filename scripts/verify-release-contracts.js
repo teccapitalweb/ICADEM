@@ -51,8 +51,11 @@ assert.match(panel, /toggle\.setAttribute\('aria-label',`Cambiar a modo \$\{next
 assert.match(onboarding, /claimExperience\(TOUR_EXPERIENCE\)/);
 assert.match(onboarding, /claimExperience\(CREDIT_EXPERIENCE\)/);
 assert.match(onboarding, /sessionStorage\.setItem\(key\('free-course-deferred-session'\), '1'\)/);
-assert.doesNotMatch(onboarding, /markFreeCourseOfferSeen/);
-assert.match(onboarding, /selectFreeCourse\(button\.dataset\.freeCourse\)[\s\S]*?write\('free-course-offer-seen','complete'\)/);
+assert.match(onboarding, /markFreeCourseOfferSeen/);
+assert.match(onboarding, /function celebrateTourCompletion\(\)/);
+assert.match(onboarding, /reason==='finish'\)celebrateTourCompletion\(\)/);
+assert.match(onboarding, /@keyframes icaTourConfettiFall/);
+assert.match(onboarding, /__mostrarInvitacionCursoGratis[\s\S]*?write\('free-course-offer-seen','complete'\)/);
 assert.match(panel, /window\.__elegirCursoGratis = async function/);
 assert.match(panel, /data-free-course-cta=/);
 assert.match(panel, /course-detail-lock__cta--free/);
@@ -107,7 +110,7 @@ assert.match(courseRules, /allow read, create, update, delete: if isIcademCourse
 
 assert.match(platform, /state\.customName = profile\.customName/);
 assert.match(panel, /icadem_name_confirmed:\$\{account\}/);
-assert.match(panel, /ICADEMPlatform\.saveProfile\(\{ nombre: val \}\)/);
+assert.match(panel, /ICADEMPlatform\.saveProfile\(\{\s*nombre, whatsapp,/);
 assert.doesNotMatch(panel, /localStorage\.getItem\('icadem_name_confirmed'\)/);
 
 assert.match(panel, /if \(window\.__isDemoMode\) emitirCertificadoFirestore\(curso\)/);

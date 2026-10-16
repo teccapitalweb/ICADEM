@@ -14,6 +14,9 @@ const serviceWorker = read('sw.js');
 assert.match(platform, /async function handleAccountDeleted\(\)/);
 assert.match(platform, /await handleAccountDeleted\(\)/);
 assert.match(platform, /error\?\.status === 410 && error\?\.data\?\.code === 'account-deleted'/);
+assert.match(platform, /cache: 'no-store'/);
+assert.match(platform, /await user\.getIdToken\(true\)/);
+assert.match(platform, /method === 'GET' && response\.status === 410/);
 assert.match(platform, /document\.querySelector\('\.credit-wallet-modal'\)\?\.remove\(\)/);
 assert.match(platform, /window\.location\.replace\('vip-auth\.html\?tab=register&deleted=1'\)/);
 
@@ -36,6 +39,9 @@ for (const code of [
 assert.match(panel, /await signOut\(auth\)/);
 assert.match(panel, /sessionStorage\.setItem\('icadem:account-deleted', '1'\)/);
 assert.match(panel, /vip-auth\.html\?tab=register&deleted=1/);
+assert.match(panel, /membership\/\$\{user\.uid\}[\s\S]*cache:'no-store'/);
+assert.match(panel, /confetti\(s\.tipo === 'cierre'\)/);
+assert.match(panel, /@keyframes bnvFinale/);
 
 const platformVersion = panel.match(/icadem-platform-v2\.js\?v=(\d+)/)?.[1];
 assert.ok(platformVersion, 'falta versionar icadem-platform-v2.js');

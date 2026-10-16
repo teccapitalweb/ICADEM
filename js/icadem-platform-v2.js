@@ -101,15 +101,33 @@
   }
 
   async function request(path, options) {
-    const authToken = await token();
-    const config = { method: options?.method || 'GET', headers: { Accept: 'application/json' } };
-    if (authToken) config.headers.Authorization = `Bearer ${authToken}`;
-    if (options?.body !== undefined) {
-      config.headers['Content-Type'] = 'application/json';
-      config.body = JSON.stringify(options.body);
+    const method = options?.method || 'GET';
+    const perform = async authToken => {
+      const config = {
+        method,
+        cache: 'no-store',
+        headers: { Accept: 'application/json' }
+      };
+      if (authToken) config.headers.Authorization = `Bearer ${authToken}`;
+      if (options?.body !== undefined) {
+        config.headers['Content-Type'] = 'application/json';
+        config.body = JSON.stringify(options.body);
+      }
+      const response = await fetch(`${API}${path}`, config);
+      const data = await response.json().catch(() => ({}));
+      return { response, data };
+    };
+
+    let authToken = await token();
+    let { response, data } = await perform(authToken);
+
+    // Los 410 son almacenables por algunos navegadores. Antes de invalidar una
+    // sesión nueva, confirmamos una vez más con token renovado y sin caché.
+    if (method === 'GET' && response.status === 410 && data.code === 'account-deleted' && !window.__isDemoMode) {
+      const user = window.__auth?.currentUser || window.__currentUser;
+      if (user) authToken = await user.getIdToken(true).catch(() => authToken);
+      ({ response, data } = await perform(authToken));
     }
-    const response = await fetch(`${API}${path}`, config);
-    const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       if (response.status === 410 && data.code === 'account-deleted') await handleAccountDeleted();
       const error = new Error(data.error || 'No pudimos completar la solicitud.');

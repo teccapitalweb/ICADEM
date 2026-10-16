@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=3" defer></script>
-<script src="js/icadem-platform-v2.js?v=39" defer></script>
+<script src="js/icadem-platform-v2.js?v=40" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -4116,6 +4116,7 @@ if (window.__isDemoMode) {
         }
         const res = await fetch(`${WEBHOOK_URL}/membership/${user.uid}`, {
           method:'GET',
+          cache:'no-store',
           headers:{ Authorization:`Bearer ${idToken}` }
         });
         const data = await res.json();
@@ -4324,9 +4325,15 @@ window.__showWelcomeSplash = function(opts) {
 
   let cur = -1, timer = null;
 
-  function confetti(){
-    confEl.innerHTML = Array.from({length:32}).map((_,i)=>
-      `<span class="splash-bnv__bit" style="--d:${i*.05}s;--x:${(Math.random()*280-140)|0}px;--c:${['#5b92c8','#8fbce6','#34D399','#8fbce6','#F87171','#8fbce6'][i%6]}"></span>`
+  function confetti(finale = false){
+    confEl.innerHTML = '';
+    confEl.classList.toggle('is-finale', finale);
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const colors = ['#5b92c8','#8fbce6','#34D399','#FBBF24','#F87171','#A78BFA'];
+    const total = finale ? 72 : 32;
+    confEl.innerHTML = Array.from({length:total}).map((_,i)=> finale
+      ? `<span class="splash-bnv__bit" style="--d:${(Math.random()*.75).toFixed(2)}s;--left:${(Math.random()*100).toFixed(1)}%;--drift:${(Math.random()*180-90)|0}px;--turn:${(Math.random()*900+540)|0}deg;--dur:${(Math.random()*1.3+2.1).toFixed(2)}s;--c:${colors[i%colors.length]}"></span>`
+      : `<span class="splash-bnv__bit" style="--d:${i*.05}s;--x:${(Math.random()*280-140)|0}px;--c:${colors[i%colors.length]}"></span>`
     ).join('');
   }
 
@@ -4348,7 +4355,8 @@ window.__showWelcomeSplash = function(opts) {
         <p class="splash-bnv__desc">${s.desc}</p>`;
     }
     stage.innerHTML = `<div class="splash-film__slide">${html}</div>`;
-    if (s.confetti) confetti(); else confEl.innerHTML = '';
+    if (s.confetti) confetti(s.tipo === 'cierre');
+    else { confEl.innerHTML = ''; confEl.classList.remove('is-finale'); }
   }
 
   function paintNav(i){
@@ -13772,9 +13780,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 .splash-bnv__box{position:relative;width:100%;max-width:600px;background:linear-gradient(160deg,#18233a,#0f1626);border:1px solid rgba(255,179,71,.3);border-radius:24px;padding:40px 36px 32px;text-align:center;box-shadow:0 36px 100px rgba(0,0,0,.7),0 0 80px color-mix(in srgb,var(--primary) 28%,transparent),inset 0 0 0 1px rgba(255,255,255,.04);animation:bnvPop .65s cubic-bezier(.22,1.4,.36,1)}
 .splash-bnv__close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:8px;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s ease}
 .splash-bnv__close:hover{background:rgba(255,255,255,.06);color:var(--text)}
-.splash-bnv__confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;border-radius:24px}
+.splash-bnv__confetti{position:absolute;inset:0;z-index:3;pointer-events:none;overflow:hidden;border-radius:24px}
 .splash-bnv__bit{position:absolute;top:50%;left:50%;width:9px;height:9px;background:var(--c);border-radius:2px;animation:bnvBurst 1.8s cubic-bezier(.2,.8,.25,1) var(--d) forwards;opacity:0}
 @keyframes bnvBurst{0%{opacity:0;transform:translate(0,0) rotate(0deg) scale(0)}10%{opacity:1;transform:translate(0,0) rotate(30deg) scale(1)}100%{opacity:0;transform:translate(var(--x),360px) rotate(720deg) scale(.4)}}
+.splash-bnv__confetti.is-finale{position:fixed;inset:0;border-radius:0;overflow:hidden}
+.splash-bnv__confetti.is-finale .splash-bnv__bit{top:-18px;left:var(--left);width:10px;height:16px;border-radius:3px;animation:bnvFinale var(--dur) cubic-bezier(.16,.65,.35,1) var(--d) forwards}
+@keyframes bnvFinale{0%{opacity:0;transform:translate3d(0,-30px,0) rotate(0deg)}8%{opacity:1}100%{opacity:0;transform:translate3d(var(--drift),105vh,0) rotate(var(--turn))}}
 .splash-bnv__icon{font-size:60px;line-height:1;margin-bottom:8px;animation:bnvSpin 6s linear infinite}
 @keyframes bnvSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
 .splash-bnv__kicker{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:2.8px;text-transform:uppercase;font-weight:700;color:var(--primary);margin-bottom:12px}
@@ -21334,6 +21345,6 @@ h1, h2, h3, h4{ color: var(--text); }
   .directory-page .directory-tier{min-width:0!important}
 }
 </style>
-<script src="js/icadem-onboarding.js?v=17"></script>
+<script src="js/icadem-onboarding.js?v=18"></script>
 </body>
 </html>
