@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=3" defer></script>
-<script src="js/icadem-platform-v2.js?v=40" defer></script>
+<script src="js/icadem-platform-v2.js?v=41" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -5946,12 +5946,34 @@ const Sections = (function(){
   }
 
   function claseDesbloqueada(cursoId, indexClase, sesiones) {
+    const lista = Array.isArray(sesiones) ? sesiones : [];
+    const session = lista[indexClase];
+    if (!session || indexClase < 0) return false;
+    let accesoPorPlan = session?.accessible === true;
     if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
       const courseIndex = cursos.findIndex(c => String(c.id) === String(cursoId));
-      return courseIndex >= 0 && cursoDesbloqueado(courseIndex, cursos[courseIndex]);
+      accesoPorPlan = courseIndex >= 0 && cursoDesbloqueado(courseIndex, cursos[courseIndex]);
     }
-    const session = Array.isArray(sesiones) ? sesiones[indexClase] : null;
-    return session?.accessible === true;
+    if (!accesoPorPlan) return false;
+    if (indexClase === 0) return true;
+    const anterior = lista[indexClase - 1];
+    const numeroAnterior = Number(anterior?.numero || indexClase);
+    return getProgresoCurso(cursoId).clasesVistas.map(Number).includes(numeroAnterior);
+  }
+
+  function claseBloqueadaPorProgreso(cursoId, indexClase, sesiones) {
+    const lista = Array.isArray(sesiones) ? sesiones : [];
+    const session = lista[indexClase];
+    if (!session || indexClase <= 0) return false;
+    let accesoPorPlan = session?.accessible === true;
+    if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
+      const courseIndex = cursos.findIndex(c => String(c.id) === String(cursoId));
+      accesoPorPlan = courseIndex >= 0 && cursoDesbloqueado(courseIndex, cursos[courseIndex]);
+    }
+    if (!accesoPorPlan) return false;
+    const anterior = lista[indexClase - 1];
+    const numeroAnterior = Number(anterior?.numero || indexClase);
+    return !getProgresoCurso(cursoId).clasesVistas.map(Number).includes(numeroAnterior);
   }
 
   function progresoCursoPct(cursoId, totalClases) {
@@ -6164,6 +6186,10 @@ const Sections = (function(){
     }
 
     if (!claseDesbloqueada(cursoId, sesionIdx, curso.sesiones)) {
+      if (claseBloqueadaPorProgreso(cursoId, sesionIdx, curso.sesiones)) {
+        Toast.info('Completa la clase anterior', 'Supera su mini juego para desbloquear esta clase');
+        return;
+      }
       const totalMateriales = Array.isArray(curso.materiales) ? curso.materiales.length : 0;
       window.__showPaywallModal?.({
         title: 'Desbloquea el curso completo',
@@ -6293,10 +6319,7 @@ const Sections = (function(){
         await window.ICADEMPlatform.startLessonChallenge({
           courseId:cursoId, lessonNumber:numClase, title:sesion?.titulo || `Clase ${numClase}`,
           onComplete:()=>window.marcarClaseVista(cursoId,numClase),
-          onContinue:()=>{
-            if (typeof window.__refrescarCursoDetalle === 'function') window.__refrescarCursoDetalle(cursoId);
-            if (typeof renderCursosList === 'function') renderCursosList();
-          }
+          onContinue:(result)=>window.__continuarTrasJuegoClase?.(cursoId,numClase,result)
         });
       } catch(e) {
         this.disabled = false;
@@ -6951,12 +6974,13 @@ const Sections = (function(){
       const abierta = claseDesbloqueada(cursoId, i, sesiones);
       const gratis = typeof esClaseGratisGlobal === 'function' ? esClaseGratisGlobal(cursoId, i) : false;
       const enfoqueClase = [42,58,68,35,52,62,45,72,28,56][i % 10];
-      const estadoClase = vista ? 'Clase completada' : abierta ? (gratis ? 'Acceso gratuito' : 'Disponible ahora') : 'Próxima clase';
+      const porProgreso = claseBloqueadaPorProgreso(cursoId, i, sesiones);
+      const estadoClase = vista ? 'Clase completada' : abierta ? (gratis ? 'Acceso gratuito' : 'Disponible ahora') : porProgreso ? 'Completa la anterior' : 'Próxima clase';
       const detalle = vista
         ? 'Completada · vuelve a verla cuando quieras'
         : abierta
           ? (gratis ? 'Clase gratuita · lista para comenzar' : 'Disponible ahora')
-          : 'Contenido bloqueado · activa tu membresía';
+          : porProgreso ? 'Supera el mini juego anterior para desbloquearla' : 'Contenido bloqueado · activa tu membresía';
       const iconCover = vista ? 'i-check' : abierta ? 'i-play' : 'i-shield-check';
       const iconAction = abierta ? 'i-arrow-right' : 'i-shield-check';
       const tituloEsc = htmlEsc(s.titulo || `Clase ${numSes}`);
@@ -8949,7 +8973,8 @@ const Sections = (function(){
     // clase que el catálogo personalizado marcó como bloqueada. El backend
     // vuelve a validar igualmente cada video y actividad.
     if (!claseDesbloqueada(cursoId, sesionIdx, sesiones)) {
-      container.innerHTML = `<div class="fade-up course-page lesson-page"><button type="button" class="course-detail-back" onclick="window.__volverACurso('${String(cursoId).replace(/'/g,"\\'")}')"><span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>${escapeHtml(curso.titulo)}</button><div class="empty-state" style="padding:64px 24px;text-align:center;"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-shield-check"/></svg></div><h3>Esta clase aún está bloqueada</h3><p>Continúa con las clases disponibles o activa tu membresía para abrir el programa completo.</p><button class="btn btn--accent" style="margin-top:14px" type="button" onclick="window.__showPaywallModal?.({title:'Desbloquea el curso completo',sub:'Activa tu membresía para continuar con el programa completo.'})">Ver membresía</button></div></div>`;
+      const porProgreso = claseBloqueadaPorProgreso(cursoId, sesionIdx, sesiones);
+      container.innerHTML = `<div class="fade-up course-page lesson-page"><button type="button" class="course-detail-back" onclick="window.__volverACurso('${String(cursoId).replace(/'/g,"\\'")}')"><span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>${escapeHtml(curso.titulo)}</button><div class="empty-state" style="padding:64px 24px;text-align:center;"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-shield-check"/></svg></div><h3>${porProgreso ? 'Completa primero la clase anterior' : 'Esta clase aún está bloqueada'}</h3><p>${porProgreso ? 'Supera su mini juego y esta clase se desbloqueará automáticamente.' : 'Continúa con las clases disponibles o activa tu membresía para abrir el programa completo.'}</p>${porProgreso ? '' : `<button class="btn btn--accent" style="margin-top:14px" type="button" onclick="window.__showPaywallModal?.({title:'Desbloquea el curso completo',sub:'Activa tu membresía para continuar con el programa completo.'})">Ver membresía</button>`}</div></div>`;
       return;
     }
 
@@ -8963,15 +8988,12 @@ const Sections = (function(){
     const minutos = sesion.minutos || sesion.duracion || null;
     const notasActuales = (() => { try { return localStorage.getItem(_notasKey(cursoId, numClase)) || ''; } catch(e) { return ''; } })();
 
-    // Siguiente clase disponible (desbloqueada y no vista; si no hay, la siguiente a la actual)
-    const siguienteIdx = (() => {
-      for (let i = sesionIdx + 1; i < sesiones.length; i++) {
-        if (claseDesbloqueada(cursoId, i, sesiones)) return i;
-      }
-      return -1;
-    })();
+    // La transición siempre es secuencial: el mini juego de esta clase abre la
+    // inmediatamente siguiente. Nunca saltamos una clase por estar bloqueada.
+    const siguienteIdx = sesionIdx + 1 < sesiones.length ? sesionIdx + 1 : -1;
     const siguienteSesion = siguienteIdx >= 0 ? sesiones[siguienteIdx] : null;
     const siguienteNum = siguienteSesion ? (siguienteSesion.numero || siguienteIdx + 1) : null;
+    const siguienteAbierta = siguienteIdx >= 0 && claseDesbloqueada(cursoId, siguienteIdx, sesiones);
 
     // Temario (sidebar) — mini lista de todas las clases del curso
     const temarioHtml = sesiones.map((s, i) => {
@@ -9018,12 +9040,12 @@ const Sections = (function(){
       </div>
     </aside>`;
 
-    const siguienteHtml = siguienteSesion ? `<button type="button" class="lesson-next is-ready" onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${siguienteIdx})" data-bypass-paywall="true">
+    const siguienteHtml = siguienteSesion ? `<button type="button" class="lesson-next ${siguienteAbierta?'is-ready':''}" ${siguienteAbierta?`onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${siguienteIdx})" data-bypass-paywall="true"`:'disabled'}>
       <span class="lesson-next__thumb" style="background-image:linear-gradient(135deg,rgba(10,15,35,.2),rgba(10,15,35,.7)),url('${String(curso.portada || coverSVG(curso.area, curso.titulo)).replace(/'/g,'%27')}')"></span>
       <span>
         <small>A continuación · Clase ${siguienteNum}</small>
         <strong>${htmlEsc(siguienteSesion.titulo || `Clase ${siguienteNum}`)}</strong>
-        <em>Lista para continuar</em>
+        <em>${siguienteAbierta ? 'Lista para continuar' : 'Se desbloquea al superar el mini juego'}</em>
       </span>
       <svg class="ic"><use href="#i-arrow-right"/></svg>
     </button>` : `<button type="button" class="lesson-next" disabled>
@@ -9061,7 +9083,7 @@ const Sections = (function(){
             </div>
             <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete
               data-course-id="${escapeHtml(String(cursoId))}" data-lesson-number="${numClase}"
-              data-lesson-title="${escapeHtml(sesion.titulo || `Clase ${numClase}`)}" data-next-index="${siguienteIdx}">
+              data-lesson-title="${escapeHtml(sesion.titulo || `Clase ${numClase}`)}" data-current-index="${sesionIdx}">
               ${yaVista ? 'Ya vista · continuar' : 'Marcar vista y seguir'}
               <svg class="ic"><use href="#${yaVista?'i-check':'i-arrow-right'}"/></svg>
             </button>
@@ -9153,10 +9175,7 @@ const Sections = (function(){
         await window.ICADEMPlatform.startLessonChallenge({
           courseId:cursoId, lessonNumber:numClase, title:sesion.titulo || `Clase ${numClase}`,
           onComplete:()=>window.marcarClaseVista(cursoId,numClase),
-          onContinue:()=>{
-            if (siguienteIdx >= 0) window.abrirClaseICADEM(cursoId, siguienteIdx);
-            else window.__volverACurso(cursoId);
-          }
+          onContinue:(result)=>window.__continuarTrasJuegoClase?.(cursoId,numClase,result)
         });
       } catch(e) {
         button.disabled = false;
@@ -9240,6 +9259,22 @@ const Sections = (function(){
   window.__volverACurso = function(cursoId){
     window.__cursoActualId = cursoId;
     if (typeof navigateToSection === 'function') navigateToSection('curso-detalle');
+  };
+
+  // El servidor devuelve el número recién desbloqueado. Se resuelve al pulsar
+  // "Abrir siguiente clase", después de que marcarClaseVista ya actualizó el
+  // progreso local. Así no dependemos del estado bloqueado que existía antes
+  // de jugar ni saltamos clases, igual que en IMFRA y SYNOVA.
+  window.__continuarTrasJuegoClase = function(cursoId, lessonNumber, result){
+    const curso = cursos.find(c => String(c.id) === String(cursoId));
+    const sesiones = Array.isArray(curso?.sesiones) ? curso.sesiones : [];
+    const numeroSiguiente = Number(result?.nextLessonNumber) || (Number(lessonNumber) + 1);
+    const siguienteIdx = sesiones.findIndex((s, i) => Number(s.numero || i + 1) === numeroSiguiente);
+    if (siguienteIdx >= 0 && claseDesbloqueada(cursoId, siguienteIdx, sesiones)) {
+      window.abrirClaseICADEM(cursoId, siguienteIdx);
+      return;
+    }
+    window.__volverACurso(cursoId);
   };
 
   // Si el usuario marca una clase como vista desde el visor viejo (materiales),

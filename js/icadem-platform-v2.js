@@ -854,7 +854,7 @@
     const words = challenge.content?.words || [];
     const frame = gameFrame(challenge, shell, `
       <div class="wordsearch"><div class="wordsearch__list">${words.map(w => `<span data-word="${esc(w)}">${esc(w)}</span>`).join('')}</div>
-      <div class="wordsearch__grid" style="--grid:${grid.length || 10}">${grid.flatMap((row,r) => row.map((letter,c) => `<button type="button" data-cell="${r}-${c}" aria-label="Fila ${r+1}, columna ${c+1}, ${esc(letter)}">${esc(letter)}</button>`)).join('')}</div></div>`);
+      <div class="wordsearch__grid" style="--grid:${grid.length || 10}">${grid.flatMap((row,r) => Array.from(row || '').map((letter,c) => `<button type="button" data-cell="${r}-${c}" aria-label="Fila ${r+1}, columna ${c+1}, ${esc(letter)}">${esc(letter)}</button>`)).join('')}</div></div>`);
     let start = null, found = [];
     const select = cell => {
       const pos = cell.dataset.cell.split('-').map(Number);
@@ -1826,7 +1826,6 @@
     event.stopImmediatePropagation();
     const courseId = button.dataset.courseId;
     const lessonNumber = Number(button.dataset.lessonNumber);
-    const nextIndex = Number(button.dataset.nextIndex);
     if (!courseId || !lessonNumber) return;
     button.dataset.gameBusy = '1';
     button.disabled = true;
@@ -1835,11 +1834,12 @@
       courseId,
       lessonNumber,
       title: button.dataset.lessonTitle || `Clase ${lessonNumber}`,
-      onComplete: () => window.marcarClaseVista?.(courseId, lessonNumber),
-      onContinue: () => {
-        if (nextIndex >= 0) window.abrirClaseICADEM?.(courseId, nextIndex);
-        else window.__volverACurso?.(courseId);
-      }
+      onComplete: result => {
+        window.marcarClaseVista?.(courseId, lessonNumber);
+        loadLearningProgress().catch(() => {});
+        document.dispatchEvent(new CustomEvent('icadem:lesson-completed', { detail: { courseId, lessonNumber, result } }));
+      },
+      onContinue: result => window.__continuarTrasJuegoClase?.(courseId, lessonNumber, result)
     }).then(result => {
       if (!result?.closed || !button.isConnected) return;
       button.dataset.gameBusy = '';
