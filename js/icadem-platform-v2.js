@@ -774,7 +774,7 @@
       <div class="game-run">
         <div class="game-run__heading">
           <span><span class="game-kicker">${esc(GAME_LABELS[challenge.type])}</span><h2 id="learning-game-title" tabindex="-1">${esc(challenge.title)}</h2></span>
-          <small>Resuelve con calma · tu avance se valida al comprobar</small>
+          <small>Resuelve con calma · la ayuda completa un paso sin penalización</small>
         </div>
         <section class="game-stage">
           <div class="game-status" aria-live="polite"></div>
@@ -798,6 +798,97 @@
     };
   }
 
+  function localStepHint(type, solution, proof, hintIndex) {
+    const list = value => Array.isArray(value) ? value.map(String) : [];
+    if (type === 'crossword' && solution.answers) {
+      for (const [wordId, answer] of Object.entries(solution.answers)) {
+        const given = normalize(proof.answers?.[wordId]);
+        if (given === answer) continue;
+        let index = 0; while (index < answer.length && given[index] === answer[index]) index++;
+        return { kind: 'crossword-letter', wordId, index: Math.min(index, answer.length - 1), letter: answer[Math.min(index, answer.length - 1)] };
+      }
+    }
+    if ((type === 'crossword' || type === 'guess') && solution.answer) {
+      const answer = normalize(solution.answer), given = normalize(proof.answer);
+      let index = 0; while (index < answer.length && given[index] === answer[index]) index++;
+      if (index < answer.length) return { kind: 'answer-letter', index, letter: answer[index], length: answer.length };
+    }
+    if (type === 'memory' || type === 'vmemory') {
+      const done = new Set(list(proof.pairs)); const pair = solution.pairs?.find(id => !done.has(String(id)));
+      if (pair != null) return { kind: 'memory-pair', pair: String(pair) };
+    }
+    if (type === 'wordsearch') {
+      const done = new Set(list(proof.words).map(normalize)); const word = solution.words?.find(item => !done.has(normalize(item)));
+      if (word) return { kind: 'wordsearch-word', word };
+    }
+    if (type === 'puzzle') {
+      const order = list(proof.order).map(Number), slot = solution.order?.findIndex((piece, i) => order[i] !== Number(piece));
+      if (slot >= 0) return { kind: 'puzzle-piece', slot, piece: Number(solution.order[slot]) };
+    }
+    if (type === 'order') {
+      const order = list(proof.order), slot = solution.order?.findIndex((step, i) => order[i] !== String(step));
+      if (slot >= 0) return { kind: 'order-step', slot, stepId: String(solution.order[slot]) };
+    }
+    if (type === 'classify' && solution.assignments) {
+      const itemId = Object.keys(solution.assignments).find(id => proof.assignments?.[id] !== solution.assignments[id]);
+      if (itemId) return { kind: 'classification', itemId, category: solution.assignments[itemId] };
+    }
+    if (type === 'quiz' && solution.answers) {
+      const questionId = Object.keys(solution.answers).find(id => Number(proof.answers?.[id]) !== Number(solution.answers[id]));
+      if (questionId) return { kind: 'quiz-answer', questionId, optionIndex: Number(solution.answers[questionId]) };
+    }
+    if (type === 'document') {
+      const flagged = new Set(list(proof.flagged));
+      const missing = solution.errors?.find(id => !flagged.has(String(id)));
+      if (missing) return { kind: 'document-error', fieldId: String(missing) };
+      const extra = [...flagged].find(id => !solution.errors.includes(id));
+      if (extra) return { kind: 'document-remove', fieldId: String(extra) };
+    }
+    if (type === 'hazard') {
+      const found = new Set(list(proof.found)); const itemId = solution.found?.find(id => !found.has(String(id)));
+      if (itemId) return { kind: 'hazard-item', itemId: String(itemId) };
+    }
+    if (type === 'spot') {
+      const answers = list(proof.answers), round = Math.min(answers.length, Math.max(0, (solution.answers?.length || 1) - 1));
+      if (solution.answers?.[round] != null) return { kind: 'spot-zone', round, zone: String(solution.answers[round]) };
+    }
+    if (type === 'calc') {
+      const steps = Array.isArray(solution.steps) ? solution.steps : [];
+      return hintIndex < steps.length ? { kind: 'calc-step', text: String(steps[hintIndex]) } : { kind: 'calc-answer', value: String(solution.value), unit: String(solution.unit || '') };
+    }
+    return null;
+  }
+
+  function enableStepHelp(challenge, frame, getProof, applyHint, label) {
+    if (!frame.assist || !frame.help) return;
+    let localHintIndex = 0;
+    frame.assist.hidden = false;
+    frame.assist.dataset.stepHelp = '1';
+    const copy = frame.assist.querySelector('span');
+    if (copy) copy.textContent = '¿Te atoraste? Cada toque completa un solo paso y no te quita avance ni créditos.';
+    frame.help.textContent = `✦ ${label || 'Ayúdame'}`;
+    frame.help.onclick = async () => {
+      if (frame.help.disabled) return;
+      frame.help.disabled = true;
+      const previousStatus = frame.status.textContent;
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = 'Preparando una ayuda…';
+      try {
+        const proof = getProof();
+        const response = challenge.local
+          ? { hint: localStepHint(challenge.type, challenge.solution || {}, proof, localHintIndex++) }
+          : await request('/api/games/hint', { method: 'POST', body: { challengeId: challenge.challengeId, proof } });
+        if (!response?.hint) throw new Error('Ya no hay más pasos por revelar. Comprueba tu respuesta.');
+        applyHint(response.hint);
+      } catch (error) {
+        frame.status.textContent = error.message || previousStatus || 'No pudimos preparar la ayuda.';
+        frame.status.classList.add('is-error');
+      } finally {
+        frame.help.disabled = false;
+      }
+    };
+  }
+
   function runTextGame(challenge, shell, submit) {
     const c = challenge.content || {};
     const frame = gameFrame(challenge, shell, `
@@ -812,6 +903,15 @@
     frame.check.addEventListener('click', () => submit({ answer: input.value }, frame));
     input.addEventListener('keydown', event => { if (event.key === 'Enter') frame.check.click(); });
     frame.reset.addEventListener('click', () => { input.value = ''; frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
+    enableStepHelp(challenge, frame, () => ({ answer: input.value }), hint => {
+      if (hint.kind !== 'answer-letter') return;
+      const chars = Array.from(normalize(input.value));
+      chars[Number(hint.index) || 0] = hint.letter;
+      input.value = chars.join('');
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = `Colocamos la letra ${hint.letter}. Puedes pedir otra ayuda si la necesitas.`;
+      input.focus();
+    }, 'Revelar una letra');
     input.focus();
   }
 
@@ -823,19 +923,49 @@
     });
     cards.sort(() => Math.random() - .5);
     const frame = gameFrame(challenge, shell, `<div class="memory-grid">${cards.map(card => `<button type="button" class="memory-card" data-key="${esc(card.key)}" data-pair="${esc(card.id)}" aria-label="Carta oculta"><span class="memory-card__back">ICA</span><span class="memory-card__front">${esc(card.text)}</span></button>`).join('')}</div>`);
-    let open = [], matched = [];
+    const pairColors = ['#e49b24','#2f82c7','#199b78','#815fc4','#d95778','#c5a012','#1695a7','#d66b35'];
+    let open = [], matched = [], busy = false, submitted = false;
+    const finish = () => {
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = `${matched.length} de ${challenge.content.pairs.length} parejas encontradas.`;
+      if (matched.length === challenge.content.pairs.length && !submitted) {
+        submitted = true; frame.check.disabled = true;
+        setTimeout(() => submit({ pairs: [...new Set(matched)] }, frame), 420);
+      }
+    };
+    const completePair = (id, assisted) => {
+      if (matched.includes(id)) return;
+      const color = pairColors[matched.length % pairColors.length];
+      open.forEach(x => x.classList.remove('is-open', 'is-wrong')); open = [];
+      frame.board.querySelectorAll(`[data-pair="${CSS.escape(id)}"]`).forEach(card => {
+        card.style.setProperty('--pair-color', color);
+        card.classList.add('is-open', 'is-matched'); card.disabled = true;
+        card.setAttribute('aria-label', `Pareja encontrada: ${card.textContent.trim()}`);
+      });
+      matched.push(id); announce(assisted ? 'Pareja encontrada con ayuda' : 'Pareja encontrada'); finish();
+    };
     frame.board.querySelectorAll('.memory-card').forEach(card => card.addEventListener('click', () => {
-      if (card.classList.contains('is-open') || card.classList.contains('is-matched') || open.length === 2) return;
+      if (busy || card.classList.contains('is-open') || card.classList.contains('is-matched') || open.length === 2) return;
       card.classList.add('is-open'); card.setAttribute('aria-label', card.textContent.trim()); open.push(card);
       if (open.length === 2) {
         if (open[0].dataset.pair === open[1].dataset.pair) {
           const id = open[0].dataset.pair;
-          setTimeout(() => { open.forEach(x => { x.classList.add('is-matched'); x.disabled = true; x.setAttribute('aria-label', `Pareja encontrada: ${x.textContent.trim()}`); }); matched.push(id); open = []; announce('Pareja encontrada'); }, 260);
-        } else setTimeout(() => { open.forEach(x => { x.classList.remove('is-open'); x.setAttribute('aria-label', 'Carta oculta'); }); open = []; }, 650);
+          setTimeout(() => completePair(id, false), 260);
+        } else {
+          busy = true; open.forEach(x => x.classList.add('is-wrong'));
+          setTimeout(() => { open.forEach(x => { x.classList.remove('is-open', 'is-wrong'); x.setAttribute('aria-label', 'Carta oculta'); }); open = []; busy = false; }, 760);
+        }
       }
     }));
-    frame.check.addEventListener('click', () => submit({ pairs: [...new Set(matched)] }, frame));
+    frame.check.addEventListener('click', () => {
+      if (matched.length < challenge.content.pairs.length) { frame.status.textContent = `Te faltan ${challenge.content.pairs.length - matched.length} parejas.`; frame.status.classList.add('is-error'); return; }
+      submit({ pairs: [...new Set(matched)] }, frame);
+    });
     frame.reset.addEventListener('click', () => runMemory(challenge, shell, submit));
+    enableStepHelp(challenge, frame, () => ({ pairs: [...new Set(matched)] }), hint => {
+      if (hint.kind === 'memory-pair') { completePair(String(hint.pair), true); frame.status.textContent = 'Pareja encontrada con ayuda. Puedes pedir otra cuando quieras.'; }
+    }, 'Encontrar una pareja');
+    finish();
   }
 
   function wordAt(grid, start, end) {
@@ -850,26 +980,62 @@
   }
 
   function runWordsearch(challenge, shell, submit) {
-    const grid = challenge.content?.grid || [];
-    const words = challenge.content?.words || [];
+    const grid = (challenge.content?.grid || []).map(row => Array.from(row || ''));
+    const words = (challenge.content?.words || []).map(String);
     const frame = gameFrame(challenge, shell, `
-      <div class="wordsearch"><div class="wordsearch__list">${words.map(w => `<span data-word="${esc(w)}">${esc(w)}</span>`).join('')}</div>
+      <div class="wordsearch"><div class="wordsearch__list">${words.map((w, i) => `<span data-word-index="${i}"><i></i>${esc(w)}</span>`).join('')}</div>
       <div class="wordsearch__grid" style="--grid:${grid.length || 10}">${grid.flatMap((row,r) => Array.from(row || '').map((letter,c) => `<button type="button" data-cell="${r}-${c}" aria-label="Fila ${r+1}, columna ${c+1}, ${esc(letter)}">${esc(letter)}</button>`)).join('')}</div></div>`);
-    let start = null, found = [];
+    let start = null, found = [], dragStart = null, suppressClick = false, submitted = false;
+    const placementFor = rawWord => {
+      const target = normalize(rawWord), directions = [[0,1],[1,0],[1,1],[-1,1],[0,-1],[1,-1],[-1,0],[-1,-1]];
+      for (let r = 0; r < grid.length; r++) for (let c = 0; c < (grid[r]?.length || 0); c++) for (const [dr, dc] of directions) {
+        const er = r + dr * (target.length - 1), ec = c + dc * (target.length - 1);
+        if (er < 0 || er >= grid.length || ec < 0 || ec >= (grid[er]?.length || 0)) continue;
+        const chars = [], cells = [];
+        for (let i = 0; i < target.length; i++) { chars.push(grid[r + dr * i][c + dc * i]); cells.push(`${r + dr * i}-${c + dc * i}`); }
+        if (normalize(chars.join('')) === target) return { word: rawWord, cells };
+      }
+      return null;
+    };
+    const placements = new Map(words.map(word => [normalize(word), placementFor(word)]));
+    const clearPreview = () => frame.board.querySelectorAll('.is-select,.is-start').forEach(x => x.classList.remove('is-select', 'is-start'));
+    const preview = (from, to) => {
+      frame.board.querySelectorAll('.is-select').forEach(x => x.classList.remove('is-select'));
+      const result = wordAt(grid, from, to); if (!result) return;
+      result.cells.forEach(id => frame.board.querySelector(`[data-cell="${id}"]`)?.classList.add('is-select'));
+    };
+    const finish = () => {
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = `${found.length} de ${words.length} términos encontrados.`;
+      if (found.length === words.length && !submitted) {
+        submitted = true; frame.check.disabled = true;
+        frame.status.textContent = '¡Encontraste todos los términos! Validando tu avance…';
+        setTimeout(() => submit({ words: found.slice().sort() }, frame), 480);
+      }
+    };
+    const markWord = (word, cells, assisted) => {
+      const index = words.findIndex(item => normalize(item) === normalize(word));
+      if (index < 0 || found.some(item => normalize(item) === normalize(words[index]))) return;
+      const actual = words[index], color = index % 8;
+      found.push(actual);
+      cells.forEach(id => {
+        const cell = frame.board.querySelector(`[data-cell="${id}"]`);
+        if (cell) { cell.classList.add('is-found', `found-${color}`); cell.style.setProperty('--word-index', color); }
+      });
+      frame.board.querySelector(`[data-word-index="${index}"]`)?.classList.add('is-found', `found-${color}`);
+      clearPreview(); announce(assisted ? `Término ${actual} encontrado con ayuda` : `Término ${actual} encontrado`); finish();
+    };
     const select = cell => {
       const pos = cell.dataset.cell.split('-').map(Number);
       if (!start) { start = pos; cell.classList.add('is-start'); return; }
       const result = wordAt(grid, start, pos); start = null;
-      frame.board.querySelectorAll('.is-start').forEach(x => x.classList.remove('is-start'));
-      if (!result) { frame.status.textContent = 'Elige una línea horizontal, vertical o diagonal.'; return; }
+      clearPreview();
+      if (!result) { frame.status.textContent = 'Elige una línea horizontal, vertical o diagonal.'; frame.status.classList.add('is-error'); return; }
       const forward = normalize(result.word), backward = [...forward].reverse().join('');
-      const match = words.find(w => !found.includes(w) && (normalize(w) === forward || normalize(w) === backward));
-      if (!match) { frame.status.textContent = 'Esa secuencia no corresponde a un término pendiente.'; return; }
-      found.push(match); result.cells.forEach(id => frame.board.querySelector(`[data-cell="${id}"]`)?.classList.add('is-found'));
-      frame.board.querySelector(`[data-word="${CSS.escape(match)}"]`)?.classList.add('is-found');
-      frame.status.textContent = `${found.length} de ${words.length} términos encontrados.`;
+      const match = words.find(w => !found.some(item => normalize(item) === normalize(w)) && (normalize(w) === forward || normalize(w) === backward));
+      if (!match) { frame.status.textContent = 'Esa línea no forma un término pendiente. Intenta en otra dirección.'; frame.status.classList.add('is-error'); return; }
+      frame.status.classList.remove('is-error'); markWord(match, result.cells, false);
     };
-    let dragStart = null, suppressClick = false;
     frame.board.querySelectorAll('[data-cell]').forEach(cell => cell.addEventListener('click', () => {
       if (suppressClick) { suppressClick = false; return; }
       select(cell);
@@ -877,15 +1043,34 @@
     const gridEl = frame.board.querySelector('.wordsearch__grid');
     gridEl.addEventListener('pointerdown', event => {
       const cell = event.target.closest('[data-cell]');
-      if (cell) dragStart = cell.dataset.cell.split('-').map(Number);
+      if (!cell) return;
+      dragStart = cell.dataset.cell.split('-').map(Number);
+      clearPreview(); cell.classList.add('is-start', 'is-select');
+      try { gridEl.setPointerCapture(event.pointerId); } catch (_) {}
+    });
+    gridEl.addEventListener('pointermove', event => {
+      if (!dragStart) return;
+      const cell = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-cell]');
+      if (cell) preview(dragStart, cell.dataset.cell.split('-').map(Number));
     });
     gridEl.addEventListener('pointerup', event => {
       const endCell = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('[data-cell]');
-      if (!dragStart || !endCell || dragStart.join('-') === endCell.dataset.cell) { dragStart = null; return; }
+      try { gridEl.releasePointerCapture(event.pointerId); } catch (_) {}
+      if (!dragStart || !endCell || dragStart.join('-') === endCell.dataset.cell) { dragStart = null; clearPreview(); return; }
       start = dragStart; dragStart = null; suppressClick = true; select(endCell);
     });
-    frame.check.addEventListener('click', () => submit({ words: found.slice().sort() }, frame));
+    gridEl.addEventListener('pointercancel', () => { dragStart = null; clearPreview(); });
+    frame.check.addEventListener('click', () => {
+      if (found.length < words.length) { frame.status.textContent = `Aún faltan ${words.length - found.length} términos. Puedes usar Ayúdame.`; frame.status.classList.add('is-error'); return; }
+      submit({ words: found.slice().sort() }, frame);
+    });
     frame.reset.addEventListener('click', () => runWordsearch(challenge, shell, submit));
+    enableStepHelp(challenge, frame, () => ({ words: found.slice().sort() }), hint => {
+      if (hint.kind !== 'wordsearch-word') return;
+      const placement = placements.get(normalize(hint.word));
+      if (placement) { markWord(hint.word, placement.cells, true); if (!submitted) frame.status.textContent = `Marcamos ${hint.word}. Puedes pedir otra ayuda si la necesitas.`; }
+    }, 'Marcar una palabra');
+    finish();
   }
 
   function runPuzzle(challenge, shell, submit) {
@@ -893,25 +1078,56 @@
     const order = Array.from({ length: size * size }, (_, i) => i).sort(() => Math.random() - .5);
     if (order.every((n, i) => n === i)) [order[0], order[1]] = [order[1], order[0]];
     const image = challenge.content?.image || '';
-    const frame = gameFrame(challenge, shell, `<div class="puzzle-wrap${image ? ' has-ref' : ''}"><div class="puzzle-grid" style="--puzzle-size:${size}"></div>${image ? `<figure class="puzzle-ref"><img src="${encodeURI(image).replace(/'/g, '%27')}" alt="" decoding="async"><figcaption>Imagen de referencia</figcaption></figure>` : ''}</div><p class="game-hint">Toca dos piezas para intercambiarlas.</p>`);
-    let selected = null;
+    const frame = gameFrame(challenge, shell, `<div class="puzzle-wrap${image ? ' has-ref' : ''}"><div class="puzzle-grid" style="--puzzle-size:${size}"></div>${image ? `<figure class="puzzle-ref"><img src="${encodeURI(image).replace(/'/g, '%27')}" alt="" decoding="async"><figcaption>Imagen de referencia</figcaption></figure>` : ''}</div><p class="game-hint">Toca dos piezas para intercambiarlas. En computadora también puedes arrastrarlas.</p>`);
+    let selected = null, dragPos = null, moves = 0, submitted = false;
+    const solvedCount = () => order.filter((piece, pos) => piece === pos).length;
+    const finishIfReady = () => {
+      const solved = solvedCount();
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = `${solved} de ${order.length} piezas en su lugar · ${moves} movimientos.`;
+      if (solved === order.length && !submitted) {
+        submitted = true; frame.check.disabled = true;
+        frame.status.textContent = '¡Escena reconstruida! Validando tu avance…';
+        setTimeout(() => submit({ order: order.slice() }, frame), 480);
+      }
+    };
+    const swap = (a, b) => {
+      if (a === b || a < 0 || b < 0) return;
+      [order[a], order[b]] = [order[b], order[a]]; moves += 1; selected = null; paint(); finishIfReady();
+    };
     const paint = () => {
       const grid = frame.board.querySelector('.puzzle-grid');
       grid.innerHTML = order.map((piece, pos) => {
         const x = (piece % size) * 100 / Math.max(1, size - 1), y = Math.floor(piece / size) * 100 / Math.max(1, size - 1);
         const style = image ? `background-image:url('${encodeURI(image).replace(/'/g,'%27')}');background-position:${x}% ${y}%;background-size:${size * 100}% ${size * 100}%` : '';
-        return `<button type="button" data-pos="${pos}" class="puzzle-piece${selected === pos ? ' is-selected' : ''}" style="${style}" aria-label="Pieza ${piece + 1}">${image ? '' : piece + 1}</button>`;
+        return `<button type="button" draggable="true" data-pos="${pos}" class="puzzle-piece${selected === pos ? ' is-selected' : ''}${piece === pos ? ' is-correct' : ''}" style="${style}" aria-label="Pieza ${piece + 1}${piece === pos ? ', en posición correcta' : ''}">${image ? '' : piece + 1}</button>`;
       }).join('');
       grid.querySelectorAll('[data-pos]').forEach(btn => btn.addEventListener('click', () => {
         const pos = Number(btn.dataset.pos);
         if (selected == null) selected = pos;
-        else { [order[selected], order[pos]] = [order[pos], order[selected]]; selected = null; }
+        else { swap(selected, pos); return; }
         paint();
       }));
+      grid.querySelectorAll('[data-pos]').forEach(btn => {
+        btn.addEventListener('dragstart', event => { dragPos = Number(btn.dataset.pos); event.dataTransfer?.setData('text/plain', btn.dataset.pos); });
+        btn.addEventListener('dragover', event => event.preventDefault());
+        btn.addEventListener('drop', event => { event.preventDefault(); const from = dragPos == null ? Number(event.dataTransfer?.getData('text/plain')) : dragPos; dragPos = null; swap(from, Number(btn.dataset.pos)); });
+        btn.addEventListener('dragend', () => { dragPos = null; });
+      });
     };
     paint();
-    frame.check.addEventListener('click', () => submit({ order }, frame));
+    frame.check.addEventListener('click', () => {
+      if (solvedCount() < order.length) { frame.status.textContent = `Hay ${order.length - solvedCount()} piezas fuera de lugar. Las verdes ya están correctas.`; frame.status.classList.add('is-error'); return; }
+      submit({ order: order.slice() }, frame);
+    });
     frame.reset.addEventListener('click', () => runPuzzle(challenge, shell, submit));
+    enableStepHelp(challenge, frame, () => ({ order: order.slice() }), hint => {
+      if (hint.kind !== 'puzzle-piece') return;
+      const slot = Number(hint.slot), source = order.indexOf(Number(hint.piece));
+      if (source >= 0 && source !== slot) swap(source, slot);
+      if (!submitted) frame.status.textContent = 'Colocamos una pieza. Las piezas verdes ya están en su lugar.';
+    }, 'Colocar una pieza');
+    finishIfReady();
   }
 
   function runClassify(challenge, shell, submit) {
@@ -942,12 +1158,18 @@
       zone.addEventListener('dragover', event => event.preventDefault());
       zone.addEventListener('drop', event => { event.preventDefault(); const id = event.dataTransfer.getData('text/plain'); const item = frame.board.querySelector(`[data-item="${CSS.escape(id)}"]`); if (item) assign(item, zone.dataset.category); });
     });
+    const proof = () => ({ assignments: { ...assignments } });
     frame.check.addEventListener('click', () => {
       const pending = (content.items || []).length - Object.keys(assignments).length;
       if (pending > 0) { frame.status.textContent = `Te ${pending === 1 ? 'falta 1 tarjeta' : `faltan ${pending} tarjetas`} por clasificar.`; frame.status.classList.add('is-error'); return; }
-      submit({ assignments }, frame);
+      submit(proof(), frame);
     });
     frame.reset.addEventListener('click', () => runClassify(challenge, shell, submit));
+    enableStepHelp(challenge, frame, proof, hint => {
+      if (hint.kind !== 'classification') return;
+      const item = frame.board.querySelector(`[data-item="${CSS.escape(String(hint.itemId))}"]`);
+      if (item) { assign(item, String(hint.category)); frame.status.textContent = `Te ayudamos: esta tarjeta va en ${hint.category}.`; }
+    }, 'Clasificar una tarjeta');
   }
 
   function runQuiz(challenge, shell, submit) {
@@ -1005,6 +1227,13 @@
       submit({ answers }, frame);
     });
     frame.reset.addEventListener('click', () => { Object.keys(answers).forEach(key => delete answers[key]); index = 0; paint(); });
+    enableStepHelp(challenge, frame, () => ({ answers: { ...answers } }), hint => {
+      if (hint.kind !== 'quiz-answer') return;
+      const questionIndex = questions.findIndex(question => question.id === hint.questionId);
+      if (questionIndex < 0) return;
+      index = questionIndex; answers[hint.questionId] = Number(hint.optionIndex); paint(true);
+      frame.status.classList.remove('is-error'); frame.status.textContent = 'Marcamos una respuesta correcta. Continúa a tu ritmo.';
+    }, 'Resolver una pregunta');
     paint();
   }
 
@@ -1034,7 +1263,7 @@
       <div class="cw4__clues">${words.some(w => w.dir === 'h') ? `<span>Horizontales</span><ol>${clues('h')}</ol>` : ''}${words.some(w => w.dir === 'v') ? `<span>Verticales</span><ol>${clues('v')}</ol>` : ''}</div>
     </div>`);
     const input = k => frame.board.querySelector(`input[data-k="${k}"]`);
-    let active = words[0]?.id;
+    let active = words[0]?.id, submitted = false, autoTimer = 0;
     const wordById = id => words.find(w => w.id === id);
     const highlight = () => {
       frame.board.querySelectorAll('.is-active').forEach(el => el.classList.remove('is-active'));
@@ -1043,11 +1272,31 @@
       frame.board.querySelector(`[data-clue="${CSS.escape(w.id)}"]`)?.classList.add('is-active');
     };
     const wordsAt = k => words.filter(w => cellsOf(w).includes(k));
+    const updateProgress = () => {
+      const all = [...frame.board.querySelectorAll('.cw4__cell input')];
+      const filled = all.filter(el => el.value).length;
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = `${filled} de ${all.length} casillas completadas.`;
+    };
+    const maybeSubmit = () => {
+      clearTimeout(autoTimer);
+      const all = [...frame.board.querySelectorAll('.cw4__cell input')];
+      updateProgress();
+      if (!all.length || all.some(el => !el.value) || submitted) return;
+      autoTimer = setTimeout(() => {
+        if (submitted) return;
+        submitted = true; frame.check.disabled = true;
+        frame.status.textContent = 'Crucigrama completo. Validando tus respuestas…';
+        submit({ answers: collect() }, frame);
+      }, 650);
+    };
     frame.board.querySelectorAll('input').forEach(el => {
       el.addEventListener('focus', () => { const opts = wordsAt(el.dataset.k); if (!opts.some(w => w.id === active)) active = opts[0].id; highlight(); });
       el.addEventListener('click', () => { const opts = wordsAt(el.dataset.k); if (opts.length > 1) { active = (opts.find(w => w.id !== active) || opts[0]).id; highlight(); } });
       el.addEventListener('input', () => {
         el.value = normalize(el.value).replace(/[^A-Z]/g, '').slice(-1);
+        el.parentElement.classList.remove('is-revealed');
+        maybeSubmit();
         if (!el.value) return;
         const list = cellsOf(wordById(active)); const next = list[list.indexOf(el.dataset.k) + 1];
         if (next) input(next)?.focus();
@@ -1068,9 +1317,23 @@
     frame.check.addEventListener('click', () => {
       const answers = collect();
       if (words.some(w => answers[w.id].length !== w.len)) { frame.status.textContent = 'Completa todas las casillas antes de comprobar.'; frame.status.classList.add('is-error'); return; }
+      submitted = true;
       submit({ answers }, frame);
     });
     frame.reset.addEventListener('click', () => runCrosswordGrid(challenge, shell, submit));
+    enableStepHelp(challenge, frame, collect, hint => {
+      if (hint.kind !== 'crossword-letter') return;
+      const word = wordById(String(hint.wordId));
+      const key = word ? cellsOf(word)[Number(hint.index) || 0] : '';
+      const target = key ? input(key) : null;
+      if (!target) return;
+      target.value = String(hint.letter || '').slice(0, 1);
+      target.parentElement.classList.add('is-revealed', 'is-letter-correct');
+      active = word.id; highlight(); maybeSubmit();
+      if (!submitted) frame.status.textContent = `Colocamos la letra ${target.value}. Puedes pedir todas las ayudas que necesites.`;
+      target.focus();
+    }, 'Revelar una letra');
+    updateProgress();
     highlight();
   }
 
@@ -1092,8 +1355,16 @@
       paint({ id, dir: btn.dataset.move });
     });
     paint();
-    frame.check.addEventListener('click', () => submit({ order: steps.map(s => s.id) }, frame));
+    const proof = () => ({ order: steps.map(s => s.id) });
+    frame.check.addEventListener('click', () => submit(proof(), frame));
     frame.reset.addEventListener('click', () => runOrder(challenge, shell, submit));
+    enableStepHelp(challenge, frame, proof, hint => {
+      if (hint.kind !== 'order-step') return;
+      const target = Number(hint.slot), source = steps.findIndex(step => step.id === hint.stepId);
+      if (target < 0 || source < 0) return;
+      const [step] = steps.splice(source, 1); steps.splice(target, 0, step); paint();
+      frame.status.classList.remove('is-error'); frame.status.textContent = 'Colocamos el siguiente paso. Puedes continuar o pedir otra ayuda.';
+    }, 'Acomodar un paso');
   }
 
   function pointPercent(el, event) { const r = el.getBoundingClientRect(); return { x: (event.clientX - r.left) / r.width * 100, y: (event.clientY - r.top) / r.height * 100 }; }
@@ -1101,7 +1372,7 @@
   function runHazard(challenge, shell, submit) {
     const c = challenge.content || {};
     const items = Array.isArray(c.items) ? c.items : [];
-    const found = [];
+    const found = []; let submitted = false;
     const frame = gameFrame(challenge, shell, `<div class="hz4"><div class="hz4__scene" data-scene><img src="${imgUrl(c.image)}" alt="${esc(c.scene || 'Escena')}" draggable="false" decoding="async"><div class="hz4__marks" data-marks></div></div>
       <aside class="hz4__side"><span>Irregularidades · <b data-hz-count>0/${items.length}</b></span><ol>${items.map((_, i) => `<li data-hz-slot="${i}"><b>${i + 1}</b><span>Por encontrar</span></li>`).join('')}</ol><p>Toca en la imagen cada condición incorrecta. Observa el piso, los equipos, las personas y los documentos.</p></aside></div>`);
     const scene = frame.board.querySelector('[data-scene]'), marks = frame.board.querySelector('[data-marks]');
@@ -1114,8 +1385,9 @@
       if (slot) { slot.classList.add('is-found'); slot.innerHTML = `<b>${n}</b><span><strong>${esc(it.label)}</strong>${esc(it.tip)}</span>`; }
       frame.board.querySelector('[data-hz-count]').textContent = `${n}/${items.length}`;
       frame.status.classList.remove('is-error');
-      frame.status.textContent = n === items.length ? '¡Encontraste todas! Pulsa Comprobar.' : `¡Bien visto! ${it.label}.`;
+      frame.status.textContent = n === items.length ? '¡Encontraste todas! Validando tu avance…' : `¡Bien visto! ${it.label}.`;
       announce(it.label);
+      if (n === items.length && !submitted) { submitted = true; frame.check.disabled = true; setTimeout(() => submit({ found: found.slice() }, frame), 520); }
     };
     scene.addEventListener('click', event => {
       const p = pointPercent(scene, event);
@@ -1131,6 +1403,11 @@
       submit({ found: found.slice() }, frame);
     });
     frame.reset.addEventListener('click', () => runHazard(challenge, shell, submit));
+    enableStepHelp(challenge, frame, () => ({ found: found.slice() }), hint => {
+      if (hint.kind !== 'hazard-item') return;
+      const item = items.find(entry => entry.id === hint.itemId);
+      if (item && !found.includes(item.id)) { reveal(item); if (!submitted) frame.status.textContent = `Te señalamos: ${item.label}. ${item.tip || ''}`; }
+    }, 'Señalar una irregularidad');
   }
 
   function runSpot(challenge, shell, submit) {
@@ -1151,7 +1428,9 @@
         locked = true; answers.push(r.zone); btn.classList.remove('is-hint'); btn.classList.add('is-correct');
         map.querySelectorAll(`[data-zone-label="${CSS.escape(r.zone)}"]`).forEach(el => el.classList.add('is-visible'));
         frame.status.classList.remove('is-error'); frame.status.textContent = r.tip || '¡Correcto!';
-        round += 1; setTimeout(() => { locked = false; show(); }, 900); return;
+        round += 1;
+        if (round >= rounds.length) { setTimeout(() => submit({ answers: answers.slice() }, frame), 520); return; }
+        setTimeout(() => { locked = false; show(); }, 900); return;
       }
       btn.classList.remove('is-wrong'); void btn.offsetWidth; btn.classList.add('is-wrong'); misses += 1;
       frame.status.classList.add('is-error');
@@ -1164,6 +1443,11 @@
       submit({ answers: answers.slice() }, frame);
     });
     frame.reset.addEventListener('click', () => runSpot(challenge, shell, submit));
+    enableStepHelp(challenge, frame, () => ({ answers: answers.slice() }), hint => {
+      if (hint.kind !== 'spot-zone' || Number(hint.round) !== round) return;
+      const button = map.querySelector(`[data-zone="${CSS.escape(String(hint.zone))}"]`);
+      if (button) { button.click(); if (round < rounds.length) frame.status.textContent = 'Resolvimos esta situación contigo. Puedes pedir ayuda de nuevo.'; }
+    }, 'Resolver esta situación');
   }
 
   function runDocument(challenge, shell, submit) {
@@ -1186,6 +1470,13 @@
       submit({ flagged: [...flagged] }, frame);
     });
     frame.reset.addEventListener('click', () => runDocument(challenge, shell, submit));
+    enableStepHelp(challenge, frame, () => ({ flagged: [...flagged] }), hint => {
+      if (!['document-error', 'document-remove'].includes(hint.kind)) return;
+      const button = frame.board.querySelector(`[data-field="${CSS.escape(String(hint.fieldId))}"]`);
+      if (button) button.click();
+      frame.status.classList.remove('is-error');
+      frame.status.textContent = hint.kind === 'document-error' ? 'Marcamos un dato incorrecto. Revisa por qué no corresponde.' : 'Quitamos una marca que estaba sobre un dato correcto.';
+    }, 'Revisar un dato');
   }
 
   function runCalc(challenge, shell, submit) {
@@ -1204,6 +1495,11 @@
       submit({ value: raw.replace(/[^0-9.,-]/g, '') }, frame);
     });
     frame.reset.addEventListener('click', () => { input.value = ''; frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
+    enableStepHelp(challenge, frame, () => ({ value: input.value }), hint => {
+      frame.status.classList.remove('is-error');
+      if (hint.kind === 'calc-step') frame.status.textContent = `Pista: ${hint.text}`;
+      if (hint.kind === 'calc-answer') { input.value = hint.value; frame.status.textContent = `Resultado colocado: ${hint.value}${hint.unit ? ` ${hint.unit}` : ''}.`; input.focus(); }
+    }, 'Mostrar el siguiente paso');
   }
 
   function runVisualMemory(challenge, shell, submit) {
@@ -1214,18 +1510,32 @@
     });
     const deck = shuffleLocal(cards);
     const frame = gameFrame(challenge, shell, `<div class="vm4">${deck.map(card => `<button type="button" class="vm4__card" data-pair="${esc(card.id)}" aria-label="Carta oculta"><span class="vm4__back">ICA</span><span class="vm4__front${card.image ? ' is-image' : ''}">${card.image ? `<img src="${imgUrl(card.image)}" alt="" decoding="async">` : esc(card.text)}</span></button>`).join('')}</div>`);
-    let open = [], matched = [];
+    let open = [], matched = [], busy = false, submitted = false;
+    const completePair = (id, assisted) => {
+      if (matched.includes(id)) return;
+      open.forEach(x => x.classList.remove('is-open', 'is-wrong')); open = [];
+      frame.board.querySelectorAll(`[data-pair="${CSS.escape(id)}"]`).forEach(x => { x.classList.add('is-open', 'is-matched'); x.disabled = true; });
+      matched.push(id); frame.status.classList.remove('is-error'); frame.status.textContent = `${matched.length} de ${challenge.content.pairs.length} parejas.`;
+      announce(assisted ? 'Pareja encontrada con ayuda' : 'Pareja encontrada');
+      if (matched.length === challenge.content.pairs.length && !submitted) { submitted = true; frame.check.disabled = true; setTimeout(() => submit({ pairs: [...new Set(matched)] }, frame), 480); }
+    };
     frame.board.querySelectorAll('.vm4__card').forEach(card => card.addEventListener('click', () => {
-      if (card.classList.contains('is-open') || card.classList.contains('is-matched') || open.length === 2) return;
+      if (busy || card.classList.contains('is-open') || card.classList.contains('is-matched') || open.length === 2) return;
       card.classList.add('is-open'); open.push(card);
       if (open.length < 2) return;
       if (open[0].dataset.pair === open[1].dataset.pair) {
         const id = open[0].dataset.pair;
-        setTimeout(() => { open.forEach(x => { x.classList.add('is-matched'); x.disabled = true; }); matched.push(id); open = []; frame.status.textContent = `${matched.length} de ${challenge.content.pairs.length} parejas.`; announce('Pareja encontrada'); }, 280);
-      } else setTimeout(() => { open.forEach(x => x.classList.remove('is-open')); open = []; }, 800);
+        setTimeout(() => completePair(id, false), 280);
+      } else { busy = true; open.forEach(x => x.classList.add('is-wrong')); setTimeout(() => { open.forEach(x => x.classList.remove('is-open', 'is-wrong')); open = []; busy = false; }, 800); }
     }));
-    frame.check.addEventListener('click', () => submit({ pairs: [...new Set(matched)] }, frame));
+    frame.check.addEventListener('click', () => {
+      if (matched.length < challenge.content.pairs.length) { frame.status.textContent = `Te faltan ${challenge.content.pairs.length - matched.length} parejas.`; frame.status.classList.add('is-error'); return; }
+      submit({ pairs: [...new Set(matched)] }, frame);
+    });
     frame.reset.addEventListener('click', () => runVisualMemory(challenge, shell, submit));
+    enableStepHelp(challenge, frame, () => ({ pairs: [...new Set(matched)] }), hint => {
+      if (hint.kind === 'memory-pair') { completePair(String(hint.pair), true); if (!submitted) frame.status.textContent = 'Pareja encontrada con ayuda. Puedes pedir otra cuando quieras.'; }
+    }, 'Encontrar una pareja');
   }
 
   function debriefMarkup(debrief) {
@@ -1354,7 +1664,8 @@
 
   function successView(challenge, shell, result, onComplete, onContinue, stats) {
     setStep(shell.modal, 3);
-    onComplete?.(result);
+    const completeCourseOnContinue = challenge.scope !== 'reto' && result.courseCompleted === true;
+    if (!completeCourseOnContinue) onComplete?.(result);
     const previous = Number(result.previousBalance ?? challenge.balance ?? 0);
     const reward = Number(result.reward ?? challenge.reward ?? 0);
     const next = Number(result.newBalance ?? previous + reward);
@@ -1374,7 +1685,7 @@
     const rewardLine = hasReward
       ? `<span class="gw-coin" aria-hidden="true">${CHEST_COIN}</span><span class="gw-reward__copy"><span><b>+${reward} créditos</b> ${isReto ? 'sumados a tu saldo' : 'por superar la clase'}</span><small>Saldo total: <b>${next.toLocaleString('es-MX')}</b> créditos</small></span>`
       : `<span>${isReto ? 'Modo práctica · este reto ya estaba registrado, sin créditos' : 'Modo práctica · esta clase ya había sumado sus créditos'}</span>`;
-    const primaryLabel = result.nextLessonNumber ? 'Abrir siguiente clase' : (isReto ? 'Volver a Retos' : 'Volver al curso');
+    const primaryLabel = result.nextLessonNumber ? 'Abrir siguiente clase' : (isReto ? 'Volver a Retos' : (result.courseCompleted ? 'Ver mi certificado' : 'Volver al curso'));
     const anotherLabel = isReto && challenge.experienceId === 'pro' ? 'Elegir otra dinámica' : isReto && challenge.experienceId === 'catalog' ? 'Elegir otro juego' : '';
     shell.modal.classList.add('is-won');
     shell.content.innerHTML = `
@@ -1390,6 +1701,7 @@
         </div>
         <div class="gw-reward${hasReward ? ' is-earned' : ''}" data-reward>${rewardLine}</div>
         ${result.assisted ? '<p class="gw-assisted">Actividad completada con apoyo. Tu clase quedó acreditada y puedes continuar.</p>' : ''}
+        ${result.courseCompleted ? `<div class="gw-course"><span aria-hidden="true">🎓</span><div><b>¡Curso completado!</b><small>${result.certificate?.folio ? `Certificado ${esc(result.certificate.folio)} listo para consultar.` : (result.certificatePending ? 'Estamos terminando de emitir tu certificado verificable.' : 'Tu certificado verificable ya está disponible.')}</small></div></div>` : ''}
         ${debriefMarkup(result.debrief)}
         <div class="gw-actions${anotherLabel ? '' : ' is-single'}">
           ${anotherLabel ? `<button class="game-secondary gw-btn" type="button" data-game-another>${anotherLabel}</button>` : ''}
@@ -1400,14 +1712,18 @@
     publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: hasReward ? (isReto ? 'reto-game' : 'lesson-game') : 'practice' });
     if (hasReward) {
       creditWalletCache = null;
-      celebrate(stars === 3);
+      celebrate(result.courseCompleted || stars === 3);
       setTimeout(() => showCoinChest({ amount: reward, total: next, title: isReto ? '¡Reto superado!' : '¡Mini juego superado!' }), 450);
       announce(`Ganaste ${reward} créditos. Nuevo saldo: ${next}.`);
     } else {
       celebrate(false);
       announce(`Actividad completada. Tu saldo permanece en ${next} créditos.`);
     }
-    continueButton.addEventListener('click', () => { shell.close(); onContinue?.(result); });
+    continueButton.addEventListener('click', () => {
+      shell.close();
+      if (completeCourseOnContinue) onComplete?.(result);
+      onContinue?.(result);
+    });
     shell.content.querySelector('[data-game-another]')?.addEventListener('click', () => {
       shell.close(); onContinue?.(result);
       if (challenge.experienceId === 'pro') openProPicker(); else openPracticePicker();
@@ -1502,7 +1818,16 @@
           frame.check.disabled = false;
           if (frame.help) frame.help.disabled = false;
           if (error.status === 422) playStats.mistakes += 1;
-          if (challenge.scope !== 'reto' && error.status === 422 && error.data?.assistanceAvailable && frame.assist && frame.help) {
+          if (error.data?.code === 'challenge-too-fast' && Number(error.data?.retryAfterMs) > 0) {
+            const waitMs = Math.max(250, Number(error.data.retryAfterMs) + 120);
+            frame.check.disabled = true;
+            if (frame.help) frame.help.disabled = true;
+            frame.status.classList.remove('is-error');
+            frame.status.textContent = 'Guardando tu resultado…';
+            setTimeout(() => submit(proof, frame, submitOptions), waitMs);
+            return;
+          }
+          if (challenge.scope !== 'reto' && error.status === 422 && error.data?.assistanceAvailable && frame.assist && frame.help && frame.assist.dataset.stepHelp !== '1') {
             frame.assist.hidden = false;
             frame.help.onclick = () => submit(proof, frame, { assisted: true });
           }

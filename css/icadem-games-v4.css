@@ -20,6 +20,9 @@
 .cw4__cell input { width:100%; height:100%; padding:0; border:0; border-radius:6px; background:transparent; color:var(--text); text-align:center; text-transform:uppercase; font:800 clamp(12px,1.7vw,16px)/1 'JetBrains Mono',monospace; caret-color:var(--g4-accent); }
 .cw4__cell input:focus { outline:none; }
 .cw4__cell.is-active { border-color:var(--g4-accent); background:color-mix(in srgb,var(--g4-accent) 12%,var(--surface)); }
+.cw4__cell.is-letter-correct{border-color:#58a88d;background:#e6f5ef}
+.cw4__cell.is-revealed{box-shadow:inset 0 0 0 2px #e1ad3e}
+.cw4__cell.is-solved{border-color:#23926e;background:#dff4eb}
 .cw4__clues { display:grid; gap:6px; }
 .cw4__clues>span { margin-top:4px; color:var(--g4-accent); font:800 8px/1 'JetBrains Mono',monospace; letter-spacing:1.2px; text-transform:uppercase; }
 .cw4__clues ol { display:grid; gap:5px; margin:0; padding:0; list-style:none; }
@@ -35,6 +38,8 @@
 .puzzle-ref img { width:100%; aspect-ratio:1; object-fit:cover; border-radius:12px; box-shadow:0 8px 20px rgba(18,49,68,.14); }
 .puzzle-ref figcaption { color:var(--text-3); font:800 8px/1 'JetBrains Mono',monospace; letter-spacing:1px; text-transform:uppercase; }
 .learning-game--v3 .puzzle-piece { border:0; cursor:pointer; }
+.learning-game--v3 .puzzle-piece.is-correct{outline:3px solid #33a47c;box-shadow:inset 0 0 0 2px rgba(255,255,255,.8);filter:saturate(1.04)}
+.learning-game--v3 .puzzle-piece[draggable="true"]{touch-action:manipulation}
 
 /* Ordena el proceso */
 .ord4 { display:grid; gap:12px; max-width:680px; margin:0 auto; }
@@ -610,6 +615,30 @@
 .gw-reward__copy{display:grid;gap:2px}
 .gw-reward__copy small{font-size:12px;color:#6b5a2c}
 .gw-reward__copy small b{font-size:12.5px;font-family:'JetBrains Mono',monospace;color:#12324a}
+.learning-game--v3 .game-assist{order:3;margin-top:14px}
+.learning-game--v3 .game-actions{order:4}
+.learning-game--v3 .game-assist button{white-space:nowrap}
+.learning-game--v3 .wordsearch__grid button.is-select{outline:2px solid #ddb14d;outline-offset:-2px;background:#fff4d5;color:#17364b}
+.learning-game--v3 .wordsearch__list span{display:flex;align-items:center;gap:7px}
+.learning-game--v3 .wordsearch__list span i{width:7px;height:7px;border-radius:999px;background:#a8b5bd;flex:none}
+.learning-game--v3 .wordsearch__grid button.is-found,.learning-game--v3 .wordsearch__list span.is-found{background:var(--found-bg,#1f6f8b);border-color:var(--found-bg,#1f6f8b);color:#fff}
+.learning-game--v3 .wordsearch__list span.is-found i{background:currentColor}
+.learning-game--v3 .wordsearch__grid .found-0,.learning-game--v3 .wordsearch__list .found-0{--found-bg:#1f6f8b}
+.learning-game--v3 .wordsearch__grid .found-1,.learning-game--v3 .wordsearch__list .found-1{--found-bg:#8a5bb5}
+.learning-game--v3 .wordsearch__grid .found-2,.learning-game--v3 .wordsearch__list .found-2{--found-bg:#168b70}
+.learning-game--v3 .wordsearch__grid .found-3,.learning-game--v3 .wordsearch__list .found-3{--found-bg:#c7782b}
+.learning-game--v3 .wordsearch__grid .found-4,.learning-game--v3 .wordsearch__list .found-4{--found-bg:#bd536c}
+.learning-game--v3 .wordsearch__grid .found-5,.learning-game--v3 .wordsearch__list .found-5{--found-bg:#3678be}
+.learning-game--v3 .wordsearch__grid .found-6,.learning-game--v3 .wordsearch__list .found-6{--found-bg:#767d2b}
+.learning-game--v3 .wordsearch__grid .found-7,.learning-game--v3 .wordsearch__list .found-7{--found-bg:#976539}
+.learning-game--v3 .memory-card.is-matched .memory-card__front{background:color-mix(in srgb,var(--pair-color,#23926e) 14%,#fff);border:2px solid var(--pair-color,#23926e);box-shadow:inset 0 -4px 0 var(--pair-color,#23926e)}
+.learning-game--v3 .memory-card.is-wrong,.learning-game--v3 .vm4__card.is-wrong{animation:g4Wrong .35s ease}
+.gw-course{display:flex;align-items:center;gap:12px;width:100%;padding:13px 15px;border:1px solid #b9ddcf;border-radius:15px;background:#eaf7f1;color:#12324a;text-align:left}
+.gw-course>span{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:#fff;font-size:22px;box-shadow:0 6px 18px rgba(18,50,74,.08)}
+.gw-course>div{display:grid;gap:2px}.gw-course b{font-size:14px}.gw-course small{color:#567064;font-size:11px;line-height:1.4}
+@keyframes g4Wrong{25%{transform:translateX(-3px)}50%{transform:translateX(3px)}75%{transform:translateX(-2px)}}
+[data-theme="night"] .cw4__cell.is-letter-correct,[data-theme="night"] .cw4__cell.is-solved{background:#173f35;color:#e8fff7}
+[data-theme="night"] .gw-course{background:#173b33;border-color:#326b5d;color:#edfff9}[data-theme="night"] .gw-course small{color:#b8d6cc}
 
 /* Juegos ICADEM: íconos 3D transparentes en cada tarjeta */
 .practice-picker--juegos .practice-card{grid-template-rows:22px 84px auto auto!important}
