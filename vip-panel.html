@@ -23,7 +23,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
-<script src="js/icadem-analytics.js?v=2" defer></script>
+<script src="js/icadem-analytics.js?v=3" defer></script>
 <script src="js/icadem-platform-v2.js?v=39" defer></script>
 
 <style>
@@ -11559,6 +11559,7 @@ const Sections = (function(){
   async function renderSuscripcionActivar(container, S){
     const intentPlan = localStorage.getItem('icadem_intent_plan') || 'anual';
     const isInvitado = S.modo === 'invitado';
+    const offerCode = (new URLSearchParams(location.search).get('offer') || '').trim().toUpperCase().slice(0, 80);
     // MODIFICADO: precios dinámicos · null = no se pudo leer → se pinta "$—"
     const precios = await leerPreciosVIP();
     const pMes = precios ? precios.mes : 0;
@@ -11593,6 +11594,7 @@ const Sections = (function(){
         </div>
 
         ${!isInvitado ? `
+          ${offerCode ? `<div style="margin:24px auto 4px;max-width:760px;padding:14px 17px;border:1px solid color-mix(in srgb,var(--accent) 52%,var(--border));border-radius:14px;background:color-mix(in srgb,var(--accent) 13%,var(--surface));color:var(--text);text-align:center;font-size:13px;line-height:1.55;"><strong>Tu beneficio de bienvenida está listo.</strong> El código <span style="font-family:'JetBrains Mono',monospace;font-weight:800;letter-spacing:.05em;">${offerCode.replace(/[&<>"']/g,'')}</span> se aplicará automáticamente al pago.</div>` : ''}
           <!-- Selector de plan -->
           <h3 style="font-family:'Plus Jakarta Sans',sans-serif;font-size:15px;font-weight:700;letter-spacing:-.2px;margin:28px 0 14px;text-align:center">
             Elige tu plan
@@ -11634,7 +11636,8 @@ const Sections = (function(){
 
     if (isInvitado) {
       document.getElementById('btn-crear-cuenta-sub')?.addEventListener('click', () => {
-        window.location.href = 'vip-auth.html?plan=' + (localStorage.getItem('icadem_intent_plan') || 'anual');
+        const panel = offerCode ? `vip-panel.html?offer=${encodeURIComponent(offerCode)}#suscripcion` : 'vip-panel.html#suscripcion';
+        window.location.href = 'vip-auth.html?plan=' + (localStorage.getItem('icadem_intent_plan') || 'anual') + '&redirect=' + encodeURIComponent(panel);
       });
       return;
     }
@@ -11675,7 +11678,7 @@ const Sections = (function(){
         const res = await fetch(`${window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app'}/stripe/checkout`, {
           method:'POST',
           headers:{'Content-Type':'application/json', Authorization:`Bearer ${idToken}`},
-          body: JSON.stringify({ plan: selectedPlan })
+          body: JSON.stringify({ plan: selectedPlan, promotionCode: offerCode || undefined })
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({error:'Error desconocido'}));

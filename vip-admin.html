@@ -1032,6 +1032,7 @@ body{
 }
 </style>
 <link rel="stylesheet" href="css/icadem-admin-metrics.css?v=1">
+<link rel="stylesheet" href="css/icadem-admin-marketing.css?v=1">
 </head>
 <body style="visibility:hidden">
 
@@ -1152,7 +1153,13 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Resumen</div>
       <a class="nav-item is-active" data-section="dashboard"><svg class="ic"><use href="#i-home"/></svg>Dashboard</a>
-      <a class="nav-item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Marketing</div>
+      <a class="nav-item" data-section="encuestas"><svg class="ic"><use href="#i-check"/></svg>Encuestas<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
+      <a class="nav-item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas</a>
+      <a class="nav-item" data-section="correos"><svg class="ic"><use href="#i-mail"/></svg>Correos<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
     </div>
 
     <div class="nav-section">
@@ -1260,6 +1267,7 @@ const Toast={
   error(t,m){this.show('error',t,m)},
   info(t,m){this.show('info',t,m)}
 };
+window.Toast = Toast;
 
 const Modal={
   current:null,
@@ -6012,9 +6020,10 @@ if (window.__currentAdmin) {
 }
 </script>
 
-<script src="js/icadem-admin-metrics.js?v=1" defer></script>
+<script src="js/icadem-admin-metrics.js?v=2" defer></script>
+<script src="js/icadem-admin-marketing.js?v=1" defer></script>
 <script>
-// ── Métricas (como IMFRA y Synova): la sección la pinta js/icadem-admin-metrics.js ──
+// ── Marketing (patrón Alintecfood): Encuestas, Métricas y Correos ──
 (function(){
   function tokenAdmin(){
     if (window._fb && window._fb.auth && window._fb.auth.currentUser) return Pages._getAuthToken();
@@ -6028,6 +6037,18 @@ if (window.__currentAdmin) {
     if (window.ICADEMMetricsAdmin) return montar();
     p.innerHTML = '<div class="mx-page fade-up"><div class="mx-empty"><span class="mx-spin"></span>Cargando métricas…</div></div>';
     window.addEventListener('icadem:metrics-admin-ready', function(){ if (__seccionActual === 'metricas') montar(); }, { once: true });
+  };
+  Pages.encuestas = function(p){
+    var montar = function(){ window.ICADEMMarketingAdmin.mountSurveys(p, { getToken: tokenAdmin, api: Pages._webhookUrl }); };
+    if (window.ICADEMMarketingAdmin) return montar();
+    p.innerHTML = '<div class="mx-page fade-up"><div class="mx-empty"><span class="mx-spin"></span>Cargando encuestas…</div></div>';
+    window.addEventListener('icadem:marketing-admin-ready', function(){ if (__seccionActual === 'encuestas') montar(); }, { once: true });
+  };
+  Pages.correos = function(p){
+    var montar = function(){ window.ICADEMMarketingAdmin.mountEmails(p, { getToken: tokenAdmin, api: Pages._webhookUrl, members: function(){ return (window.AdminStore && AdminStore.miembros) || []; } }); };
+    if (window.ICADEMMarketingAdmin) return montar();
+    p.innerHTML = '<div class="mx-page fade-up"><div class="mx-empty"><span class="mx-spin"></span>Cargando correos…</div></div>';
+    window.addEventListener('icadem:marketing-admin-ready', function(){ if (__seccionActual === 'correos') montar(); }, { once: true });
   };
 })();
 </script>

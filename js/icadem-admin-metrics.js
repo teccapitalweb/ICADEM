@@ -301,7 +301,7 @@
         engagement(d) + daily(d) + online(d) +
         '<div class="mx-two">' + hours(d) + weekdays(d) + '</div>' +
         '<div class="mx-two">' + sections(d) + courses(d) + '</div>' +
-        activity(d) + activityDetail(d) + audience(d) + webAndCampaigns(d) + indexExperience(d) + users(d) +
+        activity(d) + activityDetail(d) + audience(d) + webAndCampaigns(d) + users(d) +
         '<p class="mx-foot">Actualizado ' + new Date(d.generado).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }) + ' · No se cuentan las visitas de administradores ni de buscadores. No se guarda la IP de nadie.</p>';
       container.querySelector('[data-mx-live]').textContent = num(d.enLinea) + ' en línea ahora';
       var tbtn = body.querySelector('[data-mx-table]');
@@ -317,17 +317,10 @@
       if (body) body.classList.add('is-loading');
       try {
         var token = await opts.getToken();
-        var responses = await Promise.all([
-          fetch(opts.api + '/admin/metricas?dias=' + days, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' }),
-          fetch(opts.api + '/admin/index-experience?dias=' + days, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' })
-        ]);
-        var r = responses[0], rx = responses[1];
+        var r = await fetch(opts.api + '/admin/metricas?dias=' + days, { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
         var json = await r.json().catch(function () { return {}; });
-        var experience = await rx.json().catch(function () { return {}; });
         if (!r.ok || !json.ok) throw new Error(json.error || 'No se pudieron cargar las métricas');
-        if (!rx.ok || !experience.ok) throw new Error(experience.error || 'No se pudieron cargar los datos del asistente');
         if (!alive()) return;
-        json.indexExperience = experience;
         data = json; paint();
       } catch (e) {
         body = container.querySelector('[data-mx-body]');
@@ -341,10 +334,12 @@
 
     container.innerHTML = '<div class="mx-page fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Actividad real</span><h1 class="sec-hero__title">Métricas</h1>' +
       '<p class="sec-hero__sub">Visitas al panel VIP y al sitio público, tiempo de permanencia, recorridos, lo que más usan los miembros y de dónde llegan.</p></div>' +
+      '<nav class="mk-tabs" aria-label="Marketing"><button type="button" data-mk-go="encuestas">Encuestas</button><button type="button" class="is-active" data-mk-go="metricas">Métricas</button><button type="button" data-mk-go="correos">Correos</button></nav>' +
       '<div class="mx-toolbar"><div class="mx-seg-ctrl" role="group" aria-label="Periodo">' + [7, 30, 90].map(function (n) { return '<button type="button" data-mx-days="' + n + '" class="' + (n === days ? 'is-active' : '') + '">' + n + ' días</button>'; }).join('') + '</div>' +
       '<span class="mx-live"><i></i><span data-mx-live>— en línea ahora</span></span><button type="button" class="mx-btn" data-mx-refresh>Actualizar</button></div>' +
       '<div data-mx-body class="is-loading"><div class="mx-empty"><span class="mx-spin"></span>Cargando métricas…</div></div></div>';
     container.appendChild(tip);
+    container.querySelectorAll('[data-mk-go]').forEach(function (b) { b.addEventListener('click', function () { location.hash = b.dataset.mkGo; }); });
     container.querySelectorAll('[data-mx-days]').forEach(function (b) {
       b.addEventListener('click', function () {
         days = Number(b.dataset.mxDays);
