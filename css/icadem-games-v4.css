@@ -655,6 +655,88 @@
 }
 @media (prefers-reduced-motion:reduce){.practice-picker--juegos .practice-card__art{transition:none;transform:none!important}}
 
+/* ═══ Juegos v11 · retroalimentación inmediata y responsive ═══ */
+.learning-game--v3 .game-status:not(:empty){padding:9px 12px;border-radius:11px;background:#eaf6f1;color:#17664f;font-weight:700;line-height:1.4;animation:g4FeedbackIn .22s ease both}
+.learning-game--v3 .game-status.is-error:not(:empty){background:#fff0f1;color:#ae3542}
+@keyframes g4FeedbackIn{from{opacity:.25;transform:translateY(-3px)}to{opacity:1;transform:none}}
+
+/* Sopa: la línea equivocada permanece visible el tiempo suficiente para corregir. */
+.learning-game--v3 .wordsearch__grid button.is-wrong-path{z-index:1;background:#f9d7db!important;border-color:#d84b59!important;color:#942d39!important;animation:g4WrongPath .82s ease both}
+@keyframes g4WrongPath{0%,100%{transform:none}20%{transform:translateX(-2px)}40%{transform:translateX(2px)}60%{transform:translateX(-1px)}}
+
+/* Clasificación guiada: una tarjeta por turno, como IMFRA/SYNOVA. */
+.learning-game--v3 .classify--guided{display:grid;gap:16px}
+.learning-game--v3 .classify__progress{display:grid;grid-template-columns:auto minmax(100px,1fr);align-items:center;gap:12px;color:var(--text-3);font:800 9px/1 'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.7px}
+.learning-game--v3 .classify__progress i{height:7px;overflow:hidden;border-radius:999px;background:color-mix(in srgb,var(--border) 78%,transparent)}
+.learning-game--v3 .classify__progress b{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#1e7189,#42a38b);transition:width .28s ease}
+.learning-game--v3 .classify__active{display:grid;justify-items:center;gap:7px;padding:16px;border:1px solid color-mix(in srgb,var(--g4-accent) 24%,var(--border));border-radius:16px;background:linear-gradient(145deg,color-mix(in srgb,var(--g4-accent) 7%,var(--surface)),var(--surface))}
+.learning-game--v3 .classify__active small{color:var(--g4-accent);font:800 8px/1 'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase}
+.learning-game--v3 .classify__active>span{color:var(--text-3);font-size:10.5px}
+.learning-game--v3 [data-classify-card]{width:min(520px,100%);min-height:60px;padding:13px 18px;border:2px solid color-mix(in srgb,var(--g4-accent) 35%,var(--border));border-radius:14px;background:var(--surface);color:var(--text);box-shadow:0 10px 24px rgba(18,49,68,.09);font:750 14px/1.35 'Plus Jakarta Sans',sans-serif;cursor:grab;transition:transform .2s,border-color .2s,background .2s}
+.learning-game--v3 [data-classify-card]:active{cursor:grabbing;transform:scale(.985)}
+.learning-game--v3 [data-classify-card].is-wrong{border-color:#d84b59;background:#fff0f1;animation:g4Wrong .45s ease}
+.learning-game--v3 [data-classify-card].is-correct{border-color:#2f9a72;background:#e7f6ef}
+.learning-game--v3 [data-classify-card].is-fly{animation:g4CardFly .52s cubic-bezier(.2,.8,.25,1) both}
+@keyframes g4CardFly{to{opacity:0;transform:translateY(14px) scale(.94)}}
+.learning-game--v3 .classify__zones{grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px}
+.learning-game--v3 .classify__zones section{min-height:116px;display:grid;grid-template-rows:auto auto 1fr;gap:5px;padding:13px;border:1px solid var(--border);background:var(--surface);cursor:pointer;transition:transform .18s,border-color .18s,background .18s,box-shadow .18s;touch-action:manipulation}
+.learning-game--v3 .classify__zones section:hover,.learning-game--v3 .classify__zones section:focus-visible{border-color:var(--g4-accent);transform:translateY(-1px);outline:none}
+.learning-game--v3 .classify__zones h3{margin:0;text-align:left;font-size:13px}
+.learning-game--v3 .classify__zones section>small{color:var(--text-3);font:700 8px/1 'JetBrains Mono',monospace;text-transform:uppercase}
+.learning-game--v3 .classify__zones section>div{align-content:start;margin-top:5px}
+.learning-game--v3 .classify__placed{display:inline-flex;max-width:100%;padding:5px 7px;border-radius:7px;background:var(--surface-2);color:var(--text-2);font-size:9px;line-height:1.25}
+.learning-game--v3 .classify__zones section.is-checking{border-color:#d5a83b;background:#fff8e8}
+.learning-game--v3 .classify__zones section.is-wrong{border-color:#d84b59;background:#fff0f1;animation:g4Wrong .45s ease}
+.learning-game--v3 .classify__zones section.is-good{border-color:#2f9a72;background:#e7f6ef}
+.learning-game--v3 .classify__zones section.is-hint{border-color:#2f9a72;background:#e7f6ef;box-shadow:0 0 0 4px rgba(47,154,114,.16);animation:g4Hint 1s ease-in-out infinite alternate}
+
+/* Crucigrama, quiz, orden, documento y cálculo corrigen la jugada visible. */
+.cw4__cell.is-letter-wrong{border-color:#d84b59!important;background:#fff0f1!important;animation:g4Wrong .35s ease}
+.cw4__cell.is-letter-wrong input{color:#a8323f}
+.learning-game--v3 .quiz-game__options button.is-wrong{border-color:#d84b59;background:#fff0f1;animation:g4Wrong .4s ease}
+.learning-game--v3 .quiz-game__options button.is-wrong b{background:#d84b59;color:#fff}
+.learning-game--v3 .quiz-game__options button.is-correct{border-color:#2f9a72;background:#e7f6ef;box-shadow:0 0 0 2px rgba(47,154,114,.14)}
+.learning-game--v3 .quiz-game__options button.is-correct b{background:#2f9a72;color:#fff}
+.ord4__list li.is-ok{border-color:#69b79c;background:#e9f7f1}.ord4__list li.is-ok>b{background:#2f9a72;color:#fff}
+.ord4__list li.is-bad{border-color:#e3a0a7;background:#fff2f3;animation:g4Wrong .4s ease}.ord4__list li.is-bad>b{background:#d84b59;color:#fff}
+.doc4__field.is-correct{background:#e8f6ef}.doc4__field.is-correct b{color:#17664f;text-decoration:underline wavy #2f9a72;text-underline-offset:4px}.doc4__field.is-correct i{border-color:#2f9a72;background:#2f9a72;color:#fff}
+.doc4__field.is-wrong{background:#fff0f1;animation:g4Wrong .45s ease}.doc4__field.is-checking{opacity:.65}
+.calc4__field.is-wrong{border-color:#ff8893;background:rgba(180,45,60,.26);animation:g4Wrong .45s ease}.calc4__field.is-correct{border-color:#71deb8;background:rgba(36,150,111,.24)}
+.learning-game--v3 .concept-game input.is-answer-wrong{border-color:#d84b59!important;background:#fff0f1!important;animation:g4Wrong .45s ease}.learning-game--v3 .concept-game input.is-answer-correct{border-color:#2f9a72!important;background:#e7f6ef!important}
+
+/* PC, tableta, iPhone y Android: área útil, controles y tamaños táctiles. */
+.learning-game--v3 .learning-game__panel{width:min(1040px,calc(100% - 28px));height:min(820px,calc(100dvh - 24px))}
+.learning-game--v3 .learning-game__content{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.learning-game--v3 button,.learning-game--v3 [role="button"]{-webkit-tap-highlight-color:transparent}
+@media (pointer:coarse){.learning-game--v3 .classify__zones section,.learning-game--v3 .quiz-game__options button,.learning-game--v3 .ord4__moves button{min-height:46px}.learning-game--v3 [data-classify-card]{cursor:pointer}}
+@media (max-width:900px){
+  .learning-game--v3 .learning-game__panel{width:min(100% - 20px,820px);height:min(100dvh - 20px,900px)}
+  .learning-game--v3 .classify__zones{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .learning-game--v3 .game-run{gap:13px}.learning-game--v3 .game-stage{padding:15px}.learning-game--v3 .game-board{padding:14px}
+}
+@media (max-width:640px){
+  .learning-game--v3 .learning-game__panel{width:100%;height:100dvh;border-radius:0}
+  .learning-game--v3 .learning-game__content{padding:14px 11px calc(20px + env(safe-area-inset-bottom))}
+  .learning-game--v3 .game-run{gap:10px}.learning-game--v3 .game-run__heading h2{font-size:25px}.learning-game--v3 .game-run__heading>small{font-size:9px}
+  .learning-game--v3 .game-stage{padding:10px;border-radius:15px}.learning-game--v3 .game-board{padding:10px;border-radius:12px}
+  .learning-game--v3 .game-status:not(:empty){font-size:11px;padding:8px 9px}
+  .learning-game--v3 .game-assist{display:grid;grid-template-columns:1fr;gap:8px;padding:10px}.learning-game--v3 .game-assist button{width:100%;white-space:normal}
+  .learning-game--v3 .game-actions{position:sticky!important;bottom:calc(-20px - env(safe-area-inset-bottom));z-index:8;margin:10px -2px 0!important;padding:12px 2px calc(10px + env(safe-area-inset-bottom))!important;background:linear-gradient(transparent 0,var(--surface) 18%)!important}
+  .learning-game--v3 .classify__active{padding:11px}.learning-game--v3 [data-classify-card]{min-height:54px;padding:10px 12px;font-size:12.5px}
+  .learning-game--v3 .classify__zones{grid-template-columns:1fr;gap:8px}.learning-game--v3 .classify__zones section{min-height:76px;padding:11px}
+  .learning-game--v3 .wordsearch__list{gap:5px}.learning-game--v3 .wordsearch__list span{padding:6px 8px;font-size:8.5px}
+  .learning-game--v3 .wordsearch__grid button{min-height:26px;font-size:clamp(8px,2.7vw,10px)}
+  .learning-game--v3 .quiz-game__options button{min-height:54px;padding:9px 10px}.learning-game--v3 .quiz-game__options button span{font-size:10.5px}
+  .cw4__grid{max-width:100%}.cw4__cell input{font-size:clamp(10px,3.4vw,13px)}
+  .ord4__list li{grid-template-columns:27px minmax(0,1fr) 36px}.ord4__moves{display:grid}.ord4__moves button{width:36px;min-height:34px}
+}
+@media (max-height:560px) and (orientation:landscape){
+  .learning-game--v3 .learning-game__header{height:52px}.learning-game--v3 .learning-game__content{padding:10px 14px 16px}.learning-game--v3 .game-run__heading{display:none}.learning-game--v3 .game-stage{padding:9px}.learning-game--v3 .game-board{padding:9px}.learning-game--v3 .game-assist{margin-top:8px}.learning-game--v3 .game-actions{margin-top:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  .learning-game--v3 .game-status:not(:empty),.learning-game--v3 .wordsearch__grid button.is-wrong-path,.learning-game--v3 [data-classify-card],.learning-game--v3 .classify__zones section,.cw4__cell.is-letter-wrong,.learning-game--v3 .quiz-game__options button,.ord4__list li,.doc4__field,.calc4__field{animation:none!important;transition:none!important}
+}
+
 /* Cartera: bolsa de créditos (nuevo ícono) */
 .credit-wallet-card__coins--bag { width:78px; height:78px; top:12px !important; right:12px !important; }
 .credit-wallet-card__coins--bag img { width:100%; height:100%; object-fit:contain; filter:drop-shadow(0 12px 18px rgba(0,0,0,.3)); pointer-events:none; }

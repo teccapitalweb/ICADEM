@@ -859,6 +859,59 @@
     return null;
   }
 
+  function localCheckStep(type, solution, action) {
+    const kind = String(action?.kind || '');
+    if (type === 'classify' && kind === 'classification') {
+      const correctCategory = solution.assignments?.[action.itemId];
+      if (!correctCategory) return null;
+      const correct = String(action.category) === String(correctCategory);
+      return { kind, itemId: String(action.itemId), correct, ...(correct ? {} : { correctCategory }) };
+    }
+    if (type === 'crossword' && kind === 'crossword-letter') {
+      const answer = solution.answers?.[action.wordId], index = Number(action.index);
+      if (!answer || !Number.isInteger(index) || index < 0 || index >= answer.length) return null;
+      return { kind, wordId: String(action.wordId), index, correct: normalize(action.letter).slice(0, 1) === answer[index] };
+    }
+    if (type === 'quiz' && kind === 'quiz-answer') {
+      const correctOption = Number(solution.answers?.[action.questionId]);
+      if (!Number.isInteger(correctOption)) return null;
+      const correct = Number(action.optionIndex) === correctOption;
+      return { kind, questionId: String(action.questionId), correct, ...(correct ? {} : { correctOption }) };
+    }
+    if (type === 'order' && kind === 'order') {
+      const order = Array.isArray(action.order) ? action.order.map(String) : [];
+      const positions = (solution.order || []).map((step, index) => order[index] === String(step));
+      return { kind, correct: positions.every(Boolean), positions, correctCount: positions.filter(Boolean).length, total: positions.length };
+    }
+    if (type === 'document' && kind === 'document-field') {
+      const fieldId = String(action.fieldId || ''), correct = (solution.errors || []).includes(fieldId);
+      const tip = correct ? solution.tips?.find(item => String(item.id) === fieldId)?.tip : '';
+      return { kind, fieldId, correct, ...(tip ? { tip } : {}) };
+    }
+    if (type === 'calc' && kind === 'calc-answer') {
+      let raw = String(action.value || '').trim();
+      if (!raw.includes('.') && /^-?\d+,\d{1,2}$/.test(raw)) raw = raw.replace(',', '.');
+      const value = Number(raw.replace(/[$,\s]/g, ''));
+      const correct = Number.isFinite(value) && Math.abs(value - Number(solution.value)) <= Number(solution.tolerance || 0);
+      return { kind, correct, ...(correct ? {} : { hint: String(solution.steps?.[0] || 'Revisa los datos y la operación.') }) };
+    }
+    if (type === 'guess' && kind === 'answer') {
+      const answer = normalize(action.answer), target = normalize(solution.answer);
+      const exactPositions = Array.from(target).filter((letter, index) => answer[index] === letter).length;
+      return { kind, correct: answer === target, exactPositions, length: target.length };
+    }
+    return null;
+  }
+
+  async function checkGameStep(challenge, action) {
+    if (challenge.local) {
+      const result = localCheckStep(challenge.type, challenge.solution || {}, action);
+      if (!result) throw new Error('No pudimos revisar esta jugada.');
+      return result;
+    }
+    return request('/api/games/check-step', { method: 'POST', body: { challengeId: challenge.challengeId, action } });
+  }
+
   function enableStepHelp(challenge, frame, getProof, applyHint, label) {
     if (!frame.assist || !frame.help) return;
     let localHintIndex = 0;
@@ -900,9 +953,29 @@
         <div class="concept-game__slots" aria-hidden="true">${Array.from({length: Math.min(14, Number(c.length) || 8)}, () => '<i></i>').join('')}</div>
       </div>`);
     const input = frame.board.querySelector('input');
-    frame.check.addEventListener('click', () => submit({ answer: input.value }, frame));
+    let checking = false;
+    frame.check.addEventListener('click', async () => {
+      if (checking) return;
+      const answer = input.value.trim();
+      if (!answer) { frame.status.textContent = 'Escribe una respuesta antes de comprobar.'; frame.status.classList.add('is-error'); input.focus(); return; }
+      checking = true; frame.check.disabled = true; input.classList.remove('is-answer-wrong', 'is-answer-correct');
+      try {
+        const result = await checkGameStep(challenge, { kind: 'answer', answer });
+        if (!result.correct) {
+          input.classList.add('is-answer-wrong');
+          frame.status.textContent = `${result.exactPositions || 0} de ${result.length || c.length || 0} letras están en la posición correcta. Corrige e inténtalo otra vez.`;
+          frame.status.classList.add('is-error');
+          input.select();
+          return;
+        }
+        input.classList.add('is-answer-correct'); frame.status.classList.remove('is-error'); frame.status.textContent = '¡Concepto correcto! Validando tu avance…';
+        submit({ answer }, frame);
+      } catch (error) {
+        frame.status.textContent = error.message || 'No pudimos revisar la respuesta.'; frame.status.classList.add('is-error');
+      } finally { checking = false; frame.check.disabled = false; }
+    });
     input.addEventListener('keydown', event => { if (event.key === 'Enter') frame.check.click(); });
-    frame.reset.addEventListener('click', () => { input.value = ''; frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
+    frame.reset.addEventListener('click', () => { input.value = ''; input.classList.remove('is-answer-wrong', 'is-answer-correct'); frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
     enableStepHelp(challenge, frame, () => ({ answer: input.value }), hint => {
       if (hint.kind !== 'answer-letter') return;
       const chars = Array.from(normalize(input.value));
@@ -953,6 +1026,7 @@
           setTimeout(() => completePair(id, false), 260);
         } else {
           busy = true; open.forEach(x => x.classList.add('is-wrong'));
+          frame.status.textContent = 'Esas dos cartas no forman pareja. Intenta con otra combinación.'; frame.status.classList.add('is-error');
           setTimeout(() => { open.forEach(x => { x.classList.remove('is-open', 'is-wrong'); x.setAttribute('aria-label', 'Carta oculta'); }); open = []; busy = false; }, 760);
         }
       }
@@ -999,6 +1073,11 @@
     };
     const placements = new Map(words.map(word => [normalize(word), placementFor(word)]));
     const clearPreview = () => frame.board.querySelectorAll('.is-select,.is-start').forEach(x => x.classList.remove('is-select', 'is-start'));
+    const flashWrongCells = cells => {
+      const elements = cells.map(id => frame.board.querySelector(`[data-cell="${id}"]`)).filter(Boolean);
+      elements.forEach(cell => { cell.classList.remove('is-wrong-path'); void cell.offsetWidth; cell.classList.add('is-wrong-path'); });
+      setTimeout(() => elements.forEach(cell => cell.classList.remove('is-wrong-path')), 820);
+    };
     const preview = (from, to) => {
       frame.board.querySelectorAll('.is-select').forEach(x => x.classList.remove('is-select'));
       const result = wordAt(grid, from, to); if (!result) return;
@@ -1033,7 +1112,7 @@
       if (!result) { frame.status.textContent = 'Elige una línea horizontal, vertical o diagonal.'; frame.status.classList.add('is-error'); return; }
       const forward = normalize(result.word), backward = [...forward].reverse().join('');
       const match = words.find(w => !found.some(item => normalize(item) === normalize(w)) && (normalize(w) === forward || normalize(w) === backward));
-      if (!match) { frame.status.textContent = 'Esa línea no forma un término pendiente. Intenta en otra dirección.'; frame.status.classList.add('is-error'); return; }
+      if (!match) { flashWrongCells(result.cells); frame.status.textContent = 'Esa línea no forma un término pendiente. La marcamos en rojo para que pruebes otra dirección.'; frame.status.classList.add('is-error'); return; }
       frame.status.classList.remove('is-error'); markWord(match, result.cells, false);
     };
     frame.board.querySelectorAll('[data-cell]').forEach(cell => cell.addEventListener('click', () => {
@@ -1134,48 +1213,79 @@
     const content = challenge.content || { categories: [], items: [] };
     const assignments = {};
     const frame = gameFrame(challenge, shell, `
-      <div class="classify"><div class="classify__items">${(content.items || []).map(item => `<button type="button" draggable="true" data-item="${esc(item.id)}">${esc(item.label)}</button>`).join('')}</div>
-      <div class="classify__zones">${(content.categories || []).map(cat => `<section data-category="${esc(cat)}" role="group" tabindex="0" aria-label="Asignar tarjeta seleccionada a ${esc(cat)}"><h3>${esc(cat)}</h3><div></div></section>`).join('')}</div></div>`);
-    let selected = null;
-    const assign = (item, category) => {
-      assignments[item.dataset.item] = category;
-      const zone = frame.board.querySelector(`[data-category="${CSS.escape(category)}"] div`);
-      zone.appendChild(item); item.classList.add('is-assigned'); item.classList.remove('is-selected'); selected = null;
-      frame.status.textContent = `${Object.keys(assignments).length} de ${content.items.length} tarjetas clasificadas.`;
+      <div class="classify classify--guided">
+        <div class="classify__progress"><span data-classify-step></span><i><b data-classify-bar></b></i></div>
+        <div class="classify__active"><small>Tarjeta activa</small><button type="button" draggable="true" data-classify-card></button><span>Toca o arrastra hacia su categoría</span></div>
+        <div class="classify__zones">${(content.categories || []).map(cat => `<section data-category="${esc(cat)}" role="button" tabindex="0" aria-label="Asignar la tarjeta a ${esc(cat)}"><h3>${esc(cat)}</h3><small data-category-count>0 elementos</small><div></div></section>`).join('')}</div>
+      </div>`);
+    let remaining = (content.items || []).slice(), locked = false, submitted = false;
+    const card = frame.board.querySelector('[data-classify-card]');
+    const activeItem = () => remaining[0] || null;
+    const clearMarks = () => frame.board.querySelectorAll('[data-category]').forEach(zone => zone.classList.remove('is-wrong', 'is-good', 'is-hint', 'is-checking'));
+    const paint = () => {
+      const done = Object.keys(assignments).length, total = content.items.length, item = activeItem();
+      frame.board.querySelector('[data-classify-step]').textContent = item ? `Tarjeta ${done + 1} de ${total}` : `${total} de ${total} clasificadas`;
+      frame.board.querySelector('[data-classify-bar]').style.width = `${total ? done / total * 100 : 100}%`;
+      if (!item) {
+        card.textContent = '¡Todas clasificadas!'; card.disabled = true; card.removeAttribute('draggable');
+        if (!submitted) { submitted = true; frame.check.disabled = true; frame.status.classList.remove('is-error'); frame.status.textContent = '¡Clasificación completada! Validando tu avance…'; setTimeout(() => submit({ assignments: { ...assignments } }, frame), 520); }
+        return;
+      }
+      card.disabled = false; card.draggable = true; card.dataset.item = item.id; card.textContent = item.label;
+      card.classList.remove('is-wrong', 'is-correct', 'is-fly');
+      frame.status.classList.remove('is-error'); frame.status.textContent = `${done} de ${total} tarjetas clasificadas.`;
     };
-    frame.board.querySelectorAll('[data-item]').forEach(item => {
-      item.addEventListener('click', event => {
-        // Con otra tarjeta seleccionada, tocar una ya clasificada equivale a tocar su categoría.
-        if (selected && selected !== item && item.classList.contains('is-assigned')) return;
-        event.stopPropagation();
-        selected = item; frame.board.querySelectorAll('[data-item]').forEach(x => x.classList.toggle('is-selected', x === item));
-      });
-      item.addEventListener('dragstart', event => event.dataTransfer.setData('text/plain', item.dataset.item));
-    });
+    const placeCorrect = (item, category, assisted) => {
+      assignments[item.id] = category;
+      remaining = remaining.filter(entry => entry.id !== item.id);
+      const zone = frame.board.querySelector(`[data-category="${CSS.escape(category)}"]`);
+      const chip = document.createElement('span'); chip.className = 'classify__placed'; chip.textContent = item.label; zone?.querySelector('div')?.appendChild(chip);
+      const count = zone?.querySelectorAll('.classify__placed').length || 0;
+      if (zone) { zone.querySelector('[data-category-count]').textContent = `${count} ${count === 1 ? 'elemento' : 'elementos'}`; zone.classList.add('is-good'); }
+      card.classList.add('is-correct', 'is-fly');
+      frame.status.classList.remove('is-error'); frame.status.textContent = assisted ? `Te ayudamos: “${item.label}” va en ${category}.` : `¡Correcto! “${item.label}” va en ${category}.`;
+      announce(assisted ? 'Tarjeta clasificada con ayuda' : 'Clasificación correcta');
+      setTimeout(() => { clearMarks(); locked = false; paint(); }, 540);
+    };
+    const tryCategory = async category => {
+      const item = activeItem(); if (!item || locked) return;
+      locked = true; clearMarks();
+      const selectedZone = frame.board.querySelector(`[data-category="${CSS.escape(category)}"]`); selectedZone?.classList.add('is-checking');
+      try {
+        const result = await checkGameStep(challenge, { kind: 'classification', itemId: item.id, category });
+        selectedZone?.classList.remove('is-checking');
+        if (result.correct) { placeCorrect(item, category, false); return; }
+        selectedZone?.classList.add('is-wrong'); card.classList.remove('is-wrong'); void card.offsetWidth; card.classList.add('is-wrong');
+        const correctZone = frame.board.querySelector(`[data-category="${CSS.escape(String(result.correctCategory || ''))}"]`); correctZone?.classList.add('is-hint');
+        frame.status.textContent = `Esa tarjeta no va en ${category}. La categoría correcta quedó marcada en verde.`; frame.status.classList.add('is-error');
+        announce('Categoría incorrecta. Revisa la opción marcada en verde.');
+        setTimeout(() => { selectedZone?.classList.remove('is-wrong'); locked = false; }, 760);
+      } catch (error) {
+        selectedZone?.classList.remove('is-checking'); locked = false; frame.status.textContent = error.message || 'No pudimos revisar la tarjeta.'; frame.status.classList.add('is-error');
+      }
+    };
+    card.addEventListener('dragstart', event => { const item = activeItem(); if (item) event.dataTransfer?.setData('text/plain', item.id); });
     frame.board.querySelectorAll('[data-category]').forEach(zone => {
-      zone.addEventListener('click', () => { if (selected) assign(selected, zone.dataset.category); });
-      zone.addEventListener('keydown', event => { if (selected && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); assign(selected, zone.dataset.category); } });
+      zone.addEventListener('click', () => tryCategory(zone.dataset.category));
+      zone.addEventListener('keydown', event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); tryCategory(zone.dataset.category); } });
       zone.addEventListener('dragover', event => event.preventDefault());
-      zone.addEventListener('drop', event => { event.preventDefault(); const id = event.dataTransfer.getData('text/plain'); const item = frame.board.querySelector(`[data-item="${CSS.escape(id)}"]`); if (item) assign(item, zone.dataset.category); });
+      zone.addEventListener('drop', event => { event.preventDefault(); if (event.dataTransfer?.getData('text/plain') === activeItem()?.id) tryCategory(zone.dataset.category); });
     });
     const proof = () => ({ assignments: { ...assignments } });
-    frame.check.addEventListener('click', () => {
-      const pending = (content.items || []).length - Object.keys(assignments).length;
-      if (pending > 0) { frame.status.textContent = `Te ${pending === 1 ? 'falta 1 tarjeta' : `faltan ${pending} tarjetas`} por clasificar.`; frame.status.classList.add('is-error'); return; }
-      submit(proof(), frame);
-    });
+    frame.check.hidden = true;
     frame.reset.addEventListener('click', () => runClassify(challenge, shell, submit));
     enableStepHelp(challenge, frame, proof, hint => {
       if (hint.kind !== 'classification') return;
-      const item = frame.board.querySelector(`[data-item="${CSS.escape(String(hint.itemId))}"]`);
-      if (item) { assign(item, String(hint.category)); frame.status.textContent = `Te ayudamos: esta tarjeta va en ${hint.category}.`; }
+      const item = remaining.find(entry => entry.id === String(hint.itemId));
+      if (item) { locked = true; clearMarks(); placeCorrect(item, String(hint.category), true); }
     }, 'Clasificar una tarjeta');
+    paint();
   }
 
   function runQuiz(challenge, shell, submit) {
     const questions = Array.isArray(challenge.content?.questions) ? challenge.content.questions : [];
-    const answers = {};
-    let index = 0;
+    const answers = {}, validated = {}, marks = {};
+    let index = 0, checking = false, submitted = false;
     const frame = gameFrame(challenge, shell, '<div class="quiz-game"></div>');
     const paint = (focusOption) => {
       const question = questions[index];
@@ -1190,14 +1300,18 @@
         <div class="quiz-game__progress"><span>Pregunta ${index + 1} de ${questions.length}</span><i><b style="width:${progress}%"></b></i><em>${progress}%</em></div>
         <span class="quiz-game__area">${esc(question.area || 'ICADEM')}</span>
         <h3 tabindex="-1">${esc(question.question)}</h3>
-        <div class="quiz-game__options" role="radiogroup" aria-label="Opciones de respuesta">${(question.options || []).map((option, optionIndex) => `<button type="button" role="radio" aria-checked="${selected === optionIndex}" tabindex="${selected == null ? (optionIndex === 0 ? 0 : -1) : (selected === optionIndex ? 0 : -1)}" class="${selected === optionIndex ? 'is-selected' : ''}" data-quiz-option="${optionIndex}"><b>${String.fromCharCode(65 + optionIndex)}</b><span>${esc(option)}</span></button>`).join('')}</div>
+        <div class="quiz-game__options" role="radiogroup" aria-label="Opciones de respuesta">${(question.options || []).map((option, optionIndex) => {
+          const mark = marks[question.id];
+          const classes = [selected === optionIndex ? 'is-selected' : '', mark?.selected === optionIndex && !mark.correct ? 'is-wrong' : '', mark && optionIndex === mark.correctOption ? 'is-correct' : ''].filter(Boolean).join(' ');
+          return `<button type="button" role="radio" aria-checked="${selected === optionIndex}" tabindex="${selected == null ? (optionIndex === 0 ? 0 : -1) : (selected === optionIndex ? 0 : -1)}" class="${classes}" data-quiz-option="${optionIndex}" ${validated[question.id] ? 'disabled' : ''}><b>${String.fromCharCode(65 + optionIndex)}</b><span>${esc(option)}</span></button>`;
+        }).join('')}</div>
         <div class="quiz-game__nav"><button type="button" data-quiz-prev ${index === 0 ? 'disabled' : ''}>Pregunta anterior</button><small>${Object.keys(answers).length} respondidas</small></div>
       </div>`;
-      frame.check.innerHTML = `${index === questions.length - 1 ? 'Comprobar resultado' : 'Siguiente pregunta'} <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>`;
-      frame.status.textContent = selected == null ? 'Elige una respuesta para continuar.' : 'Respuesta guardada.';
-      frame.status.classList.remove('is-error');
+      frame.check.innerHTML = `Comprobar respuesta <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg>`;
+      frame.status.textContent = validated[question.id] ? 'Respuesta correcta.' : (marks[question.id] && !marks[question.id].correct ? 'Corrige la respuesta marcada en rojo.' : (selected == null ? 'Elige una respuesta para continuar.' : 'Respuesta seleccionada. Ahora compruébala.'));
+      frame.status.classList.toggle('is-error', Boolean(marks[question.id] && !marks[question.id].correct && !validated[question.id]));
       const optionButtons = Array.from(frame.board.querySelectorAll('[data-quiz-option]'));
-      const choose = button => { answers[question.id] = Number(button.dataset.quizOption); paint(true); };
+      const choose = button => { if (validated[question.id] || checking) return; answers[question.id] = Number(button.dataset.quizOption); delete marks[question.id]; paint(true); };
       optionButtons.forEach((button, buttonIndex) => {
         button.addEventListener('click', () => choose(button));
         button.addEventListener('keydown', event => {
@@ -1216,23 +1330,43 @@
       if (focusOption) frame.board.querySelector(`[data-quiz-option="${answers[question.id]}"]`)?.focus();
       else frame.board.querySelector('h3')?.focus();
     };
-    frame.check.addEventListener('click', () => {
+    frame.check.addEventListener('click', async () => {
       const question = questions[index];
       if (!question || answers[question.id] == null) {
         frame.status.textContent = 'Selecciona una respuesta antes de continuar.';
         frame.status.classList.add('is-error');
         return;
       }
-      if (index < questions.length - 1) { index += 1; paint(); return; }
-      submit({ answers }, frame);
+      if (checking || submitted) return;
+      checking = true; frame.check.disabled = true;
+      try {
+        const result = await checkGameStep(challenge, { kind: 'quiz-answer', questionId: question.id, optionIndex: answers[question.id] });
+        marks[question.id] = { selected: answers[question.id], correct: result.correct, correctOption: result.correct ? answers[question.id] : Number(result.correctOption) };
+        if (!result.correct) {
+          frame.status.textContent = 'Esa respuesta no es correcta. La opción correcta quedó marcada en verde para que puedas aprender y continuar.';
+          frame.status.classList.add('is-error'); paint(true); return;
+        }
+        validated[question.id] = true; frame.status.classList.remove('is-error'); frame.status.textContent = '¡Correcto!'; paint(true);
+        setTimeout(() => {
+          if (index < questions.length - 1) { index += 1; frame.check.disabled = false; paint(); return; }
+          submitted = true; frame.check.disabled = true; frame.status.textContent = '¡Respuestas completadas! Validando tu avance…'; submit({ answers }, frame);
+        }, 520);
+      } catch (error) {
+        frame.status.textContent = error.message || 'No pudimos revisar la respuesta.'; frame.status.classList.add('is-error');
+      } finally { checking = false; if (!submitted && !validated[question.id]) frame.check.disabled = false; }
     });
-    frame.reset.addEventListener('click', () => { Object.keys(answers).forEach(key => delete answers[key]); index = 0; paint(); });
+    frame.reset.addEventListener('click', () => runQuiz(challenge, shell, submit));
     enableStepHelp(challenge, frame, () => ({ answers: { ...answers } }), hint => {
       if (hint.kind !== 'quiz-answer') return;
       const questionIndex = questions.findIndex(question => question.id === hint.questionId);
       if (questionIndex < 0) return;
-      index = questionIndex; answers[hint.questionId] = Number(hint.optionIndex); paint(true);
+      index = questionIndex; answers[hint.questionId] = Number(hint.optionIndex); validated[hint.questionId] = true; marks[hint.questionId] = { selected: Number(hint.optionIndex), correct: true, correctOption: Number(hint.optionIndex) }; paint(true);
       frame.status.classList.remove('is-error'); frame.status.textContent = 'Marcamos una respuesta correcta. Continúa a tu ritmo.';
+      frame.check.disabled = true;
+      setTimeout(() => {
+        if (questionIndex < questions.length - 1) { index = questionIndex + 1; frame.check.disabled = false; paint(); return; }
+        if (!submitted) { submitted = true; submit({ answers }, frame); }
+      }, 560);
     }, 'Resolver una pregunta');
     paint();
   }
@@ -1263,7 +1397,8 @@
       <div class="cw4__clues">${words.some(w => w.dir === 'h') ? `<span>Horizontales</span><ol>${clues('h')}</ol>` : ''}${words.some(w => w.dir === 'v') ? `<span>Verticales</span><ol>${clues('v')}</ol>` : ''}</div>
     </div>`);
     const input = k => frame.board.querySelector(`input[data-k="${k}"]`);
-    let active = words[0]?.id, submitted = false, autoTimer = 0;
+    let active = words[0]?.id, submitted = false, autoTimer = 0, pendingValidations = 0;
+    const cellResults = new Map(), validationVersions = new Map();
     const wordById = id => words.find(w => w.id === id);
     const highlight = () => {
       frame.board.querySelectorAll('.is-active').forEach(el => el.classList.remove('is-active'));
@@ -1274,15 +1409,15 @@
     const wordsAt = k => words.filter(w => cellsOf(w).includes(k));
     const updateProgress = () => {
       const all = [...frame.board.querySelectorAll('.cw4__cell input')];
-      const filled = all.filter(el => el.value).length;
+      const filled = all.filter(el => el.value).length, correct = all.filter(el => cellResults.get(el.dataset.k) === true).length;
       frame.status.classList.remove('is-error');
-      frame.status.textContent = `${filled} de ${all.length} casillas completadas.`;
+      frame.status.textContent = filled ? `${correct} correctas · ${filled} de ${all.length} casillas completadas.` : `0 de ${all.length} casillas completadas.`;
     };
     const maybeSubmit = () => {
       clearTimeout(autoTimer);
       const all = [...frame.board.querySelectorAll('.cw4__cell input')];
       updateProgress();
-      if (!all.length || all.some(el => !el.value) || submitted) return;
+      if (!all.length || all.some(el => !el.value) || pendingValidations > 0 || all.some(el => cellResults.get(el.dataset.k) !== true) || submitted) return;
       autoTimer = setTimeout(() => {
         if (submitted) return;
         submitted = true; frame.check.disabled = true;
@@ -1293,13 +1428,27 @@
     frame.board.querySelectorAll('input').forEach(el => {
       el.addEventListener('focus', () => { const opts = wordsAt(el.dataset.k); if (!opts.some(w => w.id === active)) active = opts[0].id; highlight(); });
       el.addEventListener('click', () => { const opts = wordsAt(el.dataset.k); if (opts.length > 1) { active = (opts.find(w => w.id !== active) || opts[0]).id; highlight(); } });
-      el.addEventListener('input', () => {
+      el.addEventListener('input', async () => {
         el.value = normalize(el.value).replace(/[^A-Z]/g, '').slice(-1);
-        el.parentElement.classList.remove('is-revealed');
-        maybeSubmit();
-        if (!el.value) return;
-        const list = cellsOf(wordById(active)); const next = list[list.indexOf(el.dataset.k) + 1];
-        if (next) input(next)?.focus();
+        el.parentElement.classList.remove('is-revealed', 'is-letter-correct', 'is-letter-wrong');
+        const currentValue = el.value, key = el.dataset.k;
+        if (!currentValue) { cellResults.delete(key); updateProgress(); return; }
+        const word = wordById(active), cells = cellsOf(word), letterIndex = cells.indexOf(key);
+        const version = (validationVersions.get(key) || 0) + 1; validationVersions.set(key, version); pendingValidations += 1;
+        try {
+          const result = await checkGameStep(challenge, { kind: 'crossword-letter', wordId: word.id, index: letterIndex, letter: currentValue });
+          if (validationVersions.get(key) !== version || el.value !== currentValue) return;
+          cellResults.set(key, result.correct === true);
+          el.parentElement.classList.toggle('is-letter-correct', result.correct === true);
+          el.parentElement.classList.toggle('is-letter-wrong', result.correct !== true);
+          if (!result.correct) {
+            frame.status.textContent = 'Esa letra no corresponde. Quedó marcada en rojo para que la corrijas.'; frame.status.classList.add('is-error'); el.focus(); return;
+          }
+          frame.status.classList.remove('is-error');
+          const next = cells[letterIndex + 1]; if (next) input(next)?.focus();
+        } catch (error) {
+          cellResults.delete(key); frame.status.textContent = error.message || 'No pudimos revisar esa letra.'; frame.status.classList.add('is-error');
+        } finally { pendingValidations = Math.max(0, pendingValidations - 1); if (validationVersions.get(key) === version && cellResults.get(key) === true) maybeSubmit(); }
       });
       el.addEventListener('keydown', event => {
         if (event.key === 'Enter') { event.preventDefault(); frame.check.click(); return; }
@@ -1317,6 +1466,9 @@
     frame.check.addEventListener('click', () => {
       const answers = collect();
       if (words.some(w => answers[w.id].length !== w.len)) { frame.status.textContent = 'Completa todas las casillas antes de comprobar.'; frame.status.classList.add('is-error'); return; }
+      if (pendingValidations) { frame.status.textContent = 'Estamos revisando las últimas letras…'; return; }
+      const wrong = [...frame.board.querySelectorAll('.cw4__cell input')].filter(el => cellResults.get(el.dataset.k) !== true).length;
+      if (wrong) { frame.status.textContent = `Corrige ${wrong === 1 ? 'la casilla marcada en rojo' : `las ${wrong} casillas marcadas en rojo`}.`; frame.status.classList.add('is-error'); return; }
       submitted = true;
       submit({ answers }, frame);
     });
@@ -1329,6 +1481,7 @@
       if (!target) return;
       target.value = String(hint.letter || '').slice(0, 1);
       target.parentElement.classList.add('is-revealed', 'is-letter-correct');
+      target.parentElement.classList.remove('is-letter-wrong'); cellResults.set(key, true);
       active = word.id; highlight(); maybeSubmit();
       if (!submitted) frame.status.textContent = `Colocamos la letra ${target.value}. Puedes pedir todas las ayudas que necesites.`;
       target.focus();
@@ -1339,11 +1492,11 @@
 
   function runOrder(challenge, shell, submit) {
     const c = challenge.content || {};
-    let steps = (c.steps || []).slice();
+    let steps = (c.steps || []).slice(), lastPositions = null, checking = false;
     const frame = gameFrame(challenge, shell, `<div class="ord4"><p class="ord4__prompt">${esc(c.prompt || 'Ordena el proceso')}</p><ol class="ord4__list"></ol></div>`);
     const list = frame.board.querySelector('.ord4__list');
     const paint = focusId => {
-      list.innerHTML = steps.map((s, i) => `<li data-step="${esc(s.id)}"><b>${i + 1}</b><span>${esc(s.text)}</span><div class="ord4__moves"><button type="button" data-move="-1" aria-label="Subir paso" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" aria-label="Bajar paso" ${i === steps.length - 1 ? 'disabled' : ''}>↓</button></div></li>`).join('');
+      list.innerHTML = steps.map((s, i) => `<li data-step="${esc(s.id)}" class="${lastPositions ? (lastPositions[i] ? 'is-ok' : 'is-bad') : ''}"><b>${i + 1}</b><span>${esc(s.text)}</span><div class="ord4__moves"><button type="button" data-move="-1" aria-label="Subir paso" ${i === 0 ? 'disabled' : ''}>↑</button><button type="button" data-move="1" aria-label="Bajar paso" ${i === steps.length - 1 ? 'disabled' : ''}>↓</button></div></li>`).join('');
       if (focusId) list.querySelector(`[data-step="${CSS.escape(focusId.id)}"] [data-move="${focusId.dir}"]:not(:disabled)`)?.focus();
     };
     list.addEventListener('click', event => {
@@ -1351,18 +1504,28 @@
       const id = btn.closest('[data-step]').dataset.step; const i = steps.findIndex(s => s.id === id); const j = i + Number(btn.dataset.move);
       if (j < 0 || j >= steps.length) return;
       [steps[i], steps[j]] = [steps[j], steps[i]];
+      lastPositions = null;
       frame.status.textContent = ''; frame.status.classList.remove('is-error');
       paint({ id, dir: btn.dataset.move });
     });
     paint();
     const proof = () => ({ order: steps.map(s => s.id) });
-    frame.check.addEventListener('click', () => submit(proof(), frame));
+    frame.check.addEventListener('click', async () => {
+      if (checking) return; checking = true; frame.check.disabled = true;
+      try {
+        const result = await checkGameStep(challenge, { kind: 'order', order: proof().order });
+        if (result.correct) { frame.status.classList.remove('is-error'); frame.status.textContent = '¡El proceso está en el orden correcto!'; submit(proof(), frame); return; }
+        lastPositions = Array.isArray(result.positions) ? result.positions : null; paint();
+        frame.status.textContent = `${Number(result.correctCount) || 0} de ${Number(result.total) || steps.length} pasos están en su lugar. Los verdes están correctos; mueve los rojos.`; frame.status.classList.add('is-error');
+      } catch (error) { frame.status.textContent = error.message || 'No pudimos revisar el orden.'; frame.status.classList.add('is-error'); }
+      finally { checking = false; frame.check.disabled = false; }
+    });
     frame.reset.addEventListener('click', () => runOrder(challenge, shell, submit));
     enableStepHelp(challenge, frame, proof, hint => {
       if (hint.kind !== 'order-step') return;
       const target = Number(hint.slot), source = steps.findIndex(step => step.id === hint.stepId);
       if (target < 0 || source < 0) return;
-      const [step] = steps.splice(source, 1); steps.splice(target, 0, step); paint();
+      const [step] = steps.splice(source, 1); steps.splice(target, 0, step); lastPositions = null; paint();
       frame.status.classList.remove('is-error'); frame.status.textContent = 'Colocamos el siguiente paso. Puedes continuar o pedir otra ayuda.';
     }, 'Acomodar un paso');
   }
@@ -1453,29 +1616,48 @@
   function runDocument(challenge, shell, submit) {
     const c = challenge.content || {};
     const fields = Array.isArray(c.fields) ? c.fields : [];
-    const flagged = new Set();
+    const flagged = new Set(), checking = new Set(); let submitted = false;
     const frame = gameFrame(challenge, shell, `<div class="doc4"><p class="doc4__intro">Este documento tiene <b>${Number(c.errorCount) || 3} errores</b>. Toca los datos incorrectos para marcarlos.</p>
       <article class="doc4__paper"><header><small>${esc(c.docType || 'Documento')}</small><strong>${esc(c.title || '')}</strong>${c.subtitle ? `<em>${esc(c.subtitle)}</em>` : ''}</header>
       <div class="doc4__fields">${fields.map(f => `<button type="button" class="doc4__field" data-field="${esc(f.id)}" aria-pressed="false"><span>${esc(f.label)}</span><b>${esc(f.value)}</b><i aria-hidden="true">!</i></button>`).join('')}</div></article>
       <p class="doc4__count"><span data-doc-count>0</span> de ${Number(c.errorCount) || 3} marcados</p></div>`);
-    frame.board.querySelectorAll('[data-field]').forEach(btn => btn.addEventListener('click', () => {
-      const id = btn.dataset.field;
-      if (flagged.has(id)) flagged.delete(id); else flagged.add(id);
-      btn.classList.toggle('is-flagged', flagged.has(id)); btn.setAttribute('aria-pressed', String(flagged.has(id)));
+    const finishIfReady = () => {
       frame.board.querySelector('[data-doc-count]').textContent = String(flagged.size);
-      frame.status.textContent = ''; frame.status.classList.remove('is-error');
+      if (flagged.size >= (Number(c.errorCount) || 3) && !submitted) {
+        submitted = true; frame.check.disabled = true; frame.status.classList.remove('is-error'); frame.status.textContent = '¡Encontraste todos los errores! Validando tu avance…';
+        setTimeout(() => submit({ flagged: [...flagged] }, frame), 520);
+      }
+    };
+    const markCorrect = (btn, tip, assisted) => {
+      const id = btn.dataset.field;
+      if (flagged.has(id)) return;
+      flagged.add(id); btn.classList.add('is-flagged', 'is-correct'); btn.setAttribute('aria-pressed', 'true'); btn.disabled = true;
+      frame.status.classList.remove('is-error'); frame.status.textContent = assisted ? 'Marcamos un dato incorrecto contigo.' : `¡Bien detectado!${tip ? ` ${tip}` : ''}`;
+      finishIfReady();
+    };
+    frame.board.querySelectorAll('[data-field]').forEach(btn => btn.addEventListener('click', async () => {
+      const id = btn.dataset.field; if (flagged.has(id) || checking.has(id) || submitted) return;
+      checking.add(id); btn.classList.add('is-checking');
+      try {
+        const result = await checkGameStep(challenge, { kind: 'document-field', fieldId: id });
+        btn.classList.remove('is-checking');
+        if (result.correct) { markCorrect(btn, result.tip, false); return; }
+        btn.classList.remove('is-wrong'); void btn.offsetWidth; btn.classList.add('is-wrong');
+        frame.status.textContent = 'Ese dato es correcto. Lo marcamos en rojo un momento para que pruebes con otro.'; frame.status.classList.add('is-error');
+      } catch (error) { btn.classList.remove('is-checking'); frame.status.textContent = error.message || 'No pudimos revisar ese dato.'; frame.status.classList.add('is-error'); }
+      finally { checking.delete(id); }
     }));
     frame.check.addEventListener('click', () => {
-      if (!flagged.size) { frame.status.textContent = 'Marca al menos un dato antes de comprobar.'; frame.status.classList.add('is-error'); return; }
+      if (flagged.size < (Number(c.errorCount) || 3)) { frame.status.textContent = `Te ${flagged.size + 1 === (Number(c.errorCount) || 3) ? 'falta 1 error' : `faltan ${(Number(c.errorCount) || 3) - flagged.size} errores`} por encontrar.`; frame.status.classList.add('is-error'); return; }
       submit({ flagged: [...flagged] }, frame);
     });
     frame.reset.addEventListener('click', () => runDocument(challenge, shell, submit));
     enableStepHelp(challenge, frame, () => ({ flagged: [...flagged] }), hint => {
       if (!['document-error', 'document-remove'].includes(hint.kind)) return;
       const button = frame.board.querySelector(`[data-field="${CSS.escape(String(hint.fieldId))}"]`);
-      if (button) button.click();
+      if (button && hint.kind === 'document-error') markCorrect(button, '', true);
       frame.status.classList.remove('is-error');
-      frame.status.textContent = hint.kind === 'document-error' ? 'Marcamos un dato incorrecto. Revisa por qué no corresponde.' : 'Quitamos una marca que estaba sobre un dato correcto.';
+      if (!submitted) frame.status.textContent = hint.kind === 'document-error' ? 'Marcamos un dato incorrecto. Revisa por qué no corresponde.' : 'Ese dato no debía marcarse.';
     }, 'Revisar un dato');
   }
 
@@ -1488,13 +1670,21 @@
       <section class="calc4__answer"><label for="calc4-input">${esc(c.question || 'Resultado')}</label><div class="calc4__field">${money ? '<span>$</span>' : ''}<input id="calc4-input" inputmode="decimal" autocomplete="off" placeholder="0.00">${!money && unit ? `<span>${esc(unit)}</span>` : ''}</div>
       <small>${money ? 'Escribe la cantidad en pesos, con o sin centavos.' : 'Escribe solo el número.'}</small></section></div>`);
     const input = frame.board.querySelector('input');
+    const field = frame.board.querySelector('.calc4__field'); let checking = false;
     input.addEventListener('keydown', event => { if (event.key === 'Enter') frame.check.click(); });
-    frame.check.addEventListener('click', () => {
+    frame.check.addEventListener('click', async () => {
       const raw = input.value.trim();
       if (!raw) { frame.status.textContent = 'Escribe tu resultado antes de comprobar.'; frame.status.classList.add('is-error'); return; }
-      submit({ value: raw.replace(/[^0-9.,-]/g, '') }, frame);
+      if (checking) return; checking = true; frame.check.disabled = true; field.classList.remove('is-wrong', 'is-correct');
+      const value = raw.replace(/[^0-9.,-]/g, '');
+      try {
+        const result = await checkGameStep(challenge, { kind: 'calc-answer', value });
+        if (!result.correct) { field.classList.add('is-wrong'); frame.status.textContent = `Aún no es el resultado. Pista: ${result.hint || 'revisa los datos y la operación.'}`; frame.status.classList.add('is-error'); input.select(); return; }
+        field.classList.add('is-correct'); frame.status.classList.remove('is-error'); frame.status.textContent = '¡Cálculo correcto! Validando tu avance…'; submit({ value }, frame);
+      } catch (error) { frame.status.textContent = error.message || 'No pudimos revisar el cálculo.'; frame.status.classList.add('is-error'); }
+      finally { checking = false; frame.check.disabled = false; }
     });
-    frame.reset.addEventListener('click', () => { input.value = ''; frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
+    frame.reset.addEventListener('click', () => { input.value = ''; field.classList.remove('is-wrong', 'is-correct'); frame.status.textContent = ''; frame.status.classList.remove('is-error'); input.focus(); });
     enableStepHelp(challenge, frame, () => ({ value: input.value }), hint => {
       frame.status.classList.remove('is-error');
       if (hint.kind === 'calc-step') frame.status.textContent = `Pista: ${hint.text}`;
@@ -1526,7 +1716,7 @@
       if (open[0].dataset.pair === open[1].dataset.pair) {
         const id = open[0].dataset.pair;
         setTimeout(() => completePair(id, false), 280);
-      } else { busy = true; open.forEach(x => x.classList.add('is-wrong')); setTimeout(() => { open.forEach(x => x.classList.remove('is-open', 'is-wrong')); open = []; busy = false; }, 800); }
+      } else { busy = true; open.forEach(x => x.classList.add('is-wrong')); frame.status.textContent = 'No forman pareja. Recuerda su posición y vuelve a intentarlo.'; frame.status.classList.add('is-error'); setTimeout(() => { open.forEach(x => x.classList.remove('is-open', 'is-wrong')); open = []; busy = false; }, 800); }
     }));
     frame.check.addEventListener('click', () => {
       if (matched.length < challenge.content.pairs.length) { frame.status.textContent = `Te faltan ${challenge.content.pairs.length - matched.length} parejas.`; frame.status.classList.add('is-error'); return; }
