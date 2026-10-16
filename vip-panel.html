@@ -21,10 +21,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/platform-v2.css?v=10">
+<link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=2" defer></script>
-<script src="js/icadem-platform-v2.js?v=37" defer></script>
+<script src="js/icadem-platform-v2.js?v=38" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -6227,14 +6227,18 @@ const Sections = (function(){
         body: JSON.stringify({ videoId: sesion.videoId, courseId: cursoId, sessionIndex: sesionIdx })
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
+      if (!response.ok || !data.embedUrl) {
+        const authError = new Error(data.error || 'No se pudo autorizar la reproducción');
+        authError.code = data.code || '';
+        throw authError;
+      }
       if (frame?.dataset.bunnyRequest !== requestId) return;
       frame.src = data.embedUrl;
       if (titleEl) titleEl.textContent = sesion.titulo || `Clase ${numClase}`;
     } catch (error) {
       console.error('[Bunny player]', error);
       if (frame?.dataset.bunnyRequest === requestId) window.cerrarVisor?.();
-      Toast.error('No se pudo abrir la clase', error.message || 'Intenta nuevamente');
+      Toast.error('No se pudo abrir la clase', error.code === 'bunny-key-missing' ? 'El servicio de video está temporalmente en mantenimiento.' : (error.message || 'Intenta nuevamente'));
     }
   };
 
@@ -7561,26 +7565,28 @@ const Sections = (function(){
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // MATERIALES · recompensas prácticas de bajo costo para toda cuenta.
+  // MATERIALES · herramientas profesionales descargables para toda cuenta.
   // A diferencia de Libros, este catálogo NO requiere membresía VIP: los
   // 200 créditos de bienvenida alcanzan para realizar los primeros canjes.
   // Producción usa el catálogo y la validación autoritativa del backend.
   // ═══════════════════════════════════════════════════════════════════
   const MATERIAL_FALLBACK_COVERS = [
-    'assets/cursos/curso-avisos-sat.jpg',
-    'assets/cursos/curso-contable.jpg',
-    'assets/cursos/curso-auxiliar-rh.jpg',
-    'assets/cursos/curso-corporativo.jpg',
-    'assets/cursos/curso-lean.jpg',
-    'assets/cursos/curso-comercio-exterior.jpg'
+    'https://icadembooks.b-cdn.net/materials/covers/catalogo-cuentas-sat.webp',
+    'https://icadembooks.b-cdn.net/materials/covers/manual-auxiliar-contable.webp',
+    'https://icadembooks.b-cdn.net/materials/covers/plantilla-polizas.webp',
+    'https://icadembooks.b-cdn.net/materials/covers/kit-compras.webp',
+    'https://icadembooks.b-cdn.net/materials/covers/cuotas-imss-2026.webp',
+    'https://icadembooks.b-cdn.net/materials/covers/guia-auxiliar-contable.webp',
+    'https://icadembooks.b-cdn.net/materials/covers/fundamentos-auxiliar-contable.webp'
   ];
   let MATERIALES_CATALOG = [
-    { id:'mat_bienvenida_cierre_fiscal', titulo:'Checklist de cierre fiscal mensual', descripcion:'Una ruta breve para cerrar el mes con comprobantes, conciliaciones y obligaciones bajo control.', categoria:'Fiscal', cursoTitulo:'Recursos profesionales ICADEM', formato:'document', costo:25, portada:MATERIAL_FALLBACK_COVERS[0], fileUrl:'' },
-    { id:'mat_bienvenida_minuta_ejecutiva', titulo:'Minuta ejecutiva de acuerdos', descripcion:'Estructura reuniones breves y convierte cada acuerdo en una acción con responsable y fecha.', categoria:'Operaciones', cursoTitulo:'Recursos profesionales ICADEM', formato:'document', costo:25, portada:MATERIAL_FALLBACK_COVERS[4], fileUrl:'' },
-    { id:'mat_bienvenida_flujo_caja', titulo:'Guía de flujo de caja semanal', descripcion:'Organiza entradas, salidas y alertas de liquidez para anticipar decisiones de corto plazo.', categoria:'Finanzas', cursoTitulo:'Recursos profesionales ICADEM', formato:'table', costo:30, portada:MATERIAL_FALLBACK_COVERS[1], fileUrl:'' },
-    { id:'mat_bienvenida_riesgos', titulo:'Matriz rápida de riesgos operativos', descripcion:'Prioriza riesgos por probabilidad e impacto y define un control verificable para cada uno.', categoria:'Operaciones', cursoTitulo:'Recursos profesionales ICADEM', formato:'table', costo:35, portada:MATERIAL_FALLBACK_COVERS[5], fileUrl:'' },
-    { id:'mat_bienvenida_entrevista', titulo:'Guía de entrevista por competencias', descripcion:'Preguntas simples para comparar candidatos con evidencia y reducir decisiones por intuición.', categoria:'Recursos Humanos', cursoTitulo:'Recursos profesionales ICADEM', formato:'document', costo:40, portada:MATERIAL_FALLBACK_COVERS[2], fileUrl:'' },
-    { id:'mat_bienvenida_contrato_proveedor', titulo:'Checklist para contratar proveedores', descripcion:'Revisa alcance, entregables, pagos, confidencialidad y salida antes de firmar un servicio.', categoria:'Legal', cursoTitulo:'Recursos profesionales ICADEM', formato:'document', costo:50, portada:MATERIAL_FALLBACK_COVERS[3], fileUrl:'' }
+    { id:'mat_catalogo_cuentas_sat', titulo:'Catálogo de cuentas SAT para auxiliares', descripcion:'Consulta y organiza las cuentas contables con una referencia práctica preparada para el trabajo diario.', categoria:'Fiscal', cursoTitulo:'Recursos profesionales ICADEM', formato:'document', costo:100, portada:MATERIAL_FALLBACK_COVERS[0], fileUrl:'' },
+    { id:'mat_manual_auxiliar_contable', titulo:'Manual práctico del auxiliar contable', descripcion:'Guía de consulta para ordenar documentos, registros y tareas esenciales del puesto.', categoria:'Contabilidad', cursoTitulo:'Recursos profesionales ICADEM', formato:'document', costo:100, portada:MATERIAL_FALLBACK_COVERS[1], fileUrl:'' },
+    { id:'mat_plantilla_polizas_mayor', titulo:'Plantilla de pólizas, mayor y auxiliares', descripcion:'Libro de Excel listo para registrar pólizas y dar seguimiento al mayor y a los auxiliares contables.', categoria:'Contabilidad', cursoTitulo:'Recursos profesionales ICADEM', formato:'excel', costo:100, portada:MATERIAL_FALLBACK_COVERS[2], fileUrl:'' },
+    { id:'mat_kit_excel_compras', titulo:'Kit Excel para compras y auxiliares', descripcion:'Herramientas ordenadas para controlar compras, comprobantes y seguimiento contable en una sola carpeta de trabajo.', categoria:'Compras', cursoTitulo:'Recursos profesionales ICADEM', formato:'excel', costo:100, portada:MATERIAL_FALLBACK_COVERS[3], fileUrl:'' },
+    { id:'mat_cuotas_imss_2026', titulo:'Cuotas IMSS 2026', descripcion:'Documento de apoyo para consultar y revisar cuotas aplicables en procesos de nómina y seguridad social.', categoria:'Nómina', cursoTitulo:'Recursos profesionales ICADEM', formato:'pdf', costo:100, portada:MATERIAL_FALLBACK_COVERS[4], fileUrl:'' },
+    { id:'mat_guia_auxiliar_contable', titulo:'Guía del auxiliar contable', descripcion:'Material de estudio para reforzar las actividades, controles y criterios básicos del área contable.', categoria:'Contabilidad', cursoTitulo:'Recursos profesionales ICADEM', formato:'pdf', costo:100, portada:MATERIAL_FALLBACK_COVERS[5], fileUrl:'' },
+    { id:'mat_fundamentos_auxiliar_contable', titulo:'Fundamentos del auxiliar contable', descripcion:'Presentación editable para repasar procesos, conceptos y buenas prácticas del trabajo contable.', categoria:'Capacitación', cursoTitulo:'Recursos profesionales ICADEM', formato:'presentation', costo:100, portada:MATERIAL_FALLBACK_COVERS[6], fileUrl:'' }
   ];
   let __materialsUiState = null;
   let __materialsUiOwner = null;
@@ -7755,7 +7761,7 @@ const Sections = (function(){
         <section class="materials-hero">
           <div class="materials-hero__copy">
             <h1>Materiales para<br>aplicar desde hoy.</h1>
-            <p>Canjea pocos créditos por formatos, guías y recursos profesionales que conservarás en tu cuenta.</p>
+            <p>Canjea herramientas contables listas para descargar y conservar en tu cuenta.</p>
             <span class="materials-hero__benefit"><svg class="ic"><use href="#i-check"/></svg>Disponibles para toda cuenta ICADEM, sin membresía VIP.</span>
           </div>
           <aside class="materials-wallet" aria-label="Cartera de créditos">
@@ -7765,7 +7771,7 @@ const Sections = (function(){
             <button type="button" data-credit-wallet-open>Ver movimientos <svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </aside>
         </section>
-        <div class="materials-head"><div><h2>Elige un recurso práctico</h2><p>Los canjes empiezan desde 25 créditos y solo se cobran una vez.</p></div><span>${catalogReady ? `${MATERIALES_CATALOG.length} materiales` : 'Sincronizando catálogo'}</span></div>
+        <div class="materials-head"><div><h2>Elige un recurso práctico</h2><p>Cada herramienta cuesta 100 créditos y solo se cobra una vez.</p></div><span>${catalogReady ? `${MATERIALES_CATALOG.length} materiales` : 'Sincronizando catálogo'}</span></div>
         ${catalogReady ? `<div class="materials-grid">${cardsHtml}</div>` : `<div class="materials-sync" role="status"><span class="materials-sync__icon"><svg class="ic"><use href="#i-folder"/></svg></span><strong>${state.loaded === 'error' ? 'No pudimos cargar los materiales' : 'Sincronizando materiales seguros…'}</strong><p>${state.loaded === 'error' ? 'Revisa tu conexión e inténtalo de nuevo.' : 'Validamos el catálogo y tus canjes antes de habilitar cualquier acción.'}</p>${state.loaded === 'error' ? '<button type="button" class="btn btn--accent" data-materials-retry>Reintentar</button>' : ''}</div>`}
         <p class="materials-note"><svg class="ic"><use href="#i-shield-check"/></svg> Cada canje se valida en el servidor y queda asociado a tu cuenta. Volver a abrir un material adquirido no consume más créditos.</p>
       </div>`;
@@ -9084,14 +9090,19 @@ const Sections = (function(){
         });
         const data = await response.json().catch(() => ({}));
         if (!container.isConnected || location.hash !== '#clase-detalle') return;
-        if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
+        if (!response.ok || !data.embedUrl) {
+          const authError = new Error(data.error || 'No se pudo autorizar la reproducción');
+          authError.code = data.code || '';
+          throw authError;
+        }
         frameEl.src = data.embedUrl;
         frameEl.hidden = false;
         statusEl.hidden = true;
       } catch (error) {
         console.error('[clase video]', error);
         if (!container.isConnected) return;
-        statusEl.innerHTML = `<span class="lesson-player__empty-icon"><svg class="ic"><use href="#i-alert-circle"/></svg></span><strong>No pudimos cargar el video</strong><small>Comprueba tu conexión e intenta nuevamente.</small><button type="button" class="lesson-player__retry">Reintentar</button>`;
+        const detail = error.code === 'bunny-key-missing' ? 'El servicio de video está temporalmente en mantenimiento. Intenta nuevamente en unos minutos.' : 'Comprueba tu conexión e intenta nuevamente.';
+        statusEl.innerHTML = `<span class="lesson-player__empty-icon"><svg class="ic"><use href="#i-alert-circle"/></svg></span><strong>No pudimos cargar el video</strong><small>${htmlEsc(detail)}</small><button type="button" class="lesson-player__retry">Reintentar</button>`;
         statusEl.querySelector('.lesson-player__retry')?.addEventListener('click', () => renderClaseDetalle(container));
       }
     })();

@@ -525,7 +525,7 @@
         { id: 'arcade', label: 'Entrena en Juegos ICADEM', amount: RETO_CREDITS, note: 'Una recompensa por dinámica.' }
       ],
       destinations: [
-        { id: 'materials', label: 'Materiales profesionales', description: 'Canjea formatos prácticos desde 25 créditos.', available: true, section: 'materiales', count: 6 },
+        { id: 'materials', label: 'Materiales profesionales', description: 'Canjea herramientas descargables por 100 créditos cada una.', available: true, section: 'materiales', count: 7 },
         { id: 'library', label: 'Biblioteca profesional', description: 'Canjea referencias que conservarás en tu cuenta.', available: true, section: 'libros', count: 6 }
       ],
       redemptions: { books: 0, materials: 0 },
@@ -789,6 +789,7 @@
         <section class="game-stage">
           <div class="game-status" aria-live="polite"></div>
           <div class="game-board">${inner}</div>
+          <div class="game-assist" data-game-assist hidden><span>¿Te atoraste? Te ayudamos a cerrar esta actividad sin perder tu avance.</span><button class="game-secondary" type="button" data-game-help>Ayúdame a continuar</button></div>
           <div class="game-actions"><button class="game-secondary" type="button" data-game-reset>Reiniciar</button><button class="game-primary" type="button" data-game-check>Comprobar <svg class="ic" aria-hidden="true"><use href="#i-check"/></svg></button></div>
         </section>
       </div>`;
@@ -801,7 +802,9 @@
       board: shell.content.querySelector('.game-board'),
       status: shell.content.querySelector('.game-status'),
       check: shell.content.querySelector('[data-game-check]'),
-      reset: shell.content.querySelector('[data-game-reset]')
+      reset: shell.content.querySelector('[data-game-reset]'),
+      assist: shell.content.querySelector('[data-game-assist]'),
+      help: shell.content.querySelector('[data-game-help]')
     };
   }
 
@@ -1396,6 +1399,7 @@
           <div><span>Errores</span><b>${mistakes}</b></div>
         </div>
         <div class="gw-reward${hasReward ? ' is-earned' : ''}" data-reward>${rewardLine}</div>
+        ${result.assisted ? '<p class="gw-assisted">Actividad completada con apoyo. Tu clase quedó acreditada y puedes continuar.</p>' : ''}
         ${debriefMarkup(result.debrief)}
         <div class="gw-actions${anotherLabel ? '' : ' is-single'}">
           ${anotherLabel ? `<button class="game-secondary gw-btn" type="button" data-game-another>${anotherLabel}</button>` : ''}
@@ -1453,8 +1457,9 @@
     return new Promise(resolve => {
       const shell = modalShell(challenge, () => resolve({ closed: true }));
       const playStats = { startedAt: 0, mistakes: 0 };
-      const submit = async (proof, frame) => {
+      const submit = async (proof, frame, submitOptions = {}) => {
         frame.check.disabled = true;
+        if (frame.help) frame.help.disabled = true;
         frame.status.textContent = 'Comprobando…';
         try {
           let result;
@@ -1496,13 +1501,21 @@
             });
             recordDemoReto(challenge);
             result = { ok: true, reward: demoResult.reward, previousBalance: demoResult.previousBalance, newBalance: demoResult.newBalance, nextLessonNumber: null, practice: true, awarded: demoResult.awarded };
-          } else result = await request(challenge.completePath || '/api/learning/complete', { method: 'POST', body: { challengeId: challenge.challengeId, proof } });
+          } else result = await request(challenge.completePath || '/api/learning/complete', {
+            method: 'POST',
+            body: { challengeId: challenge.challengeId, proof, assisted: submitOptions.assisted === true }
+          });
           successView(challenge, shell, result, options?.onComplete, resultData => { options?.onContinue?.(resultData); resolve(resultData); }, { seconds: (Date.now() - (playStats.startedAt || Date.now())) / 1000, mistakes: playStats.mistakes });
         } catch (error) {
           frame.status.textContent = error.message;
           frame.status.classList.add('is-error');
           frame.check.disabled = false;
+          if (frame.help) frame.help.disabled = false;
           if (error.status === 422) playStats.mistakes += 1;
+          if (challenge.scope !== 'reto' && error.status === 422 && error.data?.assistanceAvailable && frame.assist && frame.help) {
+            frame.assist.hidden = false;
+            frame.help.onclick = () => submit(proof, frame, { assisted: true });
+          }
           if (error.data?.code === 'vip-challenge-required') { shell.close(); showRetoPaywall(); return; }
           if (error.data?.code === 'challenge-too-fast') showNotice('Un momento', error.message, 'info');
           else if (error.status !== 422) showNotice('No se perdió tu avance', 'Revisa tu conexión y vuelve a comprobar.', 'error');
