@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-10-16 — Marketing al estilo Alintec (como SYNOVA e IMFRA)
+
+**Archivos:** `index.html`, `vip-admin.html`, `vip-auth.html`, `vip-panel.html`, `privacidad.html`, `verificar.html`, `sw.js`, `assistant/icadem-assistant.js`, `js/icadem-admin-metrics.js`, `js/icadem-visitas.js` (nuevo), `js/icadem-encuesta.js` (nuevo), `js/icadem-admin-marketing-v2.js` (nuevo), `css/icadem-encuesta.css` (nuevo), `assets/img/encuesta/*` (nuevo)
+
+- Contador anónimo de visitas (sin cookies ni IP) en landing, acceso y panel: origen de cada visita y de cada cuenta nueva.
+- Encuesta del landing debajo de la franja de valor, con la guía de ICADEM y cursos reales del catálogo; guarda respuestas parciales y completas.
+- La ruta de la guía virtual guarda cada intento (descartada, parcial o completada), el curso recomendado y el que abrieron. Ya no se abre sola si la encuesta del landing está en la página.
+- Admin · Marketing: Encuestas con tres pestañas (landing, ruta de la guía y prospectos de la guía), Métricas de visitas, Pruebas gratuitas y Correos. El tablero anterior de Métricas ahora es "Actividad del panel".
+- Miembros VIP: fecha y hora de registro y activación, último acceso, cómo se registró, por dónde llegó, curso gratuito, filtro por fecha de registro, conteo y descarga CSV.
+
 ## 2026-10-09 — Retos y logros con dirección visual IMFRA/SYNOVA
 
 **Archivos:** `vip-panel.html`, `css/panel-minimal.css`

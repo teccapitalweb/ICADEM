@@ -658,6 +658,8 @@
 
   function renderRouteResult() {
     route.result = routeRecommendations();
+    route.completada = true;
+    enviarRuta('completada', { recomendados:route.result.map(c => c.title) });
     const profile = buildRouteProfile();
     try { localStorage.setItem(welcomeKey, 'completed'); } catch (_) {}
     track('questionnaire_complete', { result:route.result.map(course => course.id).join(',') });
@@ -680,8 +682,52 @@
       <div class="syg-route__actions"><button class="syg-btn syg-btn--primary" type="button" data-route-action="chat-result">Hablar con la guía</button><button class="syg-btn" type="button" data-route-action="restart">Repetir diagnóstico</button><a class="syg-btn syg-btn--ink" href="${escapeHtml(config.catalogUrl)}">Entrar al Club VIP →</a></div>`;
   }
 
+  // ── Guardado de la ruta (aparece en el admin: Marketing → Encuestas → Ruta de la guía) ──
+  // Un registro por intento, sin nombre ni teléfono: descartada, parcial o completada.
+  // Es independiente del formulario "Guarda tu ruta" (/api/index/leads), que sigue igual.
+  const RUTA_API = `${config.apiBase}/api/encuesta/ruta`;
+  const CLAVES_RUTA = ['perfil', 'prioridad', 'nivel', 'formato', 'tema'];
+  const RUTA_SID_KEY = 'icadem:guide:sid';
+  const RUTA_PEND_KEY = 'icadem:guide:ruta-pend';
+  const nuevoId = () => (window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10));
+  function rutaSid() {
+    try { let v = localStorage.getItem(RUTA_SID_KEY); if (!v) { v = nuevoId(); localStorage.setItem(RUTA_SID_KEY, v); } return v; } catch (_) { return nuevoId(); }
+  }
+  function leerPendRuta() { try { const l = JSON.parse(localStorage.getItem(RUTA_PEND_KEY) || '[]'); return Array.isArray(l) ? l : []; } catch (_) { return []; } }
+  function escribirPendRuta(l) { try { if (l.length) localStorage.setItem(RUTA_PEND_KEY, JSON.stringify(l.slice(-10))); else localStorage.removeItem(RUTA_PEND_KEY); } catch (_) {} }
+  function postRuta(cuerpo) {
+    return fetch(RUTA_API, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(cuerpo), keepalive:true })
+      .then(r => { if (!r.ok && r.status >= 500) throw new Error('HTTP ' + r.status); return true; });
+  }
+  function enviarRuta(estado, extra) {
+    if (!route.intento) return;
+    const respuestas = {};
+    (route.selections || []).forEach((sel, i) => { if (sel && CLAVES_RUTA[i]) respuestas[CLAVES_RUTA[i]] = String(sel.label || '').slice(0, 80); });
+    const cuerpo = { intentoId:route.intento, sessionId:rutaSid(), estado, respuestas, pagina:(location.pathname.split('/').pop() || 'index.html'), ...(extra || {}) };
+    const firma = JSON.stringify(cuerpo);
+    if (route.ultimoEnvio === firma) return; // nada nuevo que guardar
+    route.ultimoEnvio = firma;
+    postRuta(cuerpo).catch(() => {
+      // Sin conexión: se guarda y se reintenta en la siguiente visita (el servidor reemplaza el intento, no lo duplica)
+      escribirPendRuta([...leerPendRuta().filter(x => !(x.intentoId === cuerpo.intentoId && x.estado === cuerpo.estado)), cuerpo]);
+    });
+  }
+  function reintentarRutas() {
+    const pend = leerPendRuta();
+    if (!pend.length) return;
+    escribirPendRuta([]);
+    pend.forEach(c => postRuta(c).catch(() => escribirPendRuta([...leerPendRuta(), c])));
+  }
+  function guardarAvanceRuta() {
+    if (!route.intento || route.completada) return;
+    if (route.empezo && (route.selections || []).some(Boolean)) enviarRuta('parcial');
+    else enviarRuta('descartada');
+  }
+  window.setTimeout(reintentarRutas, 2500);
+  window.addEventListener('pagehide', () => { if (!routeRoot.hidden) guardarAvanceRuta(); });
+
   function openRoute(mode = 'welcome') {
-    route = { step:mode === 'question' ? 0 : -1, answers:[], selections:[], result:[] };
+    route = { step:mode === 'question' ? 0 : -1, answers:[], selections:[], result:[], intento:nuevoId(), empezo:mode === 'question' };
     routeRoot.hidden = false;
     document.body.classList.add('syg-lock');
     if (route.step < 0) renderRouteWelcome(); else renderRouteQuestion();
@@ -690,6 +736,7 @@
   }
 
   function closeRoute(dismiss = false) {
+    guardarAvanceRuta();
     routeRoot.hidden = true;
     document.body.classList.remove('syg-lock');
     if (dismiss) { try { localStorage.setItem(welcomeKey, 'dismissed'); } catch (_) {} }
@@ -698,16 +745,20 @@
   routeRoot.addEventListener('click', event => {
     const courseLink = event.target.closest('[data-course-id]');
     if (courseLink) track('course_click', { courseId:courseLink.dataset.courseId });
+    if (courseLink && route.completada) {
+      const elegido = route.result.find(c => c.id === courseLink.dataset.courseId);
+      enviarRuta('completada', { recomendados:route.result.map(c => c.title), cursoElegido:elegido ? elegido.title : courseLink.dataset.courseId });
+    }
     if (event.target === routeRoot || event.target.closest('.syg-route__close')) { closeRoute(true); return; }
     const action = event.target.closest('[data-route-action]')?.dataset.routeAction;
-    if (action === 'start') { route.step = 0; renderRouteQuestion(); setMotion('wave'); track('questionnaire_start'); return; }
+    if (action === 'start') { route.step = 0; route.empezo = true; renderRouteQuestion(); setMotion('wave'); track('questionnaire_start'); return; }
     if (action === 'dismiss') { closeRoute(true); return; }
     if (action === 'back') {
       if (route.step <= 0) { route.step = -1; renderRouteWelcome(); }
       else { route.step -= 1; route.answers.pop(); route.selections.pop(); renderRouteQuestion(); }
       return;
     }
-    if (action === 'restart') { route = { step:0, answers:[], selections:[], result:[] }; renderRouteQuestion(); return; }
+    if (action === 'restart') { route = { step:0, answers:[], selections:[], result:[], intento:nuevoId(), empezo:true }; renderRouteQuestion(); return; }
     if (action === 'chat-result') {
       const result = route.result.slice();
       closeRoute();
@@ -804,7 +855,8 @@
   window.setTimeout(() => {
     let seen = false;
     try { seen = Boolean(localStorage.getItem(welcomeKey)); } catch (_) {}
-    if (!seen && panel.hidden) openRoute('welcome');
+    // Si la encuesta del landing está en la página, no se abre otra encuesta encima (la ruta sigue disponible desde la guía)
+    if (!seen && panel.hidden && !document.getElementById('encuentra')) openRoute('welcome');
   }, 850);
 
   window.ICADEMAssistant = Object.freeze({ open:openAssistant, openRoute, search:searchCourses, ask:handleInput });

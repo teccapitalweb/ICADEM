@@ -1153,12 +1153,14 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Resumen</div>
       <a class="nav-item is-active" data-section="dashboard"><svg class="ic"><use href="#i-home"/></svg>Dashboard</a>
+      <a class="nav-item" data-section="actividad"><svg class="ic"><use href="#i-chart-bar"/></svg>Actividad del panel</a>
     </div>
 
     <div class="nav-section">
       <div class="nav-label">Marketing</div>
       <a class="nav-item" data-section="encuestas"><svg class="ic"><use href="#i-check"/></svg>Encuestas<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas</a>
+      <a class="nav-item" data-section="pruebas"><svg class="ic"><use href="#i-certificate"/></svg>Pruebas gratuitas</a>
       <a class="nav-item" data-section="correos"><svg class="ic"><use href="#i-mail"/></svg>Correos<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
     </div>
 
@@ -3914,7 +3916,8 @@ const Pages={
   _mbState: {
     search: '',
     plan: 'todos',     // todos / mensual / anual / regalo / sin-pagar
-    estado: 'todos'    // todos / activos / inactivos / expirados
+    estado: 'todos',   // todos / activos / inactivos / expirados
+    registro: 'todos'  // todos / 1 (hoy) / 7 / 30 días
   },
 
   miembros(p) {
@@ -3925,6 +3928,10 @@ const Pages={
           <h1 class="sec-hero__title">Miembros VIP</h1>
           <p class="sec-hero__sub">Aquí ves <strong style="color:var(--text-2);">todos los registrados</strong> (los que crearon cuenta) y <strong style="color:var(--text-2);">todos los miembros activos</strong> (los que ya pagaron). Cada uno con su fecha de registro y/o fecha de activación.</p>
           <div class="sec-hero__actions">
+            <button class="btn btn--ghost" id="mb-csv" type="button">
+              <svg class="ic"><use href="#i-download"/></svg>
+              Descargar lista (CSV)
+            </button>
             <button class="btn btn--accent" id="new-mb-btn">
               <svg class="ic"><use href="#i-plus"/></svg>
               Agregar acceso manual
@@ -3959,6 +3966,12 @@ const Pages={
           <button class="curso-pill" data-mb-estado="inactivos"><span class="curso-pill__dot" style="background:#9CA3AF;"></span>Inactivos</button>
           <button class="curso-pill" data-mb-estado="expirados"><span class="curso-pill__dot" style="background:#EF4444;"></span>Expirados</button>
         </div>
+        <div class="curso-pills">
+          <button class="curso-pill" data-mb-registro="todos" data-active="1">Registrados: siempre</button>
+          <button class="curso-pill" data-mb-registro="1">Hoy</button>
+          <button class="curso-pill" data-mb-registro="7">Últimos 7 días</button>
+          <button class="curso-pill" data-mb-registro="30">Últimos 30 días</button>
+        </div>
 
         <div id="mb-container"></div>
       </div>
@@ -3966,6 +3979,18 @@ const Pages={
 
     Pages._renderKpisMiembros();
     Pages._renderListaMiembros();
+    Pages._mbCargarExtras();
+
+    // Registro (hoy / 7 / 30 días) y descarga CSV
+    p.querySelectorAll('[data-mb-registro]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        p.querySelectorAll('[data-mb-registro]').forEach(b => b.removeAttribute('data-active'));
+        btn.setAttribute('data-active', '1');
+        Pages._mbState.registro = btn.dataset.mbRegistro;
+        Pages._renderListaMiembros();
+      });
+    });
+    p.querySelector('#mb-csv')?.addEventListener('click', () => Pages._mbDescargarCSV());
 
     // Búsqueda
     const searchInput = p.querySelector('#mb-search-input');
@@ -4030,6 +4055,82 @@ const Pages={
       return isNaN(d.getTime()) ? null : d;
     }
     return null;
+  },
+
+  // ─── Datos extra de cada miembro (Firebase Auth + contador de visitas + curso gratuito) ───
+  // GET /api/admin/miembros-fechas: registro real (si falta en Firestore), último acceso,
+  // cómo se registró (Google o correo), por dónde llegó y su curso gratuito.
+  _mbExtras: null,
+  _mbCargandoExtras: false,
+  _mbZona: 'America/Mexico_City',
+  _mbNombreOrigen: { directo:'Directo', interno:'Dentro del sitio', google:'Google', bing:'Bing', duckduckgo:'DuckDuckGo', yahoo:'Yahoo', facebook:'Facebook', instagram:'Instagram', meta:'Meta (Facebook o Instagram)', whatsapp:'WhatsApp', linkedin:'LinkedIn', x:'X (Twitter)', youtube:'YouTube', tiktok:'TikTok', correo:'Correo electrónico', otros:'Otros sitios' },
+  _mbExtra(m) { return (Pages._mbExtras && Pages._mbExtras[m.uid || m.id]) || {}; },
+  _mbFechaHora(d) {
+    if (!d) return '—';
+    return d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric', timeZone: Pages._mbZona }) + ' · ' +
+      d.toLocaleTimeString('es-MX', { hour:'numeric', minute:'2-digit', hour12:true, timeZone: Pages._mbZona });
+  },
+  _mbHace(d) {
+    if (!d) return '';
+    const min = Math.round((Date.now() - d.getTime()) / 60000);
+    if (min < 2) return 'hace un momento';
+    if (min < 60) return 'hace ' + min + ' min';
+    const h = Math.round(min / 60); if (h < 24) return 'hace ' + h + ' h';
+    const dd = Math.round(h / 24); if (dd < 31) return 'hace ' + dd + (dd === 1 ? ' día' : ' días');
+    const mm = Math.round(dd / 30); return 'hace ' + mm + (mm === 1 ? ' mes' : ' meses');
+  },
+  _mbRegistro(m) {
+    const f = Pages._mbToDate(m.fechaRegistro || m.createdAt);
+    if (f) return f;
+    const x = Pages._mbExtra(m);
+    return x.creado ? new Date(x.creado) : null;
+  },
+  _mbActivacion(m) {
+    return Pages._mbToDate(m.activadoEn || m.startedAt || m.fechaVipDesde || m.fechaAlta || m.fechaActivacionManual);
+  },
+  async _mbCargarExtras() {
+    if (Pages._mbExtras || Pages._mbCargandoExtras) return;
+    Pages._mbCargandoExtras = true;
+    try {
+      for (let i = 0; i < 40 && !window._fb?.auth?.currentUser; i++) await new Promise(r => setTimeout(r, 250));
+      const token = await Pages._getAuthToken();
+      const r = await fetch(Pages._webhookUrl + '/api/admin/miembros-fechas', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) Pages._mbExtras = j.fechas || {};
+    } catch (e) { console.warn('[miembros] datos extra:', e.message); }
+    Pages._mbCargandoExtras = false;
+    if (Pages._mbExtras) Pages._renderListaMiembros();
+  },
+  _mbDetalles(m) {
+    const x = Pages._mbExtra(m);
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    const chip = (txt, color, titulo) => `<span title="${esc(titulo || '')}" style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600;color:${color};background:color-mix(in srgb, ${color} 11%, transparent);border:1px solid color-mix(in srgb, ${color} 25%, transparent);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis">${txt}</span>`;
+    const chips = [];
+    if (x.ultimoAcceso) { const d = new Date(x.ultimoAcceso); chips.push(chip('Último acceso ' + esc(Pages._mbHace(d)), '#64748B', Pages._mbFechaHora(d))); }
+    if (x.proveedor) chips.push(chip(x.proveedor === 'google.com' ? 'Registro con Google' : (x.proveedor === 'password' ? 'Registro con correo' : 'Registro con ' + esc(x.proveedor)), '#0EA5E9'));
+    if (x.origen) chips.push(chip('Llegó por ' + esc(Pages._mbNombreOrigen[x.origen] || x.origen), '#E1306C', 'Primer enlace por el que llegó, según el contador de visitas'));
+    if (x.cursoGratis && x.cursoGratis.titulo) { const t = x.cursoGratis.titulo; chips.push(chip('Curso gratuito: ' + esc(t.length > 42 ? t.slice(0, 42) + '…' : t), '#10b981', t + (x.cursoGratis.elegidoEn ? ' · elegido ' + Pages._mbFechaHora(new Date(x.cursoGratis.elegidoEn)) : ''))); }
+    return chips.length ? `<span style="display:flex;flex-wrap:wrap;gap:5px;margin-top:3px;width:100%;min-width:0;max-width:100%">${chips.join('')}</span>` : '';
+  },
+  // Exporta la lista filtrada con todos los datos de cada miembro
+  _mbDescargarCSV() {
+    const lista = Pages._mbUltimaLista || [];
+    const iso = d => d ? d.toLocaleString('sv-SE', { timeZone: Pages._mbZona }).replace('T', ' ').slice(0, 16) : '';
+    const filas = [['nombre','email','uid','plan','estado','registro','miembro_desde','vence','ultimo_acceso','registro_con','llego_por','curso_gratuito','curso_gratuito_elegido']];
+    lista.forEach(m => {
+      const x = Pages._mbExtra(m);
+      const estado = Pages._mbEstaActivo(m) ? 'activo' : (Pages._mbEstaExpirado(m) ? 'expirado' : ((m.activa !== true && m.activo !== true) && !m.plan ? 'sin pagar' : 'inactivo'));
+      filas.push([m.nombre || m.displayName || '', m.email || '', m.uid || m.id || '', (m.esRegalo === true ? 'regalo' : (m.plan || '')), estado,
+        iso(Pages._mbRegistro(m)), iso(Pages._mbActivacion(m)), iso(Pages._mbToDate(m.expiraEn)), iso(x.ultimoAcceso ? new Date(x.ultimoAcceso) : null),
+        x.proveedor === 'google.com' ? 'Google' : (x.proveedor === 'password' ? 'Correo' : (x.proveedor || '')),
+        x.origen ? (Pages._mbNombreOrigen[x.origen] || x.origen) : '', (x.cursoGratis && x.cursoGratis.titulo) || '', iso(x.cursoGratis && x.cursoGratis.elegidoEn ? new Date(x.cursoGratis.elegidoEn) : null)]);
+    });
+    const csv = '﻿' + filas.map(f => f.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], { type:'text/csv;charset=utf-8' }));
+    a.download = 'miembros-icadem-' + new Date().toISOString().slice(0, 10) + '.csv';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   },
 
   _mbEstaActivo(m) {
@@ -4173,6 +4274,18 @@ const Pages={
     else if (S.estado === 'inactivos') miembros = miembros.filter(m => !Pages._mbEstaActivo(m) && !Pages._mbEstaExpirado(m));
     else if (S.estado === 'expirados') miembros = miembros.filter(m => Pages._mbEstaExpirado(m));
 
+    // Fecha de registro: "Hoy" es el día de México; 7 y 30 días cuentan desde ahora
+    if (S.registro && S.registro !== 'todos') {
+      const zona = Pages._mbZona;
+      const hoyMx = new Date().toLocaleDateString('en-CA', { timeZone: zona });
+      const desde = Date.now() - Number(S.registro) * 86400000;
+      miembros = miembros.filter(m => {
+        const f = Pages._mbRegistro(m);
+        if (!f) return false;
+        return S.registro === '1' ? f.toLocaleDateString('en-CA', { timeZone: zona }) === hoyMx : f.getTime() >= desde;
+      });
+    }
+
     // Búsqueda
     if (S.search) {
       miembros = miembros.filter(m => {
@@ -4188,11 +4301,12 @@ const Pages={
       const aA = Pages._mbEstaActivo(a) ? 1 : 0;
       const bA = Pages._mbEstaActivo(b) ? 1 : 0;
       if (aA !== bA) return bA - aA;
-      const fa = Pages._mbToDate(a.lastUpdatedAt || a.activadoEn || a.createdAt || a.fechaRegistro)?.getTime() || 0;
-      const fb = Pages._mbToDate(b.lastUpdatedAt || b.activadoEn || b.createdAt || b.fechaRegistro)?.getTime() || 0;
+      const fa = (Pages._mbToDate(a.lastUpdatedAt || a.activadoEn || a.createdAt || a.fechaRegistro) || Pages._mbRegistro(a))?.getTime() || 0;
+      const fb = (Pages._mbToDate(b.lastUpdatedAt || b.activadoEn || b.createdAt || b.fechaRegistro) || Pages._mbRegistro(b))?.getTime() || 0;
       return fb - fa;
     });
 
+    Pages._mbUltimaLista = miembros;
     if (miembros.length === 0) {
       const hayMiembros = store.miembros.length > 0;
       wrap.innerHTML = `
@@ -4203,14 +4317,14 @@ const Pages={
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
           </div>
-          <div class="curso-empty__title">${(S.search || S.plan !== 'todos' || S.estado !== 'todos') ? 'Sin resultados' : (hayMiembros ? 'Sin miembros visibles' : 'Aún no hay registros')}</div>
-          <div class="curso-empty__sub">${(S.search || S.plan !== 'todos' || S.estado !== 'todos') ? 'Prueba con otros filtros' : 'Cuando alguien cree cuenta en icademx.com aparecerá aquí como "Sin pagar". Cuando pague, cambiará a Mensual/Anual.'}</div>
+          <div class="curso-empty__title">${(S.search || S.plan !== 'todos' || S.estado !== 'todos' || S.registro !== 'todos') ? 'Sin resultados' : (hayMiembros ? 'Sin miembros visibles' : 'Aún no hay registros')}</div>
+          <div class="curso-empty__sub">${(S.search || S.plan !== 'todos' || S.estado !== 'todos' || S.registro !== 'todos') ? 'Prueba con otros filtros' : 'Cuando alguien cree cuenta en icademx.com aparecerá aquí como "Sin pagar". Cuando pague, cambiará a Mensual/Anual.'}</div>
         </div>
       `;
       return;
     }
 
-    wrap.innerHTML = `${diagBanner}<div class="curso-list">${miembros.map(m => Pages._cardMiembro(m)).join('')}</div>`;
+    wrap.innerHTML = `${diagBanner}<div style="margin:2px 0 10px;font-size:12px;color:var(--text-3)">${miembros.length} ${miembros.length === 1 ? 'cuenta' : 'cuentas'} en esta vista</div><div class="curso-list">${miembros.map(m => Pages._cardMiembro(m)).join('')}</div>`;
   },
 
   _cardMiembro(m) {
@@ -4235,11 +4349,13 @@ const Pages={
     const uidCorto = (m.uid || m.id || '').slice(0, 8);
 
     // Fechas: registro vs activación
-    const fechaRegistro = Pages._mbToDate(m.fechaRegistro || m.createdAt);
-    const fechaActivacion = Pages._mbToDate(m.activadoEn || m.startedAt);
+    const fechaRegistro = Pages._mbRegistro(m);
+    const fechaActivacion = Pages._mbActivacion(m);
     const expira = Pages._mbToDate(m.expiraEn);
 
     const fmtFecha = (d) => d ? d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' }) : '—';
+    const fmtHora = (d) => Pages._mbFechaHora(d); // registro y activación con hora (de México)
+    const icoReloj = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;color:#94A3B8;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`;
 
     // Estado · 3 escenarios visuales
     let estadoTxt = '';
@@ -4254,25 +4370,25 @@ const Pages={
       } else {
         estadoTxt = 'Activo';
       }
-      fechaContextual = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;color:#34D399;"><polyline points="20 6 9 17 4 12"/></svg>Miembro desde ${fmtFecha(fechaActivacion)}`;
+      fechaContextual = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;color:#34D399;"><polyline points="20 6 9 17 4 12"/></svg>Miembro desde ${fmtHora(fechaActivacion)}${fechaRegistro ? `<br>${icoReloj}Se registró ${fmtHora(fechaRegistro)}` : ''}`;
     } else if (activo) {
       // Activo pero sin fechaActivacion (raro · admin manual sin fecha)
       estadoColor = '#34D399';
       estadoTxt = 'Activo';
-      fechaContextual = fechaRegistro ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;color:#94A3B8;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registrado ${fmtFecha(fechaRegistro)}` : '';
+      fechaContextual = fechaRegistro ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;color:#94A3B8;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Registrado ${fmtHora(fechaRegistro)}` : '';
     } else if (expirado) {
       estadoColor = '#EF4444';
       estadoTxt = `Expiró ${fmtFecha(expira)}`;
-      fechaContextual = fechaActivacion ? `Era miembro desde ${fmtFecha(fechaActivacion)}` : '';
+      fechaContextual = (fechaActivacion ? `Era miembro desde ${fmtHora(fechaActivacion)}` : '') + (fechaRegistro ? `${fechaActivacion ? '<br>' : ''}${icoReloj}Se registró ${fmtHora(fechaRegistro)}` : '');
     } else if (esSoloRegistrado) {
       // 👈 Lo más común para el caso de Britney · solo se registró, no pagó
       estadoColor = '#94A3B8';
       estadoTxt = 'Sin pagar';
-      fechaContextual = fechaRegistro ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;color:#94A3B8;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Se registró ${fmtFecha(fechaRegistro)}` : 'Sin fecha de registro';
+      fechaContextual = fechaRegistro ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;color:#94A3B8;"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Se registró ${fmtHora(fechaRegistro)}` : 'Sin fecha de registro';
     } else {
       estadoColor = '#9CA3AF';
       estadoTxt = 'Inactivo';
-      fechaContextual = fechaRegistro ? `Registrado ${fmtFecha(fechaRegistro)}` : '';
+      fechaContextual = fechaRegistro ? `${icoReloj}Registrado ${fmtHora(fechaRegistro)}` : '';
     }
 
     const nombreEsc = nombre.replace(/"/g,'&quot;').replace(/</g,'&lt;');
@@ -4281,14 +4397,15 @@ const Pages={
 
     return `
       <div class="curso-row" data-mb-uid="${m.uid || m.id}" style="--area-color:${pInfo.color};">
-        <div class="curso-row__thumb" style="background:linear-gradient(135deg, ${pInfo.color}, color-mix(in srgb, ${pInfo.color} 60%, #fff));color:#fff;display:flex;align-items:center;justify-content:center;background-image:none;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;letter-spacing:.3px;">
+        <div class="curso-row__thumb" style="background:linear-gradient(135deg, ${pInfo.color}, color-mix(in srgb, ${pInfo.color} 60%, #fff));color:#fff;display:flex;align-items:center;justify-content:center;border-radius:50%;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:14px;letter-spacing:.3px;">
           ${iniciales}
         </div>
         <div class="curso-row__body">
           <div class="curso-row__title">${nombreEsc}</div>
           <div class="curso-row__meta" style="display:flex;flex-direction:column;gap:3px;align-items:flex-start;">
             <span class="curso-row__instructor" title="${emailEsc}" style="font-size:12px;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>${emailEsc.length > 36 ? emailEsc.slice(0,36)+'…' : emailEsc}${uidCorto ? ` <span style="color:var(--text-3);font-size:10.5px;" title="${tooltip}">· ${uidCorto}…</span>` : ''}</span>
-            <span style="font-size:11px;color:var(--text-3);">${fechaContextual}</span>
+            <span style="font-size:11px;color:var(--text-3);line-height:1.55;">${fechaContextual}</span>
+            ${Pages._mbDetalles(m)}
           </div>
         </div>
         <div class="curso-row__stats" style="gap:8px;">
@@ -6032,11 +6149,13 @@ if (window.__currentAdmin) {
       window.addEventListener('adminready', function(){ clearTimeout(t); resolve(Pages._getAuthToken()); }, { once: true });
     });
   }
-  Pages.metricas = function(p){
+  // Actividad del panel (antes "Métricas"): tiempo, secciones y quién usa más el panel.
+  // Las métricas de visitas al estilo Alintec viven en Marketing → Métricas (js/icadem-admin-marketing-v2.js).
+  Pages.actividad = function(p){
     var montar = function(){ window.ICADEMMetricsAdmin.mount(p, { getToken: tokenAdmin, api: Pages._webhookUrl }); };
     if (window.ICADEMMetricsAdmin) return montar();
-    p.innerHTML = '<div class="mx-page fade-up"><div class="mx-empty"><span class="mx-spin"></span>Cargando métricas…</div></div>';
-    window.addEventListener('icadem:metrics-admin-ready', function(){ if (__seccionActual === 'metricas') montar(); }, { once: true });
+    p.innerHTML = '<div class="mx-page fade-up"><div class="mx-empty"><span class="mx-spin"></span>Cargando actividad…</div></div>';
+    window.addEventListener('icadem:metrics-admin-ready', function(){ if (__seccionActual === 'actividad') montar(); }, { once: true });
   };
   Pages.encuestas = function(p){
     var montar = function(){ window.ICADEMMarketingAdmin.mountSurveys(p, { getToken: tokenAdmin, api: Pages._webhookUrl }); };
@@ -6052,5 +6171,7 @@ if (window.__currentAdmin) {
   };
 })();
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="js/icadem-admin-marketing-v2.js?v=1"></script>
 </body>
 </html>

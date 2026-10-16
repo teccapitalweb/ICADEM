@@ -332,9 +332,9 @@
       } finally { loading = false; }
     }
 
-    container.innerHTML = '<div class="mx-page fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Actividad real</span><h1 class="sec-hero__title">Métricas</h1>' +
+    container.innerHTML = '<div class="mx-page fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Actividad real</span><h1 class="sec-hero__title">Actividad del panel</h1>' +
       '<p class="sec-hero__sub">Visitas al panel VIP y al sitio público, tiempo de permanencia, recorridos, lo que más usan los miembros y de dónde llegan.</p></div>' +
-      '<nav class="mk-tabs" aria-label="Marketing"><button type="button" data-mk-go="encuestas">Encuestas</button><button type="button" class="is-active" data-mk-go="metricas">Métricas</button><button type="button" data-mk-go="correos">Correos</button></nav>' +
+      '<nav class="mk-tabs" aria-label="Marketing"><button type="button" data-mk-go="encuestas">Encuestas</button><button type="button" data-mk-go="metricas">Métricas de visitas</button><button type="button" class="is-active" data-mk-go="actividad">Actividad del panel</button><button type="button" data-mk-go="correos">Correos</button></nav>' +
       '<div class="mx-toolbar"><div class="mx-seg-ctrl" role="group" aria-label="Periodo">' + [7, 30, 90].map(function (n) { return '<button type="button" data-mx-days="' + n + '" class="' + (n === days ? 'is-active' : '') + '">' + n + ' días</button>'; }).join('') + '</div>' +
       '<span class="mx-live"><i></i><span data-mx-live>— en línea ahora</span></span><button type="button" class="mx-btn" data-mx-refresh>Actualizar</button></div>' +
       '<div data-mx-body class="is-loading"><div class="mx-empty"><span class="mx-spin"></span>Cargando métricas…</div></div></div>';
