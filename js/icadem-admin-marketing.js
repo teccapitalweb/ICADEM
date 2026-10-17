@@ -141,15 +141,39 @@
       var select = container.querySelector('[data-test-member]');
       var counter = container.querySelector('[data-test-count]');
       if (search && select) {
-        var todas = Array.prototype.slice.call(select.options).map(function (o) { return { value: o.value, text: o.textContent }; });
+        var todas = [];
         var norm = function (t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
-        search.addEventListener('input', function () {
+        // La lista de miembros puede terminar de cargar después de abrir Correos: se vuelve a leer cuando cambia
+        var leerMiembros = function () {
+          var tmp = document.createElement('select');
+          tmp.innerHTML = memberOptions();
+          todas = Array.prototype.slice.call(tmp.options).map(function (o) { return { value: o.value, text: o.textContent }; });
+        };
+        var refrescar = function () {
+          var antes = todas.length;
+          leerMiembros();
+          if (todas.length !== antes) filtrar();
+        };
+        var filtrar = function () {
+          var elegido = select.value;
           var q = norm(search.value.trim());
           var lista = todas.filter(function (o, i) { return i === 0 || !q || norm(o.text).indexOf(q) !== -1; });
           select.innerHTML = lista.map(function (o) { return '<option value="' + esc(o.value) + '">' + esc(o.text) + '</option>'; }).join('');
-          if (q && lista.length > 1) select.selectedIndex = 1;
-          if (counter) counter.textContent = q ? (lista.length - 1) + ' cuenta(s) encontrada(s)' : '';
-        });
+          if (lista.some(function (o) { return o.value === elegido; }) && (!q || elegido)) select.value = elegido;
+          if (q && lista.length > 1 && !select.value) select.selectedIndex = 1;
+          if (counter) counter.textContent = todas.length <= 1 ? 'Cargando la lista de miembros…' : (q ? (lista.length - 1) + ' cuenta(s) encontrada(s)' : (todas.length - 1) + ' cuentas disponibles');
+        };
+        leerMiembros();
+        filtrar();
+        search.addEventListener('input', function () { select.value = ''; filtrar(); });
+        select.addEventListener('focus', refrescar);
+        select.addEventListener('mousedown', refrescar);
+        var vueltas = 0;
+        var espera = setInterval(function () {
+          if (!container.isConnected || ++vueltas > 60) { clearInterval(espera); return; }
+          refrescar();
+          if (todas.length > 1) clearInterval(espera);
+        }, 1000);
       }
       api(options, '/admin/push/stats').then(function (r) {
         var el = container.querySelector('[data-push-stats]');
