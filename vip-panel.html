@@ -3628,6 +3628,8 @@ body.has-fomo .main{padding-top:18px}
 .library-head h2{font-weight:700;font-size:24px;letter-spacing:-.6px;margin:0}
 .library-head__count{font-size:12px;color:var(--text-3);font-weight:600}
 .library-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:20px}
+.material-card,.library-card[data-book-id]{cursor:pointer}
+.material-card:focus-visible,.library-card[data-book-id]:focus-visible{outline:3px solid color-mix(in srgb,var(--primary) 55%,transparent);outline-offset:3px}
 .library-card{display:flex;flex-direction:column;gap:0;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;transition:all .22s;box-shadow:0 1px 2px rgba(10,15,35,.04)}
 .library-card:hover{transform:translateY(-3px);box-shadow:0 20px 40px -20px rgba(10,15,35,.18);border-color:color-mix(in srgb,var(--primary) 25%,var(--border))}
 .library-card__cover{aspect-ratio:2/3;position:relative;background:color-mix(in srgb,var(--book-color) 10%,var(--surface-2));overflow:hidden;display:grid;place-items:center}
@@ -7539,10 +7541,21 @@ const Sections = (function(){
         <p class="library-note"><svg class="ic"><use href="#i-shield-check"/></svg> Tus canjes se guardan en tu cuenta. Cada operación se valida una sola vez.</p>
       </div>`;
 
+      // Toda la tarjeta abre el libro (o el canje), no solo el botón
+      container.querySelectorAll('.library-card[data-book-id]').forEach(card => {
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.addEventListener('click', event => { if (event.target.closest('button, a')) return; card.querySelector('[data-library-action]')?.click(); });
+        card.addEventListener('keydown', event => { if (event.target === card && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); card.querySelector('[data-library-action]')?.click(); } });
+      });
       container.querySelectorAll('[data-library-action]').forEach(button => button.addEventListener('click', () => {
         const book = LIBROS_CATALOG.find(item => item.id === button.dataset.libraryAction);
         if (!book) return;
-        if (state.redeemed.has(book.id)) { _openLibraryBook(book); return; }
+        if (state.redeemed.has(book.id)) {
+          // Ya es suyo: se abre directo en el lector del panel
+          if (!demo && window.ICADEMResourceViewer) { window.ICADEMResourceViewer.open({ kind:'book', id:book.id, title:book.titulo, subtitle:`Biblioteca ICADEM · ${book.categoria}` }); return; }
+          _openLibraryBook(book); return;
+        }
         if (!demo && window.UserState?.modo !== 'vip' && !window.UserState?.isAdmin) {
           Toast.info('Biblioteca VIP','Activa tu membresía para canjear referencias.');
           return;
@@ -7833,12 +7846,26 @@ const Sections = (function(){
         state.loaded = false;
         renderMateriales(container);
       });
+      // Toda la tarjeta abre el material (o el canje), no solo el botón
+      container.querySelectorAll('.material-card').forEach(card => {
+        card.tabIndex = 0;
+        card.setAttribute('role', 'button');
+        card.addEventListener('click', event => { if (event.target.closest('button, a')) return; card.querySelector('[data-material-action]')?.click(); });
+        card.addEventListener('keydown', event => { if (event.target === card && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); card.querySelector('[data-material-action]')?.click(); } });
+      });
       container.querySelectorAll('[data-material-action]').forEach(button => button.addEventListener('click', () => {
         if (state.busy) return;
         const index = MATERIALES_CATALOG.findIndex(item => item.id === button.dataset.materialAction);
         const material = MATERIALES_CATALOG[index];
         if (!material) return;
-        if (state.redeemed.has(material.id) || material.redeemed === true) { _openRedeemedMaterial(material,index); return; }
+        if (state.redeemed.has(material.id) || material.redeemed === true) {
+          // Ya es suyo: se abre directo en el lector del panel
+          if (!window.__isDemoMode && window.ICADEMResourceViewer && String(material.id || '').startsWith('mat_')) {
+            window.ICADEMResourceViewer.open({ kind:'material', id:material.id, title:material.titulo, subtitle:`Materiales ICADEM · ${material.categoria || 'Recurso profesional'}` });
+            return;
+          }
+          _openRedeemedMaterial(material,index); return;
+        }
         const cost = Number(material.costo) || 0;
         const modalKey = String(material.id).replace(/[^a-z0-9_-]/gi,'-');
         const modalId = `material-redeem-${modalKey}`;
