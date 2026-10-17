@@ -1899,6 +1899,15 @@ const Pages={
           creadoPor: window.__currentAdmin?.email || 'admin'
         });
         Toast.success('¡Notificación enviada!', 'Aparecerá en la campanita de todos los miembros VIP');
+        // Al instante también llega como notificación al teléfono de quien activó los avisos
+        (async () => {
+          try {
+            const token = await Pages._getAuthToken();
+            const r = await fetch(Pages._webhookUrl + '/admin/push/broadcast', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token }, body: JSON.stringify({ title: titulo, body: descripcion }) });
+            const j = await r.json().catch(() => ({}));
+            if (r.ok && j.sent) Toast.info('También llegó a los teléfonos', `${j.sent} dispositivo(s) con avisos activos`);
+          } catch (e) { /* la campanita ya quedó publicada */ }
+        })();
         // Limpiar form
         inputTitulo.value = '';
         inputDesc.value = '';
@@ -6242,7 +6251,7 @@ if (window.__currentAdmin) {
 </script>
 
 <script src="js/icadem-admin-metrics.js?v=2" defer></script>
-<script src="js/icadem-admin-marketing.js?v=2" defer></script>
+<script src="js/icadem-admin-marketing.js?v=3" defer></script>
 <script>
 // ── Marketing (patrón Alintecfood): Encuestas, Métricas y Correos ──
 (function(){

@@ -119,8 +119,8 @@
     })();
   }
 
-  document.addEventListener('icadem:user-ready', function () { setTimeout(revisar, 15000); });
-  if (window.__currentUser) setTimeout(revisar, 15000);
+  document.addEventListener('icadem:user-ready', function () { setTimeout(revisar, 6000); });
+  if (window.__currentUser) setTimeout(revisar, 6000);
 
   window.ICADEMPush = { activar: activar, soportado: soportado };
 })();

@@ -100,7 +100,7 @@
       body.innerHTML = '<section class="mk-campaign ' + (active ? 'is-active' : '') + '"><div><span class="mx-kicker">Estado de la automatización</span><h2>' + (active ? 'Campaña activa' : 'Campaña apagada') + '</h2><p>' + (active ? 'Solo entran cuentas creadas desde ' + when(data.startedAtMs) + '. El cron revisa cada 15 minutos.' : 'Puedes probar cada mensaje. No se enviará nada automáticamente hasta que la actives.') + '</p></div><button type="button" class="btn ' + (active ? 'btn--ghost' : 'btn--primary') + '" data-email-mode="' + (active ? 'off' : 'active') + '">' + (active ? 'Pausar campaña' : 'Activar campaña') + '</button></section>' +
         '<div class="mx-cards"><article class="mx-card"><span class="mx-card__label">En seguimiento</span><strong class="mx-card__value">' + num(counts.receiving) + '</strong><span class="mx-card__sub">cuentas elegibles</span></article><article class="mx-card"><span class="mx-card__label">Contactadas</span><strong class="mx-card__value">' + num(counts.sent) + '</strong><span class="mx-card__sub">al menos un correo</span></article><article class="mx-card"><span class="mx-card__label">Se volvieron VIP</span><strong class="mx-card__value">' + num(counts.converted) + '</strong><span class="mx-card__sub">después de la serie</span></article><article class="mx-card"><span class="mx-card__label">Bajas</span><strong class="mx-card__value">' + num(counts.unsubscribed) + '</strong><span class="mx-card__sub">no reciben más mensajes</span></article></div>' +
         '<section class="mx-panel"><div class="mx-panel__head"><div><span class="mx-kicker">Secuencia aprobable</span><h3>12 h → 12 h → 24 h</h3></div></div><div class="mk-timeline"><article><b>01</b><div><strong>Beneficios VIP</strong><span>12 horas después del registro · sin cupón</span></div></article><article><b>02</b><div><strong>Precio especial</strong><span>12 horas después · código personal de un uso</span></div></article><article><b>03</b><div><strong>Último llamado</strong><span>24 horas después · mejor condición de la serie</span></div></article></div></section>' +
-        '<section class="mx-panel"><div class="mx-panel__head"><div><span class="mx-kicker">Demostración</span><h3>Enviar un correo de prueba ahora</h3></div></div><p class="mx-muted">La prueba no cambia el estado de la cuenta. Los pasos 2 y 3 crean un cupón real de Stripe, de un uso y válido por 24 horas.</p><div class="mk-test"><label>Cuenta<select data-test-member>' + memberOptions() + '</select></label><label>Mensaje<select data-test-step><option value="1">1 · Beneficios</option><option value="2">2 · Precio especial</option><option value="3">3 · Último llamado</option></select></label><button type="button" class="btn btn--primary" data-send-test>Enviar prueba</button></div><p class="mx-muted" style="margin-top:12px">Cada correo también llega como <b>notificación al teléfono</b> de quien activó los avisos en su panel. Para verlo tú: abre tu panel VIP en el teléfono, acepta "Activar avisos" y toca aquí.</p><div class="mk-test"><button type="button" class="btn btn--ghost" data-push-test>🔔 Probar notificación en mi teléfono</button></div></section>' +
+        '<section class="mx-panel"><div class="mx-panel__head"><div><span class="mx-kicker">Demostración</span><h3>Enviar un correo de prueba ahora</h3></div></div><p class="mx-muted">La prueba no cambia el estado de la cuenta. Los pasos 2 y 3 crean un cupón real de Stripe, de un uso y válido por 24 horas.</p><label class="mk-search" style="display:block;margin:12px 0 10px">Buscar cuenta<input type="search" data-test-search placeholder="Escribe nombre o correo…" autocomplete="off" style="display:block;width:100%;margin-top:6px;padding:11px 13px;border-radius:11px;border:1px solid var(--border-2);background:var(--surface-2);color:var(--text);font:500 13.5px Inter,sans-serif"><small data-test-count style="display:block;margin-top:5px;color:var(--text-3)"></small></label><div class="mk-test"><label>Cuenta<select data-test-member>' + memberOptions() + '</select></label><label>Mensaje<select data-test-step><option value="1">1 · Beneficios</option><option value="2">2 · Precio especial</option><option value="3">3 · Último llamado</option></select></label><button type="button" class="btn btn--primary" data-send-test>Enviar prueba</button></div><p class="mx-muted" style="margin-top:12px">Cada correo también llega como <b>notificación al teléfono</b> de quien activó los avisos en su panel. Para verlo tú: abre tu panel VIP en el teléfono, acepta "Activar avisos" y toca aquí.</p><div class="mk-test"><button type="button" class="btn btn--ghost" data-push-test>🔔 Probar notificación en mi teléfono</button><span class="mx-muted" data-push-stats></span></div><div data-test-result></div></section>' +
         '<div class="mx-two"><section class="mx-panel"><div class="mx-panel__head"><div><span class="mx-kicker">Cola</span><h3>Próximos envíos</h3></div><button class="mx-btn" data-run-due>Revisar ahora</button></div>' + list(upcoming, 'dueMs') + '</section><section class="mx-panel"><div class="mx-panel__head"><div><span class="mx-kicker">Historial</span><h3>Últimos envíos</h3></div></div>' + list(latest, 'sentMs') + '</section></div>';
       bindEmailActions(data);
     }
@@ -126,10 +126,35 @@
         testButton.disabled = true; testButton.textContent = 'Enviando…';
         try {
           var result = await api(options, '/admin/conversion-emails/test', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid, step: step }) });
-          window.Toast && Toast.success('Correo de prueba enviado', result.code ? 'Código: ' + result.code : 'Mensaje 1 sin cupón');
+          var p = result.push;
+          var aviso = !uid ? 'La notificación al teléfono solo se manda a cuentas de miembros (elige una en la lista).'
+            : (p && p.sent ? 'Notificación entregada a ' + num(p.sent) + ' teléfono(s) de esa cuenta.'
+            : 'Esa cuenta todavía no activó los avisos en su teléfono, por eso no le llega notificación.');
+          window.Toast && Toast.success('Correo de prueba enviado', 'A ' + (result.to || 'la cuenta elegida') + (result.code ? ' · código ' + result.code : ''));
+          var box = container.querySelector('[data-test-result]');
+          if (box) box.innerHTML = '<div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);font-size:12.5px;line-height:1.6;color:var(--text-2)"><b style="color:var(--text)">✓ Correo enviado al instante</b> a ' + esc(result.to || '') + (result.code ? ' · código <b>' + esc(result.code) + '</b>' : '') + '<br>Asunto: “[PRUEBA] …”. Si no aparece en la bandeja principal, revisa <b>Promociones</b> o <b>Spam</b>.<br>' + esc(aviso) + '</div>';
         } catch (error) { window.Toast && Toast.error('No se pudo enviar', error.message); }
         finally { testButton.disabled = false; testButton.textContent = 'Enviar prueba'; }
       });
+      // Buscador de cuentas para la prueba
+      var search = container.querySelector('[data-test-search]');
+      var select = container.querySelector('[data-test-member]');
+      var counter = container.querySelector('[data-test-count]');
+      if (search && select) {
+        var todas = Array.prototype.slice.call(select.options).map(function (o) { return { value: o.value, text: o.textContent }; });
+        var norm = function (t) { return String(t || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
+        search.addEventListener('input', function () {
+          var q = norm(search.value.trim());
+          var lista = todas.filter(function (o, i) { return i === 0 || !q || norm(o.text).indexOf(q) !== -1; });
+          select.innerHTML = lista.map(function (o) { return '<option value="' + esc(o.value) + '">' + esc(o.text) + '</option>'; }).join('');
+          if (q && lista.length > 1) select.selectedIndex = 1;
+          if (counter) counter.textContent = q ? (lista.length - 1) + ' cuenta(s) encontrada(s)' : '';
+        });
+      }
+      api(options, '/admin/push/stats').then(function (r) {
+        var el = container.querySelector('[data-push-stats]');
+        if (el) el.textContent = num(r.members) + ' miembro(s) con avisos activos en ' + num(r.devices) + ' dispositivo(s)';
+      }).catch(function () {});
       var pushButton = container.querySelector('[data-push-test]');
       if (pushButton) pushButton.addEventListener('click', async function () {
         pushButton.disabled = true;
