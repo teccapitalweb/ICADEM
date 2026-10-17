@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-10-16 — Notificaciones push en el teléfono
+
+**Archivos:** `vip-panel.html`, `vip-admin.html`, `sw.js`, `js/icadem-push.js` (nuevo), `js/icadem-admin-marketing.js`
+
+- El panel ofrece "Activar avisos". Quien acepta recibe en la bandeja del teléfono (o de la computadora) los mensajes de la campaña de correos VIP y los créditos de regalo, aunque no tenga el panel abierto.
+- En iPhone se pide primero agregar ICADEM a la pantalla de inicio (requisito de Apple).
+- Admin · Correos: botón "Probar notificación en mi teléfono".
+
 ## 2026-10-16 — Lector en el panel y créditos de regalo
 
 **Archivos:** `vip-panel.html`, `vip-admin.html`, `sw.js`, `js/icadem-platform-v2.js`, `js/icadem-resource-viewer.js` (nuevo)
