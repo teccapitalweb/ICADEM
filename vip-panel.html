@@ -7603,13 +7603,13 @@ const Sections = (function(){
   // Producción usa el catálogo y la validación autoritativa del backend.
   // ═══════════════════════════════════════════════════════════════════
   const MATERIAL_FALLBACK_COVERS = [
-    'https://icadembooks.b-cdn.net/materials/covers/catalogo-cuentas-sat.webp',
-    'https://icadembooks.b-cdn.net/materials/covers/manual-auxiliar-contable.webp',
-    'https://icadembooks.b-cdn.net/materials/covers/plantilla-polizas.webp',
-    'https://icadembooks.b-cdn.net/materials/covers/kit-compras.webp',
-    'https://icadembooks.b-cdn.net/materials/covers/cuotas-imss-2026.webp',
-    'https://icadembooks.b-cdn.net/materials/covers/guia-auxiliar-contable.webp',
-    'https://icadembooks.b-cdn.net/materials/covers/fundamentos-auxiliar-contable.webp'
+    'assets/materiales/covers/catalogo-cuentas-sat.webp',
+    'assets/materiales/covers/manual-auxiliar-contable.webp',
+    'assets/materiales/covers/plantilla-polizas.webp',
+    'assets/materiales/covers/kit-compras.webp',
+    'assets/materiales/covers/cuotas-imss-2026.webp',
+    'assets/materiales/covers/guia-auxiliar-contable.webp',
+    'assets/materiales/covers/fundamentos-auxiliar-contable.webp'
   ];
   let MATERIALES_CATALOG = [
     { id:'mat_catalogo_cuentas_sat', titulo:'Catálogo de cuentas SAT para auxiliares', descripcion:'Consulta y organiza las cuentas contables con una referencia práctica preparada para el trabajo diario.', categoria:'Fiscal', cursoTitulo:'Recursos profesionales ICADEM', formato:'document', costo:100, portada:MATERIAL_FALLBACK_COVERS[0], fileUrl:'' },
@@ -7647,7 +7647,10 @@ const Sections = (function(){
 
   function _materialCover(material,index){
     const fallback = MATERIAL_FALLBACK_COVERS[index % MATERIAL_FALLBACK_COVERS.length];
-    const supplied = String(material.portada || material.coverUrl || '').trim();
+    let supplied = String(material.portada || material.coverUrl || '').trim();
+    // Las portadas de Materiales viven en el sitio (assets/materiales/covers); las direcciones antiguas del CDN se redirigen aquí
+    const local = supplied.match(/^https:\/\/icadembooks\.b-cdn\.net\/materials\/covers\/([a-z0-9-]+\.webp)$/i);
+    if (local) supplied = 'assets/materiales/covers/' + local[1];
     return /^(https:\/\/|\/(?!\/)|\.\/|assets\/)/i.test(supplied) ? supplied : fallback;
   }
 
