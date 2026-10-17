@@ -1819,6 +1819,7 @@
       <span class="cc-kicker">${esc(options?.title || '¡Créditos ganados!')}</span>
       <strong class="cc-amount">+<b data-cc-count>0</b> créditos</strong>
       <span class="cc-total">Se sumaron a tu saldo${Number.isFinite(total) ? ` · Total <b>${total.toLocaleString('es-MX')}</b>` : ''}</span>
+      ${options?.note ? `<span class="cc-total" style="display:block;margin-top:6px;font-style:italic;opacity:.92">“${esc(options.note)}”</span>` : ''}
       <small class="cc-hint">Toca para continuar</small>
     </div>`;
     document.body.appendChild(overlay);
@@ -1833,9 +1834,38 @@
     let closed = false;
     const close = () => { if (closed) return; closed = true; overlay.classList.add('is-closing'); setTimeout(() => overlay.remove(), 380); };
     overlay.addEventListener('click', close);
-    setTimeout(close, 3800);
+    setTimeout(close, options?.note ? 6500 : 3800);
   }
   window.ICADEMCoinChest = { show: showCoinChest };
+
+  // Créditos que el equipo ICADEM regaló o vendió desde el admin: el servidor
+  // deja un aviso y aquí se muestra el cofre con el monto, una sola vez.
+  let creditGiftsChecking = false;
+  async function checkCreditGifts() {
+    if (window.__isDemoMode || !window.__currentUser || creditGiftsChecking) return;
+    creditGiftsChecking = true;
+    try {
+      const data = await request('/api/credits/notifications');
+      const items = Array.isArray(data?.items) ? data.items.filter(item => Number(item.amount) > 0) : [];
+      if (!items.length) return;
+      const total = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+      const last = items[items.length - 1];
+      const purchase = items.every(item => item.kind === 'purchase');
+      const note = items.length === 1 && last.note ? last.note : '';
+      // Espera a que no haya otra ventana encima (bienvenida, recorrido, etc.)
+      for (let i = 0; i < 20 && document.querySelector('.modal-backdrop.is-open, .cc-overlay, .rv'); i++) await new Promise(r => setTimeout(r, 1000));
+      showCoinChest({ amount: total, total: Number(last.balanceAfter), title: purchase ? '¡Compra acreditada!' : '¡Te regalaron créditos!', note });
+      await request('/api/credits/notifications/read', { method: 'POST', body: { ids: items.map(item => item.id) } }).catch(() => {});
+      loadCreditWallet(true).catch(() => {});
+    } catch (_) {
+      // Sin aviso: se vuelve a intentar en la siguiente visita
+    } finally {
+      creditGiftsChecking = false;
+    }
+  }
+  document.addEventListener('icadem:user-ready', () => setTimeout(checkCreditGifts, 2500));
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(checkCreditGifts, 800); });
+  if (window.__currentUser) setTimeout(checkCreditGifts, 2500);
 
   function celebrate(big) {
     if (REDUCED_MOTION?.matches) return;

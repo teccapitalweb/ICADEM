@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-10-16 — Lector en el panel y créditos de regalo
+
+**Archivos:** `vip-panel.html`, `vip-admin.html`, `sw.js`, `js/icadem-platform-v2.js`, `js/icadem-resource-viewer.js` (nuevo)
+
+- Libros y Materiales canjeados se abren dentro del panel: PDF con lector propio (zoom, pantalla completa y última página leída) y Word/Excel/PowerPoint con el visor de Office. El archivo llega por un enlace temporal firmado.
+- Admin · Miembros → Acciones → "Dar créditos": regalo o venta con mensaje opcional; al miembro le aparece el cofre con el monto la próxima vez que abre su panel.
+
 ## 2026-10-16 — Marketing al estilo Alintec (como SYNOVA e IMFRA)
 
 **Archivos:** `index.html`, `vip-admin.html`, `vip-auth.html`, `vip-panel.html`, `privacidad.html`, `verificar.html`, `sw.js`, `assistant/icadem-assistant.js`, `js/icadem-admin-metrics.js`, `js/icadem-visitas.js` (nuevo), `js/icadem-encuesta.js` (nuevo), `js/icadem-admin-marketing-v2.js` (nuevo), `css/icadem-encuesta.css` (nuevo), `assets/img/encuesta/*` (nuevo)

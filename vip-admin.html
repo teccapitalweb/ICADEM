@@ -4590,6 +4590,16 @@ const Pages={
           </button>
         `}
 
+        <!-- ─── CRÉDITOS · regalar o vender (al miembro le aparece el cofre) ─── -->
+        <button class="mb-action-btn" data-act="creditos" style="--c:#E3A62A;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><circle cx="12" cy="12" r="9"/><path d="M14.5 9.5a3 3 0 1 0 0 5"/></svg>
+          <div class="mb-action-btn__body">
+            <div class="mb-action-btn__title">Dar créditos</div>
+            <div class="mb-action-btn__sub">Regálalos o regístralos como venta · le aparece el cofre con el monto</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+
         <!-- ─── ELIMINAR · siempre disponible ─── -->
         <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border-2);"></div>
 
@@ -4695,8 +4705,102 @@ const Pages={
     });
   },
 
+
+  // ═══ Dar créditos (regalo o venta) · al miembro le aparece el cofre con el monto ═══
+  _modalCreditos(m) {
+    const uid = m.uid || m.id;
+    const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    const nombre = esc(m.nombre || m.displayName || (m.email || '').split('@')[0] || 'Miembro');
+    const body = document.createElement('div');
+    body.innerHTML = `
+      <style>
+        .cr-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);margin-bottom:16px}
+        .cr-head strong{display:block;font-size:14.5px;color:var(--text)}.cr-head small{color:var(--text-3);font-size:12px}
+        .cr-bal{text-align:right}.cr-bal b{display:block;font:800 20px 'Plus Jakarta Sans',sans-serif;color:#E3A62A}.cr-bal span{font-size:11px;color:var(--text-3)}
+        .cr-seg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+        .cr-seg button{padding:12px;border-radius:12px;border:1px solid var(--border-2);background:var(--surface-2);color:var(--text-2);font:700 13px Inter,sans-serif;cursor:pointer;text-align:left}
+        .cr-seg button small{display:block;font-weight:500;font-size:11.5px;color:var(--text-3);margin-top:3px}
+        .cr-seg button.on{border-color:#E3A62A;background:color-mix(in srgb,#E3A62A 12%,var(--surface-2));color:var(--text)}
+        .cr-chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 14px}
+        .cr-chips button{padding:7px 12px;border-radius:999px;border:1px solid var(--border-2);background:transparent;color:var(--text-2);font:700 12px Inter,sans-serif;cursor:pointer}
+        .cr-chips button.on{background:#E3A62A;border-color:#E3A62A;color:#1a1204}
+        .cr-hist{margin-top:16px;border-top:1px dashed var(--border-2);padding-top:12px;font-size:12px;color:var(--text-3)}
+        .cr-hist li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)}
+        .cr-hist ul{list-style:none;margin:6px 0 0;padding:0;max-height:150px;overflow:auto}
+      </style>
+      <div class="cr-head"><div><strong>${nombre}</strong><small>${esc(m.email || uid)}</small></div><div class="cr-bal"><b data-cr-bal>—</b><span>créditos actuales</span></div></div>
+      <div class="cr-seg" role="group" aria-label="Tipo de entrega">
+        <button type="button" class="on" data-cr-tipo="regalo">🎁 Regalar<small>Cortesía del equipo, sin costo</small></button>
+        <button type="button" data-cr-tipo="venta">💳 Venta<small>Los pagó por fuera (transferencia, efectivo…)</small></button>
+      </div>
+      <div class="form-field form-field--full"><label class="label" for="cr-monto">Créditos a entregar</label>
+        <input type="number" min="1" max="100000" step="1" class="input" id="cr-monto" placeholder="Ej. 100" inputmode="numeric"></div>
+      <div class="cr-chips">${[50, 100, 200, 300, 500, 1000].map(n => `<button type="button" data-cr-chip="${n}">${n}</button>`).join('')}</div>
+      <div class="form-field form-field--full" data-cr-precio-wrap hidden><label class="label" for="cr-precio">Monto cobrado (MXN, solo para tu registro)</label>
+        <input type="number" min="0" step="0.01" class="input" id="cr-precio" placeholder="Ej. 199"></div>
+      <div class="form-field form-field--full" style="margin-top:10px"><label class="label" for="cr-nota">Mensaje para el miembro (opcional)</label>
+        <input type="text" maxlength="200" class="input" id="cr-nota" placeholder="Ej. Gracias por participar en el webinar"></div>
+      <p style="font-size:11.5px;color:var(--text-3);margin:10px 0 0;line-height:1.5">Los créditos se suman al instante. La próxima vez que abra su panel le aparecerá el cofre con el monto y tu mensaje.</p>
+      <div class="cr-hist" data-cr-hist>Cargando movimientos…</div>`;
+    const footer = document.createElement('div');
+    footer.innerHTML = `<button class="btn btn--ghost" id="cr-cancel">Cancelar</button><button class="btn btn--accent" id="cr-ok" style="background:#E3A62A;border-color:#E3A62A;color:#1a1204">Entregar créditos</button>`;
+    Modal.open({ title: 'Dar créditos', subtitle: 'Regalo o venta de créditos ICADEM', icon: 'i-dollar', body, footer });
+    let tipo = 'regalo';
+    const monto = body.querySelector('#cr-monto');
+    body.querySelectorAll('[data-cr-tipo]').forEach(b => b.addEventListener('click', () => {
+      tipo = b.dataset.crTipo;
+      body.querySelectorAll('[data-cr-tipo]').forEach(x => x.classList.toggle('on', x === b));
+      body.querySelector('[data-cr-precio-wrap]').hidden = tipo !== 'venta';
+    }));
+    body.querySelectorAll('[data-cr-chip]').forEach(b => b.addEventListener('click', () => {
+      monto.value = b.dataset.crChip;
+      body.querySelectorAll('[data-cr-chip]').forEach(x => x.classList.toggle('on', x === b));
+    }));
+    monto.addEventListener('input', () => body.querySelectorAll('[data-cr-chip]').forEach(x => x.classList.toggle('on', x.dataset.crChip === monto.value)));
+    footer.querySelector('#cr-cancel').addEventListener('click', () => Modal.close());
+    const etiqueta = { 'admin-gift': 'Regalo del equipo', 'admin-sale': 'Venta registrada', 'welcome-bonus': 'Bienvenida', 'lesson-game': 'Juego de clase', 'reto-game': 'Reto', 'library-redemption': 'Canje de libro', 'material-redemption': 'Canje de material' };
+    const cargar = async () => {
+      try {
+        const token = await Pages._getAuthToken();
+        const r = await fetch(Pages._webhookUrl + '/admin/creditos/' + encodeURIComponent(uid), { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || 'No se pudo leer el saldo');
+        body.querySelector('[data-cr-bal]').textContent = Number(j.balance || 0).toLocaleString('es-MX');
+        const mov = Array.isArray(j.movimientos) ? j.movimientos : [];
+        body.querySelector('[data-cr-hist]').innerHTML = mov.length
+          ? '<b style="color:var(--text-2)">Últimos movimientos</b><ul>' + mov.map(x => `<li><span>${esc(etiqueta[x.type] || x.type || 'Movimiento')}${x.nota ? ' · ' + esc(x.nota) : ''}</span><b style="color:${x.amount < 0 ? '#F87171' : '#34D399'}">${x.amount > 0 ? '+' : ''}${x.amount}</b></li>`).join('') + '</ul>'
+          : 'Todavía no tiene movimientos de créditos.';
+      } catch (e) {
+        body.querySelector('[data-cr-hist]').textContent = 'No se pudo cargar el historial (' + e.message + ').';
+      }
+    };
+    cargar();
+    footer.querySelector('#cr-ok').addEventListener('click', async () => {
+      const cantidad = Math.floor(Number(monto.value));
+      if (!cantidad || cantidad < 1) { Toast.error('Falta la cantidad', 'Escribe cuántos créditos vas a entregar'); monto.focus(); return; }
+      const ok = footer.querySelector('#cr-ok');
+      ok.disabled = true; ok.textContent = 'Entregando…';
+      try {
+        const token = await Pages._getAuthToken();
+        const r = await fetch(Pages._webhookUrl + '/admin/creditos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+          body: JSON.stringify({ uid, amount: cantidad, tipo, precio: Number(body.querySelector('#cr-precio').value) || 0, nota: body.querySelector('#cr-nota').value })
+        });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || j.ok === false) throw new Error(j.error || 'No se pudieron entregar los créditos');
+        Modal.close();
+        Toast.success(tipo === 'venta' ? '¡Venta registrada!' : '¡Créditos regalados!', `${nombre.replace(/&[^;]+;/g, '')} recibió +${j.amount} créditos · saldo ${Number(j.balance).toLocaleString('es-MX')}`);
+      } catch (e) {
+        Toast.error('No se pudo entregar', e.message);
+        ok.disabled = false; ok.textContent = 'Entregar créditos';
+      }
+    });
+  },
+
   // Ejecutar la acción específica · cada una abre su modal de confirmación
   _ejecutarAccion(m, accion) {
+    if (accion === 'creditos') return Pages._modalCreditos(m);
     if (accion === 'activar-mensual') return Pages._modalActivar(m, 'mensual', 30);
     if (accion === 'activar-anual')   return Pages._modalActivar(m, 'anual', 365);
     if (accion === 'regalar')         return Pages._modalRegalar(m);

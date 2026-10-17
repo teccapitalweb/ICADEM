@@ -24,7 +24,8 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=3" defer></script>
-<script src="js/icadem-platform-v2.js?v=43" defer></script>
+<script src="js/icadem-platform-v2.js?v=44" defer></script>
+<script src="js/icadem-resource-viewer.js?v=1" defer></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -7448,9 +7449,12 @@ const Sections = (function(){
     const cover = book.coverUrl
       ? `<div class="library-reader__cover" style="--book-color:${htmlEsc(book.color)};--book-accent:${htmlEsc(book.accent)}"><img src="${htmlEsc(book.coverUrl)}" alt="Portada de ${htmlEsc(book.titulo)}"></div>`
       : `<div class="library-reader__cover library-reader__cover--fallback" style="--book-color:${htmlEsc(book.color)};--book-accent:${htmlEsc(book.accent)}"><div><svg class="ic"><use href="#${htmlEsc(book.icon)}"/></svg><span>ICADEM</span><strong>${htmlEsc(book.titulo)}</strong></div></div>`;
-    const openAction = book.fileUrl
-      ? `<a class="btn btn--accent" href="${htmlEsc(book.fileUrl)}" target="_blank" rel="noopener"><svg class="ic"><use href="#i-book"/></svg>Abrir libro en PDF</a>`
-      : `<button class="btn btn--accent" type="button" disabled>Archivo en sincronización</button>`;
+    // El libro se lee dentro del panel (lector ICADEM); en la demo se abre el PDF directo
+    const openAction = !window.__isDemoMode
+      ? `<button class="btn btn--accent" type="button" data-resource-open="book"><svg class="ic"><use href="#i-book"/></svg>Leer libro</button>`
+      : book.fileUrl
+        ? `<a class="btn btn--accent" href="${htmlEsc(book.fileUrl)}" target="_blank" rel="noopener"><svg class="ic"><use href="#i-book"/></svg>Abrir libro en PDF</a>`
+        : `<button class="btn btn--accent" type="button" disabled>Archivo en sincronización</button>`;
     Modal.open({
       id:`library-read-${book.id}`,
       title:book.titulo,
@@ -7462,6 +7466,10 @@ const Sections = (function(){
         <div class="library-reader__copy"><span class="library-reader__eyebrow">Referencia profesional ICADEM</span><h3>Tu libro ya está disponible</h3><p>${htmlEsc(book.descripcion)}</p><ol>${(book.capitulos||[]).map((item,index)=>`<li><b>0${index+1}</b><span>${htmlEsc(item)}</span></li>`).join('')}</ol><div class="library-reader__availability"><svg class="ic"><use href="#i-check"/></svg>Libro completo en PDF vinculado a tu cuenta.</div><small>Podrás volver a abrir esta referencia desde tu biblioteca sin hacer otro canje.</small></div>
       </div>`,
       footer:`<button class="btn btn--ghost" onclick="Modal.close('library-read-${book.id}')">Cerrar</button>${openAction}`
+    });
+    document.querySelector(`[data-modal-id="library-read-${book.id}"] [data-resource-open]`)?.addEventListener('click',()=>{
+      Modal.close(`library-read-${book.id}`);
+      window.ICADEMResourceViewer?.open({ kind:'book', id:book.id, title:book.titulo, subtitle:`Biblioteca ICADEM · ${book.categoria}` });
     });
   }
 
@@ -7712,7 +7720,10 @@ const Sections = (function(){
     const contentMarkup = _materialContentMarkup(material,htmlEsc);
     const printableDocument = contentMarkup ? _materialPrintableDocument(material,contentMarkup) : '';
     const safeFileUrl = /^(https:\/\/|\/(?!\/)|\.\/|assets\/)/i.test(String(material.fileUrl || '').trim()) ? String(material.fileUrl).trim() : '';
-    const openAction = safeFileUrl
+    // Fuera de la demo, todo material del catálogo se ve dentro del panel (lector ICADEM)
+    const openAction = (!window.__isDemoMode && String(material.id || '').startsWith('mat_'))
+      ? `<button class="btn btn--accent" type="button" data-resource-open="material"><svg class="ic"><use href="#i-folder"/></svg>Ver material</button>`
+      : safeFileUrl
       ? `<a class="btn btn--accent" href="${htmlEsc(safeFileUrl)}" target="_blank" rel="noopener noreferrer"><svg class="ic"><use href="#i-download"/></svg>Abrir material</a>`
       : contentMarkup
         ? `<button class="btn btn--ghost" type="button" data-material-save><svg class="ic"><use href="#i-download"/></svg>Guardar archivo</button><button class="btn btn--accent" type="button" data-material-print>Imprimir o guardar PDF</button>`
@@ -7728,6 +7739,10 @@ const Sections = (function(){
     });
     const modalRoot = document.querySelector(`[data-modal-id="material-read-${modalKey}"]`);
     modalRoot?.querySelector('.modal__footer')?.classList.add('material-reader__footer');
+    modalRoot?.querySelector('[data-resource-open]')?.addEventListener('click',()=>{
+      Modal.close(`material-read-${modalKey}`);
+      window.ICADEMResourceViewer?.open({ kind:'material', id:material.id, title:material.titulo, subtitle:`Materiales ICADEM · ${material.categoria || 'Recurso profesional'}` });
+    });
     const image = modalRoot?.querySelector('[data-material-reader-cover]');
     if (image) image.onerror = () => { image.onerror = null; image.src = image.dataset.fallback; };
     modalRoot?.querySelector('[data-material-print]')?.addEventListener('click',()=>{
