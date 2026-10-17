@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-10-16 — Pregunta de avisos e interruptor en Mi perfil
+
+**Archivos:** `vip-panel.html`, `sw.js`, `js/icadem-push.js`
+
+- Cada cuenta (existente o nueva) ve una vez la ventana "¿Quieres recibir avisos de ICADEM?" que solo se cierra con "Sí, activar" o "No, gracias".
+- Mi perfil → Notificaciones: interruptor "Avisos en este teléfono" para activarlos o quitarlos cuando quiera.
+
 ## 2026-10-16 — Notificaciones push en el teléfono
 
 **Archivos:** `vip-panel.html`, `vip-admin.html`, `sw.js`, `js/icadem-push.js` (nuevo), `js/icadem-admin-marketing.js`
