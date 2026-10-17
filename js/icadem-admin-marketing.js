@@ -133,7 +133,11 @@
           window.Toast && Toast.success('Correo de prueba enviado', 'A ' + (result.to || 'la cuenta elegida') + (result.code ? ' · código ' + result.code : ''));
           var box = container.querySelector('[data-test-result]');
           if (box) box.innerHTML = '<div style="margin-top:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface-2);font-size:12.5px;line-height:1.6;color:var(--text-2)"><b style="color:var(--text)">✓ Correo enviado al instante</b> a ' + esc(result.to || '') + (result.code ? ' · código <b>' + esc(result.code) + '</b>' : '') + '<br>Asunto: “[PRUEBA] …”. Si no aparece en la bandeja principal, revisa <b>Promociones</b> o <b>Spam</b>.<br>' + esc(aviso) + '</div>';
-        } catch (error) { window.Toast && Toast.error('No se pudo enviar', error.message); }
+        } catch (error) {
+          window.Toast && Toast.error('No se pudo enviar', error.message);
+          var caja = container.querySelector('[data-test-result]');
+          if (caja) caja.innerHTML = '<div style="margin-top:12px;padding:12px 14px;border:1px solid color-mix(in srgb,#EF4444 40%,transparent);border-radius:12px;background:color-mix(in srgb,#EF4444 8%,transparent);font-size:12.5px;line-height:1.6;color:var(--text-2)"><b style="color:#EF4444">✕ El correo no se envió.</b><br>' + esc(error.message) + '</div>';
+        }
         finally { testButton.disabled = false; testButton.textContent = 'Enviar prueba'; }
       });
       // Buscador de cuentas para la prueba
@@ -174,6 +178,25 @@
           refrescar();
           if (todas.length > 1) clearInterval(espera);
         }, 1000);
+      }
+      // Estado de avisos de la cuenta elegida
+      if (select && counter) {
+        var estadoCuenta = document.createElement('small');
+        estadoCuenta.setAttribute('data-test-device', '');
+        estadoCuenta.style.cssText = 'display:block;margin:-4px 0 8px;color:var(--text-3)';
+        select.closest('.mk-test').insertAdjacentElement('afterend', estadoCuenta);
+        var consultarCuenta = function () {
+          var u = select.value;
+          if (!u) { estadoCuenta.textContent = 'Elige una cuenta para ver si tiene avisos activos en su teléfono.'; return; }
+          estadoCuenta.textContent = 'Revisando avisos de esta cuenta…';
+          api(options, '/admin/push/stats?uid=' + encodeURIComponent(u)).then(function (r) {
+            if (select.value !== u) return;
+            estadoCuenta.innerHTML = r.devices ? '🔔 Esta cuenta tiene <b>' + num(r.devices) + '</b> dispositivo(s) con avisos activos' + (r.ultima ? ' · último registro ' + esc(when(r.ultima)) : '') + '.' : '🔕 Esta cuenta todavía no tiene avisos activos en ningún teléfono.';
+          }).catch(function () { estadoCuenta.textContent = ''; });
+        };
+        select.addEventListener('change', consultarCuenta);
+        search && search.addEventListener('input', function () { setTimeout(consultarCuenta, 50); });
+        consultarCuenta();
       }
       api(options, '/admin/push/stats').then(function (r) {
         var el = container.querySelector('[data-push-stats]');
