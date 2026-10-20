@@ -7415,8 +7415,9 @@ const Sections = (function(){
   }
 
   // ═══════════════════════════════════════════════════════════════════
-  // LIBROS · catálogo canjeable. Producción recibe el catálogo autoritativo
-  // del backend; esta copia permite que el modo demo conserve la experiencia.
+  // LIBROS · catálogo canjeable para toda cuenta con créditos. Producción
+  // recibe el catálogo autoritativo del backend; esta copia permite que el
+  // modo demo conserve la experiencia.
   // Diseño editorial inspirado en SYNOVA (biblioteca canjeable con créditos).
   // ═══════════════════════════════════════════════════════════════════
   let LIBROS_CATALOG = [
@@ -7556,10 +7557,6 @@ const Sections = (function(){
           // Ya es suyo: se abre directo en el lector del panel
           if (!demo && window.ICADEMResourceViewer) { window.ICADEMResourceViewer.open({ kind:'book', id:book.id, title:book.titulo, subtitle:`Biblioteca ICADEM · ${book.categoria}` }); return; }
           _openLibraryBook(book); return;
-        }
-        if (!demo && window.UserState?.modo !== 'vip' && !window.UserState?.isAdmin) {
-          Toast.info('Biblioteca VIP','Activa tu membresía para canjear referencias.');
-          return;
         }
         if (state.balance < book.costo) {
           Toast.info('Créditos insuficientes',`Necesitas ${book.costo - state.balance} créditos más para esta referencia.`);
