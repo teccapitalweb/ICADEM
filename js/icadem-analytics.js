@@ -72,6 +72,8 @@
   var currentSection = section();
   var currentItem = item();
   var cachedToken = '';
+  var firstBeat = true;
+  var sending = false;
 
   function warmToken(attempts) {
     if (area !== 'panel' || cachedToken) return;
@@ -89,14 +91,17 @@
     collect();
     var delta = Math.round(pending);
     if (delta < 1 && !final) return;
+    if (sending && !final) { pending += delta; return; }
     pending = 0;
     var body = JSON.stringify({
       sid: sessionId(), vid: stored(localStorage, 'icadem:analytics:vid'), area: area,
       section: currentSection, item: currentItem, delta: delta,
-      ref: touch.ref, utm: touch.utm, camp: touch.camp, pwa: pwa, touch: touchScreen
+      ref: touch.ref, utm: touch.utm, camp: touch.camp, pwa: pwa, touch: touchScreen,
+      first: firstBeat
     });
     var url = (window.WEBHOOK_URL || API) + '/analytics/beat';
     try {
+      sending = !final;
       var token = '';
       if (area === 'panel') {
         if (!final && window.__currentUser && window.__currentUser.getIdToken) {
@@ -109,7 +114,9 @@
         method: 'POST', keepalive: true, body: body,
         headers: token ? { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token } : { 'Content-Type': 'text/plain' }
       });
-    } catch (_) { /* una señal perdida no afecta al usuario */ }
+      firstBeat = false;
+    } catch (_) { pending += delta; /* una señal perdida no afecta al usuario */ }
+    finally { sending = false; }
   }
   function move() {
     if (area !== 'panel') return;
@@ -128,7 +135,9 @@
   if (!LOCAL || window.__ICADEM_ANALYTICS_TEST) {
     warmToken(40);
     setTimeout(function () { currentItem = item(); void send(false); }, 4000);
-    setInterval(function () { if (document.visibilityState === 'visible') void send(false); }, 60000);
+    // Diez minutos conservan una medición útil sin consumir una lectura y una
+    // escritura por minuto por cada pestaña abierta.
+    setInterval(function () { if (document.visibilityState === 'visible') void send(false); }, 600000);
     document.addEventListener('visibilitychange', function () {
       if (document.visibilityState === 'hidden') { void send(true); }
       else visibleSince = performance.now();

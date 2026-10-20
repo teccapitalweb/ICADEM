@@ -21,5 +21,9 @@ assert.ok(metrics.includes('data-mk-go="encuestas"') && metrics.includes('data-m
 assert.ok(panel.includes('promotionCode: offerCode || undefined'));
 assert.ok(panel.includes('se aplicará automáticamente al pago'));
 assert.ok(!analytics.includes('/api/trial/activity') && !analytics.includes('sendTrialActivity'));
+assert.ok(analytics.includes('600000'), 'la analítica debe usar pulsos espaciados para proteger la cuota');
+assert.ok(analytics.includes('first: firstBeat'), 'la analítica debe identificar el primer pulso sin leer Firestore');
+assert.ok(admin.includes('data-mb-creditos="pendientes"') && admin.includes('data-mb-creditos="entregados"'));
+assert.ok(admin.includes('Historial de créditos entregados') && admin.includes('Historial de accesos regalados'));
 
-console.log('OK: Marketing tiene Encuestas, Métricas y Correos; la campaña antigua ya no recibe actividad.');
+console.log('OK: Marketing y el historial de regalos están completos; la analítica protege la cuota.');
