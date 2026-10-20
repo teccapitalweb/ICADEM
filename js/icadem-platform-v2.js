@@ -275,7 +275,25 @@
 
   async function loadDirectory(filters) {
     const params = new URLSearchParams({ pageSize: '100', ...(filters || {}) });
-    return request(`/api/directory?${params}`);
+    const path = `/api/directory?${params}`;
+    try {
+      return await request(path);
+    } catch (error) {
+      if (error.status !== 401 || window.__isDemoMode) throw error;
+
+      // El directorio puede renderizarse antes de que Firebase restaure la
+      // sesión persistida. Esperamos esa restauración y renovamos el token una
+      // sola vez; así no se muestra un falso error ni se crea un bucle.
+      const deadline = Date.now() + 6000;
+      let user = window.__auth?.currentUser || window.__currentUser;
+      while (!user && Date.now() < deadline) {
+        await new Promise(resolve => setTimeout(resolve, 200));
+        user = window.__auth?.currentUser || window.__currentUser;
+      }
+      if (!user) throw error;
+      await user.getIdToken(true);
+      return request(path);
+    }
   }
 
   async function loadRanking() {

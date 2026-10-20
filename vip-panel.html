@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=44" defer></script>
+<script src="js/icadem-platform-v2.js?v=45" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=3" defer></script>
 
@@ -10508,6 +10508,43 @@ const Sections = (function(){
   let _dirBusqueda = '';
   let _dirFotoTmp = undefined; // undefined=sin cambio, null=quitar, string=nueva
   let _dirCanViewContacts = false;
+  const DIR_SAFE_CACHE_KEY = 'icadem:directory-public-cache:v1';
+  const DIR_SAFE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+
+  function dirTarjetaCacheSegura(card){
+    const foto = String(card?.foto || '');
+    const fotoSegura = /^(?:https:\/\/|assets\/|\.\/|\/)/i.test(foto) ? foto : '';
+    return {
+      uid:card?.uid || card?.id || '', id:card?.uid || card?.id || '',
+      nombre:card?.nombre || 'Miembro ICADEM', foto:fotoSegura,
+      fotoOrigen:card?.fotoOrigen || '', iniciales:card?.iniciales || '',
+      profesion:card?.profesion || '', especialidad:card?.especialidad || '',
+      puesto:card?.puesto || '', empresa:card?.empresa || '',
+      institucion:card?.institucion || '', ubicacion:card?.ubicacion || '',
+      bio:card?.bio || '', sector:card?.sector || '',
+      intereses:Array.isArray(card?.intereses) ? card.intereses.slice(0,12) : [],
+      isVip:card?.isVip === true, plan:card?.plan || null,
+      portadaColor:card?.portadaColor || '#173b56',
+      portadaUrl:/^(?:https:\/\/|assets\/|\.\/|\/)/i.test(String(card?.portadaUrl || '')) ? card.portadaUrl : '',
+      verificado:card?.verificado === true, perfilCompleto:card?.perfilCompleto === true,
+      visible:card?.visible !== false, contactLocked:card?.hasPublicContact === true,
+      hasPublicContact:card?.hasPublicContact === true,
+      whatsapp:'', email:'', linkedin:'', instagram:'', web:''
+    };
+  }
+  function dirGuardarCacheSeguro(items){
+    try {
+      const tarjetas = (items || []).slice(0,100).map(dirTarjetaCacheSegura).filter(card=>card.uid && card.visible!==false);
+      localStorage.setItem(DIR_SAFE_CACHE_KEY, JSON.stringify({ at:Date.now(), items:tarjetas }));
+    } catch(e) { console.warn('[directorio cache]', e.message); }
+  }
+  function dirLeerCacheSeguro(){
+    try {
+      const cached = JSON.parse(localStorage.getItem(DIR_SAFE_CACHE_KEY) || 'null');
+      if (!cached?.at || Date.now()-cached.at > DIR_SAFE_CACHE_TTL_MS || !Array.isArray(cached.items)) return [];
+      return cached.items.map(dirTarjetaCacheSegura).filter(card=>card.uid && card.visible!==false);
+    } catch(e) { return []; }
+  }
 
   // Instagram: acepta @usuario o la URL del perfil; siempre abre el perfil.
   function dirInstagramPerfil(value){
@@ -10743,12 +10780,29 @@ const Sections = (function(){
         const response = await window.ICADEMPlatform.loadDirectory();
         _dirCanViewContacts = response?.canViewContacts === true;
         _dirCards = (response?.items || []).map(x=>({...x,id:x.id||x.uid}));
+        dirGuardarCacheSeguro(_dirCards);
         dirPintar();
+        if (response?.degraded) {
+          const count=document.getElementById('dir-result-count');
+          if(count) count.textContent += ' · última copia disponible';
+        }
         return;
       } catch (error) {
         console.warn('[directorio API]', error.message);
+        const cached = dirLeerCacheSeguro();
+        if (cached.length) {
+          _dirCanViewContacts = false;
+          _dirCards = cached;
+          dirPintar();
+          const count=document.getElementById('dir-result-count');
+          if(count) count.textContent += ' · copia reciente';
+          return;
+        }
         const g=document.getElementById('dir-results');
-        if(g) g.innerHTML='<div class="foro-empty">No se pudo cargar el directorio de forma segura. Revisa tu conexión e intenta de nuevo.</div>';
+        if(g) {
+          g.innerHTML='<div class="foro-empty">El directorio está temporalmente limitado; ninguna tarjeta fue eliminada.<br><button type="button" class="btn btn--outline" id="dir-retry" style="margin-top:14px">Reintentar</button></div>';
+          document.getElementById('dir-retry')?.addEventListener('click', ()=>{ g.innerHTML='<div class="foro-empty">Cargando directorio…</div>'; dirSuscribir(); });
+        }
         return;
       }
     }
