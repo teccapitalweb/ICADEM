@@ -4082,12 +4082,23 @@ const Pages={
 
   // ─── Datos extra de cada miembro (Firebase Auth + contador de visitas + curso gratuito) ───
   // GET /api/admin/miembros-fechas: registro real (si falta en Firestore), último acceso,
-  // cómo se registró (Google o correo), por dónde llegó y su curso gratuito.
+  // origen, curso gratuito e historial administrativo de créditos.
   _mbExtras: null,
   _mbCargandoExtras: false,
   _mbZona: 'America/Mexico_City',
   _mbNombreOrigen: { directo:'Directo', interno:'Dentro del sitio', google:'Google', bing:'Bing', duckduckgo:'DuckDuckGo', yahoo:'Yahoo', facebook:'Facebook', instagram:'Instagram', meta:'Meta (Facebook o Instagram)', whatsapp:'WhatsApp', linkedin:'LinkedIn', x:'X (Twitter)', youtube:'YouTube', tiktok:'TikTok', correo:'Correo electrónico', otros:'Otros sitios' },
   _mbExtra(m) { return (Pages._mbExtras && Pages._mbExtras[m.uid || m.id]) || {}; },
+  _mbHistorialCreditos(m) {
+    const x = Pages._mbExtra(m);
+    const historial = Array.isArray(x.adminCreditHistory) ? x.adminCreditHistory : (Array.isArray(m.adminCreditHistory) ? m.adminCreditHistory : []);
+    return {
+      historial,
+      count: Number(x.creditGiftCount ?? m.creditGiftCount ?? 0),
+      total: Number(x.creditGiftTotal ?? m.creditGiftTotal ?? 0),
+      lastAt: x.lastCreditGiftAt ?? m.lastCreditGiftAt ?? null,
+      lastAmount: Number(x.lastCreditGiftAmount ?? m.lastCreditGiftAmount ?? 0)
+    };
+  },
   _mbFechaHora(d) {
     if (!d) return '—';
     return d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric', timeZone: Pages._mbZona }) + ' · ' +
@@ -4133,11 +4144,12 @@ const Pages={
     if (x.proveedor) chips.push(chip(x.proveedor === 'google.com' ? 'Registro con Google' : (x.proveedor === 'password' ? 'Registro con correo' : 'Registro con ' + esc(x.proveedor)), '#0EA5E9'));
     if (x.origen) chips.push(chip('Llegó por ' + esc(Pages._mbNombreOrigen[x.origen] || x.origen), '#E1306C', 'Primer enlace por el que llegó, según el contador de visitas'));
     if (x.cursoGratis && x.cursoGratis.titulo) { const t = x.cursoGratis.titulo; chips.push(chip('Curso gratuito: ' + esc(t.length > 42 ? t.slice(0, 42) + '…' : t), '#10b981', t + (x.cursoGratis.elegidoEn ? ' · elegido ' + Pages._mbFechaHora(new Date(x.cursoGratis.elegidoEn)) : ''))); }
-    const giftCount = Number(m.creditGiftCount || 0);
-    const giftTotal = Number(m.creditGiftTotal || 0);
-    const lastGift = Pages._mbToDate(m.lastCreditGiftAt);
+    const regalos = Pages._mbHistorialCreditos(m);
+    const giftCount = regalos.count;
+    const giftTotal = regalos.total;
+    const lastGift = Pages._mbToDate(regalos.lastAt);
     if (giftCount > 0) {
-      chips.push(chip(`🎁 ${giftTotal.toLocaleString('es-MX')} créditos regalados`, '#D29416', `${giftCount} ${giftCount === 1 ? 'entrega' : 'entregas'}${lastGift ? ' · última: ' + Pages._mbFechaHora(lastGift) : ''}${m.lastCreditGiftAmount ? ' · +' + Number(m.lastCreditGiftAmount).toLocaleString('es-MX') : ''}`));
+      chips.push(chip(`🎁 ${giftTotal.toLocaleString('es-MX')} créditos regalados`, '#D29416', `${giftCount} ${giftCount === 1 ? 'entrega' : 'entregas'}${lastGift ? ' · última: ' + Pages._mbFechaHora(lastGift) : ''}${regalos.lastAmount ? ' · +' + regalos.lastAmount.toLocaleString('es-MX') : ''}`));
     } else {
       chips.push(chip('○ Falta regalo de créditos', '#64748B', 'Todavía no hay un regalo de créditos registrado para esta cuenta'));
     }
@@ -4153,12 +4165,13 @@ const Pages={
     const filas = [['nombre','email','uid','plan','estado','registro','miembro_desde','vence','ultimo_acceso','registro_con','llego_por','curso_gratuito','curso_gratuito_elegido','regalos_creditos','creditos_regalados','ultimo_regalo_creditos','ultima_cantidad_regalada','accesos_cortesia','dias_cortesia']];
     lista.forEach(m => {
       const x = Pages._mbExtra(m);
+      const regalos = Pages._mbHistorialCreditos(m);
       const estado = Pages._mbEstaActivo(m) ? 'activo' : (Pages._mbEstaExpirado(m) ? 'expirado' : ((m.activa !== true && m.activo !== true) && !m.plan ? 'sin pagar' : 'inactivo'));
       filas.push([m.nombre || m.displayName || '', m.email || '', m.uid || m.id || '', (m.esRegalo === true ? 'regalo' : (m.plan || '')), estado,
         iso(Pages._mbRegistro(m)), iso(Pages._mbActivacion(m)), iso(Pages._mbToDate(m.expiraEn)), iso(x.ultimoAcceso ? new Date(x.ultimoAcceso) : null),
         x.proveedor === 'google.com' ? 'Google' : (x.proveedor === 'password' ? 'Correo' : (x.proveedor || '')),
         x.origen ? (Pages._mbNombreOrigen[x.origen] || x.origen) : '', (x.cursoGratis && x.cursoGratis.titulo) || '', iso(x.cursoGratis && x.cursoGratis.elegidoEn ? new Date(x.cursoGratis.elegidoEn) : null),
-        Number(m.creditGiftCount || 0), Number(m.creditGiftTotal || 0), iso(Pages._mbToDate(m.lastCreditGiftAt)), Number(m.lastCreditGiftAmount || 0), Number(m.accessGiftCount || 0), Number(m.accessGiftDaysTotal || 0)]);
+        regalos.count, regalos.total, iso(Pages._mbToDate(regalos.lastAt)), regalos.lastAmount, Number(m.accessGiftCount || 0), Number(m.accessGiftDaysTotal || 0)]);
     });
     const csv = '﻿' + filas.map(f => f.map(v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
     const a = document.createElement('a');
@@ -4321,8 +4334,8 @@ const Pages={
       });
     }
 
-    if (S.creditos === 'pendientes') miembros = miembros.filter(m => Number(m.creditGiftCount || 0) < 1);
-    else if (S.creditos === 'entregados') miembros = miembros.filter(m => Number(m.creditGiftCount || 0) > 0);
+    if (S.creditos === 'pendientes') miembros = miembros.filter(m => Pages._mbHistorialCreditos(m).count < 1);
+    else if (S.creditos === 'entregados') miembros = miembros.filter(m => Pages._mbHistorialCreditos(m).count > 0);
 
     // Búsqueda
     if (S.search) {
@@ -4558,7 +4571,7 @@ const Pages={
     const nombre = (m.nombre || m.displayName || m.email?.split('@')[0] || 'Sin nombre').replace(/</g,'&lt;');
     const email = (m.email || '').replace(/</g,'&lt;');
     const planActual = m.plan || null;
-    const creditHistory = (Array.isArray(m.adminCreditHistory) ? m.adminCreditHistory : []).map(x => ({
+    const creditHistory = Pages._mbHistorialCreditos(m).historial.map(x => ({
       kind: x.type === 'admin-sale' ? 'Venta de créditos' : 'Regalo de créditos',
       value: `+${Number(x.amount || 0).toLocaleString('es-MX')}`,
       color: '#E3A62A',
