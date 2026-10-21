@@ -27,6 +27,10 @@
 <script src="js/icadem-platform-v2.js?v=45" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=3" defer></script>
+<!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
+     Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
+     privadas y nunca concede acceso a una clase. -->
+<script src="assistant/icadem-assistant-config.js?v=1"></script>
 
 <style>
 /* ICADEM VIP · Layout estilo Zoorigen/Sinergia · 3 columnas */
@@ -6407,6 +6411,30 @@ const Sections = (function(){
     return data;
   }
 
+  function catalogoCursosPublicoDeRespaldo(){
+    const items = window.ICADEM_ASSISTANT_CONFIG?.courses;
+    if (!Array.isArray(items) || !items.length) return [];
+    return items.map((item, i) => {
+      const total = Math.max(0, Math.min(40, Number(item.classes) || 0));
+      return {
+        id:String(item.id || `catalogo-${i + 1}`),
+        titulo:item.title || 'Curso ICADEM',
+        descripcion:item.detail || '', desc:item.detail || '',
+        emoji:'📚', area:item.area || 'General', nivel:'Profesional',
+        instructor:'Equipo ICADEM', horas:0, modulos:total,
+        sesiones:Array.from({ length:total }, (_, index) => ({
+          numero:index + 1, titulo:`Clase ${index + 1}`, access:{ accessible:false }
+        })),
+        materiales:[], disponibleSiempre:false, marcarProximamente:false,
+        activo:true, publicado:true, archivado:false, orden:i + 1,
+        portada:item.cover || getPortadaCurso({ titulo:item.title }),
+        access:{ unlocked:false, unlockDay:0, daysRemaining:null, previewSelected:false },
+        _unlockDay:0, status:'catalogo', progreso:0,
+        catalogPending:true
+      };
+    });
+  }
+
   async function cargarCursosFirestore(force){
     if (_cursosLoadPromise) {
       await _cursosLoadPromise;
@@ -6464,8 +6492,9 @@ const Sections = (function(){
       actualizarInicioAprendizaje();
     } catch (e) {
       console.warn('No se pudo cargar el catálogo seguro:', e.message);
-      if (!_cursosLoaded) cursos = [];
+      if (!_cursosLoaded || !cursos.length) cursos = catalogoCursosPublicoDeRespaldo();
       _cursosLoaded = true;
+      actualizarInicioAprendizaje();
     } finally {
       _cursosLoading = false;
     } })();
@@ -6836,26 +6865,32 @@ const Sections = (function(){
       list.innerHTML=`<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Sin resultados</h3><p>Cambia el filtro o búsqueda para ver más cursos.</p></div>`;
       return;
     }
-    const eligiendoGratis = !toolEsVIP() && !primerCursoGratisId() && cursos.some(c => c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length);
+    const catalogoEnRespaldo = items.some(c => c.catalogPending === true);
+    const avisoRespaldo = catalogoEnRespaldo ? `<section class="free-course-banner" role="status">
+        <span class="free-course-banner__icon"><svg class="ic"><use href="#i-shield-check"/></svg></span>
+        <div class="free-course-banner__copy"><span>Catálogo protegido</span><strong>Tus cursos siguen aquí</strong><p>Estamos recuperando la conexión con las clases. Puedes consultar todas las tarjetas; el acceso se habilitará automáticamente al terminar la sincronización.</p></div>
+      </section>` : '';
+    const eligiendoGratis = !catalogoEnRespaldo && !toolEsVIP() && !primerCursoGratisId() && cursos.some(c => c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length);
     const bannerGratis = eligiendoGratis ? `<section class="free-course-banner">
         <span class="free-course-banner__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
         <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca «Elegir gratis» en el curso que más te interese y verás gratis sus primeras ${FREE_CLASS_COUNT} clases. Solo puedes elegir uno.</p></div>
         <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
       </section>` : '';
-    list.innerHTML=`${bannerGratis}<div class="cursos-grid">${items.map((c, idx)=>{
+    list.innerHTML=`${avisoRespaldo}${bannerGratis}<div class="cursos-grid">${items.map((c, idx)=>{
       const cursoIdx = cursos.findIndex(x => x.id === c.id);
       const desbloqueado = cursoDesbloqueado(cursoIdx, c);
       const diasFalta = diasParaDesbloquear(cursoIdx, c);
       const portada = c.portada || coverSVG(c.area, c.titulo);
       const pct = progresoCursoPct(c.id, c.sesiones?.length || 0);
-      const puedeElegirGratis = !toolEsVIP() && !primerCursoGratisId()
+      const puedeElegirGratis = c.catalogPending !== true && !toolEsVIP() && !primerCursoGratisId()
         && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 0;
       return `
-      <article class="curso-card ${!desbloqueado?'curso-card--locked':''}" data-cid="${c.id}" tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#5b92c8'};">
+      <article class="curso-card ${!desbloqueado||c.catalogPending===true?'curso-card--locked':''}" data-cid="${c.id}" ${c.catalogPending===true?'data-catalog-pending="true"':''} tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#5b92c8'};">
         <div class="curso-card__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)),url('${portada}');background-size:cover;background-position:center;">
           <svg class="ic" style="opacity:.85;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"><use href="#${ICON_AREA[c.area]||'i-book'}"/></svg>
           ${c.disponibleSiempre ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0f1626;">DISPONIBLE</span>' : ''}
           ${!toolEsVIP() && String(c.id) === primerCursoGratisId() ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0f1626;left:12px;right:auto;">4 CLASES GRATIS</span>' : ''}
+          ${c.catalogPending===true ? '<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.85);color:#fff;border:1px solid rgba(255,255,255,.35);">Sincronizando clases</span>' : ''}
           ${!desbloqueado && diasFalta !== null && diasFalta > 0 ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.85);color:var(--primary);border:1px solid var(--primary);">🔒 Se desbloquea en ${diasFalta} día${diasFalta!==1?'s':''}</span>` : ''}
         </div>
         <div class="curso-card__body">
@@ -6881,8 +6916,15 @@ const Sections = (function(){
       window.__elegirCursoGratis(button.dataset.freeCourseCta, button);
     }));
     list.querySelectorAll('.curso-card').forEach(card=>{
-      card.addEventListener('click',event=>{if(!event.target.closest('button,a'))openCursoDetalle(card.dataset.cid);});
-      card.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button,a'))openCursoDetalle(card.dataset.cid);});
+      const abrir=()=>{
+        if(card.dataset.catalogPending==='true'){
+          Toast.info('El curso sigue disponible','Estamos recuperando el acceso a sus clases. No se eliminó ningún contenido.');
+          return;
+        }
+        openCursoDetalle(card.dataset.cid);
+      };
+      card.addEventListener('click',event=>{if(!event.target.closest('button,a'))abrir();});
+      card.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button,a'))abrir();});
     });
   }
 
@@ -7791,6 +7833,7 @@ const Sections = (function(){
         balance:local ? local.balance : Number(window.UserState?.credits?.balance || 0),
         redeemed:local ? local.redeemed : new Set(),
         busy:null,
+        verificationPending:false,
         loaded:demo
       };
     }
@@ -7805,8 +7848,8 @@ const Sections = (function(){
       // Materiales encima de la sección que el usuario ya abrió.
       if (!container.isConnected || __seccionActualVIP !== 'materiales') return;
       const state = __materialsUiState;
-      const catalogReady = demo || state.loaded === true;
-      const anyRedemptionBusy = Boolean(state.busy || state.syncing);
+      const catalogReady = demo || state.loaded === true || state.loaded === 'degraded';
+      const anyRedemptionBusy = Boolean(state.busy || state.syncing || state.verificationPending);
       const cardsHtml = catalogReady ? MATERIALES_CATALOG.map((material,index) => {
         const owned = state.redeemed.has(material.id) || material.redeemed === true;
         if (owned && demo && !material.content && !material.contenido) material.content = _demoMaterialContent(material);
@@ -7815,7 +7858,7 @@ const Sections = (function(){
         const fallback = MATERIAL_FALLBACK_COVERS[index % MATERIAL_FALLBACK_COVERS.length];
         return `<article class="material-card${owned?' is-owned':''}" data-material-id="${htmlEsc(material.id)}">
           <div class="material-card__cover"><img src="${htmlEsc(cover)}" data-material-cover data-fallback="${htmlEsc(fallback)}" alt="Portada de ${htmlEsc(material.titulo)}" loading="lazy"><span class="material-card__format">${htmlEsc(_materialFormatLabel(material.formato))}</span><span class="material-card__status">${owned?'Canjeado':'Disponible'}</span></div>
-          <div class="material-card__body"><small>${htmlEsc(material.categoria || 'Recurso profesional')}</small><strong>${htmlEsc(material.titulo)}</strong><p>${htmlEsc(material.descripcion)}</p><span class="material-card__origin"><svg class="ic"><use href="#i-folder"/></svg>${htmlEsc(material.cursoTitulo || 'Recursos profesionales ICADEM')}</span><div class="material-card__foot"><span class="material-card__cost">${owned?`<svg class="ic"><use href="#i-check"/></svg> Tuyo`:`<i>C</i> ${Number(material.costo)||0} créditos`}</span><button type="button" class="material-card__action" data-material-action="${htmlEsc(material.id)}" ${anyRedemptionBusy?'disabled':''}>${busy?'Procesando…':owned?'Abrir':'Canjear'}</button></div></div>
+          <div class="material-card__body"><small>${htmlEsc(material.categoria || 'Recurso profesional')}</small><strong>${htmlEsc(material.titulo)}</strong><p>${htmlEsc(material.descripcion)}</p><span class="material-card__origin"><svg class="ic"><use href="#i-folder"/></svg>${htmlEsc(material.cursoTitulo || 'Recursos profesionales ICADEM')}</span><div class="material-card__foot"><span class="material-card__cost">${owned?`<svg class="ic"><use href="#i-check"/></svg> Tuyo`:`<i>C</i> ${Number(material.costo)||0} créditos`}</span><button type="button" class="material-card__action" data-material-action="${htmlEsc(material.id)}" ${anyRedemptionBusy?'disabled':''}>${state.verificationPending?'Verificando…':busy?'Procesando…':owned?'Abrir':'Canjear'}</button></div></div>
         </article>`;
       }).join('') : '';
       container.innerHTML = `<div class="fade-up materials-page">
@@ -7827,12 +7870,13 @@ const Sections = (function(){
           </div>
           <aside class="materials-wallet" aria-label="Cartera de créditos">
             <small>Tu saldo disponible</small>
-            <strong><i>C</i><b data-credit-balance>${state.balance}</b></strong>
+            <strong><i>C</i><b data-credit-balance>${state.verificationPending?'—':state.balance}</b></strong>
             <span>Créditos ICADEM</span>
             <button type="button" data-credit-wallet-open>Ver movimientos <svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </aside>
         </section>
         <div class="materials-head"><div><h2>Elige un recurso práctico</h2><p>Cada herramienta cuesta 100 créditos y solo se cobra una vez.</p></div><span>${catalogReady ? `${MATERIALES_CATALOG.length} materiales` : 'Sincronizando catálogo'}</span></div>
+        ${state.verificationPending?'<div class="materials-sync" role="status"><span class="materials-sync__icon"><svg class="ic"><use href="#i-shield-check"/></svg></span><strong>Los materiales siguen disponibles</strong><p>Mostramos el catálogo mientras recuperamos tu saldo y tus canjes. Las acciones se habilitarán automáticamente cuando termine la verificación.</p><button type="button" class="btn btn--accent" data-materials-retry>Reintentar</button></div>':''}
         ${catalogReady ? `<div class="materials-grid">${cardsHtml}</div>` : `<div class="materials-sync" role="status"><span class="materials-sync__icon"><svg class="ic"><use href="#i-folder"/></svg></span><strong>${state.loaded === 'error' ? 'No pudimos cargar los materiales' : 'Sincronizando materiales seguros…'}</strong><p>${state.loaded === 'error' ? 'Revisa tu conexión e inténtalo de nuevo.' : 'Validamos el catálogo y tus canjes antes de habilitar cualquier acción.'}</p>${state.loaded === 'error' ? '<button type="button" class="btn btn--accent" data-materials-retry>Reintentar</button>' : ''}</div>`}
         <p class="materials-note"><svg class="ic"><use href="#i-shield-check"/></svg> Cada canje se valida en el servidor y queda asociado a tu cuenta. Volver a abrir un material adquirido no consume más créditos.</p>
       </div>`;
@@ -7841,6 +7885,7 @@ const Sections = (function(){
         image.onerror = () => { image.onerror = null; image.src = image.dataset.fallback; };
       });
       container.querySelector('[data-materials-retry]')?.addEventListener('click',()=>{
+        state.verificationPending = false;
         state.loaded = false;
         renderMateriales(container);
       });
@@ -7924,9 +7969,17 @@ const Sections = (function(){
       window.ICADEMPlatform.loadMaterials().then(data => {
         if (__materialsUiOwner !== ownerForRequest || __materialsUiState !== stateForRequest || stateForRequest.syncRevision !== requestRevision) return;
         if (Array.isArray(data.catalog)) MATERIALES_CATALOG = data.catalog.map((item,index) => ({ ...item, portada:item.portada || MATERIAL_FALLBACK_COVERS[index % MATERIAL_FALLBACK_COVERS.length] }));
+        if (data.degraded === true) {
+          stateForRequest.verificationPending = true;
+          stateForRequest.loaded = 'degraded';
+          stateForRequest.syncing = false;
+          paint();
+          return;
+        }
         const ids = data.redeemedMaterialIds || data.redeemed || data.materials?.map(item => typeof item === 'string' ? item : item.id) || [];
         stateForRequest.redeemed = new Set(ids);
         stateForRequest.balance = Number(data.balance ?? data.credits?.balance ?? stateForRequest.balance);
+        stateForRequest.verificationPending = false;
         window.ICADEMPlatform.syncCreditSnapshot?.({ ...(window.UserState?.credits || {}), ...(data.credits || {}), balance:stateForRequest.balance }, { source:'materials-sync' });
         stateForRequest.loaded = true;
         stateForRequest.syncing = false;
@@ -7934,7 +7987,10 @@ const Sections = (function(){
       }).catch(error => {
         if (__materialsUiOwner === ownerForRequest && __materialsUiState === stateForRequest && stateForRequest.syncRevision === requestRevision) {
           stateForRequest.syncing = false;
-          if (!hadCatalog) stateForRequest.loaded = 'error';
+          if (!hadCatalog) {
+            stateForRequest.loaded = 'degraded';
+            stateForRequest.verificationPending = true;
+          }
           paint();
         }
         console.error('No se pudieron cargar los materiales', error);
