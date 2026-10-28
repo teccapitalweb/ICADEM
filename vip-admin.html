@@ -1181,6 +1181,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Comunidad</div>
       <a class="nav-item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros VIP<span class="nav-item__badge">486</span></a>
+      <a class="nav-item" data-section="auditoria"><svg class="ic"><use href="#i-search"/></svg>Auditoría de cuentas<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="noticias"><svg class="ic"><use href="#i-news"/></svg>Noticias</a>
       <a class="nav-item" data-section="foro"><svg class="ic"><use href="#i-users"/></svg>Foro<span class="nav-item__badge" id="badge-foro">0</span></a>
       <a class="nav-item" data-section="directorio"><svg class="ic"><use href="#i-user"/></svg>Directorio<span class="nav-item__badge" id="badge-dir">0</span></a>
@@ -1218,6 +1219,7 @@ window.__signOut = async () => {
     <a class="mobile-nav__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos</a>
     <a class="mobile-nav__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</a>
     <a class="mobile-nav__item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros</a>
+    <a class="mobile-nav__item" data-section="auditoria"><svg class="ic"><use href="#i-search"/></svg>Auditar</a>
     <a class="mobile-nav__item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas</a>
     <a class="mobile-nav__item" data-section="config"><svg class="ic"><use href="#i-settings"/></svg>Config</a>
   </nav>
@@ -4057,6 +4059,13 @@ const Pages={
 
     // Click en botón "..." de cada card · abre menú de acciones
     p.addEventListener('click', (e) => {
+      const auditBtn = e.target.closest('[data-mb-audit]');
+      if (auditBtn) {
+        e.stopPropagation();
+        Pages._auditLastQuery = auditBtn.dataset.mbAudit || '';
+        navigate('auditoria');
+        return;
+      }
       const btn = e.target.closest('[data-mb-action]');
       if (btn) {
         e.stopPropagation();
@@ -4477,6 +4486,9 @@ const Pages={
           <span class="curso-row__area" style="color:${estadoColor};border-color:color-mix(in srgb, ${estadoColor} 35%, transparent);background:color-mix(in srgb, ${estadoColor} 10%, transparent);font-size:9px;">${estadoTxt}</span>
         </div>
         <div class="curso-row__actions">
+          <button class="curso-card__action" data-mb-audit="${m.uid || m.email || m.id}" title="Auditar membresía y actividad">
+            <svg class="ic" style="width:14px;height:14px;"><use href="#i-search"/></svg>
+          </button>
           <button class="curso-card__action" data-mb-action="${m.uid || m.id}" data-mb-activo="${activo ? '1' : '0'}" title="Acciones">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
           </button>
@@ -4488,6 +4500,209 @@ const Pages={
   // ═══════════════════════════════════════════════════════════════
   // ACCIONES SOBRE MIEMBROS (Sub-fase 5B.2)
   // ═══════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════
+  // AUDITORÍA DE CUENTAS · Stripe + membresía + actividad
+  // ═══════════════════════════════════════════════════════════════
+  _auditLastQuery: '',
+
+  auditoria(p) {
+    const initial = Pages._auditLastQuery || '';
+    p.innerHTML = `
+      <style>
+        .audit-shell{max-width:1180px;margin:0 auto}.audit-search{display:grid;grid-template-columns:1fr auto;gap:10px;padding:18px;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-sm)}
+        .audit-search .input{min-height:46px}.audit-result{margin-top:18px}.audit-empty{padding:44px 22px;text-align:center;color:var(--text-3);background:var(--surface);border:1px dashed var(--border);border-radius:16px}
+        .audit-identity{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:16px}
+        .audit-name{font:800 20px/1.25 'Plus Jakarta Sans',sans-serif;color:var(--text-1)}.audit-meta{font-size:12px;color:var(--text-3);margin-top:5px;word-break:break-word}
+        .audit-verdict{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:8px 12px;font-size:11px;font-weight:800;letter-spacing:.04em}.audit-verdict[data-tone="ok"]{color:#047857;background:#D1FAE5}.audit-verdict[data-tone="warn"]{color:#9A5A00;background:#FEF3C7}.audit-verdict[data-tone="danger"]{color:#B91C1C;background:#FEE2E2}.audit-verdict[data-tone="neutral"]{color:#475569;background:#E2E8F0}
+        .audit-alert{margin-top:12px;padding:13px 15px;border:1px solid #F59E0B55;background:#FFFBEB;color:#92400E;border-radius:12px;font-size:12px;line-height:1.55}.audit-alert--danger{border-color:#EF444466;background:#FEF2F2;color:#991B1B}
+        .audit-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}.audit-kpi{padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px}.audit-kpi__label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3);font-weight:800}.audit-kpi__value{margin-top:8px;font:800 18px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--text-1)}.audit-kpi__sub{font-size:11px;color:var(--text-3);margin-top:5px;line-height:1.45}
+        .audit-section{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden}.audit-section__head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}.audit-section__title{font:800 14px/1.2 'Plus Jakarta Sans',sans-serif;color:var(--text-1)}.audit-count{font-size:10px;font-weight:800;color:var(--primary);background:color-mix(in srgb,var(--primary) 12%,transparent);padding:4px 8px;border-radius:999px}
+        .audit-table-wrap{overflow:auto}.audit-table{width:100%;border-collapse:collapse;min-width:720px}.audit-table th,.audit-table td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--border);font-size:11px;vertical-align:top}.audit-table th{color:var(--text-3);font-size:9px;text-transform:uppercase;letter-spacing:.08em}.audit-table td{color:var(--text-2)}.audit-table tr:last-child td{border-bottom:0}.audit-strong{font-weight:750;color:var(--text-1)}.audit-muted{color:var(--text-3);margin-top:3px}.audit-pill{display:inline-flex;padding:4px 7px;border-radius:999px;background:var(--surface-2);color:var(--text-2);font-size:9px;font-weight:800}.audit-pill--ok{background:#D1FAE5;color:#047857}.audit-pill--danger{background:#FEE2E2;color:#B91C1C}
+        .audit-timeline{padding:8px 18px 16px}.audit-event{position:relative;padding:11px 0 11px 22px;border-bottom:1px solid var(--border)}.audit-event:last-child{border:0}.audit-event:before{content:'';position:absolute;left:2px;top:17px;width:8px;height:8px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px color-mix(in srgb,var(--primary) 14%,transparent)}.audit-event__title{font-size:12px;font-weight:750;color:var(--text-1)}.audit-event__meta{font-size:10.5px;color:var(--text-3);margin-top:3px}
+        @media(max-width:900px){.audit-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.audit-search{grid-template-columns:1fr}.audit-search .btn{width:100%;justify-content:center}.audit-kpis{grid-template-columns:1fr}.audit-identity{align-items:flex-start}.audit-verdict{white-space:normal}}
+      </style>
+      <div class="fade-up audit-shell">
+        <div class="sec-hero">
+          <span class="sec-hero__eyebrow">Control y evidencia</span>
+          <h1 class="sec-hero__title">Auditoría de cuentas</h1>
+          <p class="sec-hero__sub">Comprueba en un solo lugar si la membresía está activa en ICADEM y en Stripe, los cobros registrados y la actividad real de la persona. Incluye también los registros históricos que ya existían antes de este apartado.</p>
+        </div>
+        <form class="audit-search" id="audit-form">
+          <input class="input" id="audit-query" type="search" autocomplete="off" placeholder="Correo o UID de la cuenta" value="${Pages._auditEsc(initial)}">
+          <button class="btn btn--accent" type="submit"><svg class="ic"><use href="#i-search"/></svg> Revisar cuenta</button>
+        </form>
+        <div class="audit-result" id="audit-result">
+          <div class="audit-empty">Busca una cuenta para comprobar su membresía, cobros y movimientos.</div>
+        </div>
+      </div>
+    `;
+    const form = p.querySelector('#audit-form');
+    const input = p.querySelector('#audit-query');
+    form?.addEventListener('submit', event => {
+      event.preventDefault();
+      Pages._auditLoad(input?.value || '');
+    });
+    if (initial) Pages._auditLoad(initial);
+  },
+
+  _auditEsc(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  },
+
+  _auditDate(value) {
+    if (!value) return '—';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '—';
+    return date.toLocaleString('es-MX', {
+      dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Mexico_City'
+    });
+  },
+
+  _auditMoney(cents, currency = 'MXN') {
+    try {
+      return (Number(cents || 0) / 100).toLocaleString('es-MX', { style:'currency', currency: currency || 'MXN' });
+    } catch (_) {
+      return '$' + (Number(cents || 0) / 100).toFixed(2);
+    }
+  },
+
+  async _auditLoad(rawQuery) {
+    const query = String(rawQuery || '').trim();
+    const container = document.getElementById('audit-result');
+    const input = document.getElementById('audit-query');
+    if (!container || !query) {
+      if (input) input.focus();
+      return;
+    }
+    Pages._auditLastQuery = query;
+    container.innerHTML = `<div class="audit-empty"><span class="spinner"></span><br><br>Contrastando ICADEM con Stripe y reuniendo actividad…</div>`;
+    try {
+      const token = await Pages._getAuthToken();
+      const response = await fetch(`${Pages._webhookUrl}/admin/account-audit?query=${encodeURIComponent(query)}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: 'no-store'
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'No se pudo auditar la cuenta.');
+      Pages._auditRender(data);
+    } catch (error) {
+      container.innerHTML = `
+        <div class="audit-empty" style="border-color:#EF444466;background:#FEF2F2;color:#991B1B;">
+          <strong>No se pudo completar la auditoría</strong><br><span style="font-size:12px;">${Pages._auditEsc(error.message || '')}</span>
+        </div>
+      `;
+    }
+  },
+
+  _auditRender(data) {
+    const container = document.getElementById('audit-result');
+    if (!container) return;
+    const esc = Pages._auditEsc;
+    const date = Pages._auditDate;
+    const money = Pages._auditMoney;
+    const membership = data.membership || {};
+    const local = membership.local || {};
+    const stripeState = membership.stripe || {};
+    const identity = data.identity || {};
+    const verdicts = {
+      'consistent-active': ['Coincide: activa', 'ok'],
+      'stripe-active-local-inactive': ['Requiere corrección', 'danger'],
+      'local-active-stripe-missing': ['Estado inconsistente', 'warn'],
+      'duplicate-subscriptions': ['Posible cobro doble', 'danger'],
+      'payment-problem': ['Problema de pago', 'warn'],
+      inactive: ['Sin membresía activa', 'neutral']
+    };
+    const verdict = verdicts[membership.verdict] || ['Estado por revisar', 'warn'];
+    const issues = Array.isArray(membership.issues) ? membership.issues : [];
+    const issueHtml = issues.length ? `
+      <div class="audit-alert ${membership.verdict === 'duplicate-subscriptions' || membership.verdict === 'stripe-active-local-inactive' ? 'audit-alert--danger' : ''}">
+        <strong>Atención:</strong> ${issues.map(esc).join(' · ')}
+      </div>
+    ` : '';
+    const nextCourse = data.access?.nextCourse || null;
+    const subscriptions = stripeState.subscriptions || [];
+    const payments = data.payments || [];
+    const courses = data.courses || [];
+    const materials = data.materials || [];
+    const games = data.games || [];
+    const timeline = data.timeline || [];
+
+    const subscriptionsRows = subscriptions.length ? subscriptions.map(subscription => `
+      <tr>
+        <td><div class="audit-strong">${esc(subscription.id)}</div><div class="audit-muted">Cliente ${esc(subscription.customerId || '—')}</div></td>
+        <td><span class="audit-pill ${['active','trialing'].includes(subscription.status) ? 'audit-pill--ok' : ''}">${esc(subscription.status || '—')}</span></td>
+        <td>${money(subscription.amount, subscription.currency)} · ${subscription.interval === 'year' ? 'anual' : subscription.interval === 'month' ? 'mensual' : esc(subscription.interval || '—')}</td>
+        <td>${date(subscription.currentPeriodEnd)}</td>
+        <td>${subscription.cancelAtPeriodEnd ? 'Sí, al final del periodo' : 'No'}</td>
+      </tr>
+    `).join('') : `<tr><td colspan="5" class="audit-muted">No se encontraron suscripciones de ICADEM en Stripe para esta cuenta.</td></tr>`;
+
+    const paymentRows = payments.length ? payments.map(payment => `
+      <tr>
+        <td><div class="audit-strong">${date(payment.paidAt || payment.createdAt)}</div><div class="audit-muted">${esc(payment.id)}</div></td>
+        <td><span class="audit-pill ${payment.paid ? 'audit-pill--ok' : 'audit-pill--danger'}">${payment.paid ? 'Pagado' : esc(payment.status || 'Pendiente')}</span></td>
+        <td>${money(payment.amountPaid || payment.amountDue, payment.currency)}</td>
+        <td>${esc(payment.billingReason || '—')}</td>
+        <td>${payment.invoiceUrl ? `<a href="${esc(payment.invoiceUrl)}" target="_blank" rel="noopener" style="color:var(--primary);font-weight:700;">Ver factura</a>` : '—'}</td>
+      </tr>
+    `).join('') : `<tr><td colspan="5" class="audit-muted">No hay facturas ligadas a las suscripciones de ICADEM encontradas.</td></tr>`;
+
+    const courseRows = courses.length ? courses.map(course => `
+      <tr>
+        <td><div class="audit-strong">${esc(course.title)}</div><div class="audit-muted">${course.completed ? 'Curso completado' : ((Array.isArray(course.completedLessons) ? course.completedLessons.length : 0) + ' clases completadas')}</div></td>
+        <td><span class="audit-pill ${course.unlocked ? 'audit-pill--ok' : ''}">${course.unlocked ? 'Desbloqueado' : 'Bloqueado'}</span><div class="audit-muted">Día ${course.unlockDay}</div></td>
+        <td>${date(course.unlockAt)}</td>
+        <td><div class="audit-strong">${Number(course.views || 0)} aperturas</div><div class="audit-muted">${Math.round(Number(course.viewedSeconds || 0) / 60)} min registrados</div></td>
+        <td>${date(course.lastSeenAt)}</td>
+      </tr>
+    `).join('') : `<tr><td colspan="5" class="audit-muted">No hay cursos publicados.</td></tr>`;
+
+    const materialRows = materials.length ? materials.map(item => `
+      <tr>
+        <td><div class="audit-strong">${esc(item.title || item.id)}</div><div class="audit-muted">${item.kind === 'book' ? 'Libro' : 'Material'}</div></td>
+        <td>${date(item.redeemedAt)}</td><td>${Number(item.openCount || 0)}</td><td>${date(item.lastOpenedAt)}</td>
+      </tr>
+    `).join('') : `<tr><td colspan="4" class="audit-muted">La cuenta no ha canjeado materiales.</td></tr>`;
+
+    const gameRows = games.length ? games.slice(0, 100).map(game => `
+      <tr>
+        <td><div class="audit-strong">${esc(game.title || game.type || 'Juego ICADEM')}</div><div class="audit-muted">${esc(game.type || game.kind || '')}</div></td>
+        <td><span class="audit-pill ${game.status === 'completed' ? 'audit-pill--ok' : ''}">${game.status === 'completed' ? 'Completado' : game.status === 'started' ? 'Iniciado' : esc(game.status || 'Intento')}</span></td>
+        <td>${date(game.startedAt)}</td><td>${date(game.completedAt)}</td>
+      </tr>
+    `).join('') : `<tr><td colspan="4" class="audit-muted">No hay juegos o retos registrados.</td></tr>`;
+
+    const timelineRows = timeline.length ? timeline.slice(0, 120).map(item => `
+      <div class="audit-event">
+        <div class="audit-event__title">${esc(item.title || item.type)}</div>
+        <div class="audit-event__meta">${date(item.at)}${item.endedAt ? ' → ' + date(item.endedAt) : ''}${item.detail ? ' · ' + esc(item.detail) : ''}</div>
+      </div>
+    `).join('') : `<div class="audit-empty" style="border:0;">No hay actividad registrada.</div>`;
+
+    container.innerHTML = `
+      <div class="audit-identity">
+        <div><div class="audit-name">${esc(identity.name || 'Cuenta ICADEM')}</div><div class="audit-meta">${esc(identity.email || 'Sin correo')} · UID: ${esc(identity.uid || '—')} · Cuenta creada: ${date(identity.createdAt)}</div></div>
+        <span class="audit-verdict" data-tone="${verdict[1]}">${verdict[0]}</span>
+      </div>
+      ${issueHtml}
+      <div class="audit-kpis">
+        <div class="audit-kpi"><div class="audit-kpi__label">ICADEM</div><div class="audit-kpi__value">${local.active ? 'Activa' : 'Inactiva'}</div><div class="audit-kpi__sub">${esc(local.plan || 'Sin plan')} · vence ${date(local.expiresAt)}</div></div>
+        <div class="audit-kpi"><div class="audit-kpi__label">Stripe</div><div class="audit-kpi__value">${stripeState.active ? 'Activa' : 'Sin activa'}</div><div class="audit-kpi__sub">${stripeState.blockingCount || 0} suscripción(es) con cobro posible</div></div>
+        <div class="audit-kpi"><div class="audit-kpi__label">Próximo curso</div><div class="audit-kpi__value" style="font-size:14px;">${nextCourse ? esc(nextCourse.title) : 'Todo disponible'}</div><div class="audit-kpi__sub">${nextCourse ? date(nextCourse.unlockAt) : 'No hay desbloqueos pendientes'}</div></div>
+        <div class="audit-kpi"><div class="audit-kpi__label">Cobros</div><div class="audit-kpi__value">${payments.filter(item => item.paid).length}</div><div class="audit-kpi__sub">facturas pagadas de ICADEM encontradas</div></div>
+      </div>
+
+      <section class="audit-section"><div class="audit-section__head"><div class="audit-section__title">Suscripciones en Stripe</div><span class="audit-count">${subscriptions.length}</span></div><div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Suscripción</th><th>Estado</th><th>Importe</th><th>Fin del periodo</th><th>Cancelación</th></tr></thead><tbody>${subscriptionsRows}</tbody></table></div></section>
+      <section class="audit-section"><div class="audit-section__head"><div class="audit-section__title">Cobros y facturas</div><span class="audit-count">${payments.length}</span></div><div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Fecha</th><th>Estado</th><th>Importe</th><th>Motivo</th><th>Comprobante</th></tr></thead><tbody>${paymentRows}</tbody></table></div></section>
+      <section class="audit-section"><div class="audit-section__head"><div class="audit-section__title">Cursos, desbloqueos y progreso</div><span class="audit-count">${courses.length}</span></div><div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Curso</th><th>Acceso</th><th>Se desbloquea</th><th>Uso</th><th>Última vista</th></tr></thead><tbody>${courseRows}</tbody></table></div></section>
+      <section class="audit-section"><div class="audit-section__head"><div><div class="audit-section__title">Materiales</div><div class="audit-muted" style="font-size:10px;">Los canjes históricos se conservan; la hora exacta de apertura se registra desde esta versión.</div></div><span class="audit-count">${materials.length}</span></div><div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Material</th><th>Canjeado</th><th>Aperturas</th><th>Última apertura</th></tr></thead><tbody>${materialRows}</tbody></table></div></section>
+      <section class="audit-section"><div class="audit-section__head"><div class="audit-section__title">Juegos y retos</div><span class="audit-count">${games.length}</span></div><div class="audit-table-wrap"><table class="audit-table"><thead><tr><th>Actividad</th><th>Estado</th><th>Inicio</th><th>Finalización</th></tr></thead><tbody>${gameRows}</tbody></table></div></section>
+      <section class="audit-section"><div class="audit-section__head"><div><div class="audit-section__title">Línea de tiempo verificable</div><div class="audit-muted" style="font-size:10px;">Sesiones de navegación disponibles según la retención de analítica; cobros y movimientos se consultan por separado.</div></div><span class="audit-count">${timeline.length}</span></div><div class="audit-timeline">${timelineRows}</div></section>
+    `;
+  },
 
   // URL del webhook Railway (donde están los endpoints admin)
   _webhookUrl: 'https://icadem-webhook-production.up.railway.app',
@@ -5604,14 +5819,27 @@ const Pages={
             <div class="mini-list">
               <div class="mini-row" style="--c1:#34D399;"><div class="mini-row__dot"><svg class="ic"><use href="#i-shield-check"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Firebase Auth</div><div class="mini-row__meta">icadem-vip · Funcionando</div></div><span class="tag tag--success">OK</span></div>
               <div class="mini-row" style="--c1:#34D399;"><div class="mini-row__dot"><svg class="ic"><use href="#i-shield-check"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Firestore</div><div class="mini-row__meta">us-central1 · Reglas v1</div></div><span class="tag tag--success">OK</span></div>
-              <div class="mini-row" style="--c1:#FBBF24;"><div class="mini-row__dot"><svg class="ic"><use href="#i-bolt"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Stripe LIVE</div><div class="mini-row__meta">Webhook pendiente de conectar</div></div><span class="tag tag--warning">Pendiente</span></div>
+              <div class="mini-row" id="cfg-service-stripe" style="--c1:#FBBF24;"><div class="mini-row__dot"><svg class="ic"><use href="#i-bolt"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Stripe LIVE</div><div class="mini-row__meta">Verificando claves y webhook…</div></div><span class="tag tag--warning">Verificando</span></div>
               <div class="mini-row" style="--c1:#34D399;"><div class="mini-row__dot"><svg class="ic"><use href="#i-refresh"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Railway Cron (noticias)</div><div class="mini-row__meta">Última: ${c.cronUltima}</div></div><span class="tag tag--success">OK</span></div>
-              <div class="mini-row" style="--c1:#FBBF24;"><div class="mini-row__dot"><svg class="ic"><use href="#i-mail"/></svg></div><div class="mini-row__body"><div class="mini-row__title">EmailJS · Certificados</div><div class="mini-row__meta">Sin configurar</div></div><span class="tag tag--warning">Pendiente</span></div>
+              <div class="mini-row" id="cfg-service-email" style="--c1:#FBBF24;"><div class="mini-row__dot"><svg class="ic"><use href="#i-mail"/></svg></div><div class="mini-row__body"><div class="mini-row__title">Resend · Correos</div><div class="mini-row__meta">Verificando proveedor y firma…</div></div><span class="tag tag--warning">Verificando</span></div>
             </div>
           </div>
         </div>
       </div>
     `;
+    // El estado se consulta al backend: nunca vuelve a mostrar un “pendiente”
+    // fijo cuando las claves ya están cargadas en Railway.
+    fetch(`${Pages._webhookUrl}/`, { cache:'no-store' }).then(r=>r.json()).then(status=>{
+      const paint=(id,ok,good,bad)=>{
+        const row=document.getElementById(id);if(!row)return;
+        row.style.setProperty('--c1',ok?'#34D399':'#FBBF24');
+        const meta=row.querySelector('.mini-row__meta'),tag=row.querySelector('.tag');
+        if(meta)meta.textContent=ok?good:bad;
+        if(tag){tag.className='tag '+(ok?'tag--success':'tag--warning');tag.textContent=ok?'OK':'Pendiente';}
+      };
+      paint('cfg-service-stripe',status.stripeLive==='configured'&&status.stripeWebhook==='configured','Clave LIVE y webhook configurados','Falta la clave LIVE o la firma del webhook');
+      paint('cfg-service-email',status.conversionEmail==='configured','Resend y firma configurados','Falta la clave de Resend o la firma de bajas');
+    }).catch(()=>{});
     // MODIFICADO: cargar los precios REALES desde Firestore config/club
     // (mismo contrato que leen el webhook y vip-panel.html: precioMes/precioAno)
     // Los campos nacen VACÍOS y DESHABILITADOS. Solo se habilitan cuando
@@ -6344,7 +6572,7 @@ if (window.__currentAdmin) {
 </script>
 
 <script src="js/icadem-admin-metrics.js?v=2" defer></script>
-<script src="js/icadem-admin-marketing.js?v=5" defer></script>
+<script src="js/icadem-admin-marketing.js?v=6" defer></script>
 <script>
 // ── Marketing (patrón Alintecfood): Encuestas, Métricas y Correos ──
 (function(){
