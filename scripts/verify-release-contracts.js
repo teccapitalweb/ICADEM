@@ -7,6 +7,7 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const read = relative => fs.readFileSync(path.join(root, relative), 'utf8');
 const panel = read('vip-panel.html');
+const admin = read('vip-admin.html');
 const onboarding = read('js/icadem-onboarding.js');
 const platform = read('js/icadem-platform-v2.js');
 const serviceWorker = read('sw.js');
@@ -140,5 +141,14 @@ assert.ok(serviceWorker.includes(`icadem-platform-v2.js?v=${platformVersion}`), 
 assert.ok(serviceWorker.includes(`icadem-onboarding.js?v=${onboardingVersion}`), 'versión onboarding desalineada');
 assert.ok(serviceWorker.includes(`panel-minimal.css?v=${panelMinimalVersion}`), 'versión panel minimal desalineada');
 assert.doesNotMatch(panel, /data-theme="dark"/);
+
+assert.match(admin, /data-section="creditos-masivos"/);
+assert.match(admin, /'creditos-masivos'\(p\)/);
+assert.match(admin, /\/admin\/creditos\/masivos\/preview/);
+assert.match(admin, /\/admin\/creditos\/masivos'/);
+assert.match(admin, /\/admin\/creditos\/masivos\/historial/);
+assert.match(admin, /id="bulk-confirm-check"/);
+assert.match(admin, /state\.operationSignature !== signature/);
+assert.match(admin, /reintentar sin riesgo de duplicar/i);
 
 console.log('OK: contratos de navegación, Materiales, noticias, tablet, experiencias, foro y certificados verificados.');

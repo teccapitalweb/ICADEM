@@ -1181,6 +1181,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Comunidad</div>
       <a class="nav-item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros VIP<span class="nav-item__badge">486</span></a>
+      <a class="nav-item" data-section="creditos-masivos"><svg class="ic"><use href="#i-dollar"/></svg>Créditos masivos<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="auditoria"><svg class="ic"><use href="#i-search"/></svg>Auditoría de cuentas<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="noticias"><svg class="ic"><use href="#i-news"/></svg>Noticias</a>
       <a class="nav-item" data-section="foro"><svg class="ic"><use href="#i-users"/></svg>Foro<span class="nav-item__badge" id="badge-foro">0</span></a>
@@ -1219,6 +1220,7 @@ window.__signOut = async () => {
     <a class="mobile-nav__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos</a>
     <a class="mobile-nav__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</a>
     <a class="mobile-nav__item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros</a>
+    <a class="mobile-nav__item" data-section="creditos-masivos"><svg class="ic"><use href="#i-dollar"/></svg>Créditos</a>
     <a class="mobile-nav__item" data-section="auditoria"><svg class="ic"><use href="#i-search"/></svg>Auditar</a>
     <a class="mobile-nav__item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas</a>
     <a class="mobile-nav__item" data-section="config"><svg class="ic"><use href="#i-settings"/></svg>Config</a>
@@ -3916,6 +3918,217 @@ const Pages={
         btn.disabled = false; btn.textContent = 'Emitir certificado';
       }
     });
+  },
+
+  // ════════════════════════════════════════════════════════════════════
+  // CRÉDITOS MASIVOS · filtros históricos, selección y entrega segura
+  // ════════════════════════════════════════════════════════════════════
+  _bulkCreditsState: { candidates: [], selected: new Set(), loaded: false, operationId: '', operationSignature: '' },
+  _bulkEsc(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+  },
+  _bulkOperationId() {
+    if (window.crypto?.randomUUID) return 'gift_' + window.crypto.randomUUID();
+    return 'gift_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 12);
+  },
+  'creditos-masivos'(p) {
+    p.innerHTML = `
+      <style>
+        .bulk-shell{display:grid;gap:18px}.bulk-card{background:var(--surface);border:1px solid var(--border-2);border-radius:16px;padding:18px;box-shadow:var(--shadow-sm)}
+        .bulk-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}.bulk-card__head h2{font:800 18px 'Plus Jakarta Sans',sans-serif;color:var(--text);margin:0}.bulk-card__head p{font-size:12px;color:var(--text-3);margin:4px 0 0;line-height:1.5}
+        .bulk-filters{display:grid;grid-template-columns:1.1fr 1fr 1fr 1fr 1fr;gap:10px;align-items:end}.bulk-filters .form-field{min-width:0}.bulk-filters .label{font-size:10px}
+        .bulk-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}.bulk-verified{display:flex;align-items:center;gap:7px;font-size:11.5px;color:#34D399}.bulk-verified svg{width:15px;height:15px}
+        .bulk-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}.bulk-summary__item{border:1px solid var(--border);background:var(--surface-2);border-radius:12px;padding:12px}.bulk-summary__item b{display:block;font:800 22px 'Plus Jakarta Sans',sans-serif;color:var(--text)}.bulk-summary__item span{font-size:10.5px;color:var(--text-3);text-transform:uppercase;letter-spacing:.7px}
+        .bulk-table{border:1px solid var(--border);border-radius:13px;overflow:hidden}.bulk-row{display:grid;grid-template-columns:38px minmax(210px,1.45fr) minmax(145px,.8fr) minmax(95px,.55fr) minmax(115px,.7fr);gap:12px;align-items:center;padding:11px 13px;border-top:1px solid var(--border);font-size:12px}.bulk-row:first-child{border-top:0}.bulk-row--head{background:var(--surface-2);font:700 9.5px 'JetBrains Mono',monospace;color:var(--text-3);letter-spacing:.7px;text-transform:uppercase}.bulk-row:not(.bulk-row--head):hover{background:color-mix(in srgb,var(--primary) 4%,var(--surface))}.bulk-row__person{min-width:0}.bulk-row__person b{display:block;color:var(--text);overflow:hidden;text-overflow:ellipsis}.bulk-row__person span{display:block;color:var(--text-3);margin-top:2px;overflow:hidden;text-overflow:ellipsis}.bulk-check{width:17px;height:17px;accent-color:#E3A62A;cursor:pointer}.bulk-badge{display:inline-flex;width:max-content;max-width:100%;padding:4px 8px;border-radius:999px;font-size:10px;font-weight:700;background:color-mix(in srgb,var(--bc,#64748B) 11%,transparent);border:1px solid color-mix(in srgb,var(--bc,#64748B) 28%,transparent);color:var(--bc,#64748B)}
+        .bulk-gift{display:grid;grid-template-columns:minmax(170px,.55fr) 1fr auto;gap:12px;align-items:end;margin-top:16px;padding-top:16px;border-top:1px dashed var(--border-2)}.bulk-gift .btn{height:44px}.bulk-empty{padding:34px 18px;text-align:center;color:var(--text-3);font-size:12.5px}.bulk-empty b{display:block;color:var(--text-2);font-size:14px;margin-bottom:5px}
+        .bulk-history{display:grid;gap:8px}.bulk-history__row{display:flex;justify-content:space-between;gap:14px;align-items:center;border:1px solid var(--border);background:var(--surface-2);padding:11px 13px;border-radius:11px}.bulk-history__row b{font-size:12px;color:var(--text)}.bulk-history__row small{display:block;color:var(--text-3);font-size:10.5px;margin-top:3px}.bulk-outcome{padding:13px 15px;border-radius:12px;border:1px solid color-mix(in srgb,var(--oc,#34D399) 35%,var(--border));background:color-mix(in srgb,var(--oc,#34D399) 8%,var(--surface));font-size:12px;color:var(--text-2);line-height:1.55}
+        @media(max-width:980px){.bulk-filters{grid-template-columns:repeat(2,1fr)}.bulk-filters .form-field:first-child{grid-column:1/-1}.bulk-row{grid-template-columns:34px minmax(180px,1fr) minmax(130px,.7fr) minmax(90px,.5fr)}.bulk-row>*:nth-child(5){display:none}.bulk-gift{grid-template-columns:1fr 1fr}.bulk-gift .btn{grid-column:1/-1}}
+        @media(max-width:640px){.bulk-filters{grid-template-columns:1fr}.bulk-filters .form-field:first-child{grid-column:auto}.bulk-summary{grid-template-columns:1fr}.bulk-row{grid-template-columns:30px 1fr auto}.bulk-row>*:nth-child(3),.bulk-row>*:nth-child(4){display:none}.bulk-gift{grid-template-columns:1fr}.bulk-card{padding:14px}.bulk-history__row{align-items:flex-start;flex-direction:column}}
+      </style>
+      <div class="fade-up bulk-shell">
+        <div class="sec-hero" style="margin-bottom:0">
+          <span class="sec-hero__eyebrow">Administración segura</span>
+          <h1 class="sec-hero__title">Créditos masivos</h1>
+          <p class="sec-hero__sub">Filtra cuentas antiguas o nuevas, elige exactamente quiénes recibirán el regalo y revisa el total antes de entregarlo. Cada lote está protegido contra reintentos duplicados.</p>
+        </div>
+        <section class="bulk-card">
+          <div class="bulk-card__head"><div><h2>1. Buscar cuentas</h2><p>La fecha se toma del registro real de Firebase Auth y el historial se verifica en el libro mayor.</p></div><span class="bulk-badge" style="--bc:#E3A62A">Solo vista previa</span></div>
+          <div class="bulk-filters">
+            <div class="form-field"><label class="label" for="bulk-search">Nombre, correo o UID</label><input class="input" id="bulk-search" type="search" placeholder="Buscar una cuenta concreta"></div>
+            <div class="form-field"><label class="label" for="bulk-gift-status">Historial de regalos</label><select class="input" id="bulk-gift-status"><option value="never-gifted">Sin créditos regalados</option><option value="gifted">Ya recibieron regalo</option><option value="all">Todos</option></select></div>
+            <div class="form-field"><label class="label" for="bulk-membership">Estado de membresía</label><select class="input" id="bulk-membership"><option value="all">Activas e inactivas</option><option value="active">Solo activas</option><option value="inactive">Solo inactivas</option></select></div>
+            <div class="form-field"><label class="label" for="bulk-from">Registrados desde</label><input class="input" id="bulk-from" type="date"></div>
+            <div class="form-field"><label class="label" for="bulk-to">Registrados hasta</label><input class="input" id="bulk-to" type="date"></div>
+          </div>
+          <div class="bulk-actions"><button class="btn btn--accent" id="bulk-preview" type="button"><svg class="ic"><use href="#i-search"/></svg>Buscar y revisar</button><span class="bulk-verified" id="bulk-verification" hidden><svg class="ic"><use href="#i-check"/></svg>Historial completo verificado</span></div>
+        </section>
+        <section class="bulk-card">
+          <div class="bulk-card__head"><div><h2>2. Elegir personas</h2><p>Puedes seleccionar todas las coincidencias o marcar únicamente algunas.</p></div><button class="btn btn--ghost" id="bulk-none" type="button" hidden>Quitar selección</button></div>
+          <div id="bulk-candidates"><div class="bulk-empty"><b>Aún no hay una vista previa</b>Elige tus filtros y presiona “Buscar y revisar”.</div></div>
+          <div id="bulk-gift-controls" hidden>
+            <div class="bulk-summary"><div class="bulk-summary__item"><b id="bulk-matched">0</b><span>Coincidencias</span></div><div class="bulk-summary__item"><b id="bulk-selected">0</b><span>Seleccionadas</span></div><div class="bulk-summary__item"><b id="bulk-total">0</b><span>Créditos en total</span></div></div>
+            <div class="bulk-gift">
+              <div class="form-field"><label class="label" for="bulk-amount">Créditos por cuenta</label><input class="input" id="bulk-amount" type="number" min="1" max="100000" step="1" placeholder="Ej. 100" inputmode="numeric"></div>
+              <div class="form-field"><label class="label" for="bulk-note">Mensaje opcional</label><input class="input" id="bulk-note" type="text" maxlength="200" placeholder="Ej. Gracias por formar parte de ICADEM"></div>
+              <button class="btn btn--accent" id="bulk-review" type="button" style="background:#E3A62A;border-color:#E3A62A;color:#1a1204" disabled><svg class="ic"><use href="#i-check"/></svg>Revisar regalo</button>
+            </div>
+          </div>
+          <div id="bulk-outcome" style="margin-top:14px" hidden></div>
+        </section>
+        <section class="bulk-card"><div class="bulk-card__head"><div><h2>Historial de lotes</h2><p>Sirve para comprobar quién ejecutó cada regalo y si hubo cuentas pendientes.</p></div></div><div class="bulk-history" id="bulk-history"><div class="bulk-empty">Cargando historial…</div></div></section>
+      </div>`;
+    const preview = p.querySelector('#bulk-preview');
+    preview.addEventListener('click', () => Pages._bulkLoadPreview(p));
+    p.querySelector('#bulk-search').addEventListener('keydown', event => { if (event.key === 'Enter') Pages._bulkLoadPreview(p); });
+    p.querySelector('#bulk-none').addEventListener('click', () => {
+      Pages._bulkCreditsState.selected.clear();
+      Pages._bulkCreditsState.operationId = '';
+      Pages._bulkCreditsState.operationSignature = '';
+      Pages._bulkRenderCandidates(p);
+    });
+    p.querySelector('#bulk-amount').addEventListener('input', () => Pages._bulkUpdateSummary(p));
+    p.querySelector('#bulk-note').addEventListener('input', () => { Pages._bulkCreditsState.operationId = ''; Pages._bulkCreditsState.operationSignature = ''; });
+    p.querySelector('#bulk-review').addEventListener('click', () => Pages._bulkConfirm(p));
+    Pages._bulkLoadHistory(p);
+  },
+  async _bulkLoadPreview(p) {
+    const button = p.querySelector('#bulk-preview');
+    button.disabled = true; button.innerHTML = '<span class="spinner"></span> Comprobando…';
+    try {
+      const token = await Pages._getAuthToken();
+      const body = {
+        search: p.querySelector('#bulk-search').value,
+        giftStatus: p.querySelector('#bulk-gift-status').value,
+        membershipStatus: p.querySelector('#bulk-membership').value,
+        registeredFrom: p.querySelector('#bulk-from').value,
+        registeredTo: p.querySelector('#bulk-to').value
+      };
+      const response = await fetch(Pages._webhookUrl + '/admin/creditos/masivos/preview', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token }, body:JSON.stringify(body), cache:'no-store' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data.ok === false) throw new Error(data.error || 'No se pudo preparar la vista previa.');
+      const state = Pages._bulkCreditsState;
+      state.candidates = Array.isArray(data.candidates) ? data.candidates : [];
+      state.selected = new Set(state.candidates.map(x => x.uid));
+      state.loaded = true; state.operationId = ''; state.operationSignature = '';
+      p.querySelector('#bulk-verification').hidden = data.historyVerified !== true;
+      Pages._bulkRenderCandidates(p);
+      Toast.success('Vista previa lista', `${state.candidates.length} cuenta${state.candidates.length === 1 ? '' : 's'} coincide${state.candidates.length === 1 ? '' : 'n'} con los filtros.`);
+    } catch (error) {
+      Toast.error('No se pudo buscar', error.message);
+    } finally {
+      button.disabled = false; button.innerHTML = '<svg class="ic"><use href="#i-search"/></svg>Buscar y revisar';
+    }
+  },
+  _bulkRenderCandidates(p) {
+    const state = Pages._bulkCreditsState;
+    const root = p.querySelector('#bulk-candidates');
+    const controls = p.querySelector('#bulk-gift-controls');
+    p.querySelector('#bulk-none').hidden = !state.candidates.length;
+    controls.hidden = !state.candidates.length;
+    if (!state.candidates.length) {
+      root.innerHTML = `<div class="bulk-empty"><b>${state.loaded ? 'No hay coincidencias' : 'Aún no hay una vista previa'}</b>${state.loaded ? 'Prueba con otro rango de fechas o cambia los filtros.' : 'Elige tus filtros y presiona “Buscar y revisar”.'}</div>`;
+      Pages._bulkUpdateSummary(p); return;
+    }
+    const esc = Pages._bulkEsc;
+    const allSelected = state.candidates.every(x => state.selected.has(x.uid));
+    root.innerHTML = `<div class="bulk-table">
+      <div class="bulk-row bulk-row--head"><input class="bulk-check" id="bulk-all" type="checkbox" ${allSelected ? 'checked' : ''} aria-label="Seleccionar todas"><span>Cuenta</span><span>Registro</span><span>Saldo</span><span>Último regalo</span></div>
+      ${state.candidates.map(candidate => {
+        const registered = candidate.registeredAt ? Pages._mbFechaHora(new Date(candidate.registeredAt)) : 'Fecha no disponible';
+        const lastGift = candidate.lastGiftAt ? Pages._mbFechaHora(new Date(candidate.lastGiftAt)) : 'Nunca';
+        return `<label class="bulk-row"><input class="bulk-check" type="checkbox" data-bulk-uid="${esc(candidate.uid)}" ${state.selected.has(candidate.uid) ? 'checked' : ''}><span class="bulk-row__person"><b>${esc(candidate.name || 'Cuenta sin nombre')}</b><span>${esc(candidate.email || candidate.uid)} · ${candidate.active ? 'Membresía activa' : 'Membresía inactiva'}</span></span><span>${esc(registered)}</span><b>${Number(candidate.balance || 0).toLocaleString('es-MX')}</b><span>${esc(lastGift)}${Number(candidate.giftCount || 0) ? ` · ${Number(candidate.giftCount)} entrega${Number(candidate.giftCount) === 1 ? '' : 's'}` : ''}</span></label>`;
+      }).join('')}
+    </div>`;
+    root.querySelector('#bulk-all').addEventListener('change', event => {
+      state.selected = event.target.checked ? new Set(state.candidates.map(x => x.uid)) : new Set();
+      state.operationId = ''; state.operationSignature = '';
+      Pages._bulkRenderCandidates(p);
+    });
+    root.querySelectorAll('[data-bulk-uid]').forEach(input => input.addEventListener('change', () => {
+      input.checked ? state.selected.add(input.dataset.bulkUid) : state.selected.delete(input.dataset.bulkUid);
+      state.operationId = ''; state.operationSignature = '';
+      Pages._bulkUpdateSummary(p);
+      const all = root.querySelector('#bulk-all'); if (all) all.checked = state.candidates.every(x => state.selected.has(x.uid));
+    }));
+    Pages._bulkUpdateSummary(p);
+  },
+  _bulkUpdateSummary(p) {
+    const state = Pages._bulkCreditsState;
+    const amount = Math.max(0, Math.floor(Number(p.querySelector('#bulk-amount')?.value) || 0));
+    const selected = state.selected.size;
+    const set = (id, value) => { const el = p.querySelector(id); if (el) el.textContent = value; };
+    set('#bulk-matched', state.candidates.length.toLocaleString('es-MX'));
+    set('#bulk-selected', selected.toLocaleString('es-MX'));
+    set('#bulk-total', (selected * amount).toLocaleString('es-MX'));
+    const review = p.querySelector('#bulk-review'); if (review) review.disabled = !selected || amount < 1 || amount > 100000;
+  },
+  _bulkConfirm(p) {
+    const state = Pages._bulkCreditsState;
+    const uids = state.candidates.filter(x => state.selected.has(x.uid)).map(x => x.uid);
+    const selectedPeople = state.candidates.filter(x => state.selected.has(x.uid));
+    const amount = Math.floor(Number(p.querySelector('#bulk-amount').value));
+    const nota = p.querySelector('#bulk-note').value.trim();
+    if (!uids.length || !amount || amount < 1 || amount > 100000) return Toast.error('Revisa la selección', 'Elige cuentas y una cantidad válida.');
+    const esc = Pages._bulkEsc;
+    const total = uids.length * amount;
+    const body = document.createElement('div');
+    body.innerHTML = `<div style="display:grid;gap:14px"><div style="padding:16px;border:1px solid color-mix(in srgb,#E3A62A 35%,var(--border));background:color-mix(in srgb,#E3A62A 8%,var(--surface-2));border-radius:13px"><div style="font:800 22px 'Plus Jakarta Sans',sans-serif;color:#E3A62A">${total.toLocaleString('es-MX')} créditos</div><div style="font-size:12px;color:var(--text-2);margin-top:4px">${uids.length.toLocaleString('es-MX')} cuenta${uids.length === 1 ? '' : 's'} · ${amount.toLocaleString('es-MX')} para cada una</div></div><div style="font-size:12px;color:var(--text-3);line-height:1.55"><b style="color:var(--text-2)">Primeras cuentas de la selección:</b><br>${selectedPeople.slice(0, 6).map(x => esc(x.name || x.email || x.uid)).join(' · ')}${selectedPeople.length > 6 ? ` · y ${selectedPeople.length - 6} más` : ''}</div>${nota ? `<div style="font-size:12px;color:var(--text-3)"><b style="color:var(--text-2)">Mensaje:</b> ${esc(nota)}</div>` : ''}<label style="display:flex;align-items:flex-start;gap:9px;padding:12px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);font-size:12px;color:var(--text-2);line-height:1.5"><input type="checkbox" id="bulk-confirm-check" class="bulk-check" style="margin-top:1px">Confirmo que revisé la cantidad y las cuentas seleccionadas. Esta acción suma créditos reales.</label></div>`;
+    const footer = document.createElement('div');
+    footer.innerHTML = `<button class="btn btn--ghost" id="bulk-confirm-cancel">Cancelar</button><button class="btn btn--accent" id="bulk-confirm-send" style="background:#E3A62A;border-color:#E3A62A;color:#1a1204" disabled>Regalar ahora</button>`;
+    Modal.open({ title:'Confirmar regalo masivo', subtitle:'Última revisión antes de modificar saldos', icon:'i-dollar', body, footer });
+    const confirmCheck = body.querySelector('#bulk-confirm-check');
+    const send = footer.querySelector('#bulk-confirm-send');
+    confirmCheck.addEventListener('change', () => { send.disabled = !confirmCheck.checked; });
+    footer.querySelector('#bulk-confirm-cancel').addEventListener('click', () => Modal.close());
+    send.addEventListener('click', async () => {
+      const signature = JSON.stringify({ uids:[...uids].sort(), amount, nota });
+      if (state.operationSignature !== signature || !state.operationId) {
+        state.operationId = Pages._bulkOperationId();
+        state.operationSignature = signature;
+      }
+      send.disabled = true; send.textContent = 'Entregando de forma segura…';
+      try {
+        const token = await Pages._getAuthToken();
+        const response = await fetch(Pages._webhookUrl + '/admin/creditos/masivos', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token }, body:JSON.stringify({ operationId:state.operationId, uids, amount, nota }) });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || 'No se pudo ejecutar el lote.');
+        Modal.close();
+        Pages._bulkRenderOutcome(p, data);
+        Pages._bulkLoadHistory(p);
+        if (Number(data.failed || 0) > 0) {
+          Toast.error('Lote parcialmente completado', `${data.granted || 0} entregados · ${data.failed} pendientes. Puedes reintentar: los ya entregados no se duplicarán.`);
+        } else {
+          Toast.success('¡Créditos regalados!', `${data.granted || 0} entregas nuevas${data.alreadyGranted ? ` · ${data.alreadyGranted} ya estaban protegidas` : ''}.`);
+          await Pages._bulkLoadPreview(p);
+        }
+      } catch (error) {
+        Toast.error('No se pudo completar', `${error.message} Puedes reintentar sin riesgo de duplicar el mismo lote.`);
+        send.disabled = false; send.textContent = 'Reintentar de forma segura';
+      }
+    });
+  },
+  _bulkRenderOutcome(p, data) {
+    const el = p.querySelector('#bulk-outcome'); if (!el) return;
+    const failed = Number(data.failed || 0);
+    el.hidden = false; el.className = 'bulk-outcome'; el.style.setProperty('--oc', failed ? '#F59E0B' : '#34D399');
+    el.innerHTML = `<b style="color:var(--text)">${failed ? 'Lote parcialmente completado' : 'Lote completado'}</b><br>${Number(data.granted || 0)} entregas nuevas · ${Number(data.alreadyGranted || 0)} reintentos protegidos · ${failed} fallidas.${failed ? '<br>Puedes volver a presionar “Revisar regalo” con la misma selección: solo se reintentarán las pendientes.' : ''}`;
+  },
+  async _bulkLoadHistory(p) {
+    const root = p.querySelector('#bulk-history'); if (!root) return;
+    try {
+      const token = await Pages._getAuthToken();
+      const response = await fetch(Pages._webhookUrl + '/admin/creditos/masivos/historial', { headers:{ Authorization:'Bearer ' + token }, cache:'no-store' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || 'No disponible');
+      const items = Array.isArray(data.items) ? data.items : [];
+      root.innerHTML = items.length ? items.map(item => {
+        const date = item.createdAt ? Pages._mbFechaHora(new Date(item.createdAt)) : 'Fecha no disponible';
+        const color = item.failed ? '#F59E0B' : '#34D399';
+        return `<div class="bulk-history__row"><div><b>${Number(item.amount || 0).toLocaleString('es-MX')} créditos × ${Number(item.requested || 0).toLocaleString('es-MX')} cuentas</b><small>${Pages._bulkEsc(date)} · ${Pages._bulkEsc(item.adminEmail || 'Administrador')}${item.nota ? ' · ' + Pages._bulkEsc(item.nota) : ''}</small></div><span class="bulk-badge" style="--bc:${color}">${Number(item.granted || 0)} entregados${item.failed ? ` · ${Number(item.failed)} pendientes` : ''}</span></div>`;
+      }).join('') : '<div class="bulk-empty"><b>Sin lotes todavía</b>Los regalos masivos aparecerán aquí después de ejecutarlos.</div>';
+    } catch (error) {
+      root.innerHTML = '<div class="bulk-empty"><b>Historial no disponible</b>Vuelve a intentar cuando el servicio esté conectado.</div>';
+    }
   },
 
   // ════════════════════════════════════════════════════════════════════
