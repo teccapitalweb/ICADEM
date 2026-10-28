@@ -148,6 +148,9 @@ assert.match(admin, /\/admin\/creditos\/masivos\/preview/);
 assert.match(admin, /\/admin\/creditos\/masivos'/);
 assert.match(admin, /\/admin\/creditos\/masivos\/historial/);
 assert.match(admin, /id="bulk-confirm-check"/);
+assert.match(admin, /data-section="estado-pagos"/);
+assert.match(admin, /\/admin\/payment-overview/);
+assert.match(admin, /Cobro duplicado/);
 assert.match(admin, /state\.operationSignature !== signature/);
 assert.match(admin, /reintentar sin riesgo de duplicar/i);
 

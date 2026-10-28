@@ -1181,6 +1181,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Comunidad</div>
       <a class="nav-item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros VIP<span class="nav-item__badge">486</span></a>
+      <a class="nav-item" data-section="estado-pagos"><svg class="ic"><use href="#i-dollar"/></svg>Estado de pagos<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="creditos-masivos"><svg class="ic"><use href="#i-dollar"/></svg>Créditos masivos<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="auditoria"><svg class="ic"><use href="#i-search"/></svg>Auditoría de cuentas<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="noticias"><svg class="ic"><use href="#i-news"/></svg>Noticias</a>
@@ -1220,6 +1221,7 @@ window.__signOut = async () => {
     <a class="mobile-nav__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Cursos</a>
     <a class="mobile-nav__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</a>
     <a class="mobile-nav__item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros</a>
+    <a class="mobile-nav__item" data-section="estado-pagos"><svg class="ic"><use href="#i-dollar"/></svg>Pagos</a>
     <a class="mobile-nav__item" data-section="creditos-masivos"><svg class="ic"><use href="#i-dollar"/></svg>Créditos</a>
     <a class="mobile-nav__item" data-section="auditoria"><svg class="ic"><use href="#i-search"/></svg>Auditar</a>
     <a class="mobile-nav__item" data-section="metricas"><svg class="ic"><use href="#i-chart-bar"/></svg>Métricas</a>
@@ -4713,6 +4715,115 @@ const Pages={
   // ═══════════════════════════════════════════════════════════════
   // ACCIONES SOBRE MIEMBROS (Sub-fase 5B.2)
   // ═══════════════════════════════════════════════════════════════
+
+  // ═══════════════════════════════════════════════════════════════
+  // ESTADO DE PAGOS · conciliación global Firebase + Stripe
+  // ═══════════════════════════════════════════════════════════════
+  _paymentOverview: null,
+  _paymentFilter: 'all',
+  _paymentSearch: '',
+
+  'estado-pagos'(p) {
+    Pages._renderPaymentOverview(p);
+    Pages._loadPaymentOverview(p, false);
+  },
+
+  async _loadPaymentOverview(p, force) {
+    if (Pages._paymentOverview && !force) return;
+    const result = p.querySelector('#payments-result');
+    if (result) result.innerHTML = '<div class="pay-empty"><span class="mx-spin"></span> Conciliando todas las cuentas con Stripe…</div>';
+    try {
+      const token = await Pages._getAuthToken();
+      const response = await fetch(Pages._webhookUrl + '/admin/payment-overview', {
+        headers: { Authorization: 'Bearer ' + token },
+        cache: 'no-store'
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || 'No se pudo cargar la conciliación.');
+      Pages._paymentOverview = payload;
+      Pages._renderPaymentOverview(p);
+    } catch (error) {
+      if (result) result.innerHTML = `<div class="pay-empty pay-empty--error"><b>No se pudo revisar Stripe.</b><br>${Pages._auditEsc(error.message || 'Intenta nuevamente.')}</div>`;
+    }
+  },
+
+  _renderPaymentOverview(p) {
+    const data = Pages._paymentOverview;
+    const esc = Pages._auditEsc;
+    const labels = {
+      duplicate: ['Cobro duplicado', 'danger'],
+      'paid-active': ['Pagó · activa', 'ok'],
+      'payment-problem': ['Pago pendiente', 'warn'],
+      'previously-purchased': ['Compró antes', 'neutral'],
+      'access-without-stripe': ['Acceso sin cobro', 'info'],
+      'not-purchased': ['No ha comprado', 'muted']
+    };
+    const counts = data?.counts || {};
+    const cards = [
+      ['all', 'Cuentas revisadas', counts.total || 0, 'Todas las registradas, incluso anteriores'],
+      ['paid-active', 'Pagaron y están activas', counts['paid-active'] || 0, 'Una suscripción activa en Stripe'],
+      ['not-purchased', 'Aún no compran', counts['not-purchased'] || 0, 'Registro sin suscripción ICADEM'],
+      ['duplicate', 'Duplicadas', counts.duplicate || 0, 'Más de una suscripción cobrable'],
+      ['payment-problem', 'Requieren revisión', counts['payment-problem'] || 0, 'Pago incompleto, vencido o no pagado'],
+      ['previously-purchased', 'Compraron antes', counts['previously-purchased'] || 0, 'Suscripción histórica ya terminada']
+    ];
+    const rows = (data?.accounts || []).filter(account => {
+      const filterOk = Pages._paymentFilter === 'all' || account.state === Pages._paymentFilter;
+      const query = Pages._paymentSearch;
+      const searchOk = !query || `${account.name || ''} ${account.email || ''} ${account.uid || ''}`.toLowerCase().includes(query);
+      return filterOk && searchOk;
+    });
+    const filterButtons = [['all','Todas'],['duplicate','Duplicadas'],['paid-active','Pagaron'],['not-purchased','No compraron'],['payment-problem','Por revisar'],['previously-purchased','Compraron antes'],['access-without-stripe','Sin cobro']]
+      .map(item => `<button class="pay-filter" data-pay-filter="${item[0]}" ${Pages._paymentFilter === item[0] ? 'data-active="1"' : ''}>${item[1]}</button>`).join('');
+    const tableRows = rows.map(account => {
+      const label = labels[account.state] || [account.state, 'neutral'];
+      const subIds = (account.subscriptions || []).map(sub => `${esc(sub.id)} · ${esc(sub.status)}`).join('<br>') || '—';
+      const duplicateNote = account.duplicateCount ? `<div class="pay-email">${account.blockingCount} suscripciones cobrables</div>` : '';
+      const localState = account.localActive
+        ? '<span class="pay-state pay-state--ok">Activo</span>'
+        : '<span class="pay-state pay-state--muted">Inactivo</span>';
+      return `<tr><td><div class="pay-person">${esc(account.name || 'Sin nombre')}</div><div class="pay-email">${esc(account.email || account.uid || 'Sin correo')}</div></td><td><span class="pay-state pay-state--${label[1]}">${label[0]}</span>${duplicateNote}</td><td>${localState}<div class="pay-email">${esc(account.localPlan || account.accessSource || '')}</div></td><td><div class="pay-subids">${subIds}</div></td><td>${Pages._auditDate(account.registeredAt)}</td><td><button class="pay-review" data-pay-audit="${esc(account.email || account.uid)}">Ver expediente</button></td></tr>`;
+    }).join('');
+    const kpisHtml = data ? `<div class="pay-kpis">${cards.map(card => `<button class="pay-kpi" data-pay-filter="${card[0]}" ${Pages._paymentFilter === card[0] ? 'data-active="1"' : ''}><div class="pay-kpi__n">${Number(card[2]).toLocaleString('es-MX')}</div><div class="pay-kpi__label">${card[1]}</div><div class="pay-kpi__sub">${card[3]}</div></button>`).join('')}</div>` : '';
+    const resultHtml = !data
+      ? '<div class="pay-empty"><span class="mx-spin"></span> Conciliando todas las cuentas con Stripe…</div>'
+      : `<div class="pay-toolbar"><input class="input" id="payments-search" type="search" placeholder="Buscar por nombre, correo o UID" value="${esc(Pages._paymentSearch)}"><div class="pay-filters">${filterButtons}</div></div>${rows.length ? `<div class="pay-table-wrap"><table class="pay-table"><thead><tr><th>Cuenta</th><th>Estado</th><th>Acceso local</th><th>Suscripciones Stripe</th><th>Registro</th><th></th></tr></thead><tbody>${tableRows}</tbody></table></div>` : '<div class="pay-empty">No hay cuentas que coincidan con este filtro.</div>'}`;
+
+    p.innerHTML = `
+      <style>
+        .pay-shell{max-width:1240px;margin:0 auto}.pay-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.pay-updated{font-size:10.5px;color:var(--text-3)}
+        .pay-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.pay-kpi{appearance:none;text-align:left;padding:16px;background:var(--surface);border:1px solid var(--border);border-radius:15px;cursor:pointer;transition:.18s}.pay-kpi:hover,.pay-kpi[data-active="1"]{border-color:var(--primary);box-shadow:0 8px 24px color-mix(in srgb,var(--primary) 12%,transparent);transform:translateY(-1px)}.pay-kpi__n{font:800 24px/1 'Plus Jakarta Sans',sans-serif;color:var(--text-1)}.pay-kpi__label{margin-top:7px;font-size:11px;font-weight:800;color:var(--text-2)}.pay-kpi__sub{margin-top:4px;font-size:10px;color:var(--text-3);line-height:1.4}
+        .pay-toolbar{display:grid;grid-template-columns:minmax(240px,1fr) auto;gap:10px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:15px 15px 0 0}.pay-filters{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.pay-filter{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);padding:8px 10px;border-radius:999px;font-size:10px;font-weight:750;cursor:pointer}.pay-filter[data-active="1"]{background:var(--primary);border-color:var(--primary);color:#fff}
+        .pay-table-wrap{overflow:auto;background:var(--surface);border:1px solid var(--border);border-top:0;border-radius:0 0 15px 15px}.pay-table{width:100%;border-collapse:collapse;min-width:900px}.pay-table th,.pay-table td{padding:13px 15px;text-align:left;border-bottom:1px solid var(--border);vertical-align:middle}.pay-table th{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-3)}.pay-table td{font-size:11px;color:var(--text-2)}.pay-table tr:last-child td{border:0}.pay-person{font-weight:800;color:var(--text-1);font-size:12px}.pay-email{color:var(--text-3);margin-top:3px}.pay-state{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:999px;font-size:9.5px;font-weight:850;white-space:nowrap}.pay-state:before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}.pay-state--danger{color:#B91C1C;background:#FEE2E2}.pay-state--ok{color:#047857;background:#D1FAE5}.pay-state--warn{color:#9A5A00;background:#FEF3C7}.pay-state--neutral{color:#475569;background:#E2E8F0}.pay-state--info{color:#1D4ED8;background:#DBEAFE}.pay-state--muted{color:#64748B;background:#F1F5F9}.pay-empty{padding:48px 22px;text-align:center;color:var(--text-3);background:var(--surface);border:1px dashed var(--border);border-radius:15px}.pay-empty--error{color:#B91C1C;background:#FEF2F2;border-color:#FCA5A5}.pay-subids{max-width:250px;font:600 9.5px/1.45 'JetBrains Mono',monospace;color:var(--text-3);word-break:break-all}.pay-review{border:1px solid var(--border);background:var(--surface-2);color:var(--primary);border-radius:9px;padding:7px 9px;font-size:10px;font-weight:800;cursor:pointer}
+        @media(max-width:900px){.pay-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.pay-toolbar{grid-template-columns:1fr}.pay-filters{justify-content:flex-start}}@media(max-width:560px){.pay-kpis{grid-template-columns:1fr}.pay-actions{align-items:flex-start}.pay-actions .btn{width:100%;justify-content:center}}
+      </style>
+      <div class="fade-up pay-shell">
+        <div class="sec-hero" style="display:flex;justify-content:space-between;gap:18px;align-items:flex-end;flex-wrap:wrap">
+          <div><span class="sec-hero__eyebrow">Stripe + cuentas registradas</span><h1 class="sec-hero__title">Estado de pagos</h1><p class="sec-hero__sub">Muestra quién pagó, quién todavía no compra y qué cuentas tienen más de una suscripción. Incluye registros anteriores y nuevos.</p></div>
+          <div class="pay-actions"><span class="pay-updated">${data?.generatedAt ? 'Revisado ' + Pages._auditDate(data.generatedAt) : 'Pendiente de revisión'}</span><button class="btn btn--accent" id="payments-refresh"><svg class="ic"><use href="#i-refresh"/></svg> Revisar Stripe ahora</button></div>
+        </div>
+        ${kpisHtml}
+        <div id="payments-result">${resultHtml}</div>
+      </div>`;
+
+    p.querySelector('#payments-refresh')?.addEventListener('click', () => {
+      Pages._paymentOverview = null;
+      Pages._loadPaymentOverview(p, true);
+    });
+    p.querySelectorAll('[data-pay-filter]').forEach(button => button.addEventListener('click', () => {
+      Pages._paymentFilter = button.dataset.payFilter || 'all';
+      Pages._renderPaymentOverview(p);
+    }));
+    p.querySelector('#payments-search')?.addEventListener('input', event => {
+      Pages._paymentSearch = String(event.target.value || '').trim().toLowerCase();
+      Pages._renderPaymentOverview(p);
+      const input = p.querySelector('#payments-search'); if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
+    });
+    p.querySelectorAll('[data-pay-audit]').forEach(button => button.addEventListener('click', () => {
+      Pages._auditLastQuery = button.dataset.payAudit || '';
+      navigate('auditoria');
+    }));
+  },
 
   // ═══════════════════════════════════════════════════════════════
   // AUDITORÍA DE CUENTAS · Stripe + membresía + actividad
