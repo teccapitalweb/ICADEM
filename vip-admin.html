@@ -4401,7 +4401,7 @@ const Pages={
       const regalos = Pages._mbHistorialCreditos(m);
       const estado = Pages._mbEstaActivo(m) ? 'activo' : (Pages._mbEstaExpirado(m) ? 'expirado' : ((m.activa !== true && m.activo !== true) && !m.plan ? 'sin pagar' : 'inactivo'));
       filas.push([m.nombre || m.displayName || '', m.email || '', m.uid || m.id || '', (m.esRegalo === true ? 'regalo' : (m.plan || '')), estado,
-        iso(Pages._mbRegistro(m)), iso(Pages._mbActivacion(m)), iso(Pages._mbToDate(m.expiraEn)), iso(x.ultimoAcceso ? new Date(x.ultimoAcceso) : null),
+        iso(Pages._mbRegistro(m)), iso(Pages._mbActivacion(m)), iso(Pages._mbFechaVigencia(m)), iso(x.ultimoAcceso ? new Date(x.ultimoAcceso) : null),
         x.proveedor === 'google.com' ? 'Google' : (x.proveedor === 'password' ? 'Correo' : (x.proveedor || '')),
         x.origen ? (Pages._mbNombreOrigen[x.origen] || x.origen) : '', (x.cursoGratis && x.cursoGratis.titulo) || '', iso(x.cursoGratis && x.cursoGratis.elegidoEn ? new Date(x.cursoGratis.elegidoEn) : null),
         regalos.available ? regalos.count : '', regalos.available ? regalos.total : '', regalos.available ? iso(Pages._mbToDate(regalos.lastAt)) : '', regalos.available ? regalos.lastAmount : '', Number(m.accessGiftCount || 0), Number(m.accessGiftDaysTotal || 0)]);
@@ -4414,15 +4414,27 @@ const Pages={
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   },
 
+  _mbFechaVigencia(m = {}) {
+    const paidOrLocalExpiry = m.cancelacionProgramada === true
+      ? (m.fechaFinAcceso || m.fechaProximaRenovacion || m.expiraEn)
+      : (m.stripeSubscriptionId
+        ? (m.fechaProximaRenovacion || m.expiraEn)
+        : (m.expiraEn || m.fechaFinAcceso || m.fechaProximaRenovacion));
+    return [paidOrLocalExpiry, m.adminAccessUntil]
+      .map(Pages._mbToDate)
+      .filter(Boolean)
+      .sort((a, b) => b.getTime() - a.getTime())[0] || null;
+  },
+
   _mbEstaActivo(m) {
     if (m.activa !== true && m.activo !== true) return false;
-    const expira = Pages._mbToDate(m.expiraEn);
+    const expira = Pages._mbFechaVigencia(m);
     if (!expira) return true; // si no hay fecha, asume activo
     return expira.getTime() > Date.now();
   },
 
   _mbEstaExpirado(m) {
-    const expira = Pages._mbToDate(m.expiraEn);
+    const expira = Pages._mbFechaVigencia(m);
     if (!expira) return false;
     return expira.getTime() <= Date.now();
   },
@@ -4639,7 +4651,7 @@ const Pages={
     // Fechas: registro vs activación
     const fechaRegistro = Pages._mbRegistro(m);
     const fechaActivacion = Pages._mbActivacion(m);
-    const expira = Pages._mbToDate(m.expiraEn);
+    const expira = Pages._mbFechaVigencia(m);
 
     const fmtFecha = (d) => d ? d.toLocaleDateString('es-MX', { day:'numeric', month:'short', year:'numeric' }) : '—';
     const fmtHora = (d) => Pages._mbFechaHora(d); // registro y activación con hora (de México)
@@ -5206,7 +5218,7 @@ const Pages={
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
             <div class="mb-action-btn__body">
               <div class="mb-action-btn__title">Regalar acceso temporal</div>
-              <div class="mb-action-btn__sub">3, 7, 10 o 30 días de cortesía</div>
+              <div class="mb-action-btn__sub">Elige una opción rápida o escribe cualquier cantidad de días</div>
             </div>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--text-3);"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -5217,6 +5229,15 @@ const Pages={
             <div class="mb-action-btn__body">
               <div class="mb-action-btn__title">Renovar membresía</div>
               <div class="mb-action-btn__sub">Extender por otro periodo</div>
+            </div>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--text-3);"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+
+          <button class="mb-action-btn" data-act="regalar" style="--c:#A855F7;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+            <div class="mb-action-btn__body">
+              <div class="mb-action-btn__title">Extender con días de cortesía</div>
+              <div class="mb-action-btn__sub">Elige cualquier cantidad y se sumará al vencimiento actual</div>
             </div>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" style="color:var(--text-3);"><polyline points="9 18 15 12 9 6"/></svg>
           </button>
@@ -5458,6 +5479,12 @@ const Pages={
   // de respaldo (si no se puede leer, muestra "—" en vez de un precio viejo)
   async _modalActivar(m, plan, days) {
     const planLabel = plan === 'mensual' ? 'Plan Mensual' : 'Plan Anual';
+    const defaultDays = plan === 'anual' ? 365 : 30;
+    const requestedDays = Number.isInteger(Number(days)) && Number(days) >= 1 && Number(days) <= 730
+      ? Number(days)
+      : defaultDays;
+    // Nunca muestres "Plan anual · 30 días" por un parámetro viejo o incorrecto.
+    const initialDays = plan === 'anual' && requestedDays === 30 ? 365 : requestedDays;
     let precio = '—';
     try {
       const fb = window._fb;
@@ -5468,8 +5495,10 @@ const Pages={
     } catch (e) { /* se queda en "—" */ }
     const color = plan === 'mensual' ? '#3B82F6' : '#5b92c8';
     const nombre = (m.nombre || m.email || 'Este miembro').replace(/</g,'&lt;');
-    const expiraDate = new Date(Date.now() + days * 86400 * 1000);
-    const expiraFmt = expiraDate.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
+    const currentExpiry = Pages._mbFechaVigencia(m);
+    const extensionBase = currentExpiry && currentExpiry.getTime() > Date.now() ? currentExpiry : new Date();
+    const initialExpiry = new Date(extensionBase.getTime() + initialDays * 86400000);
+    const initialExpiryFmt = initialExpiry.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' });
 
     const body = document.createElement('div');
     body.innerHTML = `
@@ -5487,19 +5516,27 @@ const Pages={
         </div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border-2);">
           <span style="color:var(--text-3);font-size:12.5px;">Duración</span>
-          <span style="font-weight:700;color:var(--text);font-size:13px;">${days} días</span>
+          <span id="mb-activation-duration" style="font-weight:700;color:var(--text);font-size:13px;">${initialDays} días</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border-2);">
           <span style="color:var(--text-3);font-size:12.5px;">Expira el</span>
-          <span style="font-weight:700;color:var(--text);font-size:13px;">${expiraFmt}</span>
+          <span id="mb-activation-expiry" style="font-weight:700;color:var(--text);font-size:13px;">${initialExpiryFmt}</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px dashed var(--border-2);">
           <span style="color:var(--text-3);font-size:12.5px;">Precio referencia</span>
           <span style="font-weight:700;color:var(--text);font-size:13px;">${precio}</span>
         </div>
       </div>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;">
+        ${[7, 22, 30, 90, 365].map(optionDays => `<button type="button" data-activation-days="${optionDays}" style="padding:8px 13px;background:${optionDays === initialDays ? color : 'var(--surface-2)'};border:1px solid ${optionDays === initialDays ? color : 'var(--border)'};border-radius:999px;color:${optionDays === initialDays ? '#fff' : 'var(--text-2)'};font:700 12px Inter,sans-serif;cursor:pointer;">${optionDays} días</button>`).join('')}
+      </div>
+      <div class="form-field form-field--full" style="margin-bottom:12px;">
+        <label class="label" for="mb-activation-days">Cantidad de días</label>
+        <input type="number" min="1" max="730" step="1" class="input" id="mb-activation-days" value="${initialDays}" inputmode="numeric">
+        <div style="margin-top:5px;font-size:10.5px;color:var(--text-3);">Puedes elegir de 1 a 730 días. El anual comienza en 365 y el mensual en 30.</div>
+      </div>
       <div style="font-size:11.5px;color:var(--text-3);padding:10px 12px;background:color-mix(in srgb, var(--primary) 8%, var(--surface-2));border-left:3px solid var(--primary);border-radius:6px;line-height:1.55;">
-        ⚡ Esta es una activación <strong style="color:var(--text);">manual sin pasar por Stripe</strong>. El miembro tendrá acceso completo durante ${days} días. Al expirar, podrás renovar o cancelar.
+        ⚡ Esta es una activación <strong style="color:var(--text);">manual sin pasar por Stripe</strong>. ${currentExpiry && currentExpiry.getTime() > Date.now() ? 'Los días se sumarán después del vencimiento actual.' : 'Los días comenzarán a contar desde hoy.'}
       </div>
     `;
     const footer = document.createElement('div');
@@ -5512,25 +5549,57 @@ const Pages={
     `;
     Modal.open({ title: 'Confirmar activación', subtitle: planLabel, icon: 'i-users', body, footer });
     footer.querySelector('#mb-cancel').addEventListener('click', () => Modal.close());
-    footer.querySelector('#mb-confirm').addEventListener('click', async () => {
-      const btn = footer.querySelector('#mb-confirm');
+    const input = body.querySelector('#mb-activation-days');
+    const btn = footer.querySelector('#mb-confirm');
+    const refreshPreview = () => {
+      const selectedDays = Number(input.value);
+      const valid = Number.isInteger(selectedDays) && selectedDays >= 1 && selectedDays <= 730;
+      btn.disabled = !valid;
+      btn.style.opacity = valid ? '1' : '.55';
+      body.querySelector('#mb-activation-duration').textContent = valid ? `${selectedDays} días` : 'Cantidad inválida';
+      body.querySelector('#mb-activation-expiry').textContent = valid
+        ? new Date(extensionBase.getTime() + selectedDays * 86400000).toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' })
+        : '—';
+      body.querySelectorAll('[data-activation-days]').forEach(chip => {
+        const selected = Number(chip.dataset.activationDays) === selectedDays;
+        chip.style.background = selected ? color : 'var(--surface-2)';
+        chip.style.borderColor = selected ? color : 'var(--border)';
+        chip.style.color = selected ? '#fff' : 'var(--text-2)';
+      });
+    };
+    body.querySelectorAll('[data-activation-days]').forEach(chip => chip.addEventListener('click', () => {
+      input.value = chip.dataset.activationDays;
+      refreshPreview();
+    }));
+    input.addEventListener('input', refreshPreview);
+    refreshPreview();
+    btn.addEventListener('click', async () => {
+      const selectedDays = Number(input.value);
+      if (!Number.isInteger(selectedDays) || selectedDays < 1 || selectedDays > 730) return;
       btn.disabled = true; btn.style.opacity = '.7'; btn.style.cursor = 'wait';
       btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="14" height="14" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>Activando…`;
-      const r = await Pages._llamarActivar(m.uid || m.id, plan, days, false);
+      const r = await Pages._llamarActivar(m.uid || m.id, plan, selectedDays, false);
       if (r.ok) {
-        Toast.success('¡Activado!', `${nombre} ahora tiene ${planLabel}`);
+        const expires = r.data?.expiresAt ? Pages._mbToDate(r.data.expiresAt) : null;
+        Toast.success('¡Activado!', `${nombre} recibió ${selectedDays} días${expires ? ' · vence ' + Pages._mbFechaHora(expires) : ''}`);
         Modal.close();
       } else {
         Toast.error('No se pudo activar', r.error || 'Error desconocido');
         btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
         btn.innerHTML = `<svg class="ic"><use href="#i-check"/></svg>Reintentar`;
+        refreshPreview();
       }
     });
   },
 
-  // Modal regalar acceso · 4 opciones de duración
+  // Modal regalar o extender acceso · días rápidos y cantidad personalizada
   _modalRegalar(m) {
     const nombre = (m.nombre || m.email || 'Este miembro').replace(/</g,'&lt;');
+    const expiryCandidates = [m.adminAccessUntil, m.fechaFinAcceso, m.fechaProximaRenovacion, m.expiraEn]
+      .map(Pages._mbToDate)
+      .filter(Boolean);
+    const currentExpiry = expiryCandidates.sort((a, b) => b.getTime() - a.getTime())[0] || null;
+    const extensionBase = currentExpiry && currentExpiry.getTime() > Date.now() ? currentExpiry : new Date();
     const accessHistory = (Array.isArray(m.adminAccessHistory) ? m.adminAccessHistory : [])
       .slice()
       .sort((a, b) => (Pages._mbToDate(b.createdAt)?.getTime() || 0) - (Pages._mbToDate(a.createdAt)?.getTime() || 0))
@@ -5548,46 +5617,76 @@ const Pages={
         <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg, #A855F7, #C084FC);color:#fff;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="28" height="28"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
         </div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;">Regalar acceso a</div>
+        <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px;">Regalar o extender acceso a</div>
         <div style="font-size:14px;color:var(--text-2);font-weight:600;">${nombre}</div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px;">
-        ${[
-          {dias:3,label:'3 días',sub:'Vista previa'},
-          {dias:7,label:'7 días',sub:'Una semana'},
-          {dias:10,label:'10 días',sub:'Decisión'},
-          {dias:30,label:'30 días',sub:'Mes completo'}
-        ].map(opt => `
-          <button class="mb-gift-opt" data-days="${opt.dias}" style="padding:14px 12px;background:var(--surface-2);border:1.5px solid var(--border);border-radius:12px;cursor:pointer;text-align:center;transition:all .18s;color:var(--text);font-family:inherit;" onmouseover="this.style.borderColor='#A855F7';this.style.background='color-mix(in srgb, #A855F7 10%, var(--surface-2))';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--surface-2)';this.style.transform='none'">
-            <div style="font-size:22px;font-weight:800;color:#A855F7;font-family:'Plus Jakarta Sans',sans-serif;line-height:1;margin-bottom:4px;">${opt.label}</div>
-            <div style="font-size:11px;color:var(--text-3);">${opt.sub}</div>
-          </button>
-        `).join('')}
+      <div style="padding:13px 14px;margin-bottom:14px;border:1px solid var(--border);border-radius:11px;background:var(--surface-2);font-size:12px;color:var(--text-3);line-height:1.55;">
+        ${currentExpiry && currentExpiry.getTime() > Date.now()
+          ? `Vigencia actual: <strong style="color:var(--text)">${Pages._mbFechaHora(currentExpiry)}</strong>. Los días nuevos se sumarán después de esa fecha.`
+          : 'La cuenta no tiene una vigencia futura. Los días comenzarán a contar desde hoy.'}
       </div>
-      <div style="font-size:11.5px;color:var(--text-3);padding:10px 12px;background:color-mix(in srgb, #A855F7 8%, var(--surface-2));border-left:3px solid #A855F7;border-radius:6px;line-height:1.55;">
-        🎁 El miembro recibirá acceso completo durante los días seleccionados. Al expirar volverá a "Sin pagar" y podrás regalar de nuevo o pedirle que pague.
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:12px;">
+        ${[3, 7, 10, 22, 30, 60, 90].map(days => `<button type="button" class="mb-gift-opt" data-days="${days}" style="padding:8px 13px;background:${days === 22 ? '#A855F7' : 'var(--surface-2)'};border:1px solid ${days === 22 ? '#A855F7' : 'var(--border)'};border-radius:999px;color:${days === 22 ? '#fff' : 'var(--text-2)'};font:700 12px Inter,sans-serif;cursor:pointer;">${days} días</button>`).join('')}
+      </div>
+      <div class="form-field form-field--full" style="margin-bottom:12px;">
+        <label class="label" for="mb-gift-days">Cantidad de días</label>
+        <input type="number" min="1" max="730" step="1" class="input" id="mb-gift-days" value="22" inputmode="numeric">
+        <div style="margin-top:5px;font-size:10.5px;color:var(--text-3);">Puedes elegir de 1 a 730 días.</div>
+      </div>
+      <div data-gift-preview style="font-size:11.5px;color:#6D28D9;padding:11px 12px;background:color-mix(in srgb, #A855F7 9%, var(--surface-2));border-left:3px solid #A855F7;border-radius:6px;line-height:1.55;">
       </div>
       ${accessHistoryHtml}
     `;
     const footer = document.createElement('div');
-    footer.innerHTML = `<button class="btn btn--ghost" id="mb-cancel">Cancelar</button>`;
+    footer.innerHTML = `
+      <button class="btn btn--ghost" id="mb-cancel">Cancelar</button>
+      <button class="btn btn--accent" id="mb-gift-confirm" style="background:#A855F7;border-color:#A855F7;">Regalar 22 días</button>
+    `;
     Modal.open({ title: 'Regalar acceso', subtitle: 'Cortesía temporal', icon: 'i-users', body, footer });
     footer.querySelector('#mb-cancel').addEventListener('click', () => Modal.close());
-
-    body.querySelectorAll('[data-days]').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const days = parseInt(btn.dataset.days, 10);
-        btn.style.opacity = '.6'; btn.style.cursor = 'wait';
-        body.querySelectorAll('[data-days]').forEach(b => b.disabled = true);
-        const r = await Pages._llamarActivar(m.uid || m.id, 'regalo', days, true);
-        if (r.ok) {
-          Toast.success('🎁 Regalo enviado', `${nombre} tiene ${days} días gratis`);
-          Modal.close();
-        } else {
-          Toast.error('No se pudo regalar', r.error || 'Error desconocido');
-          body.querySelectorAll('[data-days]').forEach(b => { b.disabled = false; b.style.opacity = '1'; b.style.cursor = 'pointer'; });
-        }
+    const input = body.querySelector('#mb-gift-days');
+    const confirmButton = footer.querySelector('#mb-gift-confirm');
+    const preview = body.querySelector('[data-gift-preview]');
+    const refreshPreview = () => {
+      const days = Number(input.value);
+      const valid = Number.isInteger(days) && days >= 1 && days <= 730;
+      confirmButton.disabled = !valid;
+      confirmButton.style.opacity = valid ? '1' : '.55';
+      confirmButton.textContent = valid ? `Regalar ${days} días` : 'Revisa la cantidad';
+      body.querySelectorAll('[data-days]').forEach(chip => {
+        const selected = Number(chip.dataset.days) === days;
+        chip.style.background = selected ? '#A855F7' : 'var(--surface-2)';
+        chip.style.borderColor = selected ? '#A855F7' : 'var(--border)';
+        chip.style.color = selected ? '#fff' : 'var(--text-2)';
       });
+      if (!valid) {
+        preview.innerHTML = 'Escribe un número entero entre 1 y 730.';
+        return;
+      }
+      const expires = new Date(extensionBase.getTime() + days * 86400000);
+      preview.innerHTML = `🎁 Se añadirán <strong>${days} días</strong>. Nueva vigencia estimada: <strong>${Pages._mbFechaHora(expires)}</strong>.`;
+    };
+    body.querySelectorAll('[data-days]').forEach(chip => chip.addEventListener('click', () => {
+      input.value = chip.dataset.days;
+      refreshPreview();
+    }));
+    input.addEventListener('input', refreshPreview);
+    refreshPreview();
+    confirmButton.addEventListener('click', async () => {
+      const days = Number(input.value);
+      if (!Number.isInteger(days) || days < 1 || days > 730) return;
+      confirmButton.disabled = true;
+      confirmButton.textContent = 'Guardando…';
+      const r = await Pages._llamarActivar(m.uid || m.id, 'regalo', days, true);
+      if (r.ok) {
+        const expires = r.data?.expiresAt ? Pages._mbToDate(r.data.expiresAt) : null;
+        Toast.success('🎁 Acceso extendido', `${nombre} recibió ${days} días${expires ? ' · vence ' + Pages._mbFechaHora(expires) : ''}`);
+        Modal.close();
+      } else {
+        Toast.error('No se pudo regalar', r.error || 'Error desconocido');
+        confirmButton.disabled = false;
+        refreshPreview();
+      }
     });
   },
 
@@ -5601,7 +5700,7 @@ const Pages={
   // Modal confirmar cancelación · 2 opciones (al final del periodo o inmediata)
   _modalCancelar(m) {
     const nombre = (m.nombre || m.email || 'Este miembro').replace(/</g,'&lt;');
-    const expira = Pages._mbToDate(m.expiraEn);
+    const expira = Pages._mbFechaVigencia(m);
     const expiraFmt = expira ? expira.toLocaleDateString('es-MX', { day:'numeric', month:'long', year:'numeric' }) : 'fecha desconocida';
 
     const body = document.createElement('div');
