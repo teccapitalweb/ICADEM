@@ -4946,6 +4946,11 @@ const Pages={
         <strong>Atención:</strong> ${issues.map(esc).join(' · ')}
       </div>
     ` : '';
+    const reconciliationHtml = local.reconciledFromStripe ? `
+      <div class="audit-alert" style="border-color:#10B98155;background:#ECFDF5;color:#047857;">
+        <strong>Acceso corregido automáticamente:</strong> Stripe confirmó una única suscripción vigente y se sincronizó su fecha de acceso en ICADEM.
+      </div>
+    ` : '';
     const nextCourse = data.access?.nextCourse || null;
     const subscriptions = stripeState.subscriptions || [];
     const payments = data.payments || [];
@@ -5020,6 +5025,7 @@ const Pages={
         <span class="audit-verdict" data-tone="${verdict[1]}">${verdict[0]}</span>
       </div>
       ${coverageHtml}
+      ${reconciliationHtml}
       ${issueHtml}
       <div class="audit-kpis">
         <div class="audit-kpi"><div class="audit-kpi__label">ICADEM</div><div class="audit-kpi__value">${local.active ? 'Activa' : 'Inactiva'}</div><div class="audit-kpi__sub">${esc(local.plan || 'Sin plan')} · vence ${date(local.expiresAt)}</div></div>
