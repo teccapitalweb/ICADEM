@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=46" defer></script>
+<script src="js/icadem-platform-v2.js?v=47" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=3" defer></script>
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
@@ -9146,10 +9146,10 @@ const Sections = (function(){
       <div class="lesson-side__panel" data-lesson-panel="quiz">
         <div class="lesson-side-quiz">
           <span class="lesson-side-quiz__icon"><svg class="ic"><use href="#i-trophy"/></svg></span>
-          <h3>Reto de la clase</h3>
-          <p>Preguntas con explicación técnica inmediata.</p>
-          <div><strong>—</strong><span>Aún no disponible</span></div>
-          <button type="button" disabled style="opacity:.5;cursor:not-allowed;">Próximamente</button>
+          <h3>${yaVista ? 'Evaluación aprobada' : 'Evaluación de la clase'}</h3>
+          <p>${yaVista ? 'Tu avance está registrado. Puedes practicar otra vez sin perderlo.' : 'Comprueba lo aprendido con retroalimentación inmediata.'}</p>
+          <div><strong>${yaVista ? '✓' : '70%'}</strong><span>${yaVista ? 'Clase completada' : 'Resultado mínimo para aprobar'}</span></div>
+          <button type="button" data-lesson-quiz-start>${yaVista ? 'Practicar de nuevo' : 'Comenzar evaluación'}</button>
         </div>
       </div>
     </aside>`;
@@ -9198,7 +9198,7 @@ const Sections = (function(){
             <button type="button" class="lesson-complete ${yaVista?'is-complete':''}" data-lesson-complete
               data-course-id="${escapeHtml(String(cursoId))}" data-lesson-number="${numClase}"
               data-lesson-title="${escapeHtml(sesion.titulo || `Clase ${numClase}`)}" data-current-index="${sesionIdx}">
-              ${yaVista ? 'Ya vista · continuar' : 'Marcar vista y seguir'}
+              ${yaVista ? 'Ya vista · continuar' : 'Completar evaluación'}
               <svg class="ic"><use href="#${yaVista?'i-check':'i-arrow-right'}"/></svg>
             </button>
           </section>
@@ -9273,6 +9273,40 @@ const Sections = (function(){
       });
     });
 
+    // La pestaña Evaluación usa la misma actividad verificada que el botón
+    // principal. Si la clase ya fue aprobada se abre en modo práctica; el
+    // servidor mantiene la recompensa y el avance como operaciones idempotentes.
+    container.querySelectorAll('[data-lesson-quiz-start]').forEach(quizButton => {
+      quizButton.addEventListener('click', async () => {
+        if (!window.ICADEMPlatform?.startLessonChallenge) {
+          Toast.error('La evaluación aún no está lista', 'Recarga la página e inténtalo nuevamente.');
+          return;
+        }
+        if (!yaVista) {
+          container.querySelector('[data-lesson-complete]')?.click();
+          return;
+        }
+        quizButton.disabled = true;
+        quizButton.textContent = 'Preparando evaluación…';
+        try {
+          await window.ICADEMPlatform.startLessonChallenge({
+            courseId:cursoId,
+            lessonNumber:numClase,
+            title:sesion.titulo || `Clase ${numClase}`,
+            onComplete:()=>{},
+            onContinue:()=>window.abrirClaseICADEM(cursoId, sesionIdx)
+          });
+        } catch (error) {
+          console.warn('[evaluación de clase]', error);
+        } finally {
+          if (quizButton.isConnected) {
+            quizButton.disabled = false;
+            quizButton.textContent = 'Practicar de nuevo';
+          }
+        }
+      });
+    });
+
     // ─── Botón "Marcar vista y seguir" ───
     container.querySelector('[data-lesson-complete]')?.addEventListener('click', async () => {
       const esPrimeraVez = !yaVista;
@@ -9293,7 +9327,7 @@ const Sections = (function(){
         });
       } catch(e) {
         button.disabled = false;
-        button.textContent = 'Completar clase';
+        button.textContent = 'Completar evaluación';
       }
     });
   }

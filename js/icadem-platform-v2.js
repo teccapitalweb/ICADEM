@@ -2420,11 +2420,11 @@
       if (!result?.closed || !button.isConnected) return;
       button.dataset.gameBusy = '';
       button.disabled = false;
-      button.textContent = 'Marcar vista y seguir';
+      button.textContent = 'Completar evaluación';
     }).catch(() => {
       button.dataset.gameBusy = '';
       button.disabled = false;
-      button.textContent = 'Marcar vista y seguir';
+      button.textContent = 'Completar evaluación';
     });
   }, true);
   document.addEventListener('keydown', event => {
