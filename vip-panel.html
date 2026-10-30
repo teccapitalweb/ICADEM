@@ -4456,6 +4456,7 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35 -4.35"/></symbol>
 <symbol id="i-heart" viewBox="0 0 24 24"><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.572"/></symbol>
 <symbol id="i-messages" viewBox="0 0 24 24"><path d="M21 14l-3 -3h-7a1 1 0 0 1 -1 -1v-6a1 1 0 0 1 1 -1h9a1 1 0 0 1 1 1v10"/><path d="M14 15v2a1 1 0 0 1 -1 1h-7l-3 3v-10a1 1 0 0 1 1 -1h2"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2l-7 20l-4 -9l-9 -4z"/><path d="M22 2l-11 11"/></symbol>
 <symbol id="i-whatsapp" viewBox="0 0 24 24"><path d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></symbol>
 <symbol id="i-credit-card" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18"/></symbol>
@@ -4514,6 +4515,7 @@ window.__setDisplayName = async (nombre) => {
 
     <div class="nav-section nav-section--account">
       <div class="nav-label">Mi cuenta</div>
+      <a class="nav-item" data-section="soporte"><svg class="ic"><use href="#i-messages"/></svg>Soporte privado</a>
       <div class="account-dock">
         <a class="account-dock__membership" data-section="suscripcion">
           <span class="account-dock__membership-icon"><svg class="ic"><use href="#i-crown"/></svg></span>
@@ -4545,6 +4547,10 @@ window.__setDisplayName = async (nombre) => {
         </span>
       </div>
       <div class="topbar__right">
+        <button class="icon-btn" id="btn-private-support" type="button" aria-label="Abrir soporte privado" title="Soporte privado" style="position:relative">
+          <svg class="ic"><use href="#i-messages"/></svg>
+          <span class="support-unread-dot" id="support-unread-dot" hidden></span>
+        </button>
         <button class="install-app-btn" id="install-app-btn" type="button" aria-label="Instalar ICADEM en este dispositivo" hidden>
           <svg class="ic"><use href="#i-download"/></svg>
           <span>Instalar</span>
@@ -4723,6 +4729,7 @@ window.__setDisplayName = async (nombre) => {
       <div class="mobile-drawer__section mobile-drawer__section--account">
         <div class="mobile-drawer__label">Mi cuenta</div>
         <div class="account-dock account-dock--mobile">
+          <a class="mobile-drawer__item" data-section="soporte"><svg class="ic"><use href="#i-messages"/></svg>Soporte privado</a>
           <a class="account-dock__membership mobile-drawer__item" data-section="suscripcion"><span class="account-dock__membership-icon"><svg class="ic"><use href="#i-crown"/></svg></span><span>Gestionar membresía</span><svg class="ic account-dock__arrow"><use href="#i-arrow-right"/></svg></a>
           <a class="account-dock__identity mobile-drawer__item" data-section="perfil"><span class="account-dock__avatar" id="drawer-account-avatar">IN</span><span class="account-dock__copy"><strong id="drawer-account-name">Miembro ICADEM</strong><small id="drawer-account-plan">VIP ANUAL</small></span><svg class="ic account-dock__edit"><use href="#i-edit"/></svg></a>
           <a class="account-dock__logout nav-item--logout" id="drawer-logout-btn"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
@@ -21535,6 +21542,88 @@ h1, h2, h3, h4{ color: var(--text); }
   .directory-page .directory-tier{min-width:0!important}
 }
 </style>
+<style>
+/* ══ SOPORTE PRIVADO · miembro ↔ administración ═════════════ */
+.support-page{max-width:1120px;margin:0 auto;padding:26px 0 64px}.support-hero{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:28px 30px;margin-bottom:18px;border:1px solid var(--border);border-radius:24px;background:linear-gradient(135deg,var(--surface),color-mix(in srgb,var(--primary) 7%,var(--surface)));box-shadow:var(--shadow-sm)}
+.support-hero::after{content:"";position:absolute;right:-54px;top:-76px;width:230px;height:230px;border-radius:50%;background:color-mix(in srgb,var(--primary) 11%,transparent);pointer-events:none}.support-hero__copy{position:relative;z-index:1;max-width:690px}.support-hero__eyebrow{display:inline-flex;align-items:center;gap:7px;margin-bottom:10px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--primary)}
+.support-hero__eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--success);box-shadow:0 0 0 5px color-mix(in srgb,var(--success) 13%,transparent)}.support-hero h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:34px;letter-spacing:-1.1px;line-height:1.08;margin:0 0 9px}.support-hero p{max-width:640px;margin:0;color:var(--text-2);font-size:13.5px;line-height:1.65}
+.support-privacy{position:relative;z-index:1;flex:0 0 auto;display:flex;align-items:center;gap:9px;padding:10px 13px;border:1px solid color-mix(in srgb,var(--success) 28%,var(--border));border-radius:14px;background:color-mix(in srgb,var(--success) 8%,var(--surface));font-size:11px;font-weight:750;color:var(--success)}.support-privacy .ic{width:17px;height:17px}.support-layout{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px;align-items:stretch}
+.support-info{display:flex;flex-direction:column;gap:12px}.support-info__card{padding:18px;border:1px solid var(--border);border-radius:18px;background:var(--surface);box-shadow:var(--shadow-xs)}.support-info__icon{width:38px;height:38px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;border-radius:12px;background:color-mix(in srgb,var(--primary) 11%,var(--surface));color:var(--primary)}.support-info__icon .ic{width:18px;height:18px}.support-info__card strong{display:block;margin-bottom:5px;font-size:12.5px}.support-info__card p{margin:0;color:var(--text-3);font-size:11px;line-height:1.55}.support-topic{width:100%;margin-top:12px;padding:10px 11px;border:1px solid var(--border-2);border-radius:11px;background:var(--surface-2);color:var(--text);font:600 11px 'Inter',sans-serif;outline:none}
+.support-thread{min-height:560px;display:grid;grid-template-rows:auto minmax(280px,1fr) auto;overflow:hidden;border:1px solid var(--border);border-radius:22px;background:var(--surface);box-shadow:var(--shadow-sm)}.support-thread__head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:17px 20px;border-bottom:1px solid var(--border);background:color-mix(in srgb,var(--surface-2) 70%,var(--surface))}.support-thread__identity{display:flex;align-items:center;gap:11px}.support-thread__avatar{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:13px;background:linear-gradient(135deg,var(--primary-deep),var(--primary));color:#fff}.support-thread__avatar .ic{width:18px;height:18px}.support-thread__identity strong{display:block;font-size:12.5px}.support-thread__identity span{display:block;margin-top:3px;color:var(--text-3);font-size:10.5px}
+.support-status{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:color-mix(in srgb,var(--success) 10%,var(--surface));color:var(--success);font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.7px}.support-status::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}.support-status.is-closed{background:var(--surface-2);color:var(--text-3)}.support-messages{overflow-y:auto;padding:22px;background:linear-gradient(180deg,color-mix(in srgb,var(--surface-2) 58%,var(--surface)),var(--surface));scroll-behavior:smooth}.support-loading,.support-empty{height:100%;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--text-3);padding:28px}.support-empty__icon{width:58px;height:58px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;border-radius:18px;background:color-mix(in srgb,var(--primary) 10%,var(--surface));color:var(--primary)}.support-empty__icon .ic{width:25px;height:25px}.support-empty strong{color:var(--text);font-size:14px}.support-empty p{max-width:330px;margin:7px 0 0;font-size:11.5px;line-height:1.55}
+.support-day{display:flex;align-items:center;gap:10px;margin:12px 0 17px;color:var(--text-3);font-size:9px;font-weight:750;text-transform:uppercase;letter-spacing:.8px}.support-day::before,.support-day::after{content:"";height:1px;flex:1;background:var(--border)}.support-message{display:flex;margin:0 0 13px}.support-message.is-member{justify-content:flex-end}.support-bubble{max-width:min(76%,560px);padding:11px 13px;border:1px solid var(--border);border-radius:6px 16px 16px 16px;background:var(--surface);box-shadow:0 4px 14px rgba(17,39,64,.05)}.support-message.is-member .support-bubble{border-color:transparent;border-radius:16px 6px 16px 16px;background:linear-gradient(135deg,var(--primary-deep),var(--primary));color:#fff;box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 18%,transparent)}.support-bubble__sender{margin-bottom:5px;color:var(--primary);font-size:9.5px;font-weight:800}.support-message.is-member .support-bubble__sender{color:rgba(255,255,255,.74)}.support-bubble__text{font-size:12px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.support-bubble__time{margin-top:6px;text-align:right;color:var(--text-3);font-size:8.5px}.support-message.is-member .support-bubble__time{color:rgba(255,255,255,.65)}
+.support-composer{padding:14px 16px;border-top:1px solid var(--border);background:var(--surface)}.support-composer__row{display:flex;align-items:flex-end;gap:10px}.support-composer textarea{min-height:44px;max-height:126px;flex:1;resize:none;padding:12px 14px;border:1px solid var(--border-2);border-radius:14px;background:var(--surface-2);color:var(--text);font:500 12px/1.45 'Inter',sans-serif;outline:none}.support-composer textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 11%,transparent)}.support-send{width:44px;height:44px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border:0;border-radius:14px;background:linear-gradient(135deg,var(--primary-deep),var(--primary));color:#fff;box-shadow:0 7px 17px color-mix(in srgb,var(--primary) 22%,transparent)}.support-send:disabled{opacity:.55;box-shadow:none}.support-send .ic{width:18px;height:18px}.support-composer__hint{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:var(--text-3);font-size:9.5px}.support-unread-dot{position:absolute;right:4px;top:4px;width:9px;height:9px;border:2px solid var(--surface);border-radius:50%;background:var(--danger)}
+@media(max-width:1180px){.support-page{padding-left:4px;padding-right:4px}}@media(max-width:900px){.support-page{padding:18px 2px 110px}.support-layout{grid-template-columns:1fr}.support-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.support-info__card:last-child{grid-column:1/-1}.support-thread{min-height:620px}.support-hero{align-items:flex-start}.support-privacy{display:none}}@media(max-width:560px){.support-page{padding:10px 0 105px}.support-hero{padding:22px 20px;border-radius:20px}.support-hero h1{font-size:28px}.support-hero p{font-size:12px}.support-info{grid-template-columns:1fr}.support-info__card:last-child{grid-column:auto}.support-thread{min-height:calc(100dvh - 185px);border-radius:18px}.support-thread__head{padding:14px}.support-messages{padding:16px 12px}.support-bubble{max-width:86%;font-size:11.5px}.support-composer{padding:12px}.support-composer__hint span:first-child{display:none}}
+</style>
+<script>
+/* ══════════════════════ BUZÓN PRIVADO ══════════════════════ */
+(function(){
+  var poll = null, loading = false, firstPaint = true;
+  function esc(value){ return String(value == null ? '' : value).replace(/[&<>"']/g,function(ch){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch]; }); }
+  function supportToken(){
+    var user = window.__auth && window.__auth.currentUser;
+    if (!user) return Promise.reject(new Error(window.__isDemoMode ? 'El buzón privado está disponible al ingresar con una cuenta real.' : 'Tu sesión terminó. Vuelve a ingresar.'));
+    return user.getIdToken();
+  }
+  async function request(path, options){
+    var token = await supportToken();
+    var config = Object.assign({}, options || {});
+    config.headers = Object.assign({ Authorization:'Bearer ' + token }, config.headers || {});
+    if (config.body && !config.headers['Content-Type']) config.headers['Content-Type'] = 'application/json';
+    var response = await fetch((window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app') + path, config);
+    var data = await response.json().catch(function(){ return {}; });
+    if (!response.ok) throw new Error(data.error || 'No pudimos conectar con soporte');
+    return data;
+  }
+  function fmt(value, dayOnly){
+    if (!value) return dayOnly ? 'Conversación' : '';
+    var date = new Date(value); if (Number.isNaN(date.getTime())) return '';
+    if (dayOnly) return date.toDateString() === new Date().toDateString() ? 'Hoy' : new Intl.DateTimeFormat('es-MX',{weekday:'long',day:'numeric',month:'long'}).format(date);
+    return new Intl.DateTimeFormat('es-MX',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}).format(date);
+  }
+  function messagesHtml(messages){
+    if (!messages || !messages.length) return '<div class="support-empty"><div class="support-empty__icon"><svg class="ic"><use href="#i-messages"/></svg></div><strong>Inicia una conversación privada</strong><p>Cuéntanos qué ocurrió. Tu mensaje solo será visible para ti y el equipo que administra ICADEM.</p></div>';
+    var lastDay='';
+    return messages.map(function(message){
+      var dayKey=message.createdAt ? new Date(message.createdAt).toDateString() : 'sin-fecha';
+      var divider=dayKey!==lastDay?'<div class="support-day">'+esc(fmt(message.createdAt,true))+'</div>':''; lastDay=dayKey;
+      var mine=message.sender==='member';
+      return divider+'<div class="support-message '+(mine?'is-member':'is-admin')+'"><div class="support-bubble"><div class="support-bubble__sender">'+(mine?'Tú':'Equipo ICADEM')+'</div><div class="support-bubble__text">'+esc(message.text||'')+'</div><div class="support-bubble__time">'+esc(fmt(message.createdAt,false))+'</div></div></div>';
+    }).join('');
+  }
+  async function load(silent){
+    if (loading) return; loading=true;
+    var box=document.getElementById('support-messages'); if(!box){loading=false;return;}
+    var nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90;
+    try{
+      var data=await request('/support/me'); if(!document.getElementById('support-messages'))return;
+      box.innerHTML=messagesHtml(data.messages||[]);
+      var status=document.getElementById('support-status'), closed=data.conversation&&data.conversation.status==='closed';
+      if(status){status.className='support-status'+(closed?' is-closed':'');status.textContent=closed?'Resuelto':'En seguimiento';}
+      var topic=document.getElementById('support-topic'); if(topic&&data.conversation){topic.value=data.conversation.topic||'otro';topic.disabled=true;}
+      var dot=document.getElementById('support-unread-dot'); if(dot)dot.hidden=true;
+      if(firstPaint||nearBottom)requestAnimationFrame(function(){box.scrollTop=box.scrollHeight;}); firstPaint=false;
+    }catch(error){if(!silent)box.innerHTML='<div class="support-empty"><div class="support-empty__icon"><svg class="ic"><use href="#i-alert-circle"/></svg></div><strong>No pudimos abrir el buzón</strong><p>'+esc(error.message)+'</p></div>';}
+    finally{loading=false;}
+  }
+  async function refreshBadge(){
+    try{var data=await request('/support/me?peek=1');var dot=document.getElementById('support-unread-dot');if(dot)dot.hidden=!(data.conversation&&data.conversation.unreadUser>0);}catch(_){}
+  }
+  function beginPoll(){clearInterval(poll);poll=setInterval(function(){if(location.hash.replace(/^#/,'')==='soporte')load(true);else refreshBadge();},20000);}
+  Sections.renderers.soporte=function(root){
+    firstPaint=true;
+    root.innerHTML='<div class="support-page"><section class="support-hero"><div class="support-hero__copy"><div class="support-hero__eyebrow">Atención personal</div><h1>Soporte privado</h1><p>Habla directamente con el equipo ICADEM sobre tu membresía, cobros, acceso o cursos. Esta conversación pertenece únicamente a tu cuenta.</p></div><div class="support-privacy"><svg class="ic"><use href="#i-shield-check"/></svg>Solo tú y administración</div></section><div class="support-layout"><aside class="support-info"><div class="support-info__card"><div class="support-info__icon"><svg class="ic"><use href="#i-clock"/></svg></div><strong>Seguimiento en el mismo lugar</strong><p>Conservamos el historial para que no tengas que explicar el problema nuevamente.</p></div><div class="support-info__card"><div class="support-info__icon"><svg class="ic"><use href="#i-shield-check"/></svg></div><strong>Conversación privada</strong><p>Ningún otro miembro puede leer tus mensajes ni nuestras respuestas.</p></div><div class="support-info__card"><strong>¿Sobre qué necesitas ayuda?</strong><select class="support-topic" id="support-topic" aria-label="Tema de la conversación"><option value="membresia">Mi membresía</option><option value="cobros">Cobros y pagos</option><option value="cuenta">Acceso a mi cuenta</option><option value="cursos">Cursos y materiales</option><option value="otro">Otro tema</option></select></div></aside><section class="support-thread" aria-label="Conversación de soporte"><header class="support-thread__head"><div class="support-thread__identity"><div class="support-thread__avatar"><svg class="ic"><use href="#i-messages"/></svg></div><div><strong>Equipo ICADEM</strong><span>Administración de membresías</span></div></div><span class="support-status" id="support-status">En seguimiento</span></header><div class="support-messages" id="support-messages" aria-live="polite"><div class="support-loading"><span class="spin"></span></div></div><form class="support-composer" id="support-form"><div class="support-composer__row"><textarea id="support-message" maxlength="3000" rows="1" placeholder="Escribe tu mensaje…" aria-label="Mensaje para soporte" required></textarea><button class="support-send" id="support-send" type="submit" aria-label="Enviar mensaje"><svg class="ic"><use href="#i-send"/></svg></button></div><div class="support-composer__hint"><span>No compartas contraseñas ni datos completos de tu tarjeta.</span><span id="support-count">0 / 3000</span></div></form></section></div></div>';
+    var textarea=document.getElementById('support-message'),count=document.getElementById('support-count');
+    textarea.addEventListener('input',function(){count.textContent=textarea.value.length+' / 3000';textarea.style.height='auto';textarea.style.height=Math.min(textarea.scrollHeight,126)+'px';});
+    textarea.addEventListener('keydown',function(event){if(event.key==='Enter'&&!event.shiftKey&&!event.isComposing){event.preventDefault();document.getElementById('support-form').requestSubmit();}});
+    document.getElementById('support-form').addEventListener('submit',async function(event){event.preventDefault();var message=textarea.value.trim();if(!message)return;var button=document.getElementById('support-send');button.disabled=true;try{await request('/support/me/messages',{method:'POST',body:JSON.stringify({message:message,topic:document.getElementById('support-topic').value})});textarea.value='';textarea.style.height='auto';count.textContent='0 / 3000';await load(false);Toast.success('Mensaje enviado','El equipo ICADEM podrá responderte desde administración.');}catch(error){Toast.error('No se pudo enviar',error.message);}finally{button.disabled=false;textarea.focus();}});
+    load(false);beginPoll();
+  };
+  document.getElementById('btn-private-support')?.addEventListener('click',function(){navigateToSection('soporte');});
+  document.addEventListener('icadem:identity-ready',function(){refreshBadge();beginPoll();});
+  setTimeout(function(){refreshBadge();beginPoll();},2200);
+})();
+</script>
 <script src="js/icadem-onboarding.js?v=18"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 </body>
