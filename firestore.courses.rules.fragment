@@ -16,7 +16,9 @@ function isIcademCourseAdmin() {
       'teccapitalweb@gmail.com',
       'icademconsultoria2024@gmail.com',
       'sinergiaagricola789@gmail.com',
-      'ipcilinstituto@gmail.com'
+      'ipcilinstituto@gmail.com',
+      'juarezhernandez093@gmail.com',
+      'sofia.linares.tec@gmail.com'
     ];
 }
 
