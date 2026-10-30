@@ -820,10 +820,17 @@
     const list = value => Array.isArray(value) ? value.map(String) : [];
     if (type === 'crossword' && solution.answers) {
       for (const [wordId, answer] of Object.entries(solution.answers)) {
-        const given = normalize(proof.answers?.[wordId]);
+        const raw = String(proof.answers?.[wordId] || '');
+        const positional = raw.includes('_') || raw.length === answer.length;
+        const given = normalize(raw);
         if (given === answer) continue;
-        let index = 0; while (index < answer.length && given[index] === answer[index]) index++;
-        return { kind: 'crossword-letter', wordId, index: Math.min(index, answer.length - 1), letter: answer[Math.min(index, answer.length - 1)] };
+        let index = 0;
+        if (positional) {
+          while (index < answer.length && normalize(raw[index] || '').slice(0, 1) === answer[index]) index++;
+        } else {
+          while (index < answer.length && given[index] === answer[index]) index++;
+        }
+        if (index < answer.length) return { kind: 'crossword-letter', wordId, index, letter: answer[index] };
       }
     }
     if ((type === 'crossword' || type === 'guess') && solution.answer) {
@@ -1480,7 +1487,13 @@
       const first = cellsOf(w).find(k => !input(k)?.value) || cellsOf(w)[0];
       input(first)?.focus(); highlight();
     }));
-    const collect = () => Object.fromEntries(words.map(w => [w.id, cellsOf(w).map(k => input(k)?.value || '').join('')]));
+    // Las ayudas necesitan conservar la posición de las casillas vacías. Si
+    // enviamos "V" para una palabra con una V y diez huecos, el servidor no
+    // puede distinguir si esa V está al inicio o en un cruce posterior.
+    const collect = (preserveBlanks = false) => Object.fromEntries(words.map(w => [
+      w.id,
+      cellsOf(w).map(k => input(k)?.value || (preserveBlanks ? '_' : '')).join('')
+    ]));
     frame.check.addEventListener('click', () => {
       const answers = collect();
       if (words.some(w => answers[w.id].length !== w.len)) { frame.status.textContent = 'Completa todas las casillas antes de comprobar.'; frame.status.classList.add('is-error'); return; }
@@ -1491,7 +1504,7 @@
       submit({ answers }, frame);
     });
     frame.reset.addEventListener('click', () => runCrosswordGrid(challenge, shell, submit));
-    enableStepHelp(challenge, frame, collect, hint => {
+    enableStepHelp(challenge, frame, () => ({ answers: collect(true) }), hint => {
       if (hint.kind !== 'crossword-letter') return;
       const word = wordById(String(hint.wordId));
       const key = word ? cellsOf(word)[Number(hint.index) || 0] : '';
