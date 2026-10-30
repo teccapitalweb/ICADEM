@@ -7113,5 +7113,51 @@ if (window.__currentAdmin) {
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="js/icadem-admin-marketing-v2.js?v=1"></script>
+<style id="icadem-admin-vip-shell-v2">
+/* ICADEM Admin · lenguaje visual alineado al panel VIP. Solo presentación. */
+:root[data-theme="day"]{
+  --bg:#eef3f9;--bg-deep:#e6eefb;
+  --surface:#fff;--surface-2:#f4f8fc;--surface-3:#e7eefc;
+  --border:rgba(15,23,42,.07);--border-2:rgba(15,23,42,.14);--border-strong:rgba(15,23,42,.24);
+  --text:#16203f;--text-2:#49556e;--text-3:#8492aa;
+  --primary:#5b92c8;--primary-soft:#8fbce6;--primary-deep:#3e6fa8;
+  --primary-glow:rgba(91,146,200,.24);--highlight:#8fbce6;
+  --shadow-card:0 14px 38px rgba(38,66,102,.08);
+}
+:root[data-theme="night"]{
+  --bg:#0f1626;--bg-deep:#0a0f1c;
+  --surface:#18233a;--surface-2:#212e48;--surface-3:#293752;
+  --border:rgba(143,188,230,.07);--border-2:rgba(143,188,230,.14);--border-strong:rgba(143,188,230,.22);
+  --text:#f0f4fa;--text-2:#b6c2d8;--text-3:#71809a;
+  --primary:#6da4d8;--primary-soft:#9bc7ee;--primary-deep:#3e6fa8;
+  --primary-glow:rgba(91,146,200,.34);--highlight:#8fbce6;
+  --shadow-card:0 18px 52px rgba(0,0,0,.34);
+}
+body{background:var(--bg);color:var(--text)}
+.sidebar{padding:12px 8px 24px;background:var(--surface);border-right:1px solid var(--border);box-shadow:8px 0 28px rgba(29,52,84,.035)}
+.brand{position:relative;min-height:112px;margin:0 6px 8px;padding:12px 10px 15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;border-bottom:1px solid var(--border);overflow:hidden}
+.brand>*{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}
+.brand::before{content:"";display:block;width:154px;height:58px;background:url("assets/logo/icadem-wordmark.png") center/contain no-repeat;filter:drop-shadow(0 5px 12px rgba(41,86,157,.12))}
+.brand::after{content:"Panel administrativo";display:inline-flex;align-items:center;justify-content:center;min-height:22px;padding:3px 9px;border:1px solid color-mix(in srgb,var(--primary) 22%,var(--border));border-radius:999px;background:color-mix(in srgb,var(--primary) 7%,var(--surface));color:var(--primary-deep);font:750 8px/1 'JetBrains Mono',monospace;letter-spacing:1.05px;text-transform:uppercase}
+:root[data-theme="night"] .brand::before{filter:brightness(0) invert(1) drop-shadow(0 5px 12px rgba(91,146,200,.18))}
+:root[data-theme="night"] .brand::after{color:var(--primary-soft)}
+.sidebar .nav-label{color:var(--text-3);font-size:8.5px;letter-spacing:1.55px}
+.sidebar .nav-item{border-radius:12px;color:var(--text-2)}
+.sidebar .nav-item:hover{background:color-mix(in srgb,var(--nav-accent,var(--primary)) 6%,var(--surface));color:var(--text)}
+.main{background:linear-gradient(180deg,color-mix(in srgb,var(--surface) 22%,var(--bg)) 0,var(--bg) 210px)}
+.topbar{min-height:72px;padding:12px 28px;background:color-mix(in srgb,var(--surface) 90%,transparent);border-bottom:1px solid var(--border);backdrop-filter:blur(18px);box-shadow:0 6px 22px rgba(29,52,84,.035)}
+.topbar::before{content:"Administración";display:inline-flex;align-items:center;gap:7px;padding:6px 11px 6px 26px;border:1px solid var(--border-2);border-radius:999px;background:radial-gradient(circle at 13px 50%,var(--success) 0 3px,transparent 3.5px),var(--surface);color:var(--text-2);font:750 9px/1 'JetBrains Mono',monospace;letter-spacing:1.15px;text-transform:uppercase;box-shadow:0 5px 16px rgba(29,52,84,.05)}
+.topbar__right{margin-left:auto}
+.theme-toggle{width:40px;height:40px;border-radius:13px;background:var(--surface);border:1px solid var(--border-2);box-shadow:0 5px 16px rgba(29,52,84,.06)}
+.avatar{min-height:44px;padding:5px 11px 5px 6px;border:1px solid var(--border-2);border-radius:15px;background:var(--surface);box-shadow:0 6px 18px rgba(29,52,84,.06)}
+.avatar__pic{width:32px;height:32px;background:linear-gradient(135deg,var(--primary-deep),var(--primary));box-shadow:0 5px 14px var(--primary-glow)}
+.avatar__name{color:var(--text)}.avatar__role{color:var(--primary);letter-spacing:1px}
+.page{padding-top:32px}
+.kpi-card,.dash-card,.form-card,.card{border-color:var(--border);box-shadow:0 10px 28px rgba(38,66,102,.055)}
+.kpi-card:hover,.dash-card:hover{box-shadow:0 16px 38px rgba(38,66,102,.09)}
+.btn--accent,.btn-primary{background:linear-gradient(135deg,var(--primary-deep),var(--primary));box-shadow:0 8px 20px color-mix(in srgb,var(--primary) 22%,transparent)}
+.mobile-nav{background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(18px);box-shadow:0 -8px 28px rgba(29,52,84,.08)}
+@media(max-width:880px){.topbar{min-height:62px;padding:10px 14px}.topbar::before{display:none}.page{padding-top:20px}.avatar{padding-right:7px}.avatar>div:last-child{display:none}}
+</style>
 </body>
 </html>
