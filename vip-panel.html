@@ -7161,8 +7161,16 @@ const Sections = (function(){
         ${descripcionEsc ? `<p class="course-detail__description">${descripcionEsc}</p>` : ''}
         ${lockHtml}
         ${layoutHtml}
+        ${desbloqueado ? '<div id="course-rating-panel"></div>' : ''}
       </div>
     </div>`;
+    if (desbloqueado && window.ICADEMCourseRatings) {
+      window.ICADEMCourseRatings.mount({
+        container:'#course-rating-panel',
+        courseId:String(cursoId),
+        courseTitle:c.titulo || 'Curso ICADEM'
+      });
+    }
   }
 
   // Función legacy sin uso en el nuevo flujo (openCursoDetalle NO llena las
@@ -21624,6 +21632,7 @@ h1, h2, h3, h4{ color: var(--text); }
   setTimeout(function(){refreshBadge();beginPoll();},2200);
 })();
 </script>
+<script src="js/icadem-course-ratings.js?v=1"></script>
 <script src="js/icadem-onboarding.js?v=18"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 </body>
