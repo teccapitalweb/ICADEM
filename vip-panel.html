@@ -4742,6 +4742,17 @@ window.__setDisplayName = async (nombre) => {
 <script>
 const PREFIX='imdiil:';
 const Storage={pref:{get(k,d){const v=localStorage.getItem(PREFIX+'pref:'+k);return v===null?d:v;},set(k,v){localStorage.setItem(PREFIX+'pref:'+k,String(v));}}};
+function vipWebinarStartMs(w){
+  if(!w)return 0;
+  if(Number(w.fechaMs)>0)return Number(w.fechaMs);
+  const raw=w.fecha;
+  const d=raw?.toDate?raw.toDate():raw?.seconds?new Date(raw.seconds*1000):new Date(raw);
+  const ms=d?.getTime?.();return Number.isFinite(ms)?ms:0;
+}
+function vipWebinarEndMs(w){const start=vipWebinarStartMs(w);return start?start+Math.max(1,Number(w?.duracion)||60)*60000:0;}
+function vipWebinarIsLive(w,now=Date.now()){const start=vipWebinarStartMs(w),end=vipWebinarEndMs(w);return Boolean(start&&start<=now&&now<end);}
+function vipWebinarStillAvailable(w,now=Date.now()){const end=vipWebinarEndMs(w);return Boolean(end&&now<end);}
+function vipWebinarJoinUrl(w){return String(w?.link||w?.url||w?.zoom||w?.enlace||'').trim();}
 
 const Theme={
   // Tema por CUENTA (no por dispositivo): la primera vez que una cuenta entra
@@ -4801,8 +4812,7 @@ async function initCountdown(){
     const ahora = Date.now();
     const proximos = arrWebs
       .filter(w => {
-        const fMs = w.fechaMs || (w.fecha ? new Date(w.fecha).getTime() : 0);
-        return fMs > ahora;
+        return vipWebinarStillAvailable(w, ahora);
       })
       .sort((a, b) => {
         const fa = a.fechaMs || new Date(a.fecha).getTime();
@@ -4831,11 +4841,12 @@ async function initCountdown(){
   const fecha = new Date(proximo.fechaMs || proximo.fecha);
   const fechaFmt = fecha.toLocaleDateString('es-MX', { weekday:'long', day:'numeric', month:'long' });
   const horaFmt = String(fecha.getHours()).padStart(2,'0') + ':' + String(fecha.getMinutes()).padStart(2,'0');
+  const enVivo = vipWebinarIsLive(proximo);
   const tituloEsc = (proximo.titulo || 'Próxima clase').replace(/</g,'&lt;');
   const instructorEsc = (proximo.instructor || 'ICADEM').replace(/</g,'&lt;');
 
   widget.innerHTML = `
-    <div class="widget__label">⏱ Próxima clase en vivo</div>
+    <div class="widget__label">${enVivo?'● En vivo ahora':'⏱ Próxima clase en vivo'}</div>
     <div class="widget__title">${tituloEsc}</div>
     <div class="widget__meta"><svg class="ic"><use href="#i-user"/></svg>${instructorEsc}</div>
     <div class="widget__meta"><svg class="ic"><use href="#i-calendar"/></svg>${fechaFmt.charAt(0).toUpperCase() + fechaFmt.slice(1)} · ${horaFmt} hrs</div>
@@ -6731,6 +6742,8 @@ const Sections = (function(){
         else if (typeof f === 'string') { const dt = new Date(f); fechaIso = dt.toISOString(); fechaMs = dt.getTime(); }
         else if (f instanceof Date) { fechaIso = f.toISOString(); fechaMs = f.getTime(); }
 
+        const duracion = Math.max(1, Number(data.duracion) || 60);
+        const fechaFinMs = fechaMs ? fechaMs + duracion * 60000 : 0;
         return {
           id: d.id,
           titulo: data.titulo || 'Sin título',
@@ -6739,10 +6752,11 @@ const Sections = (function(){
           instructor: data.instructor || 'Equipo ICADEM',
           fecha: fechaIso,
           fechaMs: fechaMs,
-          duracion: data.duracion || 60,
-          link: data.link || '',
+          duracion,
+          link: data.link || data.url || data.zoom || data.enlace || '',
           area: data.area || 'General',
-          status: fechaMs > ahora ? 'proxima' : 'grabada',
+          status: fechaFinMs > ahora ? 'proxima' : 'grabada',
+          enVivo: Boolean(fechaMs && fechaMs <= ahora && ahora < fechaFinMs),
           registrado: false,
           visto: false
         };
@@ -10213,7 +10227,7 @@ const Sections = (function(){
         return;
       }
       // ⚡ Solo VIP: abrir el enlace REAL siempre (sin importar si ya empezó)
-      const url = prox.link || prox.zoom || window.ICADEM_CONTACT?.zoom;
+      const url = vipWebinarJoinUrl(prox) || window.ICADEM_CONTACT?.zoom;
       if (!url) {
         Toast.info('Sin enlace', 'El instructor aún no ha configurado el link de transmisión');
         return;
@@ -10228,10 +10242,11 @@ const Sections = (function(){
 
   function renderProxHero(w){
     const f=new Date(w.fecha);
+    const enVivo=vipWebinarIsLive(w);
     return `
       <div class="webinar-hero" data-skip-overlay="true">
         <div class="webinar-hero__info">
-          <span class="sec-hero__eyebrow">Próximo en vivo</span>
+          <span class="sec-hero__eyebrow">${enVivo?'En vivo ahora':'Próxima clase'}</span>
           <h2 class="webinar-hero__title">${w.titulo}</h2>
           <div class="webinar-hero__meta">
             <span><svg class="ic"><use href="#i-calendar"/></svg>${formatFechaLarga(f)}</span>
@@ -10242,7 +10257,7 @@ const Sections = (function(){
           </div>
           <p class="webinar-hero__desc">${w.desc}</p>
           <div class="webinar-hero__actions">
-            <button class="btn btn--accent" id="wh-join"><svg class="ic"><use href="#i-broadcast"/></svg>Unirme a la clase</button>
+            <button class="btn btn--accent" id="wh-join"><svg class="ic"><use href="#i-broadcast"/></svg>${enVivo?'Entrar a la transmisión':'Unirme a la clase'}</button>
             <button class="btn btn--ghost" id="wh-register">${w.registrado?'Ya registrado ✓':'Inscribirme'}<svg class="ic"><use href="#i-arrow-right"/></svg></button>
             <button class="btn btn--ghost" id="wh-cal" data-bypass-paywall="true"><svg class="ic"><use href="#i-calendar"/></svg>Agregar al calendario</button>
           </div>
@@ -10294,6 +10309,7 @@ const Sections = (function(){
   function renderWebCard(w){
     const f=new Date(w.fecha);
     const isProx=w.status==='proxima';
+    const enVivo=vipWebinarIsLive(w);
     return `
       <article class="webinar-card" data-wid="${w.id}" tabindex="0" style="--area-color:${COLOR_AREA[w.area]};">
         <div class="webinar-card__cover" style="background-image:url('${coverSVG(w.area, w.titulo)}');background-size:cover;background-position:center;">
@@ -10302,7 +10318,7 @@ const Sections = (function(){
         <div class="webinar-card__body">
           <div style="display:flex;gap:5px;flex-wrap:wrap;">
             <span class="tag tag--soon" style="color:${COLOR_AREA[w.area]};border-color:${COLOR_AREA[w.area]}40;background:${COLOR_AREA[w.area]}14;">${w.area}</span>
-            ${isProx?(w.registrado?'<span class="tag tag--watched">Registrado</span>':'<span class="tag tag--live">En vivo</span>'):(w.visto?'<span class="tag tag--watched">Visto</span>':'<span class="tag tag--soon">Grabación</span>')}
+            ${isProx?(enVivo?'<span class="tag tag--live">En vivo</span>':w.registrado?'<span class="tag tag--watched">Registrado</span>':'<span class="tag tag--soon">Próxima</span>'):(w.visto?'<span class="tag tag--watched">Visto</span>':'<span class="tag tag--soon">Grabación</span>')}
           </div>
           <h3 class="webinar-card__title">${w.titulo}</h3>
           <div class="webinar-card__meta">
@@ -10317,6 +10333,7 @@ const Sections = (function(){
   function openWebDetalle(id){
     const w=webinars.find(x=>x.id===id);if(!w)return;
     const f=new Date(w.fecha);const isProx=w.status==='proxima';
+    const enVivo=vipWebinarIsLive(w);
     const body=`
       ${isProx?`
         <div class="detail-hero" style="--area-color:${COLOR_AREA[w.area]};">
@@ -10324,7 +10341,7 @@ const Sections = (function(){
           <div style="flex:1;min-width:0">
             <div class="detail-hero__tags">
               <span class="tag tag--soon" style="color:${COLOR_AREA[w.area]};border-color:${COLOR_AREA[w.area]}40;background:${COLOR_AREA[w.area]}14;">${w.area}</span>
-              ${w.registrado?'<span class="tag tag--watched">Registrado</span>':'<span class="tag tag--live">En vivo</span>'}
+              ${enVivo?'<span class="tag tag--live">En vivo</span>':w.registrado?'<span class="tag tag--watched">Registrado</span>':'<span class="tag tag--soon">Próxima</span>'}
             </div>
             <div class="detail-hero__title">${w.titulo}</div>
             <div class="detail-meta"><span><svg class="ic"><use href="#i-user"/></svg>${w.instructor}</span><span><svg class="ic"><use href="#i-calendar"/></svg>${formatFechaLarga(f)}</span><span><svg class="ic"><use href="#i-clock"/></svg>${pad(f.getHours())}:${pad(f.getMinutes())} · ${w.duracion}m</span></div>
@@ -10346,8 +10363,8 @@ const Sections = (function(){
     `;
     const footer=document.createElement('div');
     if(isProx){
-      const linkUrl = (w.link || w.zoom || '').replace(/"/g,'&quot;');
-      const joinBtn = linkUrl ? `<button class="btn btn--accent" id="wd-join"><svg class="ic"><use href="#i-broadcast"/></svg>Unirme a la clase</button>` : '';
+      const linkUrl = vipWebinarJoinUrl(w).replace(/"/g,'&quot;');
+      const joinBtn = linkUrl ? `<button class="btn btn--accent" id="wd-join"><svg class="ic"><use href="#i-broadcast"/></svg>${enVivo?'Entrar ahora':'Unirme a la clase'}</button>` : '';
       footer.innerHTML=`<button class="btn btn--ghost" id="wd-close">Cerrar</button><button class="btn btn--ghost" id="wd-ics"><svg class="ic"><use href="#i-calendar"/></svg>Calendario</button><button class="btn btn--ghost" id="wd-toggle">${w.registrado?'Cancelar registro':'Inscribirme'}</button>${joinBtn}`;
     } else {
       footer.innerHTML=`<button class="btn btn--ghost" id="wd-close">Cerrar</button><button class="btn btn--accent" id="wd-play">${w.visto?'Volver a ver':'Reproducir'}<svg class="ic"><use href="#i-play"/></svg></button>`;
@@ -10368,7 +10385,7 @@ const Sections = (function(){
         }
         return;
       }
-      const url = w.link || w.zoom;
+      const url = vipWebinarJoinUrl(w);
       if (!url) { Toast.info('Sin enlace', 'El instructor aún no ha configurado el link'); return; }
       Toast.success('Abriendo transmisión…', w.titulo);
       window.open(url, '_blank', 'noopener,noreferrer');
