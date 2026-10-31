@@ -3251,7 +3251,7 @@ const Pages={
         if (isNaN(fechaDate.getTime())) { Toast.error('Fecha inválida'); throw new Error('skip'); }
 
         const fb = window._fb;
-        if (!fb?.db || !fb?.addDoc || !fb?.updateDoc || !fb?.collection || !fb?.doc || !fb?.serverTimestamp) {
+        if (!fb?.db || !fb?.addDoc || !fb?.updateDoc || !fb?.collection || !fb?.doc || !fb?.serverTimestamp || !fb?.writeBatch) {
           Toast.error('Firestore no listo'); throw new Error('skip');
         }
 
@@ -3272,8 +3272,24 @@ const Pages={
           data.createdAt = fb.serverTimestamp();
           data.creadoPor = window.__currentAdmin?.email || 'admin';
           data.registrados = 0;
-          await fb.addDoc(fb.collection(fb.db, 'webinars'), data);
-          Toast.success('¡Clase programada!', titulo);
+          const webinarRef = fb.doc(fb.collection(fb.db, 'webinars'));
+          const notificationRef = fb.doc(fb.db, 'notificaciones', `webinar_${webinarRef.id}`);
+          const batch = fb.writeBatch(fb.db);
+          const fechaTexto = fechaDate.toLocaleString('es-MX', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+          batch.set(webinarRef, data);
+          batch.set(notificationRef, {
+            tipo: 'clase',
+            icono: 'i-broadcast',
+            color: '#2F80C9',
+            titulo: `Nueva clase en vivo: ${titulo}`,
+            descripcion: `${fechaTexto} · ${instructor}`,
+            destino: 'webinars',
+            webinarId: webinarRef.id,
+            creadoPor: data.creadoPor,
+            createdAt: fb.serverTimestamp()
+          });
+          await batch.commit();
+          Toast.success('¡Clase programada y notificada!', titulo);
         }
         Modal.close();
       } catch (err) {

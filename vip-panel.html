@@ -12930,6 +12930,9 @@ const NOTIFS_DEMO = [
 // Setup del listener de notificaciones — se llama al cargar el panel
 // Es robusto: si __fs aún no está listo (módulo Firebase aún cargando), reintenta hasta 10s
 function setupNotificacionesListener(intento = 0) {
+  const state = window.__notifsState;
+  if (intento === 0 && (state.starting || state.active)) return;
+  if (intento === 0) state.starting = true;
   const fs = window.__fs;
 
   // Si __fs aún no está listo, reintentar hasta 10 segundos (cada 500ms)
@@ -12943,6 +12946,7 @@ function setupNotificacionesListener(intento = 0) {
     window.__notifsState.items = NOTIFS_DEMO;
     window.__notifsState.loaded = true;
     window.__notifsState.source = 'fallback-timeout';
+    window.__notifsState.starting = false;
     actualizarBadgeNotif();
     return;
   }
@@ -12975,6 +12979,8 @@ function setupNotificacionesListener(intento = 0) {
       window.__notifsState.items = items;
       window.__notifsState.loaded = true;
       window.__notifsState.source = 'firestore';
+      window.__notifsState.starting = false;
+      window.__notifsState.active = true;
       actualizarBadgeNotif();
       console.log(`[notif] ${items.length} notificaciones reales cargadas de Firestore`);
     }, (err) => {
@@ -12982,6 +12988,8 @@ function setupNotificacionesListener(intento = 0) {
       window.__notifsState.items = NOTIFS_DEMO;
       window.__notifsState.loaded = true;
       window.__notifsState.source = 'fallback-error';
+      window.__notifsState.starting = false;
+      window.__notifsState.active = false;
       actualizarBadgeNotif();
     });
   } catch(e) {
@@ -12989,6 +12997,8 @@ function setupNotificacionesListener(intento = 0) {
     window.__notifsState.items = NOTIFS_DEMO;
     window.__notifsState.loaded = true;
     window.__notifsState.source = 'fallback-exception';
+    window.__notifsState.starting = false;
+    window.__notifsState.active = false;
     actualizarBadgeNotif();
   }
 }
@@ -13064,9 +13074,17 @@ function formatNotifTime(ms) {
   return `Hace ${Math.floor(d/30)} meses`;
 }
 
+function cerrarNotifDropdown(){
+  const dd = document.getElementById('notif-dropdown');
+  if (!dd) return;
+  if (typeof dd.__notifCleanup === 'function') dd.__notifCleanup();
+  dd.remove();
+  document.getElementById('btn-notif')?.setAttribute('aria-expanded', 'false');
+}
+
 function toggleNotifDropdown(){
   let dd=document.getElementById('notif-dropdown');
-  if(dd){dd.remove();return;}
+  if(dd){cerrarNotifDropdown();return;}
 
   // excluye del pintado los ids que el usuario eliminó localmente (nunca toca Firestore)
   const eliminadas = new Set(getNotifsEliminadas());
@@ -13081,9 +13099,9 @@ function toggleNotifDropdown(){
   // En desktop absolute al botón
   const isMobile = window.innerWidth <= 768;
   if (isMobile) {
-    dd.style.cssText = 'position:fixed;top:68px;left:12px;right:12px;width:auto;background:var(--surface);border:0.5px solid var(--border-2);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.45);z-index:9999;padding:8px;animation:dropFade .18s ease;max-height:calc(100vh - 90px);overflow-y:auto;';
+    dd.style.cssText = 'position:fixed;top:68px;left:12px;right:12px;width:auto;background:var(--surface);border:0.5px solid var(--border-2);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.45);z-index:2147483000;padding:8px;max-height:calc(100vh - 90px);overflow-y:auto;isolation:isolate;';
   } else {
-    dd.style.cssText = 'position:absolute;top:calc(100% + 8px);right:0;width:360px;max-width:calc(100vw - 32px);background:var(--surface);border:0.5px solid var(--border-2);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.22);z-index:9999;padding:8px;animation:dropFade .18s ease;max-height:480px;overflow-y:auto;';
+    dd.style.cssText = 'position:fixed;top:0;left:0;right:auto;width:360px;max-width:calc(100vw - 24px);background:var(--surface);border:0.5px solid var(--border-2);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.22);z-index:2147483000;padding:8px;max-height:min(480px,calc(100vh - 96px));overflow-y:auto;text-align:left;isolation:isolate;';
   }
 
   const nuevasCount = notifs.filter(n => !leidas.has(n.id)).length;
@@ -13130,7 +13148,7 @@ function toggleNotifDropdown(){
   });
 
   // repinta el dropdown desde cero (refleja empty state, contador y footer)
-  const repintarNotifDropdown = () => { dd.remove(); toggleNotifDropdown(); };
+  const repintarNotifDropdown = () => { cerrarNotifDropdown(); toggleNotifDropdown(); };
 
   // eliminar UNA notificación (solo local · nunca Firestore)
   dd.querySelectorAll('.notif-del-btn').forEach(btn=>{
@@ -13153,11 +13171,35 @@ function toggleNotifDropdown(){
     repintarNotifDropdown();
   });
 
-  if (isMobile) {
-    document.body.appendChild(dd);
-  } else {
-    document.getElementById('btn-notif').style.position='relative';
-    document.getElementById('btn-notif').appendChild(dd);
+  const btnNotif = document.getElementById('btn-notif');
+  document.body.appendChild(dd);
+  btnNotif?.setAttribute('aria-expanded', 'true');
+
+  if (!isMobile && btnNotif) {
+    let frame = 0;
+    const positionDropdown = () => {
+      frame = 0;
+      if (!btnNotif.isConnected || !dd.isConnected) { cerrarNotifDropdown(); return; }
+      const rect = btnNotif.getBoundingClientRect();
+      const width = Math.min(360, Math.max(260, window.innerWidth - 24));
+      const left = Math.max(12, Math.min(window.innerWidth - width - 12, rect.right - width));
+      const top = Math.min(window.innerHeight - 72, rect.bottom + 10);
+      dd.style.width = width + 'px';
+      dd.style.left = left + 'px';
+      dd.style.top = top + 'px';
+    };
+    const schedulePosition = () => {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(positionDropdown);
+    };
+    positionDropdown();
+    window.addEventListener('resize', schedulePosition, {passive:true});
+    window.addEventListener('scroll', schedulePosition, {passive:true, capture:true});
+    dd.__notifCleanup = () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener('resize', schedulePosition);
+      window.removeEventListener('scroll', schedulePosition, true);
+    };
   }
 
   // Marcar todas como leídas después de un pequeño delay (para que el usuario vea la diferencia)
@@ -13170,7 +13212,13 @@ function toggleNotifDropdown(){
 
   // Cerrar al click fuera
   setTimeout(()=>{
-    const handler=(e)=>{if(!dd.contains(e.target)&&e.target.id!=='btn-notif'){dd.remove();document.removeEventListener('click',handler);}};
+    if (!dd.isConnected) return;
+    const handler=(e)=>{if(!dd.contains(e.target)&&!document.getElementById('btn-notif')?.contains(e.target)){cerrarNotifDropdown();document.removeEventListener('click',handler);}};
+    const cleanupPosition = dd.__notifCleanup;
+    dd.__notifCleanup = () => {
+      if (typeof cleanupPosition === 'function') cleanupPosition();
+      document.removeEventListener('click', handler);
+    };
     document.addEventListener('click',handler);
   },50);
 }
