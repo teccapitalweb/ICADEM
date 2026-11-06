@@ -5597,6 +5597,67 @@ const ToolReporte = (function(){
    ═══════════════════════════════════════════════════════════════ */
 const SECCION_DEFAULT_VIP = 'inicio';
 let __seccionActualVIP = null;
+const CONTEXTO_APRENDIZAJE_VIP = 'icadem:panel:aprendizaje:v1';
+
+function __leerContextoAprendizajeVIP(){
+  let guardado = {};
+  try { guardado = JSON.parse(sessionStorage.getItem(CONTEXTO_APRENDIZAJE_VIP) || '{}') || {}; } catch(_) {}
+  const params = new URLSearchParams(location.search);
+  const cursoURL = (params.get('curso') || '').trim();
+  const cursoMemoria = String(window.__cursoActualId || window.__claseActualCursoId || '').trim();
+  const cursoId = cursoURL || cursoMemoria || String(guardado.cursoId || '').trim();
+  const claseURL = params.get('clase');
+  let sesionIdx = claseURL != null && claseURL !== '' ? Number(claseURL) : null;
+  if (!Number.isInteger(sesionIdx) || sesionIdx < 0) {
+    const claseMemoria = String(window.__claseActualCursoId || '') === cursoId
+      ? Number(window.__claseActualSesionIdx)
+      : NaN;
+    const claseGuardada = String(guardado.cursoId || '') === cursoId ? Number(guardado.sesionIdx) : NaN;
+    sesionIdx = Number.isInteger(claseMemoria) && claseMemoria >= 0
+      ? claseMemoria
+      : (Number.isInteger(claseGuardada) && claseGuardada >= 0 ? claseGuardada : null);
+  }
+  return { cursoId, sesionIdx };
+}
+
+function __guardarContextoAprendizajeVIP(cursoId, sesionIdx){
+  const id = String(cursoId || '').trim();
+  const clase = Number(sesionIdx);
+  const tieneClase = Number.isInteger(clase) && clase >= 0;
+  if (!id) return '';
+  window.__cursoActualId = id;
+  if (tieneClase) {
+    window.__claseActualCursoId = id;
+    window.__claseActualSesionIdx = clase;
+  } else {
+    delete window.__claseActualCursoId;
+    delete window.__claseActualSesionIdx;
+  }
+  try {
+    sessionStorage.setItem(CONTEXTO_APRENDIZAJE_VIP, JSON.stringify({ cursoId:id, sesionIdx:tieneClase ? clase : null }));
+  } catch(_) {}
+  try {
+    const url = new URL(location.href);
+    url.searchParams.set('curso', id);
+    if (tieneClase) url.searchParams.set('clase', String(clase));
+    else url.searchParams.delete('clase');
+    history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+  } catch(_) {}
+  return id;
+}
+
+function __limpiarContextoAprendizajeVIP(){
+  delete window.__cursoActualId;
+  delete window.__claseActualCursoId;
+  delete window.__claseActualSesionIdx;
+  try { sessionStorage.removeItem(CONTEXTO_APRENDIZAJE_VIP); } catch(_) {}
+  try {
+    const url = new URL(location.href);
+    url.searchParams.delete('curso');
+    url.searchParams.delete('clase');
+    history.replaceState(history.state, '', url.pathname + url.search + url.hash);
+  } catch(_) {}
+}
 
 function __seccionesValidasVIP(){
   const s = new Set(Array.from(
@@ -6237,8 +6298,7 @@ const Sections = (function(){
     }
 
     // Guardar contexto activo y navegar a la sección full-page.
-    window.__claseActualCursoId = String(cursoId);
-    window.__claseActualSesionIdx = Number(sesionIdx);
+    __guardarContextoAprendizajeVIP(cursoId, sesionIdx);
     if (typeof navigateToSection === 'function') navigateToSection('clase-detalle');
   };
 
@@ -6969,16 +7029,17 @@ const Sections = (function(){
     // Guarda el id vivo para el renderer de la sección. Si el usuario llega
     // antes de que Firestore responda, el renderer muestra un loader y
     // vuelve a montarse solo cuando los cursos ya están disponibles.
-    window.__cursoActualId = id;
+    __guardarContextoAprendizajeVIP(id);
     if (typeof navigateToSection === 'function') navigateToSection('curso-detalle');
   }
 
   function renderCursoDetalle(container){
-    const id = window.__cursoActualId;
+    const id = __leerContextoAprendizajeVIP().cursoId;
     if (!id) {
-      container.innerHTML = `<div class="course-page-loading"><strong>Elige un curso del catálogo</strong><button class="btn btn--ghost" style="margin-top:4px;" onclick="navigateToSection('cursos')">Volver al catálogo</button></div>`;
+      navigateToSection('cursos', { reemplazar:true });
       return;
     }
+    window.__cursoActualId = id;
     if (!_cursosLoaded && !_cursosLoading) {
       container.innerHTML = `<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando curso…</strong></div>`;
       cargarCursosFirestore().then(() => { if (location.hash === '#curso-detalle') renderCursoDetalle(container); });
@@ -6997,7 +7058,8 @@ const Sections = (function(){
 
     const c = cursos.find(x => String(x.id) === String(id));
     if (!c) {
-      container.innerHTML = `<div class="fade-up course-page"><button type="button" class="course-detail-back" onclick="navigateToSection('cursos')"><span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>Catálogo de cursos</button><div class="empty-state" style="padding:64px 24px;text-align:center;"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Curso no encontrado</h3><p>Regresa al catálogo para elegir otro curso.</p></div></div>`;
+      __limpiarContextoAprendizajeVIP();
+      navigateToSection('cursos', { reemplazar:true });
       return;
     }
 
@@ -7429,7 +7491,7 @@ const Sections = (function(){
   // el renderer sobre #dynamic-section si estamos en #curso-detalle.
   window.__refrescarCursoDetalle = function(cid){
     if (!cid) return;
-    window.__cursoActualId = cid;
+    __guardarContextoAprendizajeVIP(cid);
     const dyn = document.getElementById('dynamic-section');
     if (!dyn) return;
     if (location.hash === '#curso-detalle' && typeof renderCursoDetalle === 'function') {
@@ -9073,12 +9135,20 @@ const Sections = (function(){
   }
 
   function renderClaseDetalle(container){
-    const cursoId = window.__claseActualCursoId;
-    const sesionIdx = window.__claseActualSesionIdx;
+    const contexto = __leerContextoAprendizajeVIP();
+    const cursoId = contexto.cursoId;
+    const sesionIdx = contexto.sesionIdx;
     if (!cursoId || sesionIdx == null) {
-      container.innerHTML = `<div class="course-page-loading"><strong>Elige una clase del curso</strong><button class="btn btn--ghost" style="margin-top:4px;" onclick="navigateToSection('cursos')">Volver a cursos</button></div>`;
+      if (cursoId) {
+        __guardarContextoAprendizajeVIP(cursoId);
+        navigateToSection('curso-detalle', { reemplazar:true });
+      } else {
+        navigateToSection('cursos', { reemplazar:true });
+      }
       return;
     }
+    window.__claseActualCursoId = cursoId;
+    window.__claseActualSesionIdx = sesionIdx;
     // Si los cursos aún no están cargados, esperar y re-montar
     if (!_cursosLoaded && !_cursosLoading) {
       container.innerHTML = `<div class="course-page-loading"><div class="sub-loading__spin"></div><strong>Cargando clase…</strong></div>`;
@@ -9096,7 +9166,13 @@ const Sections = (function(){
     const sesiones = Array.isArray(curso?.sesiones) ? curso.sesiones : [];
     const sesion = sesiones[sesionIdx];
     if (!curso || !sesion) {
-      container.innerHTML = `<div class="fade-up course-page lesson-page"><button type="button" class="course-detail-back" onclick="navigateToSection('cursos')"><span><svg class="ic" style="transform:rotate(180deg)"><use href="#i-arrow-right"/></svg></span>Catálogo de cursos</button><div class="empty-state" style="padding:64px 24px;text-align:center;"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Clase no encontrada</h3><p>Vuelve al curso para elegir otra clase.</p></div></div>`;
+      if (curso) {
+        __guardarContextoAprendizajeVIP(cursoId);
+        navigateToSection('curso-detalle', { reemplazar:true });
+      } else {
+        __limpiarContextoAprendizajeVIP();
+        navigateToSection('cursos', { reemplazar:true });
+      }
       return;
     }
     // Defensa de interfaz: una navegación manual al hash nunca monta una
@@ -9460,7 +9536,7 @@ const Sections = (function(){
 
   // Helper: regresar al detalle del curso desde la vista de clase
   window.__volverACurso = function(cursoId){
-    window.__cursoActualId = cursoId;
+    __guardarContextoAprendizajeVIP(cursoId);
     if (typeof navigateToSection === 'function') navigateToSection('curso-detalle');
   };
 
