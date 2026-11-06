@@ -5665,7 +5665,9 @@ function navigateToSection(section, opciones){
   if(section==='inicio'){inicio.style.display='';dyn.style.display='none';__subirAlInicioVIP();if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();if(typeof window.__actualizarInicioAprendizaje==='function')window.__actualizarInicioAprendizaje();return;}
   inicio.style.display='none';dyn.style.display='';
   const renderer=Sections.renderers[section];
-  if(renderer){dyn.innerHTML='';renderer(dyn);}
+  // Cada renderer reemplaza su contenido de forma síncrona. Conservar la vista
+  // anterior hasta ese reemplazo evita el destello blanco entre secciones.
+  if(renderer){renderer(dyn);}
   else{dyn.innerHTML=sectionPlaceholder(section);}
   __subirAlInicioVIP();
 }
@@ -9141,7 +9143,9 @@ const Sections = (function(){
     // público del curso.
     const resumen = sesion.resumen || sesion.descripcion || curso.descripcion || '';
 
-    const sideHtml = `<aside class="lesson-side">
+    // Temario, notas y evaluación viven al final de la clase para que la
+    // columna lateral quede dedicada a comentarios y calificación.
+    const learningToolsHtml = `<section class="lesson-side lesson-tools-bottom" aria-label="Recursos de la clase">
       <div class="lesson-side__tabs" role="tablist">
         <button class="is-active" type="button" data-lesson-tab="temario">Temario</button>
         <button type="button" data-lesson-tab="notas">Notas</button>
@@ -9165,6 +9169,12 @@ const Sections = (function(){
           <div><strong>${yaVista ? '✓' : '70%'}</strong><span>${yaVista ? 'Clase completada' : 'Resultado mínimo para aprobar'}</span></div>
           <button type="button" data-lesson-quiz-start>${yaVista ? 'Practicar de nuevo' : 'Comenzar evaluación'}</button>
         </div>
+      </div>
+    </section>`;
+
+    const feedbackHtml = `<aside class="lesson-feedback" aria-label="Comentarios y calificación de la clase">
+      <div data-lesson-feedback>
+        <div class="course-rating__loading">Cargando comentarios…</div>
       </div>
     </aside>`;
 
@@ -9224,9 +9234,33 @@ const Sections = (function(){
           </section>` : ''}
           ${siguienteHtml}
         </main>
-        ${sideHtml}
+        ${feedbackHtml}
       </div>
+      ${learningToolsHtml}
     </div>`;
+
+    // Comentarios persistentes por clase. El backend valida que tanto el curso
+    // como la clase existan antes de aceptar una valoración.
+    const feedbackRoot = container.querySelector('[data-lesson-feedback]');
+    let feedbackAttempts = 0;
+    const mountLessonFeedback = () => {
+      if (!feedbackRoot?.isConnected) return;
+      if (!window.ICADEMCourseRatings?.mount) {
+        feedbackAttempts += 1;
+        if (feedbackAttempts < 20) setTimeout(mountLessonFeedback, 100);
+        else feedbackRoot.innerHTML = '<div class="course-rating__loading">No pudimos abrir los comentarios. Recarga la página para intentarlo de nuevo.</div>';
+        return;
+      }
+      window.ICADEMCourseRatings.mount({
+        container: feedbackRoot,
+        courseId: String(cursoId),
+        courseTitle: `${curso.titulo || 'Curso'} · Clase ${numClase}: ${sesion.titulo || `Clase ${numClase}`}`,
+        endpoint: `/api/lesson-ratings/${encodeURIComponent(String(cursoId))}/${encodeURIComponent(String(numClase))}`,
+        subject: 'lesson',
+        variant: 'compact'
+      });
+    };
+    mountLessonFeedback();
 
     // ─── Montar el video (Bunny token firmado por Railway) ───
     const frameEl = container.querySelector('[data-lesson-frame]');
@@ -13615,7 +13649,8 @@ function initNav(){
 function init(){
   Theme.init();applyGreeting();initCountdown();initNav();
   loadProfileFromLS();
-  injectSupportFAB();
+  // El acceso a WhatsApp vive dentro de Comunidad; no se inyecta un botón
+  // flotante duplicado sobre el contenido.
   window.Modal=Modal;window.Tools=Tools;window.Toast=Toast;window.navigateToSection=navigateToSection;
   window.openReferralModal=openReferralModal;
   window.__leerSeccionURLVIP=__leerSeccionURLVIP;  // MODIFICADO: lo usa la ruta inicial
@@ -21731,7 +21766,55 @@ h1, h2, h3, h4{ color: var(--text); }
   setTimeout(function(){refreshBadge();beginPoll();},2200);
 })();
 </script>
-<script src="js/icadem-course-ratings.js?v=2"></script>
+<style id="icadem-panel-fixes-2026-11">
+/* Marca: usa el wordmark oficial sin recortarlo dentro de un cuadro. */
+.brand{justify-content:flex-start}
+.brand__logo{
+  width:142px!important;height:42px!important;max-width:100%;
+  border-radius:0!important;background:transparent!important;
+  box-shadow:none!important;overflow:visible!important;
+}
+.brand__logo img{display:none!important}
+.brand__logo::before{
+  content:"";display:block;width:100%;height:34px;
+  background:url("assets/logo/icadem-wordmark.png?v=2") left center/contain no-repeat;
+}
+.mobile-drawer__brand>.brand__logo{display:none!important}
+
+/* WhatsApp se mantiene en Comunidad y desaparece como acción flotante. */
+#wa-fab,#wa-fab-menu{display:none!important}
+
+/* Navegación estable: el contenido cambia de forma atómica y sin reanimar la
+   página completa en cada clic. Las animaciones puntuales siguen disponibles. */
+#dynamic-section>.fade-up,#inicio-content>.fade-up{animation:none!important}
+
+/* La columna lateral de cada clase ahora contiene la conversación/calificación. */
+.lesson-feedback{position:sticky;top:16px;align-self:start;min-width:0}
+.lesson-feedback .course-rating__loading{max-width:none;margin:0;padding:28px 18px}
+
+/* Temario, notas y quiz pasan al final de la vista de clase. */
+.lesson-tools-bottom{
+  position:static!important;top:auto!important;overflow:visible!important;
+  width:100%;margin-top:26px;border-radius:20px;box-shadow:0 12px 32px -22px rgba(10,15,35,.16)
+}
+.lesson-tools-bottom .lesson-side__tabs{width:min(520px,calc(100% - 28px));margin:14px auto}
+.lesson-tools-bottom .lesson-side__panel{padding:8px 24px 24px}
+.lesson-tools-bottom .lesson-notes textarea{min-height:180px}
+.lesson-tools-bottom .lesson-side-quiz{max-width:520px;margin:0 auto}
+@media (min-width:760px){
+  .lesson-tools-bottom .lesson-outline{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:28px}
+}
+@media (max-width:900px){
+  .lesson-feedback{position:static}
+  .lesson-tools-bottom{margin-top:20px}
+}
+@media (max-width:560px){
+  .brand__logo{width:124px!important}
+  .lesson-tools-bottom .lesson-side__tabs{width:calc(100% - 20px);margin:10px}
+  .lesson-tools-bottom .lesson-side__panel{padding:5px 14px 18px}
+}
+</style>
+<script src="js/icadem-course-ratings.js?v=3"></script>
 <script src="js/icadem-onboarding.js?v=18"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 </body>
