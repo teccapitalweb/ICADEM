@@ -3883,6 +3883,104 @@ body.has-fomo .main{padding-top:18px}
 }
 @media(max-width:560px){.club-learning{grid-template-columns:1fr}.club-learning__cover{max-height:160px}.club-quick-grid{grid-template-columns:repeat(2,1fr)}.banner__stats{grid-template-columns:repeat(2,1fr)}.tabs{display:flex;overflow-x:auto;width:100%}.tab{flex:1;white-space:nowrap;padding:8px 10px;font-size:9.5px}}
 </style>
+<style id="courses-premium-2026">
+/* Mis cursos · biblioteca premium 2026 */
+.courses-page--premium{--courses-blue:#0b2f73;--courses-action:#1459c7;--courses-success:#16a34a;--courses-gold:#c78b18;max-width:1680px;margin:0 auto;padding-bottom:42px}
+.courses-library-head{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:18px 2px 24px}
+.courses-library-head__eyebrow{display:flex;align-items:center;gap:8px;margin:0 0 9px;font:700 9.5px/1 'JetBrains Mono',monospace;letter-spacing:1.7px;text-transform:uppercase;color:var(--primary)}
+.courses-library-head__eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--primary)}
+.courses-library-head h1{margin:0;font:800 clamp(27px,3vw,39px)/1.1 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-1.15px;color:var(--text)}
+.courses-library-head p{max-width:650px;margin:10px 0 0;color:var(--text-2);font-size:13.5px;line-height:1.65}
+.courses-library-head__count{flex:none;display:grid;place-items:center;min-width:112px;padding:15px 18px;border:1px solid var(--border);border-radius:14px;background:var(--surface);text-align:center;box-shadow:0 8px 25px rgba(15,23,42,.04)}
+.courses-library-head__count strong{font:800 23px/1 'Plus Jakarta Sans','Inter',sans-serif;color:var(--text)}
+.courses-library-head__count span{margin-top:5px;font:700 8.5px/1 'JetBrains Mono',monospace;letter-spacing:1.1px;text-transform:uppercase;color:var(--text-3)}
+
+.courses-controls{margin-bottom:24px;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--surface);box-shadow:0 10px 28px rgba(15,23,42,.035)}
+.courses-controls__top{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:14px;align-items:center}
+.courses-search{position:relative;display:block}
+.courses-search .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.courses-search .ic{position:absolute;z-index:1;left:15px;top:50%;width:16px;height:16px;transform:translateY(-50%);color:var(--text-3)}
+.courses-search input{width:100%;height:44px;padding:0 42px 0 43px;border:1px solid var(--border-2);border-radius:12px;background:var(--surface-2);color:var(--text);font:500 13px/1 'Inter',sans-serif;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease}
+.courses-search input::placeholder{color:var(--text-3)}
+.courses-search input:focus{outline:none;border-color:var(--courses-action);background:var(--surface);box-shadow:0 0 0 3px color-mix(in srgb,var(--courses-action) 13%,transparent)}
+.courses-search__clear{position:absolute;right:8px;top:7px;width:30px;height:30px;border:0;border-radius:8px;background:transparent;color:var(--text-3);font-size:18px;cursor:pointer}
+.courses-search__clear:hover{background:var(--surface-3);color:var(--text)}
+.courses-selects{display:flex;gap:8px;align-items:center}
+.courses-select{position:relative;min-width:146px}
+.courses-select>span{position:absolute;left:11px;top:7px;z-index:1;font:700 7px/1 'JetBrains Mono',monospace;letter-spacing:.9px;text-transform:uppercase;color:var(--text-3);pointer-events:none}
+.courses-select select{width:100%;height:44px;padding:17px 32px 4px 11px;border:1px solid var(--border-2);border-radius:11px;background:var(--surface-2);color:var(--text);font:700 11.5px/1 'Inter',sans-serif;cursor:pointer;transition:border-color .18s ease,box-shadow .18s ease;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--text-3) 50%),linear-gradient(135deg,var(--text-3) 50%,transparent 50%);background-position:calc(100% - 15px) 21px,calc(100% - 11px) 21px;background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+.courses-select select:focus{outline:none;border-color:var(--courses-action);box-shadow:0 0 0 3px color-mix(in srgb,var(--courses-action) 13%,transparent)}
+.courses-controls__bottom{display:flex;align-items:center;gap:14px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)}
+.courses-status-filters{display:flex;gap:7px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.courses-status-filters::-webkit-scrollbar{display:none}
+.courses-filter-chip{flex:none;min-height:34px;padding:0 12px;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--text-2);font:700 10.5px/1 'Inter',sans-serif;cursor:pointer;transition:background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease}
+.courses-filter-chip:hover{border-color:color-mix(in srgb,var(--courses-action) 40%,var(--border));color:var(--courses-action);transform:translateY(-1px)}
+.courses-filter-chip.is-active{border-color:var(--courses-blue);background:var(--courses-blue);color:#fff}
+.courses-filter-chip:focus-visible,.curso-card:focus-visible,.curso-card button:focus-visible{outline:3px solid color-mix(in srgb,var(--courses-action) 32%,transparent);outline-offset:3px}
+.courses-results-count{flex:none;color:var(--text-3);font:700 9.5px/1 'JetBrains Mono',monospace;white-space:nowrap}
+
+.courses-page--premium .cursos-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.courses-page--premium .curso-card{min-width:0;overflow:hidden;border:1px solid #e5e7eb;border-radius:16px;background:#fff;color:#172033;box-shadow:0 5px 18px rgba(15,23,42,.045);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+[data-theme="night"] .courses-page--premium .curso-card{border-color:var(--border);background:var(--surface);color:var(--text)}
+.courses-page--premium .curso-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--courses-action) 25%,#e5e7eb);box-shadow:0 13px 32px rgba(15,23,42,.09)}
+.courses-page--premium .curso-card--completed{border-color:color-mix(in srgb,var(--courses-success) 28%,#e5e7eb)}
+.courses-page--premium .curso-card--gift{border-color:color-mix(in srgb,var(--courses-gold) 35%,#e5e7eb)}
+.courses-page--premium .curso-card__cover{position:relative;width:100%;height:auto;aspect-ratio:16/9;overflow:hidden;background:#e9eef4;display:block}
+.courses-page--premium .curso-card__cover::before{display:none}
+.courses-page--premium .curso-card__cover>img{display:block;width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .2s ease}
+.courses-page--premium .curso-card:hover .curso-card__cover>img{transform:scale(1.012)}
+.courses-page--premium .curso-card__body{display:flex;flex:1;flex-direction:column;gap:0;padding:16px 17px 17px}
+.courses-page--premium .curso-card__tags{display:flex;gap:6px;min-height:24px;margin-bottom:9px}
+.courses-page--premium .curso-card__tags .tag{display:inline-flex;align-items:center;min-height:23px;padding:0 8px;border:1px solid #e5e7eb;border-radius:999px;background:#f8fafc;color:#64748b;font:700 8.5px/1 'Inter',sans-serif;letter-spacing:.25px;text-transform:none}
+.courses-page--premium .curso-card__tags .tag--gift{border-color:#ead6a8;background:#fff8e8;color:#865e0e}
+[data-theme="night"] .courses-page--premium .curso-card__tags .tag{border-color:var(--border);background:var(--surface-2);color:var(--text-2)}
+.courses-page--premium .curso-card__title{display:-webkit-box;min-height:65px;margin:0 0 8px;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3;font:700 16px/1.34 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.34px;color:inherit}
+.courses-page--premium .curso-card__desc{display:-webkit-box;min-height:39px;margin:0 0 13px;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:#64748b;font:400 12px/1.58 'Inter',sans-serif}
+[data-theme="night"] .courses-page--premium .curso-card__desc{color:var(--text-2)}
+.courses-page--premium .curso-card__meta{display:flex;flex-wrap:wrap;gap:7px 11px;min-height:37px;margin:0;padding:11px 0;border-top:1px solid #edf0f3;border-bottom:1px solid #edf0f3;color:#64748b;font:600 10px/1 'Inter',sans-serif}
+[data-theme="night"] .courses-page--premium .curso-card__meta{border-color:var(--border);color:var(--text-3)}
+.courses-page--premium .curso-card__meta span{display:inline-flex;align-items:center;gap:4px}
+.courses-page--premium .curso-card__meta .ic{width:12px;height:12px;color:#94a3b8}
+.curso-card__rating{display:flex;align-items:center;gap:6px;min-height:36px;color:#64748b;font:600 10.5px/1 'Inter',sans-serif}
+.curso-card__rating-stars{color:#d5961a;letter-spacing:.4px;font-size:12px}
+.curso-card__rating.is-empty .curso-card__rating-stars{color:#cbd5e1}
+.courses-page--premium .curso-card__progress{display:grid;grid-template-columns:1fr auto;align-items:center;gap:9px;margin:0;padding:0 0 11px;border:0}
+.courses-page--premium .curso-card__progress-bar{height:5px;background:#e8edf2;border-radius:999px;overflow:hidden}
+.courses-page--premium .curso-card__progress-fill{height:100%;border-radius:inherit;background:var(--courses-action);box-shadow:none;transition:width .4s ease}
+.courses-page--premium .curso-card__progress-fill::after{display:none}
+.courses-page--premium .curso-card__progress-pct{min-width:30px;color:var(--courses-action);font:800 9.5px/1 'JetBrains Mono',monospace;text-align:right}
+.curso-card__footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:12px}
+.curso-card__state{display:inline-flex;align-items:center;gap:6px;min-width:0;color:#64748b;font:700 10.5px/1.25 'Inter',sans-serif}
+.curso-card__state .ic{width:14px;height:14px;flex:none}
+.curso-card__state--available,.curso-card__state--gift{color:var(--courses-action)}
+.curso-card__state--progress{color:var(--courses-action)}
+.curso-card__state--completed{color:var(--courses-success)}
+.curso-card__state--locked,.curso-card__state--soon{color:#64748b}
+.curso-card__action{display:inline-flex;align-items:center;gap:5px;flex:none;color:var(--courses-blue);font:800 10.5px/1 'Inter',sans-serif}
+.curso-card__action .ic{width:13px;height:13px}
+.courses-page--premium .curso-card__free-cta{min-height:38px;margin-top:11px;border-color:color-mix(in srgb,var(--courses-blue) 22%,#e5e7eb);border-radius:10px;background:#f4f7fb;color:var(--courses-blue);font-size:11.5px;box-shadow:none}
+.courses-page--premium .curso-card__free-cta:hover{background:var(--courses-blue);border-color:var(--courses-blue);color:#fff;transform:none}
+.courses-empty{grid-column:1/-1;display:grid;place-items:center;min-height:290px;padding:48px 20px;border:1px dashed var(--border-2);border-radius:16px;background:color-mix(in srgb,var(--surface) 72%,transparent);text-align:center}
+.courses-empty__icon{display:grid;place-items:center;width:54px;height:54px;margin-bottom:14px;border-radius:15px;background:var(--surface-2);color:var(--primary)}
+.courses-empty__icon .ic{width:23px;height:23px}
+.courses-empty h3{margin:0;color:var(--text);font:800 17px/1.2 'Plus Jakarta Sans','Inter',sans-serif}
+.courses-empty p{max-width:410px;margin:7px 0 0;color:var(--text-2);font-size:12.5px;line-height:1.55}
+.courses-empty button{margin-top:16px;min-height:38px;padding:0 15px;border:1px solid var(--border-2);border-radius:10px;background:var(--surface);color:var(--text);font-weight:700;cursor:pointer}
+
+.courses-skeleton{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:22px}
+.course-skeleton{overflow:hidden;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
+.course-skeleton__cover{aspect-ratio:16/9;background:var(--surface-3)}
+.course-skeleton__body{padding:17px}.course-skeleton__line{height:10px;margin-bottom:10px;border-radius:6px;background:var(--surface-3)}
+.course-skeleton__line.is-short{width:42%}.course-skeleton__line.is-title{width:88%;height:15px;margin-top:15px}.course-skeleton__line.is-copy{width:100%;margin-top:18px}.course-skeleton__line.is-copy2{width:72%}
+.course-skeleton__cover,.course-skeleton__line{background-image:linear-gradient(90deg,transparent,rgba(148,163,184,.14),transparent);background-size:220% 100%;animation:coursesSkeleton 1.35s ease-in-out infinite}
+@keyframes coursesSkeleton{to{background-position:-220% 0}}
+
+@media(max-width:1580px){.courses-page--premium .cursos-grid,.courses-skeleton{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1180px){.courses-controls__top{grid-template-columns:1fr}.courses-selects{display:grid;grid-template-columns:repeat(3,1fr)}.courses-select{min-width:0}.courses-page--premium .cursos-grid,.courses-skeleton{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){.courses-library-head{align-items:flex-start;padding-top:8px}.courses-library-head__count{min-width:90px;padding:12px}.courses-library-head__count strong{font-size:20px}.courses-controls{margin:0 -2px 20px;padding:12px}.courses-selects{grid-template-columns:1fr}.courses-controls__bottom{align-items:flex-start;flex-direction:column}.courses-results-count{padding-left:3px}.courses-page--premium .cursos-grid,.courses-skeleton{grid-template-columns:1fr;gap:16px}.courses-page--premium .curso-card__cover{aspect-ratio:16/9}}
+@media(max-width:480px){.courses-library-head__count{display:none}.courses-library-head h1{font-size:28px}.courses-library-head p{font-size:12.5px}.courses-page--premium .curso-card__body{padding:15px}.courses-page--premium .curso-card__title{min-height:auto;font-size:16px}.courses-page--premium .curso-card__desc{min-height:auto}}
+@media(prefers-reduced-motion:reduce){.courses-page--premium .curso-card,.courses-page--premium .curso-card__cover>img,.courses-page--premium .curso-card__progress-fill,.courses-filter-chip{transition:none}.course-skeleton__cover,.course-skeleton__line{animation:none}}
+</style>
 </head>
 <body style="visibility:hidden">
 
@@ -6437,9 +6535,49 @@ const Sections = (function(){
     }
     return IMG[pick()];
   }
+  const PORTADAS_CURSOS_OFICIALES = Object.freeze({
+    'amparo directo e indirecto en materia penal':'assets/cursos/portadas-2026/01-amparo-directo-e-indirecto-en-materia-penal.jpg',
+    'argumentacion juridica en audiencias previas al juicio':'assets/cursos/portadas-2026/02-argumentacion-juridica-en-audiencias-previas-al-juicio.jpg',
+    'argumentacion juridica narrativa falacias y persuasion':'assets/cursos/portadas-2026/03-argumentacion-juridica-narrativa-falacias-y-persuasion.jpg',
+    'conduccion de audiencias y litigacion oral':'assets/cursos/portadas-2026/04-conduccion-de-audiencias-y-litigacion-oral.jpg',
+    'contratos mercantiles en la practica':'assets/cursos/portadas-2026/05-contratos-mercantiles-en-la-practica.jpg',
+    'contratos inmobiliarios y derecho civil':'assets/cursos/portadas-2026/06-contratos-inmobiliarios-y-derecho-civil.jpg',
+    'derecho fiscal aplicado':'assets/cursos/portadas-2026/07-derecho-fiscal-aplicado.jpg',
+    'derecho notarial y registral':'assets/cursos/portadas-2026/08-derecho-notarial-y-registral.jpg',
+    'divorcio mediante juicio oral':'assets/cursos/portadas-2026/09-divorcio-mediante-juicio-oral.jpg',
+    'pension alimentaria y litigacion familiar':'assets/cursos/portadas-2026/10-pension-alimentaria-y-litigacion-familiar.jpg',
+    'prevencion y analisis del fraude inmobiliario':'assets/cursos/portadas-2026/11-prevencion-y-analisis-del-fraude-inmobiliario.jpg',
+    'elaboracion de demandas y contestaciones':'assets/cursos/portadas-2026/12-elaboracion-de-demandas-y-contestaciones.jpg',
+    'caducidad de creditos fiscales y medios de defensa':'assets/cursos/portadas-2026/13-caducidad-de-creditos-fiscales-y-medios-de-defensa.jpg',
+    'tratados de libre comercio aplicacion practica y beneficios arancelarios':'assets/cursos/portadas-2026/14-tratados-de-libre-comercio-aplicacion-practica-y-beneficios-arancelarios.jpg',
+    'clasificacion arancelaria y reglas de interpretacion':'assets/cursos/portadas-2026/15-clasificacion-arancelaria-y-reglas-de-interpretacion.jpg',
+    'excel administrativo control y optimizacion':'assets/cursos/portadas-2026/16-excel-administrativo-control-y-optimizacion.jpg',
+    'finanzas para la toma de decisiones':'assets/cursos/portadas-2026/17-finanzas-para-la-toma-de-decisiones.jpg',
+    'inteligencia financiera':'assets/cursos/portadas-2026/18-inteligencia-financiera.jpg',
+    'inversiones y mercados financieros':'assets/cursos/portadas-2026/19-inversiones-y-mercados-financieros.jpg',
+    'gestion de almacenes e inventarios':'assets/cursos/portadas-2026/20-gestion-de-almacenes-e-inventarios.jpg',
+    'logistica operaciones y almacenes':'assets/cursos/portadas-2026/21-logistica-operaciones-y-almacenes.jpg',
+    'planeacion estrategica de rutas de distribucion':'assets/cursos/portadas-2026/22-planeacion-estrategica-de-rutas-de-distribucion.jpg',
+    'indicadores y mejores practicas para la gestion de inventarios':'assets/cursos/portadas-2026/23-indicadores-y-mejores-practicas-para-la-gestion-de-inventarios.jpg',
+    'inteligencia emocional y manejo del estres':'assets/cursos/portadas-2026/24-inteligencia-emocional-y-manejo-del-estres.jpg',
+    'liderazgo estrategico y gestion de alto impacto':'assets/cursos/portadas-2026/25-liderazgo-estrategico-y-gestion-de-alto-impacto.jpg',
+    'liderazgo para mandos medios':'assets/cursos/portadas-2026/26-liderazgo-para-mandos-medios.jpg',
+    'liderazgo y gerencia de equipos':'assets/cursos/portadas-2026/27-liderazgo-y-gerencia-de-equipos.jpg',
+    'seleccion de talento 4 0 tecnicas y tendencias':'assets/cursos/portadas-2026/28-seleccion-de-talento-4-0-tecnicas-y-tendencias.jpg',
+    'competencias digitales para docentes':'assets/cursos/portadas-2026/29-competencias-digitales-para-docentes.jpg',
+    'meta ads con ia campanas metricas y optimizacion':'assets/cursos/portadas-2026/30-meta-ads-con-ia-campanas-metricas-y-optimizacion.jpg',
+    'ventas digitales y publicidad en redes sociales':'assets/cursos/portadas-2026/31-ventas-digitales-y-publicidad-en-redes-sociales.jpg',
+    'negocio inmobiliario mas alla de las ventas':'assets/cursos/portadas-2026/32-negocio-inmobiliario-mas-alla-de-las-ventas.jpg'
+  });
+  function normalizarTituloPortada(titulo){
+    return String(titulo || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+  }
   function getPortadaCurso(curso){
-    if (curso.portada) return curso.portada;
-    return coverSVG(curso.area, curso.titulo);
+    const oficial = PORTADAS_CURSOS_OFICIALES[normalizarTituloPortada(curso?.titulo)];
+    if (oficial) return oficial;
+    if (curso?.portada) return curso.portada;
+    return coverSVG(curso?.area, curso?.titulo);
   }
 
   function actualizarInicioAprendizaje(){
@@ -6507,7 +6645,7 @@ const Sections = (function(){
         })),
         materiales:[], disponibleSiempre:false, marcarProximamente:false,
         activo:true, publicado:true, archivado:false, orden:i + 1,
-        portada:item.cover || getPortadaCurso({ titulo:item.title }),
+        portada:getPortadaCurso({ titulo:item.title, area:item.area, portada:item.cover }),
         access:{ unlocked:false, unlockDay:0, daysRemaining:null, previewSelected:false },
         _unlockDay:0, status:'catalogo', progreso:0,
         catalogPending:true
@@ -6555,7 +6693,9 @@ const Sections = (function(){
           publicado: true,
           archivado: false,
           orden: data.orden || (i + 1),
-          portada: data.portada || getPortadaCurso({ titulo: data.titulo, portada: data.portada }),
+          portada: getPortadaCurso({ titulo:data.titulo, area:data.area, portada:data.portada }),
+          ratingAverage: Number(data.ratingAverage ?? data.rating?.average) || 0,
+          ratingCount: Number(data.ratingCount ?? data.rating?.count) || 0,
           access: data.access || { unlocked:false, unlockDay:0, daysRemaining:null, previewSelected:false },
           _unlockDay: Number(data.access?.unlockDay) || 0,
           status: progresoGuardado.completado ? 'completado' : (clasesVistas > 0 ? 'progreso' : 'catalogo'),
@@ -6879,47 +7019,128 @@ const Sections = (function(){
   }
 
   /* ============================ CURSOS ============================ */
-  let cursosState={tab:'catalogo',area:'todas',search:''};
+  let cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};
+  let cursosSearchTimer=null;
   let countdownTimer=null;
 
-  function counts(){
-    return {
-      progreso:cursos.filter(c=>c.status==='progreso').length,
-      completado:cursos.filter(c=>c.status==='completado').length,
-      catalogo:cursos.length
-    };
+  function normalizarBusquedaCurso(valor){
+    return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .toLowerCase().replace(/\s+/g,' ').trim();
   }
+
+  function resumenEstadoCurso(c){
+    const index = cursos.findIndex(item => String(item.id) === String(c.id));
+    const desbloqueado = c.catalogPending !== true && cursoDesbloqueado(index, c);
+    const dias = diasParaDesbloquear(index, c);
+    const progreso = progresoCursoPct(c.id, c.sesiones?.length || 0);
+    const regalo = !toolEsVIP() && String(c.id) === primerCursoGratisId();
+    let clave='disponible', etiqueta='Disponible', icono='i-play';
+    if (c.catalogPending === true) { clave='sincronizando'; etiqueta='Sincronizando clases'; icono='i-clock'; }
+    else if (c.status === 'completado') { clave='completado'; etiqueta='Completado'; icono='i-check'; }
+    else if (c.status === 'progreso' || progreso > 0) { clave='progreso'; etiqueta='En progreso'; icono='i-play'; }
+    else if (regalo) { clave='regalo'; etiqueta='Curso de regalo'; icono='i-gift'; }
+    else if (c.marcarProximamente === true) { clave='proximamente'; etiqueta='Próximamente'; icono='i-clock'; }
+    else if (!desbloqueado) {
+      clave='bloqueado'; icono='i-shield-check';
+      etiqueta=dias !== null && dias > 0 ? `Se desbloquea en ${dias} día${dias===1?'':'s'}` : 'Bloqueado';
+    }
+    return {clave,etiqueta,icono,desbloqueado,dias,progreso,regalo};
+  }
+
+  function cursoCoincideEstado(c, estado){
+    if (estado === 'todos') return true;
+    const info = resumenEstadoCurso(c);
+    if (estado === 'disponibles') return info.desbloqueado && !['progreso','completado'].includes(info.clave);
+    if (estado === 'progreso') return info.clave === 'progreso';
+    if (estado === 'completados') return info.clave === 'completado';
+    if (estado === 'bloqueados') return !info.desbloqueado && c.marcarProximamente !== true && c.catalogPending !== true;
+    if (estado === 'proximamente') return c.marcarProximamente === true || (!info.desbloqueado && info.dias !== null);
+    if (estado === 'regalo') return info.regalo;
+    return true;
+  }
+
   function cursosFiltrados(){
     return cursos.filter(c=>{
-      if(cursosState.tab==='progreso'&&c.status!=='progreso')return false;
-      if(cursosState.tab==='completado'&&c.status!=='completado')return false;
+      if(!cursoCoincideEstado(c,cursosState.estado))return false;
       if(cursosState.area!=='todas'&&c.area!==cursosState.area)return false;
+      if(cursosState.nivel!=='todos'&&c.nivel!==cursosState.nivel)return false;
       if(cursosState.search){
-        const q=cursosState.search.toLowerCase();
-        if(!c.titulo.toLowerCase().includes(q)&&!c.instructor.toLowerCase().includes(q))return false;
+        const q=normalizarBusquedaCurso(cursosState.search);
+        const texto=normalizarBusquedaCurso([c.titulo,c.descripcion,c.area,c.nivel,c.instructor].join(' '));
+        if(!texto.includes(q))return false;
       }
       return true;
     });
   }
 
+  function ordenarCursos(items){
+    return items.sort((a,b)=>{
+      const ia=resumenEstadoCurso(a), ib=resumenEstadoCurso(b);
+      if(cursosState.orden==='nombre') return String(a.titulo||'').localeCompare(String(b.titulo||''),'es',{sensitivity:'base'});
+      if(cursosState.orden==='progreso') return (ib.progreso-ia.progreso)||((a.orden||0)-(b.orden||0));
+      if(cursosState.orden==='recientes') return (Number(b.orden)||0)-(Number(a.orden)||0);
+      const prioridad=info=>info.clave==='progreso'?0:info.regalo?1:info.desbloqueado?2:info.dias!==null?3:4;
+      return (prioridad(ia)-prioridad(ib))||((ia.dias??9999)-(ib.dias??9999))||((a.orden||0)-(b.orden||0));
+    });
+  }
+
+  function cursosSkeleton(){
+    return `<div class="courses-skeleton" aria-label="Cargando cursos">${Array.from({length:8},()=>`<div class="course-skeleton" aria-hidden="true"><div class="course-skeleton__cover"></div><div class="course-skeleton__body"><div class="course-skeleton__line is-short"></div><div class="course-skeleton__line is-title"></div><div class="course-skeleton__line is-copy"></div><div class="course-skeleton__line is-copy2"></div></div></div>`).join('')}</div>`;
+  }
+
   function renderCursos(container){
-    cursosState.tab='catalogo';
-    cursosState.area='todas';
-    cursosState.search='';
+    const esc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    const areas=[...new Set(cursos.map(c=>c.area).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+    const niveles=[...new Set(cursos.map(c=>c.nivel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
+    const tieneRegalo=Boolean(primerCursoGratisId());
     container.innerHTML=`
-      <div class="fade-up courses-page--clean">
-        <div class="sec-hero">
-          <h1 class="sec-hero__title">Mis cursos</h1>
-        </div>
+      <div class="fade-up courses-page--premium">
+        <header class="courses-library-head">
+          <div><span class="courses-library-head__eyebrow">Biblioteca profesional</span><h1>Mis cursos</h1><p>Encuentra tu siguiente programa, continúa donde te quedaste y consulta cuándo se habilitará nuevo contenido.</p></div>
+          <div class="courses-library-head__count"><strong>${cursos.length || '—'}</strong><span>programas</span></div>
+        </header>
+        <section class="courses-controls" aria-label="Buscar y filtrar cursos">
+          <div class="courses-controls__top">
+            <label class="courses-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Buscar cursos</span><input id="cur-search" type="search" value="${esc(cursosState.search)}" placeholder="Buscar por nombre, categoría o instructor…" autocomplete="off"><button class="courses-search__clear" id="cur-search-clear" type="button" aria-label="Limpiar búsqueda" ${cursosState.search?'':'hidden'}>×</button></label>
+            <div class="courses-selects">
+              <label class="courses-select"><span>Categoría</span><select id="cur-area"><option value="todas">Todas</option>${areas.map(area=>`<option value="${esc(area)}" ${cursosState.area===area?'selected':''}>${esc(area)}</option>`).join('')}</select></label>
+              <label class="courses-select"><span>Nivel</span><select id="cur-level"><option value="todos">Todos</option>${niveles.map(nivel=>`<option value="${esc(nivel)}" ${cursosState.nivel===nivel?'selected':''}>${esc(nivel)}</option>`).join('')}</select></label>
+              <label class="courses-select"><span>Ordenar</span><select id="cur-sort"><option value="proximos" ${cursosState.orden==='proximos'?'selected':''}>Próximos a desbloquear</option><option value="nombre" ${cursosState.orden==='nombre'?'selected':''}>Nombre</option><option value="progreso" ${cursosState.orden==='progreso'?'selected':''}>Progreso</option><option value="recientes" ${cursosState.orden==='recientes'?'selected':''}>Más recientes</option></select></label>
+            </div>
+          </div>
+          <div class="courses-controls__bottom">
+            <div class="courses-status-filters" role="group" aria-label="Estado del curso">
+              ${[['todos','Todos'],['disponibles','Disponibles'],['progreso','En progreso'],['completados','Completados'],['bloqueados','Bloqueados'],['proximamente','Próximamente'],...(tieneRegalo?[['regalo','Curso de regalo']]:[])].map(([valor,label])=>`<button type="button" class="courses-filter-chip ${cursosState.estado===valor?'is-active':''}" data-course-filter="${valor}" aria-pressed="${cursosState.estado===valor}">${label}</button>`).join('')}
+            </div>
+            <span class="courses-results-count" id="cur-result-count"></span>
+          </div>
+        </section>
         <div id="cur-list"></div>
       </div>
     `;
 
+    container.querySelectorAll('[data-course-filter]').forEach(button=>button.addEventListener('click',()=>{
+      cursosState.estado=button.dataset.courseFilter;
+      renderCursosList();
+    }));
+    container.querySelector('#cur-area')?.addEventListener('change',event=>{cursosState.area=event.target.value;renderCursosList();});
+    container.querySelector('#cur-level')?.addEventListener('change',event=>{cursosState.nivel=event.target.value;renderCursosList();});
+    container.querySelector('#cur-sort')?.addEventListener('change',event=>{cursosState.orden=event.target.value;renderCursosList();});
+    const search=container.querySelector('#cur-search');
+    const clear=container.querySelector('#cur-search-clear');
+    search?.addEventListener('input',()=>{
+      cursosState.search=search.value;
+      if(clear) clear.hidden=!search.value;
+      clearTimeout(cursosSearchTimer);
+      cursosSearchTimer=setTimeout(renderCursosList,90);
+    });
+    clear?.addEventListener('click',()=>{cursosState.search='';search.value='';clear.hidden=true;renderCursosList();search.focus();});
+
     // ─── Cargar catálogo seguro si aún no se cargó ───
-    if (!_cursosLoaded && !_cursosLoading) {
-      const list = document.getElementById('cur-list');
-      if (list) list.innerHTML = `<div class="empty-state"><div class="empty-state__icon"><div style="width:42px;height:42px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--primary);animation:spin .8s linear infinite;"></div></div><h3>Cargando cursos…</h3></div>`;
-      cargarCursosFirestore().then(() => renderCursos(container));
+    if (!_cursosLoaded) {
+      const list=container.querySelector('#cur-list');
+      if(list) list.innerHTML=cursosSkeleton();
+      cargarCursosFirestore().then(()=>{if(container.isConnected&&location.hash==='#cursos')renderCursos(container);});
     } else {
       renderCursosList();
     }
@@ -6927,25 +7148,22 @@ const Sections = (function(){
 
   function renderCursosList(){
     const list=document.getElementById('cur-list');if(!list)return;
+    document.querySelectorAll('[data-course-filter]').forEach(button=>{
+      const activo=button.dataset.courseFilter===cursosState.estado;
+      button.classList.toggle('is-active',activo);button.setAttribute('aria-pressed',String(activo));
+    });
     // Empty state: si todavía no hay cursos publicados
     if (cursos.length === 0) {
-      list.innerHTML = `<div class="empty-state">
-        <div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div>
-        <h3>Aún no hay cursos publicados</h3>
-        <p>Estamos preparando los primeros cursos de ICADEM. Apenas se publiquen, los verás aquí. Síguenos en WhatsApp para enterarte primero.</p>
-        <a class="btn btn--ghost" href="https://wa.me/522383738143" target="_blank" rel="noopener" data-bypass-paywall="true" style="margin-top:14px;"><svg class="ic"><use href="#i-whatsapp"/></svg>Avísame por WhatsApp</a>
-      </div>`;
+      list.innerHTML = `<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic"><use href="#i-book"/></svg></span><h3>Aún no hay cursos publicados</h3><p>Estamos preparando los primeros programas de ICADEM. En cuanto estén disponibles aparecerán en esta biblioteca.</p></div></div>`;
+      document.getElementById('cur-result-count').textContent='0 cursos';
       return;
     }
-    const items=cursosFiltrados().slice().sort((a,b)=>{
-      // Desbloqueados primero (progresivos ya abiertos + los "siempre"),
-      // luego los próximos a desbloquearse en orden de turno. Así nunca se desordena.
-      const da=cursoDesbloqueado(0,a), db=cursoDesbloqueado(0,b);
-      if(da!==db) return da?-1:1;
-      return (a._unlockDay||0)-(b._unlockDay||0);
-    });
+    const items=ordenarCursos(cursosFiltrados().slice());
+    const contador=document.getElementById('cur-result-count');
+    if(contador)contador.textContent=`${items.length} de ${cursos.length} curso${cursos.length===1?'':'s'}`;
     if(items.length===0){
-      list.innerHTML=`<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-book"/></svg></div><h3>Sin resultados</h3><p>Cambia el filtro o búsqueda para ver más cursos.</p></div>`;
+      list.innerHTML=`<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic"><use href="#i-search"/></svg></span><h3>No encontramos cursos</h3><p>Prueba con otro término o restablece los filtros para volver a ver todo el catálogo.</p><button type="button" data-clear-course-filters>Restablecer filtros</button></div></div>`;
+      list.querySelector('[data-clear-course-filters]')?.addEventListener('click',()=>{cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};renderCursos(document.getElementById('dynamic-section'));});
       return;
     }
     const catalogoEnRespaldo = items.some(c => c.catalogPending === true);
@@ -6959,37 +7177,40 @@ const Sections = (function(){
         <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca «Elegir gratis» en el curso que más te interese y verás gratis sus primeras ${FREE_CLASS_COUNT} clases. Solo puedes elegir uno.</p></div>
         <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
       </section>` : '';
-    list.innerHTML=`${avisoRespaldo}${bannerGratis}<div class="cursos-grid">${items.map((c, idx)=>{
-      const cursoIdx = cursos.findIndex(x => x.id === c.id);
-      const desbloqueado = cursoDesbloqueado(cursoIdx, c);
-      const diasFalta = diasParaDesbloquear(cursoIdx, c);
-      const portada = c.portada || coverSVG(c.area, c.titulo);
-      const pct = progresoCursoPct(c.id, c.sesiones?.length || 0);
+    const htmlEsc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    list.innerHTML=`${avisoRespaldo}${bannerGratis}<div class="cursos-grid cursos-grid--premium">${items.map((c, idx)=>{
+      const info = resumenEstadoCurso(c);
+      const portada = String(c.portada || coverSVG(c.area, c.titulo)).replace(/'/g,'%27');
+      const pct = info.progreso;
       const puedeElegirGratis = c.catalogPending !== true && !toolEsVIP() && !primerCursoGratisId()
         && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 0;
+      const promedio=Number(c.ratingAverage)||0;
+      const valoraciones=Number(c.ratingCount)||0;
+      const rating=promedio>0&&valoraciones>0
+        ? `<div class="curso-card__rating"><span class="curso-card__rating-stars" aria-hidden="true">★</span><span>${promedio.toFixed(1)} (${valoraciones} valoración${valoraciones===1?'':'es'})</span></div>`
+        : `<div class="curso-card__rating is-empty"><span class="curso-card__rating-stars" aria-hidden="true">☆</span><span>Sin valoraciones</span></div>`;
+      const autor=/icadem/i.test(c.instructor||'')?'ICADEM':(c.instructor||'');
+      const accion=info.clave==='progreso'?'Continuar':info.clave==='completado'?'Repasar':info.desbloqueado?'Ver curso':'Ver detalles';
       return `
-      <article class="curso-card ${!desbloqueado||c.catalogPending===true?'curso-card--locked':''}" data-cid="${c.id}" ${c.catalogPending===true?'data-catalog-pending="true"':''} tabindex="0" style="--area-color:${COLOR_AREA[c.area]||'#5b92c8'};">
-        <div class="curso-card__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.55)),url('${portada}');background-size:cover;background-position:center;">
-          <svg class="ic" style="opacity:.85;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));"><use href="#${ICON_AREA[c.area]||'i-book'}"/></svg>
-          ${c.disponibleSiempre ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0f1626;">DISPONIBLE</span>' : ''}
-          ${!toolEsVIP() && String(c.id) === primerCursoGratisId() ? '<span class="curso-card__cover-badge" style="background:var(--success);color:#0f1626;left:12px;right:auto;">4 CLASES GRATIS</span>' : ''}
-          ${c.catalogPending===true ? '<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.85);color:#fff;border:1px solid rgba(255,255,255,.35);">Sincronizando clases</span>' : ''}
-          ${!desbloqueado && diasFalta !== null && diasFalta > 0 ? `<span class="curso-card__cover-badge" style="background:rgba(14,10,6,.85);color:var(--primary);border:1px solid var(--primary);">🔒 Se desbloquea en ${diasFalta} día${diasFalta!==1?'s':''}</span>` : ''}
+      <article class="curso-card curso-card--premium ${!info.desbloqueado||c.catalogPending===true?'curso-card--locked':''} ${info.clave==='completado'?'curso-card--completed':''} ${info.regalo?'curso-card--gift':''}" data-cid="${htmlEsc(c.id)}" ${c.catalogPending===true?'data-catalog-pending="true"':''} tabindex="0" role="button" aria-label="Abrir ${htmlEsc(c.titulo)}">
+        <div class="curso-card__cover">
+          <img src="${portada}" alt="" width="1200" height="675" loading="${idx<4?'eager':'lazy'}" decoding="async" ${idx<2?'fetchpriority="high"':''}>
         </div>
         <div class="curso-card__body">
           <div class="curso-card__tags">
-            <span class="tag tag--soon" style="color:${COLOR_AREA[c.area]||'#5b92c8'};border-color:${(COLOR_AREA[c.area]||'#5b92c8')}40;background:${(COLOR_AREA[c.area]||'#5b92c8')}14;">${c.area}</span>
-            <span class="tag tag--soon">${c.nivel}</span>
+            <span class="tag">${htmlEsc(c.area)}</span><span class="tag">${htmlEsc(c.nivel)}</span>${info.regalo?'<span class="tag tag--gift">Curso de regalo</span>':''}
           </div>
-          <h3 class="curso-card__title">${c.titulo}</h3>
-          <p class="curso-card__desc">${c.desc||c.descripcion||''}</p>
+          <h3 class="curso-card__title">${htmlEsc(c.titulo)}</h3>
+          <p class="curso-card__desc">${htmlEsc(c.desc||c.descripcion||'')}</p>
           <div class="curso-card__meta">
-            ${c.instructor ? `<span><svg class="ic"><use href="#i-user"/></svg>${c.instructor.split(' ').slice(-1)[0]}</span>` : ''}
-            ${c.horas ? `<span><svg class="ic"><use href="#i-clock"/></svg>${c.horas}h</span>` : ''}
+            ${autor ? `<span><svg class="ic"><use href="#i-user"/></svg>${htmlEsc(autor)}</span>` : ''}
+            ${c.horas ? `<span><svg class="ic"><use href="#i-clock"/></svg>${htmlEsc(c.horas)} h</span>` : ''}
             ${c.sesiones?.length ? `<span><svg class="ic"><use href="#i-book"/></svg>${c.sesiones.length} clase${c.sesiones.length!==1?'s':''}</span>` : ''}
-            ${c.materiales?.length ? `<span><svg class="ic"><use href="#i-news"/></svg>${c.materiales.length} PDF${c.materiales.length!==1?'s':''}</span>` : ''}
+            ${c.materiales?.length ? `<span><svg class="ic"><use href="#i-news"/></svg>${c.materiales.length} recurso${c.materiales.length!==1?'s':''}</span>` : ''}
           </div>
-          ${pct > 0 ? `<div class="curso-card__progress"><div class="curso-card__progress-bar"><div class="curso-card__progress-fill" style="width:${pct}%"></div></div><span class="curso-card__progress-pct">${pct}%</span></div>` : ''}
+          ${rating}
+          ${pct > 0 ? `<div class="curso-card__progress" aria-label="${pct}% completado"><div class="curso-card__progress-bar"><div class="curso-card__progress-fill" style="width:${pct}%"></div></div><span class="curso-card__progress-pct">${pct}%</span></div>` : ''}
+          <div class="curso-card__footer"><span class="curso-card__state curso-card__state--${info.clave}"><svg class="ic"><use href="#${info.icono}"/></svg>${htmlEsc(info.etiqueta)}</span><span class="curso-card__action">${accion}<svg class="ic"><use href="#i-arrow-right"/></svg></span></div>
           ${puedeElegirGratis ? `<button type="button" class="curso-card__free-cta" data-free-course-cta="${String(c.id).replace(/"/g,'&quot;')}"><svg class="ic"><use href="#i-play"/></svg>Elegir gratis</button>` : ''}
         </div>
       </article>
@@ -20446,9 +20667,9 @@ html, body { font-family: 'Inter','Outfit',ui-sans-serif,system-ui,-apple-system
 .empty-state{ padding: 48px 28px !important; }
 
 /* ═══ Course cards del catálogo (Mis cursos) · más editoriales ═══ */
-.curso-card{ border-radius: var(--r-xl) !important; border: 1px solid var(--border) !important; background: var(--surface) !important; box-shadow: 0 1px 2px rgba(27,31,51,.03) !important; transition: transform .22s, box-shadow .22s, border-color .22s !important; overflow: hidden; }
-.curso-card:hover{ transform: translateY(-3px); box-shadow: var(--shadow-md) !important; border-color: color-mix(in srgb, var(--primary) 25%, var(--border)) !important; }
-.curso-card h3, .curso-card .curso-card__title{ font-family: 'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 650; letter-spacing: -0.3px; }
+.curso-card:not(.curso-card--premium){ border-radius: var(--r-xl) !important; border: 1px solid var(--border) !important; background: var(--surface) !important; box-shadow: 0 1px 2px rgba(27,31,51,.03) !important; transition: transform .22s, box-shadow .22s, border-color .22s !important; overflow: hidden; }
+.curso-card:not(.curso-card--premium):hover{ transform: translateY(-3px); box-shadow: var(--shadow-md) !important; border-color: color-mix(in srgb, var(--primary) 25%, var(--border)) !important; }
+.curso-card:not(.curso-card--premium) h3, .curso-card:not(.curso-card--premium) .curso-card__title{ font-family: 'Outfit','Plus Jakarta Sans',sans-serif; font-weight: 650; letter-spacing: -0.3px; }
 
 /* ═══ Webinar cards (clases en vivo) · igualito a cursos ═══ */
 .webinar-card{ border-radius: var(--r-xl) !important; border: 1px solid var(--border) !important; background: var(--surface) !important; box-shadow: 0 1px 2px rgba(27,31,51,.03) !important; transition: transform .22s, box-shadow .22s, border-color .22s !important; }
@@ -20481,7 +20702,7 @@ h1, h2, h3, h4{ color: var(--text); }
    ═══════════════════════════════════════════════════════════════════ */
 
 /* Grid de cursos y webinars más denso en pantallas grandes */
-.cursos-grid, .cursos__list, .curso-list, [class*="curso-grid"]{
+.cursos-grid:not(.cursos-grid--premium), .cursos__list, .curso-list, [class*="curso-grid"]:not(.cursos-grid--premium){
   display: grid !important;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
   gap: 20px !important;
@@ -20500,9 +20721,9 @@ h1, h2, h3, h4{ color: var(--text); }
 #dynamic-section > div.fade-up > section, #dynamic-section > div.fade-up > div.sec-hero + * { margin-top: 24px; }
 
 /* Course cards: respiración interna + estados sin apretar */
-.curso-card{ padding: 0 !important; }
-.curso-card .curso-card__body, .curso-card__body{ padding: 20px 20px 18px !important; }
-.curso-card__title, .curso-card h3{ font-size: 16px !important; margin: 10px 0 6px !important; line-height: 1.3 !important; }
+.curso-card:not(.curso-card--premium){ padding: 0 !important; }
+.curso-card:not(.curso-card--premium) .curso-card__body{ padding: 20px 20px 18px !important; }
+.curso-card:not(.curso-card--premium) .curso-card__title, .curso-card:not(.curso-card--premium) h3{ font-size: 16px !important; margin: 10px 0 6px !important; line-height: 1.3 !important; }
 
 /* Logros: KPI tiles con padding generoso */
 .kpi-grid{ gap: 16px !important; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)) !important; }
