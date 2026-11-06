@@ -3934,29 +3934,32 @@ body.has-fomo .main{padding-top:18px}
 .courses-page--premium .curso-card__tags .tag{display:inline-flex;align-items:center;min-height:23px;padding:0 8px;border:1px solid #e5e7eb;border-radius:999px;background:#f8fafc;color:#64748b;font:700 8.5px/1 'Inter',sans-serif;letter-spacing:.25px;text-transform:none}
 .courses-page--premium .curso-card__tags .tag--gift{border-color:#ead6a8;background:#fff8e8;color:#865e0e}
 [data-theme="night"] .courses-page--premium .curso-card__tags .tag{border-color:var(--border);background:var(--surface-2);color:var(--text-2)}
-.courses-page--premium .curso-card__title{display:-webkit-box;min-height:65px;margin:0 0 8px;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3;font:700 16px/1.34 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.34px;color:inherit}
-.courses-page--premium .curso-card__desc{display:-webkit-box;min-height:39px;margin:0 0 13px;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:#64748b;font:400 12px/1.58 'Inter',sans-serif}
+.courses-page--premium .curso-card__copy{height:102px;overflow:hidden}
+.courses-page--premium .curso-card__title{display:-webkit-box;margin:0 0 4px;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:3;font:700 16px/1.3 'Plus Jakarta Sans','Inter',sans-serif;letter-spacing:-.34px;color:inherit}
+.courses-page--premium .curso-card__desc{display:-webkit-box;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;color:#64748b;font:400 12px/1.5 'Inter',sans-serif}
 [data-theme="night"] .courses-page--premium .curso-card__desc{color:var(--text-2)}
-.courses-page--premium .curso-card__meta{display:flex;flex-wrap:wrap;gap:7px 11px;min-height:37px;margin:0;padding:11px 0;border-top:1px solid #edf0f3;border-bottom:1px solid #edf0f3;color:#64748b;font:600 10px/1 'Inter',sans-serif}
-[data-theme="night"] .courses-page--premium .curso-card__meta{border-color:var(--border);color:var(--text-3)}
+.courses-page--premium .curso-card__meta{display:flex;flex-wrap:wrap;gap:8px 12px;min-height:39px;margin:0;padding:11px 0;border-top:1px solid #edf0f3;border-bottom:1px solid #edf0f3;color:#526176;font:650 10.75px/1.15 'Inter',sans-serif}
+[data-theme="night"] .courses-page--premium .curso-card__meta{border-color:var(--border);color:var(--text-2)}
 .courses-page--premium .curso-card__meta span{display:inline-flex;align-items:center;gap:4px}
-.courses-page--premium .curso-card__meta .ic{width:12px;height:12px;color:#94a3b8}
-.curso-card__rating{display:flex;align-items:center;gap:6px;min-height:36px;color:#64748b;font:600 10.5px/1 'Inter',sans-serif}
-.curso-card__rating-stars{color:#d5961a;letter-spacing:.4px;font-size:12px}
-.curso-card__rating.is-empty .curso-card__rating-stars{color:#cbd5e1}
+.courses-page--premium .curso-card__meta .ic{width:13px;height:13px;color:#8291a5}
+.curso-card__rating{display:flex;align-items:center;gap:7px;min-height:36px;color:#526176;font:650 11px/1.15 'Inter',sans-serif}
+.curso-card__rating-stars{position:relative;display:inline-block;flex:none;width:58px;height:13px;color:#cbd5e1;font:700 12px/13px 'Inter',sans-serif;letter-spacing:1px;white-space:nowrap}
+.curso-card__rating-stars-base,.curso-card__rating-stars-fill{position:absolute;inset:0;overflow:hidden;white-space:nowrap}
+.curso-card__rating-stars-fill{width:var(--rating-fill,0%);color:#d5961a}
+.curso-card__rating.is-empty .curso-card__rating-stars{width:auto;color:#cbd5e1}
 .courses-page--premium .curso-card__progress{display:grid;grid-template-columns:1fr auto;align-items:center;gap:9px;margin:0;padding:0 0 11px;border:0}
 .courses-page--premium .curso-card__progress-bar{height:5px;background:#e8edf2;border-radius:999px;overflow:hidden}
 .courses-page--premium .curso-card__progress-fill{height:100%;border-radius:inherit;background:var(--courses-action);box-shadow:none;transition:width .4s ease}
 .courses-page--premium .curso-card__progress-fill::after{display:none}
 .courses-page--premium .curso-card__progress-pct{min-width:30px;color:var(--courses-action);font:800 9.5px/1 'JetBrains Mono',monospace;text-align:right}
 .curso-card__footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:12px}
-.curso-card__state{display:inline-flex;align-items:center;gap:6px;min-width:0;color:#64748b;font:700 10.5px/1.25 'Inter',sans-serif}
+.curso-card__state{display:inline-flex;align-items:center;gap:6px;min-width:0;color:#526176;font:750 11.25px/1.25 'Inter',sans-serif}
 .curso-card__state .ic{width:14px;height:14px;flex:none}
-.curso-card__state--available,.curso-card__state--gift{color:var(--courses-action)}
-.curso-card__state--progress{color:var(--courses-action)}
-.curso-card__state--completed{color:var(--courses-success)}
-.curso-card__state--locked,.curso-card__state--soon{color:#64748b}
-.curso-card__action{display:inline-flex;align-items:center;gap:5px;flex:none;color:var(--courses-blue);font:800 10.5px/1 'Inter',sans-serif}
+.curso-card__state--available,.curso-card__state--gift,.curso-card__state--disponible,.curso-card__state--regalo,.curso-card__state--parcial{color:var(--courses-action)}
+.curso-card__state--progress,.curso-card__state--progreso{color:var(--courses-action)}
+.curso-card__state--completed,.curso-card__state--completado{color:var(--courses-success)}
+.curso-card__state--locked,.curso-card__state--soon,.curso-card__state--bloqueado,.curso-card__state--proximamente,.curso-card__state--sincronizando{color:#64748b}
+.curso-card__action{display:inline-flex;align-items:center;gap:5px;flex:none;color:var(--courses-blue);font:800 11.25px/1 'Inter',sans-serif}
 .curso-card__action .ic{width:13px;height:13px}
 .courses-page--premium .curso-card__free-cta{min-height:38px;margin-top:11px;border-color:color-mix(in srgb,var(--courses-blue) 22%,#e5e7eb);border-radius:10px;background:#f4f7fb;color:var(--courses-blue);font-size:11.5px;box-shadow:none}
 .courses-page--premium .curso-card__free-cta:hover{background:var(--courses-blue);border-color:var(--courses-blue);color:#fff;transform:none}
@@ -3978,7 +3981,7 @@ body.has-fomo .main{padding-top:18px}
 @media(max-width:1580px){.courses-page--premium .cursos-grid,.courses-skeleton{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1180px){.courses-controls__top{grid-template-columns:1fr}.courses-selects{display:grid;grid-template-columns:repeat(3,1fr)}.courses-select{min-width:0}.courses-page--premium .cursos-grid,.courses-skeleton{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.courses-library-head{align-items:flex-start;padding-top:8px}.courses-library-head__count{min-width:90px;padding:12px}.courses-library-head__count strong{font-size:20px}.courses-controls{margin:0 -2px 20px;padding:12px}.courses-selects{grid-template-columns:1fr}.courses-controls__bottom{align-items:flex-start;flex-direction:column}.courses-results-count{padding-left:3px}.courses-page--premium .cursos-grid,.courses-skeleton{grid-template-columns:1fr;gap:16px}.courses-page--premium .curso-card__cover{aspect-ratio:16/9}}
-@media(max-width:480px){.courses-library-head__count{display:none}.courses-library-head h1{font-size:28px}.courses-library-head p{font-size:12.5px}.courses-page--premium .curso-card__body{padding:15px}.courses-page--premium .curso-card__title{min-height:auto;font-size:16px}.courses-page--premium .curso-card__desc{min-height:auto}}
+@media(max-width:480px){.courses-library-head__count{display:none}.courses-library-head h1{font-size:28px}.courses-library-head p{font-size:12.5px}.courses-page--premium .curso-card__body{padding:15px}.courses-page--premium .curso-card__copy{height:auto;min-height:80px}.courses-page--premium .curso-card__title{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.courses-page--premium .curso-card,.courses-page--premium .curso-card__cover>img,.courses-page--premium .curso-card__progress-fill,.courses-filter-chip{transition:none}.course-skeleton__cover,.course-skeleton__line{animation:none}}
 </style>
 </head>
@@ -3995,7 +3998,7 @@ body.has-fomo .main{padding-top:18px}
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
 <div class="fomo-banner" id="fomo-banner" style="display:none">
   <span class="fomo-banner__icon" aria-hidden="true">⭐</span>
-  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Prueba 4 clases gratis.</strong> Activa VIP para continuar.</span>
+  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Prueba hasta 4 clases gratis.</strong> Activa VIP para continuar.</span>
   <span class="fomo-banner__timer" id="fomo-banner-timer" style="display:none">5:00</span>
   <button class="fomo-banner__cta" id="fomo-banner-cta" type="button">
     Suscribirme
@@ -5993,7 +5996,9 @@ const Sections = (function(){
     if (PREVIEW_AS_USER && window.UserState?.isAdmin) {
       return Math.max(0, cursoUnlockDay(curso) - calcularDiasMembresia());
     }
-    const remaining = Number(curso?.access?.daysRemaining);
+    const rawRemaining = curso?.access?.daysRemaining;
+    if (rawRemaining === null || rawRemaining === undefined || rawRemaining === '') return null;
+    const remaining = Number(rawRemaining);
     return Number.isFinite(remaining) ? Math.max(0, remaining) : null;
   }
 
@@ -6125,7 +6130,10 @@ const Sections = (function(){
   }
 
   function esClaseGratisGlobal(cursoId, indexClase) {
-    return indexClase >= 0 && indexClase < FREE_CLASS_COUNT && String(cursoId) === primerCursoGratisId();
+    const curso = cursos.find(item => String(item.id) === String(cursoId));
+    const total = Array.isArray(curso?.sesiones) ? curso.sesiones.length : 0;
+    const limite = total > 1 ? Math.min(FREE_CLASS_COUNT, total - 1) : Math.min(FREE_CLASS_COUNT, total);
+    return indexClase >= 0 && indexClase < limite && String(cursoId) === primerCursoGratisId();
   }
 
   function esMaterialGratisGlobal(cursoId, indexMaterial) {
@@ -6745,8 +6753,8 @@ const Sections = (function(){
         await new Promise(resolve => setTimeout(resolve, 120));
       }
     }
-    return cursos
-      .filter(c => c.activo !== false && c.publicado !== false && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length)
+  return cursos
+      .filter(c => c.activo !== false && c.publicado !== false && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 1)
       .filter(c => !window.__isDemoMode || c.access?.anonymousPreview === true)
       .map(c => ({
         id:String(c.id), titulo:c.titulo || 'Curso ICADEM', area:c.area || 'Profesional',
@@ -6771,10 +6779,10 @@ const Sections = (function(){
           <div class="fci__art" aria-hidden="true">${portadas}<span class="fci__badge"><svg class="ic"><use href="#i-gift"/></svg>Gratis</span></div>
           <span class="fci__kicker">Para usuarios nuevos</span>
           <h2 id="fci-title">${nombre && !window.__isDemoMode ? `${escapeHtml(nombre)}, elige` : 'Elige'} tu <em>curso gratis</em></h2>
-          <p>Te regalamos las primeras <strong>${FREE_CLASS_COUNT} clases</strong> del curso que tú elijas. Solo puedes elegir uno, así que escoge el que más te sirva.</p>
+          <p>Te regalamos hasta <strong>${FREE_CLASS_COUNT} clases iniciales</strong> del curso que tú elijas; la clase final permanece reservada. Solo puedes elegir uno, así que escoge el que más te sirva.</p>
           <ol class="fci__steps">
             <li><b>1</b>Elige tu curso</li>
-            <li><b>2</b>Ve ${FREE_CLASS_COUNT} clases gratis</li>
+            <li><b>2</b>Ve hasta ${FREE_CLASS_COUNT} clases gratis</li>
             <li><b>3</b>Gana créditos en cada reto</li>
           </ol>
           <div class="fci__actions">
@@ -6822,7 +6830,7 @@ const Sections = (function(){
       return null;
     }
     const course = cursos.find(item => String(item.id) === id);
-    if (!course || course.marcarProximamente === true || !Array.isArray(course.sesiones) || !course.sesiones.length) {
+    if (!course || course.marcarProximamente === true || !Array.isArray(course.sesiones) || course.sesiones.length < 2) {
       Toast.info('Este curso aún no está disponible','Elige otro curso publicado para comenzar gratis.');
       return null;
     }
@@ -6841,7 +6849,7 @@ const Sections = (function(){
         body: `<div class="free-course-confirm">
           <div class="free-course-confirm__cover" style="background-image:url('${portada}')"></div>
           <h3>${escapeHtml(course.titulo || 'Curso ICADEM')}</h3>
-          <p>Será tu curso gratis: podrás ver sus primeras <strong>${FREE_CLASS_COUNT} clases</strong>, una tras otra, y su primer material.</p>
+          <p>Será tu curso gratis: podrás ver hasta <strong>${FREE_CLASS_COUNT} clases iniciales</strong>, una tras otra, y su primer material. La clase final permanece reservada.</p>
           <p class="free-course-confirm__warn"><svg class="ic"><use href="#i-shield-check"/></svg>Solo puedes elegir uno y después no se puede cambiar.</p>
         </div>`,
         footer,
@@ -7033,18 +7041,23 @@ const Sections = (function(){
     const desbloqueado = c.catalogPending !== true && cursoDesbloqueado(index, c);
     const dias = diasParaDesbloquear(index, c);
     const progreso = progresoCursoPct(c.id, c.sesiones?.length || 0);
-    const regalo = !toolEsVIP() && String(c.id) === primerCursoGratisId();
+    const regalo = Boolean(c.access?.previewSelected && !c.access?.anonymousPreview)
+      || (!toolEsVIP() && String(c.id) === primerCursoGratisId());
+    const totalClases = Array.isArray(c.sesiones) ? c.sesiones.length : 0;
+    const clasesAccesibles = Array.isArray(c.sesiones) ? c.sesiones.filter(sesion => sesion?.accessible === true).length : 0;
+    const parcial = desbloqueado && clasesAccesibles > 0 && clasesAccesibles < totalClases;
     let clave='disponible', etiqueta='Disponible', icono='i-play';
     if (c.catalogPending === true) { clave='sincronizando'; etiqueta='Sincronizando clases'; icono='i-clock'; }
     else if (c.status === 'completado') { clave='completado'; etiqueta='Completado'; icono='i-check'; }
     else if (c.status === 'progreso' || progreso > 0) { clave='progreso'; etiqueta='En progreso'; icono='i-play'; }
+    else if (parcial) { clave='parcial'; etiqueta='Acceso parcial'; icono='i-shield-check'; }
     else if (regalo) { clave='regalo'; etiqueta='Curso de regalo'; icono='i-gift'; }
     else if (c.marcarProximamente === true) { clave='proximamente'; etiqueta='Próximamente'; icono='i-clock'; }
     else if (!desbloqueado) {
       clave='bloqueado'; icono='i-shield-check';
       etiqueta=dias !== null && dias > 0 ? `Se desbloquea en ${dias} día${dias===1?'':'s'}` : 'Bloqueado';
     }
-    return {clave,etiqueta,icono,desbloqueado,dias,progreso,regalo};
+    return {clave,etiqueta,icono,desbloqueado,dias,progreso,regalo,parcial};
   }
 
   function cursoCoincideEstado(c, estado){
@@ -7171,10 +7184,10 @@ const Sections = (function(){
         <span class="free-course-banner__icon"><svg class="ic"><use href="#i-shield-check"/></svg></span>
         <div class="free-course-banner__copy"><span>Catálogo protegido</span><strong>Tus cursos siguen aquí</strong><p>Estamos recuperando la conexión con las clases. Puedes consultar todas las tarjetas; el acceso se habilitará automáticamente al terminar la sincronización.</p></div>
       </section>` : '';
-    const eligiendoGratis = !catalogoEnRespaldo && !toolEsVIP() && !primerCursoGratisId() && cursos.some(c => c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length);
+    const eligiendoGratis = !catalogoEnRespaldo && !toolEsVIP() && !primerCursoGratisId() && cursos.some(c => c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 1);
     const bannerGratis = eligiendoGratis ? `<section class="free-course-banner">
         <span class="free-course-banner__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
-        <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca «Elegir gratis» en el curso que más te interese y verás gratis sus primeras ${FREE_CLASS_COUNT} clases. Solo puedes elegir uno.</p></div>
+        <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca «Elegir gratis» en el curso que más te interese. Tendrás hasta ${FREE_CLASS_COUNT} clases iniciales; la clase final permanece reservada. Solo puedes elegir uno.</p></div>
         <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
       </section>` : '';
     const htmlEsc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -7183,14 +7196,15 @@ const Sections = (function(){
       const portada = String(c.portada || coverSVG(c.area, c.titulo)).replace(/'/g,'%27');
       const pct = info.progreso;
       const puedeElegirGratis = c.catalogPending !== true && !toolEsVIP() && !primerCursoGratisId()
-        && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 0;
+        && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 1;
       const promedio=Number(c.ratingAverage)||0;
       const valoraciones=Number(c.ratingCount)||0;
+      const ratingFill=Math.max(0,Math.min(100,(promedio/5)*100));
       const rating=promedio>0&&valoraciones>0
-        ? `<div class="curso-card__rating"><span class="curso-card__rating-stars" aria-hidden="true">★</span><span>${promedio.toFixed(1)} (${valoraciones} valoración${valoraciones===1?'':'es'})</span></div>`
-        : `<div class="curso-card__rating is-empty"><span class="curso-card__rating-stars" aria-hidden="true">☆</span><span>Sin valoraciones</span></div>`;
+        ? `<div class="curso-card__rating"><span class="curso-card__rating-stars" style="--rating-fill:${ratingFill}%" aria-hidden="true"><span class="curso-card__rating-stars-base">★★★★★</span><span class="curso-card__rating-stars-fill">★★★★★</span></span><span>${promedio.toFixed(1)} (${valoraciones} valoración${valoraciones===1?'':'es'})</span></div>`
+        : `<div class="curso-card__rating is-empty"><span class="curso-card__rating-stars" aria-hidden="true">☆☆☆☆☆</span><span>Sin valoraciones</span></div>`;
       const autor=/icadem/i.test(c.instructor||'')?'ICADEM':(c.instructor||'');
-      const accion=info.clave==='progreso'?'Continuar':info.clave==='completado'?'Repasar':info.desbloqueado?'Ver curso':'Ver detalles';
+      const accion=info.clave==='progreso'?'Continuar':info.clave==='completado'?'Revisar curso':info.desbloqueado?'Iniciar curso':'Ver detalles';
       return `
       <article class="curso-card curso-card--premium ${!info.desbloqueado||c.catalogPending===true?'curso-card--locked':''} ${info.clave==='completado'?'curso-card--completed':''} ${info.regalo?'curso-card--gift':''}" data-cid="${htmlEsc(c.id)}" ${c.catalogPending===true?'data-catalog-pending="true"':''} tabindex="0" role="button" aria-label="Abrir ${htmlEsc(c.titulo)}">
         <div class="curso-card__cover">
@@ -7200,8 +7214,7 @@ const Sections = (function(){
           <div class="curso-card__tags">
             <span class="tag">${htmlEsc(c.area)}</span><span class="tag">${htmlEsc(c.nivel)}</span>${info.regalo?'<span class="tag tag--gift">Curso de regalo</span>':''}
           </div>
-          <h3 class="curso-card__title">${htmlEsc(c.titulo)}</h3>
-          <p class="curso-card__desc">${htmlEsc(c.desc||c.descripcion||'')}</p>
+          <div class="curso-card__copy"><h3 class="curso-card__title">${htmlEsc(c.titulo)}</h3><p class="curso-card__desc">${htmlEsc(c.desc||c.descripcion||'')}</p></div>
           <div class="curso-card__meta">
             ${autor ? `<span><svg class="ic"><use href="#i-user"/></svg>${htmlEsc(autor)}</span>` : ''}
             ${c.horas ? `<span><svg class="ic"><use href="#i-clock"/></svg>${htmlEsc(c.horas)} h</span>` : ''}
@@ -7298,7 +7311,7 @@ const Sections = (function(){
     const vistas = progCurso.clasesVistas.length;
     const esVip = toolEsVIP();
     const puedeElegirGratis = !esVip && !primerCursoGratisId()
-      && c.marcarProximamente !== true && sesiones.length > 0;
+      && c.marcarProximamente !== true && sesiones.length > 1;
 
     // Primera clase desbloqueada no vista todavía — para botón "Continuar"
     let siguienteClase = 0;
@@ -7414,8 +7427,8 @@ const Sections = (function(){
         ? 'Estamos terminando de preparar sus clases y materiales.'
         : (!esVip
           ? (puedeElegirGratis
-            ? 'Elige este curso una sola vez y abre ahora sus primeras 4 clases y el primer material, sin pagar.'
-            : 'Puedes probar gratis las primeras 4 clases y el primer material del curso que elegiste. Al suscribirte, este curso se abrirá según tu calendario de 6 días.')
+            ? 'Elige este curso una sola vez y abre hasta 4 clases iniciales y el primer material, sin pagar. La clase final permanece reservada.'
+            : 'Puedes probar gratis hasta 4 clases iniciales y el primer material del curso que elegiste. La clase final permanece reservada; al suscribirte, el curso completo se abrirá según tu calendario de 6 días.')
           : `Disponible en <strong>${diasFalta} día${diasFalta!==1?'s':''}</strong>, de acuerdo con la secuencia de tu membresía.`);
       const lockCta = !esVip && c.marcarProximamente !== true
         ? `<div class="course-detail-lock__actions">${puedeElegirGratis ? `<button type="button" class="course-detail-lock__cta course-detail-lock__cta--free" onclick="window.__elegirCursoGratis('${String(cursoId).replace(/'/g,"\\'")}',this)">Elegir gratis</button>` : ''}<button type="button" class="course-detail-lock__cta" onclick="navigateToSection('suscripcion')">Ver membresía</button></div>`
