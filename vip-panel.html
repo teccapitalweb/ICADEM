@@ -7829,32 +7829,32 @@ const Sections = (function(){
     { id:'calc-credito', icon:'i-credit-card',  categoria:'Finanzas', titulo:'Calculadora de crédito', desc:'Compara tasas, CAT, plazo y mensualidades.', tone:'ink' }
   ];
 
+  function renderToolArtwork(id){
+    const illustrations = {
+      'plantillas': `<rect x="26" y="13" width="62" height="81" rx="7" transform="rotate(9 57 53)" fill="var(--tool-art-fill)" stroke="currentColor" opacity=".4"/><rect x="15" y="19" width="62" height="81" rx="7" fill="var(--tool-art-fill)" stroke="currentColor" stroke-width="1.5"/><path d="M28 37h35M28 46h24M28 65h12m8 0h15M28 74h12m8 0h15M28 83h35" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".65"/><rect x="26" y="56" width="39" height="4" rx="2" fill="currentColor" opacity=".15"/>`,
+      'calc-fiscal': `<rect x="20" y="13" width="66" height="87" rx="11" fill="var(--tool-art-fill)" stroke="currentColor" stroke-width="1.5"/><rect x="30" y="25" width="46" height="22" rx="4" stroke="currentColor" stroke-opacity=".4"/><path d="M38 60h2m24 0h2M38 73h2m24 0h2M38 86h2m24 0h2" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M58 32l-8 9" stroke="currentColor" stroke-width="1.5"/><circle cx="49" cy="32" r="2" fill="currentColor"/><circle cx="59" cy="41" r="2" fill="currentColor"/>`,
+      'calc-nomina': `<rect x="19" y="13" width="66" height="87" rx="8" fill="var(--tool-art-fill)" stroke="currentColor" stroke-width="1.5"/><circle cx="40" cy="34" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M29 48c1-10 21-10 22 0M59 30h15M59 38h11M30 62h43M30 72h31M30 82h21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".65"/><circle cx="78" cy="87" r="16" fill="var(--tool-art-fill)" stroke="currentColor" stroke-width="1.5"/><path d="m71 87 5 5 9-10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`,
+      'calc-credito': `<rect x="15" y="18" width="75" height="48" rx="8" fill="var(--tool-art-fill)" stroke="currentColor" stroke-width="1.5"/><path d="M16 33h73" stroke="currentColor" stroke-width="7" opacity=".18"/><path d="M27 52h16m6 0h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M23 97V83m20 14V78m20 19V71m20 26V65" stroke="currentColor" stroke-width="8" stroke-linecap="round" opacity=".25"/><path d="m22 78 20-8 20-4 20-10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`
+    };
+    return `<svg viewBox="0 0 110 114" fill="none">${illustrations[id] || ''}</svg>`;
+  }
+
   function renderHerramientas(container){
     const esVip = typeof toolEsVIP === 'function' ? toolEsVIP() : false;
     const htmlEsc = (s) => String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    container.innerHTML = `<div class="fade-up tools-index tools-index--professional">
-      <section class="tools-index-hero tools-index-hero--professional">
-        <div class="tools-index-hero__copy">
-          <span class="tools-index-hero__eyebrow"><svg class="ic"><use href="#i-tools"/></svg> Herramientas ICADEM</span>
-          <h1>Apoyo profesional,<br>en un solo lugar.</h1>
-          <p>Calculadoras y formatos listos para acompañar decisiones fiscales, contables, de nómina y financieras.</p>
-        </div>
+    container.innerHTML = `<div class="fade-up tools-workspace">
+      <header class="tools-workspace__heading"><div><span class="tools-workspace__eyebrow">RECURSOS PROFESIONALES</span><h1>Herramientas</h1></div><span class="tools-workspace__count"><strong>${TOOLS_CATALOG.length}</strong> herramientas a tu alcance</span></header>
+      <section class="tools-workspace__intro" aria-label="Tu espacio de trabajo">
+        <div><span class="tools-workspace__label"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg>TU ESPACIO DE TRABAJO</span><h2>Apoyo profesional,<br><span>en un solo lugar.</span></h2><p>Calculadoras y formatos listos para acompañar decisiones fiscales, contables, de nómina y financieras.</p></div>
+        <div class="tools-workspace__art" aria-hidden="true"><svg viewBox="0 0 240 180" fill="none"><circle cx="124" cy="90" r="70" stroke="currentColor" opacity=".12"/><circle cx="124" cy="90" r="87" stroke="currentColor" opacity=".06"/><g class="tools-art-float"><rect x="48" y="27" width="100" height="132" rx="10" transform="rotate(-10 98 93)" fill="var(--tools-paper)" stroke="currentColor" stroke-width="1.4"/><path d="M65 54l55-10M68 67l42-7M73 91l45-8M77 105l31-5M80 119l43-8" stroke="currentColor" opacity=".35" stroke-width="2" stroke-linecap="round"/><rect x="111" y="47" width="82" height="111" rx="13" fill="var(--tools-art-fill)" stroke="currentColor" stroke-width="1.6"/><rect x="125" y="61" width="53" height="23" rx="5" fill="var(--tools-paper)" stroke="currentColor" stroke-opacity=".3"/><path d="M130 101h4m21 0h4m-29 18h4m21 0h4m-29 18h4m21 0h4" stroke="currentColor" stroke-width="6" stroke-linecap="round"/><circle cx="197" cy="45" r="20" fill="var(--tools-gold)"/><path d="m188 45 6 6 12-13" stroke="#153747" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></g><path d="M30 111v12m-6-6h12M196 112v10m-5-5h10" stroke="currentColor" opacity=".45" stroke-linecap="round"/></svg></div>
       </section>
-      <div class="tools-index-head">
-        <div><span class="tools-index-head__eyebrow">Recursos disponibles</span><h2>Elige una herramienta</h2></div>
-        <span class="tools-index-head__count">${TOOLS_CATALOG.length} herramientas</span>
-      </div>
-      <div class="tools-index-grid">
-        ${TOOLS_CATALOG.map(t => `
-          <button type="button" class="tool-index-card tool-index-card--${htmlEsc(t.tone)}" data-tool-nav="${htmlEsc(t.id)}" ${!esVip ? 'data-locked="true"' : ''}>
-            <span class="tool-index-card__icon"><svg class="ic"><use href="#${htmlEsc(t.icon)}"/></svg></span>
-            <span class="tool-index-card__body">
-              <span class="tool-index-card__kicker">${htmlEsc(t.categoria)}</span>
-              <strong>${htmlEsc(t.titulo)}</strong>
-              <small>${htmlEsc(t.desc)}</small>
-              <em class="tool-index-card__access">${esVip?'Miembros VIP':'Vista previa'}</em>
-            </span>
-            <span class="tool-index-card__action" aria-hidden="true"><svg class="ic tool-index-card__arrow"><use href="#i-arrow-right"/></svg></span>
+      <div class="tools-workspace__section"><h2>¿Qué necesitas resolver hoy?</h2><span>Elige una herramienta para comenzar</span></div>
+      <div class="tools-workspace__grid">
+        ${TOOLS_CATALOG.map((t,index) => `
+          <button type="button" class="tool-workcard tool-workcard--${htmlEsc(t.tone)}" data-tool-nav="${htmlEsc(t.id)}" ${!esVip ? 'data-locked="true"' : ''}>
+            <span class="tool-workcard__top"><span class="tool-workcard__category">${htmlEsc(t.categoria)}</span><span class="tool-workcard__number" aria-hidden="true">0${index+1}</span></span>
+            <span class="tool-workcard__main"><span class="tool-workcard__copy"><strong>${htmlEsc(t.titulo)}</strong><small>${htmlEsc(t.desc)}</small></span><span class="tool-workcard__art" aria-hidden="true">${renderToolArtwork(t.id)}</span></span>
+            <span class="tool-workcard__footer"><span class="tool-workcard__access"><svg class="ic" aria-hidden="true"><use href="#${esVip?'i-check-circle':'i-info'}"/></svg>${esVip?'Miembros VIP':'Vista previa'}</span><span class="tool-workcard__action">Abrir herramienta<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></span></span>
           </button>
         `).join('')}
       </div>
@@ -22399,6 +22399,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
 <link rel="stylesheet" href="css/icadem-courses.css?v=4">
 <link rel="stylesheet" href="css/icadem-live.css?v=1">
+<link rel="stylesheet" href="css/icadem-tools.css?v=1">
 <script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>
