@@ -4754,12 +4754,12 @@ window.__setDisplayName = async (nombre) => {
 
     <div id="inicio-content">
       <header class="home-masthead">
-        <div><span class="home-eyebrow">Tu espacio de crecimiento</span><h1 id="hero-title">Bienvenido a ICADEM</h1><p>Un nuevo día para aprender. Un paso más hacia lo que quieres lograr.</p></div>
-        <div class="home-date"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span id="home-today"></span></div>
+        <div class="home-welcome"><h1 id="hero-title">Bienvenido a ICADEM</h1><h2 class="home-statement">Tu próximo gran paso.<br><em>Empieza con una idea.</em></h2><p>Aprende algo nuevo. Dale forma a lo que viene.</p></div>
+        <div class="home-masthead__aside"><div class="home-date"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span id="home-today"></span></div><button type="button" class="home-explore" data-home-go="cursos">Explorar el catálogo<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button><span class="home-signature">CONOCIMIENTO QUE TE MUEVE</span></div>
       </header>
       <section class="home-feature-grid" aria-label="Tu siguiente paso">
         <div id="home-learning-card"><div class="home-loading" role="status"><span class="home-eyebrow">Tu aprendizaje</span><h2>Preparando tu siguiente paso…</h2><span class="home-loading__line"></span><span class="home-loading__line short"></span><p>Estamos cargando tus cursos y tu avance.</p></div></div>
-        <div class="home-live"><div class="home-live__heading"><span>APRENDE EN COMUNIDAD</span><svg class="ic" aria-hidden="true"><use href="#i-broadcast"/></svg></div><div id="home-live-slot"></div><button type="button" class="home-live__link" data-home-go="webinars">Ver clases y grabaciones<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div>
+        <div class="home-live"><div class="home-live__heading"><span>ENCUENTROS ICADEM</span><svg class="ic" aria-hidden="true"><use href="#i-broadcast"/></svg></div><div id="home-live-slot"></div><button type="button" class="home-live__link" data-home-go="webinars">Ver clases y grabaciones<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div>
       </section>
       <section class="home-catalog-strip" aria-label="Explora el contenido de ICADEM">
         <p><strong>Tu próximo descubrimiento.</strong><br>Todo un espacio para seguir creciendo.</p>
@@ -4768,15 +4768,15 @@ window.__setDisplayName = async (nombre) => {
         <button type="button" data-home-go="retos"><b id="bn-stat-retos">3</b><span>Experiencias de retos</span></button>
       </section>
       <section class="home-paths" aria-labelledby="home-paths-title">
-        <div class="home-section-head"><div><h2 id="home-paths-title">Aprender también es hacer.</h2><p>Elige cómo quieres avanzar hoy.</p></div><span>EXPLORA TU CLUB</span></div>
+        <div class="home-section-head"><div><span class="home-eyebrow">De la idea a la acción</span><h2 id="home-paths-title">Haz que el conocimiento cuente.</h2></div><span>TRES FORMAS DE SEGUIR CRECIENDO</span></div>
         <div class="home-paths__grid">
-          <button type="button" class="home-path" data-home-go="retos"><span class="home-path__icon"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg></span><span class="home-path__copy"><b>Pon a prueba tu criterio</b><small>Casos, flashcards y desafíos.</small></span><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
-          <button type="button" class="home-path" data-home-go="materiales"><span class="home-path__icon"><svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg></span><span class="home-path__copy"><b>Llévalo a la práctica</b><small>Materiales para tu día a día.</small></span><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
-          <button type="button" class="home-path" data-home-go="herramientas"><span class="home-path__icon"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></span><span class="home-path__copy"><b>Trabaja con más claridad</b><small>Calculadoras y formatos útiles.</small></span><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+          <button type="button" class="home-path home-path--practice" data-home-go="retos"><span class="home-path__category">01 / RETOS</span><svg class="home-path__art" viewBox="0 0 180 130" aria-hidden="true"><circle cx="93" cy="64" r="48" fill="currentColor" opacity=".07"/><g class="home-art-float" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="41" y="28" width="66" height="85" rx="10" transform="rotate(-17 74 70)" opacity=".3"/><rect x="70" y="17" width="66" height="85" rx="10" fill="var(--home-art-paper)" transform="rotate(11 103 60)"/><path d="m106 34-19 29h16l-5 22 22-31h-17z" fill="currentColor" stroke="none"/><path d="M32 32v12m-6-6h12M146 96v10m-5-5h10"/></g></svg><span class="home-path__copy"><b>Desafía lo que sabes.</b><small>Casos y dinámicas que afinan tu criterio.</small></span><span class="home-path__bottom">Entrar a retos<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></span></button>
+          <button type="button" class="home-path home-path--resources" data-home-go="materiales"><span class="home-path__category">02 / MATERIALES</span><svg class="home-path__art" viewBox="0 0 180 130" aria-hidden="true"><circle cx="93" cy="64" r="48" fill="currentColor" opacity=".07"/><g class="home-art-float" fill="var(--home-art-paper)" stroke="currentColor" stroke-width="1.5"><path d="M50 37h30l10 10h51v55a7 7 0 0 1-7 7H50a7 7 0 0 1-7-7V44a7 7 0 0 1 7-7Z" opacity=".4"/><rect x="65" y="19" width="58" height="77" rx="7" transform="rotate(8 94 58)"/><path d="M77 39h30M77 49h30M77 59h20" fill="none"/><path d="m47 65 88 4-7 36a7 7 0 0 1-7 6H48a7 7 0 0 1-7-8Z"/><path d="M142 26v12m-6-6h12" fill="none"/></g></svg><span class="home-path__copy"><b>Las ideas, a la práctica.</b><small>Recursos para acompañar tu día a día.</small></span><span class="home-path__bottom">Explorar materiales<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></span></button>
+          <button type="button" class="home-path home-path--tools" data-home-go="herramientas"><span class="home-path__category">03 / HERRAMIENTAS</span><svg class="home-path__art" viewBox="0 0 180 130" aria-hidden="true"><circle cx="93" cy="64" r="48" fill="currentColor" opacity=".07"/><g class="home-art-float" fill="var(--home-art-paper)" stroke="currentColor" stroke-width="1.5"><rect x="60" y="18" width="65" height="94" rx="11" transform="rotate(-8 92 65)"/><rect x="72" y="31" width="40" height="20" rx="4"/><path d="M76 67h5m17 0h5M76 81h5m17 0h5M76 95h5m17 0h5" stroke-width="5" stroke-linecap="round"/><circle cx="132" cy="85" r="18"/><path d="m124 85 6 6 10-12M40 35v12m-6-6h12" fill="none"/></g></svg><span class="home-path__copy"><b>Resuelve con claridad.</b><small>Calculadoras y formatos a tu alcance.</small></span><span class="home-path__bottom">Abrir herramientas<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></span></button>
         </div>
       </section>
       <section aria-labelledby="home-personal-title">
-        <div class="home-section-head"><div><h2 id="home-personal-title">Tu camino, en buena compañía.</h2><p>Tu actividad y tu comunidad, en el mismo lugar.</p></div></div>
+        <div class="home-section-head"><div><span class="home-eyebrow">Tu espacio, tu comunidad</span><h2 id="home-personal-title">Crecer se disfruta más en compañía.</h2></div></div>
         <div class="home-personal"><div class="home-slot" id="home-activity-slot"></div><div class="home-slot" id="home-community-slot"></div><div class="home-slot" id="home-directory-slot"></div><div class="home-slot" id="home-benefits-slot"></div></div>
       </section>
       <section class="home-news" aria-labelledby="home-news-title">
@@ -5002,8 +5002,8 @@ async function initCountdown(){
   if (!proximo) {
     widget.innerHTML = `
       <div class="widget__label">⏱ Próxima clase en vivo</div>
-      <div style="padding:18px 0 4px;text-align:center;">
-        <div style="width:42px;height:42px;border-radius:50%;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
+      <div class="home-live-empty" style="padding:18px 0 4px;text-align:center;">
+        <div class="home-live-empty__icon" style="width:42px;height:42px;border-radius:50%;background:color-mix(in srgb,var(--primary) 12%,transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/></svg>
         </div>
         <div style="font-size:13.5px;font-weight:700;color:var(--text);line-height:1.4;margin-bottom:4px;">Sin clases programadas</div>
@@ -6686,8 +6686,10 @@ const Sections = (function(){
     host.innerHTML = `
       <article class="home-course">
         <img class="home-course__image" src="${escapeHtml(portada)}" alt="" fetchpriority="high" decoding="async">
+        <span class="home-course__edition" aria-hidden="true">ICADEM<span>APRENDE · APLICA · AVANZA</span></span>
         <div class="home-course__top"><span class="home-course__eyebrow"><i aria-hidden="true"></i>${pct > 0 ? 'Continúa aprendiendo' : 'Tu siguiente paso'}</span><span class="home-course__label">${escapeHtml(curso.area || 'Formación profesional')}</span></div>
         <h2>${escapeHtml(curso.titulo)}</h2>
+        <p class="home-course__description">${pct > 0 ? 'Tu siguiente logro comienza donde te quedaste.' : 'Una nueva perspectiva para tu siguiente reto profesional.'}</p>
         <div class="home-course__meta"><span><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>${total} clase${total === 1 ? '' : 's'}</span>${curso.horas ? `<span><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>${escapeHtml(String(curso.horas))} h</span>` : ''}<span>Formación ICADEM</span></div>
         <div class="home-course__footer">
           <button class="home-course__button" type="button" data-home-course="${escapeHtml(String(curso.id))}">${pct > 0 ? 'Continuar mi curso' : 'Explorar este curso'}<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
@@ -22408,7 +22410,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-course-ratings.js?v=4"></script>
 <script src="js/icadem-onboarding.js?v=20"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
-<link rel="stylesheet" href="css/icadem-home.css?v=3">
-<script src="js/icadem-home.js?v=2" defer></script>
+<link rel="stylesheet" href="css/icadem-home.css?v=6">
+<script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>

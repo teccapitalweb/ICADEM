@@ -39,6 +39,18 @@
       const action = event.target.closest('[data-home-go]');
       if (action && home.contains(action)) window.navigateToSection?.(action.dataset.homeGo);
     });
+    // Reveal each block once. Content stays visible if observers or motion are unavailable.
+    if ('IntersectionObserver' in window && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const reveal = new IntersectionObserver(entries => {
+        entries.forEach(({ target, isIntersecting }) => {
+          if (!isIntersecting) return;
+          target.classList.add('home-reveal');
+          target.addEventListener('animationend', () => target.classList.remove('home-reveal'), { once:true });
+          reveal.unobserve(target);
+        });
+      }, { threshold:0.12 });
+      home.querySelectorAll('.home-feature-grid, .home-path, .home-personal, .home-news').forEach(node => reveal.observe(node));
+    }
     const date = document.getElementById('home-today');
     if (date) {
       const now = new Date();
