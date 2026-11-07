@@ -28,6 +28,7 @@
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=1"></script>
+<script src="js/icadem-vip-banner.js?v=1"></script>
 <script src="js/icadem-ambassadors.js?v=4" defer></script>
 <link rel="stylesheet" href="css/ambassadors.css?v=3">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
@@ -4061,12 +4062,23 @@ body.has-fomo .main{padding-top:18px}
 
 <!-- Banner sticky FOMO · solo visible para invitado y sin-membresia -->
 <div class="fomo-banner" id="fomo-banner" style="display:none">
-  <span class="fomo-banner__icon" aria-hidden="true">⭐</span>
-  <span class="fomo-banner__text" id="fomo-banner-text"><strong>Prueba hasta 4 clases gratis.</strong> Activa VIP para continuar.</span>
+  <span class="vip-ribbon__identity" aria-hidden="true">
+    <span class="vip-ribbon__seal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"><path d="m12 3 2.7 5.5 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1-4.4-4.3 6.1-.9Z"/><path d="m12 7 1.4 2.9 3.2.5" stroke-linecap="round"/></svg></span>
+    <span class="vip-ribbon__brand"><b>ICADEM VIP</b><small id="fomo-banner-label">TU SIGUIENTE NIVEL</small></span>
+  </span>
+  <span class="vip-ribbon__divider" aria-hidden="true"></span>
+  <div class="vip-ribbon__copy">
+    <span class="fomo-banner__text" id="fomo-banner-text"><strong>Prueba hasta 4 clases gratis.</strong><span>Da el siguiente paso con ICADEM VIP.</span></span>
+    <span id="fomo-banner-dots" aria-hidden="true"><i class="is-current"></i><i></i><i></i></span>
+  </div>
   <span class="fomo-banner__timer" id="fomo-banner-timer" style="display:none">5:00</span>
   <button class="fomo-banner__cta" id="fomo-banner-cta" type="button">
     Suscribirme
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+  </button>
+  <button id="fomo-banner-motion" type="button" aria-label="Pausar animación y mensajes" aria-pressed="false">
+    <svg class="vip-ribbon__pause" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="4" y="3" width="2" height="10" rx="1"/><rect x="10" y="3" width="2" height="10" rx="1"/></svg>
+    <svg class="vip-ribbon__play" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="m5 3 8 5-8 5Z"/></svg>
   </button>
 </div>
 
@@ -14318,6 +14330,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       }
     }
 
+    window.IcademVipBanner?.update(S.modo);
+
     // 4. CTA del banner FOMO
     const bannerCTA = document.getElementById('fomo-banner-cta');
     if (bannerCTA) {
@@ -22168,6 +22182,7 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
+  <link rel="stylesheet" href="css/vip-banner.css?v=1">
   <link rel="stylesheet" href="css/icadem-games-v4.css?v=11">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
