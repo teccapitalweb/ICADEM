@@ -28,11 +28,12 @@ function app(options = {}) {
   vm.runInNewContext(source,context);
   return {...context.window.__test,context,stored,session,timers,events,windowEvents,roots,dialogs,queued,navigated,focus,setHome:value=>{home=value;}};
 }
-test('automatic invitation respects membership, seven-day cooldown, session and opt-out', () => {
+test('automatic home invitation respects membership, visit and saved opt-out, without a weekly delay', () => {
   const ui=app(), data=fixture(), now=20*DAY;
   assert.equal(ui.autoAllowed(data,{},false,now),true);
   assert.equal(ui.autoAllowed(data,{lastShown:now-7*DAY},false,now),true);
-  for(const state of [{lastShown:now-6*DAY},{lastShown:now+DAY},{disabled:true}]) assert.equal(ui.autoAllowed(data,state,false,now),false);
+  assert.equal(ui.autoAllowed(data,{lastShown:now},false),true);
+  assert.equal(ui.autoAllowed(data,{disabled:true},false),false);
   assert.equal(ui.autoAllowed(data,{},true,now),false);
   assert.equal(ui.autoAllowed({...data,registered:true},{},false,now),false);
   assert.equal(ui.autoAllowed({...data,registered:undefined},{},false,now),false);
@@ -74,11 +75,20 @@ test('dismissal resolves experience queue, restores focus and persists opt-out p
   assert.equal(ui.readState('user-b').disabled,undefined);
   const manual=ui.show(fixture(),false);assert.equal(ui.dialogs.length,2);ui.closeDialog();await manual;
 });
-test('scheduler waits 25 seconds and rechecks eligibility before enqueueing', async () => {
+test('home schedules automatically after three seconds and rechecks navigation before enqueueing', async () => {
   const ui=app();ui.init();await new Promise(resolve=>setImmediate(resolve));
-  const timer=[...ui.timers.values()].find(item=>item.delay===25000);assert.ok(timer);
+  const timer=[...ui.timers.values()].find(item=>item.delay===3000);assert.ok(timer);
   ui.setHome(false);timer.fn();assert.equal(ui.queued.length,0);
   ui.setHome(true);timer.fn();assert.deepEqual(ui.queued,['ambassador-invite']);
+});
+test('manual viewing and reloads cannot reopen an invitation already seen during the same visit', async () => {
+  const ui=app();
+  const manual=ui.show(fixture(),false);ui.closeDialog();await manual;
+  assert.equal(await ui.show(fixture(),true),'ineligible');
+  assert.equal(ui.session.get('icadem:ambassador-home-auto:v2:user-a'),'1');
+  const reloaded=app();
+  reloaded.session.set('icadem:ambassador-home-auto:v2:user-a','1');
+  assert.equal(await reloaded.show(fixture(),true),'ineligible');
 });
 test('manual request is discarded if user navigates while its configuration is loading', async () => {
   let resolve;const ui=app({load:()=>new Promise(done=>{resolve=done;})});ui.init();

@@ -1,8 +1,10 @@
 /* Discovery only. Enrollment, consent, attribution and money stay in the existing program. */
 (() => {
   'use strict';
-  const DAY = 86400000, COOLDOWN = 7 * DAY, DELAY = 25000;
+  const DELAY = 3000;
   const PREFIX = 'icadem:ambassador-invitation:v1:';
+  // Keep saved opt-outs; automatic displays have their own per-tab visit marker.
+  const SESSION_PREFIX = 'icadem:ambassador-home-auto:v2:';
   let timer = 0, generation = 0, navigation = 0, dialog = null, finishDialog = null, currentData = null;
   const shownThisSession = new Set();
   const headlines = ['Compartir conocimiento <em>tiene recompensa.</em>', 'Una buena recomendación. <em>Dos grandes beneficios.</em>'];
@@ -23,11 +25,11 @@
     try { localStorage.setItem(PREFIX + id, JSON.stringify({ ...readState(id), ...patch })); return true; }
     catch (_) { return false; }
   }
-  function autoAllowed(data, state, sessionShown, now = Date.now()) {
-    return validConfig(data) && data.registered === false && !state.disabled && !sessionShown && (!state.lastShown || now - Number(state.lastShown) >= COOLDOWN);
+  function autoAllowed(data, state, sessionShown) {
+    return validConfig(data) && data.registered === false && !state.disabled && !sessionShown;
   }
   function sessionSeen(id) {
-    try { return shownThisSession.has(id) || sessionStorage.getItem(PREFIX + id) === '1'; }
+    try { return shownThisSession.has(id) || sessionStorage.getItem(SESSION_PREFIX + id) === '1'; }
     catch (_) { return shownThisSession.has(id); }
   }
   function blocked() {
@@ -92,8 +94,7 @@
     if (automatic && !writeState(id, { lastShown:Date.now(), count:count + 1 })) return Promise.resolve('storage-unavailable');
     if (id) {
       shownThisSession.add(id);
-      try { sessionStorage.setItem(PREFIX + id, '1'); } catch (_) {}
-      if (!automatic) writeState(id, { lastShown:Date.now() });
+      try { sessionStorage.setItem(SESSION_PREFIX + id, '1'); } catch (_) {}
     }
     const previousFocus = document.activeElement;
     const root = document.createElement('dialog');

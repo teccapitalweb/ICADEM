@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v116';
+const CACHE = 'icadem-vip-v117';
 const SHELL = [
   './vip-panel.html',
   './vip-auth.html',
@@ -26,7 +26,7 @@ const SHELL = [
   './js/icadem-ambassadors.js?v=5',
   './css/ambassadors.css?v=3',
   './css/icadem-ambassador-promo.css?v=2',
-  './js/icadem-ambassador-promo.js?v=2',
+  './js/icadem-ambassador-promo.js?v=3',
   './js/icadem-referral.js?v=1',
   './css/icadem-games-v4.css?v=11',
   './css/panel-minimal.css?v=31',
