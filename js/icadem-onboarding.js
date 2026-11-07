@@ -8,7 +8,7 @@
   const CREDIT_EXPERIENCE = { id:'welcome-credits', version:'v1' };
   const experienceClaims = new Map();
   const steps = [
-    { icon:'✦', title:name=>`¡Bienvenido/a, ${name}!`, text:'Te mostramos lo esencial de ICADEM en menos de 30 segundos. Después podrás explorar a tu ritmo.', selectors:['#inicio-content .banner','.topbar'] },
+    { icon:'✦', title:name=>`¡Bienvenido/a, ${name}!`, text:'Te mostramos lo esencial de ICADEM en menos de 30 segundos. Después podrás explorar a tu ritmo.', selectors:['#inicio-content .home-masthead','.topbar'] },
     { icon:'▤', title:'Tu ruta de cursos', text:'En Mis cursos eliges tu ruta de inicio, retomas clases y consultas tu avance y materiales.', selectors:['.sidebar .nav-item[data-section="cursos"]','.mobile-nav__item[data-section="cursos"]'] },
     { icon:'✓', title:'Retos aplicados', text:'Practica con dinámicas breves, suma créditos verificados y refuerza lo aprendido sin perder tu avance.', selectors:['.sidebar .nav-item[data-section="retos"]','.mobile-nav__item[data-section="retos"]'] },
     { icon:'◎', title:'Tu red profesional', text:'Encuentra a otros integrantes de ICADEM y administra con claridad qué datos compartes en el Directorio VIP.', selectors:['.sidebar .nav-item[data-section="directorio"]','.mobile-nav__item[data-section="directorio"]'] },

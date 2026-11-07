@@ -4753,41 +4753,37 @@ window.__setDisplayName = async (nombre) => {
     </header>
 
     <div id="inicio-content">
-      <!-- Bienvenida compacta -->
-      <section class="banner fade-up">
-        <div class="banner__info">
-          <h1 class="banner__title" id="hero-title">Buenas tardes</h1>
-          <p class="banner__sub">Continúa tu formación y retoma donde te quedaste.</p>
-          <div class="club-hero-actions">
-            <button class="club-hero-btn" type="button" onclick="navigateToSection('cursos')"><svg class="ic"><use href="#i-book"/></svg>Ver mis cursos</button>
-          </div>
-        </div>
-        <div class="banner__stats">
-          <div class="banner__stat" data-section="cursos" style="cursor:pointer"><div class="banner__stat-lbl">Cursos</div><div class="banner__stat-val" id="bn-stat-cursos">0</div></div>
-          <div class="banner__stat" data-section="webinars" style="cursor:pointer"><div class="banner__stat-lbl">Clases</div><div class="banner__stat-val" id="bn-stat-clases">0</div></div>
-          <div class="banner__stat" data-section="retos" style="cursor:pointer"><div class="banner__stat-lbl">Retos</div><div class="banner__stat-val" id="bn-stat-retos">3</div></div>
+      <header class="home-masthead">
+        <div><span class="home-eyebrow">Tu espacio de crecimiento</span><h1 id="hero-title">Bienvenido a ICADEM</h1><p>Un nuevo día para aprender. Un paso más hacia lo que quieres lograr.</p></div>
+        <div class="home-date"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span id="home-today"></span></div>
+      </header>
+      <section class="home-feature-grid" aria-label="Tu siguiente paso">
+        <div id="home-learning-card"><div class="home-loading" role="status"><span class="home-eyebrow">Tu aprendizaje</span><h2>Preparando tu siguiente paso…</h2><span class="home-loading__line"></span><span class="home-loading__line short"></span><p>Estamos cargando tus cursos y tu avance.</p></div></div>
+        <div class="home-live"><div class="home-live__heading"><span>APRENDE EN COMUNIDAD</span><svg class="ic" aria-hidden="true"><use href="#i-broadcast"/></svg></div><div id="home-live-slot"></div><button type="button" class="home-live__link" data-home-go="webinars">Ver clases y grabaciones<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div>
+      </section>
+      <section class="home-catalog-strip" aria-label="Explora el contenido de ICADEM">
+        <p><strong>Tu próximo descubrimiento.</strong><br>Todo un espacio para seguir creciendo.</p>
+        <button type="button" data-home-go="cursos"><b id="bn-stat-cursos">—</b><span>Cursos en el catálogo</span></button>
+        <button type="button" data-home-go="webinars"><b id="bn-stat-clases">—</b><span>Clases en vivo y archivo</span></button>
+        <button type="button" data-home-go="retos"><b id="bn-stat-retos">3</b><span>Experiencias de retos</span></button>
+      </section>
+      <section class="home-paths" aria-labelledby="home-paths-title">
+        <div class="home-section-head"><div><h2 id="home-paths-title">Aprender también es hacer.</h2><p>Elige cómo quieres avanzar hoy.</p></div><span>EXPLORA TU CLUB</span></div>
+        <div class="home-paths__grid">
+          <button type="button" class="home-path" data-home-go="retos"><span class="home-path__icon"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg></span><span class="home-path__copy"><b>Pon a prueba tu criterio</b><small>Casos, flashcards y desafíos.</small></span><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+          <button type="button" class="home-path" data-home-go="materiales"><span class="home-path__icon"><svg class="ic" aria-hidden="true"><use href="#i-folder"/></svg></span><span class="home-path__copy"><b>Llévalo a la práctica</b><small>Materiales para tu día a día.</small></span><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+          <button type="button" class="home-path" data-home-go="herramientas"><span class="home-path__icon"><svg class="ic" aria-hidden="true"><use href="#i-tools"/></svg></span><span class="home-path__copy"><b>Trabaja con más claridad</b><small>Calculadoras y formatos útiles.</small></span><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
         </div>
       </section>
-
-      <section class="club-home-grid" aria-label="Tu aprendizaje">
-        <div class="club-home-card club-home-card--learning" id="home-learning-card">
-          <div class="club-home-card__kicker">Tu siguiente paso</div>
-          <div style="display:flex;align-items:center;gap:12px;color:var(--text-3);font-size:12px;">
-            <span style="width:18px;height:18px;border:2px solid var(--border-2);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;"></span>
-            Preparando tu ruta de aprendizaje…
-          </div>
-        </div>
+      <section aria-labelledby="home-personal-title">
+        <div class="home-section-head"><div><h2 id="home-personal-title">Tu camino, en buena compañía.</h2><p>Tu actividad y tu comunidad, en el mismo lugar.</p></div></div>
+        <div class="home-personal"><div class="home-slot" id="home-activity-slot"></div><div class="home-slot" id="home-community-slot"></div><div class="home-slot" id="home-directory-slot"></div><div class="home-slot" id="home-benefits-slot"></div></div>
       </section>
-
-      <!-- Noticias diarias (reales desde Firestore) -->
-      <section>
-        <div class="section-header">
-          <h2 class="section-header__title">Noticias del sector<span class="section-header__badge">Hoy</span></h2>
-        </div>
-        <div class="news-grid" id="home-news-grid">
-          <div class="foro-empty" style="grid-column:1/-1;">Cargando noticias…</div>
-        </div>
+      <section class="home-news" aria-labelledby="home-news-title">
+        <div class="home-section-head"><div><span class="home-eyebrow">Noticias del sector</span><h2 id="home-news-title">Una mirada a lo que viene.</h2></div><span>ACTUALIDAD PARA SEGUIR APRENDIENDO</span></div>
+        <div class="news-grid" id="home-news-grid"><div class="foro-empty" style="grid-column:1/-1;">Cargando noticias…</div></div>
       </section>
+      <p class="home-endnote">ICADEM · APRENDE. APLICA. AVANZA.</p>
     </div>
 
     <div id="dynamic-section" style="display:none;"></div>
@@ -6671,7 +6667,7 @@ const Sections = (function(){
     const host = document.getElementById('home-learning-card');
     if (!host) return;
     if (!cursos.length) {
-      host.innerHTML = `<div class="club-home-card__kicker">Tu siguiente paso</div><h3 style="margin:0 0 8px;font-size:19px;">Tu catálogo está por comenzar</h3><p style="margin:0;color:var(--text-2);font-size:12.5px;line-height:1.55;">En cuanto publiquemos el primer curso aparecerá aquí.</p>`;
+      host.innerHTML = `<div class="home-loading"><span class="home-eyebrow">Tu siguiente paso</span><h2>Tu catálogo está por comenzar</h2><p>En cuanto publiquemos el primer curso aparecerá aquí.</p></div>`;
       return;
     }
     const enCurso = cursos.find(c => {
@@ -6684,18 +6680,21 @@ const Sections = (function(){
     const curso = enCurso || cursoGratis || cursos.find(c => c.activo !== false && c.publicado !== false && Array.isArray(c.sesiones) && c.sesiones.length) || cursos[0];
     const total = curso.sesiones?.length || 0;
     const pct = progresoCursoPct(curso.id, total);
-    const portada = curso.portada || coverSVG(curso.area, curso.titulo);
+    const portada = getPortadaCurso(curso);
+    const catalogCount = document.getElementById('bn-stat-cursos');
+    if (catalogCount) catalogCount.textContent = String(cursos.length);
     host.innerHTML = `
-      <div class="club-home-card__kicker">${pct > 0 ? 'Continúa aprendiendo' : 'Recomendado para comenzar'}</div>
-      <div class="club-learning">
-        <div class="club-learning__cover" style="background-image:linear-gradient(180deg,rgba(0,0,0,.04),rgba(0,0,0,.28)),url('${portada}')"></div>
-        <div class="club-learning__body">
-          <h3>${curso.titulo}</h3>
-          <p>${curso.area || 'Formación profesional'} · ${total} clase${total === 1 ? '' : 's'}${curso.horas ? ` · ${curso.horas}h` : ''}</p>
-          <div class="club-learning__progress"><div class="club-learning__bar"><div class="club-learning__fill" style="width:${pct}%"></div></div><span class="club-learning__pct">${pct}%</span></div>
-          <button class="club-learning__action" type="button" data-home-course="${curso.id}">${pct > 0 ? 'Continuar curso' : 'Comenzar curso'} <span>→</span></button>
+      <article class="home-course">
+        <img class="home-course__image" src="${escapeHtml(portada)}" alt="" fetchpriority="high" decoding="async">
+        <div class="home-course__top"><span class="home-course__eyebrow"><i aria-hidden="true"></i>${pct > 0 ? 'Continúa aprendiendo' : 'Tu siguiente paso'}</span><span class="home-course__label">${escapeHtml(curso.area || 'Formación profesional')}</span></div>
+        <h2>${escapeHtml(curso.titulo)}</h2>
+        <div class="home-course__meta"><span><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg>${total} clase${total === 1 ? '' : 's'}</span>${curso.horas ? `<span><svg class="ic" aria-hidden="true"><use href="#i-clock"/></svg>${escapeHtml(String(curso.horas))} h</span>` : ''}<span>Formación ICADEM</span></div>
+        <div class="home-course__footer">
+          <button class="home-course__button" type="button" data-home-course="${escapeHtml(String(curso.id))}">${pct > 0 ? 'Continuar mi curso' : 'Explorar este curso'}<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+          <div class="home-course__progress"><div class="home-course__progress-label"><span>Tu avance</span><b>${pct}%</b></div><div class="home-course__track" role="progressbar" aria-label="Avance del curso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><span style="width:${pct}%"></span></div></div>
         </div>
-      </div>`;
+      </article>`;
+    host.querySelector('.home-course__image')?.addEventListener('error', function(){ this.style.display='none'; }, { once:true });
     host.querySelector('[data-home-course]')?.addEventListener('click', () => openCursoDetalle(curso.id));
   }
   window.__actualizarInicioAprendizaje = actualizarInicioAprendizaje;
@@ -22407,7 +22406,9 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
 <script src="js/icadem-course-ratings.js?v=4"></script>
-<script src="js/icadem-onboarding.js?v=19"></script>
+<script src="js/icadem-onboarding.js?v=20"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
+<link rel="stylesheet" href="css/icadem-home.css?v=3">
+<script src="js/icadem-home.js?v=2" defer></script>
 </body>
 </html>
