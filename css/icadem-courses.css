@@ -102,6 +102,85 @@
   .courses-page--premium .courses-library-head__count { display:none; }
   .courses-page--premium .curso-card__cover { aspect-ratio:16/9; }
 }
+/* Library composition: a prominent first result and a compact filter workspace. */
+.courses-page--premium .courses-library-head { padding-bottom:24px; }
+.courses-page--premium .courses-library-head__count { position:relative; overflow:hidden; display:grid; grid-template-columns:auto 1fr; gap:3px 13px; align-items:center; padding:17px 22px; min-width:143px; background:#17394d; color:#fff; border:0; border-radius:15px; }
+.courses-page--premium .courses-library-head__count::before { content:''; position:absolute; width:85px; height:85px; border:1px solid #e5c88f25; border-radius:50%; right:-33px; top:-31px; box-shadow:0 0 0 14px #e5c88f08; }
+.courses-page--premium .courses-library-head__count strong { color:#f0d8aa; font-size:33px; font-weight:600; grid-row:1/3; }
+.courses-page--premium .courses-library-head__count span { color:#d2e1e9; font-size:12px; position:relative; }
+.courses-page--premium .courses-controls { padding:16px 18px 0; border-radius:15px; }
+.courses-page--premium .courses-controls__bottom { border-top:1px solid var(--border); padding-top:5px; margin-top:15px; gap:8px 16px; }
+.courses-page--premium .courses-status-filters { flex:1 1 auto; gap:4px; }
+.courses-page--premium .courses-filter-chip { position:relative; min-height:45px; padding:10px 10px 13px; border:0; border-radius:0; background:transparent; font-size:11px; font-weight:500; }
+.courses-page--premium .courses-filter-chip:hover { background:transparent; color:var(--primary); }
+.courses-page--premium .courses-filter-chip.is-active { color:var(--primary); background:transparent; border:0; font-weight:650; }
+.courses-page--premium .courses-filter-chip.is-active::after { content:''; position:absolute; height:3px; left:10px; right:10px; bottom:0; background:var(--primary); border-radius:3px 3px 0 0; }
+.courses-page--premium .courses-results-count { margin-bottom:9px; }
+.courses-page--premium .curso-card { border-radius:18px; }
+.courses-page--premium .curso-card__cover { margin:0; width:100%; border-radius:0; }
+.courses-page--premium .curso-card__body { padding:20px 21px; }
+.courses-page--premium .curso-card__title { font-size:18px; line-height:1.35; }
+.courses-page--premium .curso-card__action { transition:background .2s,color .2s,border-color .2s; }
+.courses-page--premium .curso-card:hover .curso-card__action { background:var(--primary-deep); color:#fff; border-color:var(--primary-deep); }
+@container(min-width:680px) {
+  .courses-page--premium .courses-controls__top { grid-template-columns:minmax(180px,1fr) minmax(440px,1.8fr) !important; gap:12px; }
+  .courses-page--premium .courses-selects { grid-template-columns:1fr .85fr 1.4fr; gap:8px; }
+  .courses-page--premium .courses-search input { height:49px; }
+  .courses-page--premium .courses-search__clear { top:9px; }
+  .courses-page--premium .curso-card:first-child { display:grid; grid-column:1/-1; grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr); background:#16374b; color:#fff; border:1px solid #21465d; box-shadow:0 10px 28px #102d4012; }
+  .courses-page--premium .curso-card:first-child .curso-card__cover { margin:0; width:100%; height:100%; min-height:320px; aspect-ratio:auto; border-radius:0; }
+  .courses-page--premium .curso-card:first-child .curso-card__cover > img { position:absolute; inset:0; object-fit:cover; }
+  .courses-page--premium .curso-card:first-child .curso-card__body { padding:27px 28px; min-width:0; }
+  .courses-page--premium .curso-card:first-child .curso-card__tags { margin-bottom:15px; }
+  .courses-page--premium .curso-card:first-child .curso-card__tags .tag { color:#dae6ee; background:#ffffff0c; border-color:#ffffff2a; }
+  .courses-page--premium .curso-card:first-child .curso-card__tags .tag--gift { color:#f0d6a5; background:#e5c58a15; border-color:#e5c58a40; }
+  .courses-page--premium .curso-card:first-child .curso-card__title { color:#fff; font-size:25px; line-height:1.23; letter-spacing:-.6px; margin-bottom:12px; }
+  .courses-page--premium .curso-card:first-child .curso-card__copy { min-height:0; padding-bottom:20px; }
+  .courses-page--premium .curso-card:first-child .curso-card__desc { color:#c9dae5; font-size:13px; line-height:1.65; -webkit-line-clamp:3; }
+  .courses-page--premium .curso-card:first-child .curso-card__meta { color:#c9dae5; border-color:#ffffff20; font-size:11px; padding:13px 0; }
+  .courses-page--premium .curso-card:first-child .curso-card__meta .ic { color:#b1c9d9; }
+  .courses-page--premium .curso-card:first-child .curso-card__rating { color:#b1c9d9; min-height:40px; }
+  .courses-page--premium .curso-card:first-child .curso-card__state { color:#d3e2eb; }
+  .courses-page--premium .curso-card:first-child .curso-card__action { background:#e9d1a4; color:#153247; border-color:#e9d1a4; min-height:42px; padding:11px 14px; font-size:12px; }
+  .courses-page--premium .curso-card:first-child:hover .curso-card__action { background:#f5e3c3; border-color:#f5e3c3; color:#153247; }
+  .courses-page--premium .curso-card:first-child .curso-card__progress-bar { background:#ffffff24; }
+  .courses-page--premium .curso-card:first-child .curso-card__progress-fill { background:#e9d1a4; }
+  .courses-page--premium .curso-card:first-child .curso-card__progress-pct { color:#e9d1a4; }
+  .courses-page--premium .curso-card:first-child .curso-card__free-cta { background:#ffffff0a; border-color:#ffffff40; color:#efd9ad; }
+}
+@container(min-width:1050px) {
+  .courses-page--premium .curso-card:first-child { grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); }
+  .courses-page--premium .curso-card:first-child .curso-card__body { padding:32px; }
+  .courses-page--premium .curso-card:first-child .curso-card__title { font-size:29px; }
+}
+@media(max-width:760px) {
+  .courses-page--premium .courses-controls { padding:14px 14px 0; }
+  .courses-page--premium .courses-status-filters { padding-bottom:0; }
+  .courses-page--premium .courses-results-count { margin-top:5px; margin-bottom:12px; }
+  .courses-page--premium .courses-controls__bottom { gap:6px; }
+  .courses-page--premium .curso-card__body { padding:20px; }
+  .courses-page--premium .curso-card__cover { aspect-ratio:16/9; }
+}
+@media(max-width:480px) {
+  .courses-page--premium .courses-library-head__count { display:none; }
+}
+@container(max-width:679px) {
+  .courses-page--premium .curso-card:first-child { background:#16374b; border-color:#21465d; color:#fff; }
+  .courses-page--premium .curso-card:first-child .curso-card__title { color:#fff; font-size:21px; line-height:1.3; }
+  .courses-page--premium .curso-card:first-child .curso-card__tags .tag { color:#dae6ee; background:#ffffff0c; border-color:#ffffff2a; }
+  .courses-page--premium .curso-card:first-child .curso-card__tags .tag--gift { color:#f0d6a5; background:#e5c58a15; border-color:#e5c58a40; }
+  .courses-page--premium .curso-card:first-child .curso-card__desc { color:#c9dae5; }
+  .courses-page--premium .curso-card:first-child .curso-card__meta { color:#c9dae5; border-color:#ffffff20; }
+  .courses-page--premium .curso-card:first-child .curso-card__meta .ic { color:#b1c9d9; }
+  .courses-page--premium .curso-card:first-child .curso-card__rating { color:#b1c9d9; }
+  .courses-page--premium .curso-card:first-child .curso-card__state { color:#d3e2eb; }
+  .courses-page--premium .curso-card:first-child .curso-card__action { background:#e9d1a4; color:#153247; border-color:#e9d1a4; }
+  .courses-page--premium .curso-card:first-child:hover .curso-card__action { background:#f5e3c3; border-color:#f5e3c3; color:#153247; }
+  .courses-page--premium .curso-card:first-child .curso-card__progress-bar { background:#ffffff24; }
+  .courses-page--premium .curso-card:first-child .curso-card__progress-fill { background:#e9d1a4; }
+  .courses-page--premium .curso-card:first-child .curso-card__progress-pct { color:#e9d1a4; }
+  .courses-page--premium .curso-card:first-child .curso-card__free-cta { background:#ffffff0a; border-color:#ffffff40; color:#efd9ad; }
+}
 @media(prefers-reduced-motion:reduce) {
   .courses-page--premium *, .courses-page--premium *::before, .courses-page--premium *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
 }

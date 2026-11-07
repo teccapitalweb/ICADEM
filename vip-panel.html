@@ -7194,7 +7194,7 @@ const Sections = (function(){
         </header>
         <section class="courses-controls" aria-label="Buscar y filtrar cursos">
           <div class="courses-controls__top">
-            <label class="courses-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Buscar cursos</span><input id="cur-search" type="search" value="${esc(cursosState.search)}" placeholder="Buscar por nombre, categoría o instructor…" autocomplete="off"><button class="courses-search__clear" id="cur-search-clear" type="button" aria-label="Limpiar búsqueda" ${cursosState.search?'':'hidden'}>×</button></label>
+            <label class="courses-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Buscar cursos</span><input id="cur-search" type="search" value="${esc(cursosState.search)}" placeholder="Buscar un curso…" autocomplete="off"><button class="courses-search__clear" id="cur-search-clear" type="button" aria-label="Limpiar búsqueda" ${cursosState.search?'':'hidden'}>×</button></label>
             <div class="courses-selects">
               <label class="courses-select"><span>Categoría</span><select id="cur-area"><option value="todas">Todas</option>${areas.map(area=>`<option value="${esc(area)}" ${cursosState.area===area?'selected':''}>${esc(area)}</option>`).join('')}</select></label>
               <label class="courses-select"><span>Nivel</span><select id="cur-level"><option value="todos">Todos</option>${niveles.map(nivel=>`<option value="${esc(nivel)}" ${cursosState.nivel===nivel?'selected':''}>${esc(nivel)}</option>`).join('')}</select></label>
@@ -22408,7 +22408,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-onboarding.js?v=20"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
-<link rel="stylesheet" href="css/icadem-courses.css?v=2">
+<link rel="stylesheet" href="css/icadem-courses.css?v=4">
 <script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>
