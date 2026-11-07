@@ -8,6 +8,7 @@
   var cacheAt=0;
   var activeView='dashboard';
   var sessionGeneration=0;
+  var shownCelebrations=new Set();
 
   function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]);});}
   function money(cents){return new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:0,maximumFractionDigits:2}).format((Number(cents)||0)/100);}
@@ -17,7 +18,8 @@
   function statusLabel(status){return({registered:'Registrado sin compra',purchase_confirmed:'Compra confirmada',purchase_not_eligible:'Compra no elegible',pending:'En validación',available:'Disponible',paid:'Pagado',reversed:'Revertida',ineligible:'No elegible',approved:'Aprobado',rejected:'Rechazado'}[status]||status||'Registrado');}
   function count(value){return value!==undefined&&value!==null&&Number.isFinite(Number(value))&&Number(value)>=0?Math.floor(Number(value)):null;}
   function number(value){var result=count(value);return result===null?'—':new Intl.NumberFormat('es-MX').format(result);}
-  function shareMessage(ambassador){return '🎓🔥 *¡TENGO UN DESCUENTO ESPECIAL PARA TI EN ICADEM!*\n\n¿Te gustaría seguir preparándote profesionalmente y aprender nuevas habilidades?\n\n✨ Con *ICADEM* puedes acceder a cursos de diferentes especialidades, clases, materiales de estudio y certificados digitales.\n\n🎁 *¡Y tengo un beneficio exclusivo para ti!*\n\nUtiliza mi código de invitación y obtén un *DESCUENTO ESPECIAL* al contratar tu membresía:\n\n✅ Plan mensual\n✅ Plan anual\n\n🔑 *TU CÓDIGO DE DESCUENTO:* '+String(ambassador.code||'')+'\n\n🔗 *Activa tu beneficio aquí:*\n'+String(ambassador.referralUrl||'')+'\n\n🚀 *¡Aprovecha tu descuento y comienza a invertir en tu crecimiento profesional!*';}
+  function emoji(code){return String.fromCodePoint.apply(String,code.split('-').map(function(part){return parseInt(part,16);}));}
+  function shareMessage(ambassador){var e={grad:emoji('1F393'),fire:emoji('1F525'),sparkles:emoji('2728'),gift:emoji('1F381'),check:emoji('2705'),key:emoji('1F511'),link:emoji('1F517'),rocket:emoji('1F680')};return e.grad+e.fire+' *¡TENGO UN DESCUENTO ESPECIAL PARA TI EN ICADEM!*\n\n¿Te gustaría seguir preparándote profesionalmente y aprender nuevas habilidades?\n\n'+e.sparkles+' Con *ICADEM* puedes acceder a cursos de diferentes especialidades, clases, materiales de estudio y certificados digitales.\n\n'+e.gift+' *¡Y tengo un beneficio exclusivo para ti!*\n\nUtiliza mi código de invitación y obtén un *DESCUENTO ESPECIAL* al contratar tu membresía:\n\n'+e.check+' Plan mensual\n'+e.check+' Plan anual\n\n'+e.key+' *TU CÓDIGO DE DESCUENTO:* '+String(ambassador.code||'')+'\n\n'+e.link+' *Activa tu beneficio aquí:*\n'+String(ambassador.referralUrl||'')+'\n\n'+e.rocket+' *¡Aprovecha tu descuento y comienza a invertir en tu crecimiento profesional!*';}
   function captureRef(){try{var code=String(new URLSearchParams(location.search).get('ref')||'').trim().toUpperCase();if(/^[A-Z0-9]{3,8}-[A-Z0-9]{4,8}$/.test(code)){localStorage.setItem(REF_KEY,JSON.stringify({code:code,capturedAt:Date.now()}));window.ICADEMReferral?.captureVisit(code);}}catch(_){}}
   async function claimStoredRef(){
     try{
@@ -109,7 +111,23 @@
     try{var data=await load(true);if(location.hash===route&&generation===sessionGeneration)renderData(root,data);}catch(error){if(location.hash!==route||generation!==sessionGeneration)return;root.innerHTML='<div class="amb-empty"><div><strong>No pudimos cargar Embajadores</strong><p>'+esc(error.message)+'</p><button class="amb-btn" type="button" data-amb-retry>Reintentar</button></div></div>';root.querySelector('[data-amb-retry]')?.addEventListener('click',function(){render(root);});}
   }
 
-  function renderData(root,data){root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);}
+  function acknowledgeCelebration(id){if(!id)return;request('/api/ambassadors/notifications/'+encodeURIComponent(id)+'/read',{method:'POST'}).catch(function(){});}
+
+  function showCommissionCelebration(item){
+    if(!item?.id||shownCelebrations.has(item.id))return;
+    shownCelebrations.add(item.id);
+    document.querySelector('.amb-commission-celebration')?.remove();
+    var amount=money(item.amountCents),days=Number(item.validationDays)||7,root=document.createElement('div');
+    root.className='amb-commission-celebration';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-labelledby','amb-commission-title');
+    root.innerHTML='<div class="amb-commission-celebration__shade" data-amb-celebration-close></div><section class="amb-commission-celebration__dialog" role="document"><div class="amb-commission-celebration__coins" aria-hidden="true">'+Array.from({length:18},function(_,index){return '<span style="--i:'+index+'">'+emoji('1FA99')+'</span>';}).join('')+'</div><button class="amb-commission-celebration__close" type="button" aria-label="Cerrar" data-amb-celebration-close>×</button><div class="amb-commission-celebration__icon" aria-hidden="true">'+emoji('1FA99')+'</div><p class="amb-commission-celebration__eyebrow">NUEVA COMISIÓN REGISTRADA</p><h2 id="amb-commission-title">¡Tu recomendación se convirtió en una membresía VIP!</h2><p><strong>+'+esc(amount)+'</strong> quedó registrada en tu cuenta de embajador. Está en validación y se liberará después de '+esc(days)+' días.</p><button class="amb-btn" type="button" data-amb-celebration-close>Ver mi panel</button></section>';
+    document.body.appendChild(root);
+    function close(){if(!root.isConnected)return;root.remove();acknowledgeCelebration(item.id);}
+    root.querySelectorAll('[data-amb-celebration-close]').forEach(function(button){button.addEventListener('click',close);});
+    root.addEventListener('keydown',function(event){if(event.key==='Escape')close();});
+    setTimeout(function(){root.querySelector('.amb-commission-celebration__close')?.focus();},0);
+  }
+
+  function renderData(root,data){root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);if(activeView==='dashboard'&&data.commissionCelebrations?.length)setTimeout(function(){showCommissionCelebration(data.commissionCelebrations[0]);},80);}
 
   async function copyText(value){
     if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(value);return true;}catch(_){}}

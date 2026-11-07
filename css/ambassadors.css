@@ -102,3 +102,18 @@
 @media(max-width:540px){.amb-analytics{grid-template-columns:1fr;padding:5px 0 8px;gap:28px}.amb-chart-legend{gap:24px}.amb-share-actions{display:grid;grid-template-columns:1fr 1fr}.amb-withdrawal-summary{align-items:flex-start;flex-direction:column;gap:12px;padding:18px}.amb-funnel{gap:17px}.amb-bank-summary{align-items:flex-start;flex-wrap:wrap}.amb-page-head>.amb-btn{width:100%}.amb-metric-tag{display:none}}
 @media(max-width:430px){.amb-code__actions button{min-height:36px}.amb-kpi__label{font-size:8px;letter-spacing:.5px}.amb-history__item{align-items:flex-start;flex-direction:column}}
 @media(prefers-reduced-motion:reduce){.amb-btn{transition:none}.amb-loading__spin{animation:none}}
+.amb-commission-celebration{position:fixed;inset:0;z-index:10000;display:grid;place-items:center;padding:20px;isolation:isolate}
+.amb-commission-celebration__shade{position:absolute;inset:0;background:rgba(8,23,48,.58);backdrop-filter:blur(5px)}
+.amb-commission-celebration__dialog{position:relative;z-index:1;width:min(520px,100%);overflow:hidden;border:1px solid rgba(255,255,255,.8);border-radius:24px;padding:38px 34px 32px;text-align:center;background:linear-gradient(145deg,#fff 0%,#f5f9ff 100%);box-shadow:0 30px 90px rgba(8,31,72,.32);animation:amb-celebration-in .38s cubic-bezier(.2,.8,.2,1)}
+.amb-commission-celebration__close{position:absolute;top:12px;right:14px;width:34px;height:34px;border-radius:50%;font-size:25px;line-height:1;color:#66758a;background:#edf3f9;cursor:pointer}
+.amb-commission-celebration__icon{display:grid;place-items:center;width:74px;height:74px;margin:0 auto 18px;border-radius:22px;font-size:40px;background:#fff4ce;box-shadow:0 12px 28px rgba(214,156,29,.18)}
+.amb-commission-celebration__eyebrow{margin:0 0 8px;color:#b37a00;font:700 10px/1.2 var(--font-mono,monospace);letter-spacing:.16em;text-transform:uppercase}
+.amb-commission-celebration__dialog h2{margin:0 auto 12px;max-width:420px;color:#102b4f;font-size:clamp(22px,4vw,30px);line-height:1.15}
+.amb-commission-celebration__dialog p:not(.amb-commission-celebration__eyebrow){margin:0 auto 24px;max-width:410px;color:#5c6e83;font-size:14px;line-height:1.6}
+.amb-commission-celebration__dialog p strong{color:#0b4f3f;font-size:1.15em}
+.amb-commission-celebration__dialog .amb-btn{min-width:180px;justify-content:center}
+.amb-commission-celebration__coins{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.amb-commission-celebration__coins span{position:absolute;top:-35px;left:calc((var(--i) + 1) * 5.5%);font-size:20px;opacity:0;animation:amb-coin-fall 2.8s ease-in-out calc(var(--i) * 75ms) forwards;transform:rotate(calc(var(--i) * 31deg))}
+@keyframes amb-celebration-in{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes amb-coin-fall{0%{opacity:0;transform:translateY(-20px) rotate(0deg)}15%{opacity:1}100%{opacity:0;transform:translateY(430px) rotate(260deg)}}
+@media(prefers-reduced-motion:reduce){.amb-commission-celebration__dialog{animation:none}.amb-commission-celebration__coins span{animation:none;opacity:.18;top:12px}}
