@@ -7965,7 +7965,7 @@ const Sections = (function(){
           </div>
           <aside class="library-balance" aria-label="Cartera de créditos">
             <small>Mi cartera</small>
-            <strong><i>C</i><b data-credit-balance>${state.balance}</b></strong>
+            <strong><i class="icadem-credit-coin" aria-hidden="true">C</i><b data-credit-balance>${state.balance}</b></strong>
             <span>Créditos ICADEM</span>
             <button type="button" class="library-balance__action" data-credit-wallet-open>Ver movimientos <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
           </aside>
@@ -7986,7 +7986,7 @@ const Sections = (function(){
               <div class="library-card__body">
                 <small>${htmlEsc(book.categoria)}</small><strong>${htmlEsc(book.titulo)}</strong><p>${htmlEsc(book.descripcion)}</p>
                 <div class="library-card__foot">
-                  <span class="library-card__cost">${owned?`<svg class="ic"><use href="#i-check"/></svg> Canjeado`:`<i>C</i> ${book.costo} créditos`}</span>
+                  <span class="library-card__cost">${owned?`<svg class="ic"><use href="#i-check"/></svg> Canjeado`:`<i class="icadem-credit-coin" aria-hidden="true">C</i> ${book.costo} créditos`}</span>
                   <button type="button" class="library-card__action" data-library-action="${htmlEsc(book.id)}" aria-label="${owned?'Abrir':'Canjear'} ${htmlEsc(book.titulo)}" ${busy?'disabled':''}><svg class="ic"><use href="#${busy?'i-clock':'i-arrow-right'}"/></svg></button>
                 </div>
               </div>
@@ -8269,7 +8269,7 @@ const Sections = (function(){
         const fallback = MATERIAL_FALLBACK_COVERS[index % MATERIAL_FALLBACK_COVERS.length];
         return `<article class="material-card${owned?' is-owned':''}" data-material-id="${htmlEsc(material.id)}">
           <div class="material-card__cover"><img src="${htmlEsc(cover)}" data-material-cover data-fallback="${htmlEsc(fallback)}" alt="Portada de ${htmlEsc(material.titulo)}" loading="lazy"><span class="material-card__format">${htmlEsc(_materialFormatLabel(material.formato))}</span><span class="material-card__status">${owned?'Canjeado':'Disponible'}</span></div>
-          <div class="material-card__body"><small>${htmlEsc(material.categoria || 'Recurso profesional')}</small><strong>${htmlEsc(material.titulo)}</strong><p>${htmlEsc(material.descripcion)}</p><span class="material-card__origin"><svg class="ic"><use href="#i-folder"/></svg>${htmlEsc(material.cursoTitulo || 'Recursos profesionales ICADEM')}</span><div class="material-card__foot"><span class="material-card__cost">${owned?`<svg class="ic"><use href="#i-check"/></svg> Tuyo`:`<i>C</i> ${Number(material.costo)||0} créditos`}</span><button type="button" class="material-card__action" data-material-action="${htmlEsc(material.id)}" ${anyRedemptionBusy?'disabled':''}>${state.verificationPending?'Verificando…':busy?'Procesando…':owned?'Abrir':'Canjear'}</button></div></div>
+          <div class="material-card__body"><small>${htmlEsc(material.categoria || 'Recurso profesional')}</small><strong>${htmlEsc(material.titulo)}</strong><p>${htmlEsc(material.descripcion)}</p><span class="material-card__origin"><svg class="ic"><use href="#i-folder"/></svg>${htmlEsc(material.cursoTitulo || 'Recursos profesionales ICADEM')}</span><div class="material-card__foot"><span class="material-card__cost">${owned?`<svg class="ic"><use href="#i-check"/></svg> Tuyo`:`<i class="icadem-credit-coin" aria-hidden="true">C</i> ${Number(material.costo)||0} créditos`}</span><button type="button" class="material-card__action" data-material-action="${htmlEsc(material.id)}" ${anyRedemptionBusy?'disabled':''}>${state.verificationPending?'Verificando…':busy?'Procesando…':owned?'Abrir':'Canjear'}</button></div></div>
         </article>`;
       }).join('') : '';
       container.innerHTML = `<div class="fade-up materials-page">
@@ -8281,7 +8281,7 @@ const Sections = (function(){
           </div>
           <aside class="materials-wallet" aria-label="Cartera de créditos">
             <small>Tu saldo disponible</small>
-            <strong><i>C</i><b data-credit-balance>${state.verificationPending?'—':state.balance}</b></strong>
+            <strong><i class="icadem-credit-coin" aria-hidden="true">C</i><b data-credit-balance>${state.verificationPending?'—':state.balance}</b></strong>
             <span>Créditos ICADEM</span>
             <button type="button" data-credit-wallet-open>Ver movimientos <svg class="ic"><use href="#i-arrow-right"/></svg></button>
           </aside>
@@ -22400,6 +22400,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-courses.css?v=4">
 <link rel="stylesheet" href="css/icadem-live.css?v=1">
 <link rel="stylesheet" href="css/icadem-tools.css?v=1">
+<link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>

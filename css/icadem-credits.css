@@ -1,0 +1,13 @@
+/* A shared coin mark for credit prices and balances. Amounts remain plain text. */
+.material-card__cost > .icadem-credit-coin,
+.library-card__cost > .icadem-credit-coin,
+.materials-wallet > strong > .icadem-credit-coin,
+.library-balance > strong > .icadem-credit-coin {
+  display:inline-block; flex:0 0 auto; width:27px; height:27px;
+  border:0; border-radius:0; padding:0; font-size:0; line-height:0; color:transparent;
+  background:transparent url('../assets/credit-coin.svg') center / contain no-repeat;
+  box-shadow:none; vertical-align:middle;
+}
+.library-page--catalog .library-card__cost > .icadem-credit-coin { width:27px; height:27px; font-size:0; }
+.library-balance > strong > .icadem-credit-coin,
+.materials-wallet > strong > .icadem-credit-coin { width:36px; height:36px; align-self:center; }
