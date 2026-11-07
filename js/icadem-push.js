@@ -13,7 +13,7 @@
   'use strict';
 
   var API = 'https://icadem-webhook-production.up.railway.app';
-  var SYNC_KEY = 'icadem:push:synced';
+  var SYNC_KEY_PREFIX = 'icadem:push:synced:';
   var soportado = 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
   var esIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   var instalada = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
@@ -22,6 +22,7 @@
   function guardar(k, v) { try { localStorage.setItem(k, v); } catch (_) {} }
   function uid() { return (window.__currentUser && window.__currentUser.uid) || ''; }
   function claveRespuesta() { return 'icadem:push:respuesta:' + uid(); }
+  function claveSincronizacion() { return SYNC_KEY_PREFIX + uid(); }
 
   function b64aBytes(b64) {
     var pad = '='.repeat((4 - b64.length % 4) % 4);
@@ -52,7 +53,7 @@
       sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64aBytes(j.publicKey) });
     }
     await request('/api/push/subscribe', { subscription: sub.toJSON() });
-    guardar(SYNC_KEY, String(Date.now()));
+    guardar(claveSincronizacion(), String(Date.now()));
     return sub;
   }
 
@@ -161,7 +162,7 @@
     if (window.__isDemoMode || !uid()) return;
     if (soportado && Notification.permission === 'granted') {
       // Ya aceptó: se mantiene la suscripción al día (una vez al día basta)
-      if (leer(claveRespuesta()) !== 'no' && Date.now() - Number(leer(SYNC_KEY) || 0) > 24 * 3600 * 1000) suscribir().catch(function () {});
+      if (leer(claveRespuesta()) !== 'no' && Date.now() - Number(leer(claveSincronizacion()) || 0) > 24 * 3600 * 1000) suscribir().catch(function () {});
       return;
     }
     var respuesta = leer(claveRespuesta());

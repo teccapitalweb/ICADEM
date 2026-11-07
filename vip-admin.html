@@ -1913,7 +1913,7 @@ const Pages={
         (async () => {
           try {
             const token = await Pages._getAuthToken();
-            const r = await fetch(Pages._webhookUrl + '/admin/push/broadcast', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token }, body: JSON.stringify({ title: titulo, body: descripcion }) });
+            const r = await fetch(Pages._webhookUrl + '/admin/push/broadcast', { method:'POST', headers:{ 'Content-Type':'application/json', Authorization:'Bearer ' + token }, body: JSON.stringify({ title: titulo, body: descripcion, type: tipoSeleccionado }) });
             const j = await r.json().catch(() => ({}));
             if (r.ok && j.sent) Toast.info('También llegó a los teléfonos', `${j.sent} dispositivo(s) con avisos activos`);
           } catch (e) { /* la campanita ya quedó publicada */ }
