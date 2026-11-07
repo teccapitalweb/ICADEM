@@ -19,7 +19,17 @@
   function count(value){return value!==undefined&&value!==null&&Number.isFinite(Number(value))&&Number(value)>=0?Math.floor(Number(value)):null;}
   function number(value){var result=count(value);return result===null?'—':new Intl.NumberFormat('es-MX').format(result);}
   function emoji(code){return String.fromCodePoint.apply(String,code.split('-').map(function(part){return parseInt(part,16);}));}
-  function shareMessage(ambassador){var e={grad:emoji('1F393'),fire:emoji('1F525'),sparkles:emoji('2728'),gift:emoji('1F381'),check:emoji('2705'),key:emoji('1F511'),link:emoji('1F517'),rocket:emoji('1F680')};return e.grad+e.fire+' *¡TENGO UN DESCUENTO ESPECIAL PARA TI EN ICADEM!*\n\n¿Te gustaría seguir preparándote profesionalmente y aprender nuevas habilidades?\n\n'+e.sparkles+' Con *ICADEM* puedes acceder a cursos de diferentes especialidades, clases, materiales de estudio y certificados digitales.\n\n'+e.gift+' *¡Y tengo un beneficio exclusivo para ti!*\n\nUtiliza mi código de invitación y obtén un *DESCUENTO ESPECIAL* al contratar tu membresía:\n\n'+e.check+' Plan mensual\n'+e.check+' Plan anual\n\n'+e.key+' *TU CÓDIGO DE DESCUENTO:* '+String(ambassador.code||'')+'\n\n'+e.link+' *Activa tu beneficio aquí:*\n'+String(ambassador.referralUrl||'')+'\n\n'+e.rocket+' *¡Aprovecha tu descuento y comienza a invertir en tu crecimiento profesional!*';}
+  function invitationUrl(ambassador){
+    // A text-only sharing page keeps the referral code in the URL and avoids
+    // Facebook's cached large photo on the sign-in page.
+    var code=String(ambassador.code||'').trim().toUpperCase();
+    return /^[A-Z0-9]{3,8}-[A-Z0-9]{4,8}$/.test(code)?'https://www.icademx.com/invitacion.html?ref='+encodeURIComponent(code):String(ambassador.referralUrl||'');
+  }
+  function shareMessage(ambassador,withEmoji){
+    var decorate=function(code){return withEmoji===false?'':emoji(code)+' ';};
+    return decorate('1F929-1F496')+'¡Te invito a conocer ICADEM!\n\nCursos de diferentes especialidades, clases, materiales de estudio y certificados digitales para seguir creciendo profesionalmente.\n\n'+decorate('1F381-1F49D')+'Usa mi código y recibe un descuento en el primer pago de tu membresía mensual o anual.\n\nCódigo de invitación: '+String(ambassador.code||'')+'\nActiva tu beneficio: '+invitationUrl(ambassador)+'\n\n'+decorate('1F973-1F389')+'¡Da el siguiente paso en tu desarrollo profesional!';
+  }
+  function isMobileShare(){return navigator.userAgentData?.mobile===true||/Android|iPhone|iPad|iPod/i.test(navigator.userAgent||'')||(/Macintosh/i.test(navigator.userAgent||'')&&navigator.maxTouchPoints>1);}
   function captureRef(){try{var code=String(new URLSearchParams(location.search).get('ref')||'').trim().toUpperCase();if(/^[A-Z0-9]{3,8}-[A-Z0-9]{4,8}$/.test(code)){localStorage.setItem(REF_KEY,JSON.stringify({code:code,capturedAt:Date.now()}));window.ICADEMReferral?.captureVisit(code);}}catch(_){}}
   async function claimStoredRef(){
     try{
@@ -81,14 +91,14 @@
   }
 
   function shareMarkup(ambassador){
-    return '<section class="amb-card amb-sharing" data-amb-sharing><div class="amb-card__head"><div><h3>Invita a conocer ICADEM</h3><p>Comparte este código de referido e invita a las personas a conocer ICADEM. Tu mensaje ya incluye el código y el enlace para activar su beneficio.</p></div></div><div class="amb-card__body"><div class="amb-share-actions"><button class="amb-btn amb-btn--whatsapp" type="button" data-amb-social="whatsapp">WhatsApp ↗</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="facebook">Facebook ↗</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="messenger">Messenger</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="instagram">Instagram</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="native">Más opciones</button></div><details class="amb-message"><summary>Ver mensaje listo para compartir</summary><textarea class="amb-message__preview" aria-label="Mensaje de invitación con tu código y enlace" readonly>'+esc(shareMessage(ambassador))+'</textarea><button type="button" class="amb-btn amb-btn--ghost" data-amb-copy-message>Copiar mensaje completo</button></details><p class="amb-share-help" data-amb-share-help aria-live="polite">En Messenger e Instagram, elige la aplicación al compartir o pega el mensaje en una conversación.</p></div></section>';
+    return '<section class="amb-card amb-sharing" data-amb-sharing><div class="amb-card__head"><div><h3>Invita a conocer ICADEM</h3><p>Tu invitación incluye un mensaje breve, tu código y el enlace para activar el beneficio.</p></div></div><div class="amb-card__body"><div class="amb-share-actions"><button class="amb-btn amb-btn--whatsapp" type="button" data-amb-social="whatsapp">WhatsApp ↗</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="facebook">Facebook · copiar y abrir ↗</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="messenger">Messenger</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="instagram">Instagram</button><button class="amb-btn amb-btn--ghost" type="button" data-amb-social="native">Más opciones</button></div><p class="amb-share-help">Facebook: el botón copia tu texto y abre la publicación. Pégalo en «¿Qué estás pensando?» antes de publicar.</p><details class="amb-message"><summary>Ver mensaje listo para compartir</summary><textarea class="amb-message__preview" aria-label="Mensaje de invitación con tu código y enlace" readonly>'+esc(shareMessage(ambassador))+'</textarea><button type="button" class="amb-btn amb-btn--ghost" data-amb-copy-message>Copiar mensaje completo</button></details><p class="amb-share-help" data-amb-share-help aria-live="polite">En el móvil, elige WhatsApp, Messenger o Instagram en el menú para compartir. También puedes copiar y pegar el mensaje.</p></div></section>';
   }
 
   function dashboardMarkup(data){
     var a=data.ambassador||{},w=data.wallet||{},c=data.config||{},stats=data.analytics||{};
     var paidReferrals=count(stats.paidReferrals);
     return '<div class="amb-shell"><div class="amb-page-head"><div class="sec-hero"><span class="sec-hero__eyebrow">Programa de referidos</span><h1 class="sec-hero__title" tabindex="-1" data-amb-heading>Mi panel de Embajador</h1><p class="sec-hero__sub">Conoce el alcance de tus invitaciones y sigue tus ganancias.</p></div><button class="amb-btn amb-btn--ghost" type="button" data-amb-view="withdrawals">Retiros y cuenta bancaria →</button></div>'+
-      '<section class="amb-hero"><div><div class="amb-hero__eyebrow">ICADEM EMBAJADORES · '+(a.active?'PERFIL ACTIVO':'PERFIL EN PAUSA')+'</div><h2>Comparte conocimiento. Genera oportunidades.</h2><p>Tu invitado ahorra '+money(c.discountCents)+' MXN. Tú recibes '+money(c.commissionCents)+' MXN por su primera compra elegible de una membresía VIP.</p>'+(a.active?'':'<p class="amb-hero__alert">Tu perfil está en pausa. Contacta a soporte para revisar su estado antes de compartir tu código.</p>')+'</div><div class="amb-code"><small>Tu código de descuento</small><strong>'+esc(a.code)+'</strong><div class="amb-code__actions"><button type="button" data-amb-copy="'+esc(a.code)+'" data-copy-label="Código">Copiar código</button><button type="button" data-amb-copy="'+esc(a.referralUrl)+'" data-copy-label="Enlace">Copiar enlace</button></div><button type="button" class="amb-code__share" data-amb-share>Compartir mi invitación ↗</button></div></section>'+
+      '<section class="amb-hero"><div><div class="amb-hero__eyebrow">ICADEM EMBAJADORES · '+(a.active?'PERFIL ACTIVO':'PERFIL EN PAUSA')+'</div><h2>Comparte conocimiento. Genera oportunidades.</h2><p>Tu invitado ahorra '+money(c.discountCents)+' MXN. Tú recibes '+money(c.commissionCents)+' MXN por su primera compra elegible de una membresía VIP.</p>'+(a.active?'':'<p class="amb-hero__alert">Tu perfil está en pausa. Contacta a soporte para revisar su estado antes de compartir tu código.</p>')+'</div><div class="amb-code"><small>Tu código de descuento</small><strong>'+esc(a.code)+'</strong><div class="amb-code__actions"><button type="button" data-amb-copy="'+esc(a.code)+'" data-copy-label="Código">Copiar código</button><button type="button" data-amb-copy="'+esc(invitationUrl(a))+'" data-copy-label="Enlace">Copiar enlace</button></div><button type="button" class="amb-code__share" data-amb-share>Compartir mi invitación ↗</button></div></section>'+
       '<div class="amb-kpis"><div class="amb-kpi"><div class="amb-kpi__label">Saldo disponible</div><div class="amb-kpi__value">'+money(w.availableCents)+'</div><div class="amb-kpi__meta">Listo para solicitar</div></div><div class="amb-kpi"><div class="amb-kpi__label">Comisiones pendientes</div><div class="amb-kpi__value">'+money(w.pendingCents)+'</div><div class="amb-kpi__meta">En validación</div></div><div class="amb-kpi"><div class="amb-kpi__label">Compras elegibles</div><div class="amb-kpi__value">'+number(paidReferrals)+'</div><div class="amb-kpi__meta">Referidos con comisión</div></div><div class="amb-kpi"><div class="amb-kpi__label">Total ganado</div><div class="amb-kpi__value">'+money(w.totalEarnedCents)+'</div><div class="amb-kpi__meta">Histórico liberado</div></div></div>'+
       analyticsMarkup(data)+shareMarkup(a)+
       '<section class="amb-card"><div class="amb-card__head"><div><h3>Referidos</h3><p>Registros y compras asociados a tu código. Los nombres se muestran parcialmente para proteger su privacidad.</p></div></div><div class="amb-card__body amb-table-wrap"><table class="amb-table"><thead><tr><th>Referido</th><th>Registro</th><th>Estado</th><th>Comisión</th><th>Disponibilidad</th></tr></thead><tbody>'+referralsRows(data.referrals)+'</tbody></table></div></section>'+
@@ -144,8 +154,20 @@
   }
 
   async function shareTo(root,ambassador,platform){
-    var message=shareMessage(ambassador),url=String(ambassador.referralUrl||'');
-    if(platform==='whatsapp'){window.open('https://wa.me/?text='+encodeURIComponent(message),'_blank','noopener,noreferrer');return;}
+    var message=shareMessage(ambassador),url=invitationUrl(ambassador);
+    if(platform==='whatsapp'){
+      var mobile=isMobileShare();
+      if(mobile&&navigator.share){
+        try{await navigator.share({title:'Tu invitación a ICADEM',text:message});return;}catch(error){if(error.name==='AbortError')return;}
+      }
+      // wa.me currently replaces supplementary Unicode characters with U+FFFD.
+      // Desktop goes straight to Web. Older mobile browsers get plain text on
+      // the app landing page, whose preview also corrupts emoji characters.
+      var payload=mobile?shareMessage(ambassador,false):message;
+      window.open((mobile?'https://api.whatsapp.com/send?text=':'https://web.whatsapp.com/send?text=')+encodeURIComponent(payload),'_blank','noopener,noreferrer');
+      shareHelp(root,mobile?'Se preparó una versión sin emojis para que este navegador comparta el mensaje correctamente.':'El mensaje se abre en WhatsApp Web. También puedes usar «Copiar mensaje completo».');
+      return;
+    }
     if(platform==='facebook'){
       var popup=window.open('about:blank','_blank');
       if(popup)popup.opener=null;

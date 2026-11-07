@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ICADEM · Acceso</title>
+<meta name="description" content="Cursos, clases, materiales y certificados digitales. Usa tu código de invitación y conoce tu beneficio en la primera membresía.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="ICADEM">
+<meta property="og:title" content="ICADEM · Acceso">
+<meta property="og:description" content="Cursos, clases, materiales y certificados digitales. Usa tu código de invitación y conoce tu beneficio en la primera membresía.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ICADEM · Acceso">
+<meta name="twitter:description" content="Capacitación profesional con un beneficio de bienvenida al usar tu código de invitación.">
+<meta name="robots" content="noindex,follow,max-image-preview:none">
+<!-- Intentionally no image or canonical URL: previews stay compact and each
+     shared URL retains its own ref parameter instead of merging attribution. -->
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#f5f7fa;color:#17324d;font:16px/1.6 system-ui,sans-serif}main{width:min(100%,460px);padding:32px;background:#fff;border:1px solid #dfe5ec;border-radius:18px}small{font-weight:700;letter-spacing:.14em}h1{font-size:28px;line-height:1.2;margin:16px 0}p{color:#5b6d80}a{display:inline-block;margin-top:10px;padding:12px 20px;background:#0b2f73;color:#fff;text-decoration:none;border-radius:10px}a:focus-visible{outline:3px solid #659ced;outline-offset:4px}
+</style>
+</head>
+<body>
+<main>
+  <small>ICADEM</small>
+  <h1>Tu próxima oportunidad de aprender</h1>
+  <p>Conoce los cursos, clases, materiales y certificados digitales de ICADEM.</p>
+  <a id="continue" href="vip-auth.html?tab=register">Continuar a ICADEM</a>
+  <noscript><p>Al registrarte, introduce el código que aparece en tu invitación para consultar el beneficio.</p></noscript>
+</main>
+<script>
+(function(){
+  'use strict';
+  var code=String(new URLSearchParams(location.search).get('ref')||'').trim().toUpperCase();
+  var target='vip-auth.html?tab=register';
+  if(/^[A-Z0-9]{3,8}-[A-Z0-9]{4,8}$/.test(code))target+='&ref='+encodeURIComponent(code);
+  document.getElementById('continue').href=target;
+  location.replace(target);
+})();
+</script>
+</body>
+</html>
