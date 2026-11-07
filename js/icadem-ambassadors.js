@@ -196,8 +196,7 @@
   }
 
   async function syncInvite(container){
-    var button=container?.querySelector('#btn-ambassador-interest');if(!button||window.__isDemoMode)return;
-    try{var data=await load(),c=data.config||{},title=container.querySelector('[data-amb-profile-title]'),description=container.querySelector('[data-amb-profile-description]');if(title)title.textContent='Recomienda ICADEM y gana '+money(c.commissionCents)+' MXN';if(description)description.textContent='Comparte tu código: tu invitado ahorra '+money(c.discountCents)+' MXN en su primera membresía elegible y tú recibes una recompensa.';if(data.registered){button.firstChild.textContent='Ir a mi panel de Embajador ';button.dataset.registered='1';setMemberNav(true);}}catch(_){}
+    return window.ICADEMAmbassadorPromo?.mountProfile(container);
   }
 
   async function showInfo(){
@@ -207,5 +206,5 @@
 
   captureRef();
   document.addEventListener('icadem:user-ready',function(){sessionGeneration+=1;cache=null;cacheAt=0;activeView='dashboard';setMemberNav(false);claimStoredRef();syncMemberNav();});
-  window.ICADEMAmbassadors={render:render,syncInvite:syncInvite,showInfo:showInfo,claimStoredRef:claimStoredRef};
+  window.ICADEMAmbassadors={render:render,syncInvite:syncInvite,showInfo:showInfo,claimStoredRef:claimStoredRef,getSummary:load};
 })();

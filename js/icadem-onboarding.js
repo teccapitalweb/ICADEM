@@ -188,7 +188,7 @@
   function installEntryPoints(){const topbar=document.querySelector('.topbar__right');if(topbar&&!document.getElementById('icadem-tour-help')){const button=document.createElement('button');button.id='icadem-tour-help';button.className='icon-btn ica-tour-help';button.type='button';button.textContent='?';button.title='Recorrido por ICADEM';button.setAttribute('aria-label','Repetir recorrido guiado');button.addEventListener('click',()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}));topbar.insertBefore(button,topbar.firstChild);}const profile=document.querySelector('.perfil-hero');if(profile&&!document.getElementById('icadem-tour-profile')){const button=document.createElement('button');button.id='icadem-tour-profile';button.className='btn btn--ghost ica-tour-profile-btn';button.type='button';button.textContent='Repetir recorrido';button.addEventListener('click',()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}));profile.appendChild(button);}}
   function blockingDialogOpen(){
     const selectors = [
-      '#splash-bienvenida','#name-modal','#icadem-credit-gift','#free-course-intro',
+      'dialog.amb-promo-dialog[open]','#splash-bienvenida','#name-modal','#icadem-credit-gift','#free-course-intro',
       '.modal-backdrop.is-open','.paywall-modal.is-open','.credit-wallet-modal',
       '.learning-game','.practice-picker--v3','#tpl-modal-overlay.tpl-modal-visible',
       '.mobile-drawer.is-open','#visorOverlay','#foro-lightbox','#cf-modal',
@@ -319,6 +319,7 @@
         await waitForGone('#name-modal');
         return;
       }
+      if(job.id==='ambassador-invite'){await window.ICADEMAmbassadorPromo?.openAutomatic();return;}
       if(job.id==='install'){if(!tourWasSeen()||visitCount()<3)return;await openInstallInvitation();}
     }
     async function pump(){
