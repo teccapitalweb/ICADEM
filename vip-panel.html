@@ -27,6 +27,8 @@
 <script src="js/icadem-platform-v2.js?v=47" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=3" defer></script>
+<script src="js/icadem-ambassadors.js?v=1" defer></script>
+<link rel="stylesheet" href="css/ambassadors.css?v=1">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
      Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
      privadas y nunca concede acceso a una clase. -->
@@ -4663,6 +4665,7 @@ window.__setDisplayName = async (nombre) => {
     <div class="nav-section nav-section--account">
       <div class="nav-label">Mi cuenta</div>
       <a class="nav-item" data-section="soporte"><svg class="ic"><use href="#i-messages"/></svg>Soporte privado</a>
+      <a class="nav-item" data-section="embajadores" id="nav-ambassadors" hidden><svg class="ic"><use href="#i-gift"/></svg>Mis referidos</a>
       <div class="account-dock">
         <a class="account-dock__membership" data-section="suscripcion">
           <span class="account-dock__membership-icon"><svg class="ic"><use href="#i-crown"/></svg></span>
@@ -4877,6 +4880,7 @@ window.__setDisplayName = async (nombre) => {
         <div class="mobile-drawer__label">Mi cuenta</div>
         <div class="account-dock account-dock--mobile">
           <a class="mobile-drawer__item" data-section="soporte"><svg class="ic"><use href="#i-messages"/></svg>Soporte privado</a>
+          <a class="mobile-drawer__item" data-section="embajadores" id="drawer-nav-ambassadors" hidden><svg class="ic"><use href="#i-gift"/></svg>Mis referidos</a>
           <a class="account-dock__membership mobile-drawer__item" data-section="suscripcion"><span class="account-dock__membership-icon"><svg class="ic"><use href="#i-crown"/></svg></span><span>Gestionar membresía</span><svg class="ic account-dock__arrow"><use href="#i-arrow-right"/></svg></a>
           <a class="account-dock__identity mobile-drawer__item" data-section="perfil"><span class="account-dock__avatar" id="drawer-account-avatar">IN</span><span class="account-dock__copy"><strong id="drawer-account-name">Miembro ICADEM</strong><small id="drawer-account-plan">VIP ANUAL</small></span><svg class="ic account-dock__edit"><use href="#i-edit"/></svg></a>
           <a class="account-dock__logout nav-item--logout" id="drawer-logout-btn"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
@@ -12228,6 +12232,13 @@ const Sections = (function(){
     if (typeof window.__refreshPerfilDatos==='function') window.__refreshPerfilDatos();
     // Interruptor para activar o quitar los avisos en el teléfono (js/icadem-push.js)
     window.ICADEMPush?.montarInterruptor(container);
+    window.ICADEMAmbassadors?.syncInvite(container);
+  }
+
+  /* ============================ ICADEM EMBAJADORES ============================ */
+  function renderEmbajadores(container){
+    if(window.ICADEMAmbassadors?.render) window.ICADEMAmbassadors.render(container);
+    else container.innerHTML='<div class="amb-loading"><div><div class="amb-loading__spin"></div><strong>Preparando ICADEM Embajadores…</strong></div></div>';
   }
 
   /* ============================ SUSCRIPCIÓN ============================ */
@@ -12925,6 +12936,7 @@ const Sections = (function(){
       directorio:renderDirectorio,
       canal:renderCanal,
       perfil:renderPerfil,
+      embajadores:renderEmbajadores,
       suscripcion:renderSuscripcion,
       'tool-calc-fiscal':(c)=>window.ToolCalcFiscal.mount(c),
       'tool-calc-nomina':(c)=>window.ToolCalcNomina.mount(c),
@@ -13987,39 +13999,14 @@ function initNav(){
     // Cambiar contraseña
     if(t.closest('#btn-change-pass')){ openPasswordResetModal(); return; }
 
-    // Fase 1 de Embajadores: invitación informativa, sin escrituras ni procesos económicos.
+    // ICADEM Embajadores: el backend decide alta, atribución y saldos reales.
     if(t.closest('#btn-ambassador-interest')){
-      Modal.open({
-        id:'ambassador-coming-soon',
-        title:'ICADEM Embajadores',
-        subtitle:'Estamos preparando tu experiencia',
-        icon:'i-gift',
-        size:'sm',
-        body:`<p style="color:var(--text-2);font-size:13px;line-height:1.65;margin:0;">El programa se habilitará en una siguiente etapa, después de validar precios, pagos y reglas de seguridad. Por ahora no se creó ningún código, comisión ni registro en tu cuenta.</p>`,
-        footer:`<button class="btn btn--accent" onclick="Modal.close('ambassador-coming-soon')">Entendido</button>`
-      });
+      navigateToSection('embajadores');
       return;
     }
 
     if(t.closest('#btn-ambassador-learn')){
-      Modal.open({
-        id:'ambassador-how-it-works',
-        title:'¿Cómo funcionará?',
-        subtitle:'Condiciones previstas del programa',
-        icon:'i-info',
-        size:'sm',
-        body:`<div style="color:var(--text-2);font-size:12.5px;line-height:1.6;">
-          <p style="margin:0 0 12px;">Cuando el programa esté disponible, cada embajador tendrá un código y un enlace personal para compartir.</p>
-          <ol style="margin:0;padding-left:18px;display:grid;gap:7px;">
-            <li>Una persona nueva accede mediante ese código o enlace.</li>
-            <li>La persona compra una membresía elegible.</li>
-            <li>El pago se valida durante 7 días antes de liberar la recompensa.</li>
-            <li>Las comisiones aprobadas podrán solicitarse por transferencia bancaria.</li>
-          </ol>
-          <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:11px;">El programa aún no está activo. Estas condiciones son informativas y pueden ajustarse antes de su lanzamiento; no se generó ningún código, comisión ni registro.</p>
-        </div>`,
-        footer:`<button class="btn btn--accent" onclick="Modal.close('ambassador-how-it-works')">Entendido</button>`
-      });
+      window.ICADEMAmbassadors?.showInfo();
       return;
     }
 

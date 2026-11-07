@@ -857,6 +857,40 @@ try {
   console.warn('[auth recovery]', error.message);
 }
 
+const AMBASSADOR_REF_KEY = 'icadem:ambassador:ref';
+function captureAmbassadorRef() {
+  try {
+    const code = String(new URLSearchParams(window.location.search).get('ref') || '').trim().toUpperCase();
+    if (/^[A-Z0-9]{3,8}-[A-Z0-9]{4,8}$/.test(code)) {
+      localStorage.setItem(AMBASSADOR_REF_KEY, JSON.stringify({ code, capturedAt: Date.now() }));
+    }
+  } catch (_) {}
+}
+captureAmbassadorRef();
+
+async function claimAmbassadorAttribution(user) {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AMBASSADOR_REF_KEY) || 'null');
+    if (!saved?.code || Date.now() - Number(saved.capturedAt || 0) > 30 * 86400000) {
+      if (saved) localStorage.removeItem(AMBASSADOR_REF_KEY);
+      return null;
+    }
+    const idToken = await user.getIdToken();
+    const response = await fetch(`${IDENTITY_API}/api/ambassadors/attribute`, {
+      method:'POST',
+      headers:{ Authorization:`Bearer ${idToken}`, 'Content-Type':'application/json' },
+      body:JSON.stringify({ code:saved.code, source:'auth-referral-link' })
+    });
+    const data = await response.json().catch(() => ({}));
+    if (response.ok) localStorage.removeItem(AMBASSADOR_REF_KEY);
+    else if ([400,404,409].includes(response.status)) localStorage.removeItem(AMBASSADOR_REF_KEY);
+    return response.ok ? data : null;
+  } catch (error) {
+    console.warn('[ambassador attribution]', error.message);
+    return null;
+  }
+}
+
 function destinoSeguro(isAdmin) {
   if (isAdmin) return 'vip-admin.html';
   const params = new URLSearchParams(window.location.search);
@@ -965,6 +999,7 @@ onAuthStateChanged(auth, async (user) => {
       // después reconstruimos el perfil de Firestore para la identidad vigente.
       await syncCentralIdentity(user);
       await ensureMiembroDoc(user, user.displayName, 'login-web');
+      await claimAmbassadorAttribution(user);
     } catch (error) {
       if (isDeletedAccountError(error)) {
         await returnToFreshRegistration();
@@ -972,6 +1007,7 @@ onAuthStateChanged(auth, async (user) => {
       }
       console.warn('[identity bootstrap]', error.message);
       await ensureMiembroDoc(user, user.displayName, 'login-web');
+      await claimAmbassadorAttribution(user);
     }
     try { localStorage.setItem('icadem_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}
     const isAdmin = ADMINS.includes((user.email || "").toLowerCase());
