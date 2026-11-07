@@ -1,0 +1,22 @@
+// ICADEM Connect · fragmento para integrar en las reglas Firestore de producción.
+//
+// Igual que `firestore.courses.rules.fragment`: NO se despliega solo, se fusiona
+// con el ruleset vigente del proyecto. Firebase Admin (Railway) omite estas reglas.
+// Todas las colecciones de ICADEM Connect se leen y escriben únicamente desde el
+// backend (`/api/connect/*`, `/admin/connect/*`); el navegador no debe tocarlas.
+
+match /connectRelations/{pairId} { allow read, write: if false; }
+match /connectEdges/{uid}/{document=**} { allow read, write: if false; }
+match /connectQuota/{uid} { allow read, write: if false; }
+match /connectNotifications/{uid}/{document=**} { allow read, write: if false; }
+match /connectReports/{reportId} { allow read, write: if false; }
+match /connectAudit/{eventId} { allow read, write: if false; }
+match /config/connect { allow read, write: if false; }
+
+// La tarjeta del directorio contiene medios de contacto privados. El panel ya
+// consume `/api/directory` y `/api/connect/*` (campos filtrados en servidor) y
+// solo lee su propia tarjeta con el SDK; el admin la lee para moderación.
+match /directorio/{uid} {
+  allow read: if request.auth != null && (request.auth.uid == uid || isIcademCourseAdmin());
+  allow write: if false;
+}

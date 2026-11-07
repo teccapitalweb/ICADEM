@@ -1,5 +1,20 @@
 # CAMBIOS
 
+## 2026-11-06 — ICADEM Connect · red profesional sobre el Directorio VIP
+
+**Archivos:** `vip-panel.html`, `vip-admin.html`, `sw.js`, `js/icadem-connect.js` (nuevo), `css/icadem-connect.css` (nuevo), `js/icadem-admin-connect.js` (nuevo), `firestore.connect.rules.fragment` (nuevo); backend `icadem-webhook`: `connect.js` (nuevo), `index.js`, `test/connect.test.js` (nuevo), `test/helpers/fake-firestore.js` (nuevo), `README.md`
+
+- Directorio VIP → **ICADEM Connect** ("Tu red de contactos profesionales") con tres pestañas: Explorar profesionales, Mis conexiones y Solicitudes (recibidas / enviadas / pendientes). La opción del menú conserva el nombre "Directorio VIP".
+- Misma tarjeta y misma foto del directorio (`directorio/{uid}`): no se creó otra ficha ni otro campo de fotografía; cambiar la foto en la tarjeta se refleja en Connect al instante. Los VIP siguen listados primero y con distintivo.
+- Perfil tipo CV virtual: Acerca de mí, experiencia profesional, formación académica, habilidades (etiquetas), formación en ICADEM (cursos completados y certificados reales de la cuenta, opcionales) y medios de contacto (WhatsApp, Instagram, LinkedIn, Facebook, correo, sitio web) con alcance por medio: público / solo conexiones / oculto.
+- Solicitudes de conexión: Conectar → Solicitud enviada → Responder solicitud → Conectados; aceptar, rechazar, cancelar y eliminar conexión. Una sola relación por par de cuentas (sin duplicados ni solicitudes cruzadas). Sin chat ni mensajes: "Contactar" solo muestra los medios externos autorizados.
+- Límites diarios configurables desde Admin → ICADEM Connect (gratuitos 2, VIP 10, zona horaria America/Mexico_City). El servidor los aplica en una transacción; cancelar no devuelve cupo. El panel muestra cuántas solicitudes quedan hoy.
+- Privacidad: mostrar/ocultar en búsquedas (mismo campo `visible` de la tarjeta), aceptar solicitudes, ubicación, empresa, formación académica, cursos y certificados. Bloqueo de usuarios y reporte de perfiles (moderación en admin). Acciones sensibles en `connectAudit`.
+- Contactos: regla segura que respeta el beneficio VIP actual. Los VIP ven los medios marcados "público"; una conexión aceptada habilita "público" + "solo conexiones"; una cuenta gratuita sin conexión no recibe ningún enlace. Todo se decide en el backend (`/api/connect/contact/:uid`); el navegador nunca recibe enlaces privados.
+- Notificaciones: avisos personales de Connect en la campana del panel (al tocarlos abren la pestaña correspondiente) y push al teléfono con el sistema existente.
+- `sw.js`: caché v100 con los nuevos archivos.
+- Pendiente (Firebase Console): fusionar `firestore.connect.rules.fragment` para negar lectura cliente a `connectRelations`, `connectEdges`, `connectQuota`, `connectNotifications`, `connectReports`, `connectAudit` y `config/connect`, y limitar la lectura de `directorio` a la propia tarjeta (el panel ya consume `/api/directory` y `/api/connect/*`).
+
 ## 2026-11-06 — Grabaciones de clases en vivo y avisos automáticos
 
 **Archivos:** `vip-admin.html`, `vip-panel.html`, `sw.js`; backend `icadem-webhook`: `index.js`, `webinar-alerts.js` (nuevo), `test/webinar-alerts.test.js` (nuevo)
