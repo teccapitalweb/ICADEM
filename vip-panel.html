@@ -30,6 +30,9 @@
 <script src="js/icadem-referral.js?v=1"></script>
 <script src="js/icadem-ambassadors.js?v=4" defer></script>
 <link rel="stylesheet" href="css/ambassadors.css?v=3">
+<!-- ICADEM Connect · red profesional sobre el Directorio VIP -->
+<link rel="stylesheet" href="css/icadem-connect.css?v=1">
+<script src="js/icadem-connect.js?v=1" defer></script>
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
      Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
      privadas y nunca concede acceso a una clase. -->
@@ -11301,6 +11304,13 @@ const Sections = (function(){
   }
 
   function renderDirectorio(container){
+    // ICADEM Connect (js/icadem-connect.js) reemplaza la vista del directorio
+    // reutilizando las mismas tarjetas, fotos y datos. Si el módulo no cargó,
+    // se conserva el directorio clásico como respaldo.
+    if (window.ICADEMConnect && typeof window.ICADEMConnect.render === 'function') {
+      window.ICADEMConnect.render(container);
+      return;
+    }
     const puedeEditar = window.UserState?.modo!=='invitado' && !!window.UserState?.uid;
     _dirFiltroSector = 'todos';
     _dirFiltroTier = 'todos';
@@ -13555,7 +13565,9 @@ function setupNotificacionesListener(intento = 0) {
         };
       });
       // Usar SIEMPRE las notif reales de Firestore (aunque esté vacío · ahí el empty state se ve)
-      window.__notifsState.items = items;
+      // + los avisos personales de ICADEM Connect (se mezclan por fecha).
+      const connectItems = (window.__notifsState.items || []).filter(n => String(n.id).startsWith('cx-'));
+      window.__notifsState.items = [...connectItems, ...items].sort((a,b)=>b.createdAtMs-a.createdAtMs);
       window.__notifsState.loaded = true;
       window.__notifsState.source = 'firestore';
       window.__notifsState.starting = false;
@@ -13700,7 +13712,7 @@ function toggleNotifDropdown(){
     bodyHTML = notifs.map(n => {
       const esNueva = !leidas.has(n.id);
       return `
-        <div class="notif-item" style="display:flex;gap:11px;padding:11px 12px;border-radius:9px;cursor:pointer;transition:background .15s;align-items:flex-start;text-align:left;${esNueva?'background:color-mix(in srgb,'+n.color+' 5%,transparent);':''}">
+        <div class="notif-item" data-notif-id="${n.id}" style="display:flex;gap:11px;padding:11px 12px;border-radius:9px;cursor:pointer;transition:background .15s;align-items:flex-start;text-align:left;${esNueva?'background:color-mix(in srgb,'+n.color+' 5%,transparent);':''}">
           <div style="width:32px;height:32px;border-radius:8px;background:color-mix(in srgb,${n.color} 14%,transparent);color:${n.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg class="ic" style="width:16px;height:16px;"><use href="#${n.icono}"/></svg></div>
           <div style="flex:1;min-width:0;text-align:left;">
             <div style="font-size:12.5px;font-weight:600;color:var(--text);line-height:1.35;display:flex;align-items:center;gap:6px;text-align:left;">${n.titulo} ${esNueva?'<span style="width:6px;height:6px;border-radius:50%;background:'+n.color+';flex-shrink:0;"></span>':''}</div>
@@ -13724,6 +13736,16 @@ function toggleNotifDropdown(){
   dd.querySelectorAll('.notif-item').forEach(el=>{
     el.addEventListener('mouseenter',()=>el.style.background='var(--surface-2)');
     el.addEventListener('mouseleave',()=>el.style.background='transparent');
+    // Avisos de ICADEM Connect: al tocarlos se abre la pestaña correspondiente.
+    el.addEventListener('click',(e)=>{
+      if (e.target.closest('.notif-del-btn')) return;
+      const item = notifs.find(n => n.id === el.dataset.notifId);
+      if (!item || !String(item.id).startsWith('cx-')) return;
+      marcarNotifsLeidas([item.id]);
+      actualizarBadgeNotif();
+      cerrarNotifDropdown();
+      if (window.ICADEMConnect && typeof window.ICADEMConnect.abrirDesdeNotificacion === 'function') window.ICADEMConnect.abrirDesdeNotificacion(item);
+    });
   });
 
   // repinta el dropdown desde cero (refleja empty state, contador y footer)
