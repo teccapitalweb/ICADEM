@@ -27,8 +27,9 @@
 <script src="js/icadem-platform-v2.js?v=47" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=3" defer></script>
-<script src="js/icadem-ambassadors.js?v=1" defer></script>
-<link rel="stylesheet" href="css/ambassadors.css?v=1">
+<script src="js/icadem-referral.js?v=1"></script>
+<script src="js/icadem-ambassadors.js?v=2" defer></script>
+<link rel="stylesheet" href="css/ambassadors.css?v=2">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
      Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
      privadas y nunca concede acceso a una clase. -->
@@ -3191,6 +3192,21 @@ body.has-fomo .main{padding-top:18px}
   color:var(--primary);font-feature-settings:"tnum" 1;letter-spacing:-.5px;line-height:1;
 }
 .plan-picker__price-sub{font-size:10.5px;color:var(--text-3);margin-top:3px;letter-spacing:.4px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;font-weight:600}
+.sub-referral{max-width:620px;margin:24px auto;padding:20px;border:1px solid var(--border-2);border-radius:16px;background:var(--surface)}
+.sub-referral label{display:block;font-size:13px;font-weight:750;color:var(--text);margin-bottom:6px}
+.sub-referral__help{font-size:12px;line-height:1.6;color:var(--text-2);margin:0 0 12px}
+.sub-referral__row{display:flex;gap:10px;align-items:stretch}
+.sub-referral input{min-width:0;flex:1;padding:12px 13px;background:var(--surface-2);border:1px solid var(--border-2);border-radius:10px;font-size:14px;letter-spacing:.04em;text-transform:uppercase}
+.sub-referral input:focus{outline:2px solid var(--primary);outline-offset:2px}
+.sub-referral__apply{padding:12px 20px;background:#0B2F73;color:white;border-radius:10px;font-size:12px;font-weight:750}
+.sub-referral__apply:disabled{opacity:.6;cursor:wait}
+.sub-referral__remove{display:inline-block;margin-top:10px;color:var(--text-2);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.sub-referral__remove[hidden]{display:none}
+.sub-referral__summary{margin-top:13px;padding:13px;border-radius:10px;background:var(--surface-2);color:var(--text-2);font-size:12px;line-height:1.65}
+.sub-referral__summary:empty{display:none}
+.sub-referral__summary strong{color:var(--text)}
+.sub-referral__summary.is-error{color:var(--danger)}
+@media(max-width:430px){.sub-referral{padding:16px}.sub-referral__row{flex-direction:column}.sub-referral__apply{width:100%}}
 
 /* ─── Stripe Embedded Checkout container ─── */
 #sub-checkout-mount{
@@ -12181,8 +12197,8 @@ const Sections = (function(){
         <section class="ambassador-invite" aria-labelledby="ambassador-invite-title">
           <div class="ambassador-invite__intro">
             <div class="ambassador-invite__eyebrow">Programa ICADEM Embajadores</div>
-            <h2 id="ambassador-invite-title">Recomienda ICADEM y gana $100 MXN</h2>
-            <p>Comparte tu enlace personal y recibe una recompensa por cada nueva membresía elegible.</p>
+            <h2 id="ambassador-invite-title" data-amb-profile-title>Recomienda ICADEM y gana $150 MXN</h2>
+            <p data-amb-profile-description>Comparte tu código: tu invitado recibe un descuento y tú una recompensa por cada nueva membresía elegible.</p>
           </div>
           <div class="ambassador-invite__action">
             <button class="ambassador-invite__button" id="btn-ambassador-interest" type="button">Quiero ser embajador <svg class="ic"><use href="#i-arrow-right"/></svg></button>
@@ -12283,7 +12299,7 @@ const Sections = (function(){
 
   /* ─── Estado: SIN membresía (logueado pero no pagó) o INVITADO (demo) ─── */
   async function renderSuscripcionActivar(container, S){
-    const intentPlan = localStorage.getItem('icadem_intent_plan') || 'anual';
+    const intentPlan = localStorage.getItem('icadem_intent_plan') === 'mensual' ? 'mensual' : 'anual';
     const isInvitado = S.modo === 'invitado';
     const offerCode = (new URLSearchParams(location.search).get('offer') || '').trim().toUpperCase().slice(0, 80);
     // MODIFICADO: precios dinámicos · null = no se pudo leer → se pinta "$—"
@@ -12349,6 +12365,17 @@ const Sections = (function(){
             </button>
           </div>
 
+          <form class="sub-referral" id="sub-referral-form">
+            <label for="sub-referral-code">¿Tienes un código de embajador?</label>
+            <p class="sub-referral__help">Aplícalo aquí antes de pagar. El descuento es para tu primer pago de una nueva membresía; no se acumula con otras promociones.</p>
+            <div class="sub-referral__row">
+              <input id="sub-referral-code" name="ambassadorCode" type="text" maxlength="24" placeholder="Ejemplo: BRI-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="sub-referral-summary">
+              <button type="submit" class="sub-referral__apply">Aplicar código</button>
+            </div>
+            <button type="button" class="sub-referral__remove" id="sub-referral-remove" hidden>Quitar código</button>
+            <div class="sub-referral__summary" id="sub-referral-summary" role="status" aria-live="polite"></div>
+          </form>
+
           <!-- Stripe Embedded Checkout container -->
           <div id="sub-checkout-mount">
             <div class="sub-loading">
@@ -12371,6 +12398,30 @@ const Sections = (function(){
     // ─── Lógica del selector de plan + Stripe Embedded ───
     let selectedPlan = intentPlan;
     const mountEl = document.getElementById('sub-checkout-mount');
+    const referralForm = document.getElementById('sub-referral-form');
+    const referralInput = document.getElementById('sub-referral-code');
+    const referralSummary = document.getElementById('sub-referral-summary');
+    const removeReferral = document.getElementById('sub-referral-remove');
+    let ambassadorCode = offerCode ? '' : (window.ICADEMReferral?.savedCode() || '');
+    let ignoreAmbassador = false;
+    let checkoutGeneration = 0;
+    let checkoutAbort = null;
+    referralInput.value = ambassadorCode;
+    referralForm.addEventListener('submit', event => {
+      event.preventDefault();
+      const code = referralInput.value.trim().toUpperCase().replace(/\s+/g,'');
+      if (!code) { referralInput.focus(); return; }
+      ambassadorCode = code;
+      ignoreAmbassador = false;
+      referralInput.value = code;
+      mountStripeCheckout();
+    });
+    removeReferral.addEventListener('click', () => {
+      ambassadorCode = '';
+      ignoreAmbassador = true;
+      referralInput.value = '';
+      mountStripeCheckout();
+    });
 
     // Destruir cualquier checkout previo que haya quedado vivo de un render anterior
     // (al salir y volver a la pestaña, esta función se re-ejecuta; la instancia
@@ -12393,51 +12444,99 @@ const Sections = (function(){
     });
 
     async function mountStripeCheckout(){
+      const generation = ++checkoutGeneration;
+      const requestedPlan = selectedPlan;
+      const requestedCode = ambassadorCode;
+      const button = referralForm.querySelector('button[type="submit"]');
+      checkoutAbort?.abort();
+      checkoutAbort = new AbortController();
+      const abortSignal = checkoutAbort.signal;
+      const isCurrent = () => generation === checkoutGeneration && document.getElementById('sub-checkout-mount') === mountEl;
+      button.disabled = true;
+      referralSummary.classList.remove('is-error');
+      referralSummary.textContent = requestedCode ? 'Validando tu código y calculando el importe…' : '';
+      removeReferral.hidden = !requestedCode;
       if (window.__icademCheckout) {
         try { window.__icademCheckout.destroy(); } catch(e) {}
         window.__icademCheckout = null;
       }
-      mountEl.innerHTML = `<div class="sub-loading"><div class="sub-loading__spin"></div><div>Cargando plan ${selectedPlan}…</div></div>`;
+      mountEl.innerHTML = `<div class="sub-loading"><div class="sub-loading__spin"></div><div>Cargando plan ${requestedPlan}…</div></div>`;
       try {
         const idToken = await window.__currentUser?.getIdToken();
         if (!idToken) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
         const res = await fetch(`${window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app'}/stripe/checkout`, {
           method:'POST',
+          signal:abortSignal,
           headers:{'Content-Type':'application/json', Authorization:`Bearer ${idToken}`},
-          body: JSON.stringify({ plan: selectedPlan, promotionCode: offerCode || undefined })
+          body: JSON.stringify({ plan: requestedPlan, promotionCode: requestedCode ? undefined : (offerCode || undefined), ambassadorCode: requestedCode || undefined, ignoreAmbassador, visitorId: window.ICADEMReferral?.visitorId() })
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({error:'Error desconocido'}));
           throw new Error(err.error || `HTTP ${res.status}`);
         }
-        const { clientSecret } = await res.json();
+        const { clientSecret, referral, pricing } = await res.json();
+        if (!isCurrent()) return;
         if (!clientSecret) throw new Error('No recibimos clientSecret');
+        if (Number.isSafeInteger(pricing?.originalAmountCents) && pricing.originalAmountCents > 0) {
+          document.querySelectorAll('#plan-picker .plan-picker__card').forEach(card => {
+            if (card.dataset.plan === requestedPlan) {
+              const priceLabel = card.querySelector('.plan-picker__price');
+              if (priceLabel) priceLabel.textContent = fmtPrecioVIP(pricing.originalAmountCents / 100);
+            }
+          });
+        }
+        if (referral) {
+          ambassadorCode = String(referral.code || requestedCode);
+          referralInput.value = ambassadorCode;
+          removeReferral.hidden = false;
+          const amount = cents => new Intl.NumberFormat('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:2}).format(Number(cents)/100);
+          referralSummary.innerHTML = `<strong>Código ${escapeHtml(ambassadorCode)} aplicado</strong><br>Descuento: ${escapeHtml(amount(referral.discountCents))} MXN · Primer pago: <strong>${escapeHtml(amount(referral.totalAmountCents))} MXN</strong><br>Después, ${escapeHtml(amount(referral.originalAmountCents))} MXN por ${requestedPlan === 'mensual' ? 'mes' : 'año'}, según el plan contratado. Revisa el desglose final en Stripe antes de confirmar.`;
+        } else {
+          removeReferral.hidden = true;
+          referralSummary.textContent = offerCode ? 'Se aplicará la promoción de tu enlace, sin acumular otro descuento.' : 'Puedes introducir un código de embajador antes de completar el pago.';
+        }
         if (!window.__stripe) {
           if (!window.Stripe) throw new Error('Stripe.js no cargó');
           window.__stripe = window.Stripe('pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b');
         }
         // El elemento del DOM pudo haber cambiado al re-renderizar; re-obtenerlo
         const liveMount = document.getElementById('sub-checkout-mount');
-        if (!liveMount) return; // el usuario ya salió de la sección
+        if (!isCurrent()) return; // el usuario ya salió o seleccionó otro plan
         liveMount.innerHTML = '';
-        window.__icademCheckout = await window.__stripe.initEmbeddedCheckout({ clientSecret });
+        // Stripe permite una sola inicialización embebida a la vez. Esperar a
+        // la anterior evita errores al cambiar de plan durante su carga.
+        if (window.__icademCheckoutInitializing) {
+          await window.__icademCheckoutInitializing.catch(() => {});
+          if (!isCurrent()) return;
+        }
+        const initializing = window.__stripe.initEmbeddedCheckout({ clientSecret });
+        window.__icademCheckoutInitializing = initializing;
+        let checkout;
+        try { checkout = await initializing; }
+        finally { if (window.__icademCheckoutInitializing === initializing) window.__icademCheckoutInitializing = null; }
         // Verificar que seguimos en la sección antes de montar
-        if (!document.getElementById('sub-checkout-mount')) {
-          try { window.__icademCheckout.destroy(); } catch(e) {}
-          window.__icademCheckout = null;
+        if (!isCurrent()) {
+          try { checkout.destroy(); } catch(e) {}
           return;
         }
-        window.__icademCheckout.mount('#sub-checkout-mount');
+        window.__icademCheckout = checkout;
+        checkout.mount('#sub-checkout-mount');
       } catch (err) {
+        if (err.name === 'AbortError' || !isCurrent()) return;
         console.error('Checkout error:', err);
+        referralSummary.classList.add('is-error');
+        referralSummary.textContent = err.message || 'No fue posible validar el pago. Inténtalo de nuevo.';
+        removeReferral.hidden = !ambassadorCode;
         const liveMount = document.getElementById('sub-checkout-mount');
         if (liveMount) liveMount.innerHTML = `
           <div style="padding:24px 20px;text-align:center;color:var(--text-2);font-size:13px;line-height:1.6;">
             <div style="color:var(--danger);font-weight:700;margin-bottom:6px;">No pudimos cargar el checkout</div>
-            <div>${err.message}</div>
+            <div>${escapeHtml(err.message)}</div>
             <div style="margin-top:14px;font-size:11.5px;color:var(--text-3);">Verifica tu conexión. Si el problema persiste, contáctanos por WhatsApp.</div>
           </div>
         `;
+      } finally {
+        if (isCurrent()) button.disabled = false;
       }
     }
     mountStripeCheckout();
