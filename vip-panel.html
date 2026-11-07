@@ -7422,28 +7422,24 @@ const Sections = (function(){
       const vista = progCurso.clasesVistas.includes(numSes);
       const abierta = claseDesbloqueada(cursoId, i, sesiones);
       const gratis = typeof esClaseGratisGlobal === 'function' ? esClaseGratisGlobal(cursoId, i) : false;
-      const enfoqueClase = [42,58,68,35,52,62,45,72,28,56][i % 10];
       const porProgreso = claseBloqueadaPorProgreso(cursoId, i, sesiones);
-      const estadoClase = vista ? 'Clase completada' : abierta ? (gratis ? 'Acceso gratuito' : 'Disponible ahora') : porProgreso ? 'Completa la anterior' : 'Próxima clase';
+      const estadoClase = vista ? 'Completada' : abierta ? (gratis ? 'Acceso gratuito' : 'Disponible') : porProgreso ? 'En secuencia' : 'Con membresía';
       const detalle = vista
         ? 'Completada · vuelve a verla cuando quieras'
         : abierta
           ? (gratis ? 'Clase gratuita · lista para comenzar' : 'Disponible ahora')
           : porProgreso ? 'Supera el mini juego anterior para desbloquearla' : 'Contenido bloqueado · activa tu membresía';
-      const iconCover = vista ? 'i-check' : abierta ? 'i-play' : 'i-shield-check';
-      const iconAction = abierta ? 'i-arrow-right' : 'i-shield-check';
+      const iconAction = vista ? 'i-check' : abierta ? 'i-play' : 'i-shield-check';
+      const esSiguiente = abierta && !vista && i === siguienteClase;
       const tituloEsc = htmlEsc(s.titulo || `Clase ${numSes}`);
-      return `<button type="button" class="course-lesson ${vista?'is-complete':''} ${!abierta?'is-locked':''}" onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
-        <span class="course-lesson__cover" style="background-image:linear-gradient(135deg,rgba(10,15,35,.14),rgba(10,15,35,.72)),url('${portada}');background-position:center ${enfoqueClase}%">
-          <b>${String(numSes).padStart(2,'0')}</b>
-          <span><svg class="ic"><use href="#${iconCover}"/></svg></span>
-        </span>
+      return `<button type="button" class="course-lesson ${vista?'is-complete':''} ${!abierta?'is-locked':''} ${esSiguiente?'is-next':''}" onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${i})" data-bypass-paywall="true">
+        <span class="course-lesson__number" aria-hidden="true">${String(numSes).padStart(2,'0')}</span>
         <span class="course-lesson__copy">
-          <em>${estadoClase}</em>
+          <em>${esSiguiente ? 'Tu siguiente clase' : estadoClase}</em>
           <strong>${tituloEsc}</strong>
           <small>${detalle}</small>
         </span>
-        <span class="course-lesson__action"><svg class="ic"><use href="#${iconAction}"/></svg></span>
+        <span class="course-lesson__action"><svg class="ic"><use href="#${iconAction}"/></svg><span>${vista ? 'Repasar' : abierta ? 'Ver clase' : 'Bloqueada'}</span></span>
       </button>`;
     }).join('') : `<div class="course-detail-empty">Las clases de este curso se están preparando. Vuelve pronto.</div>`;
 
@@ -7474,10 +7470,11 @@ const Sections = (function(){
       const openAttr = disponible
         ? ` onclick="window.abrirVisor('${urlAttr}','${tituloAttr}')" data-bypass-paywall="true"`
         : '';
-      return `<article class="course-material ${!disponible?'is-locked':''}"${openAttr}>
-        <span class="course-material__icon"><svg class="ic"><use href="#${disponible?'i-news':'i-shield-check'}"/></svg></span>
-        <span class="course-material__copy"><strong>${tituloEsc}</strong><small>${tipoLbl} · ${estadoLbl}</small></span>
-        ${disponible ? `<button type="button" class="course-material__download" title="Abrir material" aria-label="Abrir ${tituloAttr}" onclick="event.stopPropagation();window.abrirVisor('${urlAttr}','${tituloAttr}')" data-bypass-paywall="true"><svg class="ic"><use href="#i-download"/></svg></button>` : ''}
+      const fileTone = tipoLbl === 'Excel' ? 'sheet' : tipoLbl === 'Presentación' ? 'slides' : tipoLbl === 'Word' ? 'document' : tipoLbl === 'Carpeta' ? 'folder' : 'pdf';
+      return `<article class="course-material ${!disponible?'is-locked':''}" data-file-type="${fileTone}"${openAttr}>
+        <span class="course-material__format"><span class="course-material__icon"><svg class="ic"><use href="#i-news"/></svg></span><span>${tipoLbl}</span></span>
+        <span class="course-material__copy"><strong>${tituloEsc}</strong><small>${estadoLbl}</small></span>
+        ${disponible ? `<button type="button" class="course-material__download" title="Abrir material" aria-label="Abrir ${tituloAttr}" onclick="event.stopPropagation();window.abrirVisor('${urlAttr}','${tituloAttr}')" data-bypass-paywall="true"><span>Abrir recurso</span><svg class="ic"><use href="#i-arrow-right"/></svg></button>` : `<span class="course-material__locked"><svg class="ic"><use href="#i-shield-check"/></svg>Requiere membresía</span>`}
       </article>`;
     }).join('') : `<div class="course-detail-empty">Este curso todavía no tiene archivos complementarios.</div>`;
 
@@ -7529,22 +7526,24 @@ const Sections = (function(){
     const layoutHtml = desbloqueado ? `<div class="course-detail-layout">
       <main class="course-detail-main">
         <section class="course-detail-section">
-          <div class="course-detail-section__head"><div><span>Ruta de aprendizaje</span><h3>Temario</h3></div><b>${vistas}/${sesiones.length}</b></div>
+          <div class="course-detail-section__head"><div><span>Ruta de aprendizaje</span><h3>Temario del curso</h3></div><b>${sesiones.length} clase${sesiones.length!==1?'s':''}</b></div>
           <div class="course-lessons">${clasesHtml}</div>
         </section>
         <section class="course-detail-section">
-          <div class="course-detail-section__head"><div><span>Recursos incluidos</span><h3>Material del curso</h3></div><b>${materialesCurso.length}</b></div>
+          <div class="course-detail-section__head"><div><span>Recursos incluidos</span><h3>Material del curso</h3></div><b>${materialesCurso.length} recurso${materialesCurso.length!==1?'s':''}</b></div>
           <p class="course-detail-section__intro">Abre cada archivo para verlo en pantalla. Los materiales adicionales se habilitan con la membresía.</p>
           <div class="course-materials">${materialesHtml}</div>
         </section>
       </main>
-      <aside class="course-detail-progress">
-        <span>Tu avance</span>
+      <aside class="course-detail-progress" aria-label="Tu avance en el curso">
+        <span>Tu aprendizaje</span>
         <div class="course-detail-progress__top">
-          <strong>${vistas} de ${sesiones.length} clases</strong>
-          <i style="--progress:${pct*3.6}deg"><b>${pct}%</b></i>
+          <strong>${pct >= 100 ? 'Curso completado' : vistas ? 'Sigue avanzando' : 'Todo empieza aquí'}</strong>
+          <i style="--progress:${pct*3.6}deg" aria-hidden="true"><b>${pct}%</b></i>
         </div>
-        <div class="course-detail-progress__bar"><i style="width:${pct}%"></i></div>
+        <p class="course-detail-progress__count"><b>${vistas}</b> de ${sesiones.length} clases completadas</p>
+        <div class="course-detail-progress__bar" role="progressbar" aria-label="Progreso del curso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+        ${sesiones.length ? `<div class="course-detail-progress__legend"><span><i></i>Completadas</span><span>${sesiones.length - vistas} pendientes</span></div>` : ''}
         <ul>
           <li><svg class="ic"><use href="#i-shield-check"/></svg>Certificado verificable al concluir</li>
           <li><svg class="ic"><use href="#i-book"/></svg>${materialesCurso.length} material${materialesCurso.length!==1?'es':''} dentro del curso</li>
@@ -22398,7 +22397,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-tools.css?v=1">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <link rel="stylesheet" href="css/icadem-directory.css?v=1">
-<link rel="stylesheet" href="css/icadem-course-detail.css?v=3">
+<link rel="stylesheet" href="css/icadem-course-detail.css?v=4">
 <script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>
