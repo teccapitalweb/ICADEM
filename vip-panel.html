@@ -7007,10 +7007,12 @@ const Sections = (function(){
   let webinars = [];
   let _webinarsLoaded = false;
   let _webinarsLoading = false;
+  let _webinarsPromise = null;
 
-  async function cargarWebinarsFirestore() {
-    if (_webinarsLoading) return;
+  function cargarWebinarsFirestore() {
+    if (_webinarsLoading) return _webinarsPromise;
     _webinarsLoading = true;
+    _webinarsPromise = (async () => {
     try {
       const db = window.__db;
       const fs = window.__fs;
@@ -7059,6 +7061,8 @@ const Sections = (function(){
     } finally {
       _webinarsLoading = false;
     }
+    })();
+    return _webinarsPromise;
   }
   window.__cargarWebinarsFirestore = cargarWebinarsFirestore;
   // Permite forzar re-carga después de que auth esté listo
@@ -10575,37 +10579,23 @@ const Sections = (function(){
   /* ============================ WEBINARS / CLASES EN VIVO ============================ */
   let webState={tab:'proximas'};
 
+  function renderLiveHeading(){
+    return `<header class="live-heading"><div><span class="live-eyebrow">ENCUENTROS ICADEM</span><h1>Clases en vivo</h1><p>Conecta con especialistas, amplía tu perspectiva y vuelve a las sesiones que te interesan.</p></div><span class="live-heading__mark"><svg class="ic" aria-hidden="true"><use href="#i-broadcast"/></svg>Online</span></header>`;
+  }
+  function renderLiveStandby(hasArchive){
+    return `<section class="live-standby" aria-label="Próximos encuentros"><div class="live-standby__copy"><span class="live-standby__label"><span></span>EL APRENDIZAJE CONTINÚA</span><h2>Un espacio para conectar.<br><span>Más ideas para crecer.</span></h2><p>Estamos preparando las próximas transmisiones. Aquí encontrarás las fechas y el acceso a cada encuentro.</p>${hasArchive?`<button class="btn live-archive-link" data-wtab="grabadas" aria-pressed="${webState.tab==='grabadas'}">Explorar sesiones anteriores<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>`:`<span class="live-standby__note">Aún no hay clases programadas</span>`}</div><div class="live-signal" aria-hidden="true"><i></i><i></i><i></i><div class="live-signal__core"><svg class="ic"><use href="#i-broadcast"/></svg></div><span>AULA ICADEM</span></div></section>`;
+  }
+
   async function renderWebinars(container){
     // Cargar de Firestore si aún no se cargó
-    if (!_webinarsLoaded && !_webinarsLoading) {
-      container.innerHTML = `
-        <div class="fade-up webinars-page--clean">
-          <div class="sec-hero">
-            <span class="sec-hero__eyebrow">Aprende en directo</span>
-            <h1 class="sec-hero__title">Clases en vivo</h1>
-          </div>
-        </div>`;
+    if (!_webinarsLoaded) {
+      container.innerHTML = `<div class="fade-up webinars-page--clean live-page">${renderLiveHeading()}<div class="live-loading" role="status">Cargando la agenda…</div></div>`;
       await cargarWebinarsFirestore();
     }
 
     // Sin webinars → empty state limpio
     if (webinars.length === 0) {
-      container.innerHTML = `
-        <div class="fade-up webinars-page--clean">
-          <div class="sec-hero">
-            <span class="sec-hero__eyebrow">Aprende en directo</span>
-            <h1 class="sec-hero__title">Clases en vivo</h1>
-          </div>
-          <div style="text-align:center;padding:60px 24px;background:var(--surface-2);border:1px dashed var(--border-2);border-radius:14px;margin-top:18px;">
-            <div style="width:64px;height:64px;border-radius:50%;background:color-mix(in srgb, var(--primary) 12%, transparent);color:var(--primary);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px;">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32">
-                <circle cx="12" cy="12" r="2"/><path d="M16.24 7.76a6 6 0 0 1 0 8.49"/><path d="M7.76 16.24a6 6 0 0 1 0-8.49"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 19.07a10 10 0 0 1 0-14.14"/>
-              </svg>
-            </div>
-            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:16px;font-weight:700;color:var(--text);margin-bottom:6px;">Aún no hay clases programadas</div>
-            <div style="font-size:13px;color:var(--text-3);max-width:380px;margin:0 auto;line-height:1.5;">Estamos preparando las próximas transmisiones. Te avisaremos en cuanto haya nuevas clases en vivo.</div>
-          </div>
-        </div>`;
+      container.innerHTML = `<div class="fade-up webinars-page--clean live-page">${renderLiveHeading()}${renderLiveStandby(false)}<div class="live-empty"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><div><h3>Tu próxima clase aparecerá aquí</h3><p>Te avisaremos en cuanto haya nuevas clases en vivo.</p></div></div></div>`;
       return;
     }
 
@@ -10614,16 +10604,14 @@ const Sections = (function(){
     const mias=proximas.filter(w=>w.registrado);
     const prox=proximas[0];
     container.innerHTML=`
-      <div class="fade-up webinars-page--clean">
-        <div class="sec-hero">
-          <span class="sec-hero__eyebrow">Aprende en directo</span>
-          <h1 class="sec-hero__title">Clases en vivo</h1>
-        </div>
-        ${prox?renderProxHero(prox):''}
-        <div class="tabs">
-          <button class="tab ${webState.tab==='proximas'?'is-active':''}" data-wtab="proximas">Próximas · ${proximas.length}</button>
-          <button class="tab ${webState.tab==='grabadas'?'is-active':''}" data-wtab="grabadas">Grabaciones · ${grabadas.length}</button>
-          <button class="tab ${webState.tab==='registradas'?'is-active':''}" data-wtab="registradas">Mis registradas · ${mias.length}</button>
+      <div class="fade-up webinars-page--clean live-page">
+        ${renderLiveHeading()}
+        ${prox?renderProxHero(prox):renderLiveStandby(grabadas.length>0)}
+        <div class="live-library-heading"><h2>Tu agenda y archivo</h2><span>${webinars.length} ${webinars.length===1?'sesión':'sesiones'}</span></div>
+        <div class="tabs" aria-label="Filtrar clases">
+          <button class="tab ${webState.tab==='proximas'?'is-active':''}" data-wtab="proximas" aria-pressed="${webState.tab==='proximas'}">Próximas · ${proximas.length}</button>
+          <button class="tab ${webState.tab==='grabadas'?'is-active':''}" data-wtab="grabadas" aria-pressed="${webState.tab==='grabadas'}">Grabaciones · ${grabadas.length}</button>
+          <button class="tab ${webState.tab==='registradas'?'is-active':''}" data-wtab="registradas" aria-pressed="${webState.tab==='registradas'}">Mis registradas · ${mias.length}</button>
         </div>
         <div id="web-list"></div>
       </div>
@@ -10693,12 +10681,12 @@ const Sections = (function(){
             <button class="btn btn--ghost" id="wh-cal" data-bypass-paywall="true"><svg class="ic"><use href="#i-calendar"/></svg>Agregar al calendario</button>
           </div>
         </div>
-        <div class="webinar-hero__countdown">
+        <div class="live-schedule"><div class="live-schedule__date"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span>${f.getDate()} ${monthShort(f.getMonth())}<small>${pad(f.getHours())}:${pad(f.getMinutes())} hrs</small></span></div><p>${enVivo?'La sesión está en vivo':'Nos encontramos en'}</p><div class="webinar-hero__countdown">
           <div class="webinar-hero__cd-box"><span class="webinar-hero__cd-num" id="wh-d">00</span><span class="webinar-hero__cd-lbl">Días</span></div>
           <div class="webinar-hero__cd-box"><span class="webinar-hero__cd-num" id="wh-h">00</span><span class="webinar-hero__cd-lbl">Hrs</span></div>
           <div class="webinar-hero__cd-box"><span class="webinar-hero__cd-num" id="wh-m">00</span><span class="webinar-hero__cd-lbl">Min</span></div>
           <div class="webinar-hero__cd-box"><span class="webinar-hero__cd-num" id="wh-s">00</span><span class="webinar-hero__cd-lbl">Seg</span></div>
-        </div>
+        </div></div>
       </div>
     `;
   }
@@ -10728,7 +10716,7 @@ const Sections = (function(){
     if(webState.tab==='grabadas')items=webinars.filter(w=>w.status==='grabada');
     if(webState.tab==='registradas')items=webinars.filter(w=>w.registrado);
     if(items.length===0){
-      list.innerHTML=`<div class="empty-state"><div class="empty-state__icon"><svg class="ic ic--xl"><use href="#i-broadcast"/></svg></div><h3>Sin clases</h3><p>Cambia el filtro para ver más sesiones.</p></div>`;
+      list.innerHTML=`<div class="live-empty"><svg class="ic" aria-hidden="true"><use href="#${webState.tab==='grabadas'?'i-play':'i-calendar'}"/></svg><div><h3>${webState.tab==='proximas'?'Aún no hay próximas clases':webState.tab==='registradas'?'Todavía no tienes clases registradas':'Aún no hay grabaciones'}</h3><p>${webState.tab==='proximas'?'Las nuevas fechas aparecerán en esta agenda. Puedes consultar las sesiones anteriores en Grabaciones.':webState.tab==='registradas'?'Las clases a las que te inscribas aparecerán aquí.':'Las sesiones anteriores aparecerán aquí cuando estén disponibles.'}</p></div></div>`;
       return;
     }
     list.innerHTML=`<div class="webinars-grid">${items.map(w=>renderWebCard(w)).join('')}</div>`;
@@ -10742,7 +10730,7 @@ const Sections = (function(){
     const isProx=w.status==='proxima';
     const enVivo=vipWebinarIsLive(w);
     return `
-      <article class="webinar-card" data-wid="${w.id}" tabindex="0" style="--area-color:${COLOR_AREA[w.area]};">
+      <article class="webinar-card" data-wid="${w.id}" role="button" aria-label="Ver detalles de ${escapeHtml(w.titulo)}" tabindex="0" style="--area-color:${COLOR_AREA[w.area]};">
         <div class="webinar-card__cover" style="background-image:url('${coverSVG(w.area, w.titulo)}');background-size:cover;background-position:center;">
           ${isProx?`<div class="webinar-card__date"><div class="webinar-card__date-day">${f.getDate()}</div><div class="webinar-card__date-month">${monthShort(f.getMonth())}</div></div>`:`<div class="webinar-card__play"><svg class="ic"><use href="#i-play"/></svg></div>`}
         </div>
@@ -10753,10 +10741,11 @@ const Sections = (function(){
           </div>
           <h3 class="webinar-card__title">${w.titulo}</h3>
           <div class="webinar-card__meta">
-            <span><svg class="ic"><use href="#i-user"/></svg>${w.instructor.split(' ').slice(-1)[0]}</span>
+            <span><svg class="ic"><use href="#i-user"/></svg>${w.instructor}</span>
             <span><svg class="ic"><use href="#i-clock"/></svg>${w.duracion}m</span>
             ${isProx?`<span><svg class="ic"><use href="#i-calendar"/></svg>${pad(f.getDate())}/${pad(f.getMonth()+1)}</span>`:''}
           </div>
+          <div class="live-card-footer"><span>${isProx?`${pad(f.getHours())}:${pad(f.getMinutes())} hrs`:formatFechaLarga(f)}</span><span class="live-card-link">Ver detalles<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></span></div>
         </div>
       </article>
     `;
@@ -22409,6 +22398,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
 <link rel="stylesheet" href="css/icadem-courses.css?v=4">
+<link rel="stylesheet" href="css/icadem-live.css?v=1">
 <script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>
