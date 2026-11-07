@@ -7492,21 +7492,19 @@ const Sections = (function(){
         <div class="course-detail-hero__tags">
           <span>${areaEsc}</span>
           <span>${nivelEsc}</span>
-          <span>${sesiones.length} clase${sesiones.length!==1?'s':''}</span>
           ${c.disponibleSiempre ? `<span style="background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.5);">Disponible</span>` : ''}
         </div>
-        <span class="course-detail-eyebrow">FORMACIÓN PROFESIONAL · ICADEM</span>
         <h1 id="course-detail-title">${tituloEsc}</h1>
-        <p class="course-detail-instructor"><svg class="ic"><use href="#i-user"/></svg><b>${instructorEsc}</b></p>
+        ${descripcionEsc ? `<p class="course-detail__description">${descripcionEsc}</p>` : ''}
+        <div class="course-detail-instructor"><span class="course-detail-instructor__avatar"><svg class="ic"><use href="#i-user"/></svg></span><span><small>Impartido por</small><b>${instructorEsc}</b></span></div>
       ${desbloqueado && sesiones.length ? `<button type="button" class="course-detail-hero__start" onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${siguienteClase})" data-bypass-paywall="true">${pct ? 'Continuar curso' : 'Empezar curso'}<svg class="ic"><use href="#i-play"/></svg></button>` : ''}
       </div>
-      <div class="course-detail-visual" aria-hidden="true" style="background-image:url('${portada}')"></div>
-    </section>
+      <div class="course-detail-visual" aria-hidden="true" style="background-image:url('${portada}')"><span class="course-detail-visual__label">ICADEM <i>FORMACIÓN PROFESIONAL</i></span></div>
     <dl class="course-detail-facts" aria-label="Datos del curso">
       <div><svg class="ic"><use href="#i-clock"/></svg><dt>Duración</dt><dd>${c.horas ? `${htmlEsc(c.horas)} hora${Number(c.horas)===1?'':'s'}` : 'A tu ritmo'}</dd></div>
       <div><svg class="ic"><use href="#i-book"/></svg><dt>Contenido</dt><dd>${sesiones.length} clase${sesiones.length!==1?'s':''}</dd></div>
       <div><svg class="ic"><use href="#i-news"/></svg><dt>Material de apoyo</dt><dd>${materialesCurso.length} recurso${materialesCurso.length!==1?'s':''}</dd></div>
-    </dl>`;
+    </dl></section>`;
 
     // ─── Lock card (si no desbloqueado) ───
     let lockHtml = '';
@@ -7561,7 +7559,6 @@ const Sections = (function(){
       </button>
       <div class="course-detail">
         ${heroHtml}
-        ${descripcionEsc ? `<section class="course-detail-about"><h2>Acerca de este curso</h2><p class="course-detail__description">${descripcionEsc}</p></section>` : ''}
         ${lockHtml}
         ${layoutHtml}
         ${desbloqueado ? '<div id="course-rating-panel"></div>' : ''}
@@ -22401,7 +22398,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-tools.css?v=1">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <link rel="stylesheet" href="css/icadem-directory.css?v=1">
-<link rel="stylesheet" href="css/icadem-course-detail.css?v=2">
+<link rel="stylesheet" href="css/icadem-course-detail.css?v=3">
 <script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>
