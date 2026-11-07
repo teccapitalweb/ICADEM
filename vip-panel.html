@@ -2354,79 +2354,49 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .perfil-hero__badges{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 
 .ambassador-invite{
-  position:relative;
   display:grid;
-  grid-template-columns:minmax(0,1.35fr) minmax(260px,.8fr) auto;
-  gap:24px;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:30px;
   align-items:center;
-  overflow:hidden;
   margin-bottom:14px;
-  padding:26px 28px;
-  border:1px solid rgba(255,255,255,.12);
+  padding:24px 26px;
+  border:1px solid rgba(255,255,255,.1);
   border-radius:16px;
-  background:linear-gradient(135deg,#0B2F73 0%,#103B83 58%,#1459C7 130%);
+  background:#0B2F73;
   color:#fff;
-  box-shadow:0 16px 38px rgba(11,47,115,.2);
+  box-shadow:0 10px 26px rgba(11,47,115,.14);
 }
-.ambassador-invite::after{
-  content:"";
-  position:absolute;
-  right:-90px;top:-115px;
-  width:280px;height:280px;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:50%;
-  box-shadow:0 0 0 34px rgba(255,255,255,.035),0 0 0 68px rgba(255,255,255,.025);
-  pointer-events:none;
-}
-.ambassador-invite__intro,.ambassador-invite__benefits,.ambassador-invite__action{position:relative;z-index:1}
 .ambassador-invite__eyebrow{
-  display:flex;align-items:center;gap:10px;
-  margin-bottom:10px;
+  margin-bottom:8px;
   font-family:'JetBrains Mono',monospace;
-  font-size:9.5px;font-weight:700;line-height:1;letter-spacing:1.45px;text-transform:uppercase;
-  color:rgba(255,255,255,.72);
+  font-size:9px;font-weight:700;line-height:1.2;letter-spacing:1.35px;text-transform:uppercase;
+  color:#B8CCEB;
 }
-.ambassador-invite__icon{
-  width:28px;height:28px;
-  display:grid;place-items:center;
-  border:1px solid rgba(255,255,255,.2);
-  border-radius:9px;
-  background:rgba(255,255,255,.1);
-  color:#fff;
-}
-.ambassador-invite__icon .ic{width:14px;height:14px}
-.ambassador-invite h2{margin:0;font-size:clamp(21px,2vw,27px);line-height:1.12;letter-spacing:-.65px;color:#fff}
-.ambassador-invite__intro>p{max-width:620px;margin:10px 0 0;color:rgba(255,255,255,.76);font-size:12.5px;line-height:1.62}
-.ambassador-invite__benefits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px 15px}
-.ambassador-invite__benefit{display:flex;align-items:flex-start;gap:8px;color:rgba(255,255,255,.88);font-size:10.5px;line-height:1.35}
-.ambassador-invite__benefit .ic{width:13px;height:13px;flex:0 0 13px;margin-top:1px;color:#fff}
-.ambassador-invite__action{display:grid;justify-items:center;gap:8px;min-width:188px}
+.ambassador-invite h2{margin:0;font-size:clamp(20px,1.8vw,25px);line-height:1.18;letter-spacing:-.55px;color:#fff}
+.ambassador-invite__intro>p{max-width:650px;margin:8px 0 0;color:#B8CCEB;font-size:12px;line-height:1.55}
+.ambassador-invite__action{display:grid;justify-items:end;gap:9px;min-width:188px}
 .ambassador-invite__button{
-  width:100%;min-height:46px;
+  min-height:42px;
   display:inline-flex;align-items:center;justify-content:center;gap:9px;
-  padding:0 18px;
-  border:1px solid rgba(255,255,255,.72);
-  border-radius:11px;
+  padding:0 17px;
+  border:1px solid rgba(255,255,255,.85);
+  border-radius:10px;
   background:#fff;color:#0B2F73;
-  box-shadow:0 8px 22px rgba(4,22,54,.2);
+  box-shadow:0 5px 16px rgba(4,22,54,.16);
   font:700 11.5px/1 'Plus Jakarta Sans',sans-serif;
   cursor:pointer;
   transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
 }
-.ambassador-invite__button:hover{transform:translateY(-1px);background:#F8FAFC;box-shadow:0 12px 26px rgba(4,22,54,.26)}
+.ambassador-invite__button:hover{transform:translateY(-1px);background:#F8FAFC;box-shadow:0 8px 20px rgba(4,22,54,.22)}
 .ambassador-invite__button .ic{width:15px;height:15px}
-.ambassador-invite__note{color:rgba(255,255,255,.6);font-size:8.5px;line-height:1.35;text-align:center}
+.ambassador-invite__learn{padding:2px 0;border:0;background:transparent;color:rgba(255,255,255,.72);font:600 10.5px/1.3 'Plus Jakarta Sans',sans-serif;cursor:pointer;text-decoration:none;transition:color .18s ease}
+.ambassador-invite__learn:hover{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.ambassador-invite__button:focus-visible,.ambassador-invite__learn:focus-visible{outline:2px solid #fff;outline-offset:3px}
 
-@media (max-width:1050px){
-  .ambassador-invite{grid-template-columns:minmax(0,1fr) minmax(260px,.8fr)}
-  .ambassador-invite__action{grid-column:1/-1;grid-template-columns:minmax(0,260px) minmax(0,260px);justify-content:start;justify-items:stretch;align-items:center}
-  .ambassador-invite__note{text-align:left}
-}
 @media (max-width:700px){
-  .ambassador-invite{grid-template-columns:1fr;gap:20px;padding:22px 18px}
-  .ambassador-invite__benefits{grid-template-columns:1fr}
-  .ambassador-invite__action{grid-column:auto;grid-template-columns:1fr;justify-items:stretch}
-  .ambassador-invite__note{text-align:center}
+  .ambassador-invite{grid-template-columns:1fr;gap:18px;padding:22px 18px}
+  .ambassador-invite__action{justify-items:start;min-width:0}
+  .ambassador-invite__button{width:100%}
 }
 
 .perfil-grid{
@@ -12206,21 +12176,13 @@ const Sections = (function(){
 
         <section class="ambassador-invite" aria-labelledby="ambassador-invite-title">
           <div class="ambassador-invite__intro">
-            <div class="ambassador-invite__eyebrow"><span class="ambassador-invite__icon"><svg class="ic"><use href="#i-gift"/></svg></span>Conviértete en Embajador ICADEM</div>
-            <h2 id="ambassador-invite-title">¡Recomienda ICADEM y gana $100 MXN!</h2>
-            <p>Comparte ICADEM con tus amigos, colegas y contactos. Recibe $100 MXN por cada nuevo miembro que compre una membresía elegible utilizando tu futuro código o enlace personal.</p>
-          </div>
-          <div class="ambassador-invite__benefits" aria-label="Beneficios del programa">
-            <span class="ambassador-invite__benefit"><svg class="ic"><use href="#i-check"/></svg>Código de referido exclusivo</span>
-            <span class="ambassador-invite__benefit"><svg class="ic"><use href="#i-check"/></svg>Enlace personal para compartir</span>
-            <span class="ambassador-invite__benefit"><svg class="ic"><use href="#i-check"/></svg>Seguimiento de tus referidos</span>
-            <span class="ambassador-invite__benefit"><svg class="ic"><use href="#i-check"/></svg>Monedero de comisiones</span>
-            <span class="ambassador-invite__benefit"><svg class="ic"><use href="#i-check"/></svg>Validación de ganancias por 7 días</span>
-            <span class="ambassador-invite__benefit"><svg class="ic"><use href="#i-check"/></svg>Retiros por transferencia bancaria</span>
+            <div class="ambassador-invite__eyebrow">Programa ICADEM Embajadores</div>
+            <h2 id="ambassador-invite-title">Recomienda ICADEM y gana $100 MXN</h2>
+            <p>Comparte tu enlace personal y recibe una recompensa por cada nueva membresía elegible.</p>
           </div>
           <div class="ambassador-invite__action">
-            <button class="ambassador-invite__button" id="btn-ambassador-interest" type="button"><svg class="ic"><use href="#i-arrow-right"/></svg>Quiero ser embajador</button>
-            <small class="ambassador-invite__note">Próximamente · Este botón todavía no genera códigos ni comisiones.</small>
+            <button class="ambassador-invite__button" id="btn-ambassador-interest" type="button">Quiero ser embajador <svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            <button class="ambassador-invite__learn" id="btn-ambassador-learn" type="button">¿Cómo funciona?</button>
           </div>
         </section>
 
@@ -14035,6 +13997,28 @@ function initNav(){
         size:'sm',
         body:`<p style="color:var(--text-2);font-size:13px;line-height:1.65;margin:0;">El programa se habilitará en una siguiente etapa, después de validar precios, pagos y reglas de seguridad. Por ahora no se creó ningún código, comisión ni registro en tu cuenta.</p>`,
         footer:`<button class="btn btn--accent" onclick="Modal.close('ambassador-coming-soon')">Entendido</button>`
+      });
+      return;
+    }
+
+    if(t.closest('#btn-ambassador-learn')){
+      Modal.open({
+        id:'ambassador-how-it-works',
+        title:'¿Cómo funcionará?',
+        subtitle:'Condiciones previstas del programa',
+        icon:'i-info',
+        size:'sm',
+        body:`<div style="color:var(--text-2);font-size:12.5px;line-height:1.6;">
+          <p style="margin:0 0 12px;">Cuando el programa esté disponible, cada embajador tendrá un código y un enlace personal para compartir.</p>
+          <ol style="margin:0;padding-left:18px;display:grid;gap:7px;">
+            <li>Una persona nueva accede mediante ese código o enlace.</li>
+            <li>La persona compra una membresía elegible.</li>
+            <li>El pago se valida durante 7 días antes de liberar la recompensa.</li>
+            <li>Las comisiones aprobadas podrán solicitarse por transferencia bancaria.</li>
+          </ol>
+          <p style="margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:11px;">El programa aún no está activo. Estas condiciones son informativas y pueden ajustarse antes de su lanzamiento; no se generó ningún código, comisión ni registro.</p>
+        </div>`,
+        footer:`<button class="btn btn--accent" onclick="Modal.close('ambassador-how-it-works')">Entendido</button>`
       });
       return;
     }
