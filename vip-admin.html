@@ -3109,6 +3109,7 @@ const Pages={
             <span style="color:var(--text-3);">·</span>
             <span class="curso-row__instructor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${fmtFecha} · ${fmtHora}</span>
             ${esProximo ? `<span class="curso-row__area" style="color:${colorBorde};border-color:color-mix(in srgb, ${colorBorde} 35%, transparent);background:color-mix(in srgb, ${colorBorde} 10%, transparent);">${proximidadTxt}</span>` : `<span class="curso-row__nivel">${proximidadTxt}</span>`}
+            ${w.grabacionVideoId ? `<span class="curso-row__area" style="color:#16A34A;border-color:color-mix(in srgb, #16A34A 35%, transparent);background:color-mix(in srgb, #16A34A 10%, transparent);">● Grabación disponible</span>` : (!esProximo ? `<span class="curso-row__nivel" style="opacity:.75;">Sin grabación</span>` : '')}
           </div>
         </div>
         <div class="curso-row__stats">
@@ -3207,6 +3208,16 @@ const Pages={
           <input type="url" class="input" id="wf-link" value="${(wb.link || '').replace(/"/g,'&quot;')}" placeholder="https://meet.google.com/… o https://zoom.us/…" required>
           <div style="font-size:11px;color:var(--text-3);margin-top:5px;">URL pública (Zoom, Google Meet, YouTube Live, etc.)</div>
         </div>
+
+        <div class="form-field form-field--full">
+          <label class="label" for="wf-grabacion">Grabación (Bunny Stream)</label>
+          <div style="display:flex;gap:8px;align-items:stretch;">
+            <input type="text" class="input" id="wf-grabacion" style="flex:1;min-width:0;" value="${(wb.grabacionVideoId || '').replace(/"/g,'&quot;')}" placeholder="ID del video de Bunny · ej: 3f2a9c1e-5b7d-4e8a-9c3b-1a2b3c4d5e6f">
+            <button type="button" class="btn btn--ghost" id="wf-sync-bunny" style="white-space:nowrap;">Sincronizar con Bunny</button>
+          </div>
+          <div id="wf-sync-lista" style="display:none;margin-top:8px;border:1px solid var(--border, rgba(0,0,0,.12));border-radius:12px;max-height:220px;overflow:auto;"></div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:5px;">Opcional. Sube la grabación a la colección <strong>webinars-icadem</strong> de Bunny y pulsa «Sincronizar con Bunny» para elegirla de la lista (o pega el ID / enlace del video). Al guardar, la clase queda como «Grabación disponible» en el panel VIP.</div>
+        </div>
       </div>
     `;
 
@@ -3228,6 +3239,45 @@ const Pages={
     });
 
     footer.querySelector('#wf-cancel').addEventListener('click', () => Modal.close());
+
+    // ─── Sincronizar con Bunny: elegir la grabación de la colección webinars-icadem ───
+    const syncBtn = body.querySelector('#wf-sync-bunny');
+    const syncLista = body.querySelector('#wf-sync-lista');
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+    const durTxt = seg => { const m = Math.round((seg || 0) / 60); return m >= 60 ? Math.floor(m/60) + ' h ' + String(m % 60).padStart(2,'0') + ' min' : m + ' min'; };
+    syncBtn.addEventListener('click', async () => {
+      syncBtn.disabled = true; syncBtn.textContent = 'Buscando…';
+      syncLista.style.display = 'block';
+      syncLista.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text-3);">Consultando Bunny…</div>';
+      try {
+        const token = await Pages._getAuthToken();
+        const r = await fetch(Pages._webhookUrl + '/admin/bunny/webinar-videos', { headers: { Authorization: 'Bearer ' + token } });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok || !j.ok) throw new Error(j.error || 'No pudimos leer los videos de Bunny.');
+        if (!j.videos.length) {
+          syncLista.innerHTML = '<div style="padding:12px;font-size:12px;color:var(--text-3);">La colección «' + esc(j.coleccion) + '» no tiene videos todavía. Sube ahí la grabación y vuelve a sincronizar.</div>';
+          return;
+        }
+        const actual = (document.getElementById('wf-grabacion').value || '').toLowerCase();
+        syncLista.innerHTML = j.videos.map(v => {
+          const fecha = v.subido ? new Date(v.subido).toLocaleString('es-MX', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' }) : '';
+          const sel = v.id === actual;
+          return '<button type="button" data-vid="' + esc(v.id) + '" style="display:flex;justify-content:space-between;gap:10px;align-items:center;width:100%;text-align:left;padding:10px 12px;border:0;border-bottom:1px solid var(--border, rgba(0,0,0,.08));background:' + (sel ? 'rgba(47,128,201,.12)' : 'transparent') + ';cursor:pointer;color:inherit;font:inherit;">'
+            + '<span style="min-width:0;"><strong style="font-size:13px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + esc(v.titulo) + '</strong>'
+            + '<span style="font-size:11px;color:var(--text-3);">' + esc(fecha) + ' · ' + esc(durTxt(v.duracionSeg)) + '</span></span>'
+            + '<span style="font-size:11px;font-weight:600;white-space:nowrap;color:' + (v.listo ? '#16A34A' : '#D97706') + ';">' + (sel ? '✓ Elegido' : esc(v.estado)) + '</span></button>';
+        }).join('');
+        syncLista.querySelectorAll('[data-vid]').forEach(b => b.addEventListener('click', () => {
+          document.getElementById('wf-grabacion').value = b.dataset.vid;
+          syncLista.style.display = 'none';
+          Toast.success('Grabación elegida', 'Pulsa «Guardar cambios» para publicarla en la clase');
+        }));
+      } catch (err) {
+        syncLista.innerHTML = '<div style="padding:12px;font-size:12px;color:#DC2626;">' + esc(err.message || 'No pudimos leer los videos de Bunny.') + '</div>';
+      } finally {
+        syncBtn.disabled = false; syncBtn.textContent = 'Sincronizar con Bunny';
+      }
+    });
     footer.querySelector('#wf-save').addEventListener('click', async () => {
       const btn = footer.querySelector('#wf-save');
       btn.disabled = true; btn.style.opacity = '.65'; btn.style.cursor = 'wait';
@@ -3255,6 +3305,15 @@ const Pages={
           Toast.error('Firestore no listo'); throw new Error('skip');
         }
 
+        // Grabación: acepta el ID o el enlace completo de Bunny (extrae el GUID)
+        const grabRaw = (document.getElementById('wf-grabacion')?.value || '').trim();
+        let grabacionVideoId = '';
+        if (grabRaw) {
+          const m = grabRaw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
+          if (!m) { Toast.error('ID de grabación inválido', 'Debe ser el ID de Bunny (formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)'); document.getElementById('wf-grabacion')?.focus(); throw new Error('skip'); }
+          grabacionVideoId = m[0].toLowerCase();
+        }
+
         const data = {
           titulo,
           descripcion,
@@ -3262,6 +3321,7 @@ const Pages={
           duracion,
           fecha: fb.Timestamp ? fb.Timestamp.fromDate(fechaDate) : fechaDate,
           link,
+          grabacionVideoId,
           activo: true
         };
 
@@ -3290,6 +3350,15 @@ const Pages={
           });
           await batch.commit();
           Toast.success('¡Clase programada y notificada!', titulo);
+          // También llega como aviso al teléfono de quien activó las notificaciones
+          (async () => {
+            try {
+              const token = await Pages._getAuthToken();
+              const r = await fetch(Pages._webhookUrl + '/admin/webinars/' + encodeURIComponent(webinarRef.id) + '/avisar-registro', { method:'POST', headers:{ Authorization:'Bearer ' + token } });
+              const j = await r.json().catch(() => ({}));
+              if (r.ok && j.sent) Toast.info('También llegó a los teléfonos', `${j.sent} dispositivo(s) con avisos activos`);
+            } catch (e) { /* la campanita ya quedó publicada */ }
+          })();
         }
         Modal.close();
       } catch (err) {

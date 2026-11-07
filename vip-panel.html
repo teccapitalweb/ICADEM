@@ -7041,6 +7041,9 @@ const Sections = (function(){
           duracion,
           link: data.link || data.url || data.zoom || data.enlace || '',
           area: data.area || 'General',
+          // La reproducción pide un token firmado al backend (solo VIP) con el
+          // id del webinar; el reproductor de Bunny exige ese token.
+          tieneGrabacion: Boolean(String(data.grabacionVideoId || '').trim()),
           status: fechaFinMs > ahora ? 'proxima' : 'grabada',
           enVivo: Boolean(fechaMs && fechaMs <= ahora && ahora < fechaFinMs),
           registrado: false,
@@ -10745,7 +10748,7 @@ const Sections = (function(){
         <div class="webinar-card__body">
           <div style="display:flex;gap:5px;flex-wrap:wrap;">
             <span class="tag tag--soon" style="color:${COLOR_AREA[w.area]};border-color:${COLOR_AREA[w.area]}40;background:${COLOR_AREA[w.area]}14;">${w.area}</span>
-            ${isProx?(enVivo?'<span class="tag tag--live">En vivo</span>':w.registrado?'<span class="tag tag--watched">Registrado</span>':'<span class="tag tag--soon">Próxima</span>'):(w.visto?'<span class="tag tag--watched">Visto</span>':'<span class="tag tag--soon">Grabación</span>')}
+            ${isProx?(enVivo?'<span class="tag tag--live">En vivo</span>':w.registrado?'<span class="tag tag--watched">Registrado</span>':'<span class="tag tag--soon">Próxima</span>'):(w.visto?'<span class="tag tag--watched">Visto</span>':(w.tieneGrabacion?'<span class="tag tag--soon">Grabación</span>':'<span class="tag tag--soon">Grabación en proceso</span>'))}
           </div>
           <h3 class="webinar-card__title">${w.titulo}</h3>
           <div class="webinar-card__meta">
@@ -10775,10 +10778,9 @@ const Sections = (function(){
           </div>
         </div>
       `:`
-        <div style="background:#0f1626;color:#fff;border-radius:14px;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
+        <div id="wd-player" style="position:relative;background:#0f1626;color:#fff;border-radius:14px;aspect-ratio:16/9;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;margin-bottom:16px;">
           <svg class="ic" style="width:48px;height:48px;color:#fff;"><use href="#i-play"/></svg>
-          <div style="font-size:13px;opacity:.8;">Reproductor de video (placeholder)</div>
-          <div style="font-size:11px;opacity:.5;">Conexión real en Sprint 4</div>
+          <div id="wd-player-msg" style="font-size:13px;opacity:.85;text-align:center;padding:0 16px;">${w.tieneGrabacion?'Pulsa «Reproducir» para ver la grabación':'La grabación estará disponible pronto. Tarda un rato en procesarse después de la clase.'}</div>
         </div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
           <span class="tag tag--soon" style="color:${COLOR_AREA[w.area]};border-color:${COLOR_AREA[w.area]}40;background:${COLOR_AREA[w.area]}14;">${w.area}</span>
@@ -10794,7 +10796,7 @@ const Sections = (function(){
       const joinBtn = linkUrl ? `<button class="btn btn--accent" id="wd-join"><svg class="ic"><use href="#i-broadcast"/></svg>${enVivo?'Entrar ahora':'Unirme a la clase'}</button>` : '';
       footer.innerHTML=`<button class="btn btn--ghost" id="wd-close">Cerrar</button><button class="btn btn--ghost" id="wd-ics"><svg class="ic"><use href="#i-calendar"/></svg>Calendario</button><button class="btn btn--ghost" id="wd-toggle">${w.registrado?'Cancelar registro':'Inscribirme'}</button>${joinBtn}`;
     } else {
-      footer.innerHTML=`<button class="btn btn--ghost" id="wd-close">Cerrar</button><button class="btn btn--accent" id="wd-play">${w.visto?'Volver a ver':'Reproducir'}<svg class="ic"><use href="#i-play"/></svg></button>`;
+      footer.innerHTML=`<button class="btn btn--ghost" id="wd-close">Cerrar</button>${w.tieneGrabacion?`<button class="btn btn--accent" id="wd-play">${w.visto?'Volver a ver':'Reproducir'}<svg class="ic"><use href="#i-play"/></svg></button>`:''}`;
     }
     const m=Modal.open({id:'web-'+id,title:isProx?'Clase en vivo':'Grabación',subtitle:formatFechaLarga(f),icon:'i-broadcast',size:'lg',body,footer});
     footer.querySelector('#wd-close').addEventListener('click',()=>m.close());
@@ -10817,7 +10819,47 @@ const Sections = (function(){
       Toast.success('Abriendo transmisión…', w.titulo);
       window.open(url, '_blank', 'noopener,noreferrer');
     });
-    footer.querySelector('#wd-play')?.addEventListener('click',()=>{w.visto=true;Toast.info('Reproductor','En Sprint 4 esto reproducirá el video real.');m.close();renderWebinars(document.getElementById('dynamic-section'));});
+    footer.querySelector('#wd-play')?.addEventListener('click',async()=>{
+      // Bloqueo paywall · solo VIP puede ver las grabaciones
+      const S = window.UserState;
+      if (S && S.modo !== 'vip') {
+        if (typeof window.__showPaywallModal === 'function') {
+          window.__showPaywallModal({ title:'Grabaciones exclusivas para miembros VIP', sub:'Activa tu suscripción para ver las clases en vivo cuando quieras' });
+        }
+        return;
+      }
+      const playBtn = footer.querySelector('#wd-play');
+      const box = document.getElementById('wd-player');
+      const msg = document.getElementById('wd-player-msg');
+      if (playBtn) playBtn.disabled = true;
+      if (msg) msg.textContent = 'Cargando grabación…';
+      try {
+        const user = window.__isDemoMode ? null : window.__auth?.currentUser;
+        const idToken = user ? await user.getIdToken() : '';
+        const headers = { 'Content-Type': 'application/json' };
+        if (idToken) headers.Authorization = `Bearer ${idToken}`;
+        const response = await fetch(`${window.WEBHOOK_URL}/api/bunny/webinar-embed-token`, {
+          method: 'POST', headers, body: JSON.stringify({ webinarId: w.id })
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.embedUrl) throw new Error(data.error || 'No se pudo autorizar la reproducción');
+        if (!box || !box.isConnected) return;
+        box.innerHTML = '';
+        const frame = document.createElement('iframe');
+        frame.src = data.embedUrl;
+        frame.allow = 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen';
+        frame.allowFullscreen = true;
+        frame.title = w.titulo;
+        frame.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;border:0;';
+        box.appendChild(frame);
+        w.visto = true;
+        playBtn?.remove();
+      } catch (error) {
+        console.error('[webinar grabación]', error);
+        if (msg) msg.textContent = error.message || 'No pudimos cargar la grabación. Intenta nuevamente.';
+        if (playBtn) playBtn.disabled = false;
+      }
+    });
   }
 
   function descargarICS(w){

@@ -1,5 +1,16 @@
 # CAMBIOS
 
+## 2026-11-06 — Grabaciones de clases en vivo y avisos automáticos
+
+**Archivos:** `vip-admin.html`, `vip-panel.html`, `sw.js`; backend `icadem-webhook`: `index.js`, `webinar-alerts.js` (nuevo), `test/webinar-alerts.test.js` (nuevo)
+
+- Admin · Clases en vivo: campo "Grabación (Bunny Stream)" (acepta el ID o el enlace del video) y etiqueta "Grabación disponible" / "Sin grabación" en las clases pasadas.
+- Panel VIP · Clases en vivo: las clases terminadas muestran "Grabación" o "Grabación en proceso"; "Reproducir" abre el video dentro del panel con token firmado (solo miembros con membresía activa).
+- Avisos de clases en vivo: al programar la clase (también al teléfono), 1 hora antes y cuando empieza. Cada aviso se manda una sola vez por clase.
+- Admin · editar clase: botón "Sincronizar con Bunny" que lista los videos de la colección `webinars-icadem` de la biblioteca para elegir la grabación sin copiar el ID. Necesita la variable `BUNNY_LIBRARY_API_KEY` (API Key de la biblioteca de Bunny, distinta de la clave de tokens) en el servidor; backend `bunny-webinars.js` + `GET /admin/bunny/webinar-videos`.
+- Backend: `POST /api/bunny/webinar-embed-token`, `POST /admin/webinars/:id/avisar-registro` y revisión cada minuto de clases por empezar. Hay que publicar el backend junto con el sitio.
+- `sw.js`: caché v94 y versión de `icadem-platform-v2.js` alineada con el panel (v47); el verificador de contratos vuelve a pasar.
+
 ## 2026-10-16 — Pregunta de avisos e interruptor en Mi perfil
 
 **Archivos:** `vip-panel.html`, `sw.js`, `js/icadem-push.js`
