@@ -62,6 +62,11 @@
     return Boolean(state && state.modo !== 'vip' && !state.freeCourseId && state.freeCourseOfferSeen !== true && read('free-course-offer-seen','') !== 'complete' && !freeCourseDeferredThisSession() && (window.__isDemoMode || state.identityReady === true));
   }
   function userReady() { const state=window.UserState; return Boolean(state && state.modo && state.modo !== 'cargando'); }
+  function coursesSectionOpen() {
+    const active = String(window.__seccionActualVIP || '').trim();
+    if (active === 'cursos' || location.hash === '#cursos') return true;
+    return Boolean(document.querySelector('.nav-item[data-section="cursos"].is-active,.mobile-nav__item[data-section="cursos"].is-active'));
+  }
   function firstName() { return String(window.UserState?.displayName || window.UserState?.nombre || 'colega').trim().split(/\s+/)[0] || 'colega'; }
   function isVisible(element) {
     if (!element || !element.isConnected) return false;
@@ -247,7 +252,7 @@
   const Experience=(()=>{
     const queue=[];
     let busy=false,activeId='',sequence=0;
-    const priorities={'membership-welcome':120,tour:100,'credit-gift':90,'free-course':80,'profile-name':95,install:30};
+    const priorities={'membership-welcome':120,tour:100,'profile-name':95,notifications:90,'credit-gift':80,'free-course':70,install:30};
     const retryDelays=[1200,3000,7000,15000];
     function enqueue(id,payload,options){
       options=options||{};
@@ -283,8 +288,15 @@
         const result=await start({force:job.payload.force===true});
         if(result==='unavailable'){if(job.payload.force!==true)retry(job);return;}
         enqueue('profile-name');
+        enqueue('notifications');
         if(!creditGiftWasSeen())enqueue('credit-gift');
-        if(canOfferFreeCourse())enqueue('free-course');
+        return;
+      }
+      if(job.id==='notifications'){
+        const review=window.ICADEMPush?.revisar;
+        if(typeof review!=='function')return;
+        const result=await review({source:'onboarding'});
+        if(result==='busy')retry(job);
         return;
       }
       if(job.id==='credit-gift'){
@@ -293,7 +305,11 @@
         if(result==='unavailable')retry(job);
         return;
       }
-      if(job.id==='free-course'){if(!tourWasSeen())return;await openFreeCourseChooser();return;}
+      if(job.id==='free-course'){
+        if(job.payload?.source!=='courses'||!coursesSectionOpen()||!tourWasSeen())return;
+        await openFreeCourseChooser();
+        return;
+      }
       if(job.id==='profile-name'){
         // Ficha inicial: justo después del primer recorrido (nombre del
         // certificado, WhatsApp, puesto y área para el directorio).
@@ -318,7 +334,11 @@
     return{enqueue,pump};
   })();
   let scheduleTimer=0;
-  function scheduleAutomatic(){if(scheduleTimer){clearTimeout(scheduleTimer);scheduleTimer=0;}if(!userReady()||(!window.__isDemoMode&&window.UserState?.identityReady!==true)){scheduleTimer=setTimeout(scheduleAutomatic,250);return;}visitCount();if(tourWasSeen())migrateLocalExperience('tour',TOUR_EXPERIENCE);else Experience.enqueue('tour');if(creditGiftWasSeen())migrateLocalExperience('credit-gift',CREDIT_EXPERIENCE);else if(tourWasSeen())Experience.enqueue('credit-gift');if(tourWasSeen()&&canOfferFreeCourse())Experience.enqueue('free-course');Experience.enqueue('profile-name');if(document.getElementById('install-app-btn')?.hidden===false)Experience.enqueue('install');Experience.pump();}
-  function init(){addStyles();createRoot();installEntryPoints();const dynamic=document.getElementById('dynamic-section');if(dynamic)new MutationObserver(installEntryPoints).observe(dynamic,{childList:true,subtree:true});const pending=Array.isArray(window.__icademExperiencePending)?window.__icademExperiencePending.splice(0):[];window.__scheduleExperience=(id,payload)=>Experience.enqueue(id,payload);pending.forEach(item=>Experience.enqueue(item.id,item.payload));window.IcademGuidedTour={start:()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}),stop};window.ICADEMExperience=Experience;document.addEventListener('icadem:user-ready',scheduleAutomatic);document.addEventListener('icadem:identity-ready',event=>{const profile=event.detail?.profile||{};window.UserState.identityReady=true;if(profile.freeCourseId)window.UserState.freeCourseId=profile.freeCourseId;if(profile.freeCourseOfferSeen===true)window.UserState.freeCourseOfferSeen=true;scheduleAutomatic();});document.addEventListener('icadem:install-available',()=>Experience.enqueue('install'));setTimeout(scheduleAutomatic,650);}
+  function requestFreeCourseForCourses(){
+    if(!coursesSectionOpen()||!tourWasSeen()||!canOfferFreeCourse())return;
+    Experience.enqueue('free-course',{source:'courses'});
+  }
+  function scheduleAutomatic(){if(scheduleTimer){clearTimeout(scheduleTimer);scheduleTimer=0;}if(!userReady()||(!window.__isDemoMode&&window.UserState?.identityReady!==true)){scheduleTimer=setTimeout(scheduleAutomatic,250);return;}visitCount();if(tourWasSeen()){migrateLocalExperience('tour',TOUR_EXPERIENCE);Experience.enqueue('profile-name');Experience.enqueue('notifications');}else Experience.enqueue('tour');if(creditGiftWasSeen())migrateLocalExperience('credit-gift',CREDIT_EXPERIENCE);else if(tourWasSeen())Experience.enqueue('credit-gift');if(document.getElementById('install-app-btn')?.hidden===false)Experience.enqueue('install');Experience.pump();}
+  function init(){addStyles();createRoot();installEntryPoints();const dynamic=document.getElementById('dynamic-section');if(dynamic)new MutationObserver(installEntryPoints).observe(dynamic,{childList:true,subtree:true});const pending=Array.isArray(window.__icademExperiencePending)?window.__icademExperiencePending.splice(0):[];window.__scheduleExperience=(id,payload)=>Experience.enqueue(id,payload);pending.forEach(item=>Experience.enqueue(item.id,item.payload));window.IcademGuidedTour={start:()=>Experience.enqueue('tour',{force:true},{priority:1000,unique:false}),stop};window.ICADEMExperience=Experience;document.addEventListener('icadem:user-ready',scheduleAutomatic);document.addEventListener('icadem:identity-ready',event=>{const profile=event.detail?.profile||{};window.UserState.identityReady=true;if(profile.freeCourseId)window.UserState.freeCourseId=profile.freeCourseId;if(profile.freeCourseOfferSeen===true)window.UserState.freeCourseOfferSeen=true;scheduleAutomatic();});document.addEventListener('icadem:install-available',()=>Experience.enqueue('install'));document.addEventListener('icadem:navigation',event=>{if(event.detail?.section==='cursos')setTimeout(requestFreeCourseForCourses,80);});setTimeout(()=>{scheduleAutomatic();if(location.hash==='#cursos')setTimeout(requestFreeCourseForCourses,160);},650);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();

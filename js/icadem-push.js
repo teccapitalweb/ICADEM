@@ -112,9 +112,14 @@
     document.head.appendChild(s);
   }
 
-  // Ventana que solo se cierra contestando "Sí" o "No"
+  var preguntaEnCurso = null;
+
+  // Ventana que solo se cierra contestando "Sí" o "No". Devuelve una
+  // promesa para que la cola de bienvenida espere a que el usuario responda.
   function preguntar() {
-    if (document.querySelector('.icp-ov')) return;
+    if (preguntaEnCurso) return preguntaEnCurso;
+    if (document.querySelector('.icp-ov')) return Promise.resolve('busy');
+    preguntaEnCurso = new Promise(function (resolve) {
     estilos();
     var iosSinInstalar = esIOS && !instalada;
     var ov = document.createElement('div');
@@ -130,52 +135,58 @@
     document.body.appendChild(ov);
     requestAnimationFrame(function () { ov.classList.add('is-open'); });
     var card = ov.querySelector('.icp');
-    function cerrar() { ov.classList.remove('is-open'); setTimeout(function () { ov.remove(); }, 260); }
-    ov.querySelector('[data-icp-no]').addEventListener('click', function () { guardar(claveRespuesta(), 'no'); cerrar(); });
+    function cerrar(resultado) {
+      ov.classList.remove('is-open');
+      setTimeout(function () { ov.remove(); preguntaEnCurso = null; resolve(resultado || 'closed'); }, 260);
+    }
+    ov.querySelector('[data-icp-no]').addEventListener('click', function () { guardar(claveRespuesta(), 'no'); cerrar('declined'); });
     ov.querySelector('[data-icp-yes]').addEventListener('click', function () {
       if (iosSinInstalar) {
         guardar(claveRespuesta(), 'pendiente-ios');
         card.innerHTML = '<div class="icp__ic">📲</div><h2>Un paso más en tu iPhone</h2><p>Apple solo permite avisos desde la app en tu pantalla de inicio:</p>' +
           '<ol><li>Toca <b>Compartir</b> (el cuadro con la flecha ↑).</li><li>Elige <b>"Agregar a inicio"</b>.</li><li>Abre ICADEM desde ese ícono y toca <b>"Sí, activar"</b>.</li></ol>' +
           '<div class="icp__acts icp__acts--one"><button type="button" data-icp-yes>Entendido</button></div>';
-        card.querySelector('[data-icp-yes]').addEventListener('click', cerrar);
+        card.querySelector('[data-icp-yes]').addEventListener('click', function () { cerrar('ios-pending'); });
         return;
       }
       var btn = ov.querySelector('[data-icp-yes]');
       btn.disabled = true; btn.textContent = 'Activando…';
       activar().then(function () {
-        cerrar();
+        cerrar('enabled');
         if (window.Toast) Toast.success('¡Avisos activados!', 'Te llegarán las novedades de ICADEM a este dispositivo.');
       }).catch(function (e) {
         guardar(claveRespuesta(), 'no');
-        cerrar();
+        cerrar('declined');
         if (window.Toast) Toast.info('No se activaron los avisos', e.message);
       });
     });
+    });
+    return preguntaEnCurso;
   }
 
   function hayVentanaAbierta() {
-    return document.querySelector('.modal-backdrop.is-open, .cc-overlay, .rv, .onb-overlay, [data-onboarding-open]');
+    return document.querySelector('.modal-backdrop.is-open, .cc-overlay, .rv, .onb-overlay, [data-onboarding-open], #splash-bienvenida, #name-modal, .pf-intake, #icadem-credit-gift, #free-course-intro, .ica-tour-root:not([hidden]), .ica-experience:not([hidden])');
   }
 
-  function revisar() {
-    if (window.__isDemoMode || !uid()) return;
+  function revisar(options) {
+    options = options || {};
+    if (window.__isDemoMode || !uid()) return Promise.resolve('not-available');
     if (soportado && Notification.permission === 'granted') {
       // Ya aceptó: se mantiene la suscripción al día (una vez al día basta)
       if (leer(claveRespuesta()) !== 'no' && Date.now() - Number(leer(claveSincronizacion()) || 0) > 24 * 3600 * 1000) suscribir().catch(function () {});
-      return;
+      return Promise.resolve('already-enabled');
     }
     var respuesta = leer(claveRespuesta());
     // Ya contestó (en iPhone se vuelve a preguntar cuando abra la app instalada)
-    if (respuesta === 'si' || respuesta === 'no') return;
-    if (respuesta === 'pendiente-ios' && !(esIOS && instalada)) return;
-    if (soportado && Notification.permission === 'denied') return;
-    if (!soportado && !esIOS) return;
+    if (respuesta === 'si' || respuesta === 'no') return Promise.resolve('already-answered');
+    if (respuesta === 'pendiente-ios' && !(esIOS && instalada)) return Promise.resolve('already-answered');
+    if (soportado && Notification.permission === 'denied') return Promise.resolve('blocked');
+    if (!soportado && !esIOS) return Promise.resolve('unsupported');
     var intentos = 0;
-    (function esperar() {
+    return new Promise(function (resolve) { (function esperar() {
       if (hayVentanaAbierta() && intentos++ < 60) { setTimeout(esperar, 2000); return; }
-      preguntar();
-    })();
+      preguntar().then(resolve);
+    })(); });
   }
 
   // Interruptor de "Mi perfil → Notificaciones"
@@ -224,8 +235,5 @@
     });
   }
 
-  document.addEventListener('icadem:user-ready', function () { setTimeout(revisar, 4000); });
-  if (uid()) setTimeout(revisar, 4000);
-
-  window.ICADEMPush = { activar: activar, desactivar: desactivar, activo: activo, montarInterruptor: montarInterruptor, soportado: soportado };
+  window.ICADEMPush = { activar: activar, desactivar: desactivar, activo: activo, revisar: revisar, montarInterruptor: montarInterruptor, soportado: soportado };
 })();
