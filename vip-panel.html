@@ -7500,7 +7500,7 @@ const Sections = (function(){
         <p class="course-detail-instructor"><svg class="ic"><use href="#i-user"/></svg><b>${instructorEsc}</b></p>
       ${desbloqueado && sesiones.length ? `<button type="button" class="course-detail-hero__start" onclick="window.abrirClaseICADEM('${String(cursoId).replace(/'/g,"\\'")}',${siguienteClase})" data-bypass-paywall="true">${pct ? 'Continuar curso' : 'Empezar curso'}<svg class="ic"><use href="#i-play"/></svg></button>` : ''}
       </div>
-      <div class="course-detail-visual" aria-hidden="true" style="background-image:url('${portada}')"><span>ICADEM<span>APRENDE · APLICA · AVANZA</span></span></div>
+      <div class="course-detail-visual" aria-hidden="true" style="background-image:url('${portada}')"></div>
     </section>
     <dl class="course-detail-facts" aria-label="Datos del curso">
       <div><svg class="ic"><use href="#i-clock"/></svg><dt>Duración</dt><dd>${c.horas ? `${htmlEsc(c.horas)} hora${Number(c.horas)===1?'':'s'}` : 'A tu ritmo'}</dd></div>
@@ -22401,7 +22401,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-tools.css?v=1">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <link rel="stylesheet" href="css/icadem-directory.css?v=1">
-<link rel="stylesheet" href="css/icadem-course-detail.css?v=1">
+<link rel="stylesheet" href="css/icadem-course-detail.css?v=2">
 <script src="js/icadem-home.js?v=3" defer></script>
 </body>
 </html>
