@@ -11,7 +11,8 @@ const trackerSource = fs.readFileSync(path.join(root, 'js/icadem-referral.js'), 
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
 function element() {
-  return { innerHTML:'', textContent:'', value:'', hidden:false, disabled:false, handlers:{}, classList:{add(){},remove(){},toggle(){}},
+  const classes = new Set();
+  return { innerHTML:'', textContent:'', value:'', hidden:false, disabled:false, handlers:{}, classList:{add(v){classes.add(v);},remove(v){classes.delete(v);},contains(v){return classes.has(v);},toggle(){}},
     addEventListener(event, handler) { this.handlers[event]=handler; }, focus(){} };
 }
 function fixture(responder, search='') {
@@ -20,9 +21,9 @@ function fixture(responder, search='') {
   ids['sub-referral-form'].querySelector=()=>submit;
   const cards=['mensual','anual'].map(plan=>Object.assign(element(),{dataset:{plan}}));
   cards.forEach(card=>{card.price=element();card.querySelector=()=>card.price;});
-  const requests=[], mounts=[], destroyed=[];
+  const requests=[], mounts=[], destroyed=[], cleared=[];
   const storage = new Map();
-  const win = { __currentUser:{getIdToken:async()=>'test-token'}, ICADEMReferral:{savedCode:()=>'',visitorId:()=> '11111111-2222-4333-8444-555555555555'},
+  const win = { __currentUser:{getIdToken:async()=>'test-token'}, ICADEMReferral:{savedCode:()=>'',clearCode:()=>cleared.push(true),visitorId:()=> '11111111-2222-4333-8444-555555555555'},
     __stripe:{initEmbeddedCheckout:async({clientSecret})=>({mount:()=>mounts.push(clientSecret),destroy:()=>destroyed.push(clientSecret)})} };
   const context = vm.createContext({ window:win, location:{search}, localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)},
     document:{getElementById:id=>ids[id],querySelectorAll:()=>cards}, URLSearchParams, AbortController, Intl, console:{error(){},warn(){}},
@@ -31,7 +32,7 @@ function fixture(responder, search='') {
     fetch:async(url,options)=>{ const body=JSON.parse(options.body); requests.push(body); return responder(body,requests.length); }
   });
   vm.runInContext(checkoutSource+';this.render=renderSuscripcionActivar;',context);
-  return {context,ids,cards,requests,mounts,destroyed,render:()=>context.render(element(),{modo:'gratis'}),
+  return {context,ids,cards,requests,mounts,destroyed,cleared,render:()=>context.render(element(),{modo:'gratis'}),
     apply:async code=>{ids['sub-referral-code'].value=code;ids['sub-referral-form'].handlers.submit({preventDefault(){}});await tick();},
     remove:async()=>{ids['sub-referral-remove'].handlers.click();await tick();}};
 }
@@ -77,6 +78,44 @@ test('código rechazado detiene checkout sin cobrar silenciosamente precio compl
   assert.equal(f.ids['sub-referral-remove'].hidden,false);
 });
 
+test('quitar o borrar el código limpia el error de inmediato y vuelve a montar el pago normal', async () => {
+  for (const action of ['remove', 'empty-input', 'empty-submit']) {
+    const f = fixture(body => body.ambassadorCode
+      ? response({ error:'Beneficio ya utilizado', code:'referral-benefit-used' },409)
+      : response({ clientSecret:'cs_normal', pricing:{originalAmountCents:210000,totalAmountCents:210000} }));
+    await f.render(); await tick(); await f.apply('BRI-AB234');
+    assert.equal(f.ids['sub-referral-summary'].classList.contains('is-error'),true);
+    if (action === 'remove') f.ids['sub-referral-remove'].handlers.click();
+    else {
+      f.ids['sub-referral-code'].value='';
+      if(action === 'empty-input') f.ids['sub-referral-code'].handlers.input();
+      else f.ids['sub-referral-form'].handlers.submit({preventDefault(){}});
+    }
+    assert.equal(f.ids['sub-referral-summary'].classList.contains('is-error'),false);
+    assert.equal(f.ids['sub-referral-summary'].textContent,'');
+    assert.doesNotMatch(f.ids['sub-checkout-mount'].innerHTML,/El código no aplica/);
+    await tick();
+    assert.equal(f.requests.at(-1).ignoreAmbassador,true);
+    assert.equal(f.requests.at(-1).ambassadorCode,undefined);
+    assert.deepEqual(f.mounts,['cs_normal','cs_normal']);
+    assert.equal(f.cards[1].price.textContent,'$2100');
+    assert.equal(f.cleared.length,1);
+  }
+});
+
+test('la validación antigua del código no puede volver a bloquear el pago después de borrarlo', async () => {
+  let rejectCode;
+  const f = fixture(body => body.ambassadorCode ? new Promise(resolve => { rejectCode = resolve; }) : response({clientSecret:'cs_normal'}));
+  await f.render(); await tick(); await f.apply('BRI-AB234');
+  f.ids['sub-referral-code'].value='';
+  f.ids['sub-referral-code'].handlers.input();
+  await tick();
+  rejectCode(response({error:'Beneficio ya utilizado',code:'referral-benefit-used'},409));
+  await tick();
+  assert.equal(f.ids['sub-referral-summary'].classList.contains('is-error'),false);
+  assert.deepEqual(f.mounts,['cs_normal','cs_normal']);
+});
+
 test('un resultado antiguo no reemplaza el plan seleccionado más recientemente',async()=>{
   let resolveAnnual;
   const f=fixture(body=>body.plan==='anual' ? new Promise(resolve=>{resolveAnnual=resolve;}) : response({clientSecret:'cs_monthly'}));
@@ -108,7 +147,7 @@ test('serializa inicializaciones Stripe y descarta la que quedó obsoleta',async
 test('el seguimiento reutiliza un identificador anónimo y suprime visitas repetidas del día',async()=>{
   const storage=new Map(),requests=[];
   const context=vm.createContext({window:{crypto:{randomUUID:()=> '11111111-2222-4333-8444-555555555555'}},location:{search:'?ref=BRI-AB234'},URLSearchParams,
-    localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value)},
+    localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
     fetch:async(url,options)=>{requests.push({url,options});return {ok:true};}});
   vm.runInContext(trackerSource,context);await tick();
   await context.window.ICADEMReferral.captureVisit('BRI-AB234');
@@ -116,6 +155,9 @@ test('el seguimiento reutiliza un identificador anónimo y suprime visitas repet
   assert.deepEqual(JSON.parse(requests[0].options.body),{code:'BRI-AB234',visitorId:'11111111-2222-4333-8444-555555555555'});
   assert.equal(requests[0].options.referrerPolicy,'no-referrer');
   assert.equal(context.window.ICADEMReferral.savedCode(),'BRI-AB234');
+  context.window.ICADEMReferral.clearCode();
+  assert.equal(context.window.ICADEMReferral.savedCode(),'');
+  assert.equal(context.window.ICADEMReferral.visitorId(),'11111111-2222-4333-8444-555555555555');
 });
 
 test('la redirección de acceso conserva la suscripción interna y rechaza destinos ajenos',()=>{

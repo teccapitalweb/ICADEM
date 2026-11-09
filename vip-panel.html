@@ -27,9 +27,9 @@
 <script src="js/icadem-platform-v2.js?v=48" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
-<script src="js/icadem-referral.js?v=1"></script>
+<script src="js/icadem-referral.js?v=2"></script>
 <script src="js/icadem-vip-banner.js?v=2"></script>
-<script src="js/icadem-ambassadors.js?v=9" defer></script>
+<script src="js/icadem-ambassadors.js?v=10" defer></script>
 <link rel="stylesheet" href="css/ambassadors.css?v=6">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
      Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
@@ -12443,7 +12443,7 @@ const Sections = (function(){
 
           <form class="sub-referral" id="sub-referral-form">
             <label for="sub-referral-code">¿Tienes un código de embajador?</label>
-            <p class="sub-referral__help">Aplícalo antes de pagar. El descuento es para cuentas que nunca han comprado VIP y se aplica solo al primer pago; no se acumula con otras promociones.</p>
+            <p class="sub-referral__help">Puedes usar este beneficio una sola vez, aunque antes hayas tenido VIP. Debes tener tu membresía anterior finalizada y no haber usado un código en una compra pagada. El descuento aplica solo al primer pago; no se acumula con otras promociones.</p>
             <div class="sub-referral__row">
               <input id="sub-referral-code" name="ambassadorCode" type="text" maxlength="24" placeholder="Ejemplo: BRI-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="sub-referral-summary">
               <button type="submit" class="sub-referral__apply">Aplicar código</button>
@@ -12479,24 +12479,34 @@ const Sections = (function(){
     const referralSummary = document.getElementById('sub-referral-summary');
     const removeReferral = document.getElementById('sub-referral-remove');
     let ambassadorCode = offerCode ? '' : (window.ICADEMReferral?.savedCode() || '');
-    let ignoreAmbassador = false;
+    let ignoreAmbassador = !ambassadorCode;
     let checkoutGeneration = 0;
     let checkoutAbort = null;
     referralInput.value = ambassadorCode;
     referralForm.addEventListener('submit', event => {
       event.preventDefault();
       const code = referralInput.value.trim().toUpperCase().replace(/\s+/g,'');
-      if (!code) { referralInput.focus(); return; }
+      if (!code) { clearAmbassadorCode(); return; }
       ambassadorCode = code;
       ignoreAmbassador = false;
       referralInput.value = code;
       mountStripeCheckout();
     });
-    removeReferral.addEventListener('click', () => {
+    function clearAmbassadorCode() {
+      const reload = !!ambassadorCode || !ignoreAmbassador;
       ambassadorCode = '';
       ignoreAmbassador = true;
       referralInput.value = '';
-      mountStripeCheckout();
+      window.ICADEMReferral?.clearCode?.();
+      referralSummary.classList.remove('is-error');
+      referralSummary.innerHTML = '';
+      referralSummary.textContent = '';
+      removeReferral.hidden = true;
+      if (reload) mountStripeCheckout();
+    }
+    removeReferral.addEventListener('click', clearAmbassadorCode);
+    referralInput.addEventListener('input', () => {
+      if (!referralInput.value.trim()) clearAmbassadorCode();
     });
 
     // Destruir cualquier checkout previo que haya quedado vivo de un render anterior
@@ -12523,6 +12533,7 @@ const Sections = (function(){
       const generation = ++checkoutGeneration;
       const requestedPlan = selectedPlan;
       const requestedCode = ambassadorCode;
+      const requestedIgnoreAmbassador = ignoreAmbassador;
       const button = referralForm.querySelector('button[type="submit"]');
       checkoutAbort?.abort();
       checkoutAbort = new AbortController();
@@ -12539,12 +12550,13 @@ const Sections = (function(){
       mountEl.innerHTML = `<div class="sub-loading"><div class="sub-loading__spin"></div><div>Cargando plan ${requestedPlan}…</div></div>`;
       try {
         const idToken = await window.__currentUser?.getIdToken();
+        if (!isCurrent()) return;
         if (!idToken) throw new Error('Tu sesión expiró. Vuelve a iniciar sesión.');
         const res = await fetch(`${window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app'}/stripe/checkout`, {
           method:'POST',
           signal:abortSignal,
           headers:{'Content-Type':'application/json', Authorization:`Bearer ${idToken}`},
-          body: JSON.stringify({ plan: requestedPlan, promotionCode: requestedCode ? undefined : (offerCode || undefined), ambassadorCode: requestedCode || undefined, ignoreAmbassador, visitorId: window.ICADEMReferral?.visitorId() })
+          body: JSON.stringify({ plan: requestedPlan, promotionCode: requestedCode ? undefined : (offerCode || undefined), ambassadorCode: requestedCode || undefined, ignoreAmbassador: requestedIgnoreAmbassador, visitorId: window.ICADEMReferral?.visitorId() })
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({error:'Error desconocido'}));
@@ -12607,7 +12619,7 @@ const Sections = (function(){
         referralSummary.textContent = err.message || 'No fue posible validar el pago. Inténtalo de nuevo.';
         removeReferral.hidden = !ambassadorCode;
         const liveMount = document.getElementById('sub-checkout-mount');
-        const codeNotEligible = ['referral-existing-customer','existing-customer','referral-attribution-locked','referral-no-longer-eligible'].includes(err.code);
+        const codeNotEligible = ['referral-benefit-used','referral-existing-customer','existing-customer','referral-attribution-locked','referral-no-longer-eligible'].includes(err.code);
         if (liveMount) liveMount.innerHTML = `
           <div style="padding:24px 20px;text-align:center;color:var(--text-2);font-size:13px;line-height:1.6;">
             <div style="color:var(--danger);font-weight:700;margin-bottom:6px;">${codeNotEligible ? 'El código no aplica a esta cuenta' : 'No pudimos cargar el checkout'}</div>
@@ -22484,6 +22496,6 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=6">
 <link rel="stylesheet" href="css/icadem-session.css?v=2">
 <script src="js/icadem-home.js?v=3" defer></script>
-<script src="js/icadem-ambassador-promo.js?v=8" defer></script>
+<script src="js/icadem-ambassador-promo.js?v=9" defer></script>
 </body>
 </html>

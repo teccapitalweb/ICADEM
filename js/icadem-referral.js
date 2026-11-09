@@ -42,7 +42,10 @@
     }).catch(function () { return false; }).finally(function () { delete pending[code]; });
     return pending[code];
   }
-  window.ICADEMReferral = { visitorId: visitorId, captureVisit: captureVisit, savedCode: savedCode };
+  function clearCode() {
+    try { localStorage.removeItem(REF_KEY); } catch (_) {}
+  }
+  window.ICADEMReferral = { visitorId: visitorId, captureVisit: captureVisit, savedCode: savedCode, clearCode: clearCode };
   try {
     var code = codeOf(new URLSearchParams(location.search).get('ref'));
     if (code) {
