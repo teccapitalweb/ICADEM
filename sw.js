@@ -1,9 +1,10 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v121';
+const CACHE = 'icadem-vip-v122';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=2',
-  './css/icadem-session.css?v=1',
+  './js/icadem-dialog-focus.js?v=1',
+  './css/icadem-session.css?v=2',
   './vip-auth.html',
   './index.html',
   './manifest.json?v=20260817-login',

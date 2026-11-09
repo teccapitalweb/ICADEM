@@ -39,7 +39,10 @@ assert.match(materialsRenderer, /!__materialsUiState\.syncing/);
 assert.match(materialsRenderer, /stateForRequest\.syncRevision !== requestRevision/);
 assert.doesNotMatch(materialsRenderer, /if \(state\.balance < cost\)/);
 assert.doesNotMatch(panel, /<button class="club-search-btn"/);
-assert.doesNotMatch(panel, /id="(?:cur-search|dir-buscar|tpl-search-input)"/);
+// Search was restored by the course/directory redesign; verify its accessible entry points.
+assert.match(panel, /id="cur-search"[^>]*aria-label="Buscar cursos"/);
+assert.match(panel, /id="dir-search-input"[^>]*aria-label="Buscar por nombre, empresa o puesto"/);
+assert.doesNotMatch(panel, /id="(?:dir-buscar|tpl-search-input)"/);
 assert.match(panelMinimal, /\.sec-hero__eyebrow,[\s\S]*?\.directory-hero__eyebrow \{ display:none!important; \}/);
 
 assert.match(panel, /@media \(min-width:881px\) and \(max-width:1200px\)/);

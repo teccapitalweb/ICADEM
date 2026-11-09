@@ -18,3 +18,15 @@
  .perfil-card .perfil-row{min-width:0}
  .perfil-card .perfil-row__value{min-width:0;overflow-wrap:anywhere}
 }
+
+/* Audit fixes: readable actions, a usable compact brand and modal background scroll. */
+body:has(.paywall-modal.is-open){overflow:hidden}
+.paywall-modal__btn-primary{background:#234c65;color:#fff}
+.paywall-modal__btn-primary:hover{background:#193c53}
+:root[data-theme="night"] .paywall-modal__btn-primary{background:#a8d6ef;color:#122f43}
+:root[data-theme="night"] .paywall-modal__btn-primary:hover{background:#c3e5f7}
+@media(max-width:370px){
+ .mobile-club-title__prefix,.mobile-club-title__mark{display:none!important}
+ .mobile-club-title__copy strong{font-size:11px!important;letter-spacing:0}
+ .mobile-club-title{gap:0}
+}
