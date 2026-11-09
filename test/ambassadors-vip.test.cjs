@@ -4,7 +4,7 @@ const now=Date.parse('2026-11-09T18:00:00Z');
 function app(vip=true){
   class Clock extends Date{constructor(...args){super(...(args.length?args:[now]));}static now(){return now;}}
   const context={window:{},document:{addEventListener(){},querySelectorAll(){return [];}},location:{search:''},localStorage:{getItem(){return null;},setItem(){},removeItem(){}},Intl,Date:Clock,URLSearchParams,crypto:require('node:crypto')};
-  if(vip)vm.runInNewContext(fs.readFileSync(__dirname+'/../js/icadem-ambassadors-vip.js','utf8').replace('window.ICADEMAmbassadorsVIP={render:render,bind:bind};','window.__vip={periodModel,filterRecords,distribution};window.ICADEMAmbassadorsVIP={render:render,bind:bind};'),context);
+  if(vip)vm.runInNewContext(fs.readFileSync(__dirname+'/../js/icadem-ambassadors-vip.js','utf8').replace('window.ICADEMAmbassadorsVIP={render:render,bind:bind};','window.__vip={periodModel,filterRecords,distribution,table,getState:()=>state};window.ICADEMAmbassadorsVIP={render:render,bind:bind};'),context);
   vm.runInNewContext(fs.readFileSync(__dirname+'/../js/icadem-ambassadors.js','utf8').replace('window.ICADEMAmbassadors={render:','window.__core={dashboardMarkup,setPresentation:value=>{presentationMode=value;}};window.ICADEMAmbassadors={render:'),context);
   return{context,model:context.window.__vip?.periodModel,filter:context.window.__vip?.filterRecords,markup:context.window.__core.dashboardMarkup,setPresentation:context.window.__core.setPresentation};
 }
@@ -63,6 +63,13 @@ test('la misma respuesta gratuita genera exactamente la vista anterior',()=>{
 test('cambiar periodo y tipo de gráfica modifica solo la presentación de los registros recibidos',()=>{
   const ui=app(),input=data(),before=JSON.stringify(input);ui.markup(input);
   const chart={innerHTML:''},period={addEventListener(name,fn){this.change=fn;}},metric={dataset:{vipMetric:'sales'},addEventListener(name,fn){this.click=fn;},focus(){}};
-  const root={querySelector(selector){return selector==='[data-vip-dashboard]'?{}:selector==='[data-vip-period]'?period:selector==='[data-vip-charts]'?chart:selector==='[data-vip-metric="sales"]'?metric:null;},querySelectorAll(selector){return selector==='[data-vip-metric]'?[metric]:[];}};
+  const root={querySelector(selector){return selector==='[data-vip-dashboard]'?{addEventListener(){}}:selector==='[data-vip-period]'?period:selector==='[data-vip-charts]'?chart:selector==='[data-vip-metric="sales"]'?metric:null;},querySelectorAll(selector){return selector==='[data-vip-metric]'?[metric]:[];}};
   ui.context.window.ICADEMAmbassadorsVIP.bind(root,input);period.change({target:{value:'7d'}});assert.match(chart.innerHTML,/7 días/);metric.click();assert.match(chart.innerHTML,/Evolución de mis ventas/);assert.match(chart.innerHTML,/1<\/strong><span>Compras elegibles/);assert.equal(JSON.stringify(input),before);
+});
+
+test('historial pagina y busca sin alterar datos ni confundir importes',()=>{
+  const ui=app(),input=data({commissions:Array.from({length:23},(_,i)=>({buyer:'Referido '+i.toString(16).padStart(6,'0').toUpperCase(),plan:i===21?'anual':'mensual',status:'available',commissionCents:15000,amountPaidCents:20000,paidAt:new Date(now-i*86400000).toISOString()}))}),original=JSON.stringify(input);
+  ui.markup(input);const module=ui.context.window.__vip,state=module.getState();let html=module.table(input,'commission');assert.match(html,/Página 1 de 3/);assert.equal((html.match(/Ver detalle/g)||[]).length,10);
+  state.commissionPage=3;html=module.table(input,'commission');assert.equal((html.match(/Ver detalle/g)||[]).length,3);assert.match(html,/Referido 000015/);
+  state.commissionQuery='anual';html=module.table(input,'commission');assert.match(html,/Página 1 de 1/);assert.equal((html.match(/Ver detalle/g)||[]).length,1);assert.match(html,/ANUAL/);assert.match(html,/\$150/);assert.match(html,/\$200/);assert.equal(JSON.stringify(input),original);
 });
