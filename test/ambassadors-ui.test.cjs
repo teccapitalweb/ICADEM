@@ -24,8 +24,9 @@ function app(options = {}) {
 }
 
 function fixture(extra = {}) {
-  return { registered: true, ambassador: { active: true, code: 'BRI-TEST2', referralUrl: 'https://www.icademx.com/vip-auth.html?ref=BRI-TEST2' },
+  return { registered: true, ambassador: { active: true, code: 'BRI-TEST2', whatsapp: '+525512345678', referralUrl: 'https://www.icademx.com/vip-auth.html?ref=BRI-TEST2' },
     wallet: { availableCents: 15000, pendingCents: 15000, reservedCents: 0, debtCents: 0, totalEarnedCents: 15000 },
+    category: 'vip', benefits: { directCommissionCents: 15000, monthlyDiscountCents: 25000, annualDiscountCents: 30000 },
     config: { commissionCents: 15000, discountCents: 25000, minimumWithdrawalCents: 10000 },
     bank: { holderName: 'Persona de prueba', bank: 'Banco de prueba', last4: '1234' },
     analytics: { uniqueVisits: 10, registeredVisitors: 4, paidVisitors: 2, visitorsWithoutPurchase: 8, paidReferrals: 2 },
@@ -59,10 +60,11 @@ test('enrollment back button returns to the previous section or profile', () => 
   assert.deepEqual(visited, ['cursos', 'cursos', 'perfil']);
 });
 
-test('dashboard derives current reward and discount from server config', () => {
-  const html = app().dashboardMarkup(fixture({ config: { commissionCents: 17500, discountCents: 27500 } }));
+test('dashboard derives current category benefits from server', () => {
+  const html = app().dashboardMarkup(fixture({ benefits: { directCommissionCents: 17500, monthlyDiscountCents: 27500, annualDiscountCents: 32500 } }));
   assert.match(html, /\$175 MXN/);
   assert.match(html, /\$275 MXN/);
+  assert.match(html, /\$325 MXN/);
   assert.doesNotMatch(html, /Tú recibes \$(100|150) MXN/);
 });
 

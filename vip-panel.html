@@ -29,8 +29,8 @@
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=1"></script>
 <script src="js/icadem-vip-banner.js?v=2"></script>
-<script src="js/icadem-ambassadors.js?v=7" defer></script>
-<link rel="stylesheet" href="css/ambassadors.css?v=4">
+<script src="js/icadem-ambassadors.js?v=8" defer></script>
+<link rel="stylesheet" href="css/ambassadors.css?v=5">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
      Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
      privadas y nunca concede acceso a una clase. -->
@@ -12548,7 +12548,10 @@ const Sections = (function(){
         });
         if (!res.ok) {
           const err = await res.json().catch(() => ({error:'Error desconocido'}));
-          throw new Error(err.error || `HTTP ${res.status}`);
+          const checkoutError = new Error(err.error || `HTTP ${res.status}`);
+          checkoutError.code = err.code || '';
+          checkoutError.status = res.status;
+          throw checkoutError;
         }
         const { clientSecret, referral, pricing } = await res.json();
         if (!isCurrent()) return;
@@ -12604,11 +12607,12 @@ const Sections = (function(){
         referralSummary.textContent = err.message || 'No fue posible validar el pago. Inténtalo de nuevo.';
         removeReferral.hidden = !ambassadorCode;
         const liveMount = document.getElementById('sub-checkout-mount');
+        const codeNotEligible = ['referral-existing-customer','existing-customer','referral-attribution-locked','referral-no-longer-eligible'].includes(err.code);
         if (liveMount) liveMount.innerHTML = `
           <div style="padding:24px 20px;text-align:center;color:var(--text-2);font-size:13px;line-height:1.6;">
-            <div style="color:var(--danger);font-weight:700;margin-bottom:6px;">No pudimos cargar el checkout</div>
+            <div style="color:var(--danger);font-weight:700;margin-bottom:6px;">${codeNotEligible ? 'El código no aplica a esta cuenta' : 'No pudimos cargar el checkout'}</div>
             <div>${escapeHtml(err.message)}</div>
-            <div style="margin-top:14px;font-size:11.5px;color:var(--text-3);">Verifica tu conexión. Si el problema persiste, contáctanos por WhatsApp.</div>
+            <div style="margin-top:14px;font-size:11.5px;color:var(--text-3);">${codeNotEligible ? 'Puedes quitar el código arriba y continuar con el precio vigente.' : 'Intenta nuevamente. Si el problema persiste, contacta a soporte privado.'}</div>
           </div>
         `;
       } finally {
@@ -22480,6 +22484,6 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=6">
 <link rel="stylesheet" href="css/icadem-session.css?v=2">
 <script src="js/icadem-home.js?v=3" defer></script>
-<script src="js/icadem-ambassador-promo.js?v=7" defer></script>
+<script src="js/icadem-ambassador-promo.js?v=8" defer></script>
 </body>
 </html>

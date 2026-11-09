@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const DAY = 86400000;
-const config = { enabled:true, commissionCents:15000, discountCents:25000, minimumPaidCents:20000, minimumWithdrawalCents:10000, validationDays:7, attributionDays:30, eligiblePlans:['mensual','anual'] };
+const config = { enabled:true, commissionCents:15000, discountCents:25000, directCommissionVipCents:15000, directCommissionFreeCents:10000, monthlyDiscountVipCents:25000, annualDiscountVipCents:30000, monthlyDiscountFreeCents:20000, annualDiscountFreeCents:25000, minimumPaidCents:20000, minimumWithdrawalCents:10000, validationDays:7, attributionDays:30, eligiblePlans:['mensual','anual'] };
 const fixture = () => ({ registered:false, config:{...config} });
 function app(options = {}) {
   const stored = new Map(), session = new Map(), timers = new Map(), events = {}, windowEvents = {}, roots = {}, dialogs = [], queued = [], navigated = [];
@@ -44,7 +44,7 @@ test('disabled, missing or invalid program configuration never promotes a guesse
   assert.doesNotMatch(ui.popupMarkup(null,0), /\$150|\$250/);
 });
 test('copy uses server amounts, validation, eligible plans and withdrawal conditions', () => {
-  const ui=app(), data={registered:false,config:{...config,commissionCents:17500,discountCents:27500,validationDays:9,eligiblePlans:['anual']}};
+  const ui=app(), data={registered:false,category:'vip',config:{...config,directCommissionVipCents:17500,monthlyDiscountVipCents:27500,validationDays:9,eligiblePlans:['anual']}};
   const html=ui.popupMarkup(data,0);
   assert.match(html,/\$175/);assert.match(html,/\$275/);assert.match(html,/9 días de validación/);assert.match(html,/membresía anual elegible/);
   assert.doesNotMatch(html,/membresía mensual/);assert.match(html,/Retiro mínimo/);assert.match(html,/contracargos/);
@@ -105,7 +105,7 @@ test('Escape closes invitation and demo never enrolls or schedules a guest autom
 test('header invitation survives popup dismissal and automatic opt-out', async () => {
   const ui=app();await ui.refresh();
   const indicator=ui.roots['ambassador-topbar-promo'];
-  assert.equal(indicator.hidden,false);assert.match(indicator.innerHTML,/Gana \$150 MXN/);
+  assert.equal(indicator.hidden,false);assert.match(indicator.innerHTML,/Gana \$100 MXN/);
   const pending=ui.show(fixture(),true);ui.dialogs[0].optout.checked=true;ui.closeDialog();await pending;
   await ui.refresh();assert.equal(indicator.hidden,false);
   assert.equal(await ui.show(fixture(),true),'ineligible');
@@ -128,6 +128,6 @@ test('header never promotes unverified, disabled, demo or ending sessions', asyn
   const demo=app({demo:true});await demo.refresh();assert.equal(demo.roots['ambassador-topbar-promo'].hidden,true);
   const ui=app();await ui.refresh();ui.context.window.__sessionEnding=true;await ui.refresh();
   assert.equal(ui.roots['ambassador-topbar-promo'].hidden,true);
-  const custom=app({load:async()=>({...fixture(),config:{...config,commissionCents:17500}})});await custom.refresh();
+  const custom=app({load:async()=>({...fixture(),category:'vip',config:{...config,directCommissionVipCents:17500}})});await custom.refresh();
   assert.match(custom.roots['ambassador-topbar-promo'].innerHTML,/Gana \$175 MXN/);
 });
