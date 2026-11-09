@@ -7022,6 +7022,7 @@ const Sections = (function(){
   let _webinarsLoaded = false;
   let _webinarsLoading = false;
   let _webinarsPromise = null;
+  let _webinarsError = '';
 
   async function webinarRequest(path, options = {}) {
     const user = window.__isDemoMode ? null : window.__auth?.currentUser;
@@ -7074,6 +7075,7 @@ const Sections = (function(){
     _webinarsLoading = true;
     _webinarsPromise = (async () => {
     try {
+      _webinarsError = '';
       if (!window.__isDemoMode) {
         const result = await webinarRequest('/api/mobile/webinars');
         const ahora = Date.now();
@@ -7135,6 +7137,7 @@ const Sections = (function(){
       _webinarsLoaded = true;
     } catch (e) {
       console.warn('No se pudieron cargar webinars de Firestore:', e.message);
+      _webinarsError = e.message || 'No pudimos cargar la agenda.';
       webinars = [];
       _webinarsLoaded = true;
     } finally {
@@ -7149,6 +7152,7 @@ const Sections = (function(){
     _webinarsLoaded = false;
     _webinarsLoading = false;
     webinars.length = 0;
+    _webinarsError = '';
   };
   // ⚡ Exponer array para que initCountdown (que vive en scope global) pueda leerlo
   window.__getWebinars = function() { return webinars; };
@@ -10677,6 +10681,14 @@ const Sections = (function(){
 
     // Sin webinars → empty state limpio
     if (webinars.length === 0) {
+      if (_webinarsError) {
+        container.innerHTML = `<div class="fade-up webinars-page--clean live-page">${renderLiveHeading()}<div class="live-empty"><div><h3>No pudimos cargar la agenda</h3><p>Revisa tu conexión e inténtalo de nuevo.</p><button class="btn btn--accent" id="web-retry">Reintentar</button></div></div></div>`;
+        container.querySelector('#web-retry')?.addEventListener('click', () => {
+          window.__resetWebinarsCache();
+          renderWebinars(container);
+        });
+        return;
+      }
       container.innerHTML = `<div class="fade-up webinars-page--clean live-page">${renderLiveHeading()}${renderLiveStandby(false)}<div class="live-empty"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><div><h3>Tu próxima clase aparecerá aquí</h3><p>Te avisaremos en cuanto haya nuevas clases en vivo.</p></div></div></div>`;
       return;
     }
