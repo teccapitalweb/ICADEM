@@ -9,7 +9,7 @@ const fixture = () => ({ registered:false, config:{...config} });
 function app(options = {}) {
   const stored = new Map(), session = new Map(), timers = new Map(), events = {}, windowEvents = {}, roots = {}, dialogs = [], queued = [], navigated = [];
   let timerId = 0, home = true;
-  for (const id of ['ambassador-home-promo','ambassador-profile-promo']) roots[id] = {hidden:true,innerHTML:'',replaceChildren(){this.innerHTML='';}};
+  for (const id of ['ambassador-home-promo','ambassador-profile-promo','ambassador-topbar-promo']) roots[id] = {hidden:true,innerHTML:'',setAttribute(){},replaceChildren(){this.innerHTML='';}};
   const focus = {isConnected:true,focus(){this.restored=true;}};
   const document = { readyState:'loading', visibilityState:'visible', activeElement:focus,
     body:{classList:{contains:()=>home},append(root){dialogs.push(root);}},
@@ -100,4 +100,34 @@ test('Escape closes invitation and demo never enrolls or schedules a guest autom
   const ui=app({demo:true});ui.init();await new Promise(resolve=>setImmediate(resolve));assert.equal(ui.timers.size,0);
   const pending=ui.show(null,false);ui.dialogs[0].listeners.cancel({preventDefault(){}});await pending;
   assert.equal(ui.dialogs[0].removed,true);assert.deepEqual(ui.navigated,[]);
+});
+
+test('header invitation survives popup dismissal and automatic opt-out', async () => {
+  const ui=app();await ui.refresh();
+  const indicator=ui.roots['ambassador-topbar-promo'];
+  assert.equal(indicator.hidden,false);assert.match(indicator.innerHTML,/Gana \$150 MXN/);
+  const pending=ui.show(fixture(),true);ui.dialogs[0].optout.checked=true;ui.closeDialog();await pending;
+  await ui.refresh();assert.equal(indicator.hidden,false);
+  assert.equal(await ui.show(fixture(),true),'ineligible');
+  const manual=ui.openInfo();await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(ui.dialogs.length,2);ui.closeDialog();await manual;
+});
+
+test('header loads on other routes and disappears after successful enrollment', async () => {
+  let data=fixture();const ui=app({load:async()=>data});ui.setHome(false);ui.init();
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(ui.roots['ambassador-topbar-promo'].hidden,false);assert.equal(ui.timers.size,0);
+  data={...data,registered:true};await ui.events['icadem:ambassador-enrolled']();
+  assert.equal(ui.roots['ambassador-topbar-promo'].hidden,true);
+});
+
+test('header never promotes unverified, disabled, demo or ending sessions', async () => {
+  for(const data of [null,{...fixture(),registered:true},{...fixture(),registered:undefined},{...fixture(),config:{...config,enabled:false}}]) {
+    const ui=app({load:async()=>data});await ui.refresh();assert.equal(ui.roots['ambassador-topbar-promo'].hidden,true);
+  }
+  const demo=app({demo:true});await demo.refresh();assert.equal(demo.roots['ambassador-topbar-promo'].hidden,true);
+  const ui=app();await ui.refresh();ui.context.window.__sessionEnding=true;await ui.refresh();
+  assert.equal(ui.roots['ambassador-topbar-promo'].hidden,true);
+  const custom=app({load:async()=>({...fixture(),config:{...config,commissionCents:17500}})});await custom.refresh();
+  assert.match(custom.roots['ambassador-topbar-promo'].innerHTML,/Gana \$175 MXN/);
 });

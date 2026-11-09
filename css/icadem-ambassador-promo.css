@@ -172,3 +172,29 @@ body:has(.amb-promo-dialog[open]){overflow:hidden}
 @keyframes amb-in{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
 @keyframes amb-coin-arrive{from{opacity:0;transform:translateY(8px) rotate(-35deg)}to{opacity:1;transform:translateY(0) rotate(-14deg)}}
 @media(prefers-reduced-motion:reduce){.amb-promo-dialog,.ambassador-promo *,.amb-promo-dialog *{animation:none!important;transition:none!important}}
+
+/* Persistent invitation entry, independent of automatic-popup preferences. */
+.amb-promo-indicator[hidden]{display:none!important}
+.amb-promo-indicator{position:relative;display:inline-flex;align-items:center;flex:0 0 auto;gap:9px;min-height:44px;padding:5px 11px 5px 6px;border:1px solid #7045e8;border-radius:12px;background:#643be7;color:#fff;font-family:Inter,system-ui,sans-serif;text-align:left;cursor:pointer;box-shadow:0 3px 9px #643be71a;transition:background .2s,box-shadow .2s}
+.amb-promo-indicator:hover{background:#754bf0;box-shadow:0 4px 13px #643be72b}
+.amb-promo-indicator:focus-visible{outline:3px solid #b39aff;outline-offset:3px}
+.amb-promo-indicator__gift{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:9px;background:#e2ff70;color:#432586}
+.amb-promo-indicator__gift .ic{width:17px;height:17px}
+.amb-promo-indicator__copy{display:flex;flex-direction:column;gap:3px;line-height:1.2}
+.amb-promo-indicator__copy strong{font-size:11px;font-weight:700;color:#fff;white-space:nowrap}
+.amb-promo-indicator__copy small{font-size:8px;color:#eee7ff;white-space:nowrap}
+.amb-promo-indicator__action{display:flex;align-items:center;gap:7px;padding-left:7px;font-size:9px;font-weight:600;color:#f5f1ff;white-space:nowrap}
+.amb-promo-indicator__action .ic{width:16px;height:16px}
+.amb-promo-indicator__dot{position:absolute;right:-3px;top:-3px;width:8px;height:8px;border:2px solid var(--surface,#fff);border-radius:50%;background:#a4f1da}
+@media(min-width:761px) and (max-width:1150px){.amb-promo-indicator__action{font-size:0;padding-left:0;gap:0}}
+@media(max-width:760px){
+ .topbar:has(.amb-promo-indicator:not([hidden])){flex-wrap:wrap!important;height:auto!important;min-height:60px!important;row-gap:10px;padding-bottom:12px!important}
+ .topbar:has(.amb-promo-indicator:not([hidden]))>.topbar__left{display:none!important}
+ .topbar:has(.amb-promo-indicator:not([hidden]))>.mobile-club-title{flex:1;min-width:0}
+ .amb-promo-indicator{order:3;flex:1 1 100%;width:100%;min-width:0;min-height:48px;padding:6px 11px 6px 7px;border-radius:12px;gap:9px}
+ .amb-promo-indicator__action{margin-left:auto;font-size:10px}
+ .amb-promo-indicator__copy strong{font-size:12px}.amb-promo-indicator__copy small{font-size:9px}
+ .amb-promo-indicator__dot{right:8px;top:6px;width:5px;height:5px;border:0}
+}
+@media(max-width:360px){.amb-promo-indicator__action{font-size:9px;gap:4px;padding-left:0}.amb-promo-indicator__copy strong{font-size:11px}.amb-promo-indicator__copy small{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.amb-promo-indicator{transition:none}}

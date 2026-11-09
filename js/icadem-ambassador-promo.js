@@ -47,8 +47,19 @@
     const title = registered ? (active ? 'Tus recomendaciones ya tienen su espacio.' : 'Consulta tu perfil de embajador.') : c ? `Recomienda ICADEM.<em> Gana ${money(c.commissionCents)} MXN.</em>` : 'Tu recomendación abre <em>nuevas puertas.</em>';
     return `<div class="amb-promo-copy"><span class="amb-promo-eyebrow">${icon('users')} ICADEM EMBAJADORES</span><h2>${title}</h2><p>${registered ? (active ? 'Comparte tu invitación y sigue tus referidos, comisiones y retiros desde tu panel.' : 'Tu perfil está en pausa. Entra a tu panel para consultar su estado.') : 'Invita a alguien a dar su siguiente paso profesional y recibe una recompensa por su primera compra elegible.'}</p><div class="amb-promo-actions"><button type="button" class="amb-promo-primary" data-amb-promo="${registered ? 'panel' : 'info'}">${registered ? 'Ir a mi panel' : 'Quiero ser embajador'}${icon('arrow-right')}</button>${registered ? '' : '<button type="button" class="amb-promo-secondary" data-amb-promo="info">Cómo funciona</button>'}</div><small class="amb-promo-caption">${registered ? 'Tu código, tus invitaciones y tus movimientos en un solo lugar.' : 'Participa también con tu cuenta gratuita.'}</small></div>${c && !registered ? benefits(c) : `<div class="amb-promo-symbol" aria-hidden="true"><span>${icon(registered ? 'gift' : 'users')}</span><b>${registered ? 'Tu comunidad crece contigo' : 'Una invitación. Nuevas oportunidades.'}</b></div>`}`;
   }
+  function indicatorMarkup(data) {
+    if (!uid() || !validConfig(data) || data.registered !== false) return '';
+    return `<span class="amb-promo-indicator__gift">${icon('gift')}</span><span class="amb-promo-indicator__copy"><strong>Gana ${money(data.config.commissionCents)} MXN</strong><small>Por recomendar ICADEM</small></span><span class="amb-promo-indicator__action">Ver invitación ${icon('arrow-right')}</span><span class="amb-promo-indicator__dot" aria-hidden="true"></span>`;
+  }
   function paint(data) {
     currentData = data;
+    const indicator = document.getElementById('ambassador-topbar-promo');
+    if (indicator) {
+      const markup = indicatorMarkup(data);
+      indicator.hidden = !markup;
+      indicator.innerHTML = markup;
+      indicator.setAttribute('aria-label', markup ? `Programa de embajadores: gana ${money(data.config.commissionCents)} MXN por una primera compra elegible. Ver invitación.` : 'Programa de embajadores');
+    }
     for (const [id, place] of [['ambassador-home-promo','home'],['ambassador-profile-promo','profile']]) {
       const root = document.getElementById(id);
       if (!root) continue;
@@ -146,7 +157,7 @@
   }
   async function homeChanged() {
     navigation++; clearTimeout(timer); closeDialog('navigation');
-    if (homeActive() || location.hash === '#perfil') await refresh(true);
+    await refresh(homeActive() || location.hash === '#perfil');
     if (homeActive()) schedule();
   }
   function init() {
@@ -154,6 +165,7 @@
       generation++; clearTimeout(timer); closeDialog('session'); paint(null);
     });
     document.addEventListener('icadem:session-exit-failed', () => homeChanged());
+    document.addEventListener('icadem:ambassador-enrolled', () => refresh(true));
     document.addEventListener('click', event => {
       const action = event.target.closest('[data-amb-promo]');
       if (!action) return;
