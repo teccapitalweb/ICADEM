@@ -37,7 +37,6 @@
   async function load(silent){
     if (loading) return; loading=true;
     var box=document.getElementById('support-messages'); if(!box){loading=false;return;}
-    var nearBottom=box.scrollHeight-box.scrollTop-box.clientHeight<90;
     try{
       var revision=topicRevision,data=await request('/support/me'); if(document.getElementById('support-messages')!==box)return;
       window.ICADEMSupportUI.syncMessages(box,messagesHtml(data.messages||[]),firstPaint);
@@ -45,7 +44,7 @@
       if(status){status.className='support-status'+(closed?' is-closed':'');status.textContent=!data.conversation?'Sin consulta':closed?'Resuelto':'En seguimiento';}
       var topic=document.getElementById('support-topic'); if(topic&&data.conversation&&!topicSaving&&revision===topicRevision){savedTopic=data.conversation.topic||'otro';topic.value=savedTopic;}
       var dot=document.getElementById('support-unread-dot'); if(dot)dot.hidden=true;
-      if(firstPaint||nearBottom)requestAnimationFrame(function(){box.scrollTop=box.scrollHeight;}); firstPaint=false;
+      firstPaint=false;
     }catch(error){if(!silent)box.innerHTML='<div class="support-empty"><div class="support-empty__icon"><svg class="ic"><use href="#i-alert-circle"/></svg></div><strong>No pudimos abrir el buzón</strong><p>'+'No pudimos conectar con soporte. Inténtalo de nuevo; tu historial se conserva.'+'</p></div>';}
     finally{loading=false;}
   }
