@@ -1,0 +1,20 @@
+/* Touch-friendly session controls and scrollable confirmation sheets. */
+.account-dock__logout{width:100%;min-height:44px;padding:10px 12px;border:0;border-radius:9px;background:transparent;font-family:inherit;cursor:pointer}
+.account-dock__logout:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+[data-modal-id="logout-confirm"] .modal__footer button{min-height:44px}
+[data-modal-id="logout-confirm"] [aria-busy="true"]{opacity:.65;cursor:wait}
+[data-modal-id="logout-confirm"] .modal__body p{overflow-wrap:anywhere}
+@media(max-width:760px){
+ .modal-backdrop{padding:12px!important;align-items:center!important}
+ .modal-backdrop>.modal{display:flex;flex-direction:column;width:100%;min-width:0;max-width:100%;max-height:calc(100dvh - 24px);border-radius:18px!important;overflow:hidden}
+ .modal__header{flex:none;min-width:0;gap:12px}
+ .modal__title-wrap{min-width:0}
+ .modal__title{overflow-wrap:anywhere}
+ .modal__close{width:44px;min-width:44px;height:44px}
+ .modal__body{min-height:0;overflow:auto;overscroll-behavior:contain}
+ .modal__footer{flex:none;flex-wrap:wrap;padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+ .modal__footer>.btn{flex:1 1 auto;min-height:44px;white-space:normal}
+ .account-dock__logout{min-height:48px;font-size:13px}
+ .perfil-card .perfil-row{min-width:0}
+ .perfil-card .perfil-row__value{min-width:0;overflow-wrap:anywhere}
+}

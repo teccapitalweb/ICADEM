@@ -72,7 +72,8 @@
     // El demo debe ser una sesión estrictamente anónima. Un navegador que ya
     // tenga Firebase Auth no puede heredar permisos ni mutaciones de esa cuenta.
     if (window.__isDemoMode) return '';
-    const user = window.__auth?.currentUser || window.__currentUser;
+    if (window.__sessionEnding) throw Object.assign(new Error('La sesión está cerrándose.'), {code:'session-ended'});
+    const user = window.__auth ? window.__auth.currentUser : window.__currentUser;
     return user ? user.getIdToken() : '';
   }
 
@@ -91,7 +92,7 @@
     try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
 
     try {
-      if (typeof window.__signOut === 'function') await window.__signOut();
+      if (typeof window.__signOut === 'function') await window.__signOut({redirect:'vip-auth.html?tab=register&deleted=1'});
       else if (typeof window.__auth?.signOut === 'function') await window.__auth.signOut();
     } catch (_) {
       // El acceso repite el cierre antes de registrar el listener de Firebase.
@@ -101,8 +102,16 @@
   }
 
   async function request(path, options) {
+    const requestUid = (window.__auth ? window.__auth.currentUser : window.__currentUser)?.uid;
+    function assertSession() {
+      const currentUid = (window.__auth ? window.__auth.currentUser : window.__currentUser)?.uid;
+      if (!window.__isDemoMode && (window.__sessionEnding || currentUid !== requestUid)) {
+        throw Object.assign(new Error('La sesión cambió. Vuelve a iniciar sesión.'), {code:'session-ended'});
+      }
+    }
     const method = options?.method || 'GET';
     const perform = async authToken => {
+      assertSession();
       const config = {
         method,
         cache: 'no-store',
@@ -115,6 +124,7 @@
       }
       const response = await fetch(`${API}${path}`, config);
       const data = await response.json().catch(() => ({}));
+      assertSession();
       return { response, data };
     };
 
@@ -249,7 +259,7 @@
 
   let identityPromise = null;
   async function syncIdentity(force) {
-    if (window.__isDemoMode) return null;
+    if (window.__isDemoMode || window.__sessionEnding) return null;
     if (identityPromise && !force) return identityPromise;
     const currentUser = window.__auth?.currentUser || window.__currentUser;
     const googleProvider = (currentUser?.providerData || []).find(provider => provider.providerId === 'google.com');

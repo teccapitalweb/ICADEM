@@ -95,3 +95,50 @@ body:has(.amb-promo-dialog[open]){overflow:hidden}
 @keyframes amb-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes amb-coin-arrive{from{opacity:0;transform:translateY(8px) rotate(-35deg)}to{opacity:1;transform:translateY(0) rotate(-14deg)}}
 @media(prefers-reduced-motion:reduce){.amb-promo-dialog,.ambassador-promo *,.amb-promo-dialog *{animation:none!important;transition:none!important}}
+/* Benefit-first presentation and a persistent mobile action area. */
+.amb-promo-dialog[open]{grid-template-rows:minmax(0,1fr) auto}
+.amb-promo-scroll{display:contents}
+.amb-promo-dialog .amb-promo-story{grid-column:1;grid-row:1/3}
+.amb-promo-dialog .amb-promo-guide{grid-column:2;grid-row:1;padding-bottom:12px}
+.amb-promo-dialog>.amb-promo-dialog-footer{grid-column:2;grid-row:2;margin:0;padding:12px 32px 24px}
+.amb-promo-dialog .amb-promo-dialog-head h2{font-size:36px;letter-spacing:-1.5px}
+.amb-promo-dialog .amb-promo-dialog-head h2 em{display:block;margin-top:7px}
+.amb-promo-offer{background:#183e3b!important;border-color:#365c50;box-shadow:0 9px 0 -5px var(--amb-paper),0 10px 0 -5px #788b6b,0 16px 30px #143b3020}
+.amb-promo-offer-top{color:#e7d1a3;border-color:#ffffff20}
+.amb-promo-benefit--reward{overflow:hidden;background:radial-gradient(circle at 95% 0%,#d9c08c15,transparent 68%)}
+.amb-promo-benefit--reward>span:first-child{color:#e7d1a3}
+.amb-promo-benefit--reward strong,.amb-promo-dialog .amb-promo-benefit--reward strong{font-size:68px;color:#f7dfad;letter-spacing:-3.6px}
+.amb-promo-offer .amb-promo-benefit strong small,.amb-promo-offer .amb-promo-benefit p,.amb-promo-offer .amb-promo-benefit--guest div>span{color:#c4d2ca}
+.amb-promo-benefit--guest{border-color:#789586;background:#ffffff06}
+.amb-promo-benefit--guest strong{color:#fff}
+.amb-promo-guest-icon{color:#e7d1a3;border-color:#ffffff24;background:#ffffff06}
+.amb-promo-offer-seal{color:#d9c89e;border-color:#ffffff18}
+.amb-promo-dialog>.amb-promo-dialog-footer .amb-promo-primary{background:#ead09a;color:#183e3b;border-color:#d4b67a;font-size:12px;font-weight:650}
+.amb-promo-dialog>.amb-promo-dialog-footer .amb-promo-primary:hover{background:#f5dfb4}
+.amb-promo-dialog>.amb-promo-dialog-footer .amb-promo-primary .ic{background:#183e3b12}
+@media(max-width:760px){
+ .amb-promo-dialog[open]{display:flex;flex-direction:column;overflow:hidden;max-height:calc(100dvh - 20px)}
+ .amb-promo-scroll{display:block;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin}
+ .amb-promo-story{padding:22px 22px 20px}
+ .amb-promo-dialog .amb-promo-dialog-head h2{font-size:29px;line-height:1.12;margin:18px 0 12px;letter-spacing:-1px}
+ .amb-promo-dialog-head>p{font-size:12px;line-height:1.65}
+ .amb-promo-dialog .amb-promo-offer{margin-top:18px}
+ .amb-promo-dialog .amb-promo-benefit--reward strong{font-size:57px;letter-spacing:-2.6px}
+ .amb-promo-dialog .amb-promo-coin{top:22px;right:20px}
+ .amb-promo-dialog .amb-promo-guide{padding:22px}
+ .amb-promo-dialog .amb-promo-dialog-body>h3{font-size:21px}
+ .amb-promo-dialog>.amb-promo-dialog-footer{flex:none;grid-template-columns:minmax(0,1fr) auto;gap:6px 10px;padding:12px 20px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--amb-line);background:var(--amb-paper);box-shadow:0 -8px 20px #172e2408}
+ .amb-promo-dialog-footer .amb-promo-primary{min-height:46px}
+ .amb-promo-dialog-footer .amb-promo-secondary{min-height:44px;padding:6px}
+ .amb-promo-optout{justify-content:flex-start;font-size:10px;min-height:24px}
+ .amb-promo-dialog-footer>small{text-align:left;font-size:9px;margin:0}
+ .amb-promo-close{width:40px;height:40px;top:8px;right:8px;box-shadow:0 2px 7px #10261d0d}
+}
+@media(max-width:360px){
+ .amb-promo-story{padding:20px 16px}
+ .amb-promo-dialog .amb-promo-dialog-head h2{font-size:27px}
+ .amb-promo-dialog .amb-promo-guide{padding:20px 16px}
+ .amb-promo-dialog>.amb-promo-dialog-footer{padding-left:14px;padding-right:14px;gap:6px}
+ .amb-promo-dialog>.amb-promo-dialog-footer .amb-promo-primary{font-size:11px;gap:8px;padding:10px}
+ .amb-promo-dialog .amb-promo-benefit--reward strong{font-size:50px}
+}

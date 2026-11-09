@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=47" defer></script>
+<script src="js/icadem-platform-v2.js?v=48" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=1"></script>
@@ -4158,6 +4158,7 @@ window.__scheduleExperience = window.__scheduleExperience || function(id, payloa
 </script>
 
 <!-- ===== AUTH GUARD (Firebase) ===== -->
+<script src="js/icadem-session.js?v=2"></script>
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updateProfile, GoogleAuthProvider, linkWithPopup, reauthenticateWithPopup, reload } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -4176,6 +4177,9 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 window.__auth = auth;
+const session = window.ICADEMCreateSession({ auth, signOut });
+window.ICADEMSession = session;
+window.__signOut = options => session.logout(options);
 window.__db = db;
 let avatarCacheVersion = Date.now().toString(36);
 window.__refreshAvatarCache = function(){ avatarCacheVersion = Date.now().toString(36); };
@@ -4240,13 +4244,17 @@ if (window.__isDemoMode) {
 } else {
   // ─── Auth normal · puede ser sin-membresia o vip ───
   onAuthStateChanged(auth, async (user) => {
-    if (!user) { window.location.href = 'vip-auth.html'; return; }
+    if (!user) { session.signedOut(); return; }
+    const ticket = session.begin(user);
 
     try {
       await reload(user);
-      user = auth.currentUser || user;
+      if (!session.current(ticket)) return;
+      user = auth.currentUser;
       await user.getIdToken(true);
+      if (!session.current(ticket)) return;
     } catch (error) {
+      if (!session.current(ticket)) return;
       const invalidatedAccount = [
         'auth/user-token-expired',
         'auth/invalid-user-token',
@@ -4255,8 +4263,7 @@ if (window.__isDemoMode) {
       ].includes(String(error?.code || ''));
       if (invalidatedAccount) {
         try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
-        try { await signOut(auth); } catch (_) {}
-        window.location.replace('vip-auth.html?tab=register&deleted=1');
+        try { await session.logout({redirect:'vip-auth.html?tab=register&deleted=1'}); } catch (_) { window.location.replace('vip-auth.html?tab=register&deleted=1'); }
         return;
       }
       console.warn('No se pudo refrescar la identidad Google:', error.message);
@@ -4280,6 +4287,7 @@ if (window.__isDemoMode) {
     } else {
       try {
         const idToken = await user.getIdToken();
+        if (!session.current(ticket)) return;
         if (shouldActivateTrial) {
           try {
             const trialRes = await fetch(`${WEBHOOK_URL}/api/trial/activate`, {
@@ -4306,6 +4314,7 @@ if (window.__isDemoMode) {
           headers:{ Authorization:`Bearer ${idToken}` }
         });
         const data = await res.json();
+        if (!session.current(ticket)) return;
         window.UserState.membership = data;
         if (data.activo) {
           window.UserState.modo = 'vip';
@@ -4314,6 +4323,7 @@ if (window.__isDemoMode) {
           window.UserState.modo = 'sin-membresia';
         }
       } catch(e) {
+        if (!session.current(ticket)) return;
         console.warn('Backend Railway no responde · modo permisivo: sin-membresia');
         window.UserState.modo = 'sin-membresia';
       }
@@ -4322,6 +4332,7 @@ if (window.__isDemoMode) {
       // (para el desbloqueo progresivo de cursos como Sinergia)
       try {
         const memberSnap = await getDoc(doc(db, 'miembros', user.uid));
+        if (!session.current(ticket)) return;
         if (memberSnap.exists()) {
           window.memberData = memberSnap.data();
           // Propagar campos de cancelación al UserState para que el panel los use
@@ -4334,10 +4345,13 @@ if (window.__isDemoMode) {
           window.memberData = null;
         }
       } catch(e) {
+        if (!session.current(ticket)) return;
         console.warn('No se pudo leer miembros/' + user.uid, e.message);
         window.memberData = null;
       }
     }
+
+    if (!session.current(ticket)) return;
 
     // ─── Nombre canónico · UNA sola fuente para dashboard, splash y certificados ───
     // Prioridad: nombre guardado en Firestore (registro) → displayName Auth → local → correo
@@ -4393,20 +4407,16 @@ if (window.__isDemoMode) {
       window.history.replaceState({}, '', cleanUrl.toString());
     }
 
-    setTimeout(() => { window.__applyUserState && window.__applyUserState(); }, 50);
+    setTimeout(() => { if (session.current(ticket)) window.__applyUserState?.(); }, 50);
 
     // ─── Popup: confirmar/editar nombre (1ª vez) · evita certificados con el email ───
     window.__scheduleExperience('profile-name', {});
 
     // Arrancar listener de notificaciones de Firestore (tiempo real)
-    setTimeout(() => { if (typeof setupNotificacionesListener === 'function') setupNotificacionesListener(); }, 100);
+    setTimeout(() => { if (!session.current(ticket)) return; if (typeof setupNotificacionesListener === 'function') setupNotificacionesListener(); }, 100);
   });
 }
 
-window.__signOut = async () => {
-  try { await signOut(auth); window.location.href = 'vip-auth.html'; }
-  catch(e){ alert('No pudimos cerrar sesión.'); }
-};
 
 // ═══════════════════════════════════════════════════════════════
 // 🎉 SPLASH DE BIENVENIDA · cinematográfico
@@ -4706,7 +4716,7 @@ window.__setDisplayName = async (nombre) => {
           <span class="account-dock__copy"><strong id="sidebar-account-name">Miembro ICADEM</strong><small id="sidebar-account-plan">VIP ANUAL</small></span>
           <svg class="ic account-dock__edit"><use href="#i-edit"/></svg>
         </a>
-        <a class="account-dock__logout nav-item--logout" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
+        <button type="button" class="account-dock__logout nav-item--logout" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</button>
       </div>
     </div>
 
@@ -4908,7 +4918,7 @@ window.__setDisplayName = async (nombre) => {
           <a class="mobile-drawer__item" data-section="embajadores" id="drawer-nav-ambassadors" hidden><svg class="ic"><use href="#i-gift"/></svg>Mis referidos</a>
           <a class="account-dock__membership mobile-drawer__item" data-section="suscripcion"><span class="account-dock__membership-icon"><svg class="ic"><use href="#i-crown"/></svg></span><span>Gestionar membresía</span><svg class="ic account-dock__arrow"><use href="#i-arrow-right"/></svg></a>
           <a class="account-dock__identity mobile-drawer__item" data-section="perfil"><span class="account-dock__avatar" id="drawer-account-avatar">IN</span><span class="account-dock__copy"><strong id="drawer-account-name">Miembro ICADEM</strong><small id="drawer-account-plan">VIP ANUAL</small></span><svg class="ic account-dock__edit"><use href="#i-edit"/></svg></a>
-          <a class="account-dock__logout nav-item--logout" id="drawer-logout-btn"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
+          <button type="button" class="account-dock__logout nav-item--logout" id="drawer-logout-btn"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</button>
         </div>
       </div>
     </div>
@@ -5077,8 +5087,8 @@ const Modal=(function(){
   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&stack.length>0){e.preventDefault();close(stack[stack.length-1].id);}});
   function open(cfg){
     if(!cfg.id)cfg.id='m_'+Date.now().toString(36);
-    const exist=stack.find(s=>s.id===cfg.id);if(exist)close(cfg.id);
-    const bd=document.createElement('div');bd.className='modal-backdrop';bd.dataset.modalId=cfg.id;bd.setAttribute('role','dialog');bd.setAttribute('aria-modal','true');
+    const exist=stack.find(s=>s.id===cfg.id);if(exist)dispose(exist);
+    const bd=document.createElement('div');bd.className='modal-backdrop';bd.dataset.modalId=cfg.id;bd.setAttribute('role','dialog');bd.setAttribute('aria-label',cfg.title||'Información');bd.setAttribute('aria-modal','true');
     const m=document.createElement('div');m.className='modal'+(cfg.size==='lg'?' modal--lg':cfg.size==='sm'?' modal--sm':'');
     if(cfg.title){
       const h=document.createElement('div');h.className='modal__header';
@@ -5086,7 +5096,7 @@ const Modal=(function(){
       if(cfg.icon){const ie=document.createElement('div');ie.className='modal__icon';ie.innerHTML=`<svg class="ic"><use href="#${cfg.icon}"/></svg>`;tw.appendChild(ie);}
       const ts=document.createElement('div');ts.innerHTML=`<div class="modal__title">${cfg.title}</div>${cfg.subtitle?`<div class="modal__subtitle">${cfg.subtitle}</div>`:''}`;
       tw.appendChild(ts);h.appendChild(tw);
-      const cb=document.createElement('button');cb.className='modal__close';cb.innerHTML='<svg class="ic"><use href="#i-close"/></svg>';cb.addEventListener('click',()=>close(cfg.id));h.appendChild(cb);
+      const cb=document.createElement('button');cb.className='modal__close';cb.setAttribute('aria-label','Cerrar ventana');cb.innerHTML='<svg class="ic"><use href="#i-close"/></svg>';cb.addEventListener('click',()=>close(cfg.id));h.appendChild(cb);
       m.appendChild(h);
     }
     const b=document.createElement('div');b.className='modal__body';if(typeof cfg.body==='string')b.innerHTML=cfg.body;else if(cfg.body instanceof Node)b.appendChild(cfg.body);m.appendChild(b);
@@ -5097,7 +5107,8 @@ const Modal=(function(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>bd.classList.add('is-open')));
     return{id:cfg.id,close:()=>close(cfg.id)};
   }
-  function close(id){const i=stack.findIndex(s=>s.id===id);if(i<0)return;const e=stack[i];e.element.classList.remove('is-open');setTimeout(()=>{e.element.parentNode?.removeChild(e.element);stack.splice(i,1);if(stack.length===0)unlockBody();e.onClose?.();},250);}
+  function dispose(e){if(e.disposed)return;e.disposed=true;e.element.remove();const index=stack.indexOf(e);if(index>=0)stack.splice(index,1);if(stack.length===0)unlockBody();e.onClose?.();}
+  function close(id){const e=stack.find(item=>item.id===id&&!item.closing);if(!e)return;e.closing=true;e.element.classList.remove('is-open');setTimeout(()=>dispose(e),250);}
   return{open,close};
 })();
 
@@ -12225,7 +12236,7 @@ const Sections = (function(){
             <div class="perfil-field"><span class="perfil-field__lbl">Contraseña</span><span class="perfil-field__val">••••••••</span><button class="perfil-field__edit" id="btn-change-pass" title="Restablecer contraseña"><svg class="ic"><use href="#i-tools"/></svg></button></div>
             <div class="perfil-field"><span class="perfil-field__lbl">2FA</span><span class="perfil-field__val" style="color:var(--text-3);">Desactivado</span></div>
             <div class="perfil-field" style="border-bottom:none;padding-top:10px;">
-              <button class="btn btn--ghost" id="btn-close-all-sessions" style="font-size:11px;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,transparent);"><svg class="ic"><use href="#i-logout"/></svg>Cerrar todas las sesiones</button>
+              <button class="btn btn--ghost" id="btn-close-all-sessions" style="font-size:11px;color:var(--danger);border-color:color-mix(in srgb,var(--danger) 35%,transparent);"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión en este dispositivo</button>
             </div>
           </div>
         </div>
@@ -13084,18 +13095,27 @@ window.ICADEM_CONTACT = ICADEM_CONTACT;
 // Helpers Modal bonitos (logout, password reset, editar perfil)
 // ═══════════════════════════════════════════════════════════════════
 function openLogoutModal(){
+  if(window.__sessionEnding)return;
   const m=Modal.open({
     id:'logout-confirm',
     title:'¿Cerrar sesión?',
     subtitle:'Tu progreso queda guardado',
     icon:'i-logout',
     size:'sm',
-    body:`<p style="color:var(--text-2);font-size:14px;line-height:1.55;margin:0;">Vas a salir del Panel VIP de ICADEM. La próxima vez tendrás que iniciar sesión de nuevo con tu correo y contraseña.</p>`,
+    body:`<p role="status" id="logout-status" style="color:var(--text-2);font-size:14px;line-height:1.55;margin:0;">Vas a salir del Panel VIP de ICADEM. Podrás volver a entrar con Google o con tu correo y contraseña. Este cierre corresponde a este navegador.</p>`,
     footer:`<button class="btn btn--ghost" onclick="Modal.close('logout-confirm')">Cancelar</button><button class="btn btn--accent" id="confirm-logout" style="background:var(--danger);border-color:var(--danger);color:#fff;">Cerrar sesión</button>`
   });
-  document.getElementById('confirm-logout')?.addEventListener('click',()=>{
-    Modal.close('logout-confirm');
-    if(window.__signOut) window.__signOut();
+  document.getElementById('confirm-logout')?.addEventListener('click',async event=>{
+    const button=event.currentTarget, status=document.getElementById('logout-status');
+    if(button.disabled)return;
+    button.disabled=true; button.textContent='Cerrando sesión…'; button.setAttribute('aria-busy','true');
+    try {
+      if(typeof window.__signOut!=='function')throw new Error('La sesión todavía se está preparando. Intenta de nuevo.');
+      await window.__signOut();
+    } catch(error) {
+      button.disabled=false;button.textContent='Reintentar cierre';button.removeAttribute('aria-busy');
+      if(status)status.textContent='No pudimos cerrar tu sesión. Tu cuenta sigue abierta; vuelve a intentarlo.';
+    }
   });
 }
 
@@ -14095,20 +14115,8 @@ function initNav(){
       return;
     }
 
-    // Cerrar todas las sesiones
-    if(t.closest('#btn-close-all-sessions')){
-      Modal.open({
-        id:'close-all',
-        title:'¿Cerrar todas las sesiones?',
-        subtitle:'Esto te cerrará sesión en todos los dispositivos',
-        icon:'i-shield-check',
-        size:'sm',
-        body:`<p style="color:var(--text-2);font-size:14px;line-height:1.55;margin:0;">Por seguridad, vas a salir de ICADEM en este y en cualquier otro dispositivo donde tengas la sesión abierta. Tendrás que volver a iniciar sesión.</p>`,
-        footer:`<button class="btn btn--ghost" onclick="Modal.close('close-all')">Cancelar</button><button class="btn btn--accent" id="confirm-close-all" style="background:var(--danger);border-color:var(--danger);color:#fff;">Cerrar todas</button>`
-      });
-      document.getElementById('confirm-close-all')?.addEventListener('click',()=>{Modal.close('close-all');if(window.__signOut)window.__signOut();});
-      return;
-    }
+    // El cierre disponible es local a este navegador, no una revocación global.
+    if(t.closest('#btn-close-all-sessions')){ openLogoutModal(); return; }
 
     // Editar perfil (tip)
     if(t.closest('#btn-edit-profile')){
@@ -22380,7 +22388,7 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
 <script src="js/icadem-course-ratings.js?v=4"></script>
-<script src="js/icadem-onboarding.js?v=21"></script>
+<script src="js/icadem-onboarding.js?v=22"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
 <link rel="stylesheet" href="css/icadem-courses.css?v=4">
@@ -22389,8 +22397,9 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <link rel="stylesheet" href="css/icadem-directory.css?v=1">
 <link rel="stylesheet" href="css/icadem-course-detail.css?v=4">
-<link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=2">
+<link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=3">
+<link rel="stylesheet" href="css/icadem-session.css?v=1">
 <script src="js/icadem-home.js?v=3" defer></script>
-<script src="js/icadem-ambassador-promo.js?v=3" defer></script>
+<script src="js/icadem-ambassador-promo.js?v=4" defer></script>
 </body>
 </html>

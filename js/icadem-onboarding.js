@@ -61,7 +61,7 @@
     const state=window.UserState;
     return Boolean(state && state.modo !== 'vip' && !state.freeCourseId && state.freeCourseOfferSeen !== true && read('free-course-offer-seen','') !== 'complete' && !freeCourseDeferredThisSession() && (window.__isDemoMode || state.identityReady === true));
   }
-  function userReady() { const state=window.UserState; return Boolean(state && state.modo && state.modo !== 'cargando'); }
+  function userReady() { const state=window.UserState; return Boolean(!window.__sessionEnding && state && state.modo && state.modo !== 'cargando'); }
   function coursesSectionOpen() {
     const active = String(window.__seccionActualVIP || '').trim();
     if (active === 'cursos' || location.hash === '#cursos') return true;

@@ -1006,27 +1006,36 @@ async function ensureMiembroDoc(user, displayName, origen) {
 }
 
 /* Si ya está logueado, redirige inmediatamente · pero PRIMERO asegura el doc */
+let authNavigationVersion = 0;
 onAuthStateChanged(auth, async (user) => {
+  const version = ++authNavigationVersion;
+  const current = () => version === authNavigationVersion && !!user && auth.currentUser?.uid === user.uid;
   if (user) {
     try { await reload(user); user = auth.currentUser || user; } catch (error) { console.warn('[auth reload]', error.message); }
+    if (!current()) return;
     try {
       // El backend primero libera/archiva cualquier borrado ya concluido. Solo
       // después reconstruimos el perfil de Firestore para la identidad vigente.
       await syncCentralIdentity(user);
+      if (!current()) return;
       await ensureMiembroDoc(user, user.displayName, 'login-web');
+      if (!current()) return;
       await claimAmbassadorAttribution(user);
     } catch (error) {
+      if (!current()) return;
       if (isDeletedAccountError(error)) {
         await returnToFreshRegistration();
         return;
       }
       console.warn('[identity bootstrap]', error.message);
       await ensureMiembroDoc(user, user.displayName, 'login-web');
+      if (!current()) return;
       await claimAmbassadorAttribution(user);
     }
+    if (!current()) return;
     try { localStorage.setItem('icadem_last_user', JSON.stringify({ email:user.email||'', nombre:user.displayName||'' })); } catch(e){}
     const isAdmin = ADMINS.includes((user.email || "").toLowerCase());
-    window.location.href = destinoSeguro(isAdmin);
+    window.location.replace(destinoSeguro(isAdmin));
   }
 });
 
