@@ -4052,6 +4052,8 @@ body.has-fomo .main{padding-top:18px}
 @media(prefers-reduced-motion:reduce){.courses-page--premium .curso-card,.courses-page--premium .curso-card__cover>img,.courses-page--premium .curso-card__progress-fill,.courses-filter-chip{transition:none}.course-skeleton__cover,.course-skeleton__line{animation:none}}
 </style>
 <link rel="stylesheet" href="css/icadem-support-premium.css?v=2">
+<link rel="stylesheet" href="css/icadem-directory.css?v=2">
+<script src="js/icadem-directory.js?v=1"></script>
 </head>
 <body style="visibility:hidden">
 
@@ -11202,6 +11204,7 @@ const Sections = (function(){
       bio:card?.bio || '', sector:card?.sector || '',
       intereses:Array.isArray(card?.intereses) ? card.intereses.slice(0,12) : [],
       isVip:card?.isVip === true, plan:card?.plan || null,
+      portadaColorPersonalizado:card?.portadaColorPersonalizado === true,
       portadaColor:card?.portadaColor || '#173b56',
       portadaUrl:/^(?:https:\/\/|assets\/|\.\/|\/)/i.test(String(card?.portadaUrl || '')) ? card.portadaUrl : '',
       verificado:card?.verificado === true, perfilCompleto:card?.perfilCompleto === true,
@@ -11407,7 +11410,7 @@ const Sections = (function(){
     _dirFiltroTier = 'todos';
     _dirBusqueda = '';
     container.innerHTML = `
-      <div class="fade-up directory-page directory-premium">
+      <div class="fade-up directory-page directory-premium" data-directory-refined>
         <header class="network-heading"><div><span class="network-eyebrow">PERSONAS QUE SUMAN</span><h1>Directorio profesional</h1><p>Conecta con la comunidad ICADEM y descubre la experiencia detrás de cada perfil.</p></div><span class="network-heading__icon" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span></header>
         <section class="network-summary" aria-label="Comunidad ICADEM">
           <div class="network-summary__intro"><span class="network-summary__symbol" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div><strong>Tu próxima conexión<br>puede empezar aquí.</strong><span>Una comunidad, distintas especialidades.</span></div></div>
@@ -11530,6 +11533,7 @@ const Sections = (function(){
       return;
     }
     const renderCard = (c, esVip)=>{
+      const coverAppearance = window.ICADEMDirectory.appearance(c, esVip);
       const inicial = c.iniciales || (c.nombre||'?').trim().slice(0,2).toUpperCase();
       const foto = c.foto
         ? `<img src="${escapeHtml(dirFotoSrc(c))}" alt="${escapeHtml(c.nombre||'')}" class="dir-card__foto" referrerpolicy="no-referrer">`
@@ -11546,7 +11550,8 @@ const Sections = (function(){
       return `
       <article class="dir-card ${esVip?'dir-card--vip':'dir-card--member'}${esMia?' dir-card--mia':''}" data-dircard="${escapeHtml(c.id)}">
         ${esMia?'<button class="dir-card__edit" type="button" data-dir-edit aria-label="Editar mi tarjeta"><svg class="ic"><use href="#i-edit"/></svg></button>':''}
-        <div class="dir-card__cover" style="--dir-cover:${escapeHtml(c.portadaColor||'#173b56')};${c.portadaUrl?`background-image:url('${escapeHtml(c.portadaUrl)}')`:''}">
+        <div class="dir-card__cover ${coverAppearance.image?'dir-card__cover--image':''}" style="--dir-cover:${coverAppearance.color}">
+          ${coverAppearance.image?`<img class="dir-card__cover-image" src="${escapeHtml(coverAppearance.image)}" alt="" loading="lazy" decoding="async">`:''}
           <span class="dir-card__membership">${esVip?'<svg class="ic"><use href="#i-crown"/></svg> Membresía VIP':'Miembro'}</span>
           ${esMia?'<span class="dir-card__you">Tú</span>':''}
         </div>
@@ -11555,7 +11560,7 @@ const Sections = (function(){
           ${esVip?'<span class="dir-card__verified" aria-label="Membresía VIP verificada"><svg class="ic"><use href="#i-check"/></svg></span>':''}
         </div>
         <div class="dir-card__body-m">
-          <div class="dir-card__name">${escapeHtml(c.nombre||'Miembro ICADEM')}</div>
+          <div class="dir-card__name" title="${escapeHtml(c.nombre||'Miembro ICADEM')}">${escapeHtml(c.nombre||'Miembro ICADEM')}</div>
           ${c.puesto?`<div class="dir-card__puesto">${escapeHtml(c.puesto)}</div>`:''}
           ${c.empresa?`<div class="dir-card__empresa"><svg class="ic"><use href="#i-briefcase"/></svg>${escapeHtml(c.empresa)}</div>`:''}
           ${c.sector?`<span class="dir-card__sector">${escapeHtml(c.sector)}</span>`:''}
@@ -11659,7 +11664,7 @@ const Sections = (function(){
     let data = window.UserState?.directoryProfile || {};
     try { const ds = await fs.getDoc(fs.doc(fs.db,'directorio',uid)); if (ds.exists()) data = ds.data(); } catch(e){}
     _dirFotoTmp = undefined;
-    let dirCoverTmp = undefined;
+    let coverEditor = null;
 
     const fotoActual = dirFotoSrc(data);
     // Foto de Google: se puede volver a poner (o vincular Google) en cualquier momento.
@@ -11705,11 +11710,7 @@ const Sections = (function(){
         <input class="dir-form__in" id="dirf-instagram" maxlength="180" autocomplete="url" value="${(data.instagram||'').replace(/"/g,'&quot;')}" placeholder="@usuario o instagram.com/usuario">
         <label class="dir-form__lbl">Sitio web</label>
         <input class="dir-form__in" id="dirf-web" maxlength="120" value="${(data.web||'').replace(/"/g,'&quot;')}" placeholder="tusitio.com">
-        ${window.UserState?.modo==='vip'?`<div class="dir-form__sep">Portada VIP</div>
-        <label class="dir-form__lbl">Color de portada</label>
-        <input class="dir-form__in" id="dirf-cover-color" type="color" value="${data.portadaColor||'#173b56'}">
-        <label class="btn btn--ghost btn--sm" for="dirf-cover-file"><svg class="ic"><use href="#i-image"/></svg>Subir imagen de portada</label>
-        <input type="file" id="dirf-cover-file" accept="image/jpeg,image/png,image/webp" style="display:none;">`:''}
+        ${window.UserState?.modo==='vip'?window.ICADEMDirectory.editorMarkup():''}
         <label class="dir-form__check"><input type="checkbox" id="dirf-visible" ${data.visible!==false?'checked':''}> Mostrar mi tarjeta en el directorio</label>
       </div>
     `;
@@ -11751,14 +11752,11 @@ const Sections = (function(){
     });
     const btnQuitar = document.getElementById('dirf-foto-quitar');
     if (btnQuitar) btnQuitar.addEventListener('click', ()=>{ _dirFotoTmp = null; document.getElementById('dirf-foto-prev').innerHTML = `<svg class="ic"><use href="#i-user"/></svg>`; });
-    document.getElementById('dirf-cover-file')?.addEventListener('change', event=>{
-      const file=event.target.files?.[0]; if(!file) return;
-      if(file.size>2*1024*1024){ Toast.error('Imagen demasiado grande','La portada debe pesar menos de 2 MB'); event.target.value=''; return; }
-      const reader=new FileReader(); reader.onload=()=>{ dirCoverTmp=reader.result; Toast.success('Portada lista','Se guardará junto con tu perfil'); }; reader.readAsDataURL(file);
-    });
+    coverEditor = window.ICADEMDirectory.bindEditor(document.getElementById('dirf-cover-editor'), data);
 
     footer.querySelector('#dirf-cancel').addEventListener('click', ()=> m.close());
     footer.querySelector('#dirf-guardar').addEventListener('click', async ()=>{
+      if (coverEditor && !coverEditor.ready()) return;
       const nombre = document.getElementById('dirf-nombre').value.trim();
       if (nombre.length<3){ Toast.error('Falta tu nombre','Escribe tu nombre completo'); return; }
       const instagramRaw = document.getElementById('dirf-instagram').value.trim();
@@ -11778,7 +11776,6 @@ const Sections = (function(){
         instagram,
         web: document.getElementById('dirf-web').value.trim(),
         visible: document.getElementById('dirf-visible').checked,
-        portadaColor: document.getElementById('dirf-cover-color')?.value || data.portadaColor || '#173b56',
         contactoVisible: {
           email: document.getElementById('dirf-email-publico').checked,
           whatsapp: document.getElementById('dirf-wa-publico').checked,
@@ -11789,7 +11786,8 @@ const Sections = (function(){
       };
       if (_dirFotoTmp === null) payload.removeCustomPhoto = true;
       else if (typeof _dirFotoTmp === 'string') payload.avatarDataUrl = _dirFotoTmp;
-      if (typeof dirCoverTmp === 'string') payload.coverDataUrl = dirCoverTmp;
+      Object.assign(payload, coverEditor?.payload() || {});
+      coverEditor?.saving(true);
       try {
         if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible');
         await window.ICADEMPlatform.saveProfile(payload);
@@ -11799,7 +11797,7 @@ const Sections = (function(){
         if (window.UserState) { window.UserState.nombre = nombre; window.UserState.displayName = nombre; window.UserState.customName = nombre; }
         document.querySelectorAll('.perfil-hero__name,[data-field="nombre"] .perfil-field__val').forEach(el => el.textContent = nombre);
         window.__refreshPerfilDatos?.();
-      } catch(e){ console.error(e); Toast.error('No se pudo guardar', e.message||''); btn.disabled=false; btn.textContent='Guardar tarjeta'; }
+      } catch(e){ console.error(e); Toast.error('No se pudo guardar', e.message||''); coverEditor?.saving(false); coverEditor?.error(e.message); btn.disabled=false; btn.textContent='Guardar tarjeta'; }
     });
   }
 
@@ -22427,7 +22425,6 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-live.css?v=1">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
-<link rel="stylesheet" href="css/icadem-directory.css?v=1">
 <link rel="stylesheet" href="css/icadem-course-detail.css?v=4">
 <link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=6">
 <link rel="stylesheet" href="css/icadem-session.css?v=2">
