@@ -7023,11 +7023,76 @@ const Sections = (function(){
   let _webinarsLoading = false;
   let _webinarsPromise = null;
 
+  async function webinarRequest(path, options = {}) {
+    const user = window.__isDemoMode ? null : window.__auth?.currentUser;
+    if (!user) throw new Error('Inicia sesión para abrir tus clases en vivo.');
+    const token = await user.getIdToken();
+    const response = await fetch((window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app') + path, {
+      ...options,
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', ...(options.headers || {}) }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || 'No pudimos conectar con las clases en vivo.');
+    return data;
+  }
+
+  async function cambiarRegistroWebinar(w) {
+    const next = !w.registrado;
+    await webinarRequest(`/api/mobile/webinars/${encodeURIComponent(w.id)}/${next ? 'register' : 'cancel'}`, {
+      method: 'POST', body: '{}'
+    });
+    w.registrado = next;
+    Toast.success(next ? 'Inscripción guardada' : 'Inscripción cancelada',
+      next ? 'También aparecerá en tu cuenta de Android.' : 'Tu agenda ya está actualizada.');
+  }
+
+  async function abrirWebinar(w) {
+    const start = vipWebinarStartMs(w), end = vipWebinarEndMs(w), now = Date.now();
+    if (!start || now < start - 15 * 60000 || now >= end)
+      throw new Error('El acceso se habilita 15 minutos antes y termina con la clase.');
+    const popup = window.open('about:blank', '_blank');
+    if (popup) {
+      popup.opener = null;
+      popup.document.title = 'Abriendo clase ICADEM…';
+      popup.document.body.textContent = 'Verificando tu acceso a la clase…';
+    }
+    try {
+      const result = await webinarRequest(`/api/mobile/webinars/${encodeURIComponent(w.id)}/join`, {
+        method: 'POST', body: '{}'
+      });
+      if (!result.url || !/^https:\/\//i.test(result.url)) throw new Error('El enlace todavía no está disponible.');
+      if (popup && !popup.closed) popup.location.replace(result.url);
+      else window.location.assign(result.url);
+    } catch (error) {
+      popup?.close();
+      throw error;
+    }
+  }
+
   function cargarWebinarsFirestore() {
     if (_webinarsLoading) return _webinarsPromise;
     _webinarsLoading = true;
     _webinarsPromise = (async () => {
     try {
+      if (!window.__isDemoMode) {
+        const result = await webinarRequest('/api/mobile/webinars');
+        const ahora = Date.now();
+        webinars = (result.items || []).map(item => {
+          const fechaMs = Date.parse(item.startsAt) || 0;
+          const duracion = Number(item.durationMinutes) || 60;
+          return {
+            id: item.id, titulo: item.title, desc: item.description,
+            descripcion: item.description, instructor: item.instructor,
+            fecha: item.startsAt, fechaMs, duracion, area: item.area,
+            link: '', tieneGrabacion: Boolean(item.hasRecording),
+            status: fechaMs + duracion * 60000 > ahora ? 'proxima' : 'grabada',
+            enVivo: Boolean(fechaMs && fechaMs <= ahora && ahora < fechaMs + duracion * 60000),
+            registrado: Boolean(item.registered), visto: false
+          };
+        });
+        _webinarsLoaded = true;
+        return;
+      }
       const db = window.__db;
       const fs = window.__fs;
       if (!db || !fs) throw new Error('Firestore no inicializado');
@@ -10634,23 +10699,23 @@ const Sections = (function(){
       </div>
     `;
     container.querySelectorAll('[data-wtab]').forEach(b=>b.addEventListener('click',()=>{webState.tab=b.dataset.wtab;renderWebinars(container);}));
-    container.querySelector('#wh-register')?.addEventListener('click',()=>{
+    container.querySelector('#wh-register')?.addEventListener('click',async(e)=>{
       // ⚡ Paywall · solo VIP puede inscribirse a la lista de la clase
       const S = window.UserState;
       if (S && S.modo !== 'vip') {
         if (typeof window.__showPaywallModal === 'function') {
           window.__showPaywallModal({
             title: 'Inscripción exclusiva para VIP',
-            sub: 'Activa tu suscripción para registrarte y recibir el recordatorio una hora antes'
+            sub: 'Activa tu suscripción para guardar la clase en tu cuenta'
           });
         }
         return;
       }
-      prox.registrado=!prox.registrado;
-      Toast.success(prox.registrado?'Te inscribiste':'Cancelaste registro',prox.registrado?'Recibirás recordatorio una hora antes':'');
-      renderWebinars(container);
+      e.currentTarget.disabled = true;
+      try { await cambiarRegistroWebinar(prox); renderWebinars(container); }
+      catch (error) { Toast.error('No se pudo guardar', error.message); e.currentTarget.disabled = false; }
     });
-    container.querySelector('#wh-join')?.addEventListener('click',()=>{
+    container.querySelector('#wh-join')?.addEventListener('click',async(e)=>{
       // ⚡ Bloqueo paywall · invitados y sin-membresia ven el countdown PERO no pueden unirse
       const S = window.UserState;
       if (S && S.modo !== 'vip') {
@@ -10662,14 +10727,10 @@ const Sections = (function(){
         }
         return;
       }
-      // ⚡ Solo VIP: abrir el enlace REAL siempre (sin importar si ya empezó)
-      const url = vipWebinarJoinUrl(prox) || window.ICADEM_CONTACT?.zoom;
-      if (!url) {
-        Toast.info('Sin enlace', 'El instructor aún no ha configurado el link de transmisión');
-        return;
-      }
-      Toast.success('Abriendo transmisión…', prox.titulo);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      e.currentTarget.disabled = true;
+      try { await abrirWebinar(prox); Toast.success('Abriendo transmisión…', prox.titulo); }
+      catch (error) { Toast.error('No pudimos entrar', error.message); }
+      finally { e.currentTarget.disabled = false; }
     });
     container.querySelector('#wh-cal')?.addEventListener('click',()=>descargarICS(prox));
     renderWebList();
@@ -10799,8 +10860,7 @@ const Sections = (function(){
     `;
     const footer=document.createElement('div');
     if(isProx){
-      const linkUrl = vipWebinarJoinUrl(w).replace(/"/g,'&quot;');
-      const joinBtn = linkUrl ? `<button class="btn btn--accent" id="wd-join"><svg class="ic"><use href="#i-broadcast"/></svg>${enVivo?'Entrar ahora':'Unirme a la clase'}</button>` : '';
+      const joinBtn = `<button class="btn btn--accent" id="wd-join"><svg class="ic"><use href="#i-broadcast"/></svg>${enVivo?'Entrar ahora':'Unirme a la clase'}</button>`;
       footer.innerHTML=`<button class="btn btn--ghost" id="wd-close">Cerrar</button><button class="btn btn--ghost" id="wd-ics"><svg class="ic"><use href="#i-calendar"/></svg>Calendario</button><button class="btn btn--ghost" id="wd-toggle">${w.registrado?'Cancelar registro':'Inscribirme'}</button>${joinBtn}`;
     } else {
       footer.innerHTML=`<button class="btn btn--ghost" id="wd-close">Cerrar</button>${w.tieneGrabacion?`<button class="btn btn--accent" id="wd-play">${w.visto?'Volver a ver':'Reproducir'}<svg class="ic"><use href="#i-play"/></svg></button>`:''}`;
@@ -10808,8 +10868,12 @@ const Sections = (function(){
     const m=Modal.open({id:'web-'+id,title:isProx?'Clase en vivo':'Grabación',subtitle:formatFechaLarga(f),icon:'i-broadcast',size:'lg',body,footer});
     footer.querySelector('#wd-close').addEventListener('click',()=>m.close());
     footer.querySelector('#wd-ics')?.addEventListener('click',()=>descargarICS(w));
-    footer.querySelector('#wd-toggle')?.addEventListener('click',()=>{w.registrado=!w.registrado;Toast.success(w.registrado?'Te inscribiste':'Cancelaste registro',w.registrado?'Recibirás recordatorio una hora antes':'');m.close();renderWebinars(document.getElementById('dynamic-section'));});
-    footer.querySelector('#wd-join')?.addEventListener('click',()=>{
+    footer.querySelector('#wd-toggle')?.addEventListener('click',async(e)=>{
+      e.currentTarget.disabled = true;
+      try { await cambiarRegistroWebinar(w); m.close(); renderWebinars(document.getElementById('dynamic-section')); }
+      catch (error) { Toast.error('No se pudo guardar', error.message); e.currentTarget.disabled = false; }
+    });
+    footer.querySelector('#wd-join')?.addEventListener('click',async(e)=>{
       // ⚡ Bloqueo paywall · solo VIP puede unirse
       const S = window.UserState;
       if (S && S.modo !== 'vip') {
@@ -10821,10 +10885,10 @@ const Sections = (function(){
         }
         return;
       }
-      const url = vipWebinarJoinUrl(w);
-      if (!url) { Toast.info('Sin enlace', 'El instructor aún no ha configurado el link'); return; }
-      Toast.success('Abriendo transmisión…', w.titulo);
-      window.open(url, '_blank', 'noopener,noreferrer');
+      e.currentTarget.disabled = true;
+      try { await abrirWebinar(w); Toast.success('Abriendo transmisión…', w.titulo); }
+      catch (error) { Toast.error('No pudimos entrar', error.message); }
+      finally { e.currentTarget.disabled = false; }
     });
     footer.querySelector('#wd-play')?.addEventListener('click',async()=>{
       // Bloqueo paywall · solo VIP puede ver las grabaciones
