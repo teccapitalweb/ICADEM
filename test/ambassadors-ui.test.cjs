@@ -18,7 +18,7 @@ function app(options = {}) {
     location: { search: '' }, URLSearchParams, Intl, Date, crypto
   };
   const source = fs.readFileSync(__dirname + '/../js/icadem-ambassadors.js', 'utf8')
-    .replace('window.ICADEMAmbassadors={render:', 'window.__ui={enrollMarkup,dashboardMarkup,withdrawalPageMarkup,analyticsMarkup,shareMessage,shareTo,bind};window.ICADEMAmbassadors={render:');
+    .replace('window.ICADEMAmbassadors={render:', 'window.__ui={enrollMarkup,dashboardMarkup,withdrawalPageMarkup,analyticsMarkup,shareMessage,shareTo,bind,normalizeClabe,normalizePhone,clabeError,phoneError,setPresentationMode:value=>{presentationMode=value;}};window.ICADEMAmbassadors={render:');
   vm.runInNewContext(source, context);
   return { ...context.window.__ui, context, listeners, clipboard, opened };
 }
@@ -46,14 +46,59 @@ test('dashboard keeps banking forms and withdrawal history in a separate view', 
   assert.match(withdrawals, /data-amb-view="dashboard"/);
 });
 
-test('withdrawals accept an international WhatsApp number and keep it off the movements dashboard', () => {
+test('contact fields normalize separators without truncating pasted digits', () => {
   const ui = app(), html = ui.withdrawalPageMarkup(fixture({ ambassador: { active: true, whatsapp: '' } }));
-  const pattern = html.match(/id="amb-whatsapp"[^>]*pattern="([^"]+)"/)?.[1];
-  assert.ok(pattern);
-  assert.match('+5212381479821', new RegExp('^(?:' + pattern + ')$'));
-  assert.doesNotMatch('5212381479821', new RegExp('^(?:' + pattern + ')$'));
+  assert.doesNotMatch(html.match(/<input id="amb-whatsapp"[^>]+>/)[0], /maxlength|pattern=/);
+  assert.doesNotMatch(html.match(/<input id="amb-bank-clabe"[^>]+>/)[0], /maxlength|pattern=/);
+  for(const value of ['+52 238 147 9821','+52-238-147-9821','(+52) 238 147 9821','+5212381479821']){
+    assert.equal(ui.normalizePhone(value),'+522381479821');
+    assert.equal(ui.phoneError(ui.normalizePhone(value)),'');
+  }
+  assert.notEqual(ui.phoneError(ui.normalizePhone('2381479821')),'');
+  for(const value of ['012345678901234567','0123 4567 8901 2345 67','0123-4567-8901-2345-67','0123\n4567\n8901234567'])assert.equal(ui.normalizeClabe(value),'012345678901234567');
   assert.match(html, /Guarda tu WhatsApp en esta página/);
   assert.doesNotMatch(ui.dashboardMarkup(fixture()), /WhatsApp de contacto/);
+});
+
+test('input handlers clean a complete paste and preserve initial zeroes and excess digits for validation', () => {
+  const ui=app(),counter={},error={},field={value:'',selectionStart:null,handlers:{},setAttribute(){},addEventListener(type,fn){this.handlers[type]=fn;}};
+  const root={querySelectorAll(){return [];},querySelector(selector){return selector==='#amb-bank-clabe'?field:selector==='#amb-clabe-count'?counter:selector==='#amb-clabe-error'?error:null;}};
+  ui.bind(root,fixture());
+  field.value='0123 4567 8901 2345 67';field.handlers.input();
+  assert.equal(field.value,'012345678901234567');assert.equal(counter.textContent,'18 de 18 dígitos');
+  field.value='0123 4567 8901 2345 678';field.handlers.input();
+  assert.equal(field.value.length,19);assert.match(ui.clabeError(field.value),/Sobran 1/);
+  assert.match(ui.clabeError('0123'),/Faltan 14/);
+  assert.match(ui.clabeError('012345678901234567'),/verificador/);
+});
+
+test('actualizar abre un teléfono vacío y Guardar envía el número normalizado al servidor', async () => {
+  const requests=[],ui=app({request:async(path,options)=>{requests.push({path,body:options.body});throw new Error('Offline');}});
+  const field={value:'dato anterior',selectionStart:null,handlers:{},focus(){},setAttribute(){},addEventListener(event,fn){this.handlers[event]=fn;}};
+  const button={},edit={addEventListener(event,fn){this.click=fn;}},summary={setAttribute(name){this.hidden=name==='hidden';}},error={};
+  const form={hidden:true,elements:{namedItem:()=>field},querySelector:selector=>selector==='input'?field:button,removeAttribute(){this.hidden=false;},reportValidity:()=>true,addEventListener(event,fn){this.submit=fn;}};
+  const root={querySelectorAll(){return [];},querySelector(selector){return selector==='#amb-whatsapp'?field:selector==='[data-amb-whatsapp]'?form:selector==='[data-amb-phone-edit]'?edit:selector==='[data-amb-phone-summary]'?summary:selector==='#amb-phone-error'?error:null;}};
+  ui.bind(root,fixture());edit.click();assert.equal(field.value,'');assert.equal(form.hidden,false);assert.equal(summary.hidden,true);
+  field.value='(+52) 238 147-9821';field.handlers.input();assert.equal(field.value,'+522381479821');
+  await form.submit({preventDefault(){},currentTarget:form});
+  assert.equal(requests[0].path,'/api/ambassadors/whatsapp');assert.equal(requests[0].body.whatsapp,'+522381479821');
+});
+
+test('saved phone is masked, update form is empty and presentation excludes personal and banking information', () => {
+  const ui=app(),data=fixture({ambassador:{active:true,code:'BRI-TEST2',name:'Persona Privada',whatsapp:{registered:true,masked:'+52 ••• ••• 9821',last4:'9821'}},bank:{holderName:'Titular Privado',bank:'Banco Privado',last4:'0563'},referrals:[{buyer:'Cliente Privado',status:'registered'}],commissions:[{buyer:'cliente@correo.test',commissionCents:15000}],network:{directAmbassadors:[{code:'RED-ABCDE',active:true}]},withdrawals:[{amountCents:10000,bank:'Banco Privado',bankLast4:'0563',receiptUrl:'https://private.test/receipt',status:'paid'}]});
+  let html=ui.withdrawalPageMarkup(data);
+  assert.match(html,/\+52 ••• ••• 9821/);assert.match(html,/Número guardado correctamente/);
+  assert.match(html,/data-amb-phone-edit/);assert.match(html,/<input id="amb-whatsapp"[^>]+value=""/);
+  assert.match(html,/<input id="amb-bank-clabe"[^>]+value=""/);
+  assert.doesNotMatch(html,/\+522381479821/);
+  assert.doesNotMatch(ui.dashboardMarkup(data),/Cliente Privado|cliente@correo.test/);
+  ui.setPresentationMode(true);
+  html=ui.withdrawalPageMarkup(data)+ui.dashboardMarkup(data);
+  assert.doesNotMatch(html,/Persona Privada|Titular Privado|Banco Privado|0563|9821|private.test|RED-ABCDE|Cliente Privado|cliente@correo.test/);
+  assert.doesNotMatch(html,/data-amb-whatsapp|data-amb-bank(?:\s|>)/);
+  assert.match(html,/aria-checked="true"/);assert.match(html,/Saldo disponible/);assert.match(html,/\$150/);
+  const css=fs.readFileSync(__dirname+'/../css/ambassadors.css','utf8');
+  for(const surface of ['#btn-avatar','#notif-dropdown','.toast-container','.modal-backdrop'])assert.ok(css.includes('body.amb-presentation-active '+surface));
 });
 
 test('enrollment back button returns to the previous section or profile', () => {
