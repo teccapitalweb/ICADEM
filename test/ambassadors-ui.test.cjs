@@ -18,7 +18,7 @@ function app(options = {}) {
     location: { search: '' }, URLSearchParams, Intl, Date, crypto
   };
   const source = fs.readFileSync(__dirname + '/../js/icadem-ambassadors.js', 'utf8')
-    .replace('window.ICADEMAmbassadors={render:', 'window.__ui={dashboardMarkup,withdrawalPageMarkup,analyticsMarkup,shareMessage,shareTo,bind};window.ICADEMAmbassadors={render:');
+    .replace('window.ICADEMAmbassadors={render:', 'window.__ui={enrollMarkup,dashboardMarkup,withdrawalPageMarkup,analyticsMarkup,shareMessage,shareTo,bind};window.ICADEMAmbassadors={render:');
   vm.runInNewContext(source, context);
   return { ...context.window.__ui, context, listeners, clipboard, opened };
 }
@@ -41,6 +41,22 @@ test('dashboard keeps banking forms and withdrawal history in a separate view', 
   assert.match(withdrawals, /data-amb-withdraw/);
   assert.match(withdrawals, /Historial de retiros/);
   assert.match(withdrawals, /data-amb-view="dashboard"/);
+});
+
+test('enrollment back button returns to the previous section or profile', () => {
+  const ui = app(), button = { addEventListener(_name, callback) { this.click = callback; } };
+  const root = { querySelector(selector) { return selector === '[data-amb-back]' ? button : null; }, querySelectorAll() { return []; } };
+  const visited = [];
+  assert.match(ui.enrollMarkup(fixture({registered:false})), /data-amb-back/);
+  ui.bind(root, {registered:false});
+  ui.context.window.navigateToSection = section => visited.push(section);
+  ui.context.window.__seccionAnteriorVIP = 'cursos';
+  button.click();
+  ui.context.window.__seccionAnteriorVIP = 'curso-detalle';
+  button.click();
+  ui.context.window.__seccionAnteriorVIP = null;
+  button.click();
+  assert.deepEqual(visited, ['cursos', 'cursos', 'perfil']);
 });
 
 test('dashboard derives current reward and discount from server config', () => {
