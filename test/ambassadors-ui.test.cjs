@@ -37,11 +37,23 @@ test('dashboard keeps banking forms and withdrawal history in a separate view', 
   const ui = app(), data = fixture(), dashboard = ui.dashboardMarkup(data), withdrawals = ui.withdrawalPageMarkup(data);
   assert.match(dashboard, /data-amb-view="withdrawals"/);
   assert.doesNotMatch(dashboard, /data-amb-bank(?:\s|>)/);
+  assert.doesNotMatch(dashboard, /data-amb-whatsapp/);
   assert.doesNotMatch(dashboard, /Historial de retiros/);
   assert.match(withdrawals, /data-amb-bank/);
+  assert.match(withdrawals, /data-amb-whatsapp/);
   assert.match(withdrawals, /data-amb-withdraw/);
   assert.match(withdrawals, /Historial de retiros/);
   assert.match(withdrawals, /data-amb-view="dashboard"/);
+});
+
+test('withdrawals accept an international WhatsApp number and keep it off the movements dashboard', () => {
+  const ui = app(), html = ui.withdrawalPageMarkup(fixture({ ambassador: { active: true, whatsapp: '' } }));
+  const pattern = html.match(/id="amb-whatsapp"[^>]*pattern="([^"]+)"/)?.[1];
+  assert.ok(pattern);
+  assert.match('+5212381479821', new RegExp('^(?:' + pattern + ')$'));
+  assert.doesNotMatch('5212381479821', new RegExp('^(?:' + pattern + ')$'));
+  assert.match(html, /Guarda tu WhatsApp en esta página/);
+  assert.doesNotMatch(ui.dashboardMarkup(fixture()), /WhatsApp de contacto/);
 });
 
 test('enrollment back button returns to the previous section or profile', () => {
