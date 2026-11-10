@@ -48,11 +48,11 @@
     return {url:url.pathname+url.search+url.hash,historyState:state,restoreDirectory:restore};
   }
   function directoryState(){return restore?saved():null;}
-  function directoryReady(root){
+  function directoryReady(root,readyTab){
     if(!restore||activeSection!=='directorio'||!root?.isConnected)return;
     var state=saved();if(!state)return;
     var tab=root.querySelector('[data-community-tab][aria-pressed="true"]')?.dataset.communityTab||'directory';
-    if(tab!==state.tab)return;
+    if(tab!==state.tab||(readyTab&&readyTab!==state.tab))return;
     var position=state.scroll,run=revision;
     requestAnimationFrame(function(){
       if(run!==revision||!restore||!root.isConnected)return;

@@ -303,7 +303,7 @@
           button.disabled = false;
         });
       paintActivity();
-      window.ICADEMProfessionalNavigation?.directoryReady(context.root);
+      if(context.tab!=="directory")window.ICADEMProfessionalNavigation?.directoryReady(context.root,context.tab);
       if (context.notificationUid) {
         var match=Array.from(context.root.querySelectorAll("[data-network-profile]")).find(function(node){return node.dataset.networkProfile===context.notificationUid;});
         if(match){match.scrollIntoView({block:"center",behavior:"auto"});match.focus({preventScroll:true});}
