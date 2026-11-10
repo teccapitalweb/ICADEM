@@ -6,6 +6,11 @@ const vm = require('node:vm');
 const DAY = 86400000;
 const config = { enabled:true, commissionCents:15000, discountCents:25000, directCommissionVipCents:15000, directCommissionFreeCents:10000, monthlyDiscountVipCents:25000, annualDiscountVipCents:30000, monthlyDiscountFreeCents:20000, annualDiscountFreeCents:25000, minimumPaidCents:20000, minimumWithdrawalCents:10000, validationDays:7, attributionDays:30, eligiblePlans:['mensual','anual'] };
 const fixture = () => ({ registered:false, config:{...config} });
+const settled = () => new Promise(resolve=>setImmediate(resolve));
+const visibleText = html => html.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim();
+function promoAction(kind) {
+  return {dataset:{ambPromo:kind},disabled:false,attributes:{},setAttribute(name,value){this.attributes[name]=value;},removeAttribute(name){delete this.attributes[name];}};
+}
 function app(options = {}) {
   const stored = new Map(), session = new Map(), timers = new Map(), events = {}, windowEvents = {}, roots = {}, dialogs = [], queued = [], navigated = [];
   let timerId = 0, home = true;
@@ -54,18 +59,19 @@ test('existing ambassadors get a dashboard entry instead of an enrollment invita
   const html=app().cardMarkup({...fixture(),registered:true,ambassador:{active:true}},'home');
   assert.match(html,/Ir a mi panel/);assert.doesNotMatch(html,/Quiero ser embajador|Para tu invitado/);
 });
-test('profile banner reuses the server category and commission in its compact presentation', async () => {
-  for(const [category,amount,label] of [['vip',15000,'EMBAJADOR VIP'],['free',10000,'EMBAJADOR']]) {
+test('profile uses the verified server commission, original vector and two distinct actions', async () => {
+  for(const [category,amount,label] of [['vip',15000,'EMBAJADOR VIP'],['free',10000,'EMBAJADOR ICADEM']]) {
     const data={...fixture(),registered:true,category,ambassador:{active:true}};
     const ui=app({load:async()=>data});await ui.refresh();
     const profile=ui.roots['ambassador-profile-promo'];
     assert.equal(profile.attributes['data-amb-category'],category);
-    assert.match(profile.innerHTML,new RegExp(label));assert.match(profile.innerHTML,/Gana dinero recomendando ICADEM\./);
-    const visibleText=profile.innerHTML.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
-    assert.ok(visibleText.includes(`$${amount/100} MXN por compra elegible`));
-    assert.match(profile.innerHTML,/data-amb-promo="panel">Ver mi código y compartir/);
+    assert.match(profile.innerHTML,new RegExp(label));assert.match(profile.innerHTML,/Convierte tus recomendaciones en ingresos\./);
+    assert.ok(visibleText(profile.innerHTML).includes(`Gana $${amount/100} MXN por cada compra elegible realizada con tu código.`));
+    assert.match(profile.innerHTML,/data-amb-promo="share"/);assert.match(profile.innerHTML,/Ver mi código y compartir/);
+    assert.match(profile.innerHTML,/data-amb-promo="panel"/);assert.match(profile.innerHTML,/Ir a mi panel/);
     assert.match(profile.innerHTML,/#i-crown/);assert.match(profile.innerHTML,/amb-promo-profile-art/);
-    assert.match(profile.innerHTML,/viewBox="0 0 96 88"/);assert.doesNotMatch(profile.innerHTML,/<img|https?:/);
+    assert.match(profile.innerHTML,/viewBox="0 0 210 200"/);assert.match(profile.innerHTML,/class="amb-promo-commission-card"><strong>\$\d+ <small>MXN<\/small><\/strong><span>por compra elegible/);
+    assert.doesNotMatch(profile.innerHTML,/<img|https?:|#i-share|#i-external/);
     assert.doesNotMatch(profile.innerHTML,/amb-promo-(?:offer|symbol|coin|caption)|Tu comunidad crece contigo/);
     assert.match(ui.roots['ambassador-home-promo'].innerHTML,/Tus recomendaciones ya tienen su espacio\./);
     assert.match(ui.roots['ambassador-home-promo'].innerHTML,/amb-promo-symbol/);
@@ -77,14 +83,123 @@ test('profile preserves paused and unenrolled actions without promising an avail
   const ui=app();
   const paused=ui.cardMarkup({...fixture(),registered:true,category:'vip',ambassador:{active:false}},'profile');
   assert.match(paused,/Tu perfil de embajador está en pausa/);assert.match(paused,/Entra a tu panel para consultar su estado/);
-  assert.match(paused,/data-amb-promo="panel">Ir a mi panel/);assert.doesNotMatch(paused,/amb-promo-profile-reward|Gana dinero/);
+  assert.match(paused,/data-amb-promo="panel"/);assert.match(paused,/Ir a mi panel/);assert.doesNotMatch(paused,/data-amb-promo="share"|Gana |\$150/);
   const unregistered=ui.cardMarkup({...fixture(),category:'free'},'profile');
-  assert.match(unregistered,/data-amb-promo="info">Quiero ser embajador/);assert.match(unregistered,/Cómo funciona/);
+  assert.match(unregistered,/data-amb-promo="info"/);assert.match(unregistered,/Activar mi espacio de embajador/);assert.match(unregistered,/Cómo funciona/);
+  assert.doesNotMatch(unregistered,/data-amb-promo="share"/);
   const unknown=ui.cardMarkup({...fixture(),config:{...config,directCommissionFreeCents:undefined}},'profile');
   assert.doesNotMatch(unknown,/\$NaN|\$100|\$150/);
   ui.setHome(false);ui.init();await new Promise(resolve=>setImmediate(resolve));
   ui.events.click({target:{closest:()=>({dataset:{ambPromo:'panel'}})}});
   assert.deepEqual(ui.navigated,['embajadores']);
+});
+
+test('server registration controls invitations in all four free and VIP states', async () => {
+  for(const category of ['free','vip']) for(const registered of [false,true]) {
+    const data={...fixture(),category,registered,ambassador:{active:true},bankAccount:null,whatsappNumber:''};
+    const ui=app({load:async()=>data});
+    ui.stored.set('icadem:ambassador-invitation:v1:user-a',JSON.stringify({disabled:true}));
+    ui.session.set('icadem:ambassador-home-auto:v2:user-a','1');
+    await ui.refresh();
+    const profile=ui.roots['ambassador-profile-promo'], indicator=ui.roots['ambassador-topbar-promo'];
+    const amount=category==='vip'?'150':'100';
+    assert.equal(profile.hidden,false);assert.equal(profile.attributes['data-amb-category'],category);
+    assert.ok(visibleText(profile.innerHTML).includes(`Gana $${amount} MXN por cada compra elegible realizada con tu código.`));
+    assert.equal(indicator.hidden,registered);
+    if(registered) {
+      assert.match(profile.innerHTML,/data-amb-promo="share"/);
+      assert.doesNotMatch(profile.innerHTML,/Activar mi espacio de embajador/);
+    } else {
+      assert.match(profile.innerHTML,/Activar mi espacio de embajador/);
+      assert.doesNotMatch(profile.innerHTML,/data-amb-promo="share"/);
+      assert.match(indicator.innerHTML,new RegExp(`Gana \\$${amount} MXN`));
+    }
+    const reloaded=app({load:async()=>data});await reloaded.refresh();
+    assert.equal(reloaded.roots['ambassador-topbar-promo'].hidden,registered);
+  }
+  const paused=app({load:async()=>({...fixture(),registered:true,category:'vip',ambassador:{active:false}})});await paused.refresh();
+  assert.equal(paused.roots['ambassador-topbar-promo'].hidden,true);
+  assert.doesNotMatch(paused.roots['ambassador-profile-promo'].innerHTML,/data-amb-promo="share"|Gana \$|\$150/);
+});
+
+test('missing category reward never invents a profile or header amount', async () => {
+  for(const invalid of [undefined,NaN,-100,0,1.5,Infinity]) {
+    const data={...fixture(),category:'free',config:{...config,directCommissionFreeCents:invalid}};
+    const ui=app({load:async()=>data});await ui.refresh();
+    const profile=ui.roots['ambassador-profile-promo'].innerHTML;
+    assert.doesNotMatch(profile,/\$100|\$150|\$NaN|por compra elegible<\/span>/);
+    assert.match(profile,/consulta las condiciones de tu invitación/);
+    assert.equal(ui.roots['ambassador-topbar-promo'].hidden,true);
+  }
+});
+
+test('sharing opens the existing tools once with a real pending state', async () => {
+  const data={...fixture(),registered:true,category:'vip',ambassador:{active:true}};
+  const ui=app({load:async()=>data});ui.setHome(false);ui.init();await settled();
+  let resolve, calls=0;
+  ui.context.window.ICADEMAmbassadors.openSharing=()=>{calls++;return new Promise(done=>{resolve=done;});};
+  const button=promoAction('share'), event={target:{closest:()=>button}};
+  const pending=ui.events.click(event);
+  assert.equal(calls,1);assert.equal(button.disabled,true);assert.equal(button.attributes['aria-busy'],'true');
+  await ui.events.click(event);assert.equal(calls,1);
+  resolve(true);await pending;
+  assert.equal(button.disabled,false);assert.equal(button.attributes['aria-busy'],undefined);assert.deepEqual(ui.navigated,[]);
+  ui.context.window.ICADEMAmbassadors.openSharing=async()=>false;
+  await ui.events.click(event);assert.deepEqual(ui.navigated,[]);
+});
+
+test('sharing safely retains existing navigation without enrolling or sharing for invalid states', async () => {
+  const active={...fixture(),registered:true,category:'vip',ambassador:{active:true}};
+  for(const data of [active,{...active,registered:false},{...active,ambassador:{active:false}}]) {
+    const ui=app({load:async()=>data});ui.setHome(false);ui.init();await settled();
+    let calls=0;
+    if(data!==active)ui.context.window.ICADEMAmbassadors.openSharing=async()=>{calls++;};
+    await ui.events.click({target:{closest:()=>promoAction('share')}});
+    assert.deepEqual(ui.navigated,['embajadores']);assert.equal(calls,0);assert.equal(ui.dialogs.length,0);
+    await ui.events.click({target:{closest:()=>promoAction('panel')}});
+    assert.deepEqual(ui.navigated,['embajadores','embajadores']);
+  }
+  const ui=app({load:async()=>active});ui.setHome(false);ui.init();await settled();
+  let reject;ui.context.window.ICADEMAmbassadors.openSharing=()=>new Promise((_,fail)=>{reject=fail;});
+  const button=promoAction('share'), pending=ui.events.click({target:{closest:()=>button}});
+  ui.context.window.UserState.uid='user-b';reject(Error('stale account'));await pending;
+  assert.deepEqual(ui.navigated,[]);assert.equal(button.disabled,false);
+});
+
+test('identity refresh on Mi perfil updates the server category without touching other routes', async () => {
+  let data={...fixture(),category:'vip'}, calls=0;
+  const ui=app({load:async()=>{calls++;return data;}});ui.setHome(false);ui.context.location.hash='#perfil';ui.init();await settled();
+  assert.match(ui.roots['ambassador-profile-promo'].innerHTML,/EMBAJADOR VIP/);
+  data={...data,category:'free'};ui.events['icadem:identity-ready']();await settled();
+  assert.match(ui.roots['ambassador-profile-promo'].innerHTML,/EMBAJADOR ICADEM/);
+  assert.match(ui.roots['ambassador-topbar-promo'].innerHTML,/Gana \$100 MXN/);
+  const count=calls;ui.context.location.hash='#cursos';ui.events['icadem:identity-ready']();await settled();
+  assert.equal(calls,count);
+});
+
+test('latest concurrent profile refresh survives stale successes and rejected loads', async () => {
+  const requests=[], ui=app({load:()=>new Promise((resolve,reject)=>requests.push({resolve,reject}))});
+  const first=ui.refresh(), second=ui.refresh(), latest=ui.context.window.ICADEMAmbassadorPromo.mountProfile();
+  const newest={...fixture(),category:'vip',registered:true,ambassador:{active:true}};
+  requests[2].resolve(newest);await latest;
+  const html=ui.roots['ambassador-profile-promo'].innerHTML;
+  assert.equal(ui.roots['ambassador-profile-promo'].hidden,false);assert.match(html,/Ver mi código y compartir/);
+  requests[0].reject(Error('superseded summary'));requests[1].resolve({...fixture(),category:'free'});await Promise.all([first,second]);
+  assert.equal(ui.roots['ambassador-profile-promo'].hidden,false);assert.equal(ui.roots['ambassador-profile-promo'].innerHTML,html);
+  assert.equal(ui.roots['ambassador-topbar-promo'].hidden,true);
+});
+
+test('successful enrollment refresh remains visible after the pre-enrollment request rejects', async () => {
+  const requests=[], ui=app({load:()=>new Promise((resolve,reject)=>requests.push({resolve,reject}))});
+  ui.setHome(false);ui.init();
+  const enrollment=ui.events['icadem:ambassador-enrolled']();
+  requests[1].resolve({...fixture(),registered:true,category:'free',ambassador:{active:true}});await enrollment;
+  assert.equal(ui.roots['ambassador-profile-promo'].hidden,false);
+  assert.match(ui.roots['ambassador-profile-promo'].innerHTML,/Ver mi código y compartir/);
+  requests[0].reject(Error('summary invalidated by enrollment'));await settled();
+  assert.equal(ui.roots['ambassador-profile-promo'].hidden,false);
+  assert.match(ui.roots['ambassador-profile-promo'].innerHTML,/EMBAJADOR ICADEM/);
+  assert.equal(ui.roots['ambassador-topbar-promo'].hidden,true);
 });
 test('failed loading hides both cards, and stale account responses cannot repaint them', async () => {
   const failed=app({load:async()=>{throw Error('offline');}});await failed.refresh();

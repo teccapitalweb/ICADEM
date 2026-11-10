@@ -8,12 +8,14 @@
   var cacheAt=0;
   var cacheUid='';
   var cacheEpoch=0;
+  var summaryFlight=null;
   var backgroundBusy=false;
   var notificationUid='';
   var activeView='dashboard';
   var sessionGeneration=0;
   var shownCelebrations=new Set();
   var presentationMode=false;
+  var sharingIntent=null,sharingNavigation=0,renderRevision=0;
 
   function normalizeClabe(value){return String(value||'').replace(/[\s\u200B-\u200D\uFEFF\-\u2010-\u2015]/g,'');}
   function normalizePhone(value){return String(value||'').replace(/[\s\u200B-\u200D\uFEFF().\-\u2010-\u2015]/g,'').replace(/^\++/,'+').replace(/^\+521(\d{10})$/,'+52$1');}
@@ -61,15 +63,23 @@
   }
 
   function currentUid(){return String((window.__auth?window.__auth.currentUser:window.__currentUser)?.uid||'');}
-  function invalidateCache(){cache=null;cacheAt=0;cacheUid='';cacheEpoch+=1;}
+  function invalidateCache(){cache=null;cacheAt=0;cacheUid='';cacheEpoch+=1;summaryFlight=null;}
   function sameSession(uid,generation){return !window.__sessionEnding&&currentUid()===uid&&generation===sessionGeneration;}
   async function load(force){
     var uid=currentUid(),generation=sessionGeneration;
     if(window.__sessionEnding)throw new Error('La sesión está cerrándose.');
+    // Concurrent profile, navigation and dashboard readers share one snapshot.
+    // Explicit invalidation starts a new epoch after an acknowledged mutation.
+    if(summaryFlight&&summaryFlight.uid===uid&&summaryFlight.generation===generation&&summaryFlight.epoch===cacheEpoch)return summaryFlight.promise;
     if(!force&&cache&&cacheUid===uid&&Date.now()-cacheAt<15000)return cache;
-    var epoch=++cacheEpoch,data=await request('/api/ambassadors/me');
-    if(!sameSession(uid,generation)||epoch!==cacheEpoch)throw new Error('La sesión o los datos cambiaron. Vuelve a abrir el panel para actualizar tus datos.');
-    cache=data;cacheUid=uid;cacheAt=Date.now();return cache;
+    var flight={uid:uid,generation:generation,epoch:++cacheEpoch,promise:null};
+    summaryFlight=flight;
+    flight.promise=(async function(){
+      var data=await request('/api/ambassadors/me');
+      if(!sameSession(uid,generation)||flight.epoch!==cacheEpoch)throw new Error('La sesión o los datos cambiaron. Vuelve a abrir el panel para actualizar tus datos.');
+      cache=data;cacheUid=uid;cacheAt=Date.now();return cache;
+    })();
+    try{return await flight.promise;}finally{if(summaryFlight===flight)summaryFlight=null;}
   }
   function acceptsRefresh(root){
     if(!root?.isConnected||location.hash!=='#embajadores'||window.__sessionEnding||!currentUid()||notificationUid!==currentUid()||document.visibilityState==='hidden'||navigator.onLine===false)return false;
@@ -83,7 +93,8 @@
     try{var data=await load(true);if(sameSession(uid,generation)&&acceptsRefresh(root))renderData(root,data);}catch(_){}finally{backgroundBusy=false;}
   }
   function acceptConversion(result){
-    if(cache&&cacheUid===currentUid()&&!window.__sessionEnding){cache={...cache,wallet:result.wallet,conversions:[result.conversion].concat((cache.conversions||[]).filter(function(item){return item.id!==result.conversion.id;})).slice(0,100)};cacheAt=Date.now();notificationData=cache;if(notificationRoot?.isConnected&&notificationUid===currentUid()&&location.hash==='#embajadores'&&!notificationRoot.querySelector('[data-amb-dirty="true"]'))renderData(notificationRoot,cache);}
+    // Preserve the confirmed server wallet; older summary reads cannot replace it.
+    if(cache&&cacheUid===currentUid()&&!window.__sessionEnding){cacheEpoch+=1;summaryFlight=null;cache={...cache,wallet:result.wallet,conversions:[result.conversion].concat((cache.conversions||[]).filter(function(item){return item.id!==result.conversion.id;})).slice(0,100)};cacheAt=Date.now();notificationData=cache;if(notificationRoot?.isConnected&&notificationUid===currentUid()&&location.hash==='#embajadores'&&!notificationRoot.querySelector('[data-amb-dirty="true"]'))renderData(notificationRoot,cache);}
   }
   function earningsMarkup(data){
     var w=data.wallet||{},enabled=Boolean(window.ICADEMCommissionConversion?.hasPending()||data.ambassador?.active&&!Number(w.debtCents)&&Number(w.availableCents)>=100);
@@ -210,6 +221,42 @@
     if(!target)return;activeView=target.view==='withdrawals'?'withdrawals':'dashboard';
     renderData(notificationRoot,notificationData);showNotificationTarget(notificationRoot,notificationData,target);
   }
+  function cancelSharing(result){
+    var intent=sharingIntent;if(!intent)return;
+    sharingIntent=null;if(intent.timer)clearTimeout(intent.timer);intent.resolve(result===true);
+  }
+  function currentSharing(intent){
+    return sharingIntent===intent&&sameSession(intent.uid,intent.generation)&&location.hash==='#embajadores'&&!intent.awaitingNavigation&&intent.navigation===sharingNavigation;
+  }
+  function finishSharingRender(root,data){
+    var intent=sharingIntent;if(!intent)return;
+    if(!currentSharing(intent)||!root.isConnected||!data.registered||data.ambassador?.active!==true||!String(data.ambassador?.code||'').trim()){cancelSharing(false);return;}
+    if(intent.timer)clearTimeout(intent.timer);
+    // The existing navigator resets scroll again at 120 ms. Run once after
+    // that reset, using this completed render instead of polling for markup.
+    intent.timer=setTimeout(function(){
+      if(!currentSharing(intent)||!root.isConnected||notificationRoot!==root||notificationUid!==intent.uid||notificationData!==data){cancelSharing(false);return;}
+      if(document.querySelector?.('.amb-commission-celebration,.modal-backdrop.is-open,dialog[open]')){cancelSharing(false);return;}
+      var section=root.querySelector('[data-amb-sharing]');
+      if(!section){cancelSharing(false);return;}
+      // The free dashboard keeps its code inside the existing ready-to-share
+      // message. Reveal it, without copying text or opening a social network.
+      if(!section.querySelector('[data-amb-copy]')){var message=section.querySelector('.amb-message');if(message)message.open=true;}
+      section.scrollIntoView({block:'start',behavior:'auto'});
+      var control=section.querySelector('[data-amb-copy]')||section.querySelector('button');
+      control?.focus({preventScroll:true});cancelSharing(true);
+    },140);
+  }
+  function openSharing(){
+    cancelSharing(false);
+    var uid=currentUid(),generation=sessionGeneration;
+    if(!uid||window.__sessionEnding||window.__isDemoMode||typeof window.navigateToSection!=='function')return Promise.resolve(false);
+    activeView='dashboard';
+    return new Promise(function(resolve){
+      sharingIntent={uid:uid,generation:generation,navigation:sharingNavigation,awaitingNavigation:true,resolve:resolve,timer:null};
+      try{window.navigateToSection('embajadores');if(location.hash!=='#embajadores')cancelSharing(false);}catch(_){cancelSharing(false);}
+    });
+  }
   async function openReceipt(button){
     var user=window.__currentUser,uid=user?.uid;if(!uid||button.disabled)return;
     button.disabled=true;button.textContent='Abriendo…';
@@ -222,9 +269,9 @@
     }catch(error){toast('error','Comprobante protegido',error.message);}finally{button.disabled=false;button.textContent='Comprobante';}
   }
   async function render(root){
-    if(!root)return;var route=location.hash,generation=sessionGeneration,uid=currentUid(),stable=Boolean(cache&&cacheUid===uid&&notificationRoot===root&&notificationUid===uid);if(!stable)loading(root);root.setAttribute('aria-busy','true');
+    if(!root)return;var route=location.hash,generation=sessionGeneration,uid=currentUid(),revision=++renderRevision,intentAtRender=sharingIntent,stable=Boolean(cache&&cacheUid===uid&&notificationRoot===root&&notificationUid===uid&&(root.querySelector('[data-amb-heading]')||root.querySelector('[data-amb-enroll]')));if(!stable)loading(root);root.setAttribute('aria-busy','true');
     if(window.__isDemoMode){root.removeAttribute('aria-busy');root.innerHTML='<div class="amb-empty"><div><strong>Inicia sesión para participar</strong><p>El programa necesita una cuenta real para generar tu código y proteger tus comisiones.</p></div></div>';return;}
-    try{var data=await load(true);if(location.hash===route&&sameSession(uid,generation))renderData(root,data);}catch(error){if(location.hash!==route||!sameSession(uid,generation))return;if(stable){toast('error','No se pudo actualizar','Se conservan los últimos datos recibidos. Puedes reintentar.');return;}root.innerHTML='<div class="amb-empty"><div><strong>No pudimos cargar Embajadores</strong><p>'+esc(error.message)+'</p><button class="amb-btn" type="button" data-amb-retry>Reintentar</button></div></div>';root.querySelector('[data-amb-retry]')?.addEventListener('click',function(){render(root);});}finally{if(sameSession(uid,generation))root.removeAttribute('aria-busy');}
+    try{var data=await load(true);if(revision===renderRevision&&location.hash===route&&sameSession(uid,generation))renderData(root,data);}catch(error){if(revision!==renderRevision)return;if(sharingIntent===intentAtRender)cancelSharing(false);if(location.hash!==route||!sameSession(uid,generation))return;if(stable){toast('error','No se pudo actualizar','Se conservan los últimos datos recibidos. Puedes reintentar.');return;}root.innerHTML='<div class="amb-empty"><div><strong>No pudimos cargar Embajadores</strong><p>'+esc(error.message)+'</p><button class="amb-btn" type="button" data-amb-retry>Reintentar</button></div></div>';root.querySelector('[data-amb-retry]')?.addEventListener('click',function(){render(root);});}finally{if(sharingIntent&&!sameSession(sharingIntent.uid,sharingIntent.generation))cancelSharing(false);if(revision===renderRevision&&sameSession(uid,generation))root.removeAttribute('aria-busy');}
   }
 
   function acknowledgeCelebration(id){if(!id)return;request('/api/ambassadors/notifications/'+encodeURIComponent(id)+'/read',{method:'POST'}).catch(function(){});}
@@ -243,7 +290,7 @@
     setTimeout(function(){root.querySelector('.amb-commission-celebration__close')?.focus();},0);
   }
 
-  function renderData(root,data){notificationRoot=root;notificationData=data;notificationUid=currentUid();var notice=window.ICADEMNotifications?.consume('embajadores');if(notice)activeView=notice.view==='withdrawals'?'withdrawals':'dashboard';document.body?.classList.toggle('amb-presentation-active',presentationMode&&data.registered);root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);showNotificationTarget(root,data,notice);if(activeView==='dashboard'&&data.commissionCelebrations?.length)setTimeout(function(){if(root.isConnected&&notificationData===data&&notificationUid===currentUid()&&!window.__sessionEnding&&location.hash==='#embajadores'&&!window.ICADEMCommissionConversion?.isOpen())showCommissionCelebration(data.commissionCelebrations[0]);},80);}
+  function renderData(root,data){notificationRoot=root;notificationData=data;notificationUid=currentUid();var sharing=sharingIntent&&currentSharing(sharingIntent),notice=sharing?null:window.ICADEMNotifications?.consume('embajadores');if(sharing)activeView='dashboard';else if(notice)activeView=notice.view==='withdrawals'?'withdrawals':'dashboard';document.body?.classList.toggle('amb-presentation-active',presentationMode&&data.registered);root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);showNotificationTarget(root,data,notice);finishSharingRender(root,data);if(activeView==='dashboard'&&data.commissionCelebrations?.length)setTimeout(function(){if(root.isConnected&&notificationData===data&&notificationUid===currentUid()&&!window.__sessionEnding&&location.hash==='#embajadores'&&!window.ICADEMCommissionConversion?.isOpen())showCommissionCelebration(data.commissionCelebrations[0]);},80);}
 
   async function copyText(value){
     if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(value);return true;}catch(_){}}
@@ -333,12 +380,12 @@
   }
 
   captureRef();
-  function resetSession(){sessionGeneration+=1;invalidateCache();activeView='dashboard';if(notificationRoot?.isConnected)notificationRoot.innerHTML='';notificationRoot=null;notificationData=null;notificationUid='';shownCelebrations.clear();presentationMode=false;document.querySelector?.('.amb-commission-celebration')?.remove();document.body?.classList.remove('amb-presentation-active');setMemberNav(false);}
+  function resetSession(){cancelSharing(false);sessionGeneration+=1;invalidateCache();activeView='dashboard';if(notificationRoot?.isConnected)notificationRoot.innerHTML='';notificationRoot=null;notificationData=null;notificationUid='';shownCelebrations.clear();presentationMode=false;document.querySelector?.('.amb-commission-celebration')?.remove();document.body?.classList.remove('amb-presentation-active');setMemberNav(false);}
   document.addEventListener('icadem:session-ending',resetSession);
   document.addEventListener('icadem:user-ready',function(){resetSession();claimStoredRef();syncMemberNav();});
   document.addEventListener('visibilitychange',function(){if(document.visibilityState!=='hidden')refresh();});
   window.addEventListener?.('online',refresh);
   if(typeof setInterval==='function')setInterval(refresh,60000);
-  window.addEventListener?.('icadem:navigation',function(event){if(event.detail?.section!=='embajadores'){presentationMode=false;document.body?.classList.remove('amb-presentation-active');}});
-  window.ICADEMAmbassadors={render:render,openNotificationTarget:openNotificationTarget,syncInvite:syncInvite,showInfo:showInfo,claimStoredRef:claimStoredRef,getSummary:load,refresh:refresh,acceptConversion:acceptConversion};
+  window.addEventListener?.('icadem:navigation',function(event){sharingNavigation++;if(sharingIntent){if(event.detail?.section==='embajadores'&&sharingIntent.awaitingNavigation){sharingIntent.awaitingNavigation=false;sharingIntent.navigation=sharingNavigation;}else cancelSharing(false);}if(event.detail?.section!=='embajadores'){presentationMode=false;document.body?.classList.remove('amb-presentation-active');}});
+  window.ICADEMAmbassadors={render:render,openSharing:openSharing,openNotificationTarget:openNotificationTarget,syncInvite:syncInvite,showInfo:showInfo,claimStoredRef:claimStoredRef,getSummary:load,refresh:refresh,acceptConversion:acceptConversion};
 })();
