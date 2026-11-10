@@ -30,7 +30,7 @@
 <script src="js/icadem-referral.js?v=2"></script>
 <script src="js/icadem-vip-banner.js?v=2"></script>
 <script src="js/icadem-ambassadors-vip.js?v=2" defer></script>
-<script src="js/icadem-ambassadors.js?v=13" defer></script>
+<script src="js/icadem-ambassadors.js?v=14" defer></script>
 <link rel="stylesheet" href="css/ambassadors.css?v=7">
 <link rel="stylesheet" href="css/ambassadors-vip.css?v=2">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
@@ -4055,7 +4055,8 @@ body.has-fomo .main{padding-top:18px}
 <link rel="stylesheet" href="css/icadem-directory.css?v=2">
 <script src="js/icadem-directory.js?v=1"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
-<script src="js/icadem-community.js?v=1"></script>
+<script src="js/icadem-community.js?v=2"></script>
+<script src="js/icadem-notifications.js?v=1" defer></script>
 </head>
 <body style="visibility:hidden">
 
@@ -13618,7 +13619,9 @@ function loadProfileFromLS(){
 // ═══════════════════════════════════════════════════════════════════
 
 // Cache global de notificaciones (se actualiza con onSnapshot)
-window.__notifsState = { items: [], unsubscribe: null, loaded: false };
+window.__notifsState = { items: [], generalItems: [], personalItems: [], unsubscribe: null, loaded: false };
+function setGeneralNotifs(items) { window.__notifsState.generalItems=items; window.__notifsState.items=items.concat(window.__notifsState.personalItems||[]).sort((a,b)=>b.createdAtMs-a.createdAtMs); }
+function escapeNotif(value) { return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // Notificaciones de fallback para modo demo/sin-membresia (sin Firebase auth)
 const NOTIFS_DEMO = [
@@ -13643,7 +13646,7 @@ function setupNotificacionesListener(intento = 0) {
     }
     // Después de 10s sin Firebase = modo demo (sin login o sin internet)
     console.warn('[notif] Firebase no disponible después de 10s · usando notif demo');
-    window.__notifsState.items = NOTIFS_DEMO;
+    setGeneralNotifs(window.__isDemoMode ? NOTIFS_DEMO : []);
     window.__notifsState.loaded = true;
     window.__notifsState.source = 'fallback-timeout';
     window.__notifsState.starting = false;
@@ -13668,15 +13671,15 @@ function setupNotificacionesListener(intento = 0) {
         return {
           id: d.id,
           tipo: data.tipo || 'general',
-          icono: data.icono || 'i-bell',
-          color: data.color || '#5b92c8',
+          icono: /^i-[a-z-]+$/.test(data.icono||'') ? data.icono : 'i-bell',
+          color: /^#[a-f0-9]{6}$/i.test(data.color||'') ? data.color : '#5b92c8',
           titulo: data.titulo || 'Sin título',
           descripcion: data.descripcion || '',
           createdAtMs: data.createdAt?.toDate?.()?.getTime?.() || data.createdAt?.toMillis?.() || Date.now()
         };
       });
       // Usar SIEMPRE las notif reales de Firestore (aunque esté vacío · ahí el empty state se ve)
-      window.__notifsState.items = items;
+      setGeneralNotifs(items);
       window.__notifsState.loaded = true;
       window.__notifsState.source = 'firestore';
       window.__notifsState.starting = false;
@@ -13685,7 +13688,7 @@ function setupNotificacionesListener(intento = 0) {
       console.log(`[notif] ${items.length} notificaciones reales cargadas de Firestore`);
     }, (err) => {
       console.warn('[notif] Error leyendo Firestore:', err.message, '· usando notif demo de respaldo');
-      window.__notifsState.items = NOTIFS_DEMO;
+      setGeneralNotifs(window.__isDemoMode ? NOTIFS_DEMO : []);
       window.__notifsState.loaded = true;
       window.__notifsState.source = 'fallback-error';
       window.__notifsState.starting = false;
@@ -13694,7 +13697,7 @@ function setupNotificacionesListener(intento = 0) {
     });
   } catch(e) {
     console.warn('[notif] No se pudo iniciar listener:', e.message);
-    window.__notifsState.items = NOTIFS_DEMO;
+    setGeneralNotifs(window.__isDemoMode ? NOTIFS_DEMO : []);
     window.__notifsState.loaded = true;
     window.__notifsState.source = 'fallback-exception';
     window.__notifsState.starting = false;
@@ -13707,15 +13710,17 @@ function setupNotificacionesListener(intento = 0) {
 function getNotifsLeidas() {
   const uid = window.UserState?.uid || 'guest';
   try {
-    return JSON.parse(localStorage.getItem('icadem_notif_read_' + uid) || '[]');
+    return [...JSON.parse(localStorage.getItem('icadem_notif_read_' + uid) || '[]'), ...(window.__notifsState.personalItems||[]).filter(n=>n.read).map(n=>n.id)];
   } catch(e) { return []; }
 }
 
 // Marca un array de IDs como leídos
 function marcarNotifsLeidas(ids) {
+  window.ICADEMNotifications?.mark(ids, false);
+  ids=ids.filter(id=>!id.startsWith('personal-'));
   const uid = window.UserState?.uid || 'guest';
   const ya = getNotifsLeidas();
-  const todas = Array.from(new Set([...ya, ...ids]));
+  const todas = Array.from(new Set([...ya.filter(id=>!id.startsWith('personal-')), ...ids]));
   try {
     localStorage.setItem('icadem_notif_read_' + uid, JSON.stringify(todas));
   } catch(e) {}
@@ -13734,6 +13739,8 @@ function getNotifsEliminadas() {
 
 // Marca un array de IDs como eliminados (solo localStorage, jamás Firestore)
 function marcarNotifsEliminadas(ids) {
+  window.ICADEMNotifications?.mark(ids, true);
+  ids=ids.filter(id=>!id.startsWith('personal-'));
   const uid = window.UserState?.uid || 'guest';
   const ya = getNotifsEliminadas();
   const todas = Array.from(new Set([...ya, ...ids]));
@@ -13821,14 +13828,14 @@ function toggleNotifDropdown(){
     bodyHTML = notifs.map(n => {
       const esNueva = !leidas.has(n.id);
       return `
-        <div class="notif-item" style="display:flex;gap:11px;padding:11px 12px;border-radius:9px;cursor:pointer;transition:background .15s;align-items:flex-start;text-align:left;${esNueva?'background:color-mix(in srgb,'+n.color+' 5%,transparent);':''}">
+        <div class="notif-item" data-notif-id="${escapeNotif(n.id)}" ${n.target?'role="link" tabindex="0"':''} style="display:flex;gap:11px;padding:11px 12px;border-radius:9px;cursor:pointer;transition:background .15s;align-items:flex-start;text-align:left;${esNueva?'background:color-mix(in srgb,'+n.color+' 5%,transparent);':''}">
           <div style="width:32px;height:32px;border-radius:8px;background:color-mix(in srgb,${n.color} 14%,transparent);color:${n.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg class="ic" style="width:16px;height:16px;"><use href="#${n.icono}"/></svg></div>
           <div style="flex:1;min-width:0;text-align:left;">
-            <div style="font-size:12.5px;font-weight:600;color:var(--text);line-height:1.35;display:flex;align-items:center;gap:6px;text-align:left;">${n.titulo} ${esNueva?'<span style="width:6px;height:6px;border-radius:50%;background:'+n.color+';flex-shrink:0;"></span>':''}</div>
-            <div style="font-size:11.5px;color:var(--text-2);line-height:1.45;margin-top:3px;text-align:left;">${n.descripcion}</div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--text);line-height:1.35;display:flex;align-items:center;gap:6px;text-align:left;">${escapeNotif(n.titulo)} ${esNueva?'<span style="width:6px;height:6px;border-radius:50%;background:'+n.color+';flex-shrink:0;"></span>':''}</div>
+            <div style="font-size:11.5px;color:var(--text-2);line-height:1.45;margin-top:3px;text-align:left;">${escapeNotif(n.descripcion)}${n.personal&&n.status?`<small style="display:block;margin-top:4px;font-weight:600">${escapeNotif(({pending:'En validación',available:'Disponible',reversed:'Revertida',paid:'Pagada'}[n.status]||n.status))}</small>`:''}</div>
             <div style="font-size:10px;color:var(--text-3);margin-top:5px;letter-spacing:.3px;text-transform:uppercase;text-align:left;">${formatNotifTime(n.createdAtMs)}</div>
           </div>
-          <button class="notif-del-btn" data-id="${n.id}" aria-label="Eliminar notificación" title="Eliminar" style="flex-shrink:0;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--text-3);cursor:pointer;padding:0;margin:-1px -2px 0 0;opacity:.65;transition:opacity .15s,color .15s;"><svg class="ic" style="width:13px;height:13px;"><use href="#i-x"/></svg></button>
+          <button class="notif-del-btn" data-id="${escapeNotif(n.id)}" aria-label="Eliminar notificación" title="Eliminar" style="flex-shrink:0;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--text-3);cursor:pointer;padding:0;margin:-1px -2px 0 0;opacity:.65;transition:opacity .15s,color .15s;"><svg class="ic" style="width:13px;height:13px;"><use href="#i-x"/></svg></button>
         </div>
       `;
     }).join('');
@@ -13843,6 +13850,10 @@ function toggleNotifDropdown(){
     ${notifs.length > 0 ? `<div style="padding:9px 12px;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text-3);">Mostrando últimas ${notifs.length}</span>${notifs.length > 1 ? `<button id="notif-del-all" style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--danger);background:transparent;border:0;cursor:pointer;font-weight:600;padding:2px 4px;font-family:inherit;"><svg class="ic" style="width:13px;height:13px;"><use href="#i-trash"/></svg>Eliminar todo</button>` : ''}</div>` : ''}`;
 
   dd.querySelectorAll('.notif-item').forEach(el=>{
+    const item=notifs.find(n=>n.id===el.dataset.notifId);
+    const open=()=>{if(item?.target)window.ICADEMNotifications?.open(item);};
+    el.addEventListener('click',open);
+    el.addEventListener('keydown',event=>{if(event.target===el&&(event.key==='Enter'||event.key===' ')){event.preventDefault();open();}});
     el.addEventListener('mouseenter',()=>el.style.background='var(--surface-2)');
     el.addEventListener('mouseleave',()=>el.style.background='transparent');
   });
