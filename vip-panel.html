@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=49" defer></script>
+<script src="js/icadem-platform-v2.js?v=50" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
@@ -2189,6 +2189,11 @@ button.dir-det__row{background:var(--surface-2);border:1px solid var(--border-2)
 .post__main{flex:1;min-width:0}
 .post__header{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
 .post__author{font-size:13.5px;font-weight:600;letter-spacing:-.2px}
+.foro-author-link{color:inherit;text-decoration:none;cursor:pointer}
+.foro-author-link:is(.post__author,.com__author):hover{text-decoration:underline;text-underline-offset:3px}
+.foro-author-link:focus-visible{outline:3px solid var(--primary);outline-offset:3px;border-radius:6px}
+.post__avatar,.com__avatar{overflow:hidden;background:var(--primary)}
+.post__avatar img,.com__avatar img{width:100%;height:100%;object-fit:cover;display:block}
 .post__role{
   font-family:'JetBrains Mono',monospace;
   font-size:9px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;
@@ -4057,13 +4062,16 @@ body.has-fomo .main{padding-top:18px}
 </style>
 <link rel="stylesheet" href="css/icadem-support-premium.css?v=2">
 <link rel="stylesheet" href="css/icadem-directory.css?v=2">
-<script src="js/icadem-directory.js?v=1"></script>
+<script src="js/icadem-directory.js?v=2"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
-<link rel="stylesheet" href="css/icadem-professional-profile.css?v=1">
-<script src="js/icadem-professional-navigation.js?v=2"></script>
-<script src="js/icadem-professional-profile.js?v=1"></script>
-<script src="js/icadem-community.js?v=4"></script>
-<script src="js/icadem-notifications.js?v=1" defer></script>
+<link rel="stylesheet" href="css/icadem-professional-profile.css?v=2">
+<link rel="stylesheet" href="css/icadem-resume-editor.css?v=1">
+<script src="js/icadem-professional-navigation.js?v=3"></script>
+<script src="js/icadem-forum-authors.js?v=1"></script>
+<script src="js/icadem-professional-profile.js?v=2"></script>
+<script src="js/icadem-resume-editor.js?v=2"></script>
+<script src="js/icadem-community.js?v=6"></script>
+<script src="js/icadem-notifications.js?v=2" defer></script>
 </head>
 <body style="visibility:hidden">
 
@@ -4198,13 +4206,13 @@ window.ICADEMSession = session;
 window.__signOut = options => session.logout(options);
 window.__db = db;
 let avatarCacheVersion = Date.now().toString(36);
-window.__refreshAvatarCache = function(){ avatarCacheVersion = Date.now().toString(36); };
-window.__avatarSrc = function(url){
+window.__refreshAvatarCache = function(version){ avatarCacheVersion = String(version || Date.now().toString(36)); };
+window.__avatarSrc = function(url, version){
   if (!url) return '';
   try {
     const parsed = new URL(url, window.location.origin);
     if (/googleusercontent\.com$/i.test(parsed.hostname) || /googleusercontent\.com$/i.test(parsed.hostname.replace(/^lh\d+\./,''))) {
-      parsed.searchParams.set('icadem_avatar', avatarCacheVersion);
+      parsed.searchParams.set('icadem_avatar', String(version || avatarCacheVersion));
     }
     return parsed.toString();
   } catch (_) { return url; }
@@ -4220,11 +4228,12 @@ window.__syncGoogleAccount = async function(){
     : await linkWithPopup(user, provider);
   await reload(result.user);
   await result.user.getIdToken(true);
+  if (auth.currentUser?.uid !== user.uid || result.user.uid !== user.uid) throw new Error('La sesión cambió. Vuelve a abrir tu perfil.');
   const googleProvider = (result.user.providerData || []).find(provider => provider.providerId === 'google.com');
   window.UserState.authPhotoURL = googleProvider?.photoURL || result.user.photoURL || window.UserState.authPhotoURL || '';
-  window.UserState.photoURL = window.UserState.authPhotoURL || window.UserState.photoURL || '';
   window.UserState.providerIds = result.user.providerData.map(p=>p.providerId).filter(Boolean);
-  await window.ICADEMPlatform?.syncIdentity?.(true);
+  const identity = await window.ICADEMPlatform?.syncIdentity?.(true, { photoPreference:'google', progress:false });
+  if (identity?.profile?.photoSource !== 'google' || auth.currentUser?.uid !== user.uid) throw new Error('No pudimos confirmar la foto de Google. Inténtalo nuevamente.');
   window.__applyUserState?.();
   return result.user;
 };
@@ -4292,7 +4301,11 @@ if (window.__isDemoMode) {
     window.UserState.iniciales = calcIniciales(user.displayName || user.email);
     const googleProvider = (user.providerData || []).find(provider => provider.providerId === 'google.com');
     window.UserState.authPhotoURL = googleProvider?.photoURL || user.photoURL || '';
-    window.UserState.photoURL = window.UserState.authPhotoURL || user.photoURL || '';
+    // The server selects the active photo. A provider refresh never replaces
+    // an explicitly chosen custom image while identity is being recovered.
+    window.UserState.photoURL = '';
+    window.UserState.photoSource = 'default';
+    window.UserState.photoVersion = '';
     window.UserState.providerIds = (user.providerData || []).map(p=>p.providerId).filter(Boolean);
     window.UserState.isAdmin = ADMIN_EMAILS.includes(window.UserState.email);
 
@@ -11323,7 +11336,7 @@ const Sections = (function(){
   }
   function dirFotoSrc(card){
     const url = card?.foto || '';
-    return card?.fotoOrigen === 'google' ? (window.__avatarSrc?.(url) || url) : url;
+    return card?.fotoOrigen === 'google' ? (window.__avatarSrc?.(url, card.photoVersion) || url) : url;
   }
   function dirComprimirFoto(file){
     return new Promise((resolve,reject)=>{
@@ -11696,7 +11709,7 @@ const Sections = (function(){
     // Foto de Google: se puede volver a poner (o vincular Google) en cualquier momento.
     let googleFoto = data.authPhotoURL || window.UserState?.authPhotoURL || '';
     const googleVinculado = (window.UserState?.providerIds || []).includes('google.com') || Boolean(googleFoto);
-    const usaGoogle = Boolean(googleFoto) && !data.fotoPersonalizada && (data.fotoOrigen === 'google' || data.foto === googleFoto);
+    const usaGoogle = Boolean(googleFoto) && (data.fotoOrigen === 'google' || data.photoSource === 'google' || !data.fotoPersonalizada && data.foto === googleFoto);
     const body = `
       <div class="dir-form">
         <div class="dir-form__foto-wrap">
@@ -11844,6 +11857,11 @@ const Sections = (function(){
   let _foroImg = null; // base64 de la imagen adjunta pendiente
   let _foroPosts = [];
 
+  function foroAutorMarkup(item,kind){
+    return window.ICADEMForumAuthors?.markup(item,kind)
+      || `<span class="${kind==='avatar'?'post__avatar':kind==='comment-avatar'?'com__avatar':kind==='comment-name'?'com__author':'post__author'}">${escapeHtml(kind.includes('avatar')?item.iniciales||'MI':item.nombre||'Miembro ICADEM')}</span>`;
+  }
+
   function foroColorFor(uid){
     const colores = ['#5b92c8','#8fbce6','#8fbce6','#8fbce6','#F87171','#FBBF24','#8fbce6','#FB7185'];
     let h=0; const s=String(uid||'x'); for(let i=0;i<s.length;i++) h=((h<<5)-h+s.charCodeAt(i))|0;
@@ -11891,6 +11909,8 @@ const Sections = (function(){
   }
 
   function renderForo(container){
+    const savedForum = window.ICADEMProfessionalNavigation?.forumState();
+    if (savedForum) _foroFiltro = savedForum.filter;
     const esVip = window.UserState?.modo === 'vip' || esAdminReal();
     const ini = window.UserState?.iniciales || 'IN';
     const miColor = foroColorFor(window.UserState?.uid);
@@ -11910,7 +11930,7 @@ const Sections = (function(){
 
         ${esVip ? `
         <div class="foro-composer">
-          <div class="foro-composer__avatar${window.UserState?.photoURL?' has-photo':''}" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${window.UserState?.photoURL?`<img src="${escapeHtml(window.UserState.photoURL)}" alt="">`:ini}</div>
+          <div class="foro-composer__avatar${window.UserState?.photoURL?' has-photo':''}" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${window.UserState?.photoURL?`<img src="${escapeHtml(window.__avatarSrc?.(window.UserState.photoURL,window.UserState.photoVersion)||window.UserState.photoURL)}" alt="">`:ini}</div>
           <div class="foro-composer__main">
             <textarea class="foro-composer__input" id="foro-text" placeholder="¿Qué caso traes hoy? Comparte un caso o haz una pregunta…" rows="2" maxlength="1500"></textarea>
             <div id="foro-img-preview" class="foro-img-preview" style="display:none;">
@@ -11940,9 +11960,9 @@ const Sections = (function(){
         `}
 
         <div class="foro-tabs" role="group" aria-label="Filtrar publicaciones">
-          <button class="tab is-active" data-foro-tab="recientes">Recientes</button>
-          <button class="tab" data-foro-tab="populares">Más reacciones</button>
-          <button class="tab" data-foro-tab="mios">Mis publicaciones</button>
+          <button class="tab ${_foroFiltro==='recientes'?'is-active':''}" aria-pressed="${_foroFiltro==='recientes'}" data-foro-tab="recientes">Recientes</button>
+          <button class="tab ${_foroFiltro==='populares'?'is-active':''}" aria-pressed="${_foroFiltro==='populares'}" data-foro-tab="populares">Más reacciones</button>
+          <button class="tab ${_foroFiltro==='mios'?'is-active':''}" aria-pressed="${_foroFiltro==='mios'}" data-foro-tab="mios">Mis publicaciones</button>
         </div>
 
         <div class="posts-list" id="foro-list">
@@ -11982,8 +12002,9 @@ const Sections = (function(){
     // Tabs
     container.querySelectorAll('[data-foro-tab]').forEach(b=>{
       b.addEventListener('click', ()=>{
-        container.querySelectorAll('[data-foro-tab]').forEach(x=>x.classList.remove('is-active'));
+        container.querySelectorAll('[data-foro-tab]').forEach(x=>{x.classList.remove('is-active');x.setAttribute('aria-pressed','false');});
         b.classList.add('is-active');
+        b.setAttribute('aria-pressed','true');
         _foroFiltro = b.dataset.foroTab;
         foroPintar();
       });
@@ -12026,6 +12047,7 @@ const Sections = (function(){
 
     if (!posts.length){
       list.innerHTML = `<div class="foro-empty"><svg class="ic" aria-hidden="true"><use href="#i-messages"/></svg><strong>Un espacio para compartir experiencia</strong>${_foroFiltro==='mios'?'Aún no has publicado nada. ¡Comparte algo con la comunidad!':'Todavía no hay publicaciones. Sé el primero en compartir.'}</div>`;
+      window.ICADEMProfessionalNavigation?.forumReady(document.querySelector('[data-community-forum]'));
       return;
     }
     const esAdmin = esAdminReal();
@@ -12035,10 +12057,10 @@ const Sections = (function(){
       const dias = foroDiasRestantes(p.createdAt);
       return `
       <article class="post" data-post="${p.id}">
-        <div class="post__avatar${p.foto?' has-photo':''}" style="background:linear-gradient(135deg,${p.color||'#5b92c8'},${(p.color||'#5b92c8')}aa);">${p.foto?`<img src="${escapeHtml(p.foto)}" alt="">`:escapeHtml(p.iniciales||'?')}</div>
+        ${foroAutorMarkup(p,'avatar')}
         <div class="post__main">
           <div class="post__header">
-            <span class="post__author">${escapeHtml(p.nombre||'Miembro')}</span>
+            ${foroAutorMarkup(p,'name')}
             ${p.esAdmin?'<span class="post__role">ICADEM</span>':'<span class="post__role post__role--vip">VIP</span>'}
             <span class="post__time">${foroTiempoRel(p.createdAt)}</span>
             ${puedeBorrar?`<button class="post__del" data-del="${p.id}" title="Eliminar">&times;</button>`:''}
@@ -12060,6 +12082,9 @@ const Sections = (function(){
     list.querySelectorAll('[data-del]').forEach(b=> b.addEventListener('click', ()=> foroBorrarPost(b.dataset.del)));
     list.querySelectorAll('[data-toggle-com]').forEach(b=> b.addEventListener('click', ()=> foroToggleComentarios(b.dataset.toggleCom)));
     list.querySelectorAll('[data-lightbox]').forEach(im=> im.addEventListener('click', ()=> foroLightbox(im.src)));
+    window.ICADEMForumAuthors?.bind(list);
+    window.ICADEMForumAuthors?.hydrate(posts);
+    window.ICADEMProfessionalNavigation?.forumReady(document.querySelector('[data-community-forum]'));
   }
 
   async function foroPublicar(container){
@@ -12137,9 +12162,9 @@ const Sections = (function(){
       snap.forEach(d=>{ const c=d.data(); c.id=d.id; arr.push(c); });
       cl.innerHTML = arr.map(c=>`
         <div class="com">
-          <div class="com__avatar${c.foto?' has-photo':''}" style="background:linear-gradient(135deg,${c.color||'#888'},${(c.color||'#888')}aa);">${c.foto?`<img src="${escapeHtml(c.foto)}" alt="">`:escapeHtml(c.iniciales||'?')}</div>
+          ${foroAutorMarkup(c,'comment-avatar')}
           <div class="com__body">
-            <div class="com__head"><span class="com__author">${escapeHtml(c.nombre||'Miembro')}</span><span class="com__time">${foroTiempoRel(c.createdAt)}</span>${(c.uid===uid||esAdmin)?`<button class="com__del" data-comdel="${postId}|${c.id}">&times;</button>`:''}</div>
+            <div class="com__head">${foroAutorMarkup(c,'comment-name')}<span class="com__time">${foroTiempoRel(c.createdAt)}</span>${(c.uid===uid||esAdmin)?`<button class="com__del" data-comdel="${postId}|${c.id}">&times;</button>`:''}</div>
             <div class="com__text">${escapeHtml(c.texto||'').replace(/\n/g,'<br>')}</div>
           </div>
         </div>
@@ -12147,6 +12172,8 @@ const Sections = (function(){
       cl.querySelectorAll('[data-comdel]').forEach(b=> b.addEventListener('click', ()=>{
         const [pid,cid] = b.dataset.comdel.split('|'); foroBorrarComentario(pid,cid);
       }));
+      window.ICADEMForumAuthors?.bind(cl);
+      window.ICADEMForumAuthors?.hydrate(arr);
     });
   }
   async function foroEnviarComentario(postId){
@@ -13631,13 +13658,13 @@ function loadProfileFromLS(){
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Notificaciones · sistema REAL conectado a Firestore (col `notificaciones`)
-// Lee en tiempo real con onSnapshot. Marca leídas por usuario en localStorage.
+// Notificaciones · una bandeja con vigencia y preferencias confirmadas por servidor.
+// Firestore avisa de cambios; la API aplica permisos, caducidad y estado por usuario.
 // ═══════════════════════════════════════════════════════════════════
 
-// Cache global de notificaciones (se actualiza con onSnapshot)
+// Cache de la última respuesta confirmada, nunca autoridad de permisos o vigencia.
 window.__notifsState = { items: [], generalItems: [], personalItems: [], unsubscribe: null, loaded: false };
-function setGeneralNotifs(items) { window.__notifsState.generalItems=items; window.__notifsState.items=items.concat(window.__notifsState.personalItems||[]).sort((a,b)=>b.createdAtMs-a.createdAtMs); }
+function setGeneralNotifs(items) { window.ICADEMNotifications?.setGeneral(items); }
 function escapeNotif(value) { return String(value==null?'':value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 // Notificaciones de fallback para modo demo/sin-membresia (sin Firebase auth)
@@ -13653,6 +13680,8 @@ function setupNotificacionesListener(intento = 0) {
   const state = window.__notifsState;
   if (intento === 0 && (state.starting || state.active)) return;
   if (intento === 0) state.starting = true;
+  if (window.__isDemoMode) { setGeneralNotifs(NOTIFS_DEMO); state.starting=false; return; }
+  window.ICADEMNotifications?.sync();
   const fs = window.__fs;
 
   // Si __fs aún no está listo, reintentar hasta 10 segundos (cada 500ms)
@@ -13661,13 +13690,8 @@ function setupNotificacionesListener(intento = 0) {
       setTimeout(() => setupNotificacionesListener(intento + 1), 500);
       return;
     }
-    // Después de 10s sin Firebase = modo demo (sin login o sin internet)
-    console.warn('[notif] Firebase no disponible después de 10s · usando notif demo');
-    setGeneralNotifs(window.__isDemoMode ? NOTIFS_DEMO : []);
-    window.__notifsState.loaded = true;
-    window.__notifsState.source = 'fallback-timeout';
+    // La API sigue operando aunque el canal de avisos en tiempo real no esté listo.
     window.__notifsState.starting = false;
-    actualizarBadgeNotif();
     return;
   }
 
@@ -13682,95 +13706,46 @@ function setupNotificacionesListener(intento = 0) {
       fs.orderBy('createdAt', 'desc'),
       fs.limit(15)
     );
-    window.__notifsState.unsubscribe = fs.onSnapshot(q, (snap) => {
-      const items = snap.docs.map(d => {
-        const data = d.data();
-        return {
-          id: d.id,
-          tipo: data.tipo || 'general',
-          icono: /^i-[a-z-]+$/.test(data.icono||'') ? data.icono : 'i-bell',
-          color: /^#[a-f0-9]{6}$/i.test(data.color||'') ? data.color : '#5b92c8',
-          titulo: data.titulo || 'Sin título',
-          descripcion: data.descripcion || '',
-          createdAtMs: data.createdAt?.toDate?.()?.getTime?.() || data.createdAt?.toMillis?.() || Date.now()
-        };
-      });
-      // Usar SIEMPRE las notif reales de Firestore (aunque esté vacío · ahí el empty state se ve)
-      setGeneralNotifs(items);
-      window.__notifsState.loaded = true;
-      window.__notifsState.source = 'firestore';
+    window.__notifsState.unsubscribe = fs.onSnapshot(q, () => {
+      window.ICADEMNotifications?.sync();
       window.__notifsState.starting = false;
       window.__notifsState.active = true;
-      actualizarBadgeNotif();
-      console.log(`[notif] ${items.length} notificaciones reales cargadas de Firestore`);
     }, (err) => {
-      console.warn('[notif] Error leyendo Firestore:', err.message, '· usando notif demo de respaldo');
-      setGeneralNotifs(window.__isDemoMode ? NOTIFS_DEMO : []);
-      window.__notifsState.loaded = true;
-      window.__notifsState.source = 'fallback-error';
+      console.warn('[notif] Canal en tiempo real no disponible:', err.message);
       window.__notifsState.starting = false;
       window.__notifsState.active = false;
-      actualizarBadgeNotif();
+      window.ICADEMNotifications?.sync();
     });
   } catch(e) {
     console.warn('[notif] No se pudo iniciar listener:', e.message);
-    setGeneralNotifs(window.__isDemoMode ? NOTIFS_DEMO : []);
-    window.__notifsState.loaded = true;
-    window.__notifsState.source = 'fallback-exception';
     window.__notifsState.starting = false;
     window.__notifsState.active = false;
-    actualizarBadgeNotif();
+    window.ICADEMNotifications?.sync();
   }
 }
 
 // Devuelve IDs de notificaciones ya leídas (por usuario)
 function getNotifsLeidas() {
-  const uid = window.UserState?.uid || 'guest';
-  try {
-    return [...JSON.parse(localStorage.getItem('icadem_notif_read_' + uid) || '[]'), ...(window.__notifsState.personalItems||[]).filter(n=>n.read).map(n=>n.id)];
-  } catch(e) { return []; }
+  return (window.ICADEMNotifications?.visibleItems() || []).filter(n=>n.read).map(n=>n.id);
 }
 
 // Marca un array de IDs como leídos
-function marcarNotifsLeidas(ids) {
-  window.ICADEMNotifications?.mark(ids, false);
-  ids=ids.filter(id=>!id.startsWith('personal-'));
-  const uid = window.UserState?.uid || 'guest';
-  const ya = getNotifsLeidas();
-  const todas = Array.from(new Set([...ya.filter(id=>!id.startsWith('personal-')), ...ids]));
-  try {
-    localStorage.setItem('icadem_notif_read_' + uid, JSON.stringify(todas));
-  } catch(e) {}
+async function marcarNotifsLeidas(ids) {
+  return await window.ICADEMNotifications?.mark(ids, false) === true;
 }
 
-// Eliminar notif · solo cliente. La colección `notificaciones` de Firestore es
-// GLOBAL/compartida por todos los miembros, por eso "eliminar" NUNCA borra el doc
-// de Firestore — se maneja 100% en localStorage por uid, igual que las leídas.
-// Devuelve IDs de notificaciones eliminadas localmente (por usuario)
+// Ocultar solo de la bandeja del usuario; el evento original conserva su historial.
 function getNotifsEliminadas() {
-  const uid = window.UserState?.uid || 'guest';
-  try {
-    return JSON.parse(localStorage.getItem('icadem_notif_deleted_' + uid) || '[]');
-  } catch(e) { return []; }
+  return []; // La API ya excluye las notificaciones descartadas de esta cuenta.
 }
 
-// Marca un array de IDs como eliminados (solo localStorage, jamás Firestore)
-function marcarNotifsEliminadas(ids) {
-  window.ICADEMNotifications?.mark(ids, true);
-  ids=ids.filter(id=>!id.startsWith('personal-'));
-  const uid = window.UserState?.uid || 'guest';
-  const ya = getNotifsEliminadas();
-  const todas = Array.from(new Set([...ya, ...ids]));
-  try {
-    localStorage.setItem('icadem_notif_deleted_' + uid, JSON.stringify(todas));
-  } catch(e) {}
+async function marcarNotifsEliminadas(ids) {
+  return await window.ICADEMNotifications?.mark(ids, true) === true;
 }
 
 // Cuenta cuántas notif son nuevas (no leídas y no eliminadas)
 function contarNotifsNuevas() {
-  const leidas = new Set(getNotifsLeidas());
-  const eliminadas = new Set(getNotifsEliminadas());
-  return window.__notifsState.items.filter(n => !eliminadas.has(n.id) && !leidas.has(n.id)).length;
+  return (window.ICADEMNotifications?.visibleItems() || []).filter(n=>!n.read).length;
 }
 
 // Actualiza el badge (puntito rojo) según haya notif nuevas
@@ -13806,13 +13781,13 @@ function cerrarNotifDropdown(){
   document.getElementById('btn-notif')?.setAttribute('aria-expanded', 'false');
 }
 
-function toggleNotifDropdown(){
+function toggleNotifDropdown(skipSync=false){
   let dd=document.getElementById('notif-dropdown');
   if(dd){cerrarNotifDropdown();return;}
+  if(!skipSync)window.ICADEMNotifications?.sync();
 
-  // excluye del pintado los ids que el usuario eliminó localmente (nunca toca Firestore)
-  const eliminadas = new Set(getNotifsEliminadas());
-  const notifs = (window.__notifsState.items || []).filter(n => !eliminadas.has(n.id));
+  const notifUid = window.__currentUser?.uid || '';
+  const notifs = window.ICADEMNotifications?.visibleItems() || [];
   const leidas = new Set(getNotifsLeidas());
 
   dd=document.createElement('div');
@@ -13837,8 +13812,9 @@ function toggleNotifDropdown(){
         <div style="width:48px;height:48px;border-radius:50%;background:color-mix(in srgb,var(--text-3) 14%,transparent);color:var(--text-3);display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" width="24" height="24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         </div>
-        <div style="font-size:13px;color:var(--text-2);font-weight:600;margin-bottom:4px;">Sin notificaciones</div>
-        <div style="font-size:11.5px;color:var(--text-3);line-height:1.5;">Te avisaremos cuando haya clases nuevas, certificados listos o eventos importantes.</div>
+        <div style="font-size:13px;color:var(--text-2);font-weight:600;margin-bottom:4px;">${window.__notifsState.error?'No pudimos actualizar tu bandeja':!window.__notifsState.loaded?'Cargando notificaciones…':'Sin notificaciones'}</div>
+        <div style="font-size:11.5px;color:var(--text-3);line-height:1.5;">${window.__notifsState.error?'Revisa tu conexión e inténtalo de nuevo.':!window.__notifsState.loaded?'Estamos consultando tu cuenta.':'Los avisos permanecen disponibles durante 15 días.'}</div>
+        ${window.__notifsState.error?'<button id="notif-retry" style="margin-top:12px;padding:8px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer">Reintentar</button>':''}
       </div>
     `;
   } else {
@@ -13876,27 +13852,33 @@ function toggleNotifDropdown(){
   });
 
   // repinta el dropdown desde cero (refleja empty state, contador y footer)
-  const repintarNotifDropdown = () => { cerrarNotifDropdown(); toggleNotifDropdown(); };
+  const repintarNotifDropdown = () => { cerrarNotifDropdown(); toggleNotifDropdown(true); };
 
-  // eliminar UNA notificación (solo local · nunca Firestore)
+  dd.querySelector('#notif-retry')?.addEventListener('click',()=>window.ICADEMNotifications?.sync());
+
+  // Esperar la confirmación del servidor antes de retirar una notificación.
   dd.querySelectorAll('.notif-del-btn').forEach(btn=>{
     btn.addEventListener('mouseenter',()=>{ btn.style.opacity='1'; btn.style.color='var(--danger)'; });
     btn.addEventListener('mouseleave',()=>{ btn.style.opacity='.65'; btn.style.color='var(--text-3)'; });
-    btn.addEventListener('click',(e)=>{
+    btn.addEventListener('click',async(e)=>{
       e.stopPropagation();
-      marcarNotifsEliminadas([btn.dataset.id]);
-      actualizarBadgeNotif();
-      repintarNotifDropdown();
+      btn.disabled=true;
+      const saved=await marcarNotifsEliminadas([btn.dataset.id]);
+      if(notifUid!==(window.__currentUser?.uid||''))return;
+      if(saved&&dd.isConnected)repintarNotifDropdown();
+      else btn.disabled=false;
     });
   });
 
   // "Eliminar todo" · marca los ids visibles y cae al empty state existente
   const delAllBtn = dd.querySelector('#notif-del-all');
-  if (delAllBtn) delAllBtn.addEventListener('click',(e)=>{
+  if (delAllBtn) delAllBtn.addEventListener('click',async(e)=>{
     e.stopPropagation();
-    marcarNotifsEliminadas(notifs.map(n => n.id));
-    actualizarBadgeNotif();
-    repintarNotifDropdown();
+    delAllBtn.disabled=true;
+    const saved=await marcarNotifsEliminadas(notifs.map(n => n.id));
+    if(notifUid!==(window.__currentUser?.uid||''))return;
+    if(saved&&dd.isConnected)repintarNotifDropdown();
+    else delAllBtn.disabled=false;
   });
 
   const btnNotif = document.getElementById('btn-notif');
@@ -13932,9 +13914,9 @@ function toggleNotifDropdown(){
 
   // Marcar todas como leídas después de un pequeño delay (para que el usuario vea la diferencia)
   if (nuevasCount > 0) {
-    setTimeout(() => {
-      marcarNotifsLeidas(notifs.map(n => n.id));
-      actualizarBadgeNotif();
+    setTimeout(async() => {
+      if(!dd.isConnected||notifUid!==(window.__currentUser?.uid||''))return;
+      if(await marcarNotifsLeidas(notifs.map(n => n.id)))actualizarBadgeNotif();
     }, 800);
   }
 
@@ -13950,6 +13932,15 @@ function toggleNotifDropdown(){
     document.addEventListener('click',handler);
   },50);
 }
+
+window.refreshNotifDropdown = function(){
+  const dd=document.getElementById('notif-dropdown');
+  if(!dd)return;
+  const scroll=dd.scrollTop;
+  cerrarNotifDropdown();toggleNotifDropdown(true);
+  const next=document.getElementById('notif-dropdown');
+  if(next)next.scrollTop=scroll;
+};
 
 // Helper global para que admins puedan crear notificaciones desde la consola
 // Uso: crearNotificacion({titulo:'X', descripcion:'Y', tipo:'clase'})
