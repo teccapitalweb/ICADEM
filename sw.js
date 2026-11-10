@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v134';
+const CACHE = 'icadem-vip-v135';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=2',
@@ -27,7 +27,7 @@ const SHELL = [
   './js/icadem-resource-viewer.js?v=1',
   './js/icadem-push.js?v=4',
   './js/icadem-ambassadors-vip.js?v=2',
-  './js/icadem-ambassadors.js?v=13',
+  './js/icadem-ambassadors.js?v=14',
   './css/ambassadors.css?v=7',
   './css/ambassadors-vip.css?v=2',
   './css/icadem-ambassador-promo.css?v=6',
@@ -46,7 +46,8 @@ const SHELL = [
   './css/icadem-credits.css?v=2',
   './css/icadem-directory.css?v=2',
   './js/icadem-directory.js?v=1',
-  './js/icadem-community.js?v=1',
+  './js/icadem-community.js?v=2',
+  './js/icadem-notifications.js?v=1',
   './css/icadem-community.css?v=1',
   './css/icadem-course-detail.css?v=4',
   './assets/credit-coin.svg',

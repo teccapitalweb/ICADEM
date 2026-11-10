@@ -302,6 +302,12 @@
           button.disabled = false;
         });
       paintActivity();
+      if (context.notificationUid) {
+        var match=Array.from(context.root.querySelectorAll("[data-network-profile]")).find(function(node){return node.dataset.networkProfile===context.notificationUid;});
+        if(match){match.scrollIntoView({block:"center",behavior:"auto"});match.focus({preventScroll:true});}
+        else notify("Solicitud actualizada", "Esta solicitud ya no está pendiente. Puedes consultar el perfil desde el directorio.");
+        context.notificationUid=null;
+      }
     } catch (error) {
       if (current !== generation) return;
       var target = context.root.querySelector("#community-activity");
@@ -356,10 +362,18 @@
         }
       });
     });
+    openNotificationTarget();
     loadConnections();
     refreshTimer = setInterval(function () {
       if (document.visibilityState === "visible") loadConnections();
     }, 45000);
+  }
+  function openNotificationTarget() {
+    if(!context?.root.isConnected || location.hash!=="#directorio")return;
+    var target=window.ICADEMNotifications?.consume("directorio");
+    if(!target)return;
+    if(target.view==="profile")openProfile(target.profileUid);
+    else {context.notificationUid=target.profileUid;context.root.querySelector('[data-community-tab="requests"]')?.click();}
   }
   function cleanup() {
     context?.modal.close("community-profile");
@@ -907,6 +921,7 @@
   }
   window.ICADEMCommunity = {
     attach: attach,
+    openNotificationTarget: openNotificationTarget,
     cleanup: cleanup,
     paintCards: paintCards,
     openProfile: openProfile,

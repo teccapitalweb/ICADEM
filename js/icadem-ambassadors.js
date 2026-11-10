@@ -81,7 +81,7 @@
 
   function referralsRows(items){
     if(!items?.length)return '<tr><td colspan="5" class="amb-empty-row">Aún no hay referidos atribuidos a tu código.</td></tr>';
-    return items.map(function(item,index){return '<tr><td><strong>'+esc(/^Referido [A-F0-9]{6}$/.test(item.buyer||'')?item.buyer:'Referido '+String(index+1).padStart(2,'0'))+'</strong></td><td>'+date(item.registeredAt)+'</td><td><span class="amb-status amb-status--'+esc(item.status)+'">'+esc(statusLabel(item.status))+'</span></td><td>'+money(item.commissionCents)+'</td><td>'+date(item.releaseAt)+'</td></tr>';}).join('');
+    return items.map(function(item,index){return '<tr data-commission-id="'+esc(item.id)+'"><td><strong>'+esc(/^Referido [A-F0-9]{6}$/.test(item.buyer||'')?item.buyer:'Referido '+String(index+1).padStart(2,'0'))+'</strong></td><td>'+date(item.registeredAt)+'</td><td><span class="amb-status amb-status--'+esc(item.status)+'">'+esc(statusLabel(item.status))+'</span></td><td>'+money(item.commissionCents)+'</td><td>'+date(item.releaseAt)+'</td></tr>';}).join('');
   }
 
   function commissionRows(items){
@@ -91,7 +91,7 @@
 
   function withdrawalsMarkup(items){
     if(!items?.length)return '<div class="amb-note">Todavía no has solicitado transferencias.</div>';
-    return '<div class="amb-history">'+items.map(function(item){return '<div class="amb-history__item"><div><strong>'+money(item.amountCents)+' · '+esc(statusLabel(item.status))+'</strong><small>'+date(item.requestedAt)+(presentationMode?'':' · '+esc(item.bank||'Banco')+' •••• '+esc(item.bankLast4||'—'))+'</small></div>'+(!presentationMode&&item.receiptUrl?'<a class="amb-btn amb-btn--ghost" style="min-height:34px;display:inline-flex;align-items:center" href="'+esc(item.receiptUrl)+'" target="_blank" rel="noopener">Comprobante</a>':'')+'</div>';}).join('')+'</div>';
+    return '<div class="amb-history">'+items.map(function(item){return '<div class="amb-history__item" data-withdrawal-id="'+esc(item.id)+'" tabindex="-1"><div><strong>'+money(item.amountCents)+' · '+esc(({pending:'Pendiente',approved:'En revisión',paid:'Pagada'}[item.status]||statusLabel(item.status)))+'</strong><small>'+date(item.requestedAt)+(presentationMode?'':' · '+esc(item.bank||'Banco')+' •••• '+esc(item.bankLast4||'—'))+'</small>'+(item.paidAt?'<small>Pago registrado: '+date(item.paidAt)+(item.bankReference&&!presentationMode?' · Referencia: '+esc(item.bankReference):'')+'</small>':'')+'</div>'+(!presentationMode&&(item.hasReceipt||item.receiptUrl)?'<button class="amb-btn amb-btn--ghost" type="button" data-amb-receipt="'+esc(item.id)+'">Comprobante</button>':'')+'</div>';}).join('')+'</div>';
   }
 
   function analyticsMarkup(data){
@@ -160,6 +160,37 @@
       '<section class="amb-card"><div class="amb-card__head"><div><h3>Historial de retiros</h3><p>Revisa el estado de cada solicitud y descarga su comprobante cuando esté disponible.</p></div></div><div class="amb-card__body">'+withdrawalsMarkup(data.withdrawals)+'</div></section></div>';
   }
 
+  var notificationRoot=null,notificationData=null;
+  function showNotificationTarget(root,data,target){
+    if(!target)return;
+    if(target.withdrawalId){
+      var node=Array.from(root.querySelectorAll('[data-withdrawal-id]')).find(function(n){return n.dataset.withdrawalId===target.withdrawalId;});
+      if(node){node.scrollIntoView({block:'center',behavior:'auto'});node.focus({preventScroll:true});node.style.outline='2px solid #15976c';node.style.outlineOffset='4px';}
+      else toast('info','Historial actualizado','La solicitud no está en el historial disponible. Actualiza tus datos.');
+    }
+    if(target.commissionId){
+      var item=(data.commissions||[]).find(function(c){return c.id===target.commissionId;});
+      if(!item){toast('info','Movimientos actualizados','El movimiento no está en el historial disponible.');return;}
+      window.Modal?.open({id:'amb-notification-movement',title:'Movimiento de comisión',subtitle:'Registro confirmado por el servidor',icon:'i-gift',size:'sm',body:'<div class="amb-note"><strong>'+money(item.commissionCents)+' MXN</strong><p>'+esc(statusLabel(item.status))+'</p><p>Plan: '+esc(item.plan)+'<br>Compra: '+date(item.paidAt)+'<br>Disponibilidad: '+date(item.releaseAt)+'</p><small>Movimiento: '+esc(item.id)+'</small></div>',footer:'<button class="btn btn--accent" onclick="Modal.close(\'amb-notification-movement\')">Cerrar</button>'});
+    }
+  }
+  function openNotificationTarget(){
+    if(!notificationRoot?.isConnected||location.hash!=='#embajadores'||!notificationData)return;
+    var target=window.ICADEMNotifications?.consume('embajadores');
+    if(!target)return;activeView=target.view==='withdrawals'?'withdrawals':'dashboard';
+    renderData(notificationRoot,notificationData);showNotificationTarget(notificationRoot,notificationData,target);
+  }
+  async function openReceipt(button){
+    var user=window.__currentUser,uid=user?.uid;if(!uid||button.disabled)return;
+    button.disabled=true;button.textContent='Abriendo…';
+    try{
+      var token=await user.getIdToken();
+      var response=await fetch((window.WEBHOOK_URL||'https://icadem-webhook-production.up.railway.app')+'/api/ambassadors/withdrawals/'+encodeURIComponent(button.dataset.ambReceipt)+'/receipt',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+      if(!response.ok)throw new Error((await response.json().catch(function(){return{};})).error||'No pudimos abrir el comprobante.');
+      var blob=await response.blob();if(window.__currentUser?.uid!==uid||window.__sessionEnding)return;
+      var url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='comprobante-'+button.dataset.ambReceipt+(blob.type==='application/pdf'?'.pdf':blob.type==='image/png'?'.png':'.jpg');document.body.appendChild(link);link.click();link.remove();setTimeout(function(){URL.revokeObjectURL(url);},1000);
+    }catch(error){toast('error','Comprobante protegido',error.message);}finally{button.disabled=false;button.textContent='Comprobante';}
+  }
   async function render(root){
     if(!root)return;var route=location.hash,generation=sessionGeneration,stable=Boolean(cache&&root.querySelector('[data-vip-dashboard]'));if(!stable)loading(root);root.setAttribute('aria-busy','true');
     if(window.__isDemoMode){root.removeAttribute('aria-busy');root.innerHTML='<div class="amb-empty"><div><strong>Inicia sesión para participar</strong><p>El programa necesita una cuenta real para generar tu código y proteger tus comisiones.</p></div></div>';return;}
@@ -182,7 +213,7 @@
     setTimeout(function(){root.querySelector('.amb-commission-celebration__close')?.focus();},0);
   }
 
-  function renderData(root,data){document.body?.classList.toggle('amb-presentation-active',presentationMode&&data.registered);root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);if(activeView==='dashboard'&&data.commissionCelebrations?.length)setTimeout(function(){showCommissionCelebration(data.commissionCelebrations[0]);},80);}
+  function renderData(root,data){notificationRoot=root;notificationData=data;var notice=window.ICADEMNotifications?.consume('embajadores');if(notice)activeView=notice.view==='withdrawals'?'withdrawals':'dashboard';document.body?.classList.toggle('amb-presentation-active',presentationMode&&data.registered);root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);showNotificationTarget(root,data,notice);if(activeView==='dashboard'&&data.commissionCelebrations?.length)setTimeout(function(){showCommissionCelebration(data.commissionCelebrations[0]);},80);}
 
   async function copyText(value){
     if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(value);return true;}catch(_){}}
@@ -237,6 +268,7 @@
   }
 
   function bind(root,data){
+    root.querySelectorAll('[data-amb-receipt]').forEach(function(button){button.addEventListener('click',function(){openReceipt(button);});});
     root.querySelector('[data-amb-refresh]')?.addEventListener('click',function(){if(root.getAttribute('aria-busy')!=='true')render(root);});
     root.querySelector('[data-amb-max]')?.addEventListener('click',function(){var input=root.querySelector('#amb-withdrawal-amount');input.value=input.max;input.focus();});
     bindContactInput(root,'#amb-whatsapp',normalizePhone,'#amb-phone-error');
@@ -269,7 +301,7 @@
   }
 
   captureRef();
-  document.addEventListener('icadem:user-ready',function(){sessionGeneration+=1;cache=null;cacheAt=0;activeView='dashboard';presentationMode=false;document.body?.classList.remove('amb-presentation-active');setMemberNav(false);claimStoredRef();syncMemberNav();});
+  document.addEventListener('icadem:user-ready',function(){sessionGeneration+=1;cache=null;cacheAt=0;activeView='dashboard';notificationRoot=null;notificationData=null;presentationMode=false;document.body?.classList.remove('amb-presentation-active');setMemberNav(false);claimStoredRef();syncMemberNav();});
   window.addEventListener?.('icadem:navigation',function(event){if(event.detail?.section!=='embajadores'){presentationMode=false;document.body?.classList.remove('amb-presentation-active');}});
-  window.ICADEMAmbassadors={render:render,syncInvite:syncInvite,showInfo:showInfo,claimStoredRef:claimStoredRef,getSummary:load};
+  window.ICADEMAmbassadors={render:render,openNotificationTarget:openNotificationTarget,syncInvite:syncInvite,showInfo:showInfo,claimStoredRef:claimStoredRef,getSummary:load};
 })();
