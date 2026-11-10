@@ -189,12 +189,13 @@
   function blockingDialogOpen(){
     const selectors = [
       'dialog.amb-promo-dialog[open]','#splash-bienvenida','#name-modal','#icadem-credit-gift','#free-course-intro',
-      '.modal-backdrop.is-open','.paywall-modal.is-open','.credit-wallet-modal',
+      '.modal-backdrop','.paywall-modal.is-open','.credit-wallet-modal',
       '.learning-game','.practice-picker--v3','#tpl-modal-overlay.tpl-modal-visible',
       '.mobile-drawer.is-open','#visorOverlay','#foro-lightbox','#cf-modal',
       '#splash-completado','#cancel-success-splash','#cancel-sub-modal'
     ].join(',');
     return Array.from(document.querySelectorAll(selectors)).some(element => {
+      if(element.classList.contains('modal-backdrop'))return true;
       if (element.hidden) return false;
       const style = window.getComputedStyle(element);
       return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
@@ -252,7 +253,7 @@
   const Experience=(()=>{
     const queue=[];
     let busy=false,activeId='',sequence=0;
-    const priorities={'membership-welcome':120,tour:100,'profile-name':95,notifications:90,'credit-gift':80,'free-course':70,install:30};
+    const priorities={'membership-welcome':120,tour:100,'profile-name':95,notifications:90,'credit-gift':80,'free-course':70,'course-rating':60,install:30};
     const retryDelays=[1200,3000,7000,15000];
     function enqueue(id,payload,options){
       options=options||{};
@@ -268,6 +269,7 @@
       setTimeout(()=>enqueue(job.id,{...job.payload,retryAttempt:attempt+1}),retryDelays[attempt]);
     }
     async function run(job){
+      if(job.id==='course-rating')return window.ICADEMCreditRewards?.runInvitation(job.payload);
       if(job.id==='membership-welcome'){
         if(typeof window.__showWelcomeSplash!=='function')return;
         let payload=job.payload||{};

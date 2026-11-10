@@ -77,6 +77,23 @@
     return user ? user.getIdToken() : '';
   }
 
+  // Cada hidratación de Auth abre una generación distinta, incluso si vuelve
+  // a entrar el mismo UID. Una respuesta de la sesión anterior no puede pintar.
+  let sessionGeneration = 0;
+  function platformUser() {
+    return window.__auth ? window.__auth.currentUser : window.__currentUser;
+  }
+  function platformSession() {
+    return { uid: window.__isDemoMode ? 'demo' : platformUser()?.uid || '', generation: sessionGeneration };
+  }
+  function currentPlatformSession(scope) {
+    const current = platformSession();
+    return !window.__sessionEnding && !!scope?.uid && scope.uid === current.uid && scope.generation === current.generation;
+  }
+  function changedSessionError() {
+    return Object.assign(new Error('La sesión cambió. Vuelve a iniciar sesión.'), { code: 'session-ended' });
+  }
+
   // Si el servidor indica que esta sesión pertenece a una cuenta eliminada,
   // se cierra esa sesión y se abre directamente el registro. La pantalla de
   // acceso vuelve a cerrar cualquier sesión persistida antes de escuchar Auth,
@@ -103,9 +120,10 @@
 
   async function request(path, options) {
     const requestUid = (window.__auth ? window.__auth.currentUser : window.__currentUser)?.uid;
+    const requestGeneration = sessionGeneration;
     function assertSession() {
       const currentUid = (window.__auth ? window.__auth.currentUser : window.__currentUser)?.uid;
-      if (!window.__isDemoMode && (window.__sessionEnding || currentUid !== requestUid)) {
+      if (!window.__isDemoMode && (window.__sessionEnding || currentUid !== requestUid || sessionGeneration !== requestGeneration)) {
         throw Object.assign(new Error('La sesión cambió. Vuelve a iniciar sesión.'), {code:'session-ended'});
       }
     }
@@ -201,11 +219,19 @@
     setTimeout(() => el.remove(), 4200);
   }
 
-  function applyIdentity(payload) {
+  let appliedIdentityFingerprint = '';
+  function applyIdentity(payload, creditMeta) {
     if (!payload?.profile || !window.UserState) return;
     const profile = payload.profile;
     const directory = payload.directory || {};
     const state = window.UserState;
+    if (!currentPlatformSession(platformSession()) || (profile.uid && profile.uid !== platformSession().uid)) return;
+    const fingerprint = JSON.stringify({ profile, directory, membership: payload.membership || null });
+    state.credits = state.credits || { balance: 0 };
+    if (payload.credits) publishCredits(payload.credits, { source: 'identity', ...(creditMeta || {}) });
+    // El sondeo de saldo no reconstruye la clase ni borra una nota en edición.
+    if (state.identityReady && fingerprint === appliedIdentityFingerprint) return;
+    appliedIdentityFingerprint = fingerprint;
     state.nombre = profile.displayName || state.nombre;
     state.displayName = state.nombre;
     state.authPhotoURL = profile.authPhotoURL || state.authPhotoURL || '';
@@ -220,7 +246,6 @@
     state.hasWhatsapp = profile.hasWhatsapp === true;
     state.theme = profile.theme === 'night' || profile.theme === 'day' ? profile.theme : '';
     state.identityReady = true;
-    state.credits = payload.credits || state.credits || { balance: 0 };
     state.directoryProfile = directory;
     window.__refreshAvatarCache?.();
     if (payload.membership && state.modo !== 'invitado') {
@@ -243,44 +268,57 @@
     document.dispatchEvent(new CustomEvent('icadem:identity-ready', { detail: payload }));
   }
 
-  let lastProgressLoad = 0;
-  async function loadLearningProgress() {
-    if (window.__isDemoMode) return null;
-    lastProgressLoad = Date.now();
-    const data = await request('/api/learning/progress');
-    if (typeof window.__mergeServerProgress === 'function') window.__mergeServerProgress(data.courses || {});
-    else window.__pendingServerProgress = data.courses || {};
-    if (data.credits && window.UserState) {
-      window.UserState.credits = { ...(window.UserState.credits || {}), ...data.credits };
-    }
-    document.dispatchEvent(new CustomEvent('icadem:progress-ready', { detail: data }));
-    return data;
+  let progressPromise = null;
+  let progressSequence = 0;
+  async function loadLearningProgress(force) {
+    const scope = platformSession();
+    if (window.__isDemoMode || !currentPlatformSession(scope)) return null;
+    if (progressPromise && currentPlatformSession(progressPromise.scope) && !force) return progressPromise.promise;
+    const entry = { scope, sequence: ++progressSequence, creditTicket: beginCreditRead(scope) };
+    entry.promise = request('/api/learning/progress').then(data => {
+      if (!currentPlatformSession(scope)) throw changedSessionError();
+      if (entry.sequence !== progressSequence) return progressPromise?.promise || null;
+      if (typeof window.__mergeServerProgress === 'function') window.__mergeServerProgress(data.courses || {});
+      else window.__pendingServerProgress = data.courses || {};
+      if (data.credits) publishCredits(data.credits, { source: 'progress', readTicket: entry.creditTicket });
+      document.dispatchEvent(new CustomEvent('icadem:progress-ready', { detail: data }));
+      return data;
+    }).finally(() => { if (progressPromise === entry) progressPromise = null; });
+    progressPromise = entry;
+    return entry.promise;
   }
 
   let identityPromise = null;
-  async function syncIdentity(force) {
-    if (window.__isDemoMode || window.__sessionEnding) return null;
-    if (identityPromise && !force) return identityPromise;
-    const currentUser = window.__auth?.currentUser || window.__currentUser;
-    const googleProvider = (currentUser?.providerData || []).find(provider => provider.providerId === 'google.com');
-    identityPromise = request('/api/identity/sync', { method: 'POST', body: { googlePhotoURL: googleProvider?.photoURL || '' } })
+  let identityCache = null;
+  let identitySequence = 0;
+  async function syncIdentity(force, options) {
+    const scope = platformSession();
+    if (window.__isDemoMode || !currentPlatformSession(scope)) return null;
+    if (!force && identityPromise && currentPlatformSession(identityPromise.scope)) return identityPromise.promise;
+    if (!force && identityCache && currentPlatformSession(identityCache.scope)) return identityCache.data;
+    const googleProvider = (platformUser()?.providerData || []).find(provider => provider.providerId === 'google.com');
+    const entry = { scope, sequence: ++identitySequence, creditTicket: beginCreditRead(scope) };
+    entry.promise = request('/api/identity/sync', { method: 'POST', body: { googlePhotoURL: googleProvider?.photoURL || '' } })
       .then(async data => {
-        applyIdentity(data);
-        // El avance se reintenta si falla (red móvil inestable): sin él, otro
-        // dispositivo no vería las clases completadas.
-        for (const wait of [0, 2500, 6000]) {
+        if (!currentPlatformSession(scope)) return null;
+        if (entry.sequence !== identitySequence) return identityPromise?.promise || identityCache?.data || null;
+        identityCache = { scope, data };
+        applyIdentity(data, { readTicket: entry.creditTicket });
+        // El avance se reintenta sin borrar el avance confirmado si no hay red.
+        if (options?.progress !== false) for (const wait of [0, 2500, 6000]) {
           if (wait) await new Promise(resolve => setTimeout(resolve, wait));
+          if (!currentPlatformSession(scope) || entry.sequence !== identitySequence) break;
           try { await loadLearningProgress(); break; }
-          catch (error) { console.warn('[ICADEM progress]', error.message); }
+          catch (error) { if (error.code !== 'session-ended') console.warn('[ICADEM progress]', error.message); }
         }
-        return data;
+        return currentPlatformSession(scope) ? data : null;
       })
       .catch(error => {
-        console.warn('[ICADEM identity]', error.message);
-        identityPromise = null;
+        if (currentPlatformSession(scope) && error.code !== 'session-ended') console.warn('[ICADEM identity]', error.message);
         return null;
-      });
-    return identityPromise;
+      }).finally(() => { if (identityPromise === entry) identityPromise = null; });
+    identityPromise = entry;
+    return entry.promise;
   }
 
   async function loadDirectory(filters) {
@@ -337,6 +375,8 @@
   }
 
   function syncCreditSnapshot(credits, meta) {
+    // Una mutación confirmada invalida también las lecturas que ya viajaban.
+    // No crea otra cartera ni un saldo independiente del existente.
     return publishCredits(credits, meta);
   }
 
@@ -476,17 +516,46 @@
     return migrated;
   }
 
+  let creditSnapshotRevision = 0;
+  let creditReadSequence = 0;
+  let appliedCreditRead = 0;
+  function beginCreditRead(scope) {
+    return { scope: scope || platformSession(), revision: creditSnapshotRevision, sequence: ++creditReadSequence };
+  }
+  function currentCreditRead(ticket) {
+    return currentPlatformSession(ticket?.scope) && ticket.revision === creditSnapshotRevision && ticket.sequence >= appliedCreditRead;
+  }
+  function invalidateCreditWallet() {
+    creditWalletCache = null;
+    creditWalletPromise = null;
+    creditWalletSequence++;
+  }
   function publishCredits(credits, meta) {
+    const scope = platformSession();
+    if (!currentPlatformSession(scope) || (meta?.uid && meta.uid !== scope.uid)) return window.UserState?.credits || null;
+    if (meta?.readTicket && !currentCreditRead(meta.readTicket)) return window.UserState?.credits || null;
+    const balance = Number(credits?.balance);
+    if (!Number.isFinite(balance) || balance < 0) return window.UserState?.credits || null;
+    const previous = window.UserState?.credits || {};
     const normalized = {
-      balance: Number(credits?.balance) || 0,
-      lifetimeEarned: Number(credits?.lifetimeEarned) || 0,
-      lifetimeSpent: Number(credits?.lifetimeSpent) || 0
+      balance,
+      lifetimeEarned: Number(credits?.lifetimeEarned ?? previous.lifetimeEarned) || 0,
+      lifetimeSpent: Number(credits?.lifetimeSpent ?? previous.lifetimeSpent) || 0
     };
+    if (meta?.readTicket) {
+      appliedCreditRead = meta.readTicket.sequence;
+      if (meta.source !== 'wallet') creditWalletCache = null;
+    } else {
+      creditSnapshotRevision++;
+      invalidateCreditWallet();
+    }
     if (window.UserState) window.UserState.credits = { ...(window.UserState.credits || {}), ...normalized };
+    if (identityCache && currentPlatformSession(identityCache.scope)) identityCache.data = { ...identityCache.data, credits: { ...normalized } };
     document.querySelectorAll('[data-credit-balance]').forEach(element => {
       element.textContent = String(normalized.balance);
     });
-    document.dispatchEvent(new CustomEvent('icadem:credits-changed', { detail: { credits: normalized, ...(meta || {}) } }));
+    const { readTicket, ...publicMeta } = meta || {};
+    document.dispatchEvent(new CustomEvent('icadem:credits-changed', { detail: { credits: normalized, ...publicMeta } }));
     return normalized;
   }
 
@@ -527,6 +596,8 @@
 
   let creditWalletCache = null;
   let creditWalletPromise = null;
+  let creditWalletSequence = 0;
+  let closeCreditWallet = null;
 
   function demoCreditWallet() {
     const ledger = readDemoCreditLedger();
@@ -557,15 +628,25 @@
       publishCredits(data.credits, { source: 'wallet-demo' });
       return data;
     }
-    const fresh = creditWalletCache && Date.now() - creditWalletCache.at < 15000;
+    const scope = platformSession();
+    if (!currentPlatformSession(scope)) throw changedSessionError();
+    const fresh = creditWalletCache && currentPlatformSession(creditWalletCache.scope) && currentCreditRead(creditWalletCache.creditTicket) && Date.now() - creditWalletCache.at < 15000;
     if (fresh && !force) return creditWalletCache.data;
-    if (creditWalletPromise && !force) return creditWalletPromise;
-    creditWalletPromise = request('/api/credits/wallet').then(data => {
-      creditWalletCache = { at: Date.now(), data };
-      publishCredits(data.credits, { source: 'wallet' });
+    if (creditWalletPromise && currentPlatformSession(creditWalletPromise.scope) && !force) return creditWalletPromise.promise;
+    const entry = { scope, sequence: ++creditWalletSequence, creditTicket: beginCreditRead(scope) };
+    entry.promise = request('/api/credits/wallet').then(data => {
+      if (!currentPlatformSession(scope)) throw changedSessionError();
+      if (entry.sequence !== creditWalletSequence || !currentCreditRead(entry.creditTicket)) {
+        // Sigue la lectura más reciente; nunca entrega un saldo vencido al modal.
+        if (creditWalletPromise === entry) creditWalletPromise = null;
+        return loadCreditWallet(false);
+      }
+      creditWalletCache = { scope, creditTicket: entry.creditTicket, at: Date.now(), data };
+      publishCredits(data.credits, { source: 'wallet', readTicket: entry.creditTicket });
       return data;
-    }).finally(() => { creditWalletPromise = null; });
-    return creditWalletPromise;
+    }).finally(() => { if (creditWalletPromise === entry) creditWalletPromise = null; });
+    creditWalletPromise = entry;
+    return entry.promise;
   }
 
   function formatMovementDate(value) {
@@ -593,6 +674,9 @@
   }
 
   async function openCreditWallet() {
+    const scope = platformSession();
+    if (!currentPlatformSession(scope)) return;
+    closeCreditWallet?.();
     document.querySelector('.credit-wallet-modal')?.remove();
     const root = document.createElement('div');
     root.className = 'credit-wallet-modal';
@@ -603,13 +687,21 @@
     document.body.appendChild(root);
     document.body.classList.add('has-credit-wallet');
     let releaseA11y = () => {};
-    const close = () => { root.remove(); document.body.classList.remove('has-credit-wallet'); releaseA11y(); };
+    let closed = false;
+    const close = () => {
+      if (closed) return;
+      closed = true;
+      root.remove(); document.body.classList.remove('has-credit-wallet'); releaseA11y();
+      if (closeCreditWallet === close) closeCreditWallet = null;
+    };
+    closeCreditWallet = close;
     releaseA11y = activateDialogA11y(root, close);
     root.querySelectorAll('[data-credit-wallet-close]').forEach(button => button.addEventListener('click', close));
     root.querySelector('[data-credit-wallet-close]:not(.credit-wallet-modal__veil)')?.focus();
     try {
       const data = await loadCreditWallet(true);
       if (!root.isConnected) return;
+      if (!currentPlatformSession(scope)) { close(); return; }
       root.querySelector('.credit-wallet-modal__body').innerHTML = walletMarkup(data);
       root.querySelectorAll('[data-wallet-destination]').forEach(button => button.addEventListener('click', () => {
         const section = button.dataset.walletDestination;
@@ -618,6 +710,7 @@
       }));
     } catch (error) {
       if (!root.isConnected) return;
+      if (!currentPlatformSession(scope) || error?.code === 'session-ended') { close(); return; }
       if (error?.status === 410 && error?.data?.code === 'account-deleted') { close(); return; }
       root.querySelector('.credit-wallet-modal__body').innerHTML = `<div class="credit-wallet-error"><strong>No pudimos sincronizar tu cartera.</strong><span>${esc(error.message)}</span><button type="button" data-wallet-retry>Reintentar</button></div>`;
       root.querySelector('[data-wallet-retry]')?.addEventListener('click', () => { close(); openCreditWallet(); });
@@ -1881,10 +1974,11 @@
 
   // Créditos que el equipo ICADEM regaló o vendió desde el admin: el servidor
   // deja un aviso y aquí se muestra el cofre con el monto, una sola vez.
-  let creditGiftsChecking = false;
+  let creditGiftsChecking = null;
   async function checkCreditGifts() {
-    if (window.__isDemoMode || !window.__currentUser || creditGiftsChecking) return;
-    creditGiftsChecking = true;
+    const scope = platformSession();
+    if (window.__isDemoMode || !currentPlatformSession(scope) || (creditGiftsChecking && currentPlatformSession(creditGiftsChecking))) return;
+    creditGiftsChecking = scope;
     try {
       const data = await request('/api/credits/notifications');
       const items = Array.isArray(data?.items) ? data.items.filter(item => Number(item.amount) > 0) : [];
@@ -1895,13 +1989,14 @@
       const note = items.length === 1 && last.note ? last.note : '';
       // Espera a que no haya otra ventana encima (bienvenida, recorrido, etc.)
       for (let i = 0; i < 20 && document.querySelector('.modal-backdrop.is-open, .cc-overlay, .rv'); i++) await new Promise(r => setTimeout(r, 1000));
+      if (!currentPlatformSession(scope)) return;
       showCoinChest({ amount: total, total: Number(last.balanceAfter), title: purchase ? '¡Compra acreditada!' : '¡Te regalaron créditos!', note });
       await request('/api/credits/notifications/read', { method: 'POST', body: { ids: items.map(item => item.id) } }).catch(() => {});
       loadCreditWallet(true).catch(() => {});
     } catch (_) {
       // Sin aviso: se vuelve a intentar en la siguiente visita
     } finally {
-      creditGiftsChecking = false;
+      if (creditGiftsChecking === scope) creditGiftsChecking = null;
     }
   }
   document.addEventListener('icadem:user-ready', () => setTimeout(checkCreditGifts, 2500));
@@ -2266,6 +2361,8 @@
   async function mountRetosStatus(target) {
     const root = typeof target === 'string' ? document.getElementById(target) : target;
     if (!root) return;
+    const scope = platformSession();
+    const creditTicket = beginCreditRead(scope);
     if (!window.__icademJuegosPreload) { window.__icademJuegosPreload = Object.values(JUEGOS_ICONS).map(name => { const img = new Image(); img.decoding = 'async'; img.src = `assets/mascotas/juegos/${name}.webp`; return img; }); }
     let data;
     if (window.__isDemoMode) {
@@ -2279,8 +2376,9 @@
         return;
       }
     }
+    if (!currentPlatformSession(scope)) return;
     window.__icademRetoStatus = data;
-    publishCredits({ ...(window.UserState?.credits || {}), balance: Number(data.balance) || 0 }, { source: 'retos-status' });
+    publishCredits({ ...(window.UserState?.credits || {}), balance: Number(data.balance) || 0 }, { source: 'retos-status', readTicket: creditTicket });
     const used = new Set(data.used || []);
     root.querySelectorAll('[data-reto-key]').forEach(card => {
       const key = card.dataset.retoKey;
@@ -2442,21 +2540,63 @@
     if (!trigger || (event.key !== 'Enter' && event.key !== ' ')) return;
     event.preventDefault(); trigger.click();
   });
-  document.addEventListener('icadem:user-ready', () => syncIdentity());
-  let lastVisibleIdentitySync = 0;
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && !window.__isDemoMode && window.__currentUser) {
-      loadCreditWallet(true).catch(() => {});
-      if (Date.now() - lastVisibleIdentitySync > 5 * 60 * 1000) {
-        lastVisibleIdentitySync = Date.now();
-        syncIdentity(true).catch(() => {});
-      } else if (Date.now() - lastProgressLoad > 45 * 1000) {
-        // Al volver a la pestaña (p. ej. tras avanzar en la PC) trae el avance real.
-        loadLearningProgress().catch(() => {});
-      }
-    }
+  let criticalRefreshPromise = null;
+  let criticalRefreshTimer = null;
+  let lastCriticalRefresh = 0;
+  function resetPlatformSession() {
+    sessionGeneration++;
+    identitySequence++; identityPromise = null; identityCache = null;
+    progressSequence++; progressPromise = null;
+    creditSnapshotRevision++; appliedCreditRead = 0;
+    invalidateCreditWallet();
+    appliedIdentityFingerprint = '';
+    window.__pendingServerProgress = null;
+    window.__serverCourseProgress = {};
+    window.__serverProgressOwner = '';
+    clearTimeout(window.__progressRepaintTimer);
+    window.__icademRetoStatus = null;
+    accountDeletedHandled = false;
+    criticalRefreshPromise = null; lastCriticalRefresh = 0;
+    if (criticalRefreshTimer) clearInterval(criticalRefreshTimer);
+    criticalRefreshTimer = null;
+    closeCreditWallet?.();
+    document.querySelector('.credit-wallet-modal')?.remove();
+    document.body.classList.remove('has-credit-wallet');
+  }
+  function refreshCriticalData() {
+    const scope = platformSession();
+    if (window.__isDemoMode || !currentPlatformSession(scope) || document.visibilityState === 'hidden' || window.navigator?.onLine === false) return Promise.resolve(null);
+    if (criticalRefreshPromise && currentPlatformSession(criticalRefreshPromise.scope)) return criticalRefreshPromise.promise;
+    lastCriticalRefresh = Date.now();
+    const entry = { scope };
+    entry.promise = Promise.allSettled([
+      syncIdentity(true, { progress: false }),
+      loadLearningProgress(true),
+      loadCreditWallet(true)
+    ]).finally(() => { if (criticalRefreshPromise === entry) criticalRefreshPromise = null; });
+    criticalRefreshPromise = entry;
+    return entry.promise;
+  }
+  function startCriticalRefresh() {
+    if (criticalRefreshTimer) clearInterval(criticalRefreshTimer);
+    if (window.__isDemoMode || !currentPlatformSession(platformSession())) return;
+    criticalRefreshTimer = setInterval(() => {
+      if (Date.now() - lastCriticalRefresh >= 60000) refreshCriticalData();
+    }, 60000);
+  }
+  document.addEventListener('icadem:session-ending', resetPlatformSession);
+  document.addEventListener('icadem:session-ended', resetPlatformSession);
+  document.addEventListener('icadem:session-exit-failed', () => { startCriticalRefresh(); refreshCriticalData(); });
+  document.addEventListener('icadem:user-ready', () => {
+    resetPlatformSession();
+    syncIdentity();
+    startCriticalRefresh();
   });
-  if (window.__currentUser) syncIdentity();
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') refreshCriticalData();
+  });
+  window.addEventListener('online', () => refreshCriticalData());
+  if (platformUser()) { syncIdentity(); startCriticalRefresh(); }
 
   window.ICADEMPlatform = {
     request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadCourseCatalog, loadLibrary, redeemBook, loadMaterials, redeemMaterial, selectFreeCourse, markFreeCourseOfferSeen, claimExperience, markMembershipWelcomeSeen,
