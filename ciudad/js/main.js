@@ -6,7 +6,7 @@ import { ThirdPersonCamera } from './core/camera.js';
 import { Store } from './core/store.js';
 import { createEconomy, REWARDS } from './economy/economy.js';
 import { OfflineAdapter, StateSync } from './net/network.js';
-import { WsAdapter } from './net/ws-adapter.js';
+import { WsAdapter, devTicketProvider } from './net/ws-adapter.js';
 import { RemotePlayers } from './characters/remote.js';
 import { Social } from './ui/social.js';
 import { createAvatar } from './characters/avatar.js';
@@ -14,10 +14,13 @@ import { avatarById } from './characters/catalog.js';
 import { buildRoom } from './world/room.js';
 import { buildPlaza } from './world/plaza.js';
 import { buildBank } from './world/bank.js';
+import { buildCourt } from './world/court.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
 import { BankCreditMission } from './missions/bank-credit.js';
 import { BANK_CREDIT_MISSION } from './missions/bank-credit-logic.js';
+import { CourtJudgeMission } from './missions/court-judge.js';
+import { COURT_JUDGE_MISSION } from './missions/court-judge-logic.js';
 import { defineMission, MissionRegistry, MissionService } from './missions/engine.js';
 import { UI } from './ui/ui.js';
 import { Tutorial } from './ui/tutorial.js';
@@ -25,7 +28,7 @@ import { Tutorial } from './ui/tutorial.js';
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
-const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank };
+const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt };
 const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
 const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
 
@@ -57,7 +60,7 @@ async function boot() {
      activa en pruebas locales, con ?mp=ws://127.0.0.1:PUERTO, contra el servidor de prueba. */
   const mpUrl = LOCAL ? params.get('mp') : null;
   const net = mpUrl && /^wss?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(mpUrl)
-    ? new WsAdapter({ url: mpUrl, token: `test:${(params.get('uid') || 'local').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'local'}:${(params.get('name') || 'Jugador de prueba').slice(0, 28)}`, avatar: store.state.avatarId })
+    ? new WsAdapter({ url: mpUrl, avatar: store.state.avatarId, getTicket: devTicketProvider(mpUrl, (params.get('uid') || 'local').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'local', (params.get('name') || 'Jugador de prueba').slice(0, 28)) })
     : new OfflineAdapter();
   const sync = new StateSync(net);
 
@@ -89,11 +92,12 @@ async function boot() {
   });
   api.ui = new UI(api);
   api.missions.bank = new BankCreditMission(api, bankDef);
+  api.missions.court = new CourtJudgeMission(api, registry.register(defineMission(COURT_JUDGE_MISSION)));
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social;
   if (net instanceof WsAdapter) {
-    api.playerName = params.get('name') || api.playerName;
+    net.on('status', st => { if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
     net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
   }
   net.connect();
@@ -121,7 +125,7 @@ async function boot() {
   }
 
   function mountScene(name, spawnKey) {
-    if (api.scene) { engine.scene.remove(api.scene.group); disposeTree(api.scene.group); if (api.sceneName === 'bank') api.missions.bank.leave(); }
+    if (api.scene) { engine.scene.remove(api.scene.group); disposeTree(api.scene.group); api.missions[api.sceneName]?.leave(); }
     disposeTree(markers); markers.clear(); current = null;
     const scene = SCENES[name](api);
     api.scene = scene; api.sceneName = name; api.remotes?.setScene(name);
@@ -135,7 +139,7 @@ async function boot() {
     camera.configure({ ...scene.camera, world: scene.collision, yaw: sp.yaw + Math.PI });
     camera.override = null; camera.ease = 0; camera.snap(player.position);
     engine.setQuality(engine.quality);
-    if (name === 'bank') api.missions.bank.enter();
+    api.missions[name]?.enter();
     beam.visible = Boolean(api.waypoint) && name === 'plaza';
     api.ui.setPlace(scene.title);
   }
@@ -151,9 +155,9 @@ async function boot() {
     }
   }
 
-  function sit(spot) {
-    player.seat = spot; player.position.set(spot.x, spot.seatY || 0, spot.z); player.yaw = spot.yaw;
-    api.ui.toast('Descansando. Muévete para levantarte.', 2200);
+  function sit(spot, quiet) {
+    player.seat = spot; player.position.set(spot.x, spot.seatY || 0, spot.z); player.yaw = spot.yaw; player.vx = player.vz = 0;
+    if (!quiet) api.ui.toast('Descansando. Muévete para levantarte.', 2200);
   }
 
   function mirror(mirrorPos, stand) {
@@ -244,7 +248,7 @@ async function boot() {
       m.scale.setScalar(m.scale.x + (s - m.scale.x) * Math.min(1, dt * 8));
       // Oculta los rombos que quedan entre la cámara y el jugador para que no tapen la vista.
       const camToMarker = engine.camera.position.distanceTo(m.position), camToPlayer = engine.camera.position.distanceTo(p);
-      m.visible = camToMarker > camToPlayer * 0.78 && (!player.seat || !isCurrent);
+      m.visible = !camera.override && camToMarker > camToPlayer * 0.78 && (!player.seat || !isCurrent);
     }
 
     camera.update(dt, p, input.consumeLook(), input.consumeZoom());

@@ -272,6 +272,118 @@ async function panel(browser) {
   }
 }
 
+/** Tribunal ICADEM: la audiencia completa (acierto, repetición sin duplicar créditos y fallo). */
+async function tribunal(browser) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+  const errors = [];
+  page.on('pageerror', e => errors.push(e.message + ' :: ' + (e.stack || '').split('\n')[1]));
+  page.on('console', m => { if (m.type() === 'error' && !/404|Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
+  const S = () => page.evaluate(() => { const a = window.__ciudad.api, p = a.player.position, m = a.missions.court; return { scene: a.sceneName, x: p.x, z: p.z, seated: Boolean(a.player.seat), step: m.step, state: JSON.parse(JSON.stringify(m.state)), bal: a.store.state.economy.balance, ledger: a.store.state.economy.ledger.length, rec: a.store.state.missions['tribunal-tu-eres-el-juez'] || null, bank: a.store.state.missions['banco-credito-correcto'] || null, ach: a.store.state.achievements }; });
+  const tp = (x, z) => page.evaluate(([x, z]) => { const a = window.__ciudad.api; a.player.position.set(x, 0, z); a.camera.snap(a.player.position); }, [x, z]);
+  const waitScene = async name => { for (let i = 0; i < 60; i++) { if ((await S()).scene === name && !(await page.evaluate(() => document.getElementById('fade').classList.contains('is-on')))) return true; await page.waitForTimeout(250); } return false; };
+  const E = async () => { await page.keyboard.press('KeyE'); await page.waitForTimeout(500); };
+  const ui = () => page.evaluate(() => { const d = document.getElementById('dialog'), c = document.getElementById('choice'), m = document.getElementById('modal'); return { dialog: d && !d.hidden ? document.getElementById('dialog-speaker').textContent + ': ' + document.getElementById('dialog-text').textContent : null, choice: c && !c.hidden ? c.querySelector('.choice__speaker').textContent : null, modal: m && !m.hidden ? document.getElementById('modal-title').textContent : null }; });
+  const heard = [];
+  /** Avanza diálogos hasta que aparezca una hoja de opciones o una ventana. */
+  const until = async () => { for (let i = 0; i < 160; i++) { const u = await ui(); if (u.dialog) { await page.click('#dialog-next'); await page.waitForTimeout(90); const t = (await ui()).dialog; if (t) heard.push(t); await page.click('#dialog-next').catch(() => {}); await page.waitForTimeout(160); continue; } if (u.choice || u.modal) return u; await page.waitForTimeout(150); } return {}; };
+  const choose = async id => { await page.click(`#choice .choice__opt[data-id="${id}"]`); await page.waitForTimeout(250); };
+  const primary = async () => { await page.click('#modal-actions .btn--primary'); await page.waitForTimeout(350); };
+
+  await page.goto(`${BASE}/ciudad/index.html?debug=1&autostart=1&tutorial=0&scene=plaza`);
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(`${BASE}/ciudad/index.html?debug=1&autostart=1&tutorial=0&scene=plaza`);
+  await page.waitForFunction(() => window.__ciudad && window.__ciudad.api.sceneName === 'plaza', null, { timeout: 40000 });
+  await page.waitForTimeout(1200);
+  await tp(13, -20.2); await page.waitForTimeout(400);
+  const door = await page.evaluate(() => document.getElementById('interact-label').textContent);
+  await shot(page, 't0-fachada.png'); await E();
+  ok('[tribunal] se entra al Tribunal ICADEM desde la ciudad', door === 'Entrar al Tribunal ICADEM' && await waitScene('court'), door);
+  await page.waitForTimeout(700); await shot(page, 't1-sala.png');
+  const cam = await page.evaluate(() => {
+    const a = window.__ciudad.api, cam = a.camera, pos = a.engine.camera.position, b = a.scene.camera.box; let out = 0, minArm = 99;
+    for (const [px, pz] of [[0, 5.6], [-9, -1], [9, 6.5], [0, -1.6], [3.4, -3.9], [-9.4, 7.4]]) { const f = a.scene.collision.resolve(px, pz, 0.36); a.player.position.set(f.x, 0, f.z);
+      for (let i = 0; i < 16; i++) { cam.yaw = i * Math.PI / 8; cam.pitch = 0.1 + (i % 4) * 0.3; cam.snap(a.player.position); minArm = Math.min(minArm, cam.arm); if (pos.x < b.minX || pos.x > b.maxX || pos.z < b.minZ || pos.z > b.maxZ || pos.y > b.maxY) out++; } }
+    a.player.position.set(0, 0, 5.6); cam.yaw = 0; cam.pitch = 0.46; cam.snap(a.player.position);
+    return { out, minArm, free: a.scene.collision.isFree(0, 5.6, 0.36) };
+  });
+  ok('[tribunal] cámara dentro de la sala y sin pegarse al avatar', cam.out === 0 && cam.minArm > 1.6 && cam.free, JSON.stringify(cam));
+  // colisión: el estrado y la barandilla detienen al avatar
+  await tp(-6, 5.0 - 0.9); await page.evaluate(() => { window.__ciudad.api.camera.yaw = 0; }); await page.keyboard.down('KeyW'); await page.waitForTimeout(2500); await page.keyboard.up('KeyW');
+  ok('[tribunal] la barandilla detiene al avatar', (await S()).z > 3.5, `z=${(await S()).z.toFixed(2)}`);
+
+  const audiencia = async plan => {
+    // el estrado no se puede tomar sin expediente ni pruebas
+    await tp(3.4, -3.9); await page.waitForTimeout(350); await E(); await until();
+    const early = (await S()).seated; await page.waitForTimeout(300);
+    // secretaría: expediente y antecedentes
+    await tp(5.6, -2.3); await page.waitForTimeout(350); await E(); let u = await until();
+    const docket = await page.evaluate(() => [...document.querySelectorAll('.docket__item')].map(b => b.disabled));
+    await page.click('.docket__item[data-id="exp-014"]'); if (plan.shots) await shot(page, 't2-expedientes.png'); await primary(); u = await until();
+    if (plan.shots) await shot(page, 't3-antecedentes.png'); await primary();
+    // mesa de pruebas
+    await tp(0, -1.95); await page.waitForTimeout(350); await E(); await page.waitForTimeout(300);
+    for (const id of ['contrato', 'inventario', 'cotizacion', 'mensajes', 'fotos']) { await page.click(`.docs__tabs button[data-id="${id}"]`); await page.waitForTimeout(120); }
+    if (plan.shots) await shot(page, 't4-pruebas.png'); await primary();
+    // estrado
+    await tp(3.4, -3.9); await page.waitForTimeout(350); await E(); await until();
+    const seated = (await S()).seated; if (plan.shots) await shot(page, 't5-estrado.png');
+    await choose('abrir'); await until();
+    await choose('parte:actora'); await until(); await choose('parte:demandada'); await until();
+    await choose('testigo:ruben'); u = await until(); if (plan.shots) await shot(page, 't6-objecion.png');
+    const firstObjection = u.choice; await choose(plan.objections.sugestiva); u = await until(); await choose(plan.objections.fecha); u = await until();
+    if (plan.shots) await shot(page, 't7-preguntas.png');
+    await choose('r-boiler'); await until(); await choose('fin'); await until();
+    await choose('testigo:sofia'); await until(); await choose(plan.objections.oidas); await until(); await choose('s-vidrio'); await until(); await choose('fin'); await until();
+    await choose('confrontar'); await page.waitForTimeout(350);
+    for (const [st, exh] of Object.entries(plan.marks)) await page.click(`.confront__row[data-id="${st}"] .chips button[data-id="${exh}"]`);
+    if (plan.shots) await shot(page, 't8-confrontar.png'); await primary(); await until();
+    await choose('valorar'); await page.waitForTimeout(350);
+    for (const [exh, w] of Object.entries(plan.weights)) await page.click(`.confront__row[data-id="${exh}"] .chips button[data-id="${w}"]`);
+    if (plan.shots) await shot(page, 't9-valorar.png'); await primary(); await until();
+    await choose('resolver'); await page.waitForTimeout(350); await page.click(`.pick__card[data-id="${plan.ruling}"]`); await primary();
+    for (const gr of plan.grounds) await page.click(`.why__item[data-id="${gr}"]`);
+    await primary(); await until();
+    const score = await page.evaluate(() => document.querySelector('.result__score b')?.textContent), eyebrow = await page.evaluate(() => document.getElementById('modal-eyebrow').textContent);
+    if (plan.shots) await shot(page, 't10-resultado.png');
+    await primary(); await page.waitForTimeout(500);
+    return { early, docket, seated, firstObjection, score, eyebrow };
+  };
+  const best = { sugestiva: 'ha-lugar', fecha: 'no-ha-lugar', oidas: 'ha-lugar' };
+  const marks = { 'd-ernesto': 'mensajes', 'd-ruben': 'cotizacion', 'd-marta': 'null', 'd-sofia': 'null', 'd-edad': 'null' };
+  const weights = { contrato: 'pleno', inventario: 'pleno', cotizacion: 'indicio', mensajes: 'pleno', fotos: 'nulo' };
+
+  const r1 = await audiencia({ shots: true, objections: best, marks, weights, ruling: 'parcial', grounds: ['vidrio', 'recibido'] });
+  let s = await S();
+  ok('[tribunal] no deja subir al estrado sin expediente ni pruebas', r1.early === false);
+  ok('[tribunal] la secretaria ofrece expedientes (uno listo, dos en preparación)', r1.docket.join() === 'false,true,true', r1.docket.join());
+  ok('[tribunal] el jugador preside desde el estrado', r1.seated === true);
+  ok('[tribunal] los abogados objetan y el juez resuelve', r1.firstObjection === 'Resuelve la objeción', String(r1.firstObjection));
+  ok('[tribunal] los NPC declaran: se escuchó a las partes y a los dos testigos', ['Lic. Paula Mena', 'Lic. Hugo Barrera', 'Rubén Ortega', 'Sofía Luna', 'Secretaria de acuerdos'].every(n => heard.some(t => t.startsWith(n))), heard.length + ' líneas');
+  ok('[tribunal] admitir una objeción retira la pregunta (el testigo no la contesta)', !heard.some(t => /era descuidada/.test(t)) && heard.some(t => /12 de mayo/.test(t)));
+  ok('[tribunal] audiencia perfecta: 100 puntos', r1.score === '100' && /completada/i.test(r1.eyebrow), r1.score + ' ' + r1.eyebrow);
+  ok('[tribunal] recompensa de prueba: +20 créditos y registro de finalización', s.bal === 20 && s.ledger === 1 && s.rec && s.rec.completed && s.rec.bestScore === 100 && s.ach.includes('toga-y-mazo') && s.ach.includes('primera-mision'), JSON.stringify({ bal: s.bal, rec: s.rec }));
+  ok('[tribunal] al terminar baja del estrado y la misión se reinicia', !s.seated && s.step === 'expediente');
+  // repetir con otra resolución defendible pero incompleta: no duplica créditos
+  heard.length = 0;
+  const r2 = await audiencia({ objections: { sugestiva: 'no-ha-lugar', fecha: 'ha-lugar', oidas: 'no-ha-lugar' }, marks: { 'd-ernesto': 'null', 'd-ruben': 'null', 'd-marta': 'fotos', 'd-sofia': 'null', 'd-edad': 'null' }, weights: { contrato: 'pleno', inventario: 'indicio', cotizacion: 'pleno', mensajes: 'nulo', fotos: 'pleno' }, ruling: 'absolver', grounds: ['cotizacion', 'fotos'] });
+  s = await S();
+  ok('[tribunal] decisiones equivocadas generan otro resultado (no superada)', Number(r2.score) < 70 && /no superada/i.test(r2.eyebrow), r2.score + ' ' + r2.eyebrow);
+  ok('[tribunal] rechazar la objeción deja contestar; admitir la otra oculta la fecha', heard.some(t => /era descuidada/.test(t)) && !heard.some(t => /Rubén Ortega: La hice/.test(t)));
+  const r3 = await audiencia({ objections: best, marks, weights, ruling: 'parcial', grounds: ['vidrio', 'desgaste', 'recibido'] });
+  s = await S();
+  ok('[tribunal] repetir y volver a ganar no duplica créditos', r3.score === '100' && s.bal === 20 && s.ledger === 1 && s.rec.attempts === 3, JSON.stringify({ score: r3.score, bal: s.bal, ledger: s.ledger, rec: s.rec }));
+  // sala de espera sin conexión: se explica, no se simula
+  await tp(8.2, 6.6); await page.waitForTimeout(350); await E(); await page.waitForTimeout(400);
+  const lobby = await page.evaluate(() => document.querySelector('.lobby')?.textContent || '');
+  ok('[tribunal] la sala de espera en equipo no finge funcionar sin servidor', /En desarrollo/.test(lobby) && /entorno de pruebas/.test(lobby) && !/Crear sala/.test(lobby), lobby.slice(0, 120));
+  await page.keyboard.press('Escape'); await page.waitForTimeout(300);
+  await tp(0, 6.9); await page.waitForTimeout(350); await E();
+  ok('[tribunal] se sale del Tribunal a la ciudad', await waitScene('plaza'));
+  ok('[tribunal] el Banco sigue registrado en el mismo motor', await page.evaluate(() => { const svc = window.__ciudad.api.missionService; return svc.registry.list().map(d => d.id).join() === 'banco-credito-correcto,tribunal-tu-eres-el-juez' && svc.rewardFor('banco-credito-correcto').amount === 15 && svc.rewardFor('tribunal-tu-eres-el-juez').amount === 20; }));
+  ok('[tribunal] sin errores de JavaScript', errors.length === 0, errors.slice(0, 4).join(' | '));
+  await page.close();
+}
+
 /** Tablet y celular (vertical y horizontal): controles táctiles dentro de pantalla y jugables. */
 async function dispositivos(browser) {
   const perfiles = [
@@ -313,6 +425,14 @@ async function dispositivos(browser) {
     await page.tap('#say-menu button[data-id="bien"]'); await page.waitForTimeout(400);
     const dijo = await page.evaluate(() => document.querySelector('.bubble--me')?.textContent);
     ok(`[${nombre}] frases táctiles: el menú cabe en pantalla y la burbuja aparece`, menu.open && menu.l >= 0 && menu.t >= 0 && menu.r <= W && menu.b <= H && dijo === '¡Buen trabajo!', JSON.stringify({ menu, dijo }));
+    // hoja de opciones de la audiencia: cabe en pantalla y se puede tocar hasta la última opción
+    await page.evaluate(() => { window.__pick = window.__ciudad.api.ui.choice({ speaker: 'Estrado del juez', text: 'La audiencia está abierta. ¿Qué sigue?', options: Array.from({ length: 8 }, (_, i) => ({ id: 'o' + i, label: 'Opción de audiencia número ' + (i + 1), hint: i % 2 ? 'Detalle de la opción' : '', disabled: i === 2 })) }); });
+    await page.waitForTimeout(350);
+    const hoja = await page.evaluate(() => { const r = document.querySelector('.choice__card').getBoundingClientRect(); return { l: r.left, t: r.top, r: r.right, b: r.bottom, n: document.querySelectorAll('.choice__opt').length }; });
+    await shot(page, `d-${nombre.replace(/ /g, '-')}-opciones.png`);
+    await page.tap('#choice .choice__opt[data-id="o7"]');
+    const elegido = await page.evaluate(() => window.__pick);
+    ok(`[${nombre}] la hoja de opciones de la audiencia cabe en pantalla y responde al toque`, hoja.n === 8 && hoja.l >= 0 && hoja.t >= 0 && hoja.r <= W && hoja.b <= H && elegido === 'o7', JSON.stringify({ hoja, elegido }));
     ok(`[${nombre}] sin errores de JavaScript`, errs.length === 0, errs.slice(0, 3).join(' | '));
     await ctx.close();
   }
@@ -323,6 +443,7 @@ async function dispositivos(browser) {
   try {
     const only = process.env.ONLY || '';
     if (!only || only === 'juego') await juego(browser);
+    if (!only || only === 'tribunal') await tribunal(browser);
     if (!only || only === 'dispositivos') await dispositivos(browser);
     if (!only || only === 'panel') await panel(browser);
   }

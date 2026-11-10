@@ -3,6 +3,9 @@
 // No hay texto libre: solo la lista cerrada de social/phrases.js.
 import * as THREE from '../three.js';
 import { PHRASES, phraseById, createRateLimiter, SAY_RADIUS, BUBBLE_SECONDS } from '../social/phrases.js';
+import { COOP_MISSIONS } from '../net/scenes.js';
+
+const ROOM_ERRORS = { 'codigo-invalido': 'Ese código no corresponde a ninguna sala.', 'sala-llena': 'La sala ya está completa.', 'sala-cerrada': 'Esa sala ya no admite jugadores.', 'rol-ocupado': 'Ese rol ya lo tomó otro jugador.', 'elige-un-rol': 'Primero elige un rol.', 'solo-anfitrion': 'Solo quien creó la sala puede iniciar.', 'faltan-jugadores': 'Se necesitan al menos dos jugadores.', 'falta-juez': 'Alguien debe tomar el rol de juez.', 'no-todos-listos': 'Todos deben elegir rol y marcarse listos.', 'cooperativo-en-desarrollo': 'La sala está completa. La audiencia en equipo todavía está en desarrollo: por ahora se juega en modo individual.' };
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const v = new THREE.Vector3();
@@ -28,7 +31,7 @@ export class Social {
     api.net.on('status', s => this.#status(s));
     api.net.on('leave', ({ pid }) => { this.#clear(pid); });
     api.net.on('join', p => { if (api.net.isOnline && this.announce) api.ui.toast(`${p.name} entró a la ciudad.`, 2200); });
-    api.net.on('fix', () => {});
+    api.net.on('room', m => { if (m && m.ok === false && m.reason) api.ui.toast(ROOM_ERRORS[m.reason] || 'No se pudo completar la acción.', 3600); else if (m && m.reason === 'cooperativo-en-desarrollo') api.ui.toast(ROOM_ERRORS[m.reason], 4200); this.lobbyRender?.(); });
     this.announce = false; setTimeout(() => { this.announce = true; }, 2500);
   }
 
@@ -92,6 +95,49 @@ export class Social {
     if (!list.length) wrap.append(h('p', 'players__empty', 'Por ahora no hay otros jugadores en tu instancia.'));
     wrap.append(h('p', 'players__note', 'Aquí solo aparecen personas reales conectadas. Entre jugadores solo se pueden enviar frases predefinidas.'));
     return api.ui.modal({ eyebrow: net.instance ? 'Instancia ' + net.instance : 'Jugadores', title: 'Jugadores conectados', content: wrap });
+  }
+
+  /**
+   * Sala de espera de la audiencia en equipo. Todo lo decide el servidor (códigos, roles,
+   * quién es anfitrión); esta pantalla solo muestra el estado y envía solicitudes.
+   */
+  openLobby(missionId = 'tribunal-tu-eres-el-juez') {
+    const api = this.api, net = api.net, spec = COOP_MISSIONS[missionId], wrap = h('div', 'lobby');
+    const roleName = id => (spec.roles.find(r => r.id === id) || {}).name || 'Sin rol';
+    const render = () => {
+      wrap.replaceChildren();
+      wrap.append(h('p', 'lobby__status', 'En desarrollo: aquí se arma el equipo y se reparten los roles. La audiencia en equipo aún no se puede jugar; la misión individual sí.'));
+      if (!net.isOnline) { wrap.append(h('p', 'players__empty', 'La sala de espera necesita conexión con el servidor multijugador, que por ahora solo existe en el entorno de pruebas.')); return; }
+      const room = net.roomState;
+      if (!room) {
+        const create = h('button', 'btn btn--primary', 'Crear sala'); create.type = 'button'; create.id = 'lobby-create'; create.addEventListener('click', () => net.room('create', { mission: missionId }));
+        const code = h('input', 'lobby__code'); code.id = 'lobby-code'; code.maxLength = 6; code.placeholder = 'CÓDIGO'; code.autocomplete = 'off'; code.setAttribute('aria-label', 'Código de la sala');
+        const join = h('button', 'btn', 'Unirme'); join.type = 'button'; join.id = 'lobby-join'; join.addEventListener('click', () => { if (code.value.trim()) net.room('join', { code: code.value.trim() }); });
+        const row = h('div', 'lobby__join'); row.append(code, join);
+        wrap.append(create, h('p', 'players__note', 'O entra a la sala de un compañero con su código de invitación:'), row);
+        return;
+      }
+      const me = room.members.find(m => m.pid === net.pid) || {}, head = h('div', 'lobby__head');
+      head.append(h('span', null, 'Código de invitación'), h('strong', 'lobby__codeview', room.code)); wrap.append(head);
+      const roles = h('div', 'lobby__roles');
+      spec.roles.forEach(r => {
+        const owner = room.members.find(m => m.role === r.id), b = h('button', 'lobby__role' + (owner ? ' is-taken' : '') + (me.role === r.id ? ' is-mine' : '')); b.type = 'button'; b.dataset.role = r.id;
+        b.append(h('strong', null, r.name), h('small', null, owner ? (owner.pid === net.pid ? 'Tú' : owner.name) : 'Libre')); b.disabled = Boolean(owner) && owner.pid !== net.pid;
+        b.addEventListener('click', () => net.room('role', { role: me.role === r.id ? null : r.id })); roles.append(b);
+      });
+      wrap.append(roles);
+      const list = h('div', 'players');
+      room.members.forEach(m => { const row = h('div', 'players__row'), who = h('div', 'players__who'); who.append(h('strong', null, m.pid === net.pid ? `${m.name} (tú)` : m.name), h('small', null, `${roleName(m.role)}${room.host === m.pid ? ' · anfitrión' : ''}${m.online ? '' : ' · reconectando'}`)); row.append(who, h('span', 'pill ' + (m.ready ? 'pill--ok' : 'pill--soon'), m.ready ? 'Listo' : 'En espera')); list.append(row); });
+      wrap.append(list);
+      const acts = h('div', 'lobby__acts');
+      const ready = h('button', 'btn', me.ready ? 'Ya no estoy listo' : 'Estoy listo'); ready.type = 'button'; ready.id = 'lobby-ready'; ready.addEventListener('click', () => net.room('ready', { ready: !me.ready }));
+      const leave = h('button', 'btn', 'Salir de la sala'); leave.type = 'button'; leave.id = 'lobby-leave'; leave.addEventListener('click', () => net.room('leave'));
+      acts.append(ready, leave);
+      if (room.host === net.pid) { const start = h('button', 'btn btn--primary', 'Iniciar audiencia'); start.type = 'button'; start.id = 'lobby-start'; start.addEventListener('click', () => net.room('start')); acts.append(start); }
+      wrap.append(acts);
+    };
+    this.lobbyRender = render; render();
+    return api.ui.modal({ eyebrow: 'Audiencia en equipo', title: 'Sala de espera · ' + spec.title, content: wrap, onClose: () => { this.lobbyRender = null; } });
   }
 
   #project(x, y, z, el) {

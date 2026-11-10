@@ -312,3 +312,61 @@ input[type=range]{width:100%;accent-color:var(--night)}
 .is-touch .say-btn kbd,.is-touch .say-menu kbd{display:none}
 .is-touch .say-menu{left:auto;right:calc(18px + var(--safe-r));bottom:calc(164px + var(--safe-b))}
 @media (max-width:720px){.say-btn__text{display:none}.bubble{font-size:13.5px;padding:6px 11px}}
+
+/* ---------- hoja de opciones (audiencias y decisiones) ---------- */
+.choice{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:0 12px calc(16px + var(--safe-b));background:linear-gradient(transparent 52%,rgba(8,16,36,.5));pointer-events:auto;z-index:6}
+.choice[hidden]{display:none}
+.choice__card{width:min(100%,640px);max-height:72%;display:flex;flex-direction:column;background:var(--glass);border:1px solid var(--line);border-radius:22px;padding:14px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:0 18px 44px rgba(5,12,30,.45);animation:pop .18s ease}
+.choice__speaker{color:var(--sun);font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-size:11.5px}
+.choice__text{margin:2px 0 10px;color:#fff;font-weight:600;font-size:15px}
+.choice__list{display:flex;flex-direction:column;gap:6px;overflow:auto;overscroll-behavior:contain}
+.choice__opt{display:flex;align-items:center;gap:10px;text-align:left;background:rgba(255,255,255,.1);color:#fff;border-radius:13px;padding:9px 12px;font-size:14.5px;min-height:44px}
+.choice__opt span{display:flex;flex-direction:column;min-width:0;flex:1}
+.choice__opt strong{font-weight:600}
+.choice__opt small{color:#b9c6dd;font-size:12.5px}
+.choice__opt kbd{font-family:var(--font);background:rgba(0,0,0,.28);border-radius:7px;min-width:22px;text-align:center;font-size:12px;padding:2px 0}
+.choice__opt:hover:not(:disabled),.choice__opt:focus-visible{background:rgba(255,255,255,.2)}
+.choice__opt.is-primary{background:var(--sun);color:var(--ink)}
+.choice__opt.is-primary small{color:#4b3a10}
+.choice__opt.is-done::after{content:"✓";color:#6fe0b5;font-weight:800}
+.choice__opt:disabled{opacity:.42}
+.is-touch .choice__opt kbd{display:none}
+@media (max-height:480px){.choice__card{max-height:88%;padding:10px}.choice__opt{min-height:38px;padding:6px 10px}.choice__text{margin-bottom:6px}}
+
+/* ---------- tribunal: expedientes, antecedentes, confrontación y valoración ---------- */
+.docket{display:flex;flex-direction:column;gap:8px}
+.docket__item{display:grid;gap:2px;text-align:left;padding:12px 14px;border-radius:14px;border:1.5px solid rgba(15,31,61,.12);background:#fff;color:var(--ink)}
+.docket__item small{color:var(--muted);font-weight:700;letter-spacing:.04em}
+.docket__item strong{font-size:16px}
+.docket__item span{color:#44506a;font-size:14px}
+.docket__item em{font-style:normal;justify-self:start;margin-top:4px}
+.docket__item.is-on{border-color:var(--night);box-shadow:0 0 0 3px rgba(15,31,61,.12)}
+.docket__item:disabled{opacity:.55}
+.brief p{margin:0 0 10px;color:#2a3550;line-height:1.5}
+.brief__matter{font-weight:800;color:var(--night)!important;font-size:16px}
+.brief__parties{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:6px 0 10px;padding:12px 14px;background:#f4f7fc;border-radius:14px;font-size:14px}
+.brief__parties dt{color:var(--muted)} .brief__parties dd{margin:0;font-weight:700;color:var(--ink)}
+.brief__note{font-size:12.5px;color:var(--muted)!important}
+.confront{display:flex;flex-direction:column;gap:10px}
+.confront__row{display:grid;gap:4px;padding:12px 14px;border-radius:14px;background:#f4f7fc;border:1px solid rgba(15,31,61,.08)}
+.confront__row small{color:var(--muted);font-weight:700;font-size:12.5px}
+.confront__row strong{color:var(--ink);font-size:15px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips button{padding:7px 11px;border-radius:999px;border:1.5px solid rgba(15,31,61,.16);background:#fff;color:var(--ink);font-size:13px;font-weight:600}
+.chips button.is-on{background:var(--night);border-color:var(--night);color:#fff}
+
+/* ---------- sala de espera cooperativa ---------- */
+.lobby{display:flex;flex-direction:column;gap:12px}
+.lobby__status{margin:0;padding:10px 12px;border-radius:12px;background:#fff6dc;color:#6b4a08;font-size:13.5px;font-weight:600}
+.lobby__join{display:flex;gap:8px}
+.lobby__code{flex:1;min-width:0;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(15,31,61,.2);font:700 18px/1 var(--font);letter-spacing:.3em;text-transform:uppercase;text-align:center;color:var(--ink)}
+.lobby__head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-radius:14px;background:var(--night);color:#fff}
+.lobby__head span{font-size:13px;color:#b9c6dd}
+.lobby__codeview{font-size:24px;letter-spacing:.24em;color:var(--sun);user-select:all}
+.lobby__roles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.lobby__role{display:grid;gap:2px;padding:10px 8px;border-radius:12px;border:1.5px solid rgba(15,31,61,.14);background:#fff;color:var(--ink);text-align:center}
+.lobby__role small{color:var(--muted);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lobby__role.is-taken{background:#eef2f8}
+.lobby__role.is-mine{border-color:var(--teal);background:#e3f4ec}
+.lobby__acts{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
+@media (max-width:560px){.lobby__roles{grid-template-columns:repeat(2,minmax(0,1fr))}}

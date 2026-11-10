@@ -57,8 +57,12 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     ok('la animación de caminar también se sincroniza', sawWalk && vb.remote.anim === 'idle', vb.remote.anim);
 
     // frase rápida con gesto, de celular a computadora
-    await B.evaluate(() => { const a = window.__ciudad.api, r = [...window.__ciudad.remotes.map.values()][0]; a.player.position.set(r.x + 1.6, 0, r.z + 1.2); });
-    await sleep(900);
+    // identidad: el nombre del HUD es el que certificó el servidor, y un teletransporte se corrige
+    ok('el nombre visible lo dicta el servidor (boleto firmado)', (await A.evaluate(() => document.getElementById('player-name').textContent)) === 'Ana Torres' && (await A.evaluate(() => window.__ciudad.api.net.name)) === 'Ana Torres');
+    const beforeTp = (await view(B)).self;
+    await B.evaluate(() => { window.__ciudad.api.player.position.set(-40, 0, -40); });
+    ok('el servidor corrige un teletransporte (regresa al jugador a su lugar)', await until(B, ([x, z]) => { const p = window.__ciudad.api.player.position; return Math.hypot(p.x - x, p.z - z) < 1; }, [beforeTp.x, beforeTp.z], 20));
+    await sleep(600);
     await B.tap('#btn-say'); await sleep(250); await B.tap('#say-menu button[data-id="jugamos"]');
     ok('la frase rápida aparece como burbuja sobre el avatar del otro jugador', await until(A, () => [...document.querySelectorAll('.bubble:not(.bubble--me)')].some(e => e.textContent === '¿Jugamos?'), null, 16));
     ok('y el gesto viaja con ella', await until(A, () => [...window.__ciudad.remotes.map.values()][0].avatar.anim === 'celebrate', null, 10));
@@ -79,6 +83,34 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     ok('y desde la habitación no se ve a nadie', await B.evaluate(() => window.__ciudad.api.sceneName === 'room' && window.__ciudad.remotes.count === 0));
     await B.evaluate(() => window.__ciudad.api.travel('plaza', 'home'));
     ok('al volver a la ciudad se reencuentran', (await until(A, seesOther, null, 40)) && (await until(B, seesOther, null, 40)));
+
+    // Tribunal: sin sala compartida no se ven; con sala de espera sí, y los roles los valida el servidor
+    await A.evaluate(() => window.__ciudad.api.travel('court')); await B.evaluate(() => window.__ciudad.api.travel('court'));
+    await until(A, () => window.__ciudad.api.sceneName === 'court' && !document.getElementById('fade').classList.contains('is-on'), null, 40); await until(B, () => window.__ciudad.api.sceneName === 'court' && !document.getElementById('fade').classList.contains('is-on'), null, 40);
+    await sleep(2500);
+    ok('en el Tribunal, dos jugadores sin sala compartida no se ven', (await A.evaluate(() => window.__ciudad.remotes.count)) === 0 && (await B.evaluate(() => window.__ciudad.remotes.count)) === 0);
+    await A.evaluate(() => { window.__ciudad.api.social.openLobby(); }); await sleep(400); await A.click('#lobby-create');
+    ok('crear sala de espera entrega un código de invitación', await until(A, () => /^[A-HJ-NP-Z2-9]{6}$/.test(document.querySelector('.lobby__codeview')?.textContent || ''), null, 20));
+    const code = await A.evaluate(() => document.querySelector('.lobby__codeview').textContent);
+    await B.evaluate(() => { window.__ciudad.api.social.openLobby(); }); await sleep(400);
+    await B.fill('#lobby-code', 'ZZZZZZ'); await B.tap('#lobby-join');
+    ok('un código equivocado no abre ninguna sala', await until(B, () => [...document.querySelectorAll('#toasts > *')].some(e => /no corresponde/.test(e.textContent)) && !document.querySelector('.lobby__codeview'), null, 12));
+    await B.fill('#lobby-code', code); await B.tap('#lobby-join');
+    ok('con el código correcto ambos quedan en la misma sala', (await until(A, () => document.querySelectorAll('.lobby .players__row').length === 2, null, 20)) && (await until(B, () => document.querySelectorAll('.lobby .players__row').length === 2, null, 20)));
+    await A.click('.lobby__role[data-role="juez"]');
+    ok('un rol tomado queda bloqueado para los demás', await until(B, () => { const b = document.querySelector('.lobby__role[data-role="juez"]'); return b && b.disabled && /Ana Torres/.test(b.textContent); }, null, 20));
+    await B.tap('.lobby__role[data-role="abogadoA"]'); await until(B, () => document.querySelector('.lobby__role[data-role="abogadoA"]').classList.contains('is-mine'), null, 20);
+    await B.tap('#lobby-ready'); await A.click('#lobby-ready'); await until(A, () => document.querySelectorAll('.lobby .pill--ok').length === 2, null, 20);
+    if (SHOTS) { await A.screenshot({ path: path.join(SHOTS, 'mp-sala-espera.png') }); await B.screenshot({ path: path.join(SHOTS, 'mp-sala-espera-celular.png') }); }
+    ok('solo el anfitrión puede iniciar', (await B.evaluate(() => !document.getElementById('lobby-start'))) && (await A.evaluate(() => Boolean(document.getElementById('lobby-start')))));
+    await A.click('#lobby-start');
+    ok('la audiencia en equipo se anuncia como en desarrollo (no se simula)', await until(A, () => [...document.querySelectorAll('#toasts > *')].some(e => /todavía está en desarrollo/.test(e.textContent)), null, 12));
+    await A.keyboard.press('Escape'); await B.evaluate(() => document.getElementById('modal-x').click());
+    ok('quienes comparten sala sí se ven dentro del Tribunal', (await until(A, seesOther, null, 30)) && (await until(B, seesOther, null, 30)));
+    await B.evaluate(() => window.__ciudad.api.net.room('leave'));
+    ok('al salir de la sala vuelven a quedar separados', await until(A, () => window.__ciudad.remotes.count === 0 && window.__ciudad.api.net.roomState.members.length === 1, null, 30));
+    await A.evaluate(() => window.__ciudad.api.travel('plaza', 'court')); await B.evaluate(() => window.__ciudad.api.travel('plaza', 'court'));
+    ok('de vuelta en la ciudad se ven otra vez', (await until(A, seesOther, null, 50)) && (await until(B, seesOther, null, 50)));
 
     // reconexión: se cae el servidor y vuelve
     await stop(server);

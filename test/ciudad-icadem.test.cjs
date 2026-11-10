@@ -138,7 +138,7 @@ test('contenido: 10 avatares (solo el Explorador disponible) y 11 edificios con 
   assert.equal(avatarById('no-existe').id, 'explorador');
   const { BUILDINGS, doorPoint, footprint } = await load('world/buildings.js');
   assert.equal(BUILDINGS.length, 11);
-  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa']);
+  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa', 'tribunal']);
   for (const b of BUILDINGS) {
     const p = doorPoint(b, 2), f = footprint(b);
     assert.ok(Math.abs(p.x - b.x) > f.w / 2 || Math.abs(p.z - b.z) > f.d / 2, b.id + ': la puerta queda fuera del edificio');
@@ -156,7 +156,7 @@ test('aislamiento: el juego no llama servicios de ICADEM ni toca créditos reale
     const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     // El único módulo que abre una conexión es el adaptador multijugador, y solo en pruebas locales.
     if (!/net[\\/]ws-adapter\.js$/.test(file)) assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|EventSource/, name + ' no debe hacer llamadas de red');
-    else assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|sendBeacon|EventSource/, name + ' solo puede usar el socket del juego');
+    else { assert.doesNotMatch(code, /XMLHttpRequest|sendBeacon|EventSource/, name + ' solo puede usar el socket del juego'); assert.deepEqual(code.match(/\bfetch\s*\([^)]*/g), ["fetch(http + '/dev/ticket', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ uid, name }"], 'la única petición es al emisor de boletos del entorno de pruebas'); }
     assert.doesNotMatch(code, /firebase|firestore|railway\.app|Authorization|getIdToken|ICADEMPlatform|UserState/i, name + ' no debe tocar la sesión ni los servicios del panel');
     if (!/core[\\/]store\.js$/.test(file)) assert.doesNotMatch(code, /localStorage|sessionStorage|indexedDB/, name + ': solo store.js guarda datos');
     assert.ok(src.length < 40000, name + ' es demasiado grande para un solo módulo');
