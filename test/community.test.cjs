@@ -11,8 +11,10 @@ function ui() {
       ICADEMDirectory: { appearance: () => ({ color: "#e9bc43", image: "" }) },
     },
     URL,
+    document: {addEventListener:()=>{}},
     location: { origin: "https://example.test" },
   };
+  vm.runInNewContext(fs.readFileSync(__dirname + '/../js/icadem-professional-profile.js', 'utf8'), ctx);
   vm.runInNewContext(source, ctx);
   return ctx.window.ICADEMCommunity;
 }
@@ -102,7 +104,7 @@ test("the existing forum publisher retains a failed draft and confirms success o
 });
 test("community integration preserves the forum write service, existing filters and real head assets", () => {
   const head = html.slice(0, html.indexOf("</head>"));
-  assert.match(head, /js\/icadem-community\.js\?v=2/);
+  assert.match(head, /js\/icadem-community\.js\?v=3/);
   assert.match(head, /css\/icadem-community\.css\?v=1/);
   assert.match(html, /createForumPost\(/);
   for (const value of ["recientes", "populares", "mios"])

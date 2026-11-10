@@ -250,6 +250,7 @@
     wire(target);
   }
   async function loadConnections() {
+    if(context?.kind === "profile")return;
     var current = generation;
     if (!context?.root.isConnected || context.viewer !== window.UserState?.uid)
       return;
@@ -302,6 +303,7 @@
           button.disabled = false;
         });
       paintActivity();
+      window.ICADEMProfessionalNavigation?.directoryReady(context.root);
       if (context.notificationUid) {
         var match=Array.from(context.root.querySelectorAll("[data-network-profile]")).find(function(node){return node.dataset.networkProfile===context.notificationUid;});
         if(match){match.scrollIntoView({block:"center",behavior:"auto"});match.focus({preventScroll:true});}
@@ -363,7 +365,10 @@
       });
     });
     openNotificationTarget();
-    loadConnections();
+    if(context?.root!==root)return;
+    var restoreTab=options.directoryState?.tab;
+    if(restoreTab&&restoreTab!=="directory")nav.querySelector('[data-community-tab="'+restoreTab+'"]')?.click();
+    else loadConnections();
     refreshTimer = setInterval(function () {
       if (document.visibilityState === "visible") loadConnections();
     }, 45000);
@@ -376,7 +381,7 @@
     else {context.notificationUid=target.profileUid;context.root.querySelector('[data-community-tab="requests"]')?.click();}
   }
   function cleanup() {
-    context?.modal.close("community-profile");
+    if(context?.kind==="profile")document.title="ICADEM · Panel VIP";
     context?.modal.close("community-cv-editor");
     generation++;
     if (refreshTimer) clearInterval(refreshTimer);
@@ -432,152 +437,7 @@
     );
   }
   function profileMarkup(p) {
-    var cv = p.cv || {},
-      appearance = window.ICADEMDirectory.appearance(p, p.isVip),
-      profileActions = p.own
-        ? '<button type="button" class="community-primary" data-edit-cv>Editar perfil profesional</button><button type="button" class="community-secondary" data-edit-card>Foto y tarjeta</button>'
-        : p.connection === "received"
-          ? '<span class="community-state">Solicitud recibida</span><button class="community-primary" data-network-action="accept" data-uid="' +
-            esc(p.uid) +
-            '">Aceptar</button><button class="community-secondary" data-network-action="reject" data-uid="' +
-            esc(p.uid) +
-            '">Rechazar</button>'
-          : actionMarkup(p.uid, p.connection, false) +
-            (p.connection === "sent"
-              ? '<button class="community-secondary" data-network-action="cancel" data-uid="' +
-                esc(p.uid) +
-                '">Cancelar solicitud</button>'
-              : p.connection === "connected"
-                ? '<button class="community-secondary" data-network-action="remove" data-uid="' +
-                  esc(p.uid) +
-                  '">Desconectar</button>'
-                : "");
-    var experience = (cv.experiencia || [])
-      .map(function (x) {
-        return (
-          '<div class="community-timeline"><h4>' +
-          esc(x.cargo) +
-          '</h4><p class="community-caption">' +
-          esc([x.empresa, x.periodo].filter(Boolean).join(" · ")) +
-          "</p><p>" +
-          esc(x.descripcion) +
-          "</p></div>"
-        );
-      })
-      .join("");
-    var education = (cv.formacion || [])
-      .map(function (x) {
-        return (
-          '<div class="community-timeline"><h4>' +
-          esc(x.titulo) +
-          '</h4><p class="community-caption">' +
-          esc([x.institucion, x.periodo].filter(Boolean).join(" · ")) +
-          "</p></div>"
-        );
-      })
-      .join("");
-    var info = [
-      ["Profesión", cv.profesion || p.profesion || p.puesto],
-      ["Especialidad", cv.especialidad || p.especialidad || p.sector],
-      ["Empresa", p.empresa],
-      ["Ciudad", cv.ciudad || p.ubicacion],
-    ].filter(function (x) {
-      return x[1];
-    });
-    return (
-      '<div class="community-profile-cover" style="--profile-cover:' +
-      appearance.color +
-      '">' +
-      (appearance.image
-        ? '<img src="' + esc(appearance.image) + '" alt="">'
-        : "") +
-      "<span>" +
-      (p.isVip ? icon("crown") + "Profesional VIP" : "Comunidad ICADEM") +
-      '</span></div><header class="community-profile-heading"><div class="community-profile-avatar">' +
-      (safeUrl(p.foto)
-        ? '<img src="' + esc(safeUrl(p.foto)) + '" alt="">'
-        : esc(p.iniciales || p.nombre.slice(0, 2).toUpperCase())) +
-      "</div><h2>" +
-      esc(p.nombre) +
-      "</h2><p>" +
-      esc(
-        cv.profesion ||
-          p.puesto ||
-          p.profesion ||
-          p.sector ||
-          "Comunidad ICADEM",
-      ) +
-      '</p><div class="community-profile-actions">' +
-      profileActions +
-      '</div></header><div class="community-profile-columns"><div>' +
-      section(
-        "Resumen profesional",
-        "<p>" +
-          esc(
-            cv.resumen ||
-              p.bio ||
-              "Este profesional aún no ha agregado su resumen.",
-          ) +
-          "</p>",
-      ) +
-      section(
-        "Experiencia y áreas de práctica",
-        experience +
-          (cv.areas ? "<p>" + esc(cv.areas) + "</p>" : "") +
-          ((cv.habilidades || []).length
-            ? '<div class="community-skills">' +
-              cv.habilidades
-                .map(function (x) {
-                  return "<span>" + esc(x) + "</span>";
-                })
-                .join("") +
-              "</div>"
-            : "") +
-          (!experience && !cv.areas && !(cv.habilidades || []).length
-            ? '<p class="community-caption">Información todavía no compartida.</p>'
-            : ""),
-      ) +
-      section(
-        "Formación y certificaciones",
-        education
-          ? education +
-              '<p class="community-fine">Información proporcionada por el profesional.</p>'
-          : '<p class="community-caption">Este profesional aún no ha compartido su formación.</p>',
-      ) +
-      "</div><aside>" +
-      section(
-        "Información profesional",
-        "<dl>" +
-          info
-            .map(function (x) {
-              return (
-                "<div><dt>" + x[0] + "</dt><dd>" + esc(x[1]) + "</dd></div>"
-              );
-            })
-            .join("") +
-          "</dl>",
-      ) +
-      section(
-        "Presencia en ICADEM",
-        '<div class="community-state ' +
-          (p.isVip ? "is-connected" : "") +
-          '">' +
-          icon(p.isVip ? "crown" : "users") +
-          (p.isVip ? "Membresía VIP activa" : "Miembro de la comunidad") +
-          '</div><p class="community-caption">' +
-          (p.perfilCompleto
-            ? "Tarjeta profesional completa"
-            : "Tarjeta profesional en construcción") +
-          "</p>",
-      ) +
-      section(
-        "Redes y contacto",
-        Object.keys(p.contacts || {}).length
-          ? contactMarkup(p.contacts)
-          : '<p class="community-caption">Los contactos se muestran según tu acceso VIP o una conexión aceptada, y las preferencias del profesional.</p>',
-      ) +
-      "</aside></div>"
-    );
+    return window.ICADEMProfessionalProfile?.markup(p,{esc:esc,icon:icon,safeUrl:safeUrl,contactMarkup:contactMarkup,actionMarkup:actionMarkup})||'<div class="community-empty" role="alert">No se pudo cargar la presentación del perfil. Actualiza la página para reintentar.</div>';
   }
   async function loadProfile(node, uid) {
     var viewer = window.UserState?.uid,
@@ -591,9 +451,16 @@
         ticket !== generation
       )
         return;
+      var firstLoad=!node.dataset.profileUid;
       node.dataset.profileUid = uid;
       node.innerHTML = profileMarkup(data.profile);
       wire(node);
+      var page=node.closest("[data-professional-view]");
+      if(page){
+        page.querySelector("[data-professional-copy]").disabled=false;
+        document.title=data.profile.nombre+" · Perfil profesional | ICADEM";
+        if(firstLoad)node.querySelector("h1")?.focus({preventScroll:true});
+      }
       node
         .querySelector("[data-edit-cv]")
         ?.addEventListener("click", function () {
@@ -603,9 +470,15 @@
         .querySelector("[data-edit-card]")
         ?.addEventListener("click", openCardEditor);
     } catch (error) {
-      if (!node.isConnected) return;
+      if (!node.isConnected || viewer!==window.UserState?.uid || ticket!==generation) return;
+      if(error.status===404 && uid===viewer){
+        node.dataset.profileUid=uid;
+        node.innerHTML='<div class="community-empty" role="status"><h1>Completa tu perfil profesional</h1><p>Agrega tus datos para crear tu currículum virtual en ICADEM.</p><button type="button" class="community-primary" data-create-own-profile>Completar mi perfil</button></div>';
+        node.querySelector('[data-create-own-profile]').addEventListener('click',openCardEditor);
+        return;
+      }
       node.innerHTML =
-        '<div class="community-empty" role="alert"><p>' +
+        '<div class="community-empty" role="alert"><h1>'+([400,404].includes(error.status)?'Perfil no disponible':'No pudimos cargar el perfil')+'</h1><p>' +
         esc(error.message) +
         '</p><button class="community-secondary" data-retry-profile>Reintentar</button></div>';
       node.querySelector("button").addEventListener("click", function () {
@@ -617,26 +490,39 @@
   }
   function openCardEditor() {
     var current = generation;
-    context?.modal.close("community-profile");
+    // The card editor remains the existing owner-only editor.
     setTimeout(function () {
       if (current === generation && context?.root.isConnected)
         context.editCard();
     }, 270);
   }
   function openProfile(uid) {
-    if (!context) return;
-    var node = document.createElement("div");
-    node.className = "community-profile";
-    node.innerHTML =
-      '<p class="community-empty" role="status">Cargando perfil profesional…</p>';
-    context.modal.open({
-      id: "community-profile",
-      title: "Perfil profesional",
-      subtitle: "Comunidad ICADEM",
-      size: "lg",
-      body: node,
-    });
-    loadProfile(node, uid);
+    if(!window.ICADEMProfessionalNavigation?.openProfile(uid))notify('Perfil no disponible','No pudimos abrir el perfil solicitado.',true);
+  }
+  function refreshCurrentProfile(){
+    if(context?.kind!=='profile'||context.viewer!==window.UserState?.uid||!context.root.isConnected)return;
+    var node=context.root.querySelector('.community-profile');
+    if(node?.dataset.profileUid===window.UserState?.uid)return loadProfile(node,node.dataset.profileUid);
+  }
+  async function copyProfileLink(button,node){
+    var url=window.ICADEMProfessionalNavigation?.profileHref(node.dataset.profileUid);
+    if(!url)return;
+    try{
+      if(navigator.clipboard?.writeText)await navigator.clipboard.writeText(url);
+      else{var field=document.createElement('textarea');field.value=url;field.setAttribute('readonly','');field.style.cssText='position:fixed;left:-9999px;top:0';document.body.appendChild(field);field.select();var copied=document.execCommand('copy');field.remove();if(!copied)throw Error();}
+      notify('Enlace copiado','Cada visitante verá únicamente la información que su sesión tenga autorizada.');
+    }catch(_){notify('No se pudo copiar','Puedes copiar la dirección del perfil desde la barra del navegador.',true);}
+  }
+  function renderProfilePage(container,options){
+    cleanup();
+    context={root:container,...options,kind:'profile',viewer:window.UserState?.uid};generation++;
+    container.innerHTML='<div class="professional-profile-shell" data-professional-view><nav class="professional-profile-toolbar" aria-label="Navegación del perfil"><button type="button" class="professional-profile-back" data-professional-back>'+icon('arrow-left')+'<span>Volver al directorio</span></button><button type="button" class="professional-profile-share" data-professional-copy disabled>'+icon('copy')+'<span>Copiar enlace</span></button></nav><div class="community-profile"><div class="professional-profile-loading" role="status">Cargando perfil profesional…</div></div></div>';
+    var node=container.querySelector('.community-profile');
+    container.querySelector('[data-professional-back]').addEventListener('click',function(){window.ICADEMProfessionalNavigation.backToDirectory();});
+    container.querySelector('[data-professional-copy]').addEventListener('click',function(event){copyProfileLink(event.currentTarget,node);});
+    var uid=window.ICADEMProfessionalNavigation?.currentProfileId();
+    if(!window.ICADEMProfessionalNavigation?.validUid(uid)){node.innerHTML='<div class="community-empty" role="alert"><h1>Perfil no disponible</h1><p>Este enlace no identifica un perfil válido. Puedes volver al directorio para encontrarlo.</p></div>';return;}
+    loadProfile(node,uid);
   }
   var fieldSequence = 0;
   function input(label, key, value, max, textarea) {
@@ -919,12 +805,15 @@
       });
     });
   }
+  ["icadem:session-ending","icadem:session-ended"].forEach(function(event){document.addEventListener(event,function(){if(context?.kind==="profile")context.root.replaceChildren();cleanup();});});
   window.ICADEMCommunity = {
     attach: attach,
     openNotificationTarget: openNotificationTarget,
     cleanup: cleanup,
     paintCards: paintCards,
     openProfile: openProfile,
+    renderProfilePage: renderProfilePage,
+    refreshCurrentProfile: refreshCurrentProfile,
     enhanceForum: enhanceForum,
     forumState: forumState,
     profileMarkup: profileMarkup,

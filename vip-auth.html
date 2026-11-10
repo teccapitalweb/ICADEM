@@ -907,17 +907,22 @@ async function claimAmbassadorAttribution(user) {
 }
 
 function destinoSeguro(isAdmin) {
-  if (isAdmin) return 'vip-admin.html';
   const params = new URLSearchParams(window.location.search);
   const requested = params.get('redirect');
   if (requested) {
     try {
       const parsed = new URL(requested, window.location.origin);
-      if (parsed.origin === window.location.origin && /\/(vip-panel|curso|clase)[^/]*\.html$/i.test(parsed.pathname)) {
+      const profileId = parsed.searchParams.get('profesional');
+      const profileIntent = parsed.hash === '#directorio-perfil' || parsed.searchParams.has('profesional');
+      if (profileIntent && parsed.origin === window.location.origin && !parsed.username && !parsed.password && parsed.pathname === '/vip-panel.html' && parsed.hash === '#directorio-perfil' && /^[A-Za-z0-9_-]{1,128}$/.test(profileId || '')) {
+        return 'vip-panel.html?profesional=' + encodeURIComponent(profileId) + '#directorio-perfil';
+      }
+      if (!isAdmin && !profileIntent && parsed.origin === window.location.origin && /\/(vip-panel|curso|clase)[^/]*\.html$/i.test(parsed.pathname)) {
         return parsed.pathname.replace(/^\//,'') + parsed.search + parsed.hash;
       }
     } catch (_) {}
   }
+  if (isAdmin) return 'vip-admin.html';
   const carry = new URLSearchParams();
   ['curso','clase','origin','plan'].forEach(key=>{ if(params.get(key)) carry.set(key,params.get(key)); });
   return `vip-panel.html${carry.toString()?`?${carry}`:''}`;
