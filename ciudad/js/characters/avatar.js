@@ -2,7 +2,10 @@
 // y NPC, con animaciones por código (parado, caminar, correr, saltar, saludar, celebrar,
 // sentarse e interactuar). Mira hacia +Z.
 import * as THREE from '../three.js';
-import { mat, mergeStatic } from '../world/kit.js';
+import { mat as kitMat, mergeStatic } from '../world/kit.js';
+
+// Los personajes nunca se recortan con el efecto de obstáculos translúcidos.
+const mat = (color, o = {}) => kitMat(color, { ...o, solid: true });
 
 const damp = (current, target, rate, dt) => current + (target - current) * (1 - Math.exp(-rate * dt));
 
@@ -128,8 +131,12 @@ export function createAvatar(look = {}) {
     const speed = s.speed || 0, grounded = s.grounded !== false, moving = speed > 0.25;
     state.time += dt;
     if (state.emoteTime > 0) { state.emoteTime -= dt; if (state.emoteTime <= 0) state.emote = null; }
-    const running = speed > 4.2;
-    if (moving && grounded) state.phase += dt * (running ? 13.5 : 9.2) * Math.min(1.25, speed / (running ? 6 : 3.2));
+    // Mezcla continua caminar↔correr y paso ligado a la distancia recorrida (los pies no patinan).
+    const runMix = Math.min(1, Math.max(0, (speed - 3.7) / 1.9)), running = runMix > 0.5;
+    if (moving && grounded) state.phase += dt * speed * (3.15 - 0.8 * runMix);
+    if (state.wasGrounded === false && grounded) state.land = 0.2;
+    state.wasGrounded = grounded;
+    if (state.land > 0) state.land -= dt;
 
     const T = { legL: 0, legR: 0, armLx: 0, armRx: 0, armLz: 0.08, armRz: -0.08, lean: 0, bodyY: 0, headX: 0, headY: s.lookYaw || 0, squash: 1 };
     let anim = 'idle';
@@ -139,12 +146,12 @@ export function createAvatar(look = {}) {
       anim = 'jump'; T.legL = 0.55; T.legR = -0.4; T.armLz = 1.5; T.armRz = -1.5; T.armLx = T.armRx = -0.4; T.lean = 0.1;
     } else if (moving) {
       anim = running ? 'run' : 'walk';
-      const a = running ? 1.05 : 0.62, sw = Math.sin(state.phase);
+      const start = Math.min(1, speed / 2.2), a = (0.66 + 0.39 * runMix) * start, sw = Math.sin(state.phase);
       T.legL = sw * a; T.legR = -sw * a;
-      T.armLx = -sw * a * (running ? 1.1 : 0.85); T.armRx = sw * a * (running ? 1.1 : 0.85);
-      T.armLz = running ? 0.22 : 0.1; T.armRz = running ? -0.22 : -0.1;
-      T.lean = running ? 0.26 : 0.07;
-      T.bodyY = Math.abs(Math.cos(state.phase)) * (running ? 0.07 : 0.035);
+      T.armLx = -sw * a * (0.85 + 0.25 * runMix); T.armRx = sw * a * (0.85 + 0.25 * runMix);
+      T.armLz = 0.1 + 0.12 * runMix; T.armRz = -0.1 - 0.12 * runMix;
+      T.lean = 0.07 + 0.19 * runMix;
+      T.bodyY = Math.abs(Math.cos(state.phase)) * (0.035 + 0.035 * runMix) * start;
     } else {
       const b = Math.sin(state.time * 2.1);
       T.bodyY = b * 0.012; T.armLz = 0.1 + b * 0.025; T.armRz = -0.1 - b * 0.025; T.headX = Math.sin(state.time * 0.7) * 0.04;
@@ -157,9 +164,20 @@ export function createAvatar(look = {}) {
       T.bodyY = hop * 0.22; T.legL = hop * 0.25; T.legR = -hop * 0.15; T.squash = 1 + hop * 0.03;
     } else if (state.emote === 'interact') {
       anim = 'interact'; T.armRx = -1.25; T.armRz = -0.1; T.lean += 0.1;
+    } else if (state.emote === 'beckon') {
+      anim = 'beckon'; T.armRx = -1.35 + Math.sin(state.time * 9) * 0.45; T.armRz = -0.18; T.headY += 0.1;
+    } else if (state.emote === 'clap') {
+      anim = 'clap'; const c = Math.abs(Math.sin(state.time * 12));
+      T.armLx = T.armRx = -1.2; T.armLz = -0.28 + c * 0.42; T.armRz = 0.28 - c * 0.42; T.bodyY += c * 0.02;
+    } else if (state.emote === 'point') {
+      anim = 'point'; T.armRx = -1.52; T.armRz = -0.05; T.lean += 0.06;
+    } else if (state.emote === 'help') {
+      anim = 'help'; const w = Math.sin(state.time * 9) * 0.3;
+      T.armLz = 2.5 + w; T.armRz = -2.5 + w; T.bodyY += Math.abs(Math.sin(state.time * 4.5)) * 0.05;
     } else if (state.emote === 'talk') {
       T.armRx = -0.55 + Math.sin(state.time * 6) * 0.2; T.armRz = -0.25; T.headX = Math.sin(state.time * 5) * 0.05;
     }
+    if (state.land > 0 && grounded) { const k = state.land / 0.2; T.bodyY -= 0.09 * k; T.squash = 1 - 0.07 * k; T.legL += 0.25 * k; T.legR += 0.25 * k; }
     state.anim = anim;
 
     const r = anim === 'jump' ? 9 : 14;

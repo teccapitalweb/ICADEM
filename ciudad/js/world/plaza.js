@@ -70,7 +70,7 @@ export function buildPlaza(api) {
   /* edificios */
   for (const b of BUILDINGS) {
     const bg = buildBuilding(b, g), f = footprint(b);
-    if (b.style === 'bank' || b.style === 'court') col.addBoxAt(b.x, b.z + 0.9, f.w + 0.6, f.d + 2.2); else col.addBoxAt(b.x, b.z, f.w + 0.5, f.d + 0.5);
+    if (b.style === 'bank' || b.style === 'court') col.addBoxAt(b.x, b.z + 0.9, f.w + 0.6, f.d + 2.2, b.h); else col.addBoxAt(b.x, b.z, f.w + 0.5, f.d + 0.5, b.h);
     bg.traverse(o => { if (o.userData.spin) animated.spin.push(o); if (o.userData.blink) animated.blink.push(o); if (o.userData.rotate) animated.rotate.push(o); });
   }
   // parque con kiosco en el lote libre
@@ -140,7 +140,7 @@ export function buildPlaza(api) {
 
   const landmarks = BUILDINGS.map(b => { const p = doorPoint(b, 2.2), f = footprint(b); return { id: b.id, name: b.name, mission: b.mission, status: b.status, x: b.x, z: b.z, w: f.w, d: f.d, doorX: p.x, doorZ: p.z, color: b.wall }; });
 
-  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 2.4), bank = doorPoint(BUILDINGS.find(b => b.id === 'banco'), 3.6);
+  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 6.2), bank = doorPoint(BUILDINGS.find(b => b.id === 'banco'), 7.4);
   return {
     name: 'plaza', title: 'Ciudad ICADEM', group: g, collision: col, interactables, npcs, landmarks, half: HALF,
     background: 0xcdeeff, fog: { color: 0xcfeeff, near: 70, far: 190 },

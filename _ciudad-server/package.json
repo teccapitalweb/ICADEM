@@ -1,0 +1,11 @@
+{
+  "name": "ciudad-icadem-server",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Servidor de sesiones multijugador de Ciudad ICADEM (prototipo, solo pruebas locales)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=22.7" },
+  "dependencies": { "ws": "^8.18.0" }
+}

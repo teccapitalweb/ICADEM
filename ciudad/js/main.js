@@ -4,16 +4,21 @@ import { Engine, detectQuality, disposeTree } from './core/engine.js';
 import { Input } from './core/input.js';
 import { ThirdPersonCamera } from './core/camera.js';
 import { Store } from './core/store.js';
-import { createEconomy } from './economy/economy.js';
+import { createEconomy, REWARDS } from './economy/economy.js';
 import { OfflineAdapter, StateSync } from './net/network.js';
+import { WsAdapter } from './net/ws-adapter.js';
+import { RemotePlayers } from './characters/remote.js';
+import { Social } from './ui/social.js';
 import { createAvatar } from './characters/avatar.js';
 import { avatarById } from './characters/catalog.js';
 import { buildRoom } from './world/room.js';
 import { buildPlaza } from './world/plaza.js';
 import { buildBank } from './world/bank.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
-import { marker } from './world/kit.js';
+import { marker, CUTOUT } from './world/kit.js';
 import { BankCreditMission } from './missions/bank-credit.js';
+import { BANK_CREDIT_MISSION } from './missions/bank-credit-logic.js';
+import { defineMission, MissionRegistry, MissionService } from './missions/engine.js';
 import { UI } from './ui/ui.js';
 import { Tutorial } from './ui/tutorial.js';
 
@@ -21,7 +26,10 @@ const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
 const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank };
-const PLAYER_RADIUS = 0.36, WALK = 3.5, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
+const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
+const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
+
+function decodeFix(s) { return Array.isArray(s) && s.length >= 4 ? { scene: String(s[0]), x: s[1] * 0.01, y: s[2] * 0.01, z: s[3] * 0.01 } : null; }
 
 function emitter() {
   const map = new Map();
@@ -45,15 +53,19 @@ async function boot() {
   const camera = new ThirdPersonCamera(engine.camera);
   const events = emitter();
   const economy = createEconomy(store, 'test');
-  const net = new OfflineAdapter();
+  /* Red: en producción el juego sigue sin conexión (OfflineAdapter). El multijugador solo se
+     activa en pruebas locales, con ?mp=ws://127.0.0.1:PUERTO, contra el servidor de prueba. */
+  const mpUrl = LOCAL ? params.get('mp') : null;
+  const net = mpUrl && /^wss?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(mpUrl)
+    ? new WsAdapter({ url: mpUrl, token: `test:${(params.get('uid') || 'local').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'local'}:${(params.get('name') || 'Jugador de prueba').slice(0, 28)}`, avatar: store.state.avatarId })
+    : new OfflineAdapter();
   const sync = new StateSync(net);
-  await net.connect();
 
   /* jugador */
   const avatar = createAvatar(avatarById(store.state.avatarId).look);
   engine.scene.add(avatar.group);
   const player = {
-    position: avatar.group.position, yaw: Math.PI, vy: 0, grounded: true, speed: 0, seat: null,
+    position: avatar.group.position, yaw: Math.PI, vx: 0, vz: 0, vy: 0, grounded: true, speed: 0, seat: null, jumpBuffer: 0,
     emote(name, seconds) { avatar.playEmote(name, seconds); }
   };
 
@@ -64,8 +76,27 @@ async function boot() {
     missions: {},
     travel, sit, mirror, setWaypoint, applySettings, startTutorial, exit
   };
+  /* misiones: un solo motor para todos los juegos; cada edificio registra la suya */
+  const registry = new MissionRegistry();
+  const bankDef = registry.register(defineMission(BANK_CREDIT_MISSION));
+  api.missionService = new MissionService({
+    registry, economy, rewards: REWARDS,
+    progress: {
+      get: id => store.state.missions[id],
+      set: (id, record) => { store.state.missions[id] = record; store.save(); },
+      addXp: xp => store.addXp(xp)
+    }
+  });
   api.ui = new UI(api);
-  api.missions.bank = new BankCreditMission(api);
+  api.missions.bank = new BankCreditMission(api, bankDef);
+  const remotes = new RemotePlayers(engine.scene, net);
+  const social = new Social(api, remotes);
+  api.remotes = remotes; api.social = social;
+  if (net instanceof WsAdapter) {
+    api.playerName = params.get('name') || api.playerName;
+    net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
+  }
+  net.connect();
   const tutorial = new Tutorial(api);
   events.on('map-opened', () => { api.stats.maps++; });
 
@@ -93,16 +124,16 @@ async function boot() {
     if (api.scene) { engine.scene.remove(api.scene.group); disposeTree(api.scene.group); if (api.sceneName === 'bank') api.missions.bank.leave(); }
     disposeTree(markers); markers.clear(); current = null;
     const scene = SCENES[name](api);
-    api.scene = scene; api.sceneName = name;
+    api.scene = scene; api.sceneName = name; api.remotes?.setScene(name);
     engine.scene.add(scene.group);
     engine.scene.background = new THREE.Color(scene.background);
     engine.scene.fog = scene.fog ? new THREE.Fog(scene.fog.color, scene.fog.near, scene.fog.far) : null;
     for (const it of scene.interactables) { const m = marker(it.color ?? 0xffc93c); m.position.set(it.x, (it.y ?? 1.4) + 0.75, it.z); m.userData.it = it; m.userData.baseY = m.position.y; markers.add(m); }
     const sp = scene.spawns[spawnKey] || scene.spawns.default;
-    player.position.set(sp.x, 0, sp.z); player.yaw = sp.yaw; player.vy = 0; player.grounded = true; player.seat = null;
+    player.position.set(sp.x, 0, sp.z); player.yaw = sp.yaw; player.vx = player.vz = player.vy = 0; player.grounded = true; player.seat = null;
     avatar.group.rotation.y = player.yaw;
-    camera.configure({ ...scene.camera, yaw: sp.yaw + Math.PI });
-    camera.release(); camera.snap(player.position);
+    camera.configure({ ...scene.camera, world: scene.collision, yaw: sp.yaw + Math.PI });
+    camera.override = null; camera.ease = 0; camera.snap(player.position);
     engine.setQuality(engine.quality);
     if (name === 'bank') api.missions.bank.enter();
     beam.visible = Boolean(api.waypoint) && name === 'plaza';
@@ -154,6 +185,8 @@ async function boot() {
     input.update();
     if (input.consume('map')) api.ui.openMap();
     if (input.consume('passport')) api.ui.openPassport();
+    if (input.consume('say')) social.toggle();
+    for (let i = 0; i < 6; i++) if (input.consume('say' + (i + 1))) { social.sayIndex(i); social.toggle(false); }
 
     /* movimiento relativo a la cámara */
     camera.forward(fwd); camera.right(right);
@@ -162,27 +195,34 @@ async function boot() {
     const p = player.position;
     if (player.seat) {
       if (mag > 0.2 || input.presses.has('jump')) { const s = player.seat; player.seat = null; p.y = 0; const out = scene.collision.resolve(s.x + Math.sin(s.yaw) * 0.9, s.z + Math.cos(s.yaw) * 0.9, PLAYER_RADIUS); p.x = out.x; p.z = out.z; input.consume('jump'); }
-      player.speed = 0;
+      player.speed = 0; player.vx = player.vz = 0;
     } else {
-      if (mag > 0.05) {
-        const speed = (input.running ? RUN : WALK) * mag;
-        const len = Math.hypot(dx, dz) || 1; dx /= len; dz /= len;
-        const nx = p.x + dx * speed * dt, nz = p.z + dz * speed * dt;
-        const out = scene.collision.resolve(nx, nz, PLAYER_RADIUS);
-        const moved = Math.hypot(out.x - p.x, out.z - p.z);
+      /* velocidad con aceleración y frenado: arranca y se detiene sin saltos ni deslizamientos */
+      let tx = 0, tz = 0;
+      if (mag > 0.05) { const len = Math.hypot(dx, dz) || 1, top = (input.running ? RUN : WALK) * mag; tx = dx / len * top; tz = dz / len * top; }
+      const rate = (player.grounded ? (mag > 0.05 ? ACCEL : BRAKE) : AIR_CONTROL) * dt;
+      const ex = tx - player.vx, ez = tz - player.vz, el = Math.hypot(ex, ez);
+      if (el <= rate) { player.vx = tx; player.vz = tz; } else { player.vx += ex / el * rate; player.vz += ez / el * rate; }
+      if (Math.hypot(player.vx, player.vz) > 0.02) {
+        const out = scene.collision.resolve(p.x + player.vx * dt, p.z + player.vz * dt, PLAYER_RADIUS);
+        const mx = out.x - p.x, mz = out.z - p.z, moved = Math.hypot(mx, mz), safeDt = Math.max(dt, 1e-4);
         api.stats.walked += moved;
-        player.speed = moved / Math.max(dt, 1e-4);
+        // La velocidad real es la que quedó tras chocar: contra un muro el avatar no "camina en su lugar".
+        player.vx = mx / safeDt; player.vz = mz / safeDt; player.speed = moved / safeDt;
         p.x = out.x; p.z = out.z;
-        player.yaw += angleDelta(player.yaw, Math.atan2(dx, dz)) * Math.min(1, dt * 13);
         if (camera.override && moved > 0.01) camera.release();
-      } else player.speed = 0;
-      if (input.consume('jump') && player.grounded) { player.vy = JUMP; player.grounded = false; }
+      } else { player.vx = player.vz = 0; player.speed = 0; }
+      if (mag > 0.05) player.yaw += angleDelta(player.yaw, Math.atan2(dx, dz)) * Math.min(1, dt * 12);
+      /* salto con margen: si se pide justo antes de tocar el suelo, sale al aterrizar */
+      if (input.consume('jump')) player.jumpBuffer = JUMP_BUFFER; else player.jumpBuffer = Math.max(0, player.jumpBuffer - dt);
+      if (player.jumpBuffer > 0 && player.grounded) { player.vy = JUMP; player.grounded = false; player.jumpBuffer = 0; }
       if (!player.grounded) { player.vy -= GRAVITY * dt; p.y += player.vy * dt; if (p.y <= 0) { p.y = 0; player.vy = 0; player.grounded = true; } }
     }
     avatar.group.rotation.y = player.yaw;
     avatar.update(dt, { speed: player.speed, grounded: player.grounded, sitting: Boolean(player.seat) });
 
     for (const n of scene.npcs) n.update(dt, p);
+    remotes.update(dt);
     scene.update(dt, t, p);
 
     /* interacción más cercana */
@@ -208,6 +248,12 @@ async function boot() {
     }
 
     camera.update(dt, p, input.consumeLook(), input.consumeZoom());
+    /* obstáculos translúcidos entre la cámara y el jugador; si la cámara queda pegada, se oculta el avatar */
+    engine.camera.updateMatrixWorld();
+    CUTOUT.player.value.set(p.x, p.y + 1.12, p.z).applyMatrix4(engine.camera.matrixWorldInverse);
+    CUTOUT.radius.value = camera.override ? 0 : 0.72;
+    avatar.group.visible = Boolean(camera.override) || camera.arm > 0.95;
+    social.update(dt);
 
     /* edificios descubiertos y destino */
     if (api.sceneName === 'plaza') {
@@ -258,7 +304,7 @@ async function boot() {
   engine.start();
   splash('Listo', 100);
   api.ui.showHud();
-  if (params.get('debug') === '1') window.__ciudad = { api, tutorial, avatar, mountScene };
+  if (params.get('debug') === '1') window.__ciudad = { api, tutorial, avatar, mountScene, remotes, social };
 
   const enter = () => {
     $('splash').classList.add('is-out'); setTimeout(() => { $('splash').hidden = true; }, 520);
