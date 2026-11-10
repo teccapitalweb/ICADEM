@@ -56,6 +56,7 @@
     return p;
   }
   function current(s){return active===s&&s.root.isConnected&&!window.__sessionEnding&&window.UserState?.uid===s.uid;}
+  function photoConfirmedAfter(s,profile,ticket){if((s.photoRevision||0)!==ticket&&s.photoSelection)Object.assign(profile,s.photoSelection);return profile;}
   function isDirty(s){return !!s&&sectionKeys.some(function(key){return !!s.drafts[key]&&!!s.saved[key]&&(JSON.stringify(s.drafts[key].data)!==JSON.stringify(s.saved[key].data)||s.drafts[key].visibility!==s.saved[key].visibility);});}
   function message(s,text,error){var el=s.root.querySelector('[data-cve-status]');if(el){el.textContent=text;el.classList.toggle('is-error',!!error);}}
   function statusForm(form,text,error){var el=form.querySelector('[data-cve-section-status]');el.textContent=text;el.classList.toggle('is-error',!!error);}
@@ -121,19 +122,19 @@
     form.querySelector('[data-cve-reset]')?.addEventListener('click',function(){if(!structureReady(s))return;captureAll(s);s.drafts[key].data={color:palette(s.profile).defaultFree,reset:true};draw(s,key);statusForm(s.root.querySelector('[data-cve-form="'+key+'"]'),'Vista previa predeterminada. Pulsa Guardar estilo para confirmar.');});
     form.addEventListener('submit',async function(event){
       event.preventDefault();if(!current(s)||s.busy)return;if(form.reportValidity&&!form.reportValidity())return;
-      captureAll(s);var draft=s.drafts[key],payload={section:key,revision:s.saved[key].revision,data:copy(draft.data)};if(key!=='estilo')payload.visibility=draft.visibility;
+      captureAll(s);var photoTicket=s.photoRevision||0,draft=s.drafts[key],payload={section:key,revision:s.saved[key].revision,data:copy(draft.data)};if(key!=='estilo')payload.visibility=draft.visibility;
       s.busy=true;lockForm(form,true);statusForm(form,'Guardando…');
-      try{var response=await s.options.save(payload);if(!current(s))return;if(!response?.profile||response.profile.uid!==s.uid||response.profile.own!==true)throw Error('No se pudo confirmar el perfil.');s.profile=response.profile;var confirmed=snapshot(response.profile)[key];s.saved[key]=copy(confirmed);s.drafts[key]=copy(confirmed);s.busy=false;draw(s,key);statusForm(s.root.querySelector('[data-cve-form="'+key+'"]'),'Cambios guardados y confirmados por el servidor.');}
+      try{var response=await s.options.save(payload);if(!current(s))return;if(!response?.profile||response.profile.uid!==s.uid||response.profile.own!==true)throw Error('No se pudo confirmar el perfil.');s.profile=photoConfirmedAfter(s,response.profile,photoTicket);var confirmed=snapshot(response.profile)[key];s.saved[key]=copy(confirmed);s.drafts[key]=copy(confirmed);s.busy=false;draw(s,key);statusForm(s.root.querySelector('[data-cve-form="'+key+'"]'),'Cambios guardados y confirmados por el servidor.');}
       catch(error){s.busy=false;if(!current(s))return;lockForm(form,false);statusForm(form,error.status===409?'Esta sección cambió en otra sesión. Recarga la sección antes de volver a guardar.':error.message||'No pudimos guardar. Tu borrador se conserva.',true);if(error.status===409)form.querySelector('[data-cve-reload]').hidden=false;}
     });
   }
-  async function reloadSection(s,key){if(!current(s)||s.busy)return;captureAll(s);var form=s.root.querySelector('[data-cve-form="'+key+'"]');s.busy=true;lockForm(form,true);try{var response=await s.options.load();if(!current(s))return;if(!response?.profile||response.profile.uid!==s.uid||response.profile.own!==true)throw Error('No se pudo confirmar el perfil.');s.profile=response.profile;var next=snapshot(response.profile)[key];s.saved[key]=copy(next);s.drafts[key]=copy(next);s.busy=false;draw(s,key);statusForm(s.root.querySelector('[data-cve-form="'+key+'"]'),'Sección actualizada desde el servidor.');}catch(error){s.busy=false;if(current(s)){lockForm(form,false);message(s,error.message||'No pudimos actualizar la sección.',true);}}}
+  async function reloadSection(s,key){if(!current(s)||s.busy)return;captureAll(s);var photoTicket=s.photoRevision||0,form=s.root.querySelector('[data-cve-form="'+key+'"]');s.busy=true;lockForm(form,true);try{var response=await s.options.load();if(!current(s))return;if(!response?.profile||response.profile.uid!==s.uid||response.profile.own!==true)throw Error('No se pudo confirmar el perfil.');s.profile=photoConfirmedAfter(s,response.profile,photoTicket);var next=snapshot(response.profile)[key];s.saved[key]=copy(next);s.drafts[key]=copy(next);s.busy=false;draw(s,key);statusForm(s.root.querySelector('[data-cve-form="'+key+'"]'),'Sección actualizada desde el servidor.');}catch(error){s.busy=false;if(current(s)){lockForm(form,false);message(s,error.message||'No pudimos actualizar la sección.',true);}}}
   function showPreview(s){s.preview=true;s.root.innerHTML='<section class="cve-preview"><header class="cve-preview-heading"><div><h1 tabindex="-1">Vista previa pública</h1><p>Incluye tu borrador. Los cambios todavía no guardados no están publicados. Se ocultan contactos y enlaces protegidos.</p></div><button type="button" class="community-primary" data-cve-return>Volver al editor</button></header>'+renderPreview(s)+'</section>';s.root.querySelector('[data-cve-return]').addEventListener('click',function(){draw(s);});s.root.querySelector('h1')?.focus();}
   async function open(options){
     clear(false);var root=options.container,uid=window.UserState?.uid;if(!root||!uid||options.profile?.uid!==uid||options.profile.own!==true||window.__sessionEnding)return;
-    var s={root,uid,options,profile:options.profile,drafts:{},saved:{},busy:true,id:++serial};active=s;
+    var s={root,uid,options,profile:options.profile,drafts:{},saved:{},busy:true,id:++serial,photoRevision:0};active=s;
     root.innerHTML='<div class="professional-profile-loading" role="status">Cargando tu currículum…</div>';
-    try{var response=await options.load();if(!current(s))return;if(!response?.profile||response.profile.uid!==uid||response.profile.own!==true)throw Error('No se pudo confirmar tu perfil.');s.profile=response.profile;s.saved=snapshot(response.profile);s.drafts=copy(s.saved);s.busy=false;draw(s,'sobreMi');root.querySelector('h1')?.focus({preventScroll:true});}
+    try{var response=await options.load();if(!current(s))return;if(!response?.profile||response.profile.uid!==uid||response.profile.own!==true)throw Error('No se pudo confirmar tu perfil.');s.profile=photoConfirmedAfter(s,response.profile,0);s.saved=snapshot(response.profile);s.drafts=copy(s.saved);s.busy=false;draw(s,'sobreMi');root.querySelector('h1')?.focus({preventScroll:true});}
     catch(error){if(current(s)){root.innerHTML='<div class="professional-profile-loading" role="alert"><p>'+esc(error.message||'No pudimos cargar tu currículum.')+'</p><button type="button" class="community-secondary" data-cve-retry>Reintentar</button><button type="button" class="community-secondary" data-cve-close>Volver al perfil</button></div>';root.querySelector('[data-cve-retry]').addEventListener('click',function(){open(options);});root.querySelector('[data-cve-close]').addEventListener('click',function(){clear(true);});}}
   }
   ['icadem:session-ending','icadem:session-ended','icadem:user-ready'].forEach(function(event){document.addEventListener(event,function(){if(active){active.root.replaceChildren();clear(false);}});});
@@ -142,7 +143,7 @@
   function syncPhoto(profile){
     var s=active;
     if(!s||!current(s)||profile?.uid!==s.uid||typeof profile.photoURL!=='string'||!s.profile)return;
-    s.profile.foto=profile.photoURL;s.profile.photoVersion=profile.photoVersion||'';s.profile.photoSource=profile.photoSource||'default';s.profile.fotoOrigen=s.profile.photoSource;
+    s.photoRevision=(s.photoRevision||0)+1;s.photoSelection={foto:profile.photoURL,photoVersion:profile.photoVersion||'',photoSource:profile.photoSource||'default',fotoOrigen:profile.photoSource||'default'};Object.assign(s.profile,s.photoSelection);
   }
   window.ICADEMResumeEditor={open:open,syncPhoto:syncPhoto,isOpen:function(root){return !!active&&current(active)&&(!root||active.root===root||root.contains?.(active.root));},isDirty:function(){if(active&&!active.preview)captureAll(active);return isDirty(active);}};
 })();

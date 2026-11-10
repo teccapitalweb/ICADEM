@@ -55,6 +55,13 @@ test('an active identity photo change updates future previews without replacing 
  a.api.syncPhoto({uid:'another-account',photoURL:'https://images.test/foreign'});await a.root.querySelector('[data-cve-return]').click();await a.root.querySelector('[data-cve-preview]').click();assert.equal(a.previews.at(-1).foto,'https://lh3.googleusercontent.com/updated');
 });
 
+test('a CV save started before a new identity photo confirmation cannot restore the old photo in its delayed acknowledgement',async()=>{
+ const a=app();await a.open();await input(a,'sobreMi','resumen','Cambio confirmado');const saving=a.form('sobreMi').emit('submit');await flush();
+ a.api.syncPhoto({uid:'owner',photoURL:'https://lh3.googleusercontent.com/new-during-save',photoVersion:'v3',photoSource:'google'});
+ const ack=profile();ack.cv.resumen='Cambio confirmado';ack.cv.revisiones.sobreMi=3;a.saves[0].resolve({profile:ack});await saving;
+ await a.root.querySelector('[data-cve-preview]').click();assert.equal(a.previews.at(-1).foto,'https://lh3.googleusercontent.com/new-during-save');assert.equal(a.previews.at(-1).photoVersion,'v3');assert.equal(a.previews.at(-1).cv.resumen,'Cambio confirmado');
+});
+
 test('section saving waits for the server, sends only that section and preserves drafts in other sections',async()=>{
   const a=app();await a.open();await input(a,'sobreMi','resumen','Mi nueva presentación');await input(a,'habilidades','herramientas','Excel\nPower BI');
   const submitted=a.form('sobreMi').emit('submit');await flush();assert.equal(a.saves.length,1);assert.deepEqual(Object.keys(a.saves[0].payload).sort(),['data','revision','section','visibility']);
