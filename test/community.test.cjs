@@ -104,7 +104,7 @@ test("the existing forum publisher retains a failed draft and confirms success o
 });
 test("community integration preserves the forum write service, existing filters and real head assets", () => {
   const head = html.slice(0, html.indexOf("</head>"));
-  assert.match(head, /js\/icadem-community\.js\?v=3/);
+  assert.match(head, /js\/icadem-community\.js\?v=4/);
   assert.match(head, /css\/icadem-community\.css\?v=1/);
   assert.match(html, /createForumPost\(/);
   for (const value of ["recientes", "populares", "mios"])
@@ -113,3 +113,4 @@ test("community integration preserves the forum write service, existing filters 
   assert.ok(!source.includes("collection("));
   assert.ok(!source.includes("/messages"));
 });
+

@@ -37,6 +37,26 @@ test('return restoration waits for the saved directory tab, applies once and res
   assert.deepEqual([f.document.documentElement.scrollTop,f.document.body.scrollTop,f.document.scrollingElement.scrollTop,f.main.scrollTop,f.dynamic.scrollTop,f.window.scrollY],[120,180,240,360,420,600]);
   f.api.directoryReady(f.list);assert.equal(f.frames.length,0);assert.equal(f.api.directoryState(),null);
 });
+test('connection polling cannot consume a directory-tab scroll restoration before the card results are ready',()=>{
+  const f=fixture();f.route('directorio');f.api.openProfile('bob');f.route('directorio');
+  // The selected tab is already correct, but its cards are still the short
+  // loading skeleton when the independent connections API resolves first.
+  f.window.scrollY=0;f.api.directoryReady(f.list,'connections');
+  assert.equal(f.frames.length,0);assert.notEqual(f.api.directoryState(),null);
+  f.api.directoryReady(f.list,'directory');assert.equal(f.frames.length,1);f.flush();
+  assert.equal(f.window.scrollY,600);assert.equal(f.api.directoryState(),null);
+});
+test('card painting cannot consume a requests or connections scroll restoration before that activity list is ready',()=>{
+  for(const savedTab of ['requests','connections']){
+    const f=fixture();f.tab.dataset.communityTab=savedTab;f.route('directorio');f.api.openProfile('bob');f.route('directorio');
+    // Tab switching happens synchronously; the selected activity's asynchronous
+    // content is not ready merely because the background card results painted.
+    f.window.scrollY=0;f.api.directoryReady(f.list,'directory');
+    assert.equal(f.frames.length,0,savedTab);assert.notEqual(f.api.directoryState(),null);
+    f.api.directoryReady(f.list,savedTab);assert.equal(f.frames.length,1,savedTab);f.flush();
+    assert.equal(f.window.scrollY,600,savedTab);assert.equal(f.api.directoryState(),null);
+  }
+});
 test('a queued restoration cannot scroll another route or a detached directory',()=>{
   const f=fixture();f.route('directorio');f.api.openProfile('bob');f.route('directorio');f.api.directoryReady(f.list);f.route('perfil');f.flush();assert.equal(f.scrolls.length,0);
   f.api.openProfile('bob');f.route('directorio');f.list.isConnected=false;f.api.directoryReady(f.list);f.flush();assert.equal(f.scrolls.length,0);

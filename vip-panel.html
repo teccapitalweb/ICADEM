@@ -4056,9 +4056,9 @@ body.has-fomo .main{padding-top:18px}
 <script src="js/icadem-directory.js?v=1"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=1">
-<script src="js/icadem-professional-navigation.js?v=1"></script>
+<script src="js/icadem-professional-navigation.js?v=2"></script>
 <script src="js/icadem-professional-profile.js?v=1"></script>
-<script src="js/icadem-community.js?v=3"></script>
+<script src="js/icadem-community.js?v=4"></script>
 <script src="js/icadem-notifications.js?v=1" defer></script>
 </head>
 <body style="visibility:hidden">
@@ -11628,7 +11628,7 @@ const Sections = (function(){
       });
     });
     window.ICADEMCommunity?.paintCards(grid);
-    window.ICADEMProfessionalNavigation?.directoryReady(document.querySelector("[data-directory-refined]"));
+    window.ICADEMProfessionalNavigation?.directoryReady(document.querySelector("[data-directory-refined]"),'directory');
   }
 
   function dirVerDetalle(id){
