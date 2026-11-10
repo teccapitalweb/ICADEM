@@ -11,7 +11,7 @@ const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU;
 
 export class RemotePlayers {
   constructor(parent, net) {
-    this.parent = parent; this.net = net; this.map = new Map(); this.clock = 0; this.scene = null;
+    this.parent = parent; this.net = net; this.map = new Map(); this.clock = 0; this.last = 0; this.scene = null;
     net.on('snap', list => this.#snap(list));
     net.on('leave', ({ pid }) => this.#drop(pid));
   }
@@ -39,7 +39,7 @@ export class RemotePlayers {
         r = { pid, avatar, samples: [], speed: 0, x: s.x, y: s.y, z: s.z, yaw: s.yaw };
         this.map.set(pid, r);
       }
-      r.samples.push({ t: this.clock, ...s });
+      r.samples.push({ t: performance.now() / 1000, ...s });
       if (r.samples.length > 12) r.samples.shift();
     }
     // Quien ya no viene en la fotografía cambió de escenario o salió del alcance.
@@ -47,7 +47,9 @@ export class RemotePlayers {
   }
 
   update(dt) {
-    this.clock += dt;
+    // Reloj real (no el del dibujo): si el equipo va lento, los demás jugadores no se retrasan.
+    const now = performance.now() / 1000, real = this.last ? Math.min(0.5, Math.max(1e-3, now - this.last)) : dt;
+    this.last = now; this.clock = now;
     const at = this.clock - DELAY;
     for (const r of this.map.values()) {
       const q = r.samples; let a = q[0], b = q[q.length - 1];
@@ -55,8 +57,8 @@ export class RemotePlayers {
       const span = Math.max(1e-3, b.t - a.t), k = Math.max(0, Math.min(1, (at - a.t) / span));
       const x = a.x + (b.x - a.x) * k, y = a.y + (b.y - a.y) * k, z = a.z + (b.z - a.z) * k;
       const moved = Math.hypot(x - r.x, z - r.z);
-      r.speed += ((dt > 0 ? moved / dt : 0) - r.speed) * Math.min(1, dt * 10);
-      r.x = x; r.y = y; r.z = z; r.yaw += angleDelta(r.yaw, a.yaw + angleDelta(a.yaw, b.yaw) * k) * Math.min(1, dt * 14);
+      r.speed += (moved / real - r.speed) * Math.min(1, real * 10);
+      r.x = x; r.y = y; r.z = z; r.yaw += angleDelta(r.yaw, a.yaw + angleDelta(a.yaw, b.yaw) * k) * Math.min(1, real * 14);
       r.avatar.group.position.set(x, y, z); r.avatar.group.rotation.y = r.yaw;
       const anim = b.anim;
       if (EMOTES.has(anim) && r.avatar.emote !== anim) r.avatar.playEmote(anim, 0.6);

@@ -100,6 +100,31 @@ async function juego(browser) {
   // colisión con la fuente
   await tp(0, 9); await page.evaluate(() => { window.__ciudad.api.camera.yaw = 0; }); await page.keyboard.down('KeyW'); await page.waitForTimeout(3500); await page.keyboard.up('KeyW');
   c = await S(); ok('la fuente bloquea el paso', Math.hypot(c.x, c.z) >= 4.8, `r=${Math.hypot(c.x, c.z).toFixed(2)}`);
+  // cámara: girando 360° junto a cada edificio nunca queda dentro de uno; y al despejarse recupera su distancia
+  const camSweep = await page.evaluate(async () => {
+    const a = window.__ciudad.api, cam = a.camera, pos = a.engine.camera.position, tall = a.scene.collision.boxes.filter(b => b.h);
+    let inside = 0, minArm = 99, samples = 0;
+    for (const b of tall) for (const [px, pz] of [[(b.minX + b.maxX) / 2, b.maxZ + 0.6], [(b.minX + b.maxX) / 2, b.minZ - 0.6], [b.maxX + 0.6, (b.minZ + b.maxZ) / 2], [b.minX - 0.6, (b.minZ + b.maxZ) / 2]]) {
+      if (Math.abs(px) > 45 || Math.abs(pz) > 45) continue;
+      const free = a.scene.collision.resolve(px, pz, 0.36); a.player.position.set(free.x, 0, free.z);
+      for (let i = 0; i < 16; i++) {
+        cam.yaw = i * Math.PI / 8; cam.pitch = 0.15 + (i % 4) * 0.25; cam.snap(a.player.position); samples++;
+        minArm = Math.min(minArm, cam.arm);
+        if (tall.some(t => pos.x > t.minX && pos.x < t.maxX && pos.z > t.minZ && pos.z < t.maxZ && pos.y < t.h)) inside++;
+      }
+    }
+    return { inside, samples, minArm, buildings: tall.length };
+  });
+  ok('la cámara nunca queda dentro de un edificio', camSweep.inside === 0 && camSweep.samples > 500 && camSweep.buildings === 11, JSON.stringify(camSweep));
+  ok('junto a un muro la cámara conserva distancia (no se mete en el avatar)', camSweep.minArm > 2, `mínimo ${camSweep.minArm.toFixed(2)} m`);
+  // gesto + frase rápida
+  await tp(0, 9); await page.keyboard.press('Digit1'); await page.waitForTimeout(500);
+  const hola = await page.evaluate(() => ({ bubble: document.querySelector('.bubble--me')?.textContent, anim: window.__ciudad.avatar.anim }));
+  ok('tecla 1: frase rápida con gesto', hola.bubble === '¡Hola!' && hola.anim === 'wave', JSON.stringify(hola));
+  await page.click('#btn-say'); await page.waitForTimeout(200);
+  ok('el botón Frases abre las seis frases', (await page.evaluate(() => !document.getElementById('say-menu').hidden && document.querySelectorAll('#say-menu button').length)) === 6);
+  await page.keyboard.press('KeyT'); await page.waitForTimeout(150);
+  ok('sin servidor no aparece nadie más (ni indicador de conexión)', await page.evaluate(() => document.getElementById('net-chip').hidden && window.__ciudad.remotes.count === 0 && !document.querySelector('.nametag')));
   // edificio próximamente
   await tp(13, -21); await page.waitForTimeout(400); await E(); await page.waitForTimeout(300);
   ok('edificio sin interior avisa que es próximo y no cambia de escena', (await S()).scene === 'plaza');
@@ -109,6 +134,14 @@ async function juego(browser) {
   ok('se entra al Banco ICADEM', await waitScene('bank'));
   ok('al llegar se borra el destino', (await page.evaluate(() => window.__ciudad.api.waypoint)) === null || true);
   await page.waitForTimeout(800);
+  const camBank = await page.evaluate(() => {
+    const a = window.__ciudad.api, cam = a.camera, pos = a.engine.camera.position, b = a.scene.camera.box; let out = 0, minArm = 99;
+    for (const [px, pz] of [[0, 3.9], [-8.4, -6.4], [8.4, 6.4], [-8.4, 6.4], [0, -2.2], [7.6, 0]]) { const f = a.scene.collision.resolve(px, pz, 0.36); a.player.position.set(f.x, 0, f.z);
+      for (let i = 0; i < 16; i++) { cam.yaw = i * Math.PI / 8; cam.pitch = 0.1 + (i % 4) * 0.3; cam.snap(a.player.position); minArm = Math.min(minArm, cam.arm); if (pos.x < b.minX || pos.x > b.maxX || pos.z < b.minZ || pos.z > b.maxZ || pos.y > b.maxY) out++; } }
+    a.player.position.set(0, 0, 3.9); cam.yaw = 0; cam.pitch = 0.46; cam.snap(a.player.position);
+    return { out, minArm };
+  });
+  ok('en interiores la cámara no sale del recinto ni se pega al avatar', camBank.out === 0 && camBank.minArm > 1.6, JSON.stringify(camBank));
   // 9. misión completa (respuesta correcta)
   const mission = async (choice, reasons) => {
     await tp(-4.6, 1.5); await page.waitForTimeout(350); await E(); await dialogThrough(); await page.waitForTimeout(300);
@@ -119,6 +152,16 @@ async function juego(browser) {
     const stillOpen = await modalOpen();
     await page.click('.docs__tabs button[data-id="flujo"]'); await page.waitForTimeout(150); await page.click('#modal-actions .btn--primary'); await page.waitForTimeout(400);
     for (const z of [-3.3, 0, 3.3]) { await tp(4.9, z); await page.waitForTimeout(350); await E(); await dialogThrough(); await page.waitForTimeout(350); if (z === 0 && choice === 'first') await shot(page, 'f10-propuesta.png'); await page.click('#modal-actions .btn--primary'); await page.waitForTimeout(400); }
+    // el tablero no se abre hasta calcular las tres propuestas en la computadora
+    await tp(0, 0.4); await page.waitForTimeout(350); await E(); await page.waitForTimeout(400);
+    const boardBlocked = !(await modalOpen()); await dialogThrough(); await page.waitForTimeout(300);
+    await tp(3.1, 2.5); await page.waitForTimeout(350);
+    const simLabel = await page.evaluate(() => document.getElementById('interact-label').textContent);
+    await E(); await page.waitForTimeout(400);
+    for (const id of ['expres', 'pyme', 'comodo']) { await page.click(`.sim__tabs button[data-id="${id}"]`); await page.waitForTimeout(120); await page.click('.sim__run'); await page.waitForTimeout(900); }
+    const simPay = await page.evaluate(() => document.querySelector('.sim__big b')?.textContent);
+    if (choice === 'first') { await shot(page, 'f10b-simulador.png'); ok('el tablero exige calcular antes en la computadora', boardBlocked); ok('la computadora del banco calcula la mensualidad', /simulador/i.test(simLabel) && simPay === '$4,251', simLabel + ' ' + simPay); }
+    await page.click('#modal-actions .btn--primary'); await page.waitForTimeout(400);
     await tp(0, 0.4); await page.waitForTimeout(350); await E(); await page.waitForTimeout(400);
     if (choice === 'first') await shot(page, 'f11-comparador.png');
     await page.click('.compare__sort button[data-key="totalCost"]'); await page.waitForTimeout(150);
@@ -229,9 +272,60 @@ async function panel(browser) {
   }
 }
 
+/** Tablet y celular (vertical y horizontal): controles táctiles dentro de pantalla y jugables. */
+async function dispositivos(browser) {
+  const perfiles = [
+    ['tablet', { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, userAgent: devices['iPad (gen 7)'] ? devices['iPad (gen 7)'].userAgent : devices['iPhone 13'].userAgent }],
+    ['tablet horizontal', { viewport: { width: 1180, height: 820 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, userAgent: devices['iPad (gen 7)'] ? devices['iPad (gen 7)'].userAgent : devices['iPhone 13'].userAgent }],
+    ['celular horizontal', { viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, userAgent: devices['iPhone 13'].userAgent }]
+  ];
+  for (const [nombre, opciones] of perfiles) {
+    const ctx = await browser.newContext(opciones), page = await ctx.newPage(), errs = [];
+    page.on('pageerror', e => errs.push(e.message));
+    await page.goto(`${BASE}/ciudad/index.html?debug=1&autostart=1&tutorial=0&scene=plaza`);
+    await page.waitForFunction(() => window.__ciudad && window.__ciudad.api.sceneName === 'plaza', null, { timeout: 40000 });
+    await page.waitForTimeout(1500);
+    const { width: W, height: H } = opciones.viewport;
+    const layout = await page.evaluate(() => {
+      const box = id => { const e = document.getElementById(id); if (!e || e.hidden) return null; const r = e.getBoundingClientRect(); return r.width ? { l: r.left, t: r.top, r: r.right, b: r.bottom } : null; };
+      return { touch: document.documentElement.classList.contains('is-touch'), jump: box('pad-jump'), run: box('pad-run'), say: box('btn-say'), map: box('btn-map'), settings: box('btn-settings'), player: box('btn-player') };
+    });
+    const dentro = b => b && b.l >= 0 && b.t >= 0 && b.r <= W && b.b <= H;
+    const choca = (a, b) => a && b && a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
+    const ids = ['jump', 'run', 'say', 'map', 'settings', 'player'];
+    const fuera = ids.filter(k => !dentro(layout[k])), encimados = ids.flatMap((a, i) => ids.slice(i + 1).filter(b => choca(layout[a], layout[b])).map(b => a + '/' + b));
+    ok(`[${nombre}] controles táctiles visibles, dentro de pantalla y sin encimarse`, layout.touch && !fuera.length && !encimados.length, JSON.stringify({ fuera, encimados, touch: layout.touch }));
+    const cdp = await ctx.newCDPSession(page), antes = await page.evaluate(() => ({ w: window.__ciudad.api.stats.walked, t: window.__ciudad.api.camera.turned }));
+    const sx = Math.round(W * 0.16), sy = Math.round(H * 0.78);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: sx, y: sy, id: 1 }] });
+    for (let i = 1; i <= 8; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: sx, y: sy - i * 7, id: 1 }] }); await page.waitForTimeout(40); }
+    for (let i = 0; i < 30 && (await page.evaluate(() => window.__ciudad.api.stats.walked)) - antes.w < 1.2; i++) await page.waitForTimeout(250);
+    await shot(page, `d-${nombre.replace(/ /g, '-')}.png`);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    const cx = Math.round(W * 0.7), cy = Math.round(H * 0.4);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: cx, y: cy, id: 2 }] });
+    for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: cx - i * 16, y: cy, id: 2 }] }); await page.waitForTimeout(40); }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await page.waitForTimeout(700);
+    const despues = await page.evaluate(() => ({ w: window.__ciudad.api.stats.walked, t: window.__ciudad.api.camera.turned }));
+    ok(`[${nombre}] joystick mueve al avatar y el arrastre gira la cámara`, despues.w - antes.w > 1 && despues.t - antes.t > 0.5, JSON.stringify({ camino: +(despues.w - antes.w).toFixed(2), giro: +(despues.t - antes.t).toFixed(2) }));
+    await page.tap('#btn-say'); await page.waitForTimeout(250);
+    const menu = await page.evaluate(() => { const r = document.getElementById('say-menu').getBoundingClientRect(); return { open: !document.getElementById('say-menu').hidden, l: r.left, t: r.top, r: r.right, b: r.bottom }; });
+    await page.tap('#say-menu button[data-id="bien"]'); await page.waitForTimeout(400);
+    const dijo = await page.evaluate(() => document.querySelector('.bubble--me')?.textContent);
+    ok(`[${nombre}] frases táctiles: el menú cabe en pantalla y la burbuja aparece`, menu.open && menu.l >= 0 && menu.t >= 0 && menu.r <= W && menu.b <= H && dijo === '¡Buen trabajo!', JSON.stringify({ menu, dijo }));
+    ok(`[${nombre}] sin errores de JavaScript`, errs.length === 0, errs.slice(0, 3).join(' | '));
+    await ctx.close();
+  }
+}
+
 (async () => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true, args: GL });
-  try { await juego(browser); await panel(browser); }
+  try {
+    const only = process.env.ONLY || '';
+    if (!only || only === 'juego') await juego(browser);
+    if (!only || only === 'dispositivos') await dispositivos(browser);
+    if (!only || only === 'panel') await panel(browser);
+  }
   finally { await browser.close(); }
   console.log(results.map(r => r[0] + '  ' + r[1] + (r[2] ? '  → ' + r[2] : '')).join('\n'));
   const failed = results.filter(r => r[0] === 'FAIL').length;
