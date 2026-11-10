@@ -1,9 +1,9 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v141';
+const CACHE = 'icadem-vip-v142';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=3',
-  './js/icadem-course-ratings.js?v=5',
+  './js/icadem-course-ratings.js?v=6',
   './js/icadem-credit-rewards.js?v=1',
   './js/icadem-commission-conversion.js?v=1',
   './js/icadem-lesson-notes.js?v=1',
@@ -36,14 +36,14 @@ const SHELL = [
   './js/icadem-ambassadors.js?v=15',
   './css/ambassadors.css?v=7',
   './css/ambassadors-vip.css?v=2',
-  './css/icadem-ambassador-promo.css?v=7',
-  './js/icadem-ambassador-promo.js?v=10',
+  './css/icadem-ambassador-promo.css?v=8',
+  './js/icadem-ambassador-promo.js?v=11',
   './js/icadem-referral.js?v=2',
   './css/icadem-games-v4.css?v=12',
   './css/panel-minimal.css?v=31',
   './css/vip-banner.css?v=2',
   './css/icadem-home.css?v=8',
-  './css/icadem-courses.css?v=5',
+  './css/icadem-courses.css?v=6',
   './css/icadem-live.css?v=2',
   './css/icadem-tools.css?v=2',
   './css/icadem-support-premium.css?v=2',

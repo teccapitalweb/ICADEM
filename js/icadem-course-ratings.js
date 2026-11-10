@@ -3,7 +3,9 @@
   var BASE=window.WEBHOOK_URL||'https://icadem-webhook-production.up.railway.app';
   var BRAND='ICADEM';
   var sessionGeneration=0,mountedRoots=new Set(),mountTickets=new WeakMap();
-  function resetSession(){sessionGeneration++;mountedRoots.forEach(function(root){delete root.dataset.ratingBusy;root.replaceChildren();});mountedRoots.clear();}
+  var catalogSummaries=new Map(),catalogMine=new Map(),catalogStatus='idle',catalogFlight=null,catalogVersion=0;
+  function publishCatalog(){document.dispatchEvent(new CustomEvent('icadem:course-ratings-updated'));}
+  function resetSession(){sessionGeneration++;mountedRoots.forEach(function(root){delete root.dataset.ratingBusy;root.replaceChildren();});mountedRoots.clear();catalogSummaries.clear();catalogMine.clear();catalogStatus='idle';catalogFlight=null;catalogVersion++;publishCatalog();}
   document.addEventListener('icadem:session-ending',resetSession);
   document.addEventListener('icadem:session-ended',resetSession);
   document.addEventListener('icadem:user-ready',resetSession);
@@ -61,6 +63,50 @@
     if(!response.ok)throw new Error(data.error||'No se pudo guardar la valoración. Inténtalo nuevamente.');
     return data;
   }
+  function cleanSummary(value){
+    var count=Number(value&&value.ratingCount),average=Number(value&&value.average);
+    if(!Number.isSafeInteger(count)||count<0||!Number.isFinite(average)||(count>0&&(average<1||average>5))||(count===0&&average!==0))throw new Error('Respuesta de valoraciones inválida.');
+    return {ratingCount:count,average:average};
+  }
+  function catalogActive(){return location.hash==='#cursos'&&!document.hidden;}
+  function refreshCatalog(force){
+    var user=window.__auth&&window.__auth.currentUser,generation=sessionGeneration;
+    if(!user||window.__sessionEnding||window.__isDemoMode)return Promise.resolve(null);
+    if(catalogFlight){if(force)catalogFlight.refreshAfter=true;return catalogFlight.promise;}
+    if(!force&&catalogStatus==='ready')return Promise.resolve(null);
+    var ticket={uid:user.uid,generation:generation,version:catalogVersion,refreshAfter:false};
+    function current(){return catalogFlight===ticket&&!window.__sessionEnding&&generation===sessionGeneration&&window.__auth?.currentUser?.uid===ticket.uid;}
+    catalogFlight=ticket;catalogStatus='loading';publishCatalog();
+    ticket.promise=(async function(){
+      try{
+        var data=await request('/api/course-ratings');
+        if(!current())return null;
+        if(ticket.version!==catalogVersion){ticket.refreshAfter=true;return null;}
+        if(data.ok!==true||!Array.isArray(data.courses)||!Array.isArray(data.mine))throw new Error('Respuesta de valoraciones inválida.');
+        var summaries=new Map(),mine=new Map();
+        data.courses.forEach(function(item){var id=String(item&&item.courseId||'');if(!id)throw new Error('Respuesta de valoraciones inválida.');summaries.set(id,cleanSummary(item));});
+        data.mine.forEach(function(item){var id=String(item&&item.courseId||''),rating=Number(item&&item.rating);if(!summaries.has(id)||!Number.isInteger(rating)||rating<1||rating>5)throw new Error('Respuesta de valoraciones inválida.');mine.set(id,{rating:rating});});
+        catalogSummaries=summaries;catalogMine=mine;catalogStatus='ready';publishCatalog();return data;
+      }catch(error){if(current()){catalogStatus='error';publishCatalog();}return null;}
+      finally{if(current()){catalogFlight=null;if(ticket.refreshAfter)refreshCatalog(true);}}
+    })();
+    return ticket.promise;
+  }
+  function rememberSavedCourse(courseId,data){
+    catalogVersion++;
+    try{catalogSummaries.set(courseId,cleanSummary(data.summary));}catch(_){}
+    var rating=Number(data.mine&&data.mine.rating);
+    if(Number.isInteger(rating)&&rating>=1&&rating<=5)catalogMine.set(courseId,{rating:rating});
+    publishCatalog();refreshCatalog(true);
+  }
+  function cardMarkup(courseId){
+    var summary=catalogSummaries.get(String(courseId)),mine=catalogMine.get(String(courseId));
+    if(!summary&&window.__isDemoMode)return '<div class="curso-card__rating is-empty">Valoraciones disponibles al iniciar sesión</div>';
+    if(!summary)return '<div class="curso-card__rating is-empty" role="status">'+(catalogStatus==='error'||catalogStatus==='ready'?'Valoraciones no disponibles':'Cargando valoraciones…')+'</div>';
+    var count=summary.ratingCount,average=summary.average,fill=Math.max(0,Math.min(100,average/5*100));
+    var score=count>0?'<span class="curso-card__rating-stars" style="--rating-fill:'+fill+'%" aria-hidden="true"><span class="curso-card__rating-stars-base">★★★★★</span><span class="curso-card__rating-stars-fill">★★★★★</span></span><span>'+average.toFixed(1)+' ('+count+' '+plural(count,'valoración','valoraciones')+')</span>':'<span class="curso-card__rating-stars" aria-hidden="true">☆☆☆☆☆</span><span>Sin valoraciones</span>';
+    return '<div class="curso-card__rating'+(count?'':' is-empty')+'"><span class="curso-card__rating-summary">'+score+'</span>'+(mine?'<span class="curso-card__rating-mine">✓ Tu valoración: '+mine.rating+'/5</span>':'')+(catalogStatus==='error'?'<span class="curso-card__rating-pending">Sin actualizar</span>':'')+'</div>';
+  }
   function mount(options){
     injectStyles();
     var root=typeof options.container==='string'?document.querySelector(options.container):options.container;
@@ -82,7 +128,7 @@
       var summary=data.summary||{},mine=data.mine||null,count=Number(summary.ratingCount)||0,average=Number(summary.average)||0;
       selected=Number(mine&&mine.rating)||0;
       var reviewId='course-rating-review-'+courseId.replace(/[^a-z0-9_-]/gi,'-')+(isLesson?'-lesson':'');
-      root.innerHTML='<section class="course-rating'+(compact?' course-rating--compact':'')+'" aria-labelledby="course-rating-title"><div class="course-rating__head"><div><div class="course-rating__eyebrow">Tu experiencia importa</div><h3 id="course-rating-title">Califica '+subjectArticle+' '+subjectName+'</h3><p class="course-rating__copy">Tu opinión ayuda a '+BRAND+' a mejorar cada '+subjectName+'. El comentario es opcional.</p></div><div class="course-rating__score" aria-label="Promedio '+subjectOf+'"><span class="course-rating__score-star" aria-hidden="true">★</span><span class="course-rating__score-copy"><strong>'+(count?average.toFixed(1):'—')+' / 5</strong><small>'+count+' '+plural(count,'valoración','valoraciones')+'</small></span></div></div><form class="course-rating__form"><div class="course-rating__picker"><span class="course-rating__label">Tu calificación</span><div class="course-rating__stars" role="radiogroup" aria-label="Calificación '+subjectOf+'">'+[1,2,3,4,5].map(function(value){return'<button class="course-rating__star'+(value<=selected?' is-active':'')+'" type="button" data-rating="'+value+'" role="radio" aria-checked="'+(value===selected)+'" aria-label="'+value+' '+plural(value,'estrella','estrellas')+'">★</button>';}).join('')+'</div><p class="course-rating__hint"><span class="course-rating__hint-dot"></span><span class="course-rating__selection">'+ratingLabel(selected,isLesson)+'</span></p></div><div class="course-rating__review"><label class="course-rating__label" for="'+reviewId+'">¿Qué te pareció? <span style="font-weight:500">(opcional)</span></label><textarea id="'+reviewId+'" maxlength="1000" placeholder="Cuéntanos qué te gustó o qué podríamos mejorar…">'+esc(mine&&mine.review||'')+'</textarea><div class="course-rating__actions"><span class="course-rating__count">'+String(mine&&mine.review||'').length+' / 1000</span><button class="course-rating__save" type="submit" '+(selected?'':'disabled')+'>'+(mine?'Actualizar valoración':'Guardar valoración')+'</button></div><div class="course-rating__state'+(data.loadError?' is-error':'')+'" role="status" aria-live="polite">'+(data.loadError?'<span class="course-rating__state-mark">!</span><span>'+esc(data.loadError)+'</span>':'')+'</div></div></form></section>';
+      root.innerHTML='<section class="course-rating'+(compact?' course-rating--compact':'')+'" aria-labelledby="course-rating-title"><div class="course-rating__head"><div><div class="course-rating__eyebrow">Tu experiencia importa</div><h3 id="course-rating-title">Califica '+subjectArticle+' '+subjectName+'</h3><p class="course-rating__copy">Tu opinión ayuda a '+BRAND+' a mejorar cada '+subjectName+'. El comentario es opcional.</p></div><div class="course-rating__score" aria-label="Promedio '+subjectOf+'"><span class="course-rating__score-star" aria-hidden="true">★</span><span class="course-rating__score-copy"><strong>'+(count?average.toFixed(1):'—')+' / 5</strong><small>'+(data.loadError?'Valoraciones no disponibles':count+' '+plural(count,'valoración','valoraciones'))+'</small></span></div></div><form class="course-rating__form"><div class="course-rating__picker"><span class="course-rating__label">Tu calificación</span><div class="course-rating__stars" role="radiogroup" aria-label="Calificación '+subjectOf+'">'+[1,2,3,4,5].map(function(value){return'<button class="course-rating__star'+(value<=selected?' is-active':'')+'" type="button" data-rating="'+value+'" role="radio" aria-checked="'+(value===selected)+'" aria-label="'+value+' '+plural(value,'estrella','estrellas')+'">★</button>';}).join('')+'</div><p class="course-rating__hint"><span class="course-rating__hint-dot"></span><span class="course-rating__selection">'+ratingLabel(selected,isLesson)+'</span></p></div><div class="course-rating__review"><label class="course-rating__label" for="'+reviewId+'">¿Qué te pareció? <span style="font-weight:500">(opcional)</span></label><textarea id="'+reviewId+'" maxlength="1000" placeholder="Cuéntanos qué te gustó o qué podríamos mejorar…">'+esc(mine&&mine.review||'')+'</textarea><div class="course-rating__actions"><span class="course-rating__count">'+String(mine&&mine.review||'').length+' / 1000</span><button class="course-rating__save" type="submit" '+(selected?'':'disabled')+'>'+(mine?'Actualizar valoración':'Guardar valoración')+'</button></div><div class="course-rating__state'+(data.loadError?' is-error':'')+'" role="status" aria-live="polite">'+(data.loadError?'<span class="course-rating__state-mark">!</span><span>'+esc(data.loadError)+'</span>':'')+'</div></div></form></section>';
       var form=root.querySelector('form'),textarea=root.querySelector('textarea'),save=root.querySelector('.course-rating__save'),state=root.querySelector('.course-rating__state'),counter=root.querySelector('.course-rating__count'),selection=root.querySelector('.course-rating__selection');
       function paint(preview){var active=Number(preview)||selected;root.querySelectorAll('[data-rating]').forEach(function(button){var value=Number(button.dataset.rating);button.classList.toggle('is-active',value<=active);button.setAttribute('aria-checked',String(value===selected));button.disabled=busy;});selection.textContent=ratingLabel(active,isLesson);save.disabled=busy||!selected;}
       root.querySelectorAll('[data-rating]').forEach(function(button){button.addEventListener('mouseenter',function(){paint(button.dataset.rating);});button.addEventListener('mouseleave',function(){paint();});button.addEventListener('focus',function(){paint(button.dataset.rating);});button.addEventListener('blur',function(){paint();});button.addEventListener('click',function(){selected=Number(button.dataset.rating);paint();state.className='course-rating__state';state.textContent='';});});
@@ -98,15 +144,21 @@
           var next=await request(endpoint,{method:'PUT',body:JSON.stringify({rating:selected,review:textarea.value,courseTitle:courseTitle})},subjectName);
           if(!sameSession())return;
           busy=false;delete root.dataset.ratingBusy;
+          if(!isLesson)rememberSavedCourse(courseId,next);
           if(next.credits&&current())window.ICADEMPlatform?.syncCreditSnapshot?.(next.credits,{source:'course-rating',uid:owner});
           window.ICADEMPlatform?.loadCreditWallet?.(true)?.catch(()=>{});
           render(next);
           var fresh=current()&&root.querySelector('.course-rating__state');
           if(fresh)fresh.innerHTML='<span class="course-rating__state-mark">✓</span><span>'+((next.reward?.granted===true&&next.reward?.creditedAmount===25)?'¡Gracias por tu opinión! +25 créditos añadidos a tu cartera.':'Gracias. Tu valoración quedó guardada.')+'</span>';
-          if(current()){options.onSaved?.(next);document.dispatchEvent(new CustomEvent('icadem:course-rating-saved',{detail:{courseId,subject:isLesson?'lesson':'course'}}));}
+          document.dispatchEvent(new CustomEvent('icadem:course-rating-saved',{detail:{courseId,subject:isLesson?'lesson':'course'}}));
+          if(current()){try{options.onSaved?.(next);}catch(_){}}
         }catch(error){busy=false;delete root.dataset.ratingBusy;if(!current())return;paint();textarea.disabled=false;save.textContent=mine?'Actualizar valoración':(options.rewardMode?'Calificar y ganar 25 créditos':'Guardar valoración');state.className='course-rating__state is-error';state.innerHTML='<span class="course-rating__state-mark">!</span><span>'+esc(friendlyError(error))+'</span>';}
       });
     }
   }
-  window.ICADEMCourseRatings={mount:mount};
+  window.ICADEMCourseRatings={mount:mount,refreshCatalog:refreshCatalog,cardMarkup:cardMarkup};
+  document.addEventListener('icadem:user-ready',function(){if(catalogActive())refreshCatalog(true);});
+  window.addEventListener('icadem:navigation',function(){if(catalogActive())refreshCatalog(true);});
+  document.addEventListener('visibilitychange',function(){if(catalogActive())refreshCatalog(true);});
+  if(catalogActive())refreshCatalog();
 })();

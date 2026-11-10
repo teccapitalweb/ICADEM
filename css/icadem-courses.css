@@ -47,6 +47,10 @@
 .courses-page--premium .curso-card__meta span { gap:5px; }
 .courses-page--premium .curso-card__rating { min-height:42px; color:var(--text-2); font-size:11px; font-weight:400; gap:8px; }
 .courses-page--premium .curso-card__rating.is-empty { color:var(--text-3); }
+.courses-page--premium .curso-card__rating { flex-wrap:wrap; gap:4px 8px; align-content:center; }
+.courses-page--premium .curso-card__rating-summary { display:inline-flex; align-items:center; gap:7px; }
+.courses-page--premium .curso-card__rating-mine { flex-basis:100%; color:var(--success,#18865f); font-size:10px; font-weight:600; }
+.courses-page--premium .curso-card__rating-pending { flex-basis:100%; color:var(--text-3); font-size:10px; }
 .courses-page--premium .curso-card__progress { padding-bottom:14px; }
 .courses-page--premium .curso-card__progress-bar { height:4px; background:var(--surface-3); }
 .courses-page--premium .curso-card__progress-fill { background:var(--primary); }
