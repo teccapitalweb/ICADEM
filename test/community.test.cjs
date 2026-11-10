@@ -113,4 +113,3 @@ test("community integration preserves the forum write service, existing filters 
   assert.ok(!source.includes("collection("));
   assert.ok(!source.includes("/messages"));
 });
-
