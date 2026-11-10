@@ -5,7 +5,7 @@
   const PREFIX = 'icadem:ambassador-invitation:v1:';
   // Keep saved opt-outs; automatic displays have their own per-tab visit marker.
   const SESSION_PREFIX = 'icadem:ambassador-home-auto:v2:';
-  let timer = 0, generation = 0, navigation = 0, dialog = null, finishDialog = null, currentData = null;
+  let timer = 0, generation = 0, navigation = 0, refreshSequence = 0, dialog = null, finishDialog = null, currentData = null;
   const shownThisSession = new Set();
   const headlines = ['Compartir conocimiento <em>tiene recompensa.</em>', 'Una buena recomendación. <em>Dos grandes beneficios.</em>'];
   const esc = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);
@@ -40,7 +40,15 @@
   }
   function reward(c, category) { return category === 'vip' ? c.directCommissionVipCents : c.directCommissionFreeCents; }
   function profileRewardArt() {
-    return '<svg viewBox="0 0 96 88" fill="none" focusable="false"><defs><linearGradient id="amb-profile-lid" x1="18" y1="27" x2="72" y2="51" gradientUnits="userSpaceOnUse"><stop stop-color="#ffe4a0"/><stop offset="1" stop-color="#d89525"/></linearGradient><linearGradient id="amb-profile-front" x1="16" y1="49" x2="74" y2="77" gradientUnits="userSpaceOnUse"><stop stop-color="#ffd978"/><stop offset="1" stop-color="#e0a432"/></linearGradient></defs><path d="M11 80h76" stroke="#9a641c" stroke-opacity=".2" stroke-width="2" stroke-linecap="round"/><path d="m14 15 1.7 4.3L20 21l-4.3 1.7L14 27l-1.7-4.3L8 21l4.3-1.7Z" fill="#fff1cb"/><circle cx="65" cy="18" r="12" fill="#ffe7a8" stroke="#99601c" stroke-width="1.5"/><circle cx="65" cy="18" r="8.5" stroke="#c18a36" stroke-width="1"/><path d="M65 12v12m3-9c-3-3-8 1-3 3s1 6-3 3" stroke="#99601c" stroke-width="1.4" stroke-linecap="round"/><path d="M18 49V43c0-13 10-22 26-22s26 9 26 22v6" fill="url(#amb-profile-lid)" stroke="#915b19" stroke-width="1.5"/><path d="M38 22h12v27H38Z" fill="#ffdf8c" stroke="#a16b20" stroke-width="1.2"/><rect x="16" y="47" width="57" height="30" rx="5" fill="#b77d27" stroke="#915b19" stroke-width="1.5"/><rect x="14" y="46" width="57" height="29" rx="5" fill="url(#amb-profile-front)" stroke="#915b19" stroke-width="1.5"/><path d="M19 51h47" stroke="#ffe9b3" stroke-width="1.5" stroke-linecap="round"/><path d="M39 47h11v17H39Z" fill="#ffe7a3" stroke="#915b19" stroke-width="1.4"/><circle cx="44.5" cy="53.5" r="2" fill="#915b19"/><path d="M44.5 55v3" stroke="#915b19" stroke-width="1.5" stroke-linecap="round"/><circle cx="22" cy="64" r="1.2" fill="#a77122"/><circle cx="64" cy="64" r="1.2" fill="#a77122"/><path d="M70 68v8c0 3 19 3 19 0v-8" fill="#d2982d" stroke="#915b19" stroke-width="1.2"/><ellipse cx="79.5" cy="68" rx="9.5" ry="3.4" fill="#ffe5a0" stroke="#915b19" stroke-width="1.2"/><path d="M73 61v7c0 3 17 3 17 0v-7" fill="#e4ad3c" stroke="#915b19" stroke-width="1.2"/><ellipse cx="81.5" cy="61" rx="8.5" ry="3.2" fill="#fff0bd" stroke="#915b19" stroke-width="1.2"/></svg>';
+    return '<svg class="amb-promo-megaphone" viewBox="0 0 210 200" fill="none" focusable="false" aria-hidden="true"><path d="m162 35 11-22m1 45 22-12m-18 41 22 5" stroke="#fff9e9" stroke-width="8" stroke-linecap="round"/><g transform="rotate(-12 92 99)" stroke="#10243e" stroke-width="4" stroke-linejoin="round"><path d="m52 133 15-2 12 40c2 6-1 10-7 11-4 1-8-1-10-5l-16-31Z" fill="#f6c445"/><rect x="25" y="105" width="44" height="33" rx="15" fill="#f6c445"/><path d="m62 105 61-45 28 66-84 13Z" fill="#fffdf4"/><path d="m123 58 30 66c2 5 7 7 11 5 5-2 7-7 5-12l-30-66c-2-5-7-7-11-5-5 2-7 7-5 12Z" fill="#f6c445"/><path d="m34 110-4 12m108-62 22 49" stroke="#fff7dc" stroke-width="3" stroke-linecap="round"/><path d="M145 68c8-1 14 10 11 16" stroke="#10243e" stroke-width="3"/></g></svg>';
+  }
+  function profileActionIcon(kind) {
+    return kind === 'share' ? '<svg class="ic amb-promo-share-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.5 6.8-4m-6.8 7 6.8 4"/></svg>' : '<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3h7v7m-1-6L10 14M10 5H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-5"/></svg>';
+  }
+  function verifiedReward(data) {
+    if (!validConfig(data)) return null;
+    const amount = reward(data.config, data.category);
+    return Number.isSafeInteger(amount) && amount > 0 ? amount : null;
   }
   function benefits(c, category) {
     const monthly = category === 'vip' ? c.monthlyDiscountVipCents : c.monthlyDiscountFreeCents;
@@ -52,17 +60,21 @@
     const c = validConfig(data) ? data.config : null;
     if (place === 'profile') {
       const paused = registered && !active;
-      const commission = c ? reward(c, data.category) : null;
-      const title = paused ? 'Tu perfil de embajador está en pausa.' : 'Gana dinero recomendando ICADEM.';
-      const description = paused ? '<p>Entra a tu panel para consultar su estado.</p>' : Number.isSafeInteger(commission) && commission > 0 ? `<p class="amb-promo-profile-reward"><strong>${money(commission)} <small>MXN</small></strong><span>por compra elegible</span></p>` : '<p>Conoce el programa y consulta las condiciones de tu invitación.</p>';
-      return `<div class="amb-promo-copy amb-promo-profile-copy"><span class="amb-promo-eyebrow">${icon('crown')} ${data?.category === 'vip' ? 'EMBAJADOR VIP' : 'EMBAJADOR'}</span><h2>${title}</h2>${description}<div class="amb-promo-actions"><button type="button" class="amb-promo-primary" data-amb-promo="${registered ? 'panel' : 'info'}">${registered ? (paused ? 'Ir a mi panel' : 'Ver mi código y compartir') : 'Quiero ser embajador'}${icon('arrow-right')}</button>${registered ? '' : '<button type="button" class="amb-promo-secondary" data-amb-promo="info">Cómo funciona</button>'}</div></div><span class="amb-promo-profile-art${paused ? ' is-paused' : ''}" aria-hidden="true">${profileRewardArt()}</span>`;
+      const commission = verifiedReward(data);
+      const title = paused ? 'Tu perfil de embajador está en pausa.' : 'Convierte tus recomendaciones en ingresos.';
+      const description = paused ? 'Entra a tu panel para consultar su estado.' : commission !== null ? `Gana <strong>${money(commission)} MXN</strong> por cada compra elegible realizada con tu código.` : 'Conoce el programa y consulta las condiciones de tu invitación.';
+      const primary = active ? `<button type="button" class="amb-promo-primary" data-amb-promo="share">${profileActionIcon('share')}<span>Ver mi código y compartir</span><span class="amb-promo-button-arrow">${icon('arrow-right')}</span><span class="amb-promo-button-spinner" aria-hidden="true"></span></button>` : registered ? '' : `<button type="button" class="amb-promo-primary" data-amb-promo="info"><span>Activar mi espacio de embajador</span>${icon('arrow-right')}</button>`;
+      const secondary = registered ? `<button type="button" class="amb-promo-secondary" data-amb-promo="panel">${profileActionIcon('panel')}<span>Ir a mi panel</span></button>` : '<button type="button" class="amb-promo-secondary" data-amb-promo="info">Cómo funciona</button>';
+      const ticket = !paused && commission !== null ? `<strong>${money(commission)} <small>MXN</small></strong><span>por compra elegible</span>` : '<strong class="amb-promo-commission-neutral">Tu espacio<br>de embajador</strong>';
+      return `<div class="amb-promo-profile-layout"><div class="amb-promo-copy amb-promo-profile-copy"><span class="amb-promo-eyebrow">${icon('crown')} ${data?.category === 'vip' ? 'EMBAJADOR VIP' : 'EMBAJADOR ICADEM'}</span><h2>${title}</h2><p>${description}</p><div class="amb-promo-actions">${primary}${secondary}</div></div><div class="amb-promo-profile-art${paused ? ' is-paused' : ''}" aria-hidden="true">${profileRewardArt()}<div class="amb-promo-commission-card">${ticket}</div></div></div>`;
     }
     const title = registered ? (active ? 'Tus recomendaciones ya tienen su espacio.' : 'Consulta tu perfil de embajador.') : c ? `Recomienda ICADEM.<em> Gana ${money(reward(c, data.category))} MXN.</em>` : 'Tu recomendación abre <em>nuevas puertas.</em>';
     return `<div class="amb-promo-copy"><span class="amb-promo-eyebrow">${icon('users')} ICADEM EMBAJADORES</span><h2>${title}</h2><p>${registered ? (active ? 'Comparte tu invitación y sigue tus referidos, comisiones y retiros desde tu panel.' : 'Tu perfil está en pausa. Entra a tu panel para consultar su estado.') : 'Invita a alguien a dar su siguiente paso profesional y recibe una recompensa por su primera compra elegible.'}</p><div class="amb-promo-actions"><button type="button" class="amb-promo-primary" data-amb-promo="${registered ? 'panel' : 'info'}">${registered ? 'Ir a mi panel' : 'Quiero ser embajador'}${icon('arrow-right')}</button>${registered ? '' : '<button type="button" class="amb-promo-secondary" data-amb-promo="info">Cómo funciona</button>'}</div><small class="amb-promo-caption">${registered ? 'Tu código, tus invitaciones y tus movimientos en un solo lugar.' : 'Participa también con tu cuenta gratuita.'}</small></div>${c && !registered ? benefits(c, data.category) : `<div class="amb-promo-symbol" aria-hidden="true"><span>${icon(registered ? 'gift' : 'users')}</span><b>${registered ? 'Tu comunidad crece contigo' : 'Una invitación. Nuevas oportunidades.'}</b></div>`}`;
   }
   function indicatorMarkup(data) {
-    if (!uid() || !validConfig(data) || data.registered !== false) return '';
-    return `<span class="amb-promo-indicator__gift">${icon('gift')}</span><span class="amb-promo-indicator__copy"><strong>Gana ${money(reward(data.config, data.category))} MXN</strong><small>Por recomendar ICADEM</small></span><span class="amb-promo-indicator__action">Ver invitación ${icon('arrow-right')}</span><span class="amb-promo-indicator__dot" aria-hidden="true"></span>`;
+    const commission = verifiedReward(data);
+    if (!uid() || commission === null || data.registered !== false) return '';
+    return `<span class="amb-promo-indicator__gift">${icon('gift')}</span><span class="amb-promo-indicator__copy"><strong>Gana ${money(commission)} MXN</strong><small>Por recomendar ICADEM</small></span><span class="amb-promo-indicator__action">Ver invitación ${icon('arrow-right')}</span><span class="amb-promo-indicator__dot" aria-hidden="true"></span>`;
   }
   function paint(data) {
     currentData = data;
@@ -84,15 +96,15 @@
     }
   }
   async function refresh(force = false) {
-    const id = uid(), token = generation;
+    const id = uid(), token = generation, sequence = ++refreshSequence;
     if (window.__isDemoMode) { paint(null); return null; }
     if (!id || !window.ICADEMAmbassadors?.getSummary) { paint(null); return null; }
     try {
       const data = await window.ICADEMAmbassadors.getSummary(force);
-      if (token !== generation || id !== uid()) return null;
+      if (token !== generation || id !== uid() || sequence !== refreshSequence) return null;
       paint(data);
       return data;
-    } catch (_) { if (token === generation) paint(null); return null; }
+    } catch (_) { if (token === generation && id === uid() && sequence === refreshSequence) paint(null); return null; }
   }
   function planText(c) {
     return c.eligiblePlans.filter(p => ['mensual','anual'].includes(p)).join(' o ');
@@ -180,14 +192,25 @@
     });
     document.addEventListener('icadem:session-exit-failed', () => homeChanged());
     document.addEventListener('icadem:ambassador-enrolled', () => refresh(true));
-    document.addEventListener('click', event => {
+    document.addEventListener('click', async event => {
       const action = event.target.closest('[data-amb-promo]');
       if (!action) return;
-      if (action.dataset.ambPromo === 'panel') window.navigateToSection?.('embajadores');
-      else openInfo();
+      if (action.dataset.ambPromo === 'panel') { window.navigateToSection?.('embajadores'); return; }
+      if (action.dataset.ambPromo === 'share') {
+        if (action.disabled) return;
+        const id = uid(), token = generation;
+        if (!id) return;
+        if (currentData?.registered !== true || currentData.ambassador?.active !== true || !window.ICADEMAmbassadors?.openSharing) { window.navigateToSection?.('embajadores'); return; }
+        action.disabled = true; action.setAttribute?.('aria-busy', 'true');
+        try { await window.ICADEMAmbassadors.openSharing(); }
+        catch (_) { if (token === generation && id === uid()) window.navigateToSection?.('embajadores'); }
+        finally { action.disabled = false; action.removeAttribute?.('aria-busy'); }
+        return;
+      }
+      openInfo();
     });
     document.addEventListener('icadem:user-ready', () => { generation++; closeDialog('session'); paint(null); homeChanged(); });
-    document.addEventListener('icadem:identity-ready', () => { if (homeActive()) homeChanged(); });
+    document.addEventListener('icadem:identity-ready', () => { if (homeActive() || location.hash === '#perfil') homeChanged(); });
     window.addEventListener('icadem:navigation', () => homeChanged());
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') schedule(); else clearTimeout(timer); });
     window.addEventListener('storage', event => { if (event.key === PREFIX + uid()) schedule(); });
