@@ -1,0 +1,26 @@
+/* ICADEM · pestaña "Ciudad ICADEM" (portada dentro del panel + marco del juego) */
+.ciudad-home{display:grid;gap:18px}
+.ciudad-cover{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--border-2);background:#0f1f3d;box-shadow:0 18px 44px color-mix(in srgb,#0f1f3d 22%,transparent)}
+.ciudad-cover img{display:block;width:100%;height:auto;aspect-ratio:21/9;max-height:430px;object-fit:cover;object-position:50% 62%}
+.ciudad-cover__veil{position:absolute;inset:0;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:10px;padding:clamp(16px,3vw,30px);background:linear-gradient(180deg,rgba(15,31,61,0) 38%,rgba(15,31,61,.82) 100%);color:#fff}
+.ciudad-cover__badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;background:#e86a5c;color:#fff;padding:4px 10px;border-radius:8px}
+.ciudad-cover__veil strong{font-size:clamp(17px,2.4vw,26px);line-height:1.15;max-width:22ch;font-weight:700;text-wrap:balance;text-shadow:0 2px 12px rgba(0,0,0,.4)}
+.ciudad-cover__play{background:#ffd166!important;color:#16213a!important;border-color:transparent!important;font-weight:800!important;font-size:15px!important;padding:13px 24px!important;border-radius:14px!important;box-shadow:0 10px 26px rgba(255,209,102,.34)}
+.ciudad-cover__play:hover{transform:translateY(-2px)}
+.ciudad-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.ciudad-card{background:var(--surface);border:1px solid var(--border-2);border-radius:18px;padding:18px}
+.ciudad-card h3{margin:0 0 10px;font-size:15px;font-weight:700;color:var(--text)}
+.ciudad-card ul{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.ciudad-card li{position:relative;padding-left:16px;font-size:13.5px;line-height:1.45;color:var(--text-2)}
+.ciudad-card li::before{content:"";position:absolute;left:0;top:.55em;width:6px;height:6px;border-radius:50%;background:var(--primary)}
+
+/* El juego se abre encima de todo el panel, a pantalla completa */
+.ciudad-stage{position:fixed;inset:0;z-index:2147483000;background:#0f1f3d}
+.ciudad-stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+/* Botón de respaldo: solo se ve mientras el juego no ha respondido (por ejemplo, sin conexión). */
+.ciudad-stage__exit{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:2;padding:10px 18px;border-radius:12px;border:0;background:#ffd166;color:#16213a;font-weight:700;cursor:pointer}
+.ciudad-stage.is-ready .ciudad-stage__exit{display:none}
+@media (max-width:640px){
+  .ciudad-cover img{aspect-ratio:4/3}
+  .ciudad-cover__play{width:100%;justify-content:center}
+}
