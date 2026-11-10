@@ -502,6 +502,22 @@
     if(window.ICADEMResumeEditor?.isOpen?.(node))return;
     if(node?.dataset.profileUid===window.UserState?.uid)return loadProfile(node,node.dataset.profileUid);
   }
+  function syncOwnProfilePhoto(event){
+    var photo=event.detail?.profile,viewer=window.UserState?.uid;
+    if(window.__sessionEnding||!viewer||photo?.uid!==viewer||typeof photo.photoURL!=='string')return;
+    window.ICADEMResumeEditor?.syncPhoto?.(photo);
+    if(context?.kind!=='profile'||context.viewer!==viewer||!context.root.isConnected)return;
+    var node=context.root.querySelector('.community-profile');
+    if(node?.dataset.profileUid!==viewer)return;
+    var url=safeUrl(photo.photoURL);
+    if(url)url=window.__avatarSrc?.(url,photo.photoVersion)||url;
+    // Update just the identity image: a provider refresh must never rebuild a
+    // profile, replace a CV draft, or touch an unrelated professional's avatar.
+    node.querySelectorAll('.pp-avatar').forEach(function(avatar){
+      avatar.innerHTML=url?'<img src="'+esc(url)+'" alt="Foto de perfil" decoding="async">':'<span aria-hidden="true">'+esc(window.UserState?.iniciales||'MI')+'</span>';
+    });
+  }
+  document.addEventListener('icadem:identity-ready',syncOwnProfilePhoto);
   async function copyProfileLink(button,node){
     var url=window.ICADEMProfessionalNavigation?.profileHref(node.dataset.profileUid);
     if(!url)return;

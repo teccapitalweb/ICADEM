@@ -139,5 +139,10 @@
   ['icadem:session-ending','icadem:session-ended','icadem:user-ready'].forEach(function(event){document.addEventListener(event,function(){if(active){active.root.replaceChildren();clear(false);}});});
   window.addEventListener('icadem:navigation',function(){if(active&&(location.hash!=='#directorio-perfil'||window.ICADEMProfessionalNavigation?.currentProfileId?.()!==active.uid))clear(false);});
   window.addEventListener('beforeunload',function(event){if(active){captureAll(active);if(isDirty(active)){event.preventDefault();event.returnValue='';}}});
-  window.ICADEMResumeEditor={open:open,isOpen:function(root){return !!active&&current(active)&&(!root||active.root===root||root.contains?.(active.root));},isDirty:function(){if(active&&!active.preview)captureAll(active);return isDirty(active);}};
+  function syncPhoto(profile){
+    var s=active;
+    if(!s||!current(s)||profile?.uid!==s.uid||typeof profile.photoURL!=='string'||!s.profile)return;
+    s.profile.foto=profile.photoURL;s.profile.photoVersion=profile.photoVersion||'';s.profile.photoSource=profile.photoSource||'default';s.profile.fotoOrigen=s.profile.photoSource;
+  }
+  window.ICADEMResumeEditor={open:open,syncPhoto:syncPhoto,isOpen:function(root){return !!active&&current(active)&&(!root||active.root===root||root.contains?.(active.root));},isDirty:function(){if(active&&!active.preview)captureAll(active);return isDirty(active);}};
 })();

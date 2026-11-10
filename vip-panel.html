@@ -4069,8 +4069,8 @@ body.has-fomo .main{padding-top:18px}
 <script src="js/icadem-professional-navigation.js?v=3"></script>
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-professional-profile.js?v=2"></script>
-<script src="js/icadem-resume-editor.js?v=1"></script>
-<script src="js/icadem-community.js?v=5"></script>
+<script src="js/icadem-resume-editor.js?v=2"></script>
+<script src="js/icadem-community.js?v=6"></script>
 <script src="js/icadem-notifications.js?v=2" defer></script>
 </head>
 <body style="visibility:hidden">
@@ -11930,7 +11930,7 @@ const Sections = (function(){
 
         ${esVip ? `
         <div class="foro-composer">
-          <div class="foro-composer__avatar${window.UserState?.photoURL?' has-photo':''}" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${window.UserState?.photoURL?`<img src="${escapeHtml(window.UserState.photoURL)}" alt="">`:ini}</div>
+          <div class="foro-composer__avatar${window.UserState?.photoURL?' has-photo':''}" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${window.UserState?.photoURL?`<img src="${escapeHtml(window.__avatarSrc?.(window.UserState.photoURL,window.UserState.photoVersion)||window.UserState.photoURL)}" alt="">`:ini}</div>
           <div class="foro-composer__main">
             <textarea class="foro-composer__input" id="foro-text" placeholder="¿Qué caso traes hoy? Comparte un caso o haz una pregunta…" rows="2" maxlength="1500"></textarea>
             <div id="foro-img-preview" class="foro-img-preview" style="display:none;">

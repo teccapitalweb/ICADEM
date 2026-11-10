@@ -47,6 +47,14 @@ function app(){
 function profile(extra={}){return{uid:'owner',own:true,isVip:true,nombre:'Persona',foto:'https://images.test/current.jpg',contacts:{email:'private@test.invalid'},cv:{resumen:'Presentación confirmada',idiomas:[{id:'language',idioma:'Español',nivel:'Nativo'}],experiencia:[{id:'job-1',empresa:'Primera',cargo:'Asesor'},{id:'job-2',empresa:'Segunda',cargo:'Director'}],visibilidad:{sobreMi:'public',experiencia:'public',idiomas:'private'},revisiones:{sobreMi:2,experiencia:3,idiomas:1},estilo:{savedColor:'#316789',color:'#316789',editable:true}},...extra};}
 async function input(a,key,name,value){const field=a.field(key,name);field.value=value;await field.emit('input');}
 
+test('an active identity photo change updates future previews without replacing forms, publishing, or changing another account',async()=>{
+ const a=app();await a.open();await input(a,'sobreMi','resumen','Borrador que debe conservarse');const form=a.form('sobreMi');
+ a.api.syncPhoto({uid:'owner',photoURL:'https://lh3.googleusercontent.com/updated',photoVersion:'v2',photoSource:'google'});
+ assert.equal(a.form('sobreMi'),form);assert.equal(a.field('sobreMi','resumen').value,'Borrador que debe conservarse');assert.equal(a.saves.length,0);
+ await a.root.querySelector('[data-cve-preview]').click();assert.equal(a.previews.at(-1).foto,'https://lh3.googleusercontent.com/updated');assert.equal(a.previews.at(-1).photoVersion,'v2');
+ a.api.syncPhoto({uid:'another-account',photoURL:'https://images.test/foreign'});await a.root.querySelector('[data-cve-return]').click();await a.root.querySelector('[data-cve-preview]').click();assert.equal(a.previews.at(-1).foto,'https://lh3.googleusercontent.com/updated');
+});
+
 test('section saving waits for the server, sends only that section and preserves drafts in other sections',async()=>{
   const a=app();await a.open();await input(a,'sobreMi','resumen','Mi nueva presentación');await input(a,'habilidades','herramientas','Excel\nPower BI');
   const submitted=a.form('sobreMi').emit('submit');await flush();assert.equal(a.saves.length,1);assert.deepEqual(Object.keys(a.saves[0].payload).sort(),['data','revision','section','visibility']);
