@@ -47,6 +47,13 @@
   function cardMarkup(data, place) {
     const registered = data?.registered === true, active = registered && data.ambassador?.active;
     const c = validConfig(data) ? data.config : null;
+    if (place === 'profile') {
+      const paused = registered && !active;
+      const commission = c ? reward(c, data.category) : null;
+      const title = paused ? 'Tu perfil de embajador está en pausa.' : 'Tus recomendaciones generan oportunidades.';
+      const description = paused ? 'Entra a tu panel para consultar su estado.' : Number.isSafeInteger(commission) && commission > 0 ? `Gana ${money(commission)} MXN por cada compra elegible.` : 'Conoce el programa y consulta las condiciones de tu invitación.';
+      return `<div class="amb-promo-copy amb-promo-profile-copy"><span class="amb-promo-eyebrow">${icon('crown')} ${data?.category === 'vip' ? 'EMBAJADOR VIP' : 'EMBAJADOR'}</span><h2>${title}</h2><p>${description}</p><div class="amb-promo-actions"><button type="button" class="amb-promo-primary" data-amb-promo="${registered ? 'panel' : 'info'}">${registered ? 'Ir a mi panel' : 'Quiero ser embajador'}${icon('arrow-right')}</button>${registered ? '' : '<button type="button" class="amb-promo-secondary" data-amb-promo="info">Cómo funciona</button>'}</div></div><span class="amb-promo-profile-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5Z"/><path d="M20 2v4m-2-2h4"/></svg></span>`;
+    }
     const title = registered ? (active ? 'Tus recomendaciones ya tienen su espacio.' : 'Consulta tu perfil de embajador.') : c ? `Recomienda ICADEM.<em> Gana ${money(reward(c, data.category))} MXN.</em>` : 'Tu recomendación abre <em>nuevas puertas.</em>';
     return `<div class="amb-promo-copy"><span class="amb-promo-eyebrow">${icon('users')} ICADEM EMBAJADORES</span><h2>${title}</h2><p>${registered ? (active ? 'Comparte tu invitación y sigue tus referidos, comisiones y retiros desde tu panel.' : 'Tu perfil está en pausa. Entra a tu panel para consultar su estado.') : 'Invita a alguien a dar su siguiente paso profesional y recibe una recompensa por su primera compra elegible.'}</p><div class="amb-promo-actions"><button type="button" class="amb-promo-primary" data-amb-promo="${registered ? 'panel' : 'info'}">${registered ? 'Ir a mi panel' : 'Quiero ser embajador'}${icon('arrow-right')}</button>${registered ? '' : '<button type="button" class="amb-promo-secondary" data-amb-promo="info">Cómo funciona</button>'}</div><small class="amb-promo-caption">${registered ? 'Tu código, tus invitaciones y tus movimientos en un solo lugar.' : 'Participa también con tu cuenta gratuita.'}</small></div>${c && !registered ? benefits(c, data.category) : `<div class="amb-promo-symbol" aria-hidden="true"><span>${icon(registered ? 'gift' : 'users')}</span><b>${registered ? 'Tu comunidad crece contigo' : 'Una invitación. Nuevas oportunidades.'}</b></div>`}`;
   }
@@ -66,6 +73,7 @@
     for (const [id, place] of [['ambassador-home-promo','home'],['ambassador-profile-promo','profile']]) {
       const root = document.getElementById(id);
       if (!root) continue;
+      if (place === 'profile') root.setAttribute('data-amb-category', data?.category === 'vip' ? 'vip' : 'free');
       const visible = window.__isDemoMode || validConfig(data);
       root.hidden = !visible;
       if (visible) root.innerHTML = cardMarkup(data, place);
