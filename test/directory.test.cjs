@@ -27,6 +27,13 @@ test('long names and bios remain available in the existing full-profile action; 
   assert.ok(markup.includes(input[0].nombre));assert.ok(markup.includes(input[0].bio));assert.match(markup,/network-view-profile/);assert.match(markup,/dir-card__cover-image/);assert.equal(JSON.stringify(input),before);
 });
 test('directory assets are loaded once in the real head and cover edits still use the authenticated profile service',()=>{
-  const head=html.slice(0,html.indexOf('</head>'));assert.match(head,/icadem-directory\.css\?v=2/);assert.match(head,/js\/icadem-directory\.js\?v=1/);assert.equal((html.match(/href="css\/icadem-directory\.css/g)||[]).length,1);
+  const head=html.slice(0,html.indexOf('</head>'));assert.match(head,/icadem-directory\.css\?v=2/);assert.match(head,/js\/icadem-directory\.js\?v=\d+/);assert.equal((html.match(/href="css\/icadem-directory\.css/g)||[]).length,1);
   assert.match(html,/ICADEMPlatform\.saveProfile\(payload\)/);assert.match(html,/Object\.assign\(payload, coverEditor\?\.payload\(\) \|\| \{\}\)/);
 });
+
+ test('CV consumers reuse the existing cover defaults and unrestricted hexadecimal picker without mutating cover preferences',()=>{
+  const ui=helper(),card={portadaColor:'#316789',portadaColorPersonalizado:true},before=JSON.stringify(card),shared=ui.palette(card);
+  assert.equal(shared.mode,'custom-hex');assert.equal(shared.defaultVip,ui.appearance({},true).color);assert.equal(shared.defaultFree,ui.appearance({},false).color);assert.equal(shared.selected,card.portadaColor);
+  assert.deepEqual(Array.from(shared.colors,x=>x.value),['#E9BC43','#244B64']);assert.match(ui.editorMarkup(),/type="color"/);
+  assert.equal(ui.colorValue('#a1b2c3'),'#a1b2c3');assert.equal(ui.colorValue('javascript:alert(1)',shared.defaultFree),'#244B64');assert.equal(ui.colorValue('bad','url(evil)'),'#E9BC43');assert.equal(JSON.stringify(card),before);
+ });

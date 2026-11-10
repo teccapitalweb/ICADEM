@@ -6,14 +6,15 @@ function fixture(options={}){
   const location=new URL(options.url||'https://www.icademx.com/vip-panel.html?curso=old&ref=OTHER#directorio');
   const search={value:'José fiscal'},sector={value:'Fiscal y Contable'},tier={dataset:{tier:'vip'}},tab={dataset:{communityTab:'directory'}},main={scrollTop:360},dynamic={scrollTop:420};
   const list={isConnected:true,querySelector(selector){return ({'#dir-search-input':search,'#dir-sector-select':sector,'[data-tier][aria-pressed="true"]':tier,'[data-community-tab][aria-pressed="true"]':tab})[selector]||null;}};
+  const forumFilter={dataset:{foroTab:'populares'}},forum={isConnected:true,querySelector(selector){return selector==='[data-foro-tab][aria-pressed="true"]'?forumFilter:null;}};
   const document={documentElement:{scrollTop:120},body:{scrollTop:180},scrollingElement:{scrollTop:240},
-    querySelector(selector){return selector==='[data-directory-refined]'?list:selector==='main.main'?main:null;},getElementById(id){return id==='dynamic-section'?dynamic:null;},addEventListener(name,fn){(events[name]||=[]).push(fn);}};
+    querySelector(selector){return selector==='[data-directory-refined]'?list:selector==='[data-community-forum]'?forum:selector==='main.main'?main:null;},getElementById(id){return id==='dynamic-section'?dynamic:null;},addEventListener(name,fn){(events[name]||=[]).push(fn);}};
   const history={state:options.state||{},length:options.length||8,pushState(state,_,url){this.state=state;this.length++;location.href=new URL(url,location.href).href;},replaceState(state,_,url){this.state=state;location.href=new URL(url,location.href).href;},go(n){jumps.push(n);}};
   const window={UserState:{uid:options.uid===undefined?'viewer-a':options.uid},scrollY:600,scrollTo(value){scrolls.push(value);this.scrollY=value.top;}};
   const ctx={window,document,history,location,URL,sessionStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},Date:class extends Date{static now(){return clock.now;}},requestAnimationFrame:fn=>frames.push(fn)};
   vm.runInNewContext(source,ctx);const api=window.ICADEMProfessionalNavigation;
   window.navigateToSection=(section,config={})=>{navigations.push({section,config});const route=api.prepare(section,config);history[config.reemplazar?'replaceState':'pushState'](route.historyState,'',route.url);return route;};
-  return {api,window,document,history,location,search,sector,tier,tab,main,dynamic,list,storage,clock,frames,navigations,scrolls,jumps,
+  return {api,window,document,history,location,search,sector,tier,tab,main,dynamic,list,forum,forumFilter,storage,clock,frames,navigations,scrolls,jumps,
     route:(section,config)=>window.navigateToSection(section,config),emit(name){for(const fn of events[name]||[])fn();},flush(){while(frames.length)frames.shift()();}};
 }
 const plain=x=>JSON.parse(JSON.stringify(x));
@@ -147,3 +148,27 @@ test('the real own-profile button opens the authenticated owner UID and preserve
   const saved=JSON.parse([...f.storage.values()][0]);assert.equal(saved.search,'Jósé FISCAL');assert.equal(saved.sector,'Fiscal y Contable');assert.equal(saved.tier,'vip');assert.equal(saved.scroll.window,1500);
   f.window.ICADEMProfessionalNavigation.backToDirectory();f.completeLoad();f.flush();assert.equal(f.search.value,'Jósé FISCAL');assert.equal(f.ctx._dirFiltroSector,'Fiscal y Contable');assert.equal(f.ctx._dirFiltroTier,'vip');assert.equal(f.window.scrollY,1500);
 });
+
+ test('forum author navigation preserves its filter and all scroll surfaces while keeping the existing profile route',()=>{
+  const f=fixture({url:'https://www.icademx.com/vip-panel.html#foro'});f.route('foro');f.forumFilter.dataset.foroTab='mios';f.window.scrollY=1480;
+  assert.equal(f.api.openProfile('viewer-a'),true);assert.equal(f.location.search,'?profesional=viewer-a');assert.equal(f.location.hash,'#directorio-perfil');
+  assert.equal(f.api.backLabel(),'Volver al Foro VIP');assert.equal(f.history.state.icademProfessional.origin,'foro');
+  const route=f.route('foro');assert.equal(route.restoreDirectory,true);assert.equal(f.api.forumState().filter,'mios');
+  f.window.scrollY=0;f.main.scrollTop=0;f.dynamic.scrollTop=0;f.api.forumReady(f.forum);f.flush();
+  assert.equal(f.window.scrollY,1480);assert.equal(f.main.scrollTop,360);assert.equal(f.dynamic.scrollTop,420);assert.equal(f.api.forumState(),null);
+  const stored=JSON.parse(f.storage.get('icadem:forum-return:v1:viewer-a'));assert.deepEqual(Object.keys(stored).sort(),['at','filter','scroll','uid']);
+ });
+
+ test('forum-origin profile chains return through browser history and never mix directory filter state',()=>{
+  const f=fixture({url:'https://www.icademx.com/vip-panel.html#foro'});f.route('foro');f.api.openProfile('bob');f.api.openProfile('carol');
+  assert.equal(f.history.state.icademProfessional.origin,'foro');assert.equal(f.history.state.icademProfessional.depth,2);f.api.backToDirectory();assert.deepEqual(f.jumps,[-2]);
+  f.route('foro');assert.equal(f.api.directoryState(),null);assert.equal(f.api.forumState().filter,'populares');
+  f.route('directorio');f.api.openProfile('bob');assert.equal(f.api.backLabel(),'Volver al directorio');assert.equal(f.history.state.icademProfessional.origin,undefined);
+ });
+
+ test('forum restoration and source labels are isolated by viewer and cannot scroll a different route',()=>{
+  const f=fixture({url:'https://www.icademx.com/vip-panel.html#foro'});f.route('foro');f.api.openProfile('bob');f.route('foro');f.api.forumReady(f.forum);
+  f.route('inicio');f.window.scrollY=0;f.flush();assert.equal(f.window.scrollY,0);
+  f.window.UserState.uid='viewer-b';f.emit('icadem:user-ready');f.route('foro');assert.equal(f.api.forumState(),null);
+  f.history.state={icademProfessional:{viewer:'viewer-a',origin:'foro',depth:1}};assert.equal(f.api.backLabel(),'Volver al directorio');f.api.backToDirectory();assert.equal(f.navigations.at(-1).section,'directorio');
+ });

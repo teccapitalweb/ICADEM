@@ -439,6 +439,11 @@
   function profileMarkup(p) {
     return window.ICADEMProfessionalProfile?.markup(p,{esc:esc,icon:icon,safeUrl:safeUrl,contactMarkup:contactMarkup,actionMarkup:actionMarkup})||'<div class="community-empty" role="alert">No se pudo cargar la presentación del perfil. Actualiza la página para reintentar.</div>';
   }
+  function paintProfile(node,profile){
+    node.innerHTML=profileMarkup(profile);wire(node);
+    node.querySelector('[data-edit-cv]')?.addEventListener('click',function(){editCv(profile);});
+    node.querySelector('[data-edit-card]')?.addEventListener('click',openCardEditor);
+  }
   async function loadProfile(node, uid) {
     var viewer = window.UserState?.uid,
       ticket = generation;
@@ -448,29 +453,21 @@
       if (
         !node.isConnected ||
         viewer !== window.UserState?.uid ||
-        ticket !== generation
+        ticket !== generation ||
+        window.ICADEMResumeEditor?.isOpen?.(node)
       )
         return;
       var firstLoad=!node.dataset.profileUid;
       node.dataset.profileUid = uid;
-      node.innerHTML = profileMarkup(data.profile);
-      wire(node);
+      paintProfile(node,data.profile);
       var page=node.closest("[data-professional-view]");
       if(page){
         page.querySelector("[data-professional-copy]").disabled=false;
         document.title=data.profile.nombre+" · Perfil profesional | ICADEM";
         if(firstLoad)node.querySelector("h1")?.focus({preventScroll:true});
       }
-      node
-        .querySelector("[data-edit-cv]")
-        ?.addEventListener("click", function () {
-          editCv(data.profile);
-        });
-      node
-        .querySelector("[data-edit-card]")
-        ?.addEventListener("click", openCardEditor);
     } catch (error) {
-      if (!node.isConnected || viewer!==window.UserState?.uid || ticket!==generation) return;
+      if (!node.isConnected || viewer!==window.UserState?.uid || ticket!==generation || window.ICADEMResumeEditor?.isOpen?.(node)) return;
       if(error.status===404 && uid===viewer){
         node.dataset.profileUid=uid;
         node.innerHTML='<div class="community-empty" role="status"><h1>Completa tu perfil profesional</h1><p>Agrega tus datos para crear tu currículum virtual en ICADEM.</p><button type="button" class="community-primary" data-create-own-profile>Completar mi perfil</button></div>';
@@ -502,8 +499,25 @@
   function refreshCurrentProfile(){
     if(context?.kind!=='profile'||context.viewer!==window.UserState?.uid||!context.root.isConnected)return;
     var node=context.root.querySelector('.community-profile');
+    if(window.ICADEMResumeEditor?.isOpen?.(node))return;
     if(node?.dataset.profileUid===window.UserState?.uid)return loadProfile(node,node.dataset.profileUid);
   }
+  function syncOwnProfilePhoto(event){
+    var photo=event.detail?.profile,viewer=window.UserState?.uid;
+    if(window.__sessionEnding||!viewer||photo?.uid!==viewer||typeof photo.photoURL!=='string')return;
+    window.ICADEMResumeEditor?.syncPhoto?.(photo);
+    if(context?.kind!=='profile'||context.viewer!==viewer||!context.root.isConnected)return;
+    var node=context.root.querySelector('.community-profile');
+    if(node?.dataset.profileUid!==viewer)return;
+    var url=safeUrl(photo.photoURL);
+    if(url)url=window.__avatarSrc?.(url,photo.photoVersion)||url;
+    // Update just the identity image: a provider refresh must never rebuild a
+    // profile, replace a CV draft, or touch an unrelated professional's avatar.
+    node.querySelectorAll('.pp-avatar').forEach(function(avatar){
+      avatar.innerHTML=url?'<img src="'+esc(url)+'" alt="Foto de perfil" decoding="async">':'<span aria-hidden="true">'+esc(window.UserState?.iniciales||'MI')+'</span>';
+    });
+  }
+  document.addEventListener('icadem:identity-ready',syncOwnProfilePhoto);
   async function copyProfileLink(button,node){
     var url=window.ICADEMProfessionalNavigation?.profileHref(node.dataset.profileUid);
     if(!url)return;
@@ -516,7 +530,7 @@
   function renderProfilePage(container,options){
     cleanup();
     context={root:container,...options,kind:'profile',viewer:window.UserState?.uid};generation++;
-    container.innerHTML='<div class="professional-profile-shell" data-professional-view><nav class="professional-profile-toolbar" aria-label="Navegación del perfil"><button type="button" class="professional-profile-back" data-professional-back>'+icon('arrow-left')+'<span>Volver al directorio</span></button><button type="button" class="professional-profile-share" data-professional-copy disabled>'+icon('copy')+'<span>Copiar enlace</span></button></nav><div class="community-profile"><div class="professional-profile-loading" role="status">Cargando perfil profesional…</div></div></div>';
+    container.innerHTML='<div class="professional-profile-shell" data-professional-view><nav class="professional-profile-toolbar" aria-label="Navegación del perfil"><button type="button" class="professional-profile-back" data-professional-back>'+icon('arrow-left')+'<span>'+esc(window.ICADEMProfessionalNavigation?.backLabel?.()||'Volver al directorio')+'</span></button><button type="button" class="professional-profile-share" data-professional-copy disabled>'+icon('copy')+'<span>Copiar enlace</span></button></nav><div class="community-profile"><div class="professional-profile-loading" role="status">Cargando perfil profesional…</div></div></div>';
     var node=container.querySelector('.community-profile');
     container.querySelector('[data-professional-back]').addEventListener('click',function(){window.ICADEMProfessionalNavigation.backToDirectory();});
     container.querySelector('[data-professional-copy]').addEventListener('click',function(event){copyProfileLink(event.currentTarget,node);});
@@ -552,11 +566,24 @@
     );
   }
   function editCv(profile) {
-    var data = profile.cv || {},
+    var node=context?.kind==='profile'&&context.root.querySelector('.community-profile'),ticket=generation,viewer=window.UserState?.uid;
+    if(window.ICADEMResumeEditor&&node&&profile.own&&profile.uid===viewer){
+      return window.ICADEMResumeEditor.open({container:node,profile:profile,
+        load:function(){return api('/profile');},
+        save:function(payload){return api('/profile',{method:'PATCH',body:payload});},
+        renderProfile:profileMarkup,
+        onBasic:function(saved){return editCvLegacy(saved,{basicOnly:true});},
+        onClose:function(){if(node.isConnected&&generation===ticket&&viewer===window.UserState?.uid&&!window.__sessionEnding)loadProfile(node,viewer);}
+      });
+    }
+    return editCvLegacy(profile);
+  }
+  function editCvLegacy(profile, options) {
+    var basicOnly=options?.basicOnly===true,data = profile.cv || {},
       form = document.createElement("form");
     form.className = "community-cv-editor";
     form.innerHTML =
-      '<p class="community-caption">Amplía tu presentación profesional. Tu nombre, fotografía, empresa y medios actuales se administran desde «Foto y tarjeta».</p><div class="community-editor-grid">' +
+      '<p class="community-caption">'+(basicOnly?'Actualiza tus datos básicos y la privacidad de tus contactos. La información de tu currículum se conserva.':'Amplía tu presentación profesional. Tu nombre, fotografía, empresa y medios actuales se administran desde «Foto y tarjeta».')+'</p><div class="community-editor-grid">' +
       input(
         "Profesión",
         "profesion",
@@ -571,21 +598,21 @@
       ) +
       input("Ciudad", "ciudad", data.ciudad || profile.ubicacion, 100) +
       "</div>" +
-      input(
+      (basicOnly?'':input(
         "Resumen profesional",
         "resumen",
         data.resumen || profile.bio,
         1200,
         true,
-      ) +
+      )) +
       input("Áreas de práctica", "areas", data.areas, 500, true) +
-      input(
+      (basicOnly?'':input(
         "Habilidades, separadas por comas",
         "habilidades",
         (data.habilidades || []).join(", "),
         630,
-      ) +
-      '<section class="community-editor-section"><h3>Experiencia</h3><div data-editor-experiencia></div><button type="button" class="community-secondary" data-add="experiencia">Agregar experiencia</button></section><section class="community-editor-section"><h3>Formación y certificaciones</h3><p class="community-fine">Incluye únicamente información real de tu trayectoria.</p><div data-editor-formacion></div><button type="button" class="community-secondary" data-add="formacion">Agregar formación</button></section><section class="community-editor-section"><h3>Privacidad de tus contactos</h3><p class="community-caption">Los contactos nunca se muestran a visitantes sin sesión. «VIP y conexiones» conserva el acceso por membresía; «Solo conexiones» requiere una solicitud aceptada.</p>' +
+      )) +
+      (basicOnly?'':'<section class="community-editor-section"><h3>Experiencia</h3><div data-editor-experiencia></div><button type="button" class="community-secondary" data-add="experiencia">Agregar experiencia</button></section><section class="community-editor-section"><h3>Formación y certificaciones</h3><p class="community-fine">Incluye únicamente información real de tu trayectoria.</p><div data-editor-formacion></div><button type="button" class="community-secondary" data-add="formacion">Agregar formación</button></section>')+'<section class="community-editor-section"><h3>Privacidad de tus contactos</h3><p class="community-caption">Los contactos nunca se muestran a visitantes sin sesión. «VIP y conexiones» conserva el acceso por membresía; «Solo conexiones» requiere una solicitud aceptada.</p>' +
       Object.keys(names)
         .map(function (key) {
           return (
@@ -651,7 +678,7 @@
       });
       parent.append(row);
     }
-    (data.experiencia || []).forEach(function (x) {
+    if(!basicOnly){(data.experiencia || []).forEach(function (x) {
       add("experiencia", x);
     });
     (data.formacion || []).forEach(function (x) {
@@ -661,7 +688,7 @@
       button.addEventListener("click", function () {
         add(button.dataset.add, {});
       });
-    });
+    });}
     var parent = document.querySelector('[data-modal-id="community-profile"]');
     if (parent) parent.inert = true;
     var modal = context.modal.open({
@@ -672,8 +699,8 @@
         }
       },
       id: "community-cv-editor",
-      title: "Tu perfil profesional",
-      subtitle: "Tu trayectoria, con tu propia voz",
+      title: basicOnly?"Datos básicos y contactos":"Tu perfil profesional",
+      subtitle: basicOnly?"Tu información profesional y su privacidad":"Tu trayectoria, con tu propia voz",
       size: "lg",
       body: form,
     });
@@ -689,17 +716,18 @@
       }
       var status = form.querySelector("[role=status]"),
         button = form.querySelector("[type=submit]"),
-        payload = { contactScopes: {}, experiencia: [], formacion: [] };
-      for (var key of [
+        payload = { contactScopes: {} };
+      var basicFields=[
         "profesion",
         "especialidad",
         "ciudad",
-        "resumen",
         "areas",
         "facebook",
-      ])
+      ];
+      if(!basicOnly){payload.experiencia=[];payload.formacion=[];basicFields.push('resumen');}
+      for (var key of basicFields)
         payload[key] = form.elements.namedItem(key).value;
-      payload.habilidades = form.elements
+      if(!basicOnly)payload.habilidades = form.elements
         .namedItem("habilidades")
         .value.split(",")
         .map(function (x) {
@@ -711,7 +739,7 @@
           "scope-" + key,
         ).value;
       });
-      form.querySelectorAll("[data-kind]").forEach(function (row) {
+      if(!basicOnly)form.querySelectorAll("[data-kind]").forEach(function (row) {
         var value = {};
         row.querySelectorAll("input,textarea").forEach(function (field) {
           value[field.name] = field.value;
