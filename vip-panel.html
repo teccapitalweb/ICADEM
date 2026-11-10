@@ -4054,6 +4054,8 @@ body.has-fomo .main{padding-top:18px}
 <link rel="stylesheet" href="css/icadem-support-premium.css?v=2">
 <link rel="stylesheet" href="css/icadem-directory.css?v=2">
 <script src="js/icadem-directory.js?v=1"></script>
+<link rel="stylesheet" href="css/icadem-community.css?v=1">
+<script src="js/icadem-community.js?v=1"></script>
 </head>
 <body style="visibility:hidden">
 
@@ -11180,7 +11182,7 @@ const Sections = (function(){
   // ═══════════════════════════════════════════════════════════════
   const SECTORES = ['Fiscal y Contable','Nómina y RH','Legal y Corporativo','Finanzas','Consultoría de Negocios','Marketing y Ventas','Tecnología','Educación','Otro'];
   let _dirUnsub = null;
-  window.__dirCleanup = function(){ try{ if(typeof _dirUnsub==='function'){ _dirUnsub(); _dirUnsub=null; } }catch(e){} };
+  window.__dirCleanup = function(){ window.ICADEMCommunity?.cleanup(); try{ if(typeof _dirUnsub==='function'){ _dirUnsub(); _dirUnsub=null; } }catch(e){} };
   window.__dirEditar = function(){ return dirEditarMiTarjeta(); };
   let _dirCards = [];
   let _dirFiltroSector = 'todos';
@@ -11434,6 +11436,7 @@ const Sections = (function(){
       dirPintar();
     }));
     if (puedeEditar) container.querySelector('#dir-mi-tarjeta').addEventListener('click', dirEditarMiTarjeta);
+    window.ICADEMCommunity?.attach(container.querySelector("[data-directory-refined]"),{modal:Modal,toast:Toast,editCard:dirEditarMiTarjeta,refresh:dirSuscribir,cards:()=>_dirCards});
     dirSuscribir();
   }
 
@@ -11477,6 +11480,13 @@ const Sections = (function(){
         }
         return;
       }
+    }
+    // Live sessions use the filtered API; the document store is owner/admin only.
+    if(!window.__isDemoMode){
+      const cached=dirLeerCacheSeguro();
+      if(cached.length){_dirCanViewContacts=false;_dirCards=cached;dirPintar();const count=document.getElementById('dir-result-count');if(count)count.textContent+=' · copia reciente';}
+      else dirMostrarErrorCarga();
+      return;
     }
     const fs = window.__fs;
     if (!fs || !fs.onSnapshot){ dirMostrarErrorCarga(); return; }
@@ -11601,9 +11611,11 @@ const Sections = (function(){
         dirAbrirCorreo(b.dataset.email);
       });
     });
+    window.ICADEMCommunity?.paintCards(grid);
   }
 
   function dirVerDetalle(id){
+    if(window.ICADEMCommunity)return window.ICADEMCommunity.openProfile(id);
     const c = _dirCards.find(x=>x.id===id); if(!c) return;
     const uid = window.UserState?.uid;
     const esMia = c.id===uid;
@@ -11869,10 +11881,11 @@ const Sections = (function(){
     const miColor = foroColorFor(window.UserState?.uid);
 
     container.innerHTML = `
-      <div class="fade-up foro-page--clean">
+      <div class="fade-up foro-page--clean" data-community-forum>
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Comunidad activa</span>
           <h1 class="sec-hero__title">Foro VIP</h1>
+          <p class="sec-hero__sub">Comparte experiencia. Encuentra nuevas perspectivas.</p>
         </div>
 
         <div class="foro-aviso">
@@ -11887,8 +11900,9 @@ const Sections = (function(){
             <textarea class="foro-composer__input" id="foro-text" placeholder="¿Qué caso traes hoy? Comparte un caso o haz una pregunta…" rows="2" maxlength="1500"></textarea>
             <div id="foro-img-preview" class="foro-img-preview" style="display:none;">
               <img id="foro-img-el" alt="adjunto">
-              <button id="foro-img-quitar" class="foro-img-quitar" title="Quitar">&times;</button>
+              <button id="foro-img-quitar" type="button" class="foro-img-quitar" aria-label="Quitar imagen" title="Quitar">&times;</button>
             </div>
+            <p class="community-image-status" id="foro-image-status" role="status" aria-live="polite"></p>
             <div class="foro-composer__actions">
               <div class="foro-composer__tools">
                 <button class="foro-composer__tool" id="foro-add-img" title="Adjuntar imagen"><svg class="ic"><use href="#i-image"/></svg> Imagen</button>
@@ -11910,7 +11924,7 @@ const Sections = (function(){
         </div>
         `}
 
-        <div class="foro-tabs">
+        <div class="foro-tabs" role="group" aria-label="Filtrar publicaciones">
           <button class="tab is-active" data-foro-tab="recientes">Recientes</button>
           <button class="tab" data-foro-tab="populares">Más reacciones</button>
           <button class="tab" data-foro-tab="mios">Mis publicaciones</button>
@@ -11932,17 +11946,20 @@ const Sections = (function(){
       fileInput.addEventListener('change', async (e)=>{
         const f = e.target.files[0]; if(!f) return;
         if (!f.type.startsWith('image/')) { Toast.error('Archivo inválido','Solo imágenes'); return; }
+        const send=container.querySelector('#foro-publicar'),status=container.querySelector('#foro-image-status');send.dataset.preparing='true';send.disabled=true;status.textContent='Preparando imagen…';
         try {
           _foroImg = await foroComprimirImagen(f);
           const pv = container.querySelector('#foro-img-preview');
           container.querySelector('#foro-img-el').src = _foroImg;
-          pv.style.display = 'block';
-        } catch(err){ console.error(err); Toast.error('No se pudo cargar la imagen',''); }
+          pv.style.display = 'block'; status.textContent='Imagen lista. Se guardará cuando publiques.';
+        } catch(err){ console.error(err); status.textContent='No pudimos leer esa imagen. Elige otro archivo.';Toast.error('No se pudo cargar la imagen',''); }
+        finally{delete send.dataset.preparing;window.ICADEMCommunity?.forumState(container);}
         fileInput.value = '';
       });
       container.querySelector('#foro-img-quitar').addEventListener('click', ()=>{
         _foroImg = null;
         container.querySelector('#foro-img-preview').style.display = 'none';
+        container.querySelector('#foro-image-status').textContent='';window.ICADEMCommunity?.forumState(container);
       });
       container.querySelector('#foro-publicar').addEventListener('click', ()=> foroPublicar(container));
     }
@@ -11957,6 +11974,7 @@ const Sections = (function(){
       });
     });
 
+    window.ICADEMCommunity?.enhanceForum(container);
     // Suscripción en tiempo real
     foroSuscribir();
   }
@@ -11992,7 +12010,7 @@ const Sections = (function(){
     else if (_foroFiltro==='mios') posts = posts.filter(p=>p.uid===uid);
 
     if (!posts.length){
-      list.innerHTML = `<div class="foro-empty">${_foroFiltro==='mios'?'Aún no has publicado nada. ¡Comparte algo con la comunidad!':'Todavía no hay publicaciones. Sé el primero en compartir.'}</div>`;
+      list.innerHTML = `<div class="foro-empty"><svg class="ic" aria-hidden="true"><use href="#i-messages"/></svg><strong>Un espacio para compartir experiencia</strong>${_foroFiltro==='mios'?'Aún no has publicado nada. ¡Comparte algo con la comunidad!':'Todavía no hay publicaciones. Sé el primero en compartir.'}</div>`;
       return;
     }
     const esAdmin = esAdminReal();
@@ -12013,8 +12031,8 @@ const Sections = (function(){
           ${p.texto?`<div class="post__content">${escapeHtml(p.texto).replace(/\n/g,'<br>')}</div>`:''}
           ${p.imagen?`<div class="post__img"><img src="${p.imagen}" alt="imagen" loading="lazy" data-lightbox="${p.id}"></div>`:''}
           <div class="post__footer">
-            <button class="post__btn ${liked?'is-liked':''}" data-like="${p.id}"><svg class="ic"><use href="#i-heart"/></svg><span>${p.likes||0}</span></button>
-            <button class="post__btn" data-toggle-com="${p.id}"><svg class="ic"><use href="#i-messages"/></svg><span>${p.comentariosCount||0}</span> respuestas</button>
+            <button class="post__btn ${liked?'is-liked':''}" aria-label="Me gusta" aria-pressed="${liked?'true':'false'}" data-like="${p.id}"><svg class="ic"><use href="#i-heart"/></svg><span>${p.likes||0}</span></button>
+            <button class="post__btn" aria-label="Ver respuestas" data-toggle-com="${p.id}"><svg class="ic"><use href="#i-messages"/></svg><span>${p.comentariosCount||0}</span> respuestas</button>
             <span class="post__expira" title="Se elimina en ${dias} día(s)">${dias} día${dias!==1?'s':''}</span>
           </div>
           <div class="post__comments" id="com-${p.id}" style="display:none;"></div>
@@ -12034,7 +12052,7 @@ const Sections = (function(){
     const contenido = (txt.value||'').trim();
     if (!contenido && !_foroImg){ Toast.error('Escribe algo','o adjunta una imagen'); return; }
     const btn = container.querySelector('#foro-publicar');
-    const orig = btn.innerHTML; btn.disabled = true; btn.textContent = 'Publicando…';
+    const orig = btn.innerHTML; btn.dataset.publishing='true'; btn.disabled = true; btn.textContent = 'Publicando…';
     try {
       if (!window.ICADEMPlatform?.createForumPost) throw new Error('El servicio del foro no está disponible.');
       await window.ICADEMPlatform.createForumPost({
@@ -12043,9 +12061,10 @@ const Sections = (function(){
       });
       txt.value = ''; container.querySelector('#foro-char').textContent = '0 / 1500';
       _foroImg = null; container.querySelector('#foro-img-preview').style.display = 'none';
+      container.querySelector('#foro-image-status').textContent='';
       Toast.success('Publicado','Tu mensaje ya está en el foro');
     } catch(e){ console.error(e); Toast.error('No se pudo publicar', e.message||'Intenta de nuevo'); }
-    finally { btn.disabled = false; btn.innerHTML = orig; }
+    finally { delete btn.dataset.publishing;btn.disabled = false; btn.innerHTML = orig;window.ICADEMCommunity?.forumState(container); }
   }
 
   async function foroToggleLike(postId){
