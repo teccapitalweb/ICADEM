@@ -9,7 +9,7 @@ const fixture = () => ({ registered:false, config:{...config} });
 function app(options = {}) {
   const stored = new Map(), session = new Map(), timers = new Map(), events = {}, windowEvents = {}, roots = {}, dialogs = [], queued = [], navigated = [];
   let timerId = 0, home = true;
-  for (const id of ['ambassador-home-promo','ambassador-profile-promo','ambassador-topbar-promo']) roots[id] = {hidden:true,innerHTML:'',setAttribute(){},replaceChildren(){this.innerHTML='';}};
+  for (const id of ['ambassador-home-promo','ambassador-profile-promo','ambassador-topbar-promo']) roots[id] = {hidden:true,innerHTML:'',attributes:{},setAttribute(name,value){this.attributes[name]=value;},replaceChildren(){this.innerHTML='';}};
   const focus = {isConnected:true,focus(){this.restored=true;}};
   const document = { readyState:'loading', visibilityState:'visible', activeElement:focus,
     body:{classList:{contains:()=>home},append(root){dialogs.push(root);}},
@@ -53,6 +53,36 @@ test('copy uses server amounts, validation, eligible plans and withdrawal condit
 test('existing ambassadors get a dashboard entry instead of an enrollment invitation', () => {
   const html=app().cardMarkup({...fixture(),registered:true,ambassador:{active:true}},'home');
   assert.match(html,/Ir a mi panel/);assert.doesNotMatch(html,/Quiero ser embajador|Para tu invitado/);
+});
+test('profile banner reuses the server category and commission in its compact presentation', async () => {
+  for(const [category,amount,label] of [['vip',15000,'EMBAJADOR VIP'],['free',10000,'EMBAJADOR']]) {
+    const data={...fixture(),registered:true,category,ambassador:{active:true}};
+    const ui=app({load:async()=>data});await ui.refresh();
+    const profile=ui.roots['ambassador-profile-promo'];
+    assert.equal(profile.attributes['data-amb-category'],category);
+    assert.match(profile.innerHTML,new RegExp(label));assert.match(profile.innerHTML,/Tus recomendaciones generan oportunidades\./);
+    assert.ok(profile.innerHTML.includes(`Gana $${amount/100} MXN por cada compra elegible.`));
+    assert.match(profile.innerHTML,/data-amb-promo="panel">Ir a mi panel/);
+    assert.match(profile.innerHTML,/#i-crown/);assert.match(profile.innerHTML,/amb-promo-profile-mark/);
+    assert.doesNotMatch(profile.innerHTML,/amb-promo-(?:offer|symbol|coin|caption)|Tu comunidad crece contigo/);
+    assert.match(ui.roots['ambassador-home-promo'].innerHTML,/Tus recomendaciones ya tienen su espacio\./);
+    assert.match(ui.roots['ambassador-home-promo'].innerHTML,/amb-promo-symbol/);
+  }
+  const custom=app().cardMarkup({...fixture(),registered:true,category:'vip',config:{...config,directCommissionVipCents:17500},ambassador:{active:true}},'profile');
+  assert.match(custom,/Gana \$175 MXN/);assert.doesNotMatch(custom,/\$150/);
+});
+test('profile preserves paused and unenrolled actions without promising an available commission', async () => {
+  const ui=app();
+  const paused=ui.cardMarkup({...fixture(),registered:true,category:'vip',ambassador:{active:false}},'profile');
+  assert.match(paused,/Tu perfil de embajador está en pausa/);assert.match(paused,/Entra a tu panel para consultar su estado/);
+  assert.match(paused,/data-amb-promo="panel">Ir a mi panel/);assert.doesNotMatch(paused,/Gana \$/);
+  const unregistered=ui.cardMarkup({...fixture(),category:'free'},'profile');
+  assert.match(unregistered,/data-amb-promo="info">Quiero ser embajador/);assert.match(unregistered,/Cómo funciona/);
+  const unknown=ui.cardMarkup({...fixture(),config:{...config,directCommissionFreeCents:undefined}},'profile');
+  assert.doesNotMatch(unknown,/\$NaN|\$100|\$150/);
+  ui.setHome(false);ui.init();await new Promise(resolve=>setImmediate(resolve));
+  ui.events.click({target:{closest:()=>({dataset:{ambPromo:'panel'}})}});
+  assert.deepEqual(ui.navigated,['embajadores']);
 });
 test('failed loading hides both cards, and stale account responses cannot repaint them', async () => {
   const failed=app({load:async()=>{throw Error('offline');}});await failed.refresh();

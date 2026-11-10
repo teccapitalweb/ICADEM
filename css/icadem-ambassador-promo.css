@@ -198,3 +198,39 @@ body:has(.amb-promo-dialog[open]){overflow:hidden}
 }
 @media(max-width:360px){.amb-promo-indicator__action{font-size:9px;gap:4px;padding-left:0}.amb-promo-indicator__copy strong{font-size:11px}.amb-promo-indicator__copy small{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.amb-promo-indicator{transition:none}}
+
+/* Profile invitation only: compact gold card; shared discovery cards stay intact. */
+#ambassador-profile-promo{--amb-ink:#342719;--amb-muted:#63491f;--amb-brown:#7c561b;display:block;margin:24px 0;padding:22px 26px;border:1px solid #e6cd98;border-radius:16px;background:#faedcc;color:#342719;box-shadow:0 4px 16px #7c561b0a}
+#ambassador-profile-promo[data-amb-category="vip"]{background:#f5bf47;border-color:#e5ad39}
+#ambassador-profile-promo::before{content:none}
+#ambassador-profile-promo .amb-promo-copy{max-width:none;min-width:0}
+#ambassador-profile-promo .amb-promo-eyebrow{padding:0;border:0;border-radius:0;background:transparent;color:#7c561b;font-size:9px;line-height:1.5;letter-spacing:1.1px}
+#ambassador-profile-promo .amb-promo-eyebrow .ic{width:14px;height:14px}
+#ambassador-profile-promo .amb-promo-copy h2{margin:9px 28px 6px 0;color:#342719;font:650 22px/1.25 Inter,system-ui,sans-serif;letter-spacing:-.55px;text-wrap:initial}
+#ambassador-profile-promo .amb-promo-copy>p{max-width:none;margin:0;color:#63491f;font-size:12px;line-height:1.6}
+#ambassador-profile-promo .amb-promo-actions{margin-top:14px;gap:8px}
+#ambassador-profile-promo .amb-promo-primary{min-height:42px;padding:10px 15px;gap:18px;border:1px solid #ffffff;background:#fff;color:#342719;font-size:11px;font-weight:650;border-radius:10px;box-shadow:0 2px 5px #7c561b08}
+#ambassador-profile-promo .amb-promo-primary .ic{width:16px;height:16px;padding:0;border-radius:0;background:transparent}
+#ambassador-profile-promo .amb-promo-primary:hover{background:#fffaf0;border-color:#fffaf0;box-shadow:0 4px 10px #7c561b14;transform:translateY(-1px)}
+#ambassador-profile-promo .amb-promo-primary:hover .ic{transform:translateX(2px)}
+#ambassador-profile-promo .amb-promo-secondary{min-height:42px;color:#63491f;font-size:11px;padding:9px 12px}
+#ambassador-profile-promo .amb-promo-secondary:hover{background:#ffffff40;color:#342719}
+#ambassador-profile-promo :is(button,a):focus-visible{outline:3px solid #7c561b;outline-offset:3px}
+#ambassador-profile-promo .amb-promo-profile-mark{position:absolute;top:21px;right:24px;width:19px;height:19px;color:#7c561b;pointer-events:none}
+#ambassador-profile-promo .amb-promo-profile-mark svg{display:block;width:100%;height:100%}
+@media(max-width:480px){
+ #ambassador-profile-promo{padding:18px;margin:22px 0}
+ #ambassador-profile-promo .amb-promo-copy h2{font-size:20px;letter-spacing:-.4px;margin-top:9px;margin-right:18px}
+ #ambassador-profile-promo .amb-promo-eyebrow{font-size:8px}
+ #ambassador-profile-promo .amb-promo-actions{gap:6px}
+ #ambassador-profile-promo .amb-promo-primary{width:100%;min-height:44px;justify-content:center}
+ #ambassador-profile-promo .amb-promo-secondary{min-height:40px;padding:6px 0}
+ #ambassador-profile-promo .amb-promo-profile-mark{top:17px;right:16px;width:17px;height:17px}
+}
+@media(max-width:360px){
+ #ambassador-profile-promo{padding:14px}
+ #ambassador-profile-promo .amb-promo-copy h2{font-size:18px;line-height:1.25;margin:8px 0 5px}
+ #ambassador-profile-promo .amb-promo-copy>p{font-size:11.5px;line-height:1.5}
+ #ambassador-profile-promo .amb-promo-actions{margin-top:12px}
+ #ambassador-profile-promo .amb-promo-profile-mark{top:13px;right:12px}
+}
