@@ -49,7 +49,7 @@ function app(server) {
     setInterval: (fn, duration) => { intervals.set(++timerId, { fn, duration }); return timerId; }, clearInterval: id => intervals.delete(id),
     requestAnimationFrame: fn => fn(), localStorage: { getItem: () => null, setItem() {} },
     fetch: (url, config) => new Promise((resolve, reject) => {
-      const item = { path: new URL(url).pathname, uid: config.headers.Authorization?.slice('Bearer token:'.length), reject,
+      const item = { path: new URL(url).pathname, uid: config.headers.Authorization?.slice('Bearer token:'.length), body:config.body?JSON.parse(config.body):null, reject,
         respond: (data, status = 200) => resolve({ ok: status >= 200 && status < 300, status, json: async () => copy(data) }) };
       requests.push(item);
       if (server) Promise.resolve().then(() => server(item)).then(data => item.respond(data), reject);
@@ -186,3 +186,38 @@ test('invalid or wrong-account snapshots cannot reset confirmed balance and part
   assert.equal(a.window.UserState.credits.balance, 150);
   a.api.syncCreditSnapshot({ balance: 175 }); assert.equal(a.window.UserState.credits.lifetimeEarned, 160); assert.equal(a.window.UserState.credits.lifetimeSpent, 10);
 });
+
+ test('canonical custom photographs win over provider refreshes and synchronize across independent devices',()=>{
+  const payload={profile:{uid:'a',displayName:'Alice',photoURL:'https://images.test/custom-v2.jpg',authPhotoURL:'https://googleusercontent.com/provider.jpg',photoSource:'custom',photoVersion:'2026-11-10T19:00:00Z'},directory:{uid:'a',foto:'https://images.test/custom-v2.jpg'},membership:{active:true}};
+  for(const device of[app(),app()]){device.authenticate('a');device.window.UserState.authPhotoURL='https://googleusercontent.com/provider-old.jpg';device.api.applyIdentity(payload);
+    assert.equal(device.window.UserState.photoURL,payload.profile.photoURL);assert.equal(device.window.UserState.photoSource,'custom');assert.equal(device.window.UserState.photoVersion,payload.profile.photoVersion);
+    assert.equal(device.window.UserState.authPhotoURL,payload.profile.authPhotoURL);assert.equal(device.events.at(-1).type,'icadem:identity-ready');
+  }
+ });
+
+ test('a confirmed empty canonical photo clears old images rather than restoring Google or directory snapshots',()=>{
+  const a=app();a.authenticate('a');a.window.UserState.photoURL='https://images.test/old.jpg';a.window.UserState.authPhotoURL='https://googleusercontent.com/provider.jpg';
+  a.api.applyIdentity({profile:{uid:'a',displayName:'Alice',photoURL:'',photoSource:'default'},directory:{uid:'a',foto:'https://images.test/stale.jpg'}});
+  assert.equal(a.window.UserState.photoURL,'');assert.equal(a.window.UserState.photoSource,'default');
+ });
+
+ test('only an explicit Google preference is sent, and the active photo changes after server confirmation',async()=>{
+  const a=app();a.authenticate('a');a.window.UserState.photoURL='https://images.test/custom.jpg';a.window.UserState.photoSource='custom';a.window.__auth.currentUser.providerData=[{providerId:'google.com',photoURL:'https://googleusercontent.com/new.jpg'}];
+  const automatic=a.api.syncIdentity(true,{progress:false});await flush();assert.equal(a.requests.at(-1).body.photoPreference,undefined);assert.equal(a.window.UserState.photoURL,'https://images.test/custom.jpg');
+  a.requests.at(-1).respond({profile:{uid:'a',photoURL:'https://images.test/custom.jpg',photoSource:'custom'}});await automatic;
+  const explicit=a.api.syncIdentity(true,{photoPreference:'google',progress:false});await flush();assert.equal(a.requests.at(-1).body.photoPreference,'google');assert.equal(a.window.UserState.photoSource,'custom');
+  a.requests.at(-1).respond({profile:{uid:'a',photoURL:'https://googleusercontent.com/new.jpg',photoSource:'google'}});await explicit;
+  assert.equal(a.window.UserState.photoURL,'https://googleusercontent.com/new.jpg');assert.equal(a.window.UserState.photoSource,'google');
+  const failed=a.api.syncIdentity(true,{photoPreference:'google',progress:false});await flush();a.requests.at(-1).respond({error:'No disponible'},503);await failed;
+  assert.equal(a.window.UserState.photoURL,'https://googleusercontent.com/new.jpg');
+ });
+
+ test('passive identity refresh cannot supersede an explicit Google choice while its acknowledgement is pending',async()=>{
+  const a=app();a.authenticate('a');a.window.UserState.photoURL='https://images.test/custom.jpg';
+  const older=a.api.syncIdentity(true,{progress:false});await flush();const old=a.requests.at(-1);
+  const selection=a.api.syncIdentity(true,{photoPreference:'google',progress:false});await flush();const selected=a.requests.at(-1);
+  const automatic=a.api.syncIdentity(true,{progress:false});await flush();assert.equal(a.requests.length,2);
+  selected.respond({profile:{uid:'a',photoURL:'https://googleusercontent.com/confirmed.jpg',photoSource:'google'}});await selection;await automatic;
+  old.respond({profile:{uid:'a',photoURL:'https://images.test/custom.jpg',photoSource:'custom'}});await older;
+  assert.equal(a.window.UserState.photoURL,'https://googleusercontent.com/confirmed.jpg');assert.equal(a.window.UserState.photoSource,'google');
+ });

@@ -235,7 +235,9 @@
     state.nombre = profile.displayName || state.nombre;
     state.displayName = state.nombre;
     state.authPhotoURL = profile.authPhotoURL || state.authPhotoURL || '';
-    state.photoURL = state.authPhotoURL || profile.photoURL || directory.foto || state.photoURL || '';
+    state.photoURL = typeof profile.photoURL === 'string' ? profile.photoURL : directory.foto || '';
+    state.photoSource = profile.photoSource || 'default';
+    state.photoVersion = profile.photoVersion || '';
     state.iniciales = directory.iniciales || initials(state.nombre);
     state.providerIds = profile.providerIds || [];
     state.customName = profile.customName || state.customName || '';
@@ -247,7 +249,7 @@
     state.theme = profile.theme === 'night' || profile.theme === 'day' ? profile.theme : '';
     state.identityReady = true;
     state.directoryProfile = directory;
-    window.__refreshAvatarCache?.();
+    window.__refreshAvatarCache?.(state.photoVersion);
     if (payload.membership && state.modo !== 'invitado') {
       state.modo = payload.membership.active ? 'vip' : 'sin-membresia';
       state.plan = payload.membership.active ? (payload.membership.plan || state.plan || 'mensual') : null;
@@ -294,11 +296,14 @@
   async function syncIdentity(force, options) {
     const scope = platformSession();
     if (window.__isDemoMode || !currentPlatformSession(scope)) return null;
+    // A passive refresh must not supersede an explicit photo selection while
+    // the server is confirming it. All readers receive that confirmed identity.
+    if (identityPromise?.photoPreference === 'google' && currentPlatformSession(identityPromise.scope)) return identityPromise.promise;
     if (!force && identityPromise && currentPlatformSession(identityPromise.scope)) return identityPromise.promise;
     if (!force && identityCache && currentPlatformSession(identityCache.scope)) return identityCache.data;
     const googleProvider = (platformUser()?.providerData || []).find(provider => provider.providerId === 'google.com');
-    const entry = { scope, sequence: ++identitySequence, creditTicket: beginCreditRead(scope) };
-    entry.promise = request('/api/identity/sync', { method: 'POST', body: { googlePhotoURL: googleProvider?.photoURL || '' } })
+    const entry = { scope, sequence: ++identitySequence, creditTicket: beginCreditRead(scope), photoPreference: options?.photoPreference === 'google' ? 'google' : '' };
+    entry.promise = request('/api/identity/sync', { method: 'POST', body: { googlePhotoURL: googleProvider?.photoURL || '', ...(options?.photoPreference === 'google' ? { photoPreference:'google' } : {}) } })
       .then(async data => {
         if (!currentPlatformSession(scope)) return null;
         if (entry.sequence !== identitySequence) return identityPromise?.promise || identityCache?.data || null;

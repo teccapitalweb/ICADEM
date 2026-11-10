@@ -1,8 +1,9 @@
 /* Navigation state only. No profiles, contacts or membership data are cached. */
 (function () {
   'use strict';
-  var SECTION='directorio-perfil', memory=null, activeSection='', restore=false, revision=0;
+  var SECTION='directorio-perfil', memory=null, forumMemory=null, activeSection='', restore=false, restoreForum=false, revision=0;
   var KEY='icadem:directory-return:v1:', MAX_AGE=4*60*60*1000;
+  var FORUM_KEY='icadem:forum-return:v1:';
   function viewer(){return window.UserState?.uid||window.__currentUser?.uid||'';}
   function validUid(uid){return typeof uid==='string'&&/^[A-Za-z0-9_-]{1,128}$/.test(uid);}
   function currentProfileId(){try{return new URL(location.href).searchParams.get('profesional')||'';}catch(_){return '';}}
@@ -29,9 +30,21 @@
     return {search:String(value.search||'').slice(0,300),sector:String(value.sector||'todos').slice(0,100),tier:value.tier==='vip'?'vip':'todos',
       tab:['directory','requests','connections'].includes(value.tab)?value.tab:'directory',scroll:value.scroll||{}};
   }
+  function captureForum(){
+    var uid=viewer(),root=document.querySelector('[data-community-forum]');if(!uid||!root)return;
+    forumMemory={uid:uid,at:Date.now(),filter:root.querySelector('[data-foro-tab][aria-pressed="true"]')?.dataset.foroTab||'recientes',scroll:scrollPosition()};
+    try{sessionStorage.setItem(FORUM_KEY+uid,JSON.stringify(forumMemory));}catch(_){}
+  }
+  function savedForum(){
+    var uid=viewer(),value=forumMemory;if(!uid)return null;
+    if(!value||value.uid!==uid){try{value=JSON.parse(sessionStorage.getItem(FORUM_KEY+uid)||'null');}catch(_){value=null;}}
+    if(!value||value.uid!==uid||Date.now()-value.at>MAX_AGE||Date.now()<value.at)return null;
+    return {filter:['recientes','populares','mios'].includes(value.filter)?value.filter:'recientes',scroll:value.scroll||{}};
+  }
   function prepare(section,options){
     options=options||{};revision++;
     if(activeSection==='directorio'&&section===SECTION)capture();
+    if(activeSection==='foro'&&section===SECTION)captureForum();
     var url=new URL(location.href),state=Object.assign({},history.state||{}),previous=activeSection;
     if(section===SECTION){
       var uid=options.profileUid===undefined?currentProfileId():options.profileUid;
@@ -39,13 +52,14 @@
       if(validUid(uid))url.searchParams.set('profesional',uid);else url.searchParams.delete('profesional');
       if(!options.reemplazar){
         var prior=state.icademProfessional;
-        state.icademProfessional=previous==='directorio'?{viewer:viewer(),depth:1}:
-          previous===SECTION&&prior?.viewer===viewer()?{viewer:viewer(),depth:Math.min(20,prior.depth+1)}:null;
+        state.icademProfessional=previous==='directorio'?{viewer:viewer(),depth:1}:previous==='foro'?{viewer:viewer(),depth:1,origin:'foro'}:
+          previous===SECTION&&prior?.viewer===viewer()?Object.assign({viewer:viewer(),depth:Math.min(20,prior.depth+1)},prior.origin==='foro'?{origin:'foro'}:{}):null;
       }
     }else{url.searchParams.delete('profesional');delete state.icademProfessional;}
     restore=section==='directorio'&&previous===SECTION&&Boolean(saved());
+    restoreForum=section==='foro'&&previous===SECTION&&Boolean(savedForum());
     activeSection=section;url.hash=section;
-    return {url:url.pathname+url.search+url.hash,historyState:state,restoreDirectory:restore};
+    return {url:url.pathname+url.search+url.hash,historyState:state,restoreDirectory:restore||restoreForum};
   }
   function directoryState(){return restore?saved():null;}
   function directoryReady(root,readyTab){
@@ -63,17 +77,29 @@
     });
   }
   function openProfile(uid){if(!validUid(uid))return false;window.navigateToSection?.(SECTION,{profileUid:uid});return true;}
+  function forumState(){return restoreForum?savedForum():null;}
+  function forumReady(root){
+    if(!restoreForum||activeSection!=='foro'||!root?.isConnected)return;
+    var state=savedForum(),run=revision;if(!state)return;
+    requestAnimationFrame(function(){
+      if(run!==revision||!restoreForum||!root.isConnected)return;restoreForum=false;
+      var position=state.scroll,elements={document:document.documentElement,body:document.body,scrolling:document.scrollingElement,main:document.querySelector('main.main'),dynamic:document.getElementById('dynamic-section')};
+      Object.entries(elements).forEach(function(entry){if(entry[1])entry[1].scrollTop=Math.max(0,Number(position[entry[0]])||0);});
+      window.scrollTo({top:Math.max(0,Number(position.window)||0),left:0,behavior:'instant'});
+    });
+  }
+  function backLabel(){return history.state?.icademProfessional?.viewer===viewer()&&history.state.icademProfessional.origin==='foro'?'Volver al Foro VIP':'Volver al directorio';}
   function backToDirectory(){
     var source=history.state?.icademProfessional;
     if(source?.viewer===viewer()&&Number.isInteger(source.depth)&&source.depth>=1&&source.depth<=20&&history.length>source.depth)history.go(-source.depth);
-    else window.navigateToSection?.('directorio',{reemplazar:true});
+    else window.navigateToSection?.(source?.viewer===viewer()&&source.origin==='foro'?'foro':'directorio',{reemplazar:true});
   }
   function reset(){
-    revision++;restore=false;activeSection='';memory=null;
-    try{if(viewer())sessionStorage.removeItem(KEY+viewer());}catch(_){}
+    revision++;restore=false;restoreForum=false;activeSection='';memory=null;forumMemory=null;
+    try{if(viewer()){sessionStorage.removeItem(KEY+viewer());sessionStorage.removeItem(FORUM_KEY+viewer());}}catch(_){}
   }
   document.addEventListener('icadem:session-ending',reset);
-  document.addEventListener('icadem:user-ready',function(){if(memory&&memory.uid!==viewer())reset();});
+  document.addEventListener('icadem:user-ready',function(){if(memory&&memory.uid!==viewer()||forumMemory&&forumMemory.uid!==viewer())reset();});
   window.ICADEMProfessionalNavigation={validUid:validUid,currentProfileId:currentProfileId,profileHref:profileHref,prepare:prepare,
-    directoryState:directoryState,directoryReady:directoryReady,openProfile:openProfile,backToDirectory:backToDirectory};
+    directoryState:directoryState,directoryReady:directoryReady,forumState:forumState,forumReady:forumReady,backLabel:backLabel,openProfile:openProfile,backToDirectory:backToDirectory};
 })();

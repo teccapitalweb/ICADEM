@@ -2,6 +2,8 @@
 (function(){
   'use strict';
   var GOLD='#E9BC43',BLUE='#244B64',LEGACY='#173b56';
+  function colorValue(value,fallback){var color=String(value||''),backup=String(fallback||GOLD);return /^#[0-9a-f]{6}$/i.test(color)?color:/^#[0-9a-f]{6}$/i.test(backup)?backup:GOLD;}
+  function palette(card){return{mode:'custom-hex',defaultVip:GOLD,defaultFree:BLUE,legacy:LEGACY,selected:appearance(card||{},true).color,colors:[{value:GOLD,label:'Dorado VIP'},{value:BLUE,label:'Azul institucional'}]};}
   function safeUrl(value){var raw=String(value||'');return /^(https:\/\/|assets\/|\.\/|\/(?!\/))/i.test(raw)&&!/[\u0000-\u001f]/.test(raw)?raw:'';}
   function appearance(card,vip){var color=String(card.portadaColor||'');return{color:vip&&/^#[0-9a-f]{6}$/i.test(color)&&(card.portadaColorPersonalizado===true||color.toLowerCase()!==LEGACY)?color:vip?GOLD:BLUE,image:vip?safeUrl(card.portadaUrl):''};}
   function cropRect(width,height,zoom,x,y){var w=Math.min(width,height*4)/Math.max(1,Math.min(3,Number(zoom)||1)),h=w/4;return{x:(width-w)*Math.max(0,Math.min(100,Number(x)))/100,y:(height-h)*Math.max(0,Math.min(100,Number(y)))/100,width:w,height:h};}
@@ -35,5 +37,5 @@
     paint();
     return{ready:function(){if(reading||!crop.hidden){message('Confirma o cancela el encuadre antes de guardar.',true);return false;}return true;},payload:function(){var p={};if(changed){if(reset)p.resetCoverColor=true;else p.portadaColor=color.value;}if(pending===null)p.removeCover=true;else if(typeof pending==='string')p.coverDataUrl=pending;return p;},saving:function(active){progress.hidden=!active;if(active)message(pending?'Subiendo portada y guardando perfil…':'Guardando perfil…');root.querySelectorAll('button,input').forEach(function(control){control.disabled=active;});if(!active)paint();},error:function(text){message(text||'No pudimos guardar la portada. Puedes volver a intentarlo.',true);}};
   }
-  window.ICADEMDirectory={appearance:appearance,cropRect:cropRect,editorMarkup:editorMarkup,bindEditor:bindEditor};
+  window.ICADEMDirectory={appearance:appearance,palette:palette,colorValue:colorValue,cropRect:cropRect,editorMarkup:editorMarkup,bindEditor:bindEditor};
 })();
