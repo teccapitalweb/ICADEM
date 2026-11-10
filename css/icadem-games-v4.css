@@ -748,7 +748,8 @@
 @media (prefers-reduced-motion:reduce) { .credit-vault__gem--bag img { animation:none; } }
 
 /* ===== Celular: bloques más compactos y con menos texto ===== */
-.retos-access-note{display:flex;align-items:center;gap:8px}
+.retos-access-note:not([hidden]){display:flex;align-items:center;gap:8px}
+.retos-page .retos-access-note[hidden]{display:none}
 .retos-access-note::before{content:'';flex:none;width:7px;height:7px;border-radius:50%;background:#d39a1c;box-shadow:0 0 0 4px rgba(227,166,42,.18)}
 @media (max-width:620px){
   /* Retos: encabezado */
