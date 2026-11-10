@@ -60,22 +60,24 @@ test('profile banner reuses the server category and commission in its compact pr
     const ui=app({load:async()=>data});await ui.refresh();
     const profile=ui.roots['ambassador-profile-promo'];
     assert.equal(profile.attributes['data-amb-category'],category);
-    assert.match(profile.innerHTML,new RegExp(label));assert.match(profile.innerHTML,/Tus recomendaciones generan oportunidades\./);
-    assert.ok(profile.innerHTML.includes(`Gana $${amount/100} MXN por cada compra elegible.`));
-    assert.match(profile.innerHTML,/data-amb-promo="panel">Ir a mi panel/);
-    assert.match(profile.innerHTML,/#i-crown/);assert.match(profile.innerHTML,/amb-promo-profile-mark/);
+    assert.match(profile.innerHTML,new RegExp(label));assert.match(profile.innerHTML,/Gana dinero recomendando ICADEM\./);
+    const visibleText=profile.innerHTML.replace(/<[^>]*>/g,' ').replace(/\s+/g,' ');
+    assert.ok(visibleText.includes(`$${amount/100} MXN por compra elegible`));
+    assert.match(profile.innerHTML,/data-amb-promo="panel">Ver mi código y compartir/);
+    assert.match(profile.innerHTML,/#i-crown/);assert.match(profile.innerHTML,/amb-promo-profile-art/);
+    assert.match(profile.innerHTML,/viewBox="0 0 96 88"/);assert.doesNotMatch(profile.innerHTML,/<img|https?:/);
     assert.doesNotMatch(profile.innerHTML,/amb-promo-(?:offer|symbol|coin|caption)|Tu comunidad crece contigo/);
     assert.match(ui.roots['ambassador-home-promo'].innerHTML,/Tus recomendaciones ya tienen su espacio\./);
     assert.match(ui.roots['ambassador-home-promo'].innerHTML,/amb-promo-symbol/);
   }
   const custom=app().cardMarkup({...fixture(),registered:true,category:'vip',config:{...config,directCommissionVipCents:17500},ambassador:{active:true}},'profile');
-  assert.match(custom,/Gana \$175 MXN/);assert.doesNotMatch(custom,/\$150/);
+  assert.match(custom,/<strong>\$175 <small>MXN/);assert.doesNotMatch(custom,/\$150/);
 });
 test('profile preserves paused and unenrolled actions without promising an available commission', async () => {
   const ui=app();
   const paused=ui.cardMarkup({...fixture(),registered:true,category:'vip',ambassador:{active:false}},'profile');
   assert.match(paused,/Tu perfil de embajador está en pausa/);assert.match(paused,/Entra a tu panel para consultar su estado/);
-  assert.match(paused,/data-amb-promo="panel">Ir a mi panel/);assert.doesNotMatch(paused,/Gana \$/);
+  assert.match(paused,/data-amb-promo="panel">Ir a mi panel/);assert.doesNotMatch(paused,/amb-promo-profile-reward|Gana dinero/);
   const unregistered=ui.cardMarkup({...fixture(),category:'free'},'profile');
   assert.match(unregistered,/data-amb-promo="info">Quiero ser embajador/);assert.match(unregistered,/Cómo funciona/);
   const unknown=ui.cardMarkup({...fixture(),config:{...config,directCommissionFreeCents:undefined}},'profile');
