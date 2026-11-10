@@ -10724,7 +10724,7 @@ const Sections = (function(){
     return `<header class="live-heading"><div><span class="live-eyebrow">ENCUENTROS ICADEM</span><h1>Clases en vivo</h1><p>Conecta con especialistas, amplía tu perspectiva y vuelve a las sesiones que te interesan.</p></div><span class="live-heading__mark"><svg class="ic" aria-hidden="true"><use href="#i-broadcast"/></svg>Online</span></header>`;
   }
   function renderLiveStandby(hasArchive){
-    return `<section class="live-standby" aria-label="Próximos encuentros"><div class="live-standby__copy"><span class="live-standby__label"><span></span>EL APRENDIZAJE CONTINÚA</span><h2>Un espacio para conectar.<br><span>Más ideas para crecer.</span></h2><p>Estamos preparando las próximas transmisiones. Aquí encontrarás las fechas y el acceso a cada encuentro.</p>${hasArchive?`<button class="btn live-archive-link" data-wtab="grabadas" aria-pressed="${webState.tab==='grabadas'}">Explorar sesiones anteriores<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>`:`<span class="live-standby__note">Aún no hay clases programadas</span>`}</div><div class="live-signal" aria-hidden="true"><i></i><i></i><i></i><div class="live-signal__core"><svg class="ic"><use href="#i-broadcast"/></svg></div><span>AULA ICADEM</span></div></section>`;
+    return `<section class="live-standby" aria-label="Próximos encuentros"><div class="live-standby__copy"><span class="live-standby__label"><span></span>CLASES EN VIVO ICADEM</span><h2>Conecta y sigue aprendiendo.</h2><p>Consulta próximas sesiones y accede a las grabaciones disponibles.</p>${hasArchive?`<button class="btn live-archive-link" data-wtab="grabadas" aria-pressed="${webState.tab==='grabadas'}">Explorar sesiones anteriores<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>`:`<span class="live-standby__note">Aún no hay clases programadas</span>`}</div><div class="live-signal" aria-hidden="true"><i></i><i></i><i></i><div class="live-signal__core"><svg class="ic"><use href="#i-broadcast"/></svg></div><span>AULA ICADEM</span></div></section>`;
   }
 
   async function renderWebinars(container){
@@ -22301,7 +22301,7 @@ h1, h2, h3, h4{ color: var(--text); }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
   <link rel="stylesheet" href="css/vip-banner.css?v=2">
-  <link rel="stylesheet" href="css/icadem-games-v4.css?v=11">
+  <link rel="stylesheet" href="css/icadem-games-v4.css?v=12">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){
@@ -22462,7 +22462,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
 <link rel="stylesheet" href="css/icadem-courses.css?v=4">
-<link rel="stylesheet" href="css/icadem-live.css?v=1">
+<link rel="stylesheet" href="css/icadem-live.css?v=2">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <link rel="stylesheet" href="css/icadem-course-detail.css?v=4">
