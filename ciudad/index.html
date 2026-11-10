@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0f1f3d">
+<meta name="robots" content="noindex">
+<title>Ciudad ICADEM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/ciudad.css?v=1">
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="ci-map" viewBox="0 0 24 24"><path d="M3 7l6-3 6 3 6-3v13l-6 3-6-3-6 3z"/><path d="M9 4v13M15 7v13"/></symbol>
+    <symbol id="ci-pass" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><circle cx="12" cy="10" r="3"/><path d="M9 16h6"/></symbol>
+    <symbol id="ci-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h0a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v0a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+    <symbol id="ci-exit" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></symbol>
+    <symbol id="ci-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M9.5 9.5h3.2a1.8 1.8 0 0 1 0 3.6H11a1.8 1.8 0 0 0 0 3.6h3.5" /></symbol>
+    <symbol id="ci-check" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></symbol>
+    <symbol id="ci-hand" viewBox="0 0 24 24"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12M11 11V4.5a1.5 1.5 0 0 1 3 0V12M14 11.5V6.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-1a6 6 0 0 1-5-2.7L3.3 14a1.5 1.5 0 0 1 2.6-1.5L8 15"/></symbol>
+    <symbol id="ci-jump" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></symbol>
+    <symbol id="ci-run" viewBox="0 0 24 24"><path d="M13 4l-2 6 4 2-2 8M11 10l-5 2M15 12l4-1"/><circle cx="15" cy="4" r="1.6"/></symbol>
+    <symbol id="ci-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.800 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+    <symbol id="ci-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="ci-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="ci-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></symbol>
+  </defs>
+</svg>
+
+<div id="game" class="game">
+  <canvas id="stage" class="stage" tabindex="0" aria-label="Ciudad ICADEM, mundo 3D"></canvas>
+
+  <!-- HUD -->
+  <div class="hud" id="hud" hidden>
+    <div class="hud__left">
+      <button class="chip player" id="btn-player" type="button" aria-label="Abrir pasaporte">
+        <span class="player__face" id="player-face" aria-hidden="true"></span>
+        <span class="player__copy"><strong id="player-name">Explorador</strong><small>Nivel <b id="player-level">1</b></small><i class="xp"><i id="player-xp"></i></i></span>
+      </button>
+      <section class="tracker" id="tracker" hidden>
+        <button class="tracker__head" id="tracker-toggle" type="button" aria-expanded="true"><span><small>Misión activa</small><strong id="tracker-title"></strong></span><em id="tracker-badge"></em></button>
+        <ol class="tracker__steps" id="tracker-steps"></ol>
+      </section>
+    </div>
+    <div class="hud__right">
+      <div class="chip credits" title="Economía de prueba del prototipo. No es tu saldo real de ICADEM.">
+        <svg class="ic"><use href="#ci-coin"/></svg>
+        <span><b id="credits-value">0</b><small>créditos de prueba</small></span>
+      </div>
+      <div class="hud__buttons">
+        <button class="btn-round" id="btn-map" type="button" aria-label="Mapa"><svg class="ic"><use href="#ci-map"/></svg><span>Mapa</span></button>
+        <button class="btn-round" id="btn-pass" type="button" aria-label="Pasaporte"><svg class="ic"><use href="#ci-pass"/></svg><span>Pasaporte</span></button>
+        <button class="btn-round" id="btn-settings" type="button" aria-label="Ajustes"><svg class="ic"><use href="#ci-gear"/></svg><span>Ajustes</span></button>
+        <button class="btn-round" id="btn-exit" type="button" aria-label="Salir del juego" hidden><svg class="ic"><use href="#ci-exit"/></svg><span>Salir</span></button>
+      </div>
+      <span class="proto">Prototipo · Fase 1</span>
+    </div>
+    <div class="hud__top">
+      <div class="place" id="place" hidden></div>
+      <button class="waypoint" id="waypoint" type="button" hidden><svg class="ic" id="waypoint-arrow"><use href="#ci-jump"/></svg><span id="waypoint-text"></span><svg class="ic waypoint__x"><use href="#ci-x"/></svg></button>
+    </div>
+    <button class="interact" id="interact" type="button" hidden><kbd id="interact-key">E</kbd><span id="interact-label"></span></button>
+    <div class="pad" id="pad" aria-hidden="true">
+      <button class="pad__btn" id="pad-run" type="button" aria-label="Correr"><svg class="ic"><use href="#ci-run"/></svg></button>
+      <button class="pad__btn pad__btn--big" id="pad-jump" type="button" aria-label="Saltar"><svg class="ic"><use href="#ci-jump"/></svg></button>
+    </div>
+    <div class="stick" id="stick" aria-hidden="true"><i id="stick-knob"></i></div>
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+    <div class="coach" id="coach" hidden>
+      <div class="coach__body"><small id="coach-step"></small><strong id="coach-title"></strong><p id="coach-text"></p></div>
+      <button class="coach__skip" id="coach-skip" type="button">Omitir tutorial</button>
+    </div>
+  </div>
+
+  <!-- diálogo con personajes -->
+  <div class="dialog" id="dialog" hidden>
+    <div class="dialog__box" role="dialog" aria-live="polite">
+      <strong id="dialog-speaker"></strong>
+      <p id="dialog-text"></p>
+      <button id="dialog-next" type="button">Continuar</button>
+    </div>
+  </div>
+
+  <!-- ventana genérica -->
+  <div class="modal" id="modal" hidden>
+    <div class="modal__card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <header><div><small id="modal-eyebrow"></small><h2 id="modal-title"></h2></div><button class="modal__x" id="modal-x" type="button" aria-label="Cerrar"><svg class="ic"><use href="#ci-x"/></svg></button></header>
+      <div class="modal__body" id="modal-body"></div>
+      <p class="modal__hint" id="modal-hint"></p>
+      <footer id="modal-actions"></footer>
+    </div>
+  </div>
+
+  <div class="fade" id="fade"></div>
+
+  <!-- pantalla de carga e inicio -->
+  <div class="splash" id="splash">
+    <div class="splash__card">
+      <span class="splash__badge">Prototipo · Fase 1</span>
+      <h1>Ciudad <b>ICADEM</b></h1>
+      <p id="splash-text">Preparando tu habitación…</p>
+      <div class="splash__bar"><i id="splash-bar"></i></div>
+      <button class="splash__go" id="splash-go" type="button" hidden>Entrar a la ciudad</button>
+      <button class="splash__exit" type="button" data-exit hidden>Volver al panel</button>
+      <small class="splash__note">Economía de prueba: lo que ganes aquí no modifica tu cartera real de ICADEM.</small>
+    </div>
+  </div>
+  <div class="fatal" id="fatal" hidden><div><h2>No pudimos abrir Ciudad ICADEM</h2><p id="fatal-text"></p><button class="splash__go" type="button" data-exit hidden>Volver al panel</button></div></div>
+</div>
+
+<script type="module" src="js/main.js?v=1"></script>
+</body>
+</html>

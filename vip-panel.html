@@ -4682,6 +4682,7 @@ window.__setDisplayName = async (nombre) => {
 <symbol id="i-tools" viewBox="0 0 24 24"><path d="M3 21h4l13 -13a1.5 1.5 0 0 0 -4 -4l-13 13v4"/><path d="M14.5 5.5l4 4"/></symbol>
 <symbol id="i-crown" viewBox="0 0 24 24"><path d="M12 6l4 6l5 -4l-2 10h-14l-2 -10l5 4z"/></symbol>
 <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></symbol>
+<symbol id="i-city" viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21v-9l5 -3v12"/><path d="M10 21v-16l7 3v13"/><path d="M19 21v-8"/><path d="M13 10h1M13 14h1M7 15h1"/></symbol>
 <symbol id="i-logout" viewBox="0 0 24 24"><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></symbol>
 </defs>
 </svg>
@@ -4701,6 +4702,7 @@ window.__setDisplayName = async (nombre) => {
       <a href="#cursos" class="nav-item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos</a>
       <a href="#webinars" class="nav-item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo<span class="nav-item__dot"></span></a>
       <a href="#retos" class="nav-item" data-section="retos"><svg class="ic"><use href="#i-bolt"/></svg>Retos<span class="nav-item__badge">NUEVO</span></a>
+      <a href="#ciudad" class="nav-item" data-section="ciudad"><svg class="ic"><use href="#i-city"/></svg>Ciudad ICADEM<span class="nav-item__badge">NUEVO</span></a>
       <a href="#logros" class="nav-item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
       <a href="#certificados" class="nav-item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
     </div>
@@ -4911,6 +4913,7 @@ window.__setDisplayName = async (nombre) => {
         <a href="#cursos" class="mobile-drawer__item" data-section="cursos"><svg class="ic"><use href="#i-book"/></svg>Mis cursos</a>
         <a href="#webinars" class="mobile-drawer__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Clases en vivo</a>
         <a href="#retos" class="mobile-drawer__item" data-section="retos"><svg class="ic"><use href="#i-bolt"/></svg>Retos</a>
+        <a href="#ciudad" class="mobile-drawer__item" data-section="ciudad"><svg class="ic"><use href="#i-city"/></svg>Ciudad ICADEM</a>
         <a href="#logros" class="mobile-drawer__item" data-section="logros"><svg class="ic"><use href="#i-trophy"/></svg>Mis logros</a>
         <a href="#certificados" class="mobile-drawer__item" data-section="certificados"><svg class="ic"><use href="#i-certificate"/></svg>Certificados</a>
       </div>
@@ -13149,6 +13152,7 @@ const Sections = (function(){
       'curso-detalle':renderCursoDetalle,
       'clase-detalle':renderClaseDetalle,
       retos:renderRetos,
+      ciudad:(c)=>window.ICADEMCiudad.mount(c),
       herramientas:renderHerramientas,
       materiales:renderMateriales,
       libros:renderLibros,
@@ -22472,6 +22476,8 @@ h1, h2, h3, h4{ color: var(--text); }
 <link rel="stylesheet" href="css/icadem-course-detail.css?v=4">
 <link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=8">
 <link rel="stylesheet" href="css/icadem-session.css?v=2">
+<link rel="stylesheet" href="css/icadem-ciudad.css?v=1">
+<script src="js/icadem-ciudad.js?v=1" defer></script>
 <script src="js/icadem-home.js?v=3" defer></script>
 <script src="js/icadem-ambassador-promo.js?v=11" defer></script>
 </body>

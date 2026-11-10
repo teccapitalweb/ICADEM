@@ -1,5 +1,17 @@
 # CAMBIOS
 
+## 2026-11-10 — Ciudad ICADEM · prototipo jugable (Fase 1)
+
+**Archivos:** `ciudad/` (nuevo módulo del juego), `js/icadem-ciudad.js`, `css/icadem-ciudad.css`, `assets/ciudad/portada.webp`, `vip-panel.html`, `sw.js`, `test/ciudad-icadem.test.cjs`, `scripts/ciudad-e2e.cjs`, `CIUDAD_ICADEM.md`
+
+- Panel VIP: nueva pestaña **Ciudad ICADEM** (menú lateral y menú "Más" en celular). Abre el juego a pantalla completa y se cierra con "Salir" o al cambiar de sección.
+- Juego 3D aislado en `ciudad/` (Three.js incluido en el repo, sin compilación): habitación inicial, avatar Explorador en tercera persona, plaza con 11 edificios, colisiones, interior del Banco ICADEM y la misión 1 «El crédito correcto» completa.
+- Interfaz del juego: misión activa, mapa con destinos, pasaporte, tablero de misiones, armario, ajustes de calidad y tutorial inicial. Controles de teclado/mouse y táctiles.
+- **Créditos de prueba:** el prototipo no llama al backend ni modifica la cartera real. La integración con créditos ICADEM queda documentada para la Fase 3.
+- Multijugador: quedó la capa de red preparada, sin conexión y sin jugadores simulados.
+- `sw.js`: versión de caché v143.
+- Detalle de arquitectura, estado por función y pendientes en `CIUDAD_ICADEM.md`.
+
 ## 2026-11-06 — Grabaciones de clases en vivo y avisos automáticos
 
 **Archivos:** `vip-admin.html`, `vip-panel.html`, `sw.js`; backend `icadem-webhook`: `index.js`, `webinar-alerts.js` (nuevo), `test/webinar-alerts.test.js` (nuevo)
