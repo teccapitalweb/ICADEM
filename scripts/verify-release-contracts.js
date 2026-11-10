@@ -143,6 +143,11 @@ assert.ok(platformVersion && onboardingVersion && panelMinimalVersion, 'faltan v
 assert.ok(serviceWorker.includes(`icadem-platform-v2.js?v=${platformVersion}`), 'versión platform desalineada');
 assert.ok(serviceWorker.includes(`icadem-onboarding.js?v=${onboardingVersion}`), 'versión onboarding desalineada');
 assert.ok(serviceWorker.includes(`panel-minimal.css?v=${panelMinimalVersion}`), 'versión panel minimal desalineada');
+for(const asset of ['js/icadem-course-ratings.js','js/icadem-credit-rewards.js','js/icadem-commission-conversion.js','js/icadem-lesson-notes.js','css/icadem-credit-rewards.css','css/icadem-commission-conversion.css']){
+  const match=panel.match(new RegExp(asset.replace(/[.]/g,'\\.')+'\\?v=\\d+'));
+  assert.ok(match&&serviceWorker.includes(match[0]),`falta alinear el activo de créditos ${asset}`);
+  assert.ok(fs.existsSync(path.join(root,asset)),`falta el activo ${asset}`);
+}
 assert.doesNotMatch(panel, /data-theme="dark"/);
 
 assert.match(admin, /data-section="creditos-masivos"/);

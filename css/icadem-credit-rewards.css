@@ -1,0 +1,18 @@
+[data-modal-id="course-rating-reward"]{padding:12px}
+[data-modal-id="course-rating-reward"] .modal{width:min(440px,100%);max-height:calc(100dvh - 24px);overflow:auto;border-radius:22px;border:1px solid #ead9ad;box-shadow:0 24px 80px #102e4733}
+[data-modal-id="course-rating-reward"] .modal__header{padding:20px 20px 10px;border:0}
+[data-modal-id="course-rating-reward"] .modal__title{font-size:20px;line-height:1.3;color:var(--text,#142e49)}
+[data-modal-id="course-rating-reward"] .modal__body{padding:4px 20px 12px}
+[data-modal-id="course-rating-reward"] .modal__footer{padding:0 14px 14px;justify-content:center;border:0}
+.rating-reward-dialog__lead{font-size:12px;font-weight:650;color:var(--text-2,#5b6b7d);margin:0 0 14px;overflow-wrap:anywhere}
+.rating-reward-dialog__gift{display:grid;grid-template-columns:22px 1fr;gap:5px 9px;padding:15px;background:#fff5d9;border:1px solid #f0d58d;border-radius:14px;color:#80570c}
+.rating-reward-dialog__gift svg{width:22px;height:22px;fill:none;stroke:currentColor}.rating-reward-dialog__gift strong{font-size:20px;line-height:1.2}.rating-reward-dialog__gift small{grid-column:1/-1;font-size:10px;line-height:1.5}
+.rating-reward-dialog__copy{font-size:11px;line-height:1.6;color:var(--text-2,#5b6b7d);margin:12px 0}
+.rating-reward-dialog .course-rating.course-rating--compact{background:transparent;box-shadow:none;border:0;border-radius:0}.rating-reward-dialog .course-rating:before,.rating-reward-dialog .course-rating .course-rating__head,.rating-reward-dialog .course-rating .course-rating__reward{display:none}
+.rating-reward-dialog .course-rating .course-rating__form{padding:0;gap:12px;grid-template-columns:minmax(0,1fr);background:transparent}
+.rating-reward-dialog .course-rating .course-rating__picker{padding:10px 6px}.rating-reward-dialog .course-rating .course-rating__stars{gap:5px;width:100%}.rating-reward-dialog .course-rating .course-rating__star{min-width:0;width:44px;max-width:44px;height:44px;flex:1}
+.rating-reward-dialog .course-rating textarea{min-height:64px;max-height:130px;font-size:16px}.rating-reward-dialog .course-rating .course-rating__actions{display:grid;grid-template-columns:minmax(0,1fr);justify-content:stretch;gap:7px}.rating-reward-dialog .course-rating .course-rating__save{width:100%;height:auto;min-height:44px;white-space:normal;padding:12px;background:#f6c945!important;color:#15334e;box-shadow:none}
+.rating-reward-dialog__footer{text-align:center}.rating-reward-dialog__footer button{white-space:normal;font-size:11px;min-height:42px}
+.course-rating__reward{grid-column:1/-1;margin:0;padding:11px 13px;border-radius:12px;background:#fff6de;color:#80570c;font-size:11px;line-height:1.5}
+@media(max-width:360px){[data-modal-id="course-rating-reward"] .modal__header{padding:16px 14px 10px}[data-modal-id="course-rating-reward"] .modal__body{padding:0 14px 10px}.rating-reward-dialog__gift strong{font-size:18px}}
+@media(prefers-reduced-motion:reduce){[data-modal-id="course-rating-reward"] *{animation:none!important;transition:none!important}}

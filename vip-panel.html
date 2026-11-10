@@ -24,13 +24,17 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=48" defer></script>
+<script src="js/icadem-platform-v2.js?v=49" defer></script>
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
 <script src="js/icadem-vip-banner.js?v=2"></script>
-<script src="js/icadem-ambassadors-vip.js?v=2" defer></script>
-<script src="js/icadem-ambassadors.js?v=14" defer></script>
+<script src="js/icadem-ambassadors-vip.js?v=3" defer></script>
+<script src="js/icadem-ambassadors.js?v=15" defer></script>
+<script src="js/icadem-commission-conversion.js?v=1" defer></script>
+<script src="js/icadem-lesson-notes.js?v=1" defer></script>
+<link rel="stylesheet" href="css/icadem-commission-conversion.css?v=1">
+<link rel="stylesheet" href="css/icadem-credit-rewards.css?v=1">
 <link rel="stylesheet" href="css/ambassadors.css?v=7">
 <link rel="stylesheet" href="css/ambassadors-vip.css?v=2">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
@@ -4371,7 +4375,7 @@ if (window.__isDemoMode) {
       const md = window.memberData || {};
       const emailPart = (window.UserState.email || '').split('@')[0];
       let ls = {};
-      try { ls = JSON.parse(localStorage.getItem('icadem_profile') || '{}'); } catch(e){}
+      try { if(window.__isDemoMode)ls = JSON.parse(localStorage.getItem('icadem_profile') || '{}'); } catch(e){}
       const nombre = (md.nombre && md.nombre.trim())
         || (user.displayName && user.displayName.trim())
         || (ls.nombre && ls.nombre.trim())
@@ -5118,12 +5122,12 @@ const Modal=(function(){
     if(cfg.footer){const f=document.createElement('div');f.className='modal__footer';if(typeof cfg.footer==='string')f.innerHTML=cfg.footer;else f.appendChild(cfg.footer);m.appendChild(f);}
     bd.appendChild(m);
     if(cfg.closeOnBackdrop!==false)bd.addEventListener('click',e=>{if(e.target===bd)close(cfg.id);});
-    document.body.appendChild(bd);stack.push({id:cfg.id,element:bd,onClose:cfg.onClose});lockBody();
+    document.body.appendChild(bd);stack.push({id:cfg.id,element:bd,onClose:cfg.onClose,beforeClose:cfg.beforeClose});lockBody();
     requestAnimationFrame(()=>requestAnimationFrame(()=>{if(!bd.isConnected)return;bd.classList.add('is-open');window.ICADEMDialogFocus?.activate(bd,()=>close(cfg.id));}));
     return{id:cfg.id,close:()=>close(cfg.id)};
   }
   function dispose(e){if(e.disposed)return;e.disposed=true;e.element.remove();window.ICADEMDialogFocus?.release(e.element);const index=stack.indexOf(e);if(index>=0)stack.splice(index,1);if(stack.length===0)unlockBody();e.onClose?.();}
-  function close(id){const e=stack.find(item=>item.id===id&&!item.closing);if(!e)return;e.closing=true;e.element.classList.remove('is-open');setTimeout(()=>dispose(e),250);}
+  function close(id){const e=stack.find(item=>item.id===id&&!item.closing);if(!e||e.beforeClose?.()===false)return;e.closing=true;e.element.classList.remove('is-open');setTimeout(()=>dispose(e),250);}
   return{open,close};
 })();
 
@@ -5883,6 +5887,10 @@ function __sincronizarDesdeURLVIP(){
 window.addEventListener('popstate', __sincronizarDesdeURLVIP);
 window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
 
+function __entradaAprendizajeActiva(host){
+  return Boolean(host?.contains(document.activeElement)&&document.activeElement?.matches('input,textarea,select,[contenteditable="true"]'))
+    ||Boolean(host?.querySelector('[data-rating-busy="true"]'))||window.ICADEMLessonNotes?.isDirty()===true;
+}
 function navigateToSection(section, opciones){
   // Sección inexistente (link viejo, # inventado) → al inicio
   if(!__seccionesValidasVIP().has(section)) section = SECCION_DEFAULT_VIP;
@@ -5899,6 +5907,12 @@ function navigateToSection(section, opciones){
   }
   window.__perfilProfesionalRutaActual=section==='directorio-perfil'?window.ICADEMProfessionalNavigation?.currentProfileId():null;
   window.__scrollNavigationRevision=(window.__scrollNavigationRevision||0)+1;
+  const navigationRevision=window.__scrollNavigationRevision;
+  const navigationUid=window.__auth?.currentUser?.uid;
+  const sectionReady=()=>requestAnimationFrame(()=>{
+    if(navigationRevision!==window.__scrollNavigationRevision||navigationUid!==window.__auth?.currentUser?.uid)return;
+    window.dispatchEvent(new CustomEvent('icadem:section-ready',{detail:{section,revision:navigationRevision}}));
+  });
   try { window.dispatchEvent(new CustomEvent('icadem:navigation', { detail: { section } })); } catch(_) {}
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
@@ -5930,13 +5944,13 @@ function navigateToSection(section, opciones){
     try { window.__icademCheckout.destroy(); } catch(e) {}
     window.__icademCheckout = null;
   }
-  if(section==='inicio'){inicio.style.display='';dyn.style.display='none';__subirAlInicioVIP();if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();if(typeof window.__actualizarInicioAprendizaje==='function')window.__actualizarInicioAprendizaje();return;}
+  if(section==='inicio'){inicio.style.display='';dyn.style.display='none';__subirAlInicioVIP();if(typeof window.__cargarNoticiasHome==='function')window.__cargarNoticiasHome();if(typeof window.__actualizarWidgetsActividad==='function')window.__actualizarWidgetsActividad();if(typeof window.__actualizarInicioAprendizaje==='function')window.__actualizarInicioAprendizaje();sectionReady();return;}
   inicio.style.display='none';dyn.style.display='';
   const renderer=Sections.renderers[section];
   // Cada renderer reemplaza su contenido de forma síncrona. Conservar la vista
   // anterior hasta ese reemplazo evita el destello blanco entre secciones.
-  if(renderer){renderer(dyn);}
-  else{dyn.innerHTML=sectionPlaceholder(section);}
+  if(renderer){Promise.resolve(renderer(dyn)).then(sectionReady).catch(error=>console.warn('[ICADEM navegación]',error));}
+  else{dyn.innerHTML=sectionPlaceholder(section);sectionReady();}
   if(!__profileRoute?.restoreDirectory)__subirAlInicioVIP();
 }
 
@@ -6134,11 +6148,16 @@ const Sections = (function(){
   }
 
   function getProgreso() {
+    if(!window.__isDemoMode){
+      const uid=(window.__auth?window.__auth.currentUser?.uid:window.UserState?.uid)||'';
+      return window.__serverProgressOwner===uid?(window.__serverCourseProgress||{}):{};
+    }
     try { return JSON.parse(localStorage.getItem(getProgresoKey()) || '{}'); }
     catch { return {}; }
   }
 
   function setProgreso(p) {
+    if(!window.__isDemoMode){window.__serverProgressOwner=(window.__auth?window.__auth.currentUser?.uid:window.UserState?.uid)||'';window.__serverCourseProgress=p;return;}
     try { localStorage.setItem(getProgresoKey(), JSON.stringify(p)); } catch {}
   }
 
@@ -6149,6 +6168,7 @@ const Sections = (function(){
   // mostrar distinto en cada dispositivo, el servidor manda: el registro local
   // solo es una copia para pintar rápido mientras llega la respuesta.
   window.__mergeServerProgress = function(coursesFromServer) {
+    const before=JSON.stringify(getProgreso());
     const servidor = coursesFromServer || {};
     const local = window.__isDemoMode ? getProgreso() : {};
     Object.entries(servidor).forEach(([courseId, cloud]) => {
@@ -6165,6 +6185,7 @@ const Sections = (function(){
       local[courseId] = current;
     });
     setProgreso(local);
+    const changed=before!==JSON.stringify(local);
     if (_cursosLoaded) {
       cursos.forEach(curso => {
         const p = local[curso.id] || { clasesVistas: [] };
@@ -6176,11 +6197,12 @@ const Sections = (function(){
       // Re-dibuja la sección abierta (lista de cursos, curso o clase) con el
       // avance real; sin esto, un teléfono abierto directo en un curso seguía
       // mostrando 0% hasta cambiar de sección.
+      if(!changed)return;
       clearTimeout(window.__progressRepaintTimer);
       window.__progressRepaintTimer = setTimeout(() => {
         const section = String(location.hash || '').replace(/^#/,'');
         const host = document.getElementById('dynamic-section');
-        if (!host?.isConnected || document.querySelector('.learning-game')) return;
+        if (!host?.isConnected || document.querySelector('.learning-game') || __entradaAprendizajeActiva(host)) return;
         try {
           if (section === 'cursos') renderCursos(host);
           else if (section === 'curso-detalle') renderCursoDetalle(host);
@@ -6218,6 +6240,7 @@ const Sections = (function(){
       // actividad. El modo demo conserva una copia para la vista previa.
       if (window.__isDemoMode) emitirCertificadoFirestore(curso);
       // Mostrar splash de felicitación
+      window.ICADEMCreditRewards?.arm(cursoId);
       setTimeout(() => mostrarSplashCompletado(curso), 400);
     }
     const cursoActual = cursos.find(c => c.id === cursoId);
@@ -6382,6 +6405,7 @@ const Sections = (function(){
       </div>
     `;
     document.body.appendChild(splash);
+    window.ICADEMCreditRewards?.certificateOpened({courseId:curso.id,courseTitle:curso.titulo},splash);
     // Escalar el certificado real al ancho de la caja del splash
     const fitSplashCert = () => {
       const stage = splash.querySelector('.splash-cmp__certreal .cp-stage');
@@ -6391,9 +6415,16 @@ const Sections = (function(){
     splash.querySelector('.splash-cmp__close').addEventListener('click', () => splash.remove());
     splash.querySelector('.splash-cmp__overlay').addEventListener('click', () => splash.remove());
     splash.querySelector('#splash-ver-cert').addEventListener('click', () => {
+      const certificateOwner=window.__auth?.currentUser?.uid;
+      const certificateTicket=window.ICADEMCreditRewards?.certificateViewIntent(curso.id);
+      const onReady=event=>{
+        window.removeEventListener('icadem:section-ready',onReady);
+        try{if(event.detail?.section==='certificados'&&certificateOwner===window.__auth?.currentUser?.uid&&(!certificateTicket||window.ICADEMCreditRewards?.isCurrent(certificateTicket)))openCertDetalleReal(certObj.id);}
+        finally{window.ICADEMCreditRewards?.certificateViewSettled(curso.id,certificateTicket);}
+      };
+      window.addEventListener('icadem:section-ready',onReady);
       splash.remove();
       window.navigateToSection('certificados');
-      setTimeout(() => { try { openCertDetalleReal(certObj.id); } catch(e){} }, 350);
     });
   }
 
@@ -6851,6 +6882,7 @@ const Sections = (function(){
     window.__reloadCourseCatalog().then(() => {
       const section = String(location.hash || '').replace(/^#/,'');
       const host = document.getElementById('dynamic-section');
+      if(__entradaAprendizajeActiva(host))return;
       if (host?.isConnected && section === 'cursos') renderCursos(host);
       else if (host?.isConnected && section === 'curso-detalle') renderCursoDetalle(host);
       else if (host?.isConnected && section === 'clase-detalle') renderClaseDetalle(host);
@@ -9616,7 +9648,7 @@ const Sections = (function(){
     const yaVista = prog.clasesVistas.includes(numClase);
     const pct = progresoCursoPct(cursoId, totalSes);
     const minutos = sesion.minutos || sesion.duracion || null;
-    const notasActuales = (() => { try { return localStorage.getItem(_notasKey(cursoId, numClase)) || ''; } catch(e) { return ''; } })();
+    const notasActuales = (() => { if(!window.__isDemoMode)return '';try { return localStorage.getItem(_notasKey(cursoId, numClase)) || ''; } catch(e) { return ''; } })();
 
     // La transición siempre es secuencial: el mini juego de esta clase abre la
     // inmediatamente siguiente. Nunca saltamos una clase por estar bloqueada.
@@ -9665,7 +9697,7 @@ const Sections = (function(){
         <label class="lesson-notes">
           <span>Tus notas de la clase</span>
           <textarea data-lesson-notes placeholder="Escribe ideas, criterios o pendientes para aplicar…">${htmlEsc(notasActuales)}</textarea>
-          <small data-notes-state>Se guardan automáticamente en este dispositivo.</small>
+          <small data-notes-state>Las notas se guardan en tu cuenta al confirmar la sincronización.</small>
         </label>
       </div>
       <div class="lesson-side__panel" data-lesson-panel="quiz">
@@ -9815,9 +9847,12 @@ const Sections = (function(){
       });
     });
 
-    // ─── Notas (autoguardado en localStorage) ───
+    // Notas de cuentas reales: servidor con revisión; el borrador local nunca
+    // se presenta como guardado hasta recibir la confirmación del backend.
+    if(!window.__isDemoMode)window.ICADEMLessonNotes?.mount({container,courseId,lessonNumber:numClase});
+    // El modo demostración conserva sus notas locales separadas.
     let notaTimer = 0;
-    container.querySelectorAll('[data-lesson-notes]').forEach(ta => {
+    if(window.__isDemoMode)container.querySelectorAll('[data-lesson-notes]').forEach(ta => {
       ta.addEventListener('input', () => {
         container.querySelectorAll('[data-notes-state]').forEach(s => s.textContent = 'Guardando…');
         clearTimeout(notaTimer);
@@ -13450,8 +13485,7 @@ window.__maybeAskName = async function(){
         S.iniciales = window.calcIniciales ? window.calcIniciales(nombre) : nombre.slice(0, 2).toUpperCase();
         if (window.memberData) window.memberData.nombre = nombre;
         try {
-          const ls = JSON.parse(localStorage.getItem('icadem_profile') || '{}');
-          localStorage.setItem('icadem_profile', JSON.stringify(Object.assign(ls, { nombre })));
+          if(window.__isDemoMode){const ls = JSON.parse(localStorage.getItem('icadem_profile') || '{}');localStorage.setItem('icadem_profile', JSON.stringify(Object.assign(ls, { nombre })));}
           localStorage.setItem(intakeKey, '1');
           localStorage.setItem(`icadem_name_confirmed:${account}`, '1');
         } catch(e){}
@@ -13518,9 +13552,8 @@ function openEditField(field){
       console.error(error); Toast.error('No se pudo guardar',error.message||'Intenta nuevamente'); return;
     }
 
-    // Guardar SIEMPRE en localStorage (todos los campos)
-    const all=JSON.parse(localStorage.getItem('icadem_profile')||'{}');
-    all[field]=newVal;localStorage.setItem('icadem_profile',JSON.stringify(all));
+    // El perfil real ya está confirmado en el servidor; solo el demo usa copia local.
+    if(window.__isDemoMode){const all=JSON.parse(localStorage.getItem('icadem_profile')||'{}');all[field]=newVal;localStorage.setItem('icadem_profile',JSON.stringify(all));}
 
     if (field==='nombre') {
       const saveBtn=document.getElementById('save-edit-nombre');
@@ -13570,7 +13603,9 @@ async function leerTarjetaPropia(){
 }
 window.__refreshPerfilDatos = async function(){
   if (!document.querySelector('.perfil-grid [data-field="whatsapp"]')) return;
+  const profileOwner=window.__auth?.currentUser?.uid;
   const card = await leerTarjetaPropia();
+  if(profileOwner!==window.__auth?.currentUser?.uid)return;
   const values = { whatsapp: card.whatsapp, puesto: card.puesto || card.profesion, empresa: card.empresa || card.institucion, sector: card.sector || card.especialidad };
   Object.entries(values).forEach(([field, value]) => {
     const el = document.querySelector(`.perfil-grid [data-field="${field}"] .perfil-field__val`);
@@ -13578,6 +13613,7 @@ window.__refreshPerfilDatos = async function(){
   });
 };
 function loadProfileFromLS(){
+  if(!window.__isDemoMode)return;
   const all=JSON.parse(localStorage.getItem('icadem_profile')||'{}');
   Object.entries(all).forEach(([field,val])=>{
     if(field==='nombre'||field==='email')return; // estos vienen de Auth/Firestore, no se pisan
@@ -22334,7 +22370,7 @@ h1, h2, h3, h4{ color: var(--text); }
 @media(max-width:1180px){.support-page{padding-left:4px;padding-right:4px}}@media(max-width:900px){.support-page{padding:18px 2px 110px}.support-layout{grid-template-columns:1fr}.support-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.support-info__card:last-child{grid-column:1/-1}.support-thread{min-height:620px}.support-hero{align-items:flex-start}.support-privacy{display:none}}@media(max-width:560px){.support-page{padding:10px 0 105px}.support-hero{padding:22px 20px;border-radius:20px}.support-hero h1{font-size:28px}.support-hero p{font-size:12px}.support-info{grid-template-columns:1fr}.support-info__card:last-child{grid-column:auto}.support-thread{min-height:calc(100dvh - 185px);border-radius:18px}.support-thread__head{padding:14px}.support-messages{padding:16px 12px}.support-bubble{max-width:86%;font-size:11.5px}.support-composer{padding:12px}.support-composer__hint span:first-child{display:none}}
 </style>
 <script src="js/icadem-support-ui.js?v=2"></script>
-<script src="js/icadem-support-member.js?v=3"></script>
+<script src="js/icadem-support-member.js?v=4"></script>
 <style id="icadem-panel-fixes-2026-11">
 /* Marca tipográfica: nítida a cualquier escala y sin el isotipo antiguo. */
 .brand,.sidebar>.brand{min-height:68px!important;justify-content:flex-start!important;gap:10px!important;padding:8px 10px 14px!important}
@@ -22420,8 +22456,9 @@ h1, h2, h3, h4{ color: var(--text); }
   .lesson-tools-bottom .lesson-outline{grid-template-columns:1fr;gap:8px}
 }
 </style>
-<script src="js/icadem-course-ratings.js?v=4"></script>
-<script src="js/icadem-onboarding.js?v=22"></script>
+<script src="js/icadem-course-ratings.js?v=5"></script>
+<script src="js/icadem-credit-rewards.js?v=1"></script>
+<script src="js/icadem-onboarding.js?v=23"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
 <link rel="stylesheet" href="css/icadem-courses.css?v=4">

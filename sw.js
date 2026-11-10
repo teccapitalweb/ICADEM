@@ -1,8 +1,14 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v138';
+const CACHE = 'icadem-vip-v139';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=3',
+  './js/icadem-course-ratings.js?v=5',
+  './js/icadem-credit-rewards.js?v=1',
+  './js/icadem-commission-conversion.js?v=1',
+  './js/icadem-lesson-notes.js?v=1',
+  './css/icadem-credit-rewards.css?v=1',
+  './css/icadem-commission-conversion.css?v=1',
   './js/icadem-dialog-focus.js?v=1',
   './css/icadem-session.css?v=2',
   './vip-auth.html',
@@ -23,11 +29,11 @@ const SHELL = [
   './assistant/assets/icadem-guide.png',
   './assistant/assets/icadem-guide-blink.png',
   './privacidad.html',
-  './js/icadem-platform-v2.js?v=48',
+  './js/icadem-platform-v2.js?v=49',
   './js/icadem-resource-viewer.js?v=1',
   './js/icadem-push.js?v=4',
-  './js/icadem-ambassadors-vip.js?v=2',
-  './js/icadem-ambassadors.js?v=14',
+  './js/icadem-ambassadors-vip.js?v=3',
+  './js/icadem-ambassadors.js?v=15',
   './css/ambassadors.css?v=7',
   './css/ambassadors-vip.css?v=2',
   './css/icadem-ambassador-promo.css?v=6',
@@ -42,7 +48,7 @@ const SHELL = [
   './css/icadem-tools.css?v=2',
   './css/icadem-support-premium.css?v=2',
   './js/icadem-support-ui.js?v=2',
-  './js/icadem-support-member.js?v=3',
+  './js/icadem-support-member.js?v=4',
   './css/icadem-credits.css?v=2',
   './css/icadem-directory.css?v=2',
   './js/icadem-directory.js?v=1',
@@ -57,7 +63,7 @@ const SHELL = [
   './js/icadem-home.js?v=3',
   './js/icadem-vip-banner.js?v=2',
   './assets/logo/icadem-wordmark.png?v=1',
-  './js/icadem-onboarding.js?v=22'
+  './js/icadem-onboarding.js?v=23'
 ];
 
 self.addEventListener('install', (e) => {
@@ -77,6 +83,8 @@ self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
+  // Protected APIs stay server-authoritative, even behind a future same-origin alias.
+  if(req.headers.has('Authorization')||/^\/(?:api|admin|membership|stripe|webhook)(?:\/|$)/.test(url.pathname))return;
   // No cachear datos en vivo (Firebase, Stripe, Railway, Google APIs)
   if (/firebaseio|firestore|googleapis|gstatic|stripe|railway|identitytoolkit/.test(url.host)) return;
   // Documentos: network-first (para recibir cambios al instante)
