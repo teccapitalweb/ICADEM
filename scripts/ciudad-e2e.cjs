@@ -126,9 +126,9 @@ async function juego(browser) {
   await page.keyboard.press('KeyT'); await page.waitForTimeout(150);
   ok('sin servidor no aparece nadie más (ni indicador de conexión)', await page.evaluate(() => document.getElementById('net-chip').hidden && window.__ciudad.remotes.count === 0 && !document.querySelector('.nametag')));
   // edificio próximamente
-  await tp(13, -21); await page.waitForTimeout(400); await E(); await page.waitForTimeout(300);
+  await tp(-31, -21); await page.waitForTimeout(400); await E(); await page.waitForTimeout(300);
   ok('edificio sin interior avisa que es próximo y no cambia de escena', (await S()).scene === 'plaza');
-  await shot(page, 'f7-tribunal.png');
+  await shot(page, 'f7-proximamente.png');
   // 8. banco
   await tp(-13, -20.2); await page.waitForTimeout(500); await shot(page, 'f8-banco-fuera.png'); await E();
   ok('se entra al Banco ICADEM', await waitScene('bank'));

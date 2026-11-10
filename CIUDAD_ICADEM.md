@@ -306,13 +306,14 @@ Agregar el tercer juego = un archivo de reglas, un controlador con lo propio y s
 
 | Batería | Resultado |
 |---|---|
-| `node --test test/*.test.cjs` | UNIT_RESULT |
-| `ONLY=juego node scripts/ciudad-e2e.cjs` (Banco y ciudad, computadora) | JUEGO_RESULT |
-| `ONLY=tribunal node scripts/ciudad-e2e.cjs` (tres audiencias completas) | TRIB_RESULT |
-| `ONLY=dispositivos node scripts/ciudad-e2e.cjs` (tablet y celular, emulación táctil) | DISP_RESULT |
-| `ONLY=panel node scripts/ciudad-e2e.cjs` (integración con el panel) | PANEL_RESULT |
-| `node scripts/ciudad-mp-e2e.cjs` (dos navegadores: computadora + celular emulado) | MP_RESULT |
+| `node --test test/*.test.cjs` | 312/312 (22 de Ciudad ICADEM; el resto, del panel, incluidas las nuevas del otro agente) |
+| `ONLY=juego node scripts/ciudad-e2e.cjs` (Banco y ciudad, computadora) | 39/39 |
+| `ONLY=tribunal node scripts/ciudad-e2e.cjs` (tres audiencias completas) | 19/19 |
+| `ONLY=dispositivos node scripts/ciudad-e2e.cjs` (tablet y celular, emulación táctil) | 15/15 |
+| `ONLY=panel node scripts/ciudad-e2e.cjs` (integración con el panel) | 16/16 |
+| `node scripts/ciudad-mp-e2e.cjs` (dos navegadores: computadora + celular emulado) | 28/28 |
 
+La rama ya incluye lo último de `main` (merge sin conflictos el 2026-11-10; no comparte archivos con el otro agente) y todas las baterías se corrieron así.
 Tablet y celular son **emulación táctil en Chrome**, no dispositivos físicos. El render es por software: no mide cuadros por segundo reales.
 
 ### 9.7 Para integrar (cuando se autorice)

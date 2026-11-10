@@ -76,13 +76,14 @@ test('servidor: instancias, visibilidad por escenario y validación de movimient
   assert.equal(tp.reason, 'velocidad'); assert.deepEqual(tp.fix.slice(0, 4), ['plaza', 0, 0, 950]);
   assert.equal(hub.state(a, st('plaza', 500, 0)).reason, 'fuera-del-mapa'); assert.equal(hub.state(a, ['luna', 0, 0, 0, 0, 0]).reason, 'formato'); assert.equal(hub.state(a, 'basura').ok, false);
   t += 1000; assert.equal(hub.state(a, st('plaza', 3, 9.5)).ok, true, 'caminar normal sí pasa');
+  t += 60000; assert.equal(hub.state(a, st('plaza', -40, -40)).reason, 'velocidad', 'esperar quieto no da derecho a teletransportarse');
   // cambios de escenario: solo por las puertas
   assert.equal(hub.state(c, st('bank', 0, 3.9)).reason, 'transicion', 'de la habitación no se llega directo al banco');
   t += 500; assert.equal(hub.state(a, st('bank', 8, -6)).reason, 'entrada', 'al banco se entra por su puerta');
   assert.equal(hub.state(a, st('bank', 0, 3.9)).ok, true);
   t += 500; assert.equal(hub.state(a, st('plaza', 44, 44)).reason, 'entrada', 'y se sale frente al edificio');
   assert.equal(hub.state(a, st('plaza', -13, -15.6)).ok, true);
-  assert.equal(a.rejected, 6);
+  assert.equal(a.rejected, 7);
   // topes por acción
   let passed = 0; for (let i = 0; i < 60; i++) if (hub.allow(a, 's')) passed++;
   assert.equal(passed, LIMITS.actions.s[0]); t += 1000; assert.equal(hub.allow(a, 's'), true);

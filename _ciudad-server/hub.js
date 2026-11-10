@@ -11,6 +11,7 @@ export const LIMITS = Object.freeze({
   capacity: 16,          // jugadores por instancia (objetivo 10–20, sujeto a pruebas de carga)
   maxSpeed: 6.4 * 1.6,   // m/s: velocidad de carrera del juego + tolerancia por latencia
   slack: 1.5,            // m de holgura por irregularidad de la red
+  maxGapS: 1.5,          // s: intervalo máximo que se considera entre dos estados seguidos
   resumeMs: 30000,       // tiempo que se guarda el lugar de alguien que perdió la conexión
   nameMax: 28,
   // Topes por tipo de acción (máximo, ventana en ms). Lo que los excede se descarta.
@@ -102,7 +103,8 @@ export class Hub {
     // El primer estado de cada conexión solo se valida contra el mapa: pudo moverse sin red.
     if (prev && !player.fresh) {
       if (prev.scene === s.scene) {
-        const dist = Math.hypot(s.x - prev.x, s.z - prev.z), dt = Math.max(0.05, (t - player.stateAt) / 1000);
+        // El tiempo que cuenta tiene tope: quedarse quieto un minuto no "acumula" derecho a teletransportarse.
+        const dist = Math.hypot(s.x - prev.x, s.z - prev.z), dt = Math.min(LIMITS.maxGapS, Math.max(0.05, (t - player.stateAt) / 1000));
         if (dist > LIMITS.maxSpeed * dt + LIMITS.slack) return reject('velocidad');
       } else {
         if (!SCENE_RULES[prev.scene].links.includes(s.scene)) return reject('transicion');
