@@ -6,6 +6,17 @@
     const emit = name => document.dispatchEvent(new CustomEvent(name));
     const begin = user => ({ revision:++revision, uid:user?.uid });
     const current = ticket => !closed && !window.__sessionEnding && ticket.revision === revision && !!ticket.uid && auth.currentUser?.uid === ticket.uid;
+    function signInDestination() {
+      try {
+        const page = new URL(window.location.href);
+        const uid = page.searchParams.get('profesional');
+        if (page.origin === window.location.origin && page.pathname === '/vip-panel.html' && page.hash === '#directorio-perfil' && /^[A-Za-z0-9_-]{1,128}$/.test(uid || '')) {
+          const target = 'vip-panel.html?profesional=' + encodeURIComponent(uid) + '#directorio-perfil';
+          return 'vip-auth.html?tab=login&redirect=' + encodeURIComponent(target);
+        }
+      } catch (_) {}
+      return 'vip-auth.html?tab=login';
+    }
     function clearIdentity() {
       revision++; closed = true; window.__sessionEnding = true;
       window.__currentUser = null; window.memberData = null;
@@ -19,7 +30,8 @@
     }
     function signedOut() {
       if (pending) return; // Explicit logout owns its destination, including deleted-account recovery.
-      clearIdentity(); window.location.replace('vip-auth.html?tab=login');
+      const destination = signInDestination();
+      clearIdentity(); window.location.replace(destination);
     }
     function logout(options = {}) {
       if (pending) return pending;
@@ -41,7 +53,7 @@
       if (!event.persisted || window.__isDemoMode) return;
       document.body.style.visibility = 'hidden';
       try { await auth.authStateReady?.(); } catch (_) {}
-      if (closed || !auth.currentUser) { clearIdentity(); window.location.replace('vip-auth.html?tab=login'); }
+      if (closed || !auth.currentUser) { const destination = closed ? 'vip-auth.html?tab=login' : signInDestination(); clearIdentity(); window.location.replace(destination); }
       else window.location.reload();
     });
     return { begin, current, signedOut, logout };
