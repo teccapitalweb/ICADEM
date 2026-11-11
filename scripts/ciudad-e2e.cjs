@@ -17,12 +17,13 @@ if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
 const shot = (page, name) => (SHOTS ? page.screenshot({ path: path.join(SHOTS, name) }) : Promise.resolve());
 const results = [];
 const ok = (name, cond, extra = '') => { results.push([cond ? 'PASS' : 'FAIL', name, cond ? '' : String(extra)]); };
-const GL = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'];
+const GL = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--disable-dev-shm-usage'];
 
 async function juego(browser) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message + ' :: ' + (e.stack||'').split('\n')[1]));
+  page.on('crash', () => console.log('[e2e] la página del navegador se cayó (crash) a los ' + Math.round(process.uptime()) + ' s'));
   page.on('console', m => { if (m.type() === 'error' && !/404|Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
   const S = () => page.evaluate(() => { const a = window.__ciudad.api, p = a.player.position; return { scene: a.sceneName, x: p.x, y: p.y, z: p.z, bal: a.store.state.economy.balance, ledger: a.store.state.economy.ledger.length, xp: a.store.state.xp, tut: a.store.state.tutorialDone, ach: a.store.state.achievements, missions: a.store.state.missions, visited: a.store.state.visited.length, blocking: a.ui.isBlocking, walked: a.stats.walked, turned: a.camera.turned }; });
   const tp = (x, z) => page.evaluate(([x, z]) => { const a = window.__ciudad.api; a.player.position.set(x, 0, z); a.camera.snap(a.player.position); }, [x, z]);
@@ -277,6 +278,7 @@ async function tribunal(browser) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   const errors = [];
   page.on('pageerror', e => errors.push(e.message + ' :: ' + (e.stack || '').split('\n')[1]));
+  page.on('crash', () => console.log('[e2e] la página del navegador se cayó (crash) a los ' + Math.round(process.uptime()) + ' s'));
   page.on('console', m => { if (m.type() === 'error' && !/404|Failed to load resource/.test(m.text())) errors.push('console: ' + m.text()); });
   const S = () => page.evaluate(() => { const a = window.__ciudad.api, p = a.player.position, m = a.missions.court; return { scene: a.sceneName, x: p.x, z: p.z, seated: Boolean(a.player.seat), step: m.step, state: JSON.parse(JSON.stringify(m.state)), bal: a.store.state.economy.balance, ledger: a.store.state.economy.ledger.length, rec: a.store.state.missions['tribunal-tu-eres-el-juez'] || null, bank: a.store.state.missions['banco-credito-correcto'] || null, ach: a.store.state.achievements }; });
   const tp = (x, z) => page.evaluate(([x, z]) => { const a = window.__ciudad.api; a.player.position.set(x, 0, z); a.camera.snap(a.player.position); }, [x, z]);

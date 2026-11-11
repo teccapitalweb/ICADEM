@@ -29,7 +29,7 @@ export const BUILDINGS = [
     wall: '#bfe9c8', trim: '#3f9a4d', roof: 0x3f9a4d, signBg: '#2f7d3c', signFg: '#ffffff' },
   { id: 'oficina', name: 'Oficina ICADEM', mission: 'El expediente perdido', x: -35, z: 9, w: 10, d: 11, h: 11, side: 'E', style: 'office', status: 'soon',
     wall: '#5ec8e6', trim: '#1d7fa3', roof: 0x12617f, signBg: '#12617f', signFg: '#ffffff', glass: '#e2f8ff', rows: 4, cols: 4 },
-  { id: 'obra', name: 'Obra en construcción', mission: 'Inspector de seguridad', x: 35, z: -9, w: 10, d: 11, h: 8, side: 'W', style: 'site', status: 'soon',
+  { id: 'obra', name: 'Obra en construcción', mission: 'Inspector de seguridad', x: 35, z: -9, w: 10, d: 11, h: 8, side: 'W', style: 'site', status: 'open',
     wall: '#c9cdd6', trim: '#f2b93b', roof: 0x8d93a1, signBg: '#f2b93b', signFg: '#1d2433' }
 ];
 
@@ -194,6 +194,13 @@ export function buildBuilding(b, parent) {
   if (b.style === 'market') sg.position.set(0, h - 0.35 + 0.75, front + 0.42);
   g.add(sg);
   if (b.status === 'soon') { const soon = sign('PRÓXIMAMENTE', 2.6, 0.5, { bg: '#1d2433', fg: '#ffd166' }); soon.position.set(0, 2.5, front + (b.style === 'site' ? 1.56 : b.style === 'greenhouse' ? 0.2 : 0.3)); if (b.style === 'site') soon.position.y = 1.5; g.add(soon); }
+
+  // Los edificios jugables lo anuncian desde lejos (la casa no: es la del jugador).
+  if (b.status === 'open' && b.style !== 'home') {
+    const open = sign('ABIERTO · ' + b.mission.toUpperCase(), Math.min(4.6, 1.6 + b.mission.length * 0.13), 0.42, { bg: '#1f7a55', fg: '#ffffff', border: '#ffd166' });
+    open.position.set(0, b.style === 'site' ? 1.5 : 2.5, front + (b.style === 'site' ? 1.56 : b.style === 'greenhouse' ? 0.2 : 0.3));
+    open.userData.dynamic = true; open.userData.openSign = true; g.add(open);
+  }
 
   g.userData.building = b;
   return g;

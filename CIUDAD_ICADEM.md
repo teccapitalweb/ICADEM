@@ -501,3 +501,43 @@ de esta rama está en `main`: se integra solo con autorización.
 - Nota: el servicio de Railway construye desde `feature/ciudad-icadem-social`. Cuando esta etapa
   se autorice, conviene apuntar el servicio a `main` (ya integrado) para que servidor y cliente
   queden siempre en la misma versión.
+
+## 13. Etapa 6 · Obra «Inspector de seguridad», consolidación y mejoras visuales (rama `feature/ciudad-mejoras-piloto`, sin publicar)
+
+### 13.1 Cuarto juego: Obra · «Inspector de seguridad» (intermedia, 20 créditos de prueba)
+- La obra de la plaza pasa a abierta, con escenario propio a cielo abierto (`ciudad/js/world/site.js`):
+  barda con portón, caseta con EPP, tablero con el plano, estructura de concreto con varilla,
+  andamio sur defectuoso (sin barandal, con trabajador arriba) y andamio norte completo, zanja
+  con montones de tierra al borde, mezcladora con extensión dañada cruzando un charco, escalera
+  mal apoyada, extintor, acopio de materiales, grúa torre con pluma que gira dentro de un área
+  restringida, retroexcavadora, carretilla, la Ing. Paula (residente) y tres trabajadores.
+- Mecánica física: el jugador se pone el EPP (sin casco, chaleco y botas no hay recorrido), toma
+  el plano, camina a cada uno de los 8 puntos y lo califica en el lugar (riesgo / en regla); cada
+  riesgo pide su medida correctiva; coloca la señalización en la zanja (aparecen conos, cinta y
+  aviso en la escena); decide qué actividad se detiene de inmediato y entrega el reporte.
+- Reglas y calificación en `ciudad/js/missions/site-inspector-logic.js` (módulo puro, el mismo
+  que ejecuta el servidor): identificación 40, medidas 30, paro de la actividad crítica 10,
+  justificación 10, EPP/plano/señalización 10; pasa con 70. Criterios generales de seguridad en
+  obra; el juego aclara que no sustituye la capacitación oficial.
+- Mismo motor, mismo servicio de misiones, misma recompensa idempotente; `site` registrada en red
+  (pública, conectada solo con la plaza). El servidor rechaza bitácoras con atajos (p. ej. sin EPP).
+
+### 13.2 Consolidación de los juegos anteriores
+- `scripts/ciudad-juegos-e2e.cjs`: Banco, Tribunal, Supermercado y Obra en Chromium real — puerta,
+  escena, diálogo real, recorrido completo con las acciones que valida el servidor, pantalla final
+  100, créditos una sola vez, repetir sin duplicar, salida y sin errores: 36/36.
+- Prueba de socket real (`test/ciudad-obra.test.cjs`): el servidor valida Supermercado y Obra,
+  rechaza atajos y no duplica créditos.
+- Los recorridos largos de `scripts/ciudad-e2e.cjs` (Banco completo y Tribunal completo) se traban
+  con el render por software del entorno de pruebas; el nuevo script los cubre en páginas cortas.
+  Panel 16/16, pantallas/táctil 15/15 y multijugador 38/38 siguen pasando.
+
+### 13.3 Mejoras visuales
+- Letrero «ABIERTO · <misión>» en las fachadas de los edificios jugables.
+- Puntos de llegada a la plaza sin vegetación encima (`ARRIVALS` en `world/plaza.js`); el del
+  Supermercado se alejó del toldo para que la cámara no quede tapada.
+- Señalización de la obra creada fuera de la fusión de geometría (aparece solo al colocarla).
+
+### 13.4 Estado
+- 369/369 pruebas. Nada en `main`; Railway, reglas de Firebase, `CIUDAD_REPORTS` y el acceso
+  piloto sin cambios. Sin cambios en `vip-panel.html`, `sw.js`, `icadem-webhook` ni archivos de Codex.

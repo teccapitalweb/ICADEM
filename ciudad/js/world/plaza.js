@@ -6,6 +6,10 @@ import { NPC_LOOKS } from '../characters/catalog.js';
 import { mat, box, cyl, sph, plane, slab, sign, grassTexture, pavingTexture, roadTexture, tree, bush, flowers, lamp, bench, cloud, skyDome, sunLight, mergeStatic } from './kit.js';
 import { BUILDINGS, buildBuilding, doorPoint, footprint } from './buildings.js';
 
+/** Puntos de llegada a la plaza al salir de un edificio, cuando el de la puerta no deja ver bien
+ *  (toldo del supermercado) o cae sobre vegetación (obra). Deben coincidir con SCENE_RULES.plaza.entries. */
+export const ARRIVALS = Object.freeze({ market: { x: 31, z: 13.6 }, obra: { x: 22.1, z: -3.6 } });
+
 const HALF = 48;
 
 export function buildPlaza(api) {
@@ -90,8 +94,11 @@ export function buildPlaza(api) {
   }
   for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283, r = HALF - 2.5 + rnd() * 3; spots.push([Math.cos(a) * r * 1.02, Math.sin(a) * r * 1.02]); }
   for (const [x, z] of [[-22, -21.5], [-4.5, -22], [4.5, -22], [22, -22], [-22, 22], [-4.5, 22], [4.5, 22], [22, 22], [-27, -17], [-27, 17], [27, -17], [27, 17]]) spots.push([x, z]);
+  // Nada de árboles sobre los puntos de llegada frente a cada puerta (ahí aparecen los jugadores).
+  const arrivals = [...BUILDINGS.map(b => doorPoint(b, 7.4)), ...Object.values(ARRIVALS)];
   for (const [x, z] of spots) {
     if (Math.hypot(x, z) < 16.5 || (Math.abs(x) < 4.5 || Math.abs(z) < 4.5)) continue;
+    if (arrivals.some(p => Math.hypot(x - p.x, z - p.z) < 3.2)) continue;
     const t = tree(x, z, g, { scale: 0.85 + rnd() * 0.55, color: [0x4fae5a, 0x3f9a4d, 0x58b565][Math.floor(rnd() * 3)], color2: [0x6cc671, 0x7fd486, 0x8bd97a][Math.floor(rnd() * 3)] });
     animated.trees.push(t); col.addCircle(x, z, 0.4);
   }
@@ -169,6 +176,7 @@ export function buildPlaza(api) {
         if (b.id === 'banco') return api.travel('bank', 'default');
         if (b.id === 'tribunal') return api.travel('court', 'default');
         if (b.id === 'supermercado') return api.travel('market', 'default');
+        if (b.id === 'obra') return api.travel('site', 'default');
         api.ui.toast(`${b.name}: la misión «${b.mission}» llega en una fase posterior.`);
       }
     };
@@ -178,11 +186,11 @@ export function buildPlaza(api) {
 
   const landmarks = BUILDINGS.map(b => { const p = doorPoint(b, 2.2), f = footprint(b); return { id: b.id, name: b.name, mission: b.mission, status: b.status, x: b.x, z: b.z, w: f.w, d: f.d, doorX: p.x, doorZ: p.z, color: b.wall }; });
 
-  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 6.2), bank = doorPoint(BUILDINGS.find(b => b.id === 'banco'), 7.4), court = doorPoint(BUILDINGS.find(b => b.id === 'tribunal'), 7.4), market = doorPoint(BUILDINGS.find(b => b.id === 'supermercado'), 7.4);
+  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 6.2), bank = doorPoint(BUILDINGS.find(b => b.id === 'banco'), 7.4), court = doorPoint(BUILDINGS.find(b => b.id === 'tribunal'), 7.4), market = ARRIVALS.market, obra = ARRIVALS.obra;
   return {
     name: 'plaza', title: 'Ciudad ICADEM', group: g, collision: col, interactables, npcs, landmarks, half: HALF,
     background: 0xcdeeff, fog: { color: 0xcfeeff, near: 70, far: 190 },
-    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, home: { x: home.x, z: home.z, yaw: Math.PI }, bank: { x: bank.x, z: bank.z, yaw: 0 }, court: { x: court.x, z: court.z, yaw: 0 }, market: { x: market.x, z: market.z, yaw: Math.PI } },
+    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, home: { x: home.x, z: home.z, yaw: Math.PI }, bank: { x: bank.x, z: bank.z, yaw: 0 }, court: { x: court.x, z: court.z, yaw: 0 }, market: { x: market.x, z: market.z, yaw: Math.PI }, obra: { x: obra.x, z: obra.z, yaw: Math.PI / 2 } },
     camera: { distance: 7.5, minDistance: 2.6, maxDistance: 13, pitch: 0.4, box: null },
     sun, mergedCount,
     update(dt, t, playerPos) {

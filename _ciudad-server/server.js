@@ -19,8 +19,9 @@ import { defineMission, replay } from '../ciudad/js/missions/engine.js';
 import { BANK_CREDIT_MISSION } from '../ciudad/js/missions/bank-credit-logic.js';
 import { COURT_JUDGE_MISSION } from '../ciudad/js/missions/court-judge-logic.js';
 import { MARKET_INVENTORY_MISSION } from '../ciudad/js/missions/market-inventory-logic.js';
+import { SITE_INSPECTOR_MISSION } from '../ciudad/js/missions/site-inspector-logic.js';
 
-const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION), defineMission(MARKET_INVENTORY_MISSION)].map(d => [d.id, d]));
+const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION), defineMission(MARKET_INVENTORY_MISSION), defineMission(SITE_INSPECTOR_MISSION)].map(d => [d.id, d]));
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 /**

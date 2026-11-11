@@ -16,7 +16,8 @@ export const REWARDS = Object.freeze({
   tutorial: { amount: 10, xp: 40 },
   'banco-credito-correcto': { amount: 15, xp: 120, repeatXp: 30 },
   'tribunal-tu-eres-el-juez': { amount: 20, xp: 160, repeatXp: 40 },
-  'super-rescate-inventario': { amount: 20, xp: 160, repeatXp: 40 }
+  'super-rescate-inventario': { amount: 20, xp: 160, repeatXp: 40 },
+  'obra-inspector-seguridad': { amount: 20, xp: 160, repeatXp: 40 }
 });
 
 export class TestEconomy {
