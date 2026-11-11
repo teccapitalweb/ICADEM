@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-11-11 — Clases en vivo: enlace y grabación en datos privados
+
+**Archivos:** `vip-admin.html`; backend `icadem-webhook`: `webinar-private.js` (nuevo), `index.js`, `mobile-webinars.js`, `test/webinar-private.test.js` (nuevo)
+
+- El enlace de la reunión y el ID de la grabación se guardan en `webinarsPrivados/{id}`, una colección que las reglas de Firestore dejan cerrada (solo la lee el servidor). Antes estaban en `webinars`, que es de lectura pública.
+- Admin · Clases en vivo: crear, editar y eliminar pasan por el servidor (`POST /admin/webinars/guardar`, `DELETE /admin/webinars/:id`). La lista y el editor leen el enlace y la grabación de `GET /admin/webinars-privados`.
+- Botón "Proteger enlaces de clases anteriores" (aparece solo si quedan clases con el enlace en el documento público): mueve esos datos a la colección privada (`POST /admin/webinars/migrar-privados`).
+- Compatibilidad: mientras una clase conserve el enlace o la grabación en el documento público, el servidor los sigue leyendo de ahí; lo privado manda.
+- Orden de publicación: primero el servidor y después el sitio (el admin nuevo llama a rutas que el servidor anterior no tiene). No requiere cambiar las reglas de Firestore.
+
 ## 2026-11-10 — Ciudad ICADEM · prototipo jugable (Fase 1)
 
 **Archivos:** `ciudad/` (nuevo módulo del juego), `js/icadem-ciudad.js`, `css/icadem-ciudad.css`, `assets/ciudad/portada.webp`, `vip-panel.html`, `sw.js`, `test/ciudad-icadem.test.cjs`, `scripts/ciudad-e2e.cjs`, `CIUDAD_ICADEM.md`
