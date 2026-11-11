@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-11-12 — Admin · Clases en vivo: carga fiable tras recargar la página
+
+**Archivos:** `vip-admin.html`
+
+- Corrige que, al recargar la página directamente en Clases en vivo, las clases de prueba, las grabaciones automáticas y los videos de las clases salieran vacíos («Aún no hay clases de prueba», «Sin grabación»): la sección se dibujaba antes de que Firebase reconociera la sesión y las consultas fallaban en silencio. Ahora se espera a la sesión (`adminready`).
+- Si una carga falla, la tarjeta muestra el motivo con un botón «Reintentar» en lugar de «no hay nada», y la lista ya no dice «Sin grabación» cuando no pudo leer los datos privados.
+- Editar una clase real solo abre el formulario si se pudieron leer su enlace y su grabación: con el formulario vacío, al guardar se habrían borrado por error.
+
 ## 2026-11-12 — Clases de prueba: avisos solo para el superadministrador, sesión en «Ver como usuario» y ajustes del admin
 
 **Archivos:** `vip-admin.html`, `vip-auth.html`, `vip-panel.html`; backend `icadem-webhook`: `webinar-alerts.js`, `webinar-private.js`, `index.js`, `test/webinar-alerts-prueba.test.js` (nuevo)
