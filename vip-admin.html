@@ -2901,6 +2901,9 @@ const Pages={
               <svg class="ic"><use href="#i-plus"/></svg>
               Nueva clase en vivo
             </button>
+            <button class="btn btn--ghost" id="web-proteger-btn" style="display:none;" title="Mueve el enlace y la grabación de las clases anteriores a un lugar que solo lee el servidor">
+              Proteger enlaces de clases anteriores
+            </button>
           </div>
         </div>
 
@@ -2932,6 +2935,25 @@ const Pages={
     Pages._webState.tab = 'proximos';
     Pages._renderKpisWebs();
     Pages._renderListaWebs();
+    const pintarProteger = () => {
+      const b = p.querySelector('#web-proteger-btn');
+      if (b) b.style.display = Pages._webPendientes > 0 ? '' : 'none';
+      if (b && Pages._webPendientes > 0) b.textContent = 'Proteger enlaces de clases anteriores (' + Pages._webPendientes + ')';
+    };
+    Pages._webCargarPrivados().then(() => { Pages._renderListaWebs(); pintarProteger(); });
+    p.querySelector('#web-proteger-btn')?.addEventListener('click', async (ev) => {
+      const b = ev.currentTarget;
+      if (!confirm('Se moverá el enlace de la reunión y el ID de la grabación de las clases anteriores a un lugar privado, que solo lee el servidor.\n\nLos miembros seguirán entrando y viendo las grabaciones igual. ¿Continuar?')) return;
+      b.disabled = true;
+      try {
+        const j = await Pages._webLlamar('/admin/webinars/migrar-privados', { method: 'POST' });
+        Toast.success('Enlaces protegidos', j.movidas + ' clase(s) actualizadas');
+        await Pages._webCargarPrivados();
+        Pages._renderListaWebs(); pintarProteger();
+      } catch (e) {
+        Toast.error('No se pudo completar', e.message || 'Intenta de nuevo');
+      } finally { b.disabled = false; }
+    });
 
     const searchInput = p.querySelector('#web-search-input');
     const searchClear = p.querySelector('#web-search-clear');
@@ -2959,6 +2981,32 @@ const Pages={
     p.querySelector('#new-web-btn')?.addEventListener('click', () => {
       Pages._abrirModalWebinar(null);
     });
+  },
+
+  // Enlace y grabación viven en el servidor (colección privada), no en el documento público
+  _webPriv: {},
+  _webPendientes: 0,
+  async _webCargarPrivados() {
+    try {
+      const token = await Pages._getAuthToken();
+      const r = await fetch(Pages._webhookUrl + '/admin/webinars-privados', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
+      const j = await r.json().catch(() => ({}));
+      if (r.ok && j.ok && j.items) { Pages._webPriv = j.items; Pages._webPendientes = Number(j.pendientes) || 0; }
+    } catch (e) { /* sin servidor: se usan los campos del documento público, si los hay */ }
+    return Pages._webPriv;
+  },
+  _webConPrivados(w) {
+    const p = Pages._webPriv[w.id];
+    return p ? Object.assign({}, w, { link: p.link || w.link || '', grabacionVideoId: p.grabacionVideoId || w.grabacionVideoId || '' }) : w;
+  },
+  async _webLlamar(ruta, opciones = {}) {
+    const token = await Pages._getAuthToken();
+    const r = await fetch(Pages._webhookUrl + ruta, Object.assign({}, opciones, {
+      headers: Object.assign({ 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, opciones.headers || {})
+    }));
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || j.ok === false) throw new Error(j.error || 'No pudimos completar la operación.');
+    return j;
   },
 
   _webFechaToDate(w) {
@@ -3033,7 +3081,7 @@ const Pages={
     }
 
     const S = Pages._webState;
-    let webs = [...store.webinars];
+    let webs = store.webinars.map(w => Pages._webConPrivados(w));
     const ahora = Date.now();
 
     // Filtrar por tab
@@ -3135,11 +3183,12 @@ const Pages={
 
   _bindWebActions(wrap) {
     wrap.querySelectorAll('[data-web-edit]').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', async () => {
         const id = btn.dataset.webEdit;
         const w = window.AdminStore.webinars.find(x => x.id === id);
         if (!w) { Toast.error('Webinar no encontrado'); return; }
-        Pages._abrirModalWebinar(w);
+        await Pages._webCargarPrivados();
+        Pages._abrirModalWebinar(Pages._webConPrivados(w));
       });
     });
 
@@ -3150,10 +3199,9 @@ const Pages={
         if (!w) return;
         const ok = confirm(`¿Eliminar la clase "${w.titulo}"?\n\nLos miembros que se hayan registrado ya no la verán.\n\nEsta acción NO se puede deshacer.`);
         if (!ok) return;
-        const fb = window._fb;
-        if (!fb?.deleteDoc || !fb?.doc || !fb?.db) { Toast.error('Firestore no listo'); return; }
         try {
-          await fb.deleteDoc(fb.doc(fb.db, 'webinars', id));
+          await Pages._webLlamar('/admin/webinars/' + encodeURIComponent(id), { method: 'DELETE' });
+          delete Pages._webPriv[id];
           Toast.success('Clase eliminada', w.titulo);
         } catch (err) {
           console.error('[webinar] error eliminar:', err);
@@ -3304,11 +3352,6 @@ const Pages={
         const fechaDate = new Date(fechaStr);
         if (isNaN(fechaDate.getTime())) { Toast.error('Fecha inválida'); throw new Error('skip'); }
 
-        const fb = window._fb;
-        if (!fb?.db || !fb?.addDoc || !fb?.updateDoc || !fb?.collection || !fb?.doc || !fb?.serverTimestamp || !fb?.writeBatch) {
-          Toast.error('Firestore no listo'); throw new Error('skip');
-        }
-
         // Grabación: acepta el ID o el enlace completo de Bunny (extrae el GUID)
         const grabRaw = (document.getElementById('wf-grabacion')?.value || '').trim();
         let grabacionVideoId = '';
@@ -3318,61 +3361,30 @@ const Pages={
           grabacionVideoId = m[0].toLowerCase();
         }
 
-        const data = {
-          titulo,
-          descripcion,
-          instructor,
-          duracion,
-          fecha: fb.Timestamp ? fb.Timestamp.fromDate(fechaDate) : fechaDate,
-          link,
-          grabacionVideoId,
-          activo: true
-        };
-
-        if (editId) {
-          await fb.updateDoc(fb.doc(fb.db, 'webinars', editId), data);
-          Toast.success('Clase actualizada', titulo);
-        } else {
-          data.createdAt = fb.serverTimestamp();
-          data.creadoPor = window.__currentAdmin?.email || 'admin';
-          data.registrados = 0;
-          const webinarRef = fb.doc(fb.collection(fb.db, 'webinars'));
-          const notificationRef = fb.doc(fb.db, 'notificaciones', `webinar_${webinarRef.id}`);
-          const batch = fb.writeBatch(fb.db);
-          const fechaTexto = fechaDate.toLocaleString('es-MX', { weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-          batch.set(webinarRef, data);
-          batch.set(notificationRef, {
-            tipo: 'clase',
-            icono: 'i-broadcast',
-            color: '#2F80C9',
-            titulo: `Nueva clase en vivo: ${titulo}`,
-            descripcion: `${fechaTexto} · ${instructor}`,
-            destino: 'webinars',
-            webinarId: webinarRef.id,
-            creadoPor: data.creadoPor,
-            createdAt: fb.serverTimestamp()
-          });
-          await batch.commit();
+        // El enlace y el ID de la grabación se guardan en el servidor (colección privada)
+        const guardado = await Pages._webLlamar('/admin/webinars/guardar', {
+          method: 'POST',
+          body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, grabacionVideoId })
+        });
+        Pages._webPriv[guardado.id] = { link, grabacionVideoId };
+        if (guardado.creada) {
           Toast.success('¡Clase programada y notificada!', titulo);
           // También llega como aviso al teléfono de quien activó las notificaciones
           (async () => {
             try {
-              const token = await Pages._getAuthToken();
-              const r = await fetch(Pages._webhookUrl + '/admin/webinars/' + encodeURIComponent(webinarRef.id) + '/avisar-registro', { method:'POST', headers:{ Authorization:'Bearer ' + token } });
-              const j = await r.json().catch(() => ({}));
-              if (r.ok && j.sent) Toast.info('También llegó a los teléfonos', `${j.sent} dispositivo(s) con avisos activos`);
+              const j = await Pages._webLlamar('/admin/webinars/' + encodeURIComponent(guardado.id) + '/avisar-registro', { method: 'POST' });
+              if (j.sent) Toast.info('También llegó a los teléfonos', `${j.sent} dispositivo(s) con avisos activos`);
             } catch (e) { /* la campanita ya quedó publicada */ }
           })();
+        } else {
+          Toast.success('Clase actualizada', titulo);
         }
+        Pages._renderListaWebs();
         Modal.close();
       } catch (err) {
         if (err.message !== 'skip') {
           console.error('[webinar submit]', err);
-          if (err.message?.includes('permission')) {
-            Toast.error('Permisos faltantes', 'Las reglas de Firestore no permiten escritura en `webinars`');
-          } else {
-            Toast.error('Error al guardar', err.message || 'Intenta de nuevo');
-          }
+          Toast.error('Error al guardar', err.message || 'Intenta de nuevo');
         }
       } finally {
         btn.disabled = false; btn.style.opacity = '1'; btn.style.cursor = 'pointer';
