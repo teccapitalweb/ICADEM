@@ -202,6 +202,10 @@ input[type=range]{width:100%;accent-color:var(--night)}
 /* transiciones y carga */
 .fade{position:absolute;inset:0;background:var(--night);opacity:0;pointer-events:none;transition:opacity .28s ease}
 .fade.is-on{opacity:1;pointer-events:auto}
+.fade__card{position:absolute;left:50%;top:50%;transform:translate(-50%,-40%);text-align:center;color:#fff;opacity:0;transition:opacity .25s ease .05s,transform .35s ease;pointer-events:none}
+.fade.is-on .fade__card.has-text{opacity:1;transform:translate(-50%,-50%)}
+.fade__card b{display:block;font-size:clamp(22px,4vw,34px);letter-spacing:.5px}
+.fade__card small{display:block;color:var(--sun-2,#ffd166);font-weight:700;letter-spacing:2px;text-transform:uppercase;font-size:12.5px;margin-bottom:6px}
 .splash{position:absolute;inset:0;display:grid;place-items:center;padding:20px;background:radial-gradient(1200px 600px at 20% 10%,#1d4a8a 0,transparent 60%),radial-gradient(900px 500px at 90% 90%,#2f9e8f 0,transparent 55%),var(--night);transition:opacity .5s}
 .splash.is-out{opacity:0;pointer-events:none}
 .splash__card{width:min(460px,100%);text-align:center}

@@ -541,3 +541,38 @@ de esta rama está en `main`: se integra solo con autorización.
 ### 13.4 Estado
 - 369/369 pruebas. Nada en `main`; Railway, reglas de Firebase, `CIUDAD_REPORTS` y el acceso
   piloto sin cambios. Sin cambios en `vip-panel.html`, `sw.js`, `icadem-webhook` ni archivos de Codex.
+
+## 14. Etapa 7 · Hospital «Turno de decisiones» y ciudad más viva (rama `feature/ciudad-mejoras-piloto`, sin publicar)
+
+### 14.1 Quinto juego: Hospital ICADEM · «Turno de decisiones» (intermedia, 20 créditos de prueba)
+- El hospital de la plaza pasa a abierto (`ciudad/js/world/hospital.js`): recepción con la jefa de
+  enfermería, pizarrón de pacientes, sala de espera, área de triaje, estación de enfermería con la
+  bitácora, urgencias (dos camas, carro rojo), observación con cortinas y consultorio con mampara;
+  médico de urgencias, camillero en ronda y familiares.
+- Cada cama tiene paciente, monitor con trazo animado al ritmo de su frecuencia cardiaca,
+  expediente al pie y una luz de triaje que toma el color asignado (también en el pizarrón).
+- Mecánica: recibir turno → pizarrón → ronda junto a cada cama (entrevista, monitor y expediente
+  son objetos distintos) → marcar signos de alarma y color de triaje → ordenar por prioridad en el
+  pizarrón → decidir acción y si se pide apoyo (el médico camina a la cama) → firmar bitácora →
+  entregar turno con justificación.
+- Calificación en `ciudad/js/missions/hospital-shift-logic.js` (módulo puro, el mismo del
+  servidor): triaje 24, alarmas 16, prioridad 12, acciones 20, apoyo 8, justificación 10, ronda y
+  bitácora 10; pasa con 70. Cuatro pacientes ficticios; sin fármacos, dosis ni indicaciones
+  (hay una prueba que lo vigila). El juego aclara que no sustituye la capacitación clínica.
+- Mismo motor, servicio, recompensa idempotente y validación en servidor; escena `hospital` en red.
+
+### 14.2 Ciudad más viva
+- Letrero de transición al cruzar una puerta: nombre del lugar y su misión durante el fundido.
+- Ambulancia estacionada frente al hospital con torreta intermitente (lugar reservado sin árboles).
+
+### 14.3 Integración con `main` (PR #39 de Codex, «Mis cursos»)
+- Se mezcló `main` en la rama sin conflictos: los archivos del PR #39 (`js/icadem-course-unlocks.js`,
+  `css/icadem-course-unlocks.css`, `vip-admin.html`, `vip-auth.html`, `vip-panel.html`, `sw.js`, etc.)
+  no se cruzan con los de Ciudad ICADEM. La rama no modifica ninguno de ellos.
+- En `main` hay 3 pruebas de redirección de perfil (`test/professional-profile-auth.test.cjs`) que
+  fallan desde el PR #39, con o sin los cambios de esta rama. No se tocaron: son archivos de Codex.
+
+### 14.4 Estado
+- 375 pruebas en verde (más las 3 preexistentes de `main` indicadas arriba). Navegador: cinco juegos
+  45/45, hospital con interfaz 17/17, obra 16/16, supermercado 12/12, multijugador 38/38 (una corrida
+  intermitente 37/38 por tiempo en la animación remota), pantallas/táctil 15/15, panel 16/16.

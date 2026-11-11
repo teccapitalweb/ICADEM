@@ -13,7 +13,7 @@ export const BUILDINGS = [
     wall: '#f6d77a', trim: '#c9952a', roof: 0xb9822a, signBg: '#7a5410', signFg: '#ffe9a8' },
   { id: 'tribunal', name: 'Tribunal ICADEM', mission: 'Tú eres el juez', x: 13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'court', status: 'open',
     wall: '#c79463', trim: '#7d5330', roof: 0x1f3a6e, signBg: '#1f3a6e', signFg: '#ffffff' },
-  { id: 'hospital', name: 'Hospital ICADEM', mission: 'Turno de decisiones', x: -31, z: -28, w: 13, d: 10, h: 10, side: 'S', style: 'hospital', status: 'soon',
+  { id: 'hospital', name: 'Hospital ICADEM', mission: 'Turno de decisiones', x: -31, z: -28, w: 13, d: 10, h: 10, side: 'S', style: 'hospital', status: 'open',
     wall: '#fbfdfd', trim: '#2bb5a0', roof: 0x2bb5a0, signBg: '#178f7e', signFg: '#ffffff', glass: '#bff1ea' },
   { id: 'torre', name: 'Torre ICADEM', mission: 'Desafío de equipos', x: 31, z: -28, w: 10, d: 10, h: 21, side: 'S', style: 'tower', status: 'soon',
     wall: '#7f8cf5', trim: '#4b55c7', roof: 0x3a43a8, signBg: '#3a43a8', signFg: '#ffffff', glass: '#d8e2ff', rows: 7, cols: 3 },

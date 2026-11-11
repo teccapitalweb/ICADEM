@@ -1,5 +1,5 @@
 'use strict';
-// Ciudad ICADEM · prueba de consolidación de los cuatro juegos en un navegador real.
+// Ciudad ICADEM · prueba de consolidación de los juegos en un navegador real.
 // Para cada juego: puerta de la plaza → escena → abrir la misión con su diálogo real →
 // recorrido perfecto con las MISMAS acciones que el servidor reproduce → pantalla final real →
 // créditos de prueba → repetir sin duplicar créditos → salir a la plaza. Cada juego en una
@@ -42,7 +42,14 @@ const GAMES = [
     perfect: `const L = await import('./js/missions/site-inspector-logic.js');
       return [...L.GEAR.map(g => ['equip', { id: g.id }]), ['readPlan'],
         ...L.SPOTS.flatMap(s => [['inspect', { id: s.id }], ['assess', { id: s.id, verdict: s.hazard ? 'riesgo' : 'en-regla' }], ...(s.hazard ? [['measure', { id: s.id, measure: s.measures.find(m => m.correct).id }]] : [])]),
-        ['placeSign'], ['stopWork', { id: L.BEST_STOP }], ['report'], ['justify', { reasons: ['inminente', 'epp'] }]];` }
+        ['placeSign'], ['stopWork', { id: L.BEST_STOP }], ['report'], ['justify', { reasons: ['inminente', 'epp'] }]];` },
+  { key: 'hospital', door: 'hospital', spawn: 'hospital', scene: 'hospital', opener: 'lupita', mission: 'hospital-turno-decisiones', credits: 20, talkAction: 'shift',
+    perfect: `const L = await import('./js/missions/hospital-shift-logic.js');
+      return [['readBoard'], ...L.PATIENTS.flatMap(p => L.REVIEWS.map(what => ['review', { id: p.id, what }])),
+        ...L.PATIENTS.map(p => ['assess', { id: p.id, flags: p.findings.filter(f => f.alarm).map(f => f.id), triage: p.triage }]),
+        ['prioritize', { order: ['aurelio', 'celia', 'joaquin', 'mariana'] }],
+        ...L.PATIENTS.map(p => ['decide', { id: p.id, action: p.actions.find(a => a.correct).id, support: p.support }]),
+        ['record'], ['handover', { reasons: ['gravedad', 'apoyo'] }]];` }
 ];
 
 async function play(browser, G) {
@@ -90,10 +97,11 @@ async function play(browser, G) {
   await page.waitForTimeout(400); await dialogThrough();
 
   // recorrido perfecto con las mismas acciones que valida el servidor
-  const played = await page.evaluate(async ({ key, perfect, needsCase }) => {
+  const played = await page.evaluate(async ({ key, perfect, needsCase, talkAction }) => {
     const m = window.__ciudad.api.missions[key];
     if (needsCase && !m.state.caseId) { if (!m.run.act('takeCase', { id: 'exp-014' })) return 'no abrió el expediente'; }
-    if (!needsCase && m.step === 'talk' && !m.run.act('talk')) return 'no abrió la misión';
+    const opening = talkAction || 'talk';
+    if (!needsCase && m.step === opening && !m.run.act(opening)) return 'no abrió la misión';
     const steps = await (new Function(`return (async () => { ${perfect} })();`))();
     for (const [type, payload] of steps) if (!m.run.act(type, payload || {})) return 'falló: ' + type;
     return m.run.ready ? 'listo' : 'incompleto: ' + m.step;
@@ -110,9 +118,9 @@ async function play(browser, G) {
   ok(`${tag} acredita ${G.credits} créditos de prueba una vez`, after1.done && after1.bal === G.credits, JSON.stringify(after1));
 
   // repetir: la recompensa no se duplica
-  const second = await page.evaluate(async ({ key, perfect, needsCase }) => {
+  const second = await page.evaluate(async ({ key, perfect, needsCase, talkAction }) => {
     const m = window.__ciudad.api.missions[key];
-    if (needsCase) m.run.act('takeCase', { id: 'exp-014' }); else m.run.act('talk');
+    if (needsCase) m.run.act('takeCase', { id: 'exp-014' }); else m.run.act(talkAction || 'talk');
     const steps = await (new Function(`return (async () => { ${perfect} })();`))();
     for (const [type, payload] of steps) m.run.act(type, payload || {});
     const out = await m.service.complete(m.run);
