@@ -168,6 +168,7 @@ export function buildPlaza(api) {
         if (b.id === 'casa') return api.travel('room', 'door');
         if (b.id === 'banco') return api.travel('bank', 'default');
         if (b.id === 'tribunal') return api.travel('court', 'default');
+        if (b.id === 'supermercado') return api.travel('market', 'default');
         api.ui.toast(`${b.name}: la misión «${b.mission}» llega en una fase posterior.`);
       }
     };
@@ -177,11 +178,11 @@ export function buildPlaza(api) {
 
   const landmarks = BUILDINGS.map(b => { const p = doorPoint(b, 2.2), f = footprint(b); return { id: b.id, name: b.name, mission: b.mission, status: b.status, x: b.x, z: b.z, w: f.w, d: f.d, doorX: p.x, doorZ: p.z, color: b.wall }; });
 
-  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 6.2), bank = doorPoint(BUILDINGS.find(b => b.id === 'banco'), 7.4), court = doorPoint(BUILDINGS.find(b => b.id === 'tribunal'), 7.4);
+  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 6.2), bank = doorPoint(BUILDINGS.find(b => b.id === 'banco'), 7.4), court = doorPoint(BUILDINGS.find(b => b.id === 'tribunal'), 7.4), market = doorPoint(BUILDINGS.find(b => b.id === 'supermercado'), 7.4);
   return {
     name: 'plaza', title: 'Ciudad ICADEM', group: g, collision: col, interactables, npcs, landmarks, half: HALF,
     background: 0xcdeeff, fog: { color: 0xcfeeff, near: 70, far: 190 },
-    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, home: { x: home.x, z: home.z, yaw: Math.PI }, bank: { x: bank.x, z: bank.z, yaw: 0 }, court: { x: court.x, z: court.z, yaw: 0 } },
+    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, home: { x: home.x, z: home.z, yaw: Math.PI }, bank: { x: bank.x, z: bank.z, yaw: 0 }, court: { x: court.x, z: court.z, yaw: 0 }, market: { x: market.x, z: market.z, yaw: Math.PI } },
     camera: { distance: 7.5, minDistance: 2.6, maxDistance: 13, pitch: 0.4, box: null },
     sun, mergedCount,
     update(dt, t, playerPos) {

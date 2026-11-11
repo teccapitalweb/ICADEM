@@ -18,8 +18,9 @@ import { NET_TICK_HZ } from '../ciudad/js/net/network.js';
 import { defineMission, replay } from '../ciudad/js/missions/engine.js';
 import { BANK_CREDIT_MISSION } from '../ciudad/js/missions/bank-credit-logic.js';
 import { COURT_JUDGE_MISSION } from '../ciudad/js/missions/court-judge-logic.js';
+import { MARKET_INVENTORY_MISSION } from '../ciudad/js/missions/market-inventory-logic.js';
 
-const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION)].map(d => [d.id, d]));
+const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION), defineMission(MARKET_INVENTORY_MISSION)].map(d => [d.id, d]));
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 /**
@@ -30,13 +31,13 @@ const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
  *   devLogin   habilita el emisor de desarrollo, solo desde la misma máquina
  *   origins    orígenes web permitidos (obligatorio si no es devLogin)
  */
-export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null, maxPlayers = 64, maxConnsPerIp = 8, trustProxy = false } = {}) {
+export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null, onReport = null, maxPlayers = 64, maxConnsPerIp = 8, trustProxy = false } = {}) {
   if (!devLogin && (!origins || !origins.length)) throw new Error('[ciudad] fuera del modo de prueba hay que declarar los orígenes permitidos');
   if (!devLogin && !identity) throw new Error('[ciudad] fuera del modo de prueba hace falta un verificador de identidad');
   // Conexiones: en producción las entrega el backend de ICADEM; en pruebas, el emisor de desarrollo.
   const devLinks = new Map();
   const link = (a, b) => { for (const [x, y] of [[a, b], [b, a]]) devLinks.set(x, (devLinks.get(x) || new Set()).add(y)); };
-  const hub = new Hub({ capacity, now, connections: connections || (async uid => [...(devLinks.get(uid) || [])]) });
+  const hub = new Hub({ capacity, now, connections: connections || (async uid => [...(devLinks.get(uid) || [])]), onReport: onReport && (entry => Promise.resolve(onReport(entry)).catch(error => log('report-error', error && (error.code || error.message)))) });
   const profiles = new Profiles({ storage, missions: MISSIONS, rewards: REWARDS });
   const sockets = new Map();   // player → socket
   const originOk = origin => !origins || origins.includes(origin);
@@ -238,7 +239,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         if (list('CIUDAD_PILOT_EMAILS').length) print(`modo piloto: solo ${list('CIUDAD_PILOT_EMAILS').length} cuentas autorizadas (más administradores)`);
         options.identity = icadem.identity; options.authorize = icadem.authorize; options.connections = icadem.connections;
         options.storage = process.env.CIUDAD_PROFILES === 'firestore' ? icadem.storage : new MemoryStorage();
-        print(`identidad y conexiones: Firebase (${projectId}) · progreso: ${process.env.CIUDAD_PROFILES === 'firestore' ? 'Firestore (ciudadProfiles)' : 'memoria (se pierde al reiniciar)'}`);
+        if (process.env.CIUDAD_REPORTS === 'firestore') options.onReport = icadem.saveReport;
+        print(`identidad y conexiones: Firebase (${projectId}) · progreso: ${process.env.CIUDAD_PROFILES === 'firestore' ? 'Firestore (ciudadProfiles)' : 'memoria (se pierde al reiniciar)'} · reportes: ${process.env.CIUDAD_REPORTS === 'firestore' ? 'Firestore (ciudadReports)' : 'memoria y logs'}`);
       } else {
         // Sin cuenta de servicio solo se puede verificar la identidad (llaves públicas): sin membresía ni conexiones.
         const projectId = process.env.CIUDAD_FIREBASE_PROJECT; if (!projectId) die('Falta FIREBASE_SERVICE_ACCOUNT o, al menos, CIUDAD_FIREBASE_PROJECT.');

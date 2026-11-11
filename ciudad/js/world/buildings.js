@@ -23,7 +23,7 @@ export const BUILDINGS = [
     wall: '#ffe2c2', trim: '#e86a5c', roof: 0xe86a5c, signBg: '#2f9e8f', signFg: '#ffffff', cols: 3, rows: 2 },
   { id: 'restaurante', name: 'Restaurante', mission: 'Cocina contra reloj', x: 13, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'restaurant', status: 'soon',
     wall: '#fff0d6', trim: '#f08a24', roof: 0xd9452f, signBg: '#d9452f', signFg: '#fff0d6' },
-  { id: 'supermercado', name: 'Supermercado', mission: 'Rescate de inventario', x: 31, z: 28, w: 13, d: 10, h: 6.5, side: 'N', style: 'market', status: 'soon',
+  { id: 'supermercado', name: 'Supermercado', mission: 'Rescate de inventario', x: 31, z: 28, w: 13, d: 10, h: 6.5, side: 'N', style: 'market', status: 'open',
     wall: '#ff8f6b', trim: '#b8452a', roof: 0x7a2d1a, signBg: '#ffffff', signFg: '#d9452f', cols: 5, rows: 1 },
   { id: 'invernadero', name: 'Invernadero', mission: 'Cultivo inteligente', x: -35, z: -9, w: 10, d: 11, h: 5, side: 'E', style: 'greenhouse', status: 'soon',
     wall: '#bfe9c8', trim: '#3f9a4d', roof: 0x3f9a4d, signBg: '#2f7d3c', signFg: '#ffffff' },

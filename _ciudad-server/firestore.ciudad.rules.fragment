@@ -5,3 +5,7 @@
 match /ciudadProfiles/{uid} {
   allow read, write: if false;
 }
+
+match /ciudadReports/{id} {
+  allow read, write: if false;
+}

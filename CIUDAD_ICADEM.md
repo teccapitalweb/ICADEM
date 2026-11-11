@@ -458,3 +458,46 @@ Pendiente:
 - Fase 2: regla de `ciudadProfiles` en Firestore y `CIUDAD_PROFILES=firestore` (hasta entonces el progreso en servidor se pierde al reiniciar).
 - Juego real entre dos cuentas piloto (amigos/conexiones, salas) y teléfonos físicos.
 - Fase 5: quitar `CIUDAD_PILOT_EMAILS` para abrir a todas las cuentas gratuitas y VIP.
+
+## 12. Etapa 5 · Supermercado y reportes persistentes (rama `feature/ciudad-mejoras-piloto`, sin publicar)
+
+Primera mejora posterior al piloto, según el orden acordado (expansión hacia los 10 juegos). Nada
+de esta rama está en `main`: se integra solo con autorización.
+
+### 12.1 Tercer juego: Supermercado · «Rescate de inventario» (misión intermedia, 20 créditos de prueba)
+- El supermercado de la plaza pasa de «próximamente» a abierto, con interior propio
+  (`ciudad/js/world/market.js`): caja, oficina, refrigerador de lácteos, góndola, mesa de frutas,
+  mesa de revisión y terminal de inventario, con don Ramiro, una empleada y una cajera.
+- La misión usa el mismo motor que el Banco y el Tribunal. Reglas y calificación en
+  `ciudad/js/missions/market-inventory-logic.js` (módulo puro, el mismo que ejecuta el servidor):
+  hablar con el gerente → leer el sistema → contar 3 estantes → decidir 5 productos (caducado y
+  dañado se retiran; lo por caducar se vende primero) → acomodar lotes con PEPS → registrar
+  ajustes → reporte con justificación. 100 puntos: revisión 30, PEPS 20, ajustes 30,
+  justificación 10, investigación 10; pasa con 70.
+- Recompensa idempotente (20 créditos de prueba, 160 XP; repetición 40 XP), registrada en
+  `economy.js` y validada por el servidor (`_ciudad-server/server.js` reproduce la bitácora).
+- Escena en red: `market` en `NET_SCENES` y `SCENE_RULES` (pública, conectada solo con la plaza,
+  entrada por la puerta). Transiciones solo por puertas, como siempre.
+- Pruebas: `test/ciudad-supermercado.test.cjs` (5 pruebas: coherencia del caso, orden sin atajos,
+  pesos de la calificación, recompensa idempotente y presencia en red/servidor) y
+  `scripts/ciudad-market-e2e.cjs` (12 comprobaciones en Chromium real, 12/12: puerta, misión
+  completa con interfaz, 100/100, créditos y salida, sin errores de JavaScript).
+
+### 12.2 Reportes de moderación persistentes (apagado por defecto)
+- `Hub` acepta `onReport`; `_ciudad-server/icadem.js` agrega `saveReport` → colección nueva
+  `ciudadReports` (uid y pid de ambos, motivo recortado, instancia; sin correos ni nombres).
+- Se activa solo con `CIUDAD_REPORTS=firestore` en Railway; sin la variable todo sigue como hoy
+  (memoria + logs). Un fallo de Firestore nunca rompe el reporte (queda en memoria y en logs).
+- El fragmento de reglas (`_ciudad-server/firestore.ciudad.rules.fragment`) ya incluye el bloque
+  que cierra `ciudadReports` al navegador: hay que volver a pegarlo en Firebase antes de activar.
+- Pruebas en `test/ciudad-icadem-adaptador.test.cjs` (solo esa colección; el fallo no tumba nada).
+
+### 12.3 Estado
+- Suite completa: 363/363. El total de esta rama no toca `icadem-webhook`, Stripe, créditos
+  reales, membresías ni archivos de Codex (`vip-panel.html` y `sw.js` sin cambios aquí).
+- Para publicar el Supermercado: PR a `main` con autorización (no requiere cambios en Railway;
+  el servidor nuevo se despliega solo al redesplegar el servicio porque la rama del servicio
+  tendría que actualizarse o integrarse — ver nota).
+- Nota: el servicio de Railway construye desde `feature/ciudad-icadem-social`. Cuando esta etapa
+  se autorice, conviene apuntar el servicio a `main` (ya integrado) para que servidor y cliente
+  queden siempre en la misma versión.

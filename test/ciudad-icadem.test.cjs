@@ -138,7 +138,7 @@ test('contenido: 10 avatares (solo el Explorador disponible) y 11 edificios con 
   assert.equal(avatarById('no-existe').id, 'explorador');
   const { BUILDINGS, doorPoint, footprint } = await load('world/buildings.js');
   assert.equal(BUILDINGS.length, 11);
-  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa', 'tribunal']);
+  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa', 'supermercado', 'tribunal']);
   for (const b of BUILDINGS) {
     const p = doorPoint(b, 2), f = footprint(b);
     assert.ok(Math.abs(p.x - b.x) > f.w / 2 || Math.abs(p.z - b.z) > f.d / 2, b.id + ': la puerta queda fuera del edificio');

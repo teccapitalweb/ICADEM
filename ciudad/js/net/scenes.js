@@ -5,9 +5,10 @@
 //   privacy: 'private' nadie más te ve · 'party' solo tu sala de espera · 'public' tu instancia
 export const SCENE_RULES = Object.freeze({
   room: { bounds: { minX: -5, maxX: 5, minZ: -4.6, maxZ: 4.6 }, entries: null, links: ['plaza'], privacy: 'private' },
-  plaza: { bounds: { minX: -47, maxX: 47, minZ: -47, maxZ: 47 }, entries: [[0, 9.5], [-13, 17.8], [-13, -15.6], [13, -15.6]], links: ['room', 'bank', 'court'], privacy: 'public' },
+  plaza: { bounds: { minX: -47, maxX: 47, minZ: -47, maxZ: 47 }, entries: [[0, 9.5], [-13, 17.8], [-13, -15.6], [13, -15.6], [31, 15.6]], links: ['room', 'bank', 'court', 'market'], privacy: 'public' },
   bank: { bounds: { minX: -9.6, maxX: 9.6, minZ: -7.6, maxZ: 7.6 }, entries: [[0, 3.9]], links: ['plaza'], privacy: 'public' },
-  court: { bounds: { minX: -10.6, maxX: 10.6, minZ: -8.6, maxZ: 8.6 }, entries: [[0, 5.6]], links: ['plaza'], privacy: 'party' }
+  court: { bounds: { minX: -10.6, maxX: 10.6, minZ: -8.6, maxZ: 8.6 }, entries: [[0, 5.6]], links: ['plaza'], privacy: 'party' },
+  market: { bounds: { minX: -9.6, maxX: 9.6, minZ: -7.6, maxZ: 7.6 }, entries: [[0, 3.9]], links: ['plaza'], privacy: 'public' }
 });
 export const ENTRY_RADIUS = 4;
 

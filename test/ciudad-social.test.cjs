@@ -81,9 +81,9 @@ test('progreso en servidor: sobrevive a un reinicio y no toca la cartera real', 
   fs.rmSync(dir, { recursive: true, force: true });
   for (const file of ['_ciudad-server/profiles.js', '_ciudad-server/server.js', '_ciudad-server/hub.js']) assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8').replace(/^\s*\/\/.*$/gm, ''), /credits\/|\/api\/credits|collection\(['"]credits|stripe|wallet/i, file + ' no conoce la cartera real');
   const adapter = fs.readFileSync(path.join(root, '_ciudad-server/icadem.js'), 'utf8');
-  assert.match(adapter, /const CONNECTIONS = 'professionalConnections', MEMBERS = 'miembros', DIRECTORY = 'directorio', PROFILES = 'ciudadProfiles', DELETIONS = '_accountDeletions';/);
-  assert.equal((adapter.match(/db\.collection\(/g) || []).length, (adapter.match(/db\.collection\((CONNECTIONS|MEMBERS|DIRECTORY|PROFILES|DELETIONS)\)/g) || []).length, 'el adaptador solo abre esas cinco colecciones');
-  assert.doesNotMatch(fs.readFileSync(path.join(root, '_ciudad-server/icadem.js'), 'utf8').replace(/^\s*\/\/.*$/gm, ''), /['"]credits['"]|collection\(['"](?!miembros|directorio|professionalConnections|ciudadProfiles|_accountDeletions)|notificaciones|forum|professionalProfiles/i, 'el adaptador solo toca miembros, directorio, conexiones y ciudadProfiles');
+  assert.match(adapter, /const CONNECTIONS = 'professionalConnections', MEMBERS = 'miembros', DIRECTORY = 'directorio', PROFILES = 'ciudadProfiles', DELETIONS = '_accountDeletions', REPORTS = 'ciudadReports';/);
+  assert.equal((adapter.match(/db\.collection\(/g) || []).length, (adapter.match(/db\.collection\((CONNECTIONS|MEMBERS|DIRECTORY|PROFILES|DELETIONS|REPORTS)\)/g) || []).length, 'el adaptador solo abre esas seis colecciones');
+  assert.doesNotMatch(fs.readFileSync(path.join(root, '_ciudad-server/icadem.js'), 'utf8').replace(/^\s*\/\/.*$/gm, ''), /['"]credits['"]|collection\(['"](?!miembros|directorio|professionalConnections|ciudadProfiles|ciudadReports|_accountDeletions)|notificaciones|forum|professionalProfiles/i, 'el adaptador solo toca miembros, directorio, conexiones y sus dos colecciones propias');
 });
 
 test('amigos y equipos: solo conexiones mutuas, invitación con respuesta, misma instancia, 2 a 4', async () => {
