@@ -1052,7 +1052,7 @@ const firebaseConfig = {
   messagingSenderId: "12508983783",
   appId: "1:12508983783:web:b12be6f1fab9bb91fb8d42"
 };
-const ADMINS = ["teccapitalweb@gmail.com","icademconsultoria2024@gmail.com","sinergiaagricola789@gmail.com","ipcilinstituto@gmail.com","juarezhernandez093@gmail.com","sofia.linares.tec@gmail.com"];
+const ADMINS = ["teccapitalweb@gmail.com","icademconsultoria2024@gmail.com","sinergiaagricola789@gmail.com","ipcilinstituto@gmail.com","juarezhernandez093@gmail.com","sofia.linares.tec@gmail.com","grupeliptica@gmail.com"];
 
 const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -1067,6 +1067,8 @@ window._fb = {
   serverTimestamp, Timestamp, writeBatch, increment
 };
 window.__adminEmails = ADMINS;
+// Cuenta de superadministración: la única que ve el apartado «Ver como usuario»
+window.__superAdminEmail = 'teccapitalweb@gmail.com';
 
 onAuthStateChanged(auth, (user) => {
   if (!user) { window.location.href = 'vip-auth.html'; return; }
@@ -1074,6 +1076,8 @@ onAuthStateChanged(auth, (user) => {
   if (!ADMINS.includes(email)) { window.location.href = 'vip-panel.html'; return; }
   // Es admin: mostrar contenido + actualizar avatar
   window.__currentAdmin = { uid: user.uid, email, displayName: user.displayName || email };
+  const navVerComo = document.getElementById('nav-vercomo');
+  if (navVerComo) navVerComo.style.display = (email === window.__superAdminEmail) ? '' : 'none';
   document.body.style.visibility = 'visible';
   const nameEl = document.querySelector('.avatar__name');
   const picEl = document.querySelector('.avatar__pic');
@@ -1197,6 +1201,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Cuenta</div>
       <a class="nav-item" data-section="config"><svg class="ic"><use href="#i-settings"/></svg>Configuración</a>
+      <a class="nav-item" data-section="vercomo" id="nav-vercomo" style="display:none;"><svg class="ic"><use href="#i-eye"/></svg>Ver como usuario</a>
       <a class="nav-item" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
     </div>
   </aside>
@@ -2926,18 +2931,19 @@ const Pages={
         </div>
 
         <div class="curso-pills">
-          <button class="curso-pill" data-web-tab="proximos" data-active="1"><span class="curso-pill__dot" style="background:#EF4444;"></span>Próximos</button>
+          <button class="curso-pill" data-web-tab="todos" data-active="1">Todos</button>
+          <button class="curso-pill" data-web-tab="proximos"><span class="curso-pill__dot" style="background:#EF4444;"></span>Próximos</button>
           <button class="curso-pill" data-web-tab="pasados">Pasados</button>
-          <button class="curso-pill" data-web-tab="todos">Todos</button>
         </div>
 
         <div id="web-container"></div>
         <div id="web-pruebas"></div>
+        <div id="web-auto"></div>
       </div>
     `;
 
-    // Por defecto mostrar próximos
-    Pages._webState.tab = 'proximos';
+    // Por defecto mostrar todos
+    Pages._webState.tab = 'todos';
     Pages._renderKpisWebs();
     Pages._renderListaWebs();
     const pintarProteger = () => {
@@ -2945,7 +2951,10 @@ const Pages={
       if (b) b.style.display = Pages._webPendientes > 0 ? '' : 'none';
       if (b && Pages._webPendientes > 0) b.textContent = 'Proteger enlaces de clases anteriores (' + Pages._webPendientes + ')';
     };
-    Pages._webCargarPrivados().then(() => { Pages._renderListaWebs(); pintarProteger(); });
+    Pages._webCargarPrivados().then(() => {
+      Pages._renderListaWebs(); Pages._renderKpisWebs(); pintarProteger();
+      if (Pages._webPrivError) Toast.error('No pudimos leer los enlaces y grabaciones', Pages._webPrivError);
+    });
     p.querySelector('#web-proteger-btn')?.addEventListener('click', async (ev) => {
       const b = ev.currentTarget;
       if (!confirm('Se moverá el enlace de la reunión y el ID de la grabación de las clases anteriores a un lugar privado, que solo lee el servidor.\n\nLos miembros seguirán entrando y viendo las grabaciones igual. ¿Continuar?')) return;
@@ -2991,25 +3000,54 @@ const Pages={
     });
     Pages._pruebasRender();
     Pages._pruebasCargar().then(() => Pages._pruebasRender());
+    Pages._autoRender();
+    Pages._autoCargar().then(() => { Pages._autoRender(); Pages._autoVigilar(); });
   },
 
   // Enlace y grabación viven en el servidor (colección privada), no en el documento público
   _webPriv: {},
   _webPendientes: 0,
+  _webPrivListo: false,
+  _webPrivError: '',
+  // Si la página se recarga directamente en esta sección, se dibuja antes de que Firebase termine de
+  // reconocer la sesión: se espera al evento «adminready» en lugar de fallar en silencio.
+  _esperarAdmin() {
+    if (window._fb?.auth?.currentUser) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const alListo = () => { clearTimeout(t); resolve(); };
+      const t = setTimeout(() => {
+        window.removeEventListener('adminready', alListo);
+        reject(new Error('Tu sesión de administrador aún no está lista. Recarga la página.'));
+      }, 20000);
+      window.addEventListener('adminready', alListo, { once: true });
+    });
+  },
   async _webCargarPrivados() {
     try {
-      const token = await Pages._getAuthToken();
-      const r = await fetch(Pages._webhookUrl + '/admin/webinars-privados', { headers: { Authorization: 'Bearer ' + token }, cache: 'no-store' });
-      const j = await r.json().catch(() => ({}));
-      if (r.ok && j.ok && j.items) { Pages._webPriv = j.items; Pages._webPendientes = Number(j.pendientes) || 0; }
-    } catch (e) { /* sin servidor: se usan los campos del documento público, si los hay */ }
+      const j = await Pages._webLlamar('/admin/webinars-privados');
+      if (j.items) { Pages._webPriv = j.items; Pages._webPendientes = Number(j.pendientes) || 0; Pages._webPrivListo = true; Pages._webPrivError = ''; }
+    } catch (e) { Pages._webPrivError = e.message || 'No pudimos leer los enlaces y grabaciones de las clases.'; }
     return Pages._webPriv;
+  },
+  // Editar una clase real solo si se pudieron leer su enlace y su grabación (si no, el formulario
+  // saldría vacío y al guardar se borrarían esos datos por error)
+  async _abrirEditarReal(w) {
+    await Pages._webCargarPrivados();
+    if (!Pages._webPrivListo || Pages._webPrivError) {
+      Toast.error('No pudimos leer el enlace y la grabación de esta clase', (Pages._webPrivError || 'Recarga la página e intenta de nuevo.') + ' No se abre la edición para no borrar esos datos por error.');
+      return;
+    }
+    Pages._abrirModalWebinar(Pages._webConPrivados(w));
+  },
+  _errorCargaHtml(que, mensaje, idBoton) {
+    return '<div style="padding:14px;font-size:13px;color:#B45309;background:rgba(245,158,11,.12);border-radius:12px;">No pudimos cargar ' + Pages._escWeb(que) + ': ' + Pages._escWeb(mensaje) + ' <button class="btn btn--ghost" id="' + idBoton + '" style="margin-left:8px;">Reintentar</button></div>';
   },
   _webConPrivados(w) {
     const p = Pages._webPriv[w.id];
     return p ? Object.assign({}, w, { link: p.link || w.link || '', grabacionVideoId: p.grabacionVideoId || w.grabacionVideoId || '', meetAuto: !!p.meetAuto }) : w;
   },
   async _webLlamar(ruta, opciones = {}) {
+    await Pages._esperarAdmin();
     const token = await Pages._getAuthToken();
     const r = await fetch(Pages._webhookUrl + ruta, Object.assign({}, opciones, {
       headers: Object.assign({ 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }, opciones.headers || {})
@@ -3022,13 +3060,15 @@ const Pages={
   // ─── Clases de prueba: solo las ve el administrador (no se publican ni avisan) ───
   _pruebas: [],
   _pruebasListas: false,
+  _pruebasError: '',
   _escWeb(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); },
   async _pruebasCargar() {
     try {
       const j = await Pages._webLlamar('/admin/clases-prueba');
       Pages._pruebas = j.items || [];
       Pages._pruebasListas = true;
-    } catch (e) { /* servidor sin la ruta: la tarjeta queda vacía */ }
+      Pages._pruebasError = '';
+    } catch (e) { Pages._pruebasError = e.message || 'Error desconocido.'; }
   },
   _pruebasRender() {
     const wrap = document.getElementById('web-pruebas');
@@ -3048,11 +3088,12 @@ const Pages={
     }).join('');
     wrap.innerHTML = '<div class="dash-card" style="margin-top:18px;padding:20px;">'
       + '<h3 style="font-size:16px;font-weight:700;margin:0 0 4px;">Clases de prueba</h3>'
-      + '<p style="font-size:12px;color:var(--text-3);margin:0 0 12px;line-height:1.5;">Solo las ves tú. No se publican, no aparecen para los miembros y no les llega ningún aviso. Para probarlas entra al panel de miembros con tu cuenta de administrador: ahí se ven como una clase normal, con su cuenta regresiva, avisos y botones.</p>'
+      + '<p style="font-size:12px;color:var(--text-3);margin:0 0 12px;line-height:1.5;">Solo las ves tú. No se publican, no aparecen para los miembros y no les llega ningún aviso. Los avisos de una clase de prueba (campanita y teléfono) solo le llegan a la cuenta de superadministración. Para verla usa «Ver como usuario»: ahí se ve como una clase normal, con su cuenta regresiva, botones y grabación.</p>'
       + (filas
         ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);"><th style="padding:6px 8px;">Título</th><th style="padding:6px 8px;">Fecha</th><th style="padding:6px 8px;">Hora</th><th style="padding:6px 8px;">Duración</th><th style="padding:6px 8px;">Enlace</th><th style="padding:6px 8px;">Acciones</th></tr></thead><tbody>' + filas + '</tbody></table></div>'
-        : '<div style="padding:14px;font-size:13px;color:var(--text-3);border:1px dashed var(--border, rgba(0,0,0,.15));border-radius:12px;">Aún no hay clases de prueba. Usa «Agregar clase de prueba».</div>')
+        : (Pages._pruebasError && !Pages._pruebasListas ? Pages._errorCargaHtml('las clases de prueba', Pages._pruebasError, 'web-pruebas-reintentar') : '<div style="padding:14px;font-size:13px;color:var(--text-3);border:1px dashed var(--border, rgba(0,0,0,.15));border-radius:12px;">Aún no hay clases de prueba. Usa «Agregar clase de prueba».</div>'))
       + '</div>';
+    wrap.querySelector('#web-pruebas-reintentar')?.addEventListener('click', async () => { await Pages._pruebasCargar(); Pages._pruebasRender(); });
     wrap.querySelectorAll('[data-prueba-edit]').forEach(b => b.addEventListener('click', async () => {
       await Pages._pruebasCargar();
       const c = Pages._pruebas.find(x => x.id === b.dataset.pruebaEdit);
@@ -3068,6 +3109,157 @@ const Pages={
         await Pages._pruebasCargar();
         Pages._pruebasRender();
       } catch (e) { Toast.error('No se pudo eliminar', e.message || 'Intenta de nuevo'); }
+    }));
+  },
+
+  // ─── Grabaciones automáticas: Meet → Drive → Bunny, paso a paso ───
+  _auto: [],
+  _autoListo: false,
+  _autoError: '',
+  _autoGoogle: true,
+  _autoBunny: true,
+  _autoTimer: null,
+  async _autoCargar() {
+    try {
+      const j = await Pages._webLlamar('/admin/clases-auto');
+      const listasAntes = Pages._auto.filter(e => e.estado === 'lista').length;
+      Pages._auto = j.entradas || [];
+      if (Pages._autoListo && Pages._auto.filter(e => e.estado === 'lista').length > listasAntes) {
+        // una grabación terminó: se refrescan la marca «Grabación» de las pruebas y el conteo de clases con video
+        Pages._pruebasCargar().then(() => Pages._pruebasRender());
+        Pages._webCargarPrivados().then(() => { Pages._renderListaWebs(); Pages._renderKpisWebs(); });
+      }
+      Pages._autoGoogle = j.googleListo !== false;
+      Pages._autoBunny = j.bunnyListo !== false;
+      Pages._autoListo = true;
+      Pages._autoError = '';
+    } catch (e) { Pages._autoError = e.message || 'Error desconocido.'; }
+  },
+  // Se actualiza sola cada 20 s mientras haya grabaciones en proceso y la pantalla esté abierta
+  _autoVigilar() {
+    if (Pages._autoTimer) return;
+    Pages._autoTimer = setInterval(async () => {
+      if (!document.getElementById('web-auto')) { clearInterval(Pages._autoTimer); Pages._autoTimer = null; return; }
+      if (!Pages._auto.some(e => e.estado !== 'lista' && e.estado !== 'error')) return;
+      await Pages._autoCargar();
+      Pages._autoRender();
+    }, 20000);
+  },
+  // La clase (real o de prueba) a la que pertenece una grabación automática
+  _autoClaseDe(e) {
+    if (e.esPrueba) return Pages._pruebas.find(c => 'prueba-' + c.id === e.claseId) || null;
+    const w = (window.AdminStore?.webinars || []).find(x => x.id === e.claseId);
+    return w ? Pages._webConPrivados(w) : null;
+  },
+  _autoPasos(e) {
+    const orden = { esperando: 1, descargando: 2, procesando: 3, lista: 4 };
+    const nivel = e.estado === 'error' ? (/Bunny no pudo procesar/.test(e.error) ? 3 : (e.archivoNombre ? 2 : 1)) : (orden[e.estado] ?? 1);
+    const fecha = e.inicioMs ? new Date(e.inicioMs).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+    const enError = e.estado === 'error';
+    const detalleLista = e.estado === 'lista'
+      ? (e.aviso ? e.aviso : (e.esPrueba ? 'Ya aparece en Grabaciones. Mírala en «Ver como usuario».' : 'Ya aparece en Grabaciones del panel de miembros.'))
+      : 'Cuando Bunny termine, se enlaza sola con la clase.';
+    const pasos = [
+      { t: 'Clase programada', d: fecha ? 'Para el ' + fecha.replace(',', ' a las') + ' h (hora de Ciudad de México)' : '' },
+      { t: 'Grabación encontrada', d: e.archivoNombre || 'Se busca cada pocos minutos en el Drive de la cuenta conectada, después de que empiece la clase. Hay que pulsar Grabar en Meet.' },
+      { t: 'Pasando el video a Bunny', d: 'A la colección «clases en vivo».' },
+      { t: 'Procesando en Bunny', d: 'Bunny prepara el video para reproducirlo.' },
+      { t: 'Lista', d: detalleLista }
+    ];
+    return pasos.map((p, i) => {
+      // i = 0 siempre hecho; el paso i+1 está hecho si el nivel ya lo superó
+      const hecho = i === 0 || (e.estado === 'lista' ? true : nivel > i);
+      const actual = !hecho && !enError && i === nivel;
+      const rojo = enError && i === nivel;
+      let estado = hecho ? 'ok' : (rojo ? 'error' : (actual ? 'actual' : 'espera'));
+      if (e.estado === 'esperando' && i === 1) estado = 'actual';
+      return Object.assign(p, { estado });
+    });
+  },
+  _autoRender() {
+    const wrap = document.getElementById('web-auto');
+    if (!wrap) return;
+    const esc = Pages._escWeb;
+    if (!document.getElementById('web-auto-estilo')) {
+      const st = document.createElement('style');
+      st.id = 'web-auto-estilo';
+      st.textContent = '@keyframes wauto-giro{to{transform:rotate(360deg)}}.wauto-paso{display:flex;gap:12px;align-items:flex-start;position:relative;padding-bottom:12px}.wauto-paso:not(:last-child)::before{content:"";position:absolute;left:11px;top:24px;bottom:0;width:2px;background:var(--border,rgba(0,0,0,.12))}.wauto-ic{width:24px;height:24px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:#9CA3AF}.wauto-ic--ok{background:#16A34A}.wauto-ic--error{background:#DC2626}.wauto-ic--actual{background:transparent;border:3px solid #2F80C9;border-top-color:transparent;animation:wauto-giro 1s linear infinite;box-sizing:border-box}';
+      document.head.appendChild(st);
+    }
+    const avisos = [];
+    if (Pages._autoListo && !Pages._autoGoogle) avisos.push('Google no está conectado en el servidor (faltan las variables GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET y GOOGLE_REFRESH_TOKEN).');
+    if (Pages._autoListo && !Pages._autoBunny) avisos.push('Falta la API Key de la biblioteca de Bunny en el servidor (BUNNY_LIBRARY_API_KEY).');
+    const tarjetas = Pages._auto.map(e => {
+      if (e.estado === 'lista') {
+        // Terminada: se quita la ruta de pasos y queda la clase, con su portada
+        const c = Pages._autoClaseDe(e) || {};
+        const f = e.inicioMs ? new Date(e.inicioMs).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+        const nota = e.aviso ? e.aviso : (e.esPrueba ? 'Ya aparece en Grabaciones. Mírala en «Ver como usuario» (clase de prueba: solo la ve la cuenta de superadministración).' : 'Ya aparece en Grabaciones del panel de miembros.');
+        return '<div style="border:1px solid var(--border,rgba(0,0,0,.12));border-radius:14px;padding:16px;margin-top:12px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">'
+          + '<div style="width:150px;height:100px;border-radius:12px;flex:none;background-image:url(\'' + Pages._coverSVG(c.area, e.titulo) + '\');background-size:cover;background-position:center;"></div>'
+          + '<div style="min-width:200px;flex:1;"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#16A34A;">✓ CLASE YA DISPONIBLE</div>'
+          + '<div style="font-size:18px;font-weight:800;margin:3px 0;">' + esc(e.titulo || 'Clase en vivo') + '</div>'
+          + '<div style="font-size:12px;color:var(--text-3);">Google Meet · ' + esc(f.replace(',', '')) + (c.instructor ? ' · ' + esc(c.instructor) : '') + ' · ' + (e.esPrueba ? 'clase de prueba' : 'clase real') + '</div>'
+          + '<div style="font-size:12px;color:var(--text-3);margin:6px 0 12px;line-height:1.45;">' + esc(nota) + '</div>'
+          + '<button class="btn btn--ghost" data-auto-edit="' + esc(e.id) + '">Editar</button> '
+          + '<button class="btn btn--ghost" data-auto-del="' + esc(e.id) + '" style="color:#DC2626;">Eliminar</button> '
+          + '<button class="btn btn--ghost" data-auto-quitar="' + esc(e.id) + '" style="color:var(--text-3);">Quitar de la lista</button></div></div>';
+      }
+      const pasos = Pages._autoPasos(e).map(p => {
+        const marca = p.estado === 'ok' ? '✓' : (p.estado === 'error' ? '!' : '');
+        return '<div class="wauto-paso"><span class="wauto-ic wauto-ic--' + p.estado + '">' + marca + '</span><div><div style="font-weight:600;font-size:13.5px;">' + esc(p.t) + '</div>'
+          + (p.d ? '<div style="font-size:12px;color:var(--text-3);line-height:1.45;">' + esc(p.d) + '</div>' : '') + '</div></div>';
+      }).join('');
+      const aviso = (e.estado !== 'lista' && e.aviso) ? '<div style="margin:6px 0 10px;padding:9px 12px;border-radius:10px;background:rgba(245,158,11,.12);color:#B45309;font-size:12px;">' + esc(e.aviso) + ' Se vuelve a intentar solo.</div>' : '';
+      const error = e.estado === 'error' ? '<div style="margin:6px 0 10px;padding:9px 12px;border-radius:10px;background:rgba(220,38,38,.1);color:#B91C1C;font-size:12px;">' + esc(e.error) + '</div>' : '';
+      const acciones = (e.estado !== 'lista' ? '<button class="btn btn--ghost" data-auto-retry="' + esc(e.id) + '">' + (e.estado === 'error' ? 'Reintentar' : 'Buscar ahora') + '</button> ' : '')
+        + '<button class="btn btn--ghost" data-auto-quitar="' + esc(e.id) + '" style="color:var(--text-3);">Quitar de la lista</button>';
+      return '<div style="border:1px solid var(--border,rgba(0,0,0,.12));border-radius:14px;padding:16px;margin-top:12px;">'
+        + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:12px;"><strong style="font-size:15px;">' + esc(e.titulo || 'Clase en vivo') + '</strong>'
+        + '<span style="font-size:11px;color:var(--text-3);white-space:nowrap;">Google Meet · ' + (e.esPrueba ? 'clase de prueba' : 'clase real') + '</span></div>'
+        + pasos + aviso + error + '<div style="margin-top:4px;">' + acciones + '</div></div>';
+    }).join('');
+    wrap.innerHTML = '<div class="dash-card" style="margin-top:18px;padding:20px;">'
+      + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><h3 style="font-size:16px;font-weight:700;margin:0;">Grabaciones automáticas (Meet → Drive → Bunny)</h3><button class="btn btn--ghost" id="web-auto-act">Actualizar</button></div>'
+      + '<p style="font-size:12px;color:var(--text-3);margin:6px 0 0;line-height:1.5;">Las clases creadas con «Crear la reunión de Google Meet automáticamente». Al terminar la clase, el servidor busca la grabación en el Drive de la cuenta conectada, la sube a la colección «clases en vivo» de Bunny y la enlaza con la clase. Puede tardar varios minutos. Un video que pongas a mano nunca se reemplaza.</p>'
+      + avisos.map(a => '<div style="margin-top:10px;padding:9px 12px;border-radius:10px;background:rgba(245,158,11,.12);color:#B45309;font-size:12px;">' + esc(a) + '</div>').join('')
+      + (tarjetas || (Pages._autoError && !Pages._autoListo
+          ? '<div style="margin-top:12px;">' + Pages._errorCargaHtml('las grabaciones automáticas', Pages._autoError, 'web-auto-reintentar') + '</div>'
+          : '<div style="margin-top:12px;padding:14px;font-size:13px;color:var(--text-3);border:1px dashed var(--border,rgba(0,0,0,.15));border-radius:12px;">Todavía no hay clases con grabación automática. Crea una clase de prueba con la casilla de Google Meet marcada.</div>'))
+      + '</div>';
+    wrap.querySelector('#web-auto-act')?.addEventListener('click', async () => { await Pages._autoCargar(); Pages._autoRender(); });
+    wrap.querySelector('#web-auto-reintentar')?.addEventListener('click', async () => { await Pages._autoCargar(); Pages._autoRender(); });
+    wrap.querySelectorAll('[data-auto-retry]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await Pages._webLlamar('/admin/clases-auto/' + encodeURIComponent(b.dataset.autoRetry) + '/reintentar', { method: 'POST' }); Toast.info('Buscando la grabación…', 'Puede tardar unos segundos'); }
+      catch (e) { Toast.error('No se pudo reintentar', e.message || 'Intenta de nuevo'); }
+      setTimeout(async () => { await Pages._autoCargar(); Pages._autoRender(); }, 2500);
+    }));
+    wrap.querySelectorAll('[data-auto-edit]').forEach(b => b.addEventListener('click', async () => {
+      const e = Pages._auto.find(x => x.id === b.dataset.autoEdit);
+      const c = e ? Pages._autoClaseDe(e) : null;
+      if (!e || !c) { Toast.error('No encontramos la clase', 'Quizá ya se eliminó. Pulsa Actualizar.'); return; }
+      if (e.esPrueba) { Pages._abrirModalWebinar(c, { prueba: true }); return; }
+      await Pages._abrirEditarReal(c);
+    }));
+    wrap.querySelectorAll('[data-auto-del]').forEach(b => b.addEventListener('click', async () => {
+      const e = Pages._auto.find(x => x.id === b.dataset.autoDel);
+      if (!e) return;
+      const c = Pages._autoClaseDe(e) || {};
+      if (!confirm('¿Eliminar la clase "' + (e.titulo || c.titulo || '') + '"?' + (e.esPrueba ? '' : ' Los miembros que se hayan registrado ya no la verán.') + ' El video de Bunny no se borra. Esta acción NO se puede deshacer.')) return;
+      try {
+        const ruta = e.esPrueba ? '/admin/clases-prueba/' + encodeURIComponent(e.claseId.replace(/^prueba-/, '')) : '/admin/webinars/' + encodeURIComponent(e.claseId);
+        await Pages._webLlamar(ruta, { method: 'DELETE' });
+        Toast.success('Clase eliminada', e.titulo || '');
+        await Promise.all([Pages._pruebasCargar(), Pages._autoCargar(), Pages._webCargarPrivados()]);
+        Pages._pruebasRender(); Pages._autoRender(); Pages._renderListaWebs(); Pages._renderKpisWebs();
+      } catch (err) { Toast.error('No se pudo eliminar', err.message || 'Intenta de nuevo'); }
+    }));
+    wrap.querySelectorAll('[data-auto-quitar]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Quitar esta clase de la lista de grabaciones automáticas? No se borra la clase ni ningún video.')) return;
+      try { await Pages._webLlamar('/admin/clases-auto/' + encodeURIComponent(b.dataset.autoQuitar), { method: 'DELETE' }); }
+      catch (e) { Toast.error('No se pudo quitar', e.message || 'Intenta de nuevo'); }
+      await Pages._autoCargar(); Pages._autoRender();
     }));
   },
 
@@ -3121,6 +3313,11 @@ const Pages={
         <div class="kpi-card__label">Total programadas</div>
         <div class="kpi-card__value">${webs.length}</div>
         <div class="kpi-card__sub">${ready ? 'En Firestore' : 'Cargando…'}</div>
+      </div>
+      <div class="kpi-card" style="--c1:#16A34A;--c2:#4ADE80;">
+        <div class="kpi-card__label">Con grabación</div>
+        <div class="kpi-card__value">${Pages._webPrivListo ? webs.filter(w => Pages._webConPrivados(w).grabacionVideoId).length : '—'}</div>
+        <div class="kpi-card__sub">Con video en Bunny</div>
       </div>
     `;
   },
@@ -3223,7 +3420,7 @@ const Pages={
             <span style="color:var(--text-3);">·</span>
             <span class="curso-row__instructor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="11" height="11" style="display:inline;vertical-align:-2px;margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${fmtFecha} · ${fmtHora}</span>
             ${esProximo ? `<span class="curso-row__area" style="color:${colorBorde};border-color:color-mix(in srgb, ${colorBorde} 35%, transparent);background:color-mix(in srgb, ${colorBorde} 10%, transparent);">${proximidadTxt}</span>` : `<span class="curso-row__nivel">${proximidadTxt}</span>`}
-            ${w.grabacionVideoId ? `<span class="curso-row__area" style="color:#16A34A;border-color:color-mix(in srgb, #16A34A 35%, transparent);background:color-mix(in srgb, #16A34A 10%, transparent);">● Grabación disponible</span>` : (!esProximo ? `<span class="curso-row__nivel" style="opacity:.75;">Sin grabación</span>` : '')}
+            ${w.grabacionVideoId ? `<span class="curso-row__area" style="color:#16A34A;border-color:color-mix(in srgb, #16A34A 35%, transparent);background:color-mix(in srgb, #16A34A 10%, transparent);">● Grabación disponible</span>` : ((!esProximo && Pages._webPrivListo) ? `<span class="curso-row__nivel" style="opacity:.75;">Sin grabación</span>` : '')}
           </div>
         </div>
         <div class="curso-row__stats">
@@ -3249,8 +3446,7 @@ const Pages={
         const id = btn.dataset.webEdit;
         const w = window.AdminStore.webinars.find(x => x.id === id);
         if (!w) { Toast.error('Webinar no encontrado'); return; }
-        await Pages._webCargarPrivados();
-        Pages._abrirModalWebinar(Pages._webConPrivados(w));
+        await Pages._abrirEditarReal(w);
       });
     });
 
@@ -3410,20 +3606,14 @@ const Pages={
     const linkAyuda = body.querySelector('#wf-link-ayuda');
     const linkLabel = body.querySelector('#wf-link-label');
     const pintarMeet = () => {
-      if (prueba) return;
       const auto = meetChk.checked && !linkInput.value.trim();
-      linkLabel.textContent = auto ? 'Link de transmisión (se genera solo)' : 'Link de transmisión *';
+      linkLabel.textContent = auto ? 'Link de transmisión (se genera solo)' : (prueba ? 'Link de transmisión (opcional)' : 'Link de transmisión *');
       linkInput.placeholder = auto ? 'Se creará solo con Google Meet al guardar' : 'https://meet.google.com/… o https://zoom.us/…';
     };
     meetChk.addEventListener('change', pintarMeet);
     linkInput.addEventListener('input', pintarMeet);
-    if (prueba) {
-      meetChk.closest('.form-field').style.display = 'none';
-      linkLabel.textContent = 'Link de transmisión (opcional)';
-      linkAyuda.textContent = 'Opcional en una clase de prueba. Sin enlace, el botón «Unirme» no abrirá nada.';
-    }
+    if (prueba) linkAyuda.textContent = 'Opcional en una clase de prueba. Sin enlace, el botón «Unirme» no abrirá nada.';
     (async () => {
-      if (prueba) return;
       try {
         const j = await Pages._webLlamar('/admin/google/estado');
         if (!j.configurado) throw new Error('no-conectado');
@@ -3433,7 +3623,9 @@ const Pages={
           meetNota.textContent = 'Esta clase ya tiene su reunión de Meet creada por el sistema; el título, la fecha y la duración se mantienen al día en Google Calendar.';
         } else if (!esEdicion) {
           meetChk.checked = !linkInput.value.trim();
-          meetNota.textContent = 'Si lo dejas marcado y no pones un enlace, el sistema crea la reunión con la cuenta de Google conectada. Si pegas un enlace, se usa ese.';
+          meetNota.textContent = prueba
+            ? 'Crea la reunión con la cuenta de Google conectada. Al terminar la clase de prueba, el servidor busca la grabación en su Drive y la sube a Bunny; solo la verás tú, en «Ver como usuario».'
+            : 'Si lo dejas marcado y no pones un enlace, el sistema crea la reunión con la cuenta de Google conectada. Si pegas un enlace, se usa ese.';
         } else {
           meetNota.textContent = 'Márcalo para crear la reunión de Meet de esta clase (déjala sin enlace).';
         }
@@ -3458,7 +3650,7 @@ const Pages={
         if (!titulo) { Toast.error('Falta el título'); document.getElementById('wf-titulo')?.focus(); throw new Error('skip'); }
         if (!instructor) { Toast.error('Falta el instructor'); document.getElementById('wf-instructor')?.focus(); throw new Error('skip'); }
         if (!fechaStr) { Toast.error('Falta la fecha'); document.getElementById('wf-fecha')?.focus(); throw new Error('skip'); }
-        const crearMeet = !prueba && !!meetChk.checked;
+        const crearMeet = !!meetChk.checked;
         if (!link && !crearMeet && !prueba) { Toast.error('Falta el link de transmisión', 'Pega el enlace o marca «Crear la reunión de Google Meet».'); document.getElementById('wf-link')?.focus(); throw new Error('skip'); }
         if (link) { try { new URL(link); } catch(e) { Toast.error('Link inválido', 'Verifica que sea una URL completa'); throw new Error('skip'); } }
 
@@ -3479,11 +3671,12 @@ const Pages={
         if (prueba) {
           await Pages._webLlamar('/admin/clases-prueba', {
             method: 'POST',
-            body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, grabacionVideoId })
+            body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, crearMeet, grabacionVideoId })
           });
           Toast.success(editId ? 'Clase de prueba actualizada' : 'Clase de prueba guardada', titulo + ' · solo la ves tú');
           await Pages._pruebasCargar();
           Pages._pruebasRender();
+          Pages._autoCargar().then(() => Pages._autoRender());
           Modal.close();
           return;
         }
@@ -6420,6 +6613,57 @@ const Pages={
       Toast.error('No se pudo ejecutar el cron', e.message || 'Revisa que el webhook tenga la última versión');
     }
     btn.disabled = false; btn.innerHTML = orig;
+  },
+
+  // ─── Ver como usuario · solo el superadministrador (teccapitalweb@gmail.com) ───
+  vercomo(p) {
+    if (!window.__currentAdmin) {
+      p.innerHTML = '<div class="fade-up"><p style="padding:24px;color:var(--text-3);">Cargando…</p></div>';
+      window.addEventListener('adminready', () => { if (__seccionActual === 'vercomo') Pages.vercomo(p); }, { once: true });
+      return;
+    }
+    if (window.__currentAdmin.email !== window.__superAdminEmail) {
+      navigate('dashboard', { reemplazar: true });
+      Toast.info('Apartado no disponible', 'Solo lo usa la cuenta de superadministración.');
+      return;
+    }
+    p.innerHTML = `
+      <div class="fade-up">
+        <div class="sec-hero">
+          <span class="sec-hero__eyebrow">Solo superadministrador</span>
+          <h1 class="sec-hero__title">Ver como usuario</h1>
+          <p class="sec-hero__sub">Abre el panel de miembros con tu propia sesión, en esta misma pestaña, para revisar lo que ven y usan los miembros. Allí encontrarás el botón «Volver al administrador».</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+          <div class="dash-card" style="padding:22px;">
+            <h3 style="font-size:16px;font-weight:700;margin:0 0 6px;">Todo desbloqueado</h3>
+            <p style="font-size:13px;color:var(--text-3);line-height:1.55;margin:0 0 16px;">Cursos, retos, materiales, clases en vivo y grabaciones abiertos, sin membresía ni calendario de desbloqueo. Aquí también ves tus clases de prueba, con la etiqueta «Prueba».</p>
+            <button class="btn btn--accent" id="vc-todo"><svg class="ic"><use href="#i-eye"/></svg>Abrir el panel de miembros</button>
+          </div>
+
+          <div class="dash-card" style="padding:22px;">
+            <h3 style="font-size:16px;font-weight:700;margin:0 0 6px;">Como un miembro normal</h3>
+            <p style="font-size:13px;color:var(--text-3);line-height:1.55;margin:0 0 12px;">Con las reglas de acceso de un miembro: los cursos se desbloquean poco a poco. Para probar el goteo, indica cuántos días han pasado desde el alta.</p>
+            <label for="vc-dias" style="font-size:12px;color:var(--text-3);display:block;margin-bottom:4px;">Días desde el alta (opcional)</label>
+            <input type="number" min="0" max="3650" class="input" id="vc-dias" placeholder="Ej: 12" style="max-width:160px;margin-bottom:14px;">
+            <div><button class="btn btn--ghost" id="vc-miembro"><svg class="ic"><use href="#i-user"/></svg>Abrir como miembro</button></div>
+          </div>
+        </div>
+      </div>
+    `;
+    // Se abre en esta misma pestaña (como en FisioTeck): otra pestaña con Firebase abierto en las dos páginas
+    // a la vez puede hacer que se pierda la sesión. Si aun así hubiera que iniciar sesión, vip-auth.html
+    // lee este destino y devuelve al panel en lugar de mandar al administrador.
+    const ir = url => {
+      try { sessionStorage.setItem('icadem:vista-admin', JSON.stringify({ url, t: Date.now() })); } catch (e) { /* sin sessionStorage: se abre igual */ }
+      window.location.href = url;
+    };
+    p.querySelector('#vc-todo').addEventListener('click', () => ir('vip-panel.html?desde=admin'));
+    p.querySelector('#vc-miembro').addEventListener('click', () => {
+      const dias = (p.querySelector('#vc-dias').value || '').trim();
+      ir('vip-panel.html?como=user' + (/^\d{1,4}$/.test(dias) ? '&dias=' + dias : '') + '&desde=admin');
+    });
   },
 
   config(p){

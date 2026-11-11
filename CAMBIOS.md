@@ -1,5 +1,47 @@
 # CAMBIOS
 
+## 2026-11-12 — Admin · Clases en vivo: carga fiable tras recargar la página
+
+**Archivos:** `vip-admin.html`
+
+- Corrige que, al recargar la página directamente en Clases en vivo, las clases de prueba, las grabaciones automáticas y los videos de las clases salieran vacíos («Aún no hay clases de prueba», «Sin grabación»): la sección se dibujaba antes de que Firebase reconociera la sesión y las consultas fallaban en silencio. Ahora se espera a la sesión (`adminready`).
+- Si una carga falla, la tarjeta muestra el motivo con un botón «Reintentar» en lugar de «no hay nada», y la lista ya no dice «Sin grabación» cuando no pudo leer los datos privados.
+- Editar una clase real solo abre el formulario si se pudieron leer su enlace y su grabación: con el formulario vacío, al guardar se habrían borrado por error.
+
+## 2026-11-12 — Clases de prueba: avisos solo para el superadministrador, sesión en «Ver como usuario» y ajustes del admin
+
+**Archivos:** `vip-admin.html`, `vip-auth.html`, `vip-panel.html`; backend `icadem-webhook`: `webinar-alerts.js`, `webinar-private.js`, `index.js`, `test/webinar-alerts-prueba.test.js` (nuevo)
+
+- Avisos de clases de prueba: al programarla, 1 hora antes y al empezar, con el prefijo «Prueba ·». Llegan únicamente a la cuenta de superadministración (campanita dirigida con `destinatarioUid` y push solo a sus dispositivos). Los miembros y los demás administradores no los reciben. Las clases reales siguen avisando a todos. La cuenta se resuelve por correo (`SUPERADMIN_EMAIL`, por defecto teccapitalweb@gmail.com); sin ella no se avisa a nadie. Al eliminar una prueba se borran sus avisos.
+- «Ver como usuario» se abre en la misma pestaña (antes, otra pestaña con Firebase abierto en dos páginas a la vez), con el botón «Volver al administrador» en el panel (`?desde=admin`).
+- Inicio de sesión: si hubo que iniciar sesión viniendo de «Ver como usuario», un administrador vuelve al panel que estaba viendo (destino de un solo uso en sessionStorage, validado) en lugar de caer siempre en el administrador.
+- Admin · Clases en vivo: pestañas Todos, Próximos y Pasados (Todos por defecto); tarjeta «Con grabación»; al terminar la grabación automática la tarjeta pasa a «Clase ya disponible» (portada, Editar y Eliminar) y la tabla de pruebas y los conteos se actualizan solos.
+
+## 2026-11-12 — Clases en vivo: grabación automática de Drive a Bunny y pruebas con Meet
+
+**Archivos:** `vip-admin.html`; backend `icadem-webhook`: `clases-auto.js` (nuevo), `webinar-private.js`, `bunny-webinars.js`, `google-meet.js`, `index.js`, `test/clases-auto.test.js` (nuevo)
+
+- Las clases de prueba también pueden crear su reunión de Google Meet automáticamente. Siguen siendo solo para administradores: no se publican, no avisan a nadie y su video solo se ve en «Ver como usuario».
+- Grabación automática: al crear una clase (de prueba o real) con Meet automático se registra en `clasesAuto`. Después de la hora, el servidor busca cada 3 minutos el MP4 en el Drive de la cuenta conectada (por el título del evento o el código del enlace), lo sube en flujo a la colección de Bunny «clases en vivo» y, cuando Bunny termina de procesarlo, lo enlaza con la clase. Un video puesto a mano nunca se reemplaza.
+- Admin · Clases en vivo: tarjeta «Grabaciones automáticas» con los pasos (programada, encontrada, pasando a Bunny, procesando, lista), avisos de fallos temporales, errores con motivo y botón Reintentar; se actualiza sola cada 20 segundos.
+- Al eliminar una clase real también se borran sus avisos de la campanita y su registro de grabación; al eliminar una de prueba, su evento de Calendar.
+- Con Gmail la grabación no empieza sola: la cuenta conectada debe pulsar «Grabar» en Meet y «Finalizar para todos» al terminar.
+
+## 2026-11-11 — Admin: apartado «Ver como usuario» solo para el superadministrador
+
+**Archivos:** `vip-admin.html`
+
+- Nuevo apartado «Ver como usuario» en el menú (sección Cuenta), visible únicamente con la sesión `teccapitalweb@gmail.com`. Abre el panel de miembros en otra pestaña con la misma sesión: «Todo desbloqueado» (`vip-panel.html`, el administrador ya tiene todo abierto) o «Como un miembro normal» (`?como=user`, con los días desde el alta opcionales para probar el goteo de cursos).
+- Para las demás cuentas de administración el elemento del menú no se muestra, y abrir `#vercomo` a mano las devuelve al inicio con un aviso.
+- Límite conocido: oculta el apartado del menú; no cambia el acceso al panel de miembros, que cualquier administrador sigue pudiendo abrir escribiendo `vip-panel.html`.
+
+## 2026-11-11 — Nueva cuenta de administración: grupeliptica@gmail.com
+
+**Archivos:** `vip-admin.html`, `vip-panel.html`, `vip-auth.html`, `firestore.courses.rules.fragment`; backend `icadem-webhook`: `index.js`
+
+- `grupeliptica@gmail.com` (la cuenta que graba las clases en Meet) se agrega a la lista de administradores en el servidor, el panel de administración, el panel de miembros, el acceso y el fragmento de reglas de cursos.
+- Pendiente fuera del código: agregar el mismo correo a la función `isAdmin()` de las reglas de Firestore publicadas en la consola de Firebase.
+
 ## 2026-11-11 — Clases en vivo: clases de prueba solo para administradores
 
 **Archivos:** `vip-admin.html`, `vip-panel.html`; backend `icadem-webhook`: `webinar-private.js`, `mobile-webinars.js`, `index.js`, `test/webinar-private.test.js`
