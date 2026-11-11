@@ -372,9 +372,9 @@ input[type=range]{width:100%;accent-color:var(--night)}
 @media (max-width:560px){.lobby__roles{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
 /* ---------- amigos, equipo y armario ---------- */
-.friends-btn{bottom:calc(74px + var(--safe-b))}
-.is-touch .friends-btn{bottom:calc(164px + var(--safe-b))}
-.is-touch .say-menu{bottom:calc(216px + var(--safe-b))}
+.friends-btn{left:calc(162px + var(--safe-l,0px))}
+.is-touch .friends-btn{left:auto;right:calc(78px + var(--safe-r));bottom:calc(112px + var(--safe-b))}
+@media (max-width:720px){.friends-btn{left:calc(78px + var(--safe-l,0px))}}
 .lobby__title{margin:6px 0 0;font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 .wardrobe .rowi.is-on{border-color:var(--teal);background:#e3f4ec}
 .wardrobe .field{margin-top:12px}
