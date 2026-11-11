@@ -31,6 +31,11 @@
 .cve-row-tools{display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-bottom:14px}
 .cve-row-tools button{min-width:44px;min-height:40px;padding:7px 11px;border:1px solid var(--cve-line);border-radius:9px;background:var(--surface,#fff);font:600 11px/1.5 Inter,system-ui,sans-serif;color:var(--cve-ink);cursor:pointer}
 .cve-row-tools [data-cve-remove]{color:var(--danger,#b33c48)}
+.cve-language-state{align-self:center;margin:0;padding:12px;border:1px solid var(--cve-line);border-radius:10px;background:var(--surface,#fff);color:var(--cve-muted);font-size:12px;line-height:1.6}
+.cve-language-review{margin:0;padding:11px 13px;border-left:3px solid #bb8733;border-radius:8px;background:var(--surface,#fff);color:var(--cve-ink);font-size:11px;line-height:1.7;overflow-wrap:anywhere}
+.cve-language-review[hidden]{display:none}
+.cve-language-cert{padding:15px;border:1px solid var(--cve-line);border-radius:10px;background:var(--surface,#fff);min-width:0}
+.cve [aria-invalid=true]{border-color:var(--danger,#b33c48)}
 .cve button:disabled{cursor:not-allowed;opacity:.48}
 .cve-visibility{display:grid;grid-template-columns:minmax(160px,1fr) minmax(190px,320px);gap:12px;align-items:center;padding-top:20px;margin-top:20px;border-top:1px solid var(--cve-line);font-size:11px;font-weight:650}
 .cve-section-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:20px}
