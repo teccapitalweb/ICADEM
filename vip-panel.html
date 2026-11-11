@@ -25,6 +25,8 @@
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
 <script src="js/icadem-platform-v2.js?v=50" defer></script>
+<script src="js/icadem-course-unlocks.js?v=1" defer></script>
+<link rel="stylesheet" href="css/icadem-course-unlocks.css?v=1">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
@@ -4476,7 +4478,7 @@ window.__showWelcomeSplash = function(opts) {
     icono = '🎁';
     kicker = 'ACCESO DE CORTESÍA';
     titulo = dias ? `ICADEM te regaló <em>${dias} días VIP</em>` : `ICADEM te regaló <em>acceso VIP</em>`;
-    desc = `${nombre}, disfruta tu primer curso desde hoy y uno nuevo cada 6 días durante tu periodo de cortesía. También tienes estos beneficios:`;
+    desc = `${nombre}, elige tus cursos y recibe un nuevo desbloqueo cada 6 días durante tu periodo de cortesía. También tienes estos beneficios:`;
   } else if (plan === 'anual') {
     icono = '⭐';
     kicker = '¡BIENVENIDO AL CLUB VIP!';
@@ -4491,7 +4493,7 @@ window.__showWelcomeSplash = function(opts) {
 
   // ── Recorrido "película" · los beneficios del panel ──
   const beneficios = [
-    { ic:'📚', t:'Cursos premium',   d:'Tu primer curso hoy y uno nuevo cada 6 días, con clases y materiales.' },
+    { ic:'📚', t:'Cursos premium',   d:'Elige tus cursos y recibe un nuevo desbloqueo cada 6 días, con clases y materiales.' },
     { ic:'🎥', t:'Clases en vivo',   d:'Webinars con expertos y acceso a las grabaciones cuando quieras.' },
     { ic:'⚡', t:'Retos profesionales', d:'Casos, flashcards y quiz para practicar con criterio.' },
     { ic:'🛠️', t:'Herramientas pro', d:'Calculadora fiscal, nómina y crédito, documentos legales y plantillas de negocio listas para usar.' },
@@ -4533,6 +4535,7 @@ window.__showWelcomeSplash = function(opts) {
         <button class="splash-film__skip" id="splash-skip">Saltar e ir al panel</button>
         <div class="splash-film__dots" id="splash-dots"></div>
         <button class="splash-bnv__btn splash-film__next" id="splash-next">Siguiente →</button>
+        <button class="splash-film__skip" id="splash-choose-courses" hidden>Elegir mis cursos</button>
       </div>
       <div class="splash-bnv__foot">Cualquier duda · <a href="https://wa.me/522383738143" target="_blank" rel="noopener">WhatsApp +52 238 409 2448</a></div>
     </div>
@@ -4589,6 +4592,7 @@ window.__showWelcomeSplash = function(opts) {
     dots.forEach((d,k)=> d.classList.toggle('is-on', k===i));
     barEl.style.width = (((i+1)/TOTAL)*100) + '%';
     nextBtn.textContent = (i >= TOTAL-1) ? 'Entrar al panel →' : 'Siguiente →';
+    splash.querySelector('#splash-choose-courses').hidden = i < TOTAL-1;
   }
 
   function goTo(i){
@@ -4615,6 +4619,10 @@ window.__showWelcomeSplash = function(opts) {
   // listeners
   nextBtn.addEventListener('click', () => goTo(cur+1));
   splash.querySelector('#splash-skip').addEventListener('click', close);
+  splash.querySelector('#splash-choose-courses').addEventListener('click', () => {
+    close();
+    setTimeout(() => { if (window.ICADEMCourseUnlocks) window.ICADEMCourseUnlocks.focus(); else window.navigateToSection?.('cursos'); }, 350);
+  });
   splash.querySelector('.splash-bnv__close').addEventListener('click', close);
   splash.querySelector('.splash-bnv__overlay').addEventListener('click', close);
   dots.forEach(d => d.addEventListener('click', () => goTo(parseInt(d.dataset.i,10))));
@@ -6914,6 +6922,14 @@ const Sections = (function(){
     actualizarInicioAprendizaje();
     return cursos;
   };
+  window.__getCourseUnlockCatalog = async function(){
+    await cargarCursosFirestore();
+    return cursos;
+  };
+  document.addEventListener('icadem:course-unlocks-changed', () => {
+    const host = document.getElementById('dynamic-section');
+    if (host?.isConnected && location.hash === '#cursos') renderCursos(host);
+  });
   document.addEventListener('icadem:course-ratings-updated', () => {
     const list = document.getElementById('cur-list');
     if (location.hash !== '#cursos' || !list) return;
@@ -7377,6 +7393,7 @@ const Sections = (function(){
           <div><span class="courses-library-head__eyebrow">Biblioteca profesional</span><h1>Mis cursos</h1><p>Encuentra tu siguiente programa, continúa donde te quedaste y consulta cuándo se habilitará nuevo contenido.</p></div>
           <div class="courses-library-head__count"><strong>${cursos.length || '—'}</strong><span>programas</span></div>
         </header>
+        <div data-course-unlocks hidden></div>
         <section class="courses-controls" aria-label="Buscar y filtrar cursos">
           <div class="courses-controls__top">
             <label class="courses-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Buscar cursos</span><input id="cur-search" type="search" aria-label="Buscar cursos" value="${esc(cursosState.search)}" placeholder="Buscar un curso…" autocomplete="off"><button class="courses-search__clear" id="cur-search-clear" type="button" aria-label="Limpiar búsqueda" ${cursosState.search?'':'hidden'}>×</button></label>
@@ -7397,6 +7414,7 @@ const Sections = (function(){
       </div>
     `;
 
+    window.ICADEMCourseUnlocks?.mount(container.querySelector('[data-course-unlocks]'));
     container.querySelectorAll('[data-course-filter]').forEach(button=>button.addEventListener('click',()=>{
       cursosState.estado=button.dataset.courseFilter;
       renderCursosList();
@@ -7504,6 +7522,7 @@ const Sections = (function(){
       card.addEventListener('click',event=>{if(!event.target.closest('button,a'))abrir();});
       card.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button,a'))abrir();});
     });
+    window.ICADEMCourseUnlocks?.decorate(list);
   }
 
   // ═══════════════════════════════════════════════════════════════════
