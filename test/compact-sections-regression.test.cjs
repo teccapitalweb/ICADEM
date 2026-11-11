@@ -43,7 +43,7 @@ function campus(){
   const location=new URL('https://www.icademx.com/vip-panel.html#inicio');
   const window={__auth:{currentUser:{uid:'test-user'}},UserState:{modo:'vip'},dispatchEvent:event=>events.push(event),scrollTo(){}};
   const context={window,location,cursos:courses,_cursosLoaded:true,FREE_CLASS_COUNT:4,cursosState:{estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'},
-    document:{getElementById:id=>ids.get(id)||null,querySelectorAll:selector=>selector==='[data-course-filter]'?ids.get('dynamic-section').querySelectorAll(selector):[]},
+    document:{addEventListener(){},getElementById:id=>ids.get(id)||null,querySelectorAll:selector=>selector==='[data-course-filter]'?ids.get('dynamic-section').querySelectorAll(selector):[]},
     history:{pushState(_,__,hash){location.hash=hash;},replaceState(_,__,hash){location.hash=hash;}},
     getProgresoCurso:id=>progress[id]||{clasesVistas:[],completado:false},getPortadaCurso:c=>c.portada,primerCursoGratisId:()=>'',toolEsVIP:()=>true,
     cursoDesbloqueado:(_,c)=>c.access?.unlocked===true,diasParaDesbloquear:(_,c)=>c.access?.unlocked?0:6,
@@ -53,7 +53,8 @@ function campus(){
     CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},console};
   window.history=context.history;window.location=location;
   vm.createContext(context);
-  const code=between(panel,'  function progresoCursoPct(','  // ═══════════════════════════════════════════════════════════════\n  // 🎓 SPLASH')
+  const code=between(panel,'  window.__courseCoverICADEM =',"  document.addEventListener('icadem:course-unlocks-changed'")
+    +between(panel,'  function progresoCursoPct(','  // ═══════════════════════════════════════════════════════════════\n  // 🎓 SPLASH')
     +between(panel,'  function actualizarInicioAprendizaje(){','  // ─── Cargar catálogo sanitizado')
     +between(panel,'  let cursosState={','  // ═══════════════════════════════════════════════════════════════════\n  // DETALLE DE CURSO')
     +between(panel,'  function openCursoDetalle(id){','  function renderCursoDetalle(container){')

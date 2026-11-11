@@ -25,8 +25,11 @@
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
 <script src="js/icadem-platform-v2.js?v=50" defer></script>
-<script src="js/icadem-course-unlocks.js?v=2" defer></script>
-<link rel="stylesheet" href="css/icadem-course-unlocks.css?v=2">
+<script src="js/icadem-course-unlocks.js?v=4" defer></script>
+<link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
+<script src="js/icadem-learning-route.js?v=2" defer></script>
+<script src="js/icadem-learning-navigation.js?v=2" defer></script>
+<link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
@@ -5906,6 +5909,7 @@ function __leerSeccionURLVIP(){
   return __seccionesValidasVIP().has(s) ? s : SECCION_DEFAULT_VIP;
 }
 function __sincronizarDesdeURLVIP(){
+  if(window.ICADEMLearningNavigation?.handleHistory?.())return;
   if(window.ICADEMProfessionalNavigation?.handleHistory?.())return;
   const s = __leerSeccionURLVIP();
   if (s !== __seccionActualVIP || (s==='directorio-perfil' && (window.ICADEMProfessionalNavigation?.currentProfileId()!==window.__perfilProfesionalRutaActual || window.ICADEMProfessionalNavigation?.currentEditorSection()!==window.__perfilProfesionalEdicionActual))) navigateToSection(s, { reemplazar: true, fromHistory:true });
@@ -5920,12 +5924,14 @@ function __entradaAprendizajeActiva(host){
 function navigateToSection(section, opciones){
   // Sección inexistente (link viejo, # inventado) → al inicio
   if(!__seccionesValidasVIP().has(section)) section = SECCION_DEFAULT_VIP;
+  if(window.ICADEMLearningNavigation?.allowNavigation?.(section,opciones,()=>navigateToSection(section,{...opciones,learningApproved:true}))===false)return;
   if(window.ICADEMProfessionalNavigation?.allowNavigation?.(section,opciones,()=>navigateToSection(section,{...opciones,professionalApproved:true}))===false)return;
 
   // ── Dejar la pestaña escrita en la URL ──
   if(__seccionActualVIP && __seccionActualVIP!==section) window.__seccionAnteriorVIP=__seccionActualVIP;
   __seccionActualVIP = section;
   const __profileRoute=window.ICADEMProfessionalNavigation?.prepare(section,opciones);
+  const __learningRoute=window.ICADEMLearningNavigation?.prepare(section,opciones,__profileRoute);
   const __destino = __profileRoute?.url || '#' + section;
   const __actual = __profileRoute ? location.pathname+location.search+location.hash : location.hash;
   if(__actual !== __destino && window.history){
@@ -5947,7 +5953,7 @@ function navigateToSection(section, opciones){
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
   document.querySelectorAll(`[data-section="${section}"]`).forEach(ni => ni.classList.add('is-active'));
-  const dockSection = section==='directorio-perfil'?'directorio':['curso-detalle','clase-detalle'].includes(section) ? 'cursos' : section;
+  const dockSection = section==='directorio-perfil'?'directorio':['curso-detalle','clase-detalle','ruta-aprendizaje'].includes(section) ? 'cursos' : section;
   if (dockSection !== section) {
     document.querySelectorAll(`[data-section="${dockSection}"]`).forEach(ni => ni.classList.add('is-active'));
   }
@@ -5981,7 +5987,7 @@ function navigateToSection(section, opciones){
   // anterior hasta ese reemplazo evita el destello blanco entre secciones.
   if(renderer){Promise.resolve(renderer(dyn)).then(sectionReady).catch(error=>console.warn('[ICADEM navegación]',error));}
   else{dyn.innerHTML=sectionPlaceholder(section);sectionReady();}
-  if(!__profileRoute?.restoreDirectory)__subirAlInicioVIP();
+  if(!__profileRoute?.restoreDirectory&&!__learningRoute?.restoreCourses)__subirAlInicioVIP();
 }
 
 // Cada sección abre arriba. En celular quien se desplaza es <body> (no la
@@ -6926,6 +6932,7 @@ const Sections = (function(){
     await cargarCursosFirestore();
     return cursos;
   };
+  window.__courseCoverICADEM = (course, fallbackOnly) => String((!fallbackOnly && course.portada) || coverSVG(course.area, course.titulo)).replace(/'/g,'%27');
   document.addEventListener('icadem:course-unlocks-changed', () => {
     const host = document.getElementById('dynamic-section');
     if (host?.isConnected && location.hash === '#cursos') renderCursos(host);
@@ -7308,6 +7315,9 @@ const Sections = (function(){
 
   /* ============================ CURSOS ============================ */
   let cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};
+  document.addEventListener('icadem:unlocks-updated',event=>{
+    if(event.detail?.prioritiesChanged&&location.hash==='#cursos'&&cursosState.orden==='prioridades')renderCursosList();
+  });
   let cursosSearchTimer=null;
   let countdownTimer=null;
 
@@ -7367,7 +7377,13 @@ const Sections = (function(){
   }
 
   function ordenarCursos(items){
+    const prioridades=new Map();
+    if(cursosState.orden==='prioridades') (window.ICADEMCourseUnlocks?.getPriorities?.()||[]).forEach((id,index)=>{if(!prioridades.has(id))prioridades.set(id,index);});
     return items.sort((a,b)=>{
+      if(cursosState.orden==='prioridades'){
+        const posicionA=prioridades.get(a.id)??Infinity,posicionB=prioridades.get(b.id)??Infinity;
+        if(posicionA!==posicionB)return posicionA<posicionB?-1:1;
+      }
       const ia=resumenEstadoCurso(a), ib=resumenEstadoCurso(b);
       if(cursosState.orden==='nombre') return String(a.titulo||'').localeCompare(String(b.titulo||''),'es',{sensitivity:'base'});
       if(cursosState.orden==='progreso') return (ib.progreso-ia.progreso)||((a.orden||0)-(b.orden||0));
@@ -7382,6 +7398,8 @@ const Sections = (function(){
   }
 
   function renderCursos(container){
+    const returnedState=window.ICADEMLearningNavigation?.coursesState?.();
+    if(returnedState)cursosState={...cursosState,estado:returnedState.estado,area:returnedState.area,nivel:returnedState.nivel,search:returnedState.search,orden:returnedState.orden};
     window.ICADEMCourseRatings?.refreshCatalog();
     const esc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const areas=[...new Set(cursos.map(c=>c.area).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
@@ -7400,7 +7418,7 @@ const Sections = (function(){
             <div class="courses-selects">
               <label class="courses-select"><span>Categoría</span><select id="cur-area"><option value="todas">Todas</option>${areas.map(area=>`<option value="${esc(area)}" ${cursosState.area===area?'selected':''}>${esc(area)}</option>`).join('')}</select></label>
               <label class="courses-select"><span>Nivel</span><select id="cur-level"><option value="todos">Todos</option>${niveles.map(nivel=>`<option value="${esc(nivel)}" ${cursosState.nivel===nivel?'selected':''}>${esc(nivel)}</option>`).join('')}</select></label>
-              <label class="courses-select"><span>Ordenar</span><select id="cur-sort"><option value="proximos" ${cursosState.orden==='proximos'?'selected':''}>Próximos a desbloquear</option><option value="nombre" ${cursosState.orden==='nombre'?'selected':''}>Nombre</option><option value="progreso" ${cursosState.orden==='progreso'?'selected':''}>Progreso</option><option value="recientes" ${cursosState.orden==='recientes'?'selected':''}>Más recientes</option></select></label>
+              <label class="courses-select"><span>Ordenar</span><select id="cur-sort"><option value="proximos" ${cursosState.orden==='proximos'?'selected':''}>Próximos a desbloquear</option><option value="prioridades" ${cursosState.orden==='prioridades'?'selected':''}>Mi orden de prioridad</option><option value="nombre" ${cursosState.orden==='nombre'?'selected':''}>Nombre</option><option value="progreso" ${cursosState.orden==='progreso'?'selected':''}>Progreso</option><option value="recientes" ${cursosState.orden==='recientes'?'selected':''}>Más recientes</option></select></label>
             </div>
           </div>
           <div class="courses-controls__bottom">
@@ -7439,6 +7457,7 @@ const Sections = (function(){
       cargarCursosFirestore().then(()=>{if(container.isConnected&&location.hash==='#cursos')renderCursos(container);});
     } else {
       renderCursosList();
+      window.ICADEMLearningNavigation?.coursesReady?.(container);
     }
   }
 
@@ -7476,7 +7495,7 @@ const Sections = (function(){
     const htmlEsc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     list.innerHTML=`${avisoRespaldo}${bannerGratis}<div class="cursos-grid cursos-grid--premium">${items.map((c, idx)=>{
       const info = resumenEstadoCurso(c);
-      const portada = String(c.portada || coverSVG(c.area, c.titulo)).replace(/'/g,'%27');
+      const portada = window.__courseCoverICADEM(c);
       const pct = info.progreso;
       const puedeElegirGratis = c.catalogPending !== true && !toolEsVIP() && !primerCursoGratisId()
         && c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 1;
@@ -13085,6 +13104,7 @@ const Sections = (function(){
   return {
     renderers:{
       cursos:renderCursos,
+      'ruta-aprendizaje':container=>window.ICADEMLearningRoute.render(container),
       'curso-detalle':renderCursoDetalle,
       'clase-detalle':renderClaseDetalle,
       retos:renderRetos,
@@ -22362,7 +22382,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-onboarding.js?v=23"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
-<link rel="stylesheet" href="css/icadem-courses.css?v=6">
+<link rel="stylesheet" href="css/icadem-courses.css?v=7">
 <link rel="stylesheet" href="css/icadem-live.css?v=2">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">

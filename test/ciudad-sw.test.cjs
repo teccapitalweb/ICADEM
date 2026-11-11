@@ -43,7 +43,7 @@ test('sw: fuera de /ciudad/ todo sigue igual (cache-first) y se subi√≥ la versi√
   assert.equal(res.body, 'CSS-CACHE', 'el resto del panel conserva su estrategia');
   assert.equal(w.calls.length, 0);
   const sw = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
-  assert.match(sw, /const CACHE = 'icadem-vip-v153';/);
+  assert.match(sw, /const CACHE = 'icadem-vip-v155';/);
   assert.match(sw, /js\/icadem-ciudad\.js\?v=4/);
   assert.match(fs.readFileSync(path.join(__dirname, '..', 'vip-panel.html'), 'utf8'), /js\/icadem-ciudad\.js\?v=4/);
 });
