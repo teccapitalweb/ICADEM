@@ -181,7 +181,7 @@ test('panel: la pestaña Ciudad ICADEM se integra con cambios mínimos', () => {
   const code = bridge.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
   assert.doesNotMatch(code, /ICADEMPlatform|credits|localStorage/, 'el puente no toca créditos ni guarda datos');
   assert.deepEqual([...new Set(code.match(/\bfetch\s*\([^,)]*/g))].sort(), ["fetch(server + '/health'", "fetch(server + '/ticket'"].sort(), 'el puente solo habla con el servidor de sesiones configurado');
-  assert.match(code, /var CIUDAD_SERVER_URL = '';/, 'el servidor de sesiones sigue apagado en el puente');
+  assert.match(code, /var CIUDAD_SERVER_URL = 'https:\/\/ciudad-icadem-production\.up\.railway\.app';/, 'el puente apunta solo al servidor de sesiones del piloto');
   assert.match(code, /\/\^https:\\\/\\\/\[a-z0-9\.-\]\+\(:\\d\+\)\?\$\/i\.test\(url\)/, 'el servidor debe ser https y venir de la configuración del panel');
   for (const m of code.match(/postMessage\(\{[^}]*\}/g)) assert.doesNotMatch(m, /idToken|Authorization|email|uid/, 'al juego nunca se le entrega la sesión: ' + m);
   assert.doesNotMatch(read('vip-panel.html') + read('js/icadem-platform-v2.js'), /ICADEM_CIUDAD_SERVER/, 'el multijugador sigue apagado en producción: nadie configura el servidor');

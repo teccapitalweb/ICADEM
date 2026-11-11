@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=2';
+  var GAME_URL = 'ciudad/index.html?v=3';
   var stage = null;
   var previousOverflow = '';
   var lastFocus = null;
@@ -45,7 +45,7 @@
   /** Dirección del servidor de sesiones. Mientras no se configure, el juego sigue sin red. */
   // Servidor de sesiones (multijugador). Vacío = el juego corre sin red. Se llena cuando el
   // servidor esté desplegado y su autenticación comprobada (CIUDAD_ICADEM.md, sección 11).
-  var CIUDAD_SERVER_URL = '';
+  var CIUDAD_SERVER_URL = 'https://ciudad-icadem-production.up.railway.app';
   function serverUrl() {
     var url = String(window.ICADEM_CIUDAD_SERVER || CIUDAD_SERVER_URL || '');
     return /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(url) ? url : '';
