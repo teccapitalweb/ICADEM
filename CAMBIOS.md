@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-11-11 — Clases en vivo: reunión de Google Meet automática
+
+**Archivos:** `vip-admin.html`; backend `icadem-webhook`: `google-meet.js` (nuevo), `webinar-private.js`, `index.js`, `test/google-meet.test.js` (nuevo), `test/webinar-private.test.js`
+
+- Admin · Clases en vivo: casilla "Crear la reunión de Google Meet automáticamente". Con ella marcada y sin enlace, el servidor crea el evento en Google Calendar (sin invitados) y guarda el enlace de Meet en los datos privados de la clase. Si se pega un enlace a mano, se usa ese.
+- Si Google falla, la clase no se guarda a medias y el admin ve el motivo. Si Google no está conectado en el servidor, la casilla queda desactivada y se pega el enlace a mano.
+- Editar una clase con Meet automático mantiene el evento de Calendar al día (título, fecha, duración); eliminarla borra también el evento.
+- Variables de Railway: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN` (se obtiene una vez con `scripts/google-token.js`).
+- Meet con una cuenta Gmail personal no graba solo: quien organiza pulsa «Grabar». El título del evento es el de la clase.
+
 ## 2026-11-11 — Clases en vivo: enlace y grabación en datos privados
 
 **Archivos:** `vip-admin.html`; backend `icadem-webhook`: `webinar-private.js` (nuevo), `index.js`, `mobile-webinars.js`, `test/webinar-private.test.js` (nuevo)

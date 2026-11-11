@@ -2997,7 +2997,7 @@ const Pages={
   },
   _webConPrivados(w) {
     const p = Pages._webPriv[w.id];
-    return p ? Object.assign({}, w, { link: p.link || w.link || '', grabacionVideoId: p.grabacionVideoId || w.grabacionVideoId || '' }) : w;
+    return p ? Object.assign({}, w, { link: p.link || w.link || '', grabacionVideoId: p.grabacionVideoId || w.grabacionVideoId || '', meetAuto: !!p.meetAuto }) : w;
   },
   async _webLlamar(ruta, opciones = {}) {
     const token = await Pages._getAuthToken();
@@ -3256,9 +3256,19 @@ const Pages={
         </div>
 
         <div class="form-field form-field--full">
-          <label class="label" for="wf-link">Link de transmisión *</label>
-          <input type="url" class="input" id="wf-link" value="${(wb.link || '').replace(/"/g,'&quot;')}" placeholder="https://meet.google.com/… o https://zoom.us/…" required>
-          <div style="font-size:11px;color:var(--text-3);margin-top:5px;">URL pública (Zoom, Google Meet, YouTube Live, etc.)</div>
+          <label style="display:flex;gap:10px;align-items:flex-start;cursor:pointer;padding:10px 12px;border:1px solid var(--border, rgba(0,0,0,.12));border-radius:12px;">
+            <input type="checkbox" id="wf-crear-meet" style="margin-top:3px;" disabled>
+            <span style="min-width:0;">
+              <strong style="font-size:13px;display:block;">Crear la reunión de Google Meet automáticamente</strong>
+              <span id="wf-crear-meet-nota" style="font-size:11px;color:var(--text-3);">Comprobando la conexión con Google…</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="form-field form-field--full">
+          <label class="label" for="wf-link" id="wf-link-label">Link de transmisión *</label>
+          <input type="url" class="input" id="wf-link" value="${(wb.link || '').replace(/"/g,'&quot;')}" placeholder="https://meet.google.com/… o https://zoom.us/…">
+          <div id="wf-link-ayuda" style="font-size:11px;color:var(--text-3);margin-top:5px;">URL pública (Zoom, Google Meet, YouTube Live, etc.)</div>
         </div>
 
         <div class="form-field form-field--full">
@@ -3330,6 +3340,39 @@ const Pages={
         syncBtn.disabled = false; syncBtn.textContent = 'Sincronizar con Bunny';
       }
     });
+    // ─── Google Meet automático: solo si el servidor tiene la cuenta de Google conectada ───
+    const meetChk = body.querySelector('#wf-crear-meet');
+    const meetNota = body.querySelector('#wf-crear-meet-nota');
+    const linkInput = body.querySelector('#wf-link');
+    const linkAyuda = body.querySelector('#wf-link-ayuda');
+    const linkLabel = body.querySelector('#wf-link-label');
+    const pintarMeet = () => {
+      const auto = meetChk.checked && !linkInput.value.trim();
+      linkLabel.textContent = auto ? 'Link de transmisión (se genera solo)' : 'Link de transmisión *';
+      linkInput.placeholder = auto ? 'Se creará solo con Google Meet al guardar' : 'https://meet.google.com/… o https://zoom.us/…';
+    };
+    meetChk.addEventListener('change', pintarMeet);
+    linkInput.addEventListener('input', pintarMeet);
+    (async () => {
+      try {
+        const j = await Pages._webLlamar('/admin/google/estado');
+        if (!j.configurado) throw new Error('no-conectado');
+        meetChk.disabled = false;
+        if (wb.meetAuto) {
+          meetChk.checked = true; meetChk.disabled = true;
+          meetNota.textContent = 'Esta clase ya tiene su reunión de Meet creada por el sistema; el título, la fecha y la duración se mantienen al día en Google Calendar.';
+        } else if (!esEdicion) {
+          meetChk.checked = !linkInput.value.trim();
+          meetNota.textContent = 'Si lo dejas marcado y no pones un enlace, el sistema crea la reunión con la cuenta de Google conectada. Si pegas un enlace, se usa ese.';
+        } else {
+          meetNota.textContent = 'Márcalo para crear la reunión de Meet de esta clase (déjala sin enlace).';
+        }
+      } catch (e) {
+        meetChk.checked = false; meetChk.disabled = true;
+        meetNota.textContent = 'Google aún no está conectado en el servidor: pega el enlace de la reunión a mano.';
+      }
+      pintarMeet();
+    })();
     footer.querySelector('#wf-save').addEventListener('click', async () => {
       const btn = footer.querySelector('#wf-save');
       btn.disabled = true; btn.style.opacity = '.65'; btn.style.cursor = 'wait';
@@ -3345,8 +3388,9 @@ const Pages={
         if (!titulo) { Toast.error('Falta el título'); document.getElementById('wf-titulo')?.focus(); throw new Error('skip'); }
         if (!instructor) { Toast.error('Falta el instructor'); document.getElementById('wf-instructor')?.focus(); throw new Error('skip'); }
         if (!fechaStr) { Toast.error('Falta la fecha'); document.getElementById('wf-fecha')?.focus(); throw new Error('skip'); }
-        if (!link) { Toast.error('Falta el link de transmisión'); document.getElementById('wf-link')?.focus(); throw new Error('skip'); }
-        try { new URL(link); } catch(e) { Toast.error('Link inválido', 'Verifica que sea una URL completa'); throw new Error('skip'); }
+        const crearMeet = !!meetChk.checked;
+        if (!link && !crearMeet) { Toast.error('Falta el link de transmisión', 'Pega el enlace o marca «Crear la reunión de Google Meet».'); document.getElementById('wf-link')?.focus(); throw new Error('skip'); }
+        if (link) { try { new URL(link); } catch(e) { Toast.error('Link inválido', 'Verifica que sea una URL completa'); throw new Error('skip'); } }
 
         // Convertir datetime-local a Date
         const fechaDate = new Date(fechaStr);
@@ -3364,11 +3408,11 @@ const Pages={
         // El enlace y el ID de la grabación se guardan en el servidor (colección privada)
         const guardado = await Pages._webLlamar('/admin/webinars/guardar', {
           method: 'POST',
-          body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, grabacionVideoId })
+          body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, crearMeet, grabacionVideoId })
         });
-        Pages._webPriv[guardado.id] = { link, grabacionVideoId };
+        Pages._webPriv[guardado.id] = { link: guardado.link || link, grabacionVideoId, meetAuto: !!guardado.meetAuto };
         if (guardado.creada) {
-          Toast.success('¡Clase programada y notificada!', titulo);
+          Toast.success(guardado.meetAuto ? '¡Clase programada con su reunión de Meet!' : '¡Clase programada y notificada!', titulo);
           // También llega como aviso al teléfono de quien activó las notificaciones
           (async () => {
             try {
