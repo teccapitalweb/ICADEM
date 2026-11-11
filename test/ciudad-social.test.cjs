@@ -79,7 +79,11 @@ test('progreso en servidor: sobrevive a un reinicio y no toca la cartera real', 
   assert.deepEqual([p.xp, p.avatarId, p.custom.outfit, p.missions[r.MISSION_BANK].completed, p.testCredits], [120, 'ejecutivo', 'sol', true, 15]);
   assert.equal(fs.readdirSync(dir).some(f => f.includes('uid-ana')), false, 'el nombre del archivo no expone al usuario');
   fs.rmSync(dir, { recursive: true, force: true });
-  for (const file of ['_ciudad-server/profiles.js', '_ciudad-server/server.js', '_ciudad-server/hub.js']) assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8').replace(/^\s*\/\/.*$/gm, ''), /credits\/|\/api\/credits|firestore|stripe|wallet/i, file + ' no conoce la cartera real');
+  for (const file of ['_ciudad-server/profiles.js', '_ciudad-server/server.js', '_ciudad-server/hub.js']) assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8').replace(/^\s*\/\/.*$/gm, ''), /credits\/|\/api\/credits|collection\(['"]credits|stripe|wallet/i, file + ' no conoce la cartera real');
+  const adapter = fs.readFileSync(path.join(root, '_ciudad-server/icadem.js'), 'utf8');
+  assert.match(adapter, /const CONNECTIONS = 'professionalConnections', MEMBERS = 'miembros', DIRECTORY = 'directorio', PROFILES = 'ciudadProfiles';/);
+  assert.equal((adapter.match(/db\.collection\(/g) || []).length, (adapter.match(/db\.collection\((CONNECTIONS|MEMBERS|DIRECTORY|PROFILES)\)/g) || []).length, 'el adaptador solo abre esas cuatro colecciones');
+  assert.doesNotMatch(fs.readFileSync(path.join(root, '_ciudad-server/icadem.js'), 'utf8').replace(/^\s*\/\/.*$/gm, ''), /['"]credits['"]|collection\(['"](?!miembros|directorio|professionalConnections|ciudadProfiles)|notificaciones|forum|professionalProfiles/i, 'el adaptador solo toca miembros, directorio, conexiones y ciudadProfiles');
 });
 
 test('amigos y equipos: solo conexiones mutuas, invitación con respuesta, misma instancia, 2 a 4', async () => {

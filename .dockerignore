@@ -1,0 +1,8 @@
+_ciudad-server/node_modules
+_ciudad-server/*.log
+node_modules
+test
+tests
+scripts
+assets
+*.md

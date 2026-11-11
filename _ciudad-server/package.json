@@ -5,7 +5,14 @@
   "description": "Servidor de sesiones multijugador de Ciudad ICADEM (prototipo, solo pruebas locales)",
   "type": "module",
   "main": "server.js",
-  "scripts": { "start": "node server.js" },
-  "engines": { "node": ">=22.7" },
-  "dependencies": { "ws": "^8.18.0" }
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=22.7"
+  },
+  "dependencies": {
+    "firebase-admin": "^14.5.0",
+    "ws": "^8.18.0"
+  }
 }

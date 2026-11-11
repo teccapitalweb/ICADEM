@@ -406,3 +406,44 @@ Todas las pruebas de tablet y celular son **emulación táctil en Chrome con ren
 - Sin adaptador de base de datos, el progreso en servidor solo existe en pruebas.
 - Al conectarse, el progreso del servidor sustituye al local: quien ya jugó sin conexión no lo "sube" (decisión de seguridad; habrá que avisarlo o migrarlo de forma controlada).
 - La plaza subió a ~230 llamadas de dibujo; falta medir en celulares reales.
+
+## 11. Despliegue del servidor de sesiones en Railway (preparado; pendiente de ejecutar)
+
+Decisión: el servidor va como **servicio nuevo en el mismo proyecto de Railway del backend**, construido desde este repositorio. No se toca `icadem-webhook`.
+
+### 11.1 Cómo se integra con ICADEM (sin modificar el backend)
+`_ciudad-server/icadem.js` usa la **misma cuenta de servicio de Firebase** que el backend, en modo lectura:
+
+| Dato | De dónde | Regla |
+|---|---|---|
+| Identidad | Token de sesión del panel, verificado con `firebase-admin` | Igual que el backend |
+| Nombre | `directorio/{uid}` (`nombrePersonalizado` o `nombre`); si no, el del token | Solo lectura |
+| Acceso | `miembros/{uid}` con las mismas reglas que `membresiaActiva()` del backend (copiadas, con prueba) | Solo lectura; administradores por `CIUDAD_ADMINS` |
+| Conexiones | `professionalConnections` donde `participants` contiene al usuario y `status === 'accepted'` | Solo lectura; el Directorio no se modifica |
+| Progreso del juego | `ciudadProfiles/{uid}` (colección **nueva**, propia del juego) | Solo si `CIUDAD_PROFILES=firestore`; **requiere autorización** |
+
+Nunca lee ni escribe `credits`, Stripe, notificaciones, foro ni `professionalProfiles` (hay prueba que lo vigila).
+
+### 11.2 Pasos (los hace quien tenga acceso a Railway)
+1. En el proyecto de Railway del backend: **New → GitHub Repo → `teccapitalweb/ICADEM`**, rama `main` (cuando esta rama esté integrada).
+2. Settings del servicio: Root Directory `/`; variable `RAILWAY_DOCKERFILE_PATH=_ciudad-server/Dockerfile`. (`_ciudad-server/railway.json` trae watch paths, healthcheck `/health` y 1 réplica.)
+3. Variables:
+
+| Variable | Valor |
+|---|---|
+| `CIUDAD_AUTH` | `firebase` |
+| `CIUDAD_TICKET_SECRET` | 32+ caracteres aleatorios nuevos (no reutilizar otros secretos) |
+| `CIUDAD_ORIGINS` | `https://www.icademx.com` (y `https://icademx.com` si aplica) |
+| `FIREBASE_SERVICE_ACCOUNT` | referencia a la del backend: `${{icadem-webhook.FIREBASE_SERVICE_ACCOUNT}}` |
+| `CIUDAD_ADMINS` | opcional: correos de administradores separados por coma |
+| `CIUDAD_PROFILES` | dejar vacío hasta autorizar la colección `ciudadProfiles`; entonces `firestore` |
+
+4. Generar dominio público (https). Anotar la URL.
+5. **Comprobar antes de activar** (sin sesión ni datos): `node scripts/ciudad-server-check.cjs https://<url>` → 11/11.
+6. **Comprobar con una sesión real** desde la consola del panel (no abre el juego): `ICADEMCiudad.probe('https://<url>').then(console.log)` → `ok: true, ticketStatus: 200` con un miembro activo; `403` con una cuenta sin membresía.
+7. Solo entonces: poner la URL en `CIUDAD_SERVER_URL` de `js/icadem-ciudad.js` (archivo del juego, un cambio de una línea) y subir su `?v=`. Hasta ese momento, el juego sigue sin red.
+
+### 11.3 Qué queda sin probar hasta desplegar
+- Verificación de tokens reales y lectura real de `miembros`, `directorio` y `professionalConnections` (aquí se probó con un Firestore simulado con la misma forma de datos).
+- Latencia real y comportamiento con 10–20 jugadores.
+- Sin `CIUDAD_PROFILES=firestore`, el progreso en servidor se pierde al reiniciar el servicio (el del dispositivo se conserva).

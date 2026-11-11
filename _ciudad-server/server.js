@@ -12,6 +12,7 @@ import { WebSocketServer } from 'ws';
 import { Hub, LIMITS } from './hub.js';
 import { TicketAuthority, createFirebaseVerifier, googleKeys } from './auth.js';
 import { Profiles, MemoryStorage, JsonFileStorage } from './profiles.js';
+import { connectFirebase, createIcademServices } from './icadem.js';
 import { REWARDS } from '../ciudad/js/economy/economy.js';
 import { NET_TICK_HZ } from '../ciudad/js/net/network.js';
 import { defineMission, replay } from '../ciudad/js/missions/engine.js';
@@ -195,17 +196,36 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
 
 // Arranque directo: node _ciudad-server/server.js
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const mode = process.env.CIUDAD_AUTH || 'test', print = (...a) => console.log('[ciudad]', ...a);
+  const mode = process.env.CIUDAD_AUTH || 'test', print = (...a) => console.log('[ciudad]', ...a), die = msg => { console.error('[ciudad] ' + msg + ' No se arranca.'); process.exit(1); };
   const origins = process.env.CIUDAD_ORIGINS ? process.env.CIUDAD_ORIGINS.split(',').map(s => s.trim()).filter(Boolean) : null;
-  let options;
-  if (mode === 'test') {
-    if (process.env.NODE_ENV === 'production') { console.error('[ciudad] El modo de prueba no se ejecuta en producción.'); process.exit(1); }
-    options = { host: '127.0.0.1', devLogin: true, origins, storage: process.env.CIUDAD_DATA_DIR ? new JsonFileStorage(process.env.CIUDAD_DATA_DIR) : new MemoryStorage() };   // en pruebas solo escucha en esta máquina
-  } else if (mode === 'firebase') {
-    const projectId = process.env.CIUDAD_FIREBASE_PROJECT, secret = process.env.CIUDAD_TICKET_SECRET || '';
-    if (!projectId || secret.length < 32 || !origins) { console.error('[ciudad] Faltan CIUDAD_FIREBASE_PROJECT, CIUDAD_TICKET_SECRET (32+ caracteres) o CIUDAD_ORIGINS. No se arranca.'); process.exit(1); }
-    options = { host: process.env.HOST || '0.0.0.0', devLogin: false, origins, authority: new TicketAuthority({ secret }), identity: createFirebaseVerifier({ projectId, getKeys: googleKeys() }) };
-  } else { console.error('[ciudad] CIUDAD_AUTH desconocido: ' + mode); process.exit(1); }
-  const app = createServer({ port: Number(process.env.PORT || 8787), log: print, ...options });
-  app.listen().then(port => print(`servidor de ${mode === 'test' ? 'PRUEBA' : 'sesiones'} en el puerto ${port} · capacidad ${LIMITS.capacity} por instancia · identidad: ${mode}`));
+  const run = async () => {
+    let options;
+    if (mode === 'test') {
+      if (process.env.NODE_ENV === 'production') die('El modo de prueba no se ejecuta en producción.');
+      options = { host: '127.0.0.1', devLogin: true, origins, storage: process.env.CIUDAD_DATA_DIR ? new JsonFileStorage(process.env.CIUDAD_DATA_DIR) : new MemoryStorage() };
+    } else if (mode === 'firebase') {
+      const secret = process.env.CIUDAD_TICKET_SECRET || '', sa = process.env.FIREBASE_SERVICE_ACCOUNT || '';
+      if (secret.length < 32 || !origins) die('Faltan CIUDAD_TICKET_SECRET (32+ caracteres) o CIUDAD_ORIGINS.');
+      const admins = (process.env.CIUDAD_ADMINS || '').split(',').map(s => s.trim()).filter(Boolean);
+      options = { host: process.env.HOST || '0.0.0.0', devLogin: false, origins, authority: new TicketAuthority({ secret }) };
+      if (sa) {
+        // Misma cuenta de servicio que el backend: identidad, membresía y conexiones vienen de ICADEM.
+        const { db, auth, projectId } = await connectFirebase(sa, { storageBucket: process.env.FIREBASE_STORAGE_BUCKET });
+        const icadem = createIcademServices({ db, auth, admins });
+        options.identity = icadem.identity; options.authorize = icadem.authorize; options.connections = icadem.connections;
+        options.storage = process.env.CIUDAD_PROFILES === 'firestore' ? icadem.storage : new MemoryStorage();
+        print(`identidad y conexiones: Firebase (${projectId}) · progreso: ${process.env.CIUDAD_PROFILES === 'firestore' ? 'Firestore (ciudadProfiles)' : 'memoria (se pierde al reiniciar)'}`);
+      } else {
+        // Sin cuenta de servicio solo se puede verificar la identidad (llaves públicas): sin membresía ni conexiones.
+        const projectId = process.env.CIUDAD_FIREBASE_PROJECT; if (!projectId) die('Falta FIREBASE_SERVICE_ACCOUNT o, al menos, CIUDAD_FIREBASE_PROJECT.');
+        options.identity = createFirebaseVerifier({ projectId, getKeys: googleKeys() }); options.storage = new MemoryStorage();
+        print(`identidad: llaves públicas (${projectId}) · sin membresía ni conexiones · progreso en memoria`);
+      }
+    } else die('CIUDAD_AUTH desconocido: ' + mode + '.');
+    const app = createServer({ port: Number(process.env.PORT || 8787), log: print, ...options });
+    const port = await app.listen();
+    print(`servidor de ${mode === 'test' ? 'PRUEBA' : 'sesiones'} en el puerto ${port} · capacidad ${LIMITS.capacity} por instancia · identidad: ${mode}`);
+    for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { print('apagando…'); app.close().then(() => process.exit(0)); });
+  };
+  run().catch(error => die(String(error && error.message || error)));
 }

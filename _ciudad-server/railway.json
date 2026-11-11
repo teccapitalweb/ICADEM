@@ -1,0 +1,5 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": { "builder": "DOCKERFILE", "dockerfilePath": "_ciudad-server/Dockerfile", "watchPatterns": ["_ciudad-server/**", "ciudad/js/**"] },
+  "deploy": { "startCommand": "node _ciudad-server/server.js", "healthcheckPath": "/health", "healthcheckTimeout": 60, "restartPolicyType": "ON_FAILURE", "restartPolicyMaxRetries": 5, "numReplicas": 1 }
+}

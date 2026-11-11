@@ -43,9 +43,30 @@
   }
 
   /** Dirección del servidor de sesiones. Mientras no se configure, el juego sigue sin red. */
+  // Servidor de sesiones (multijugador). Vacío = el juego corre sin red. Se llena cuando el
+  // servidor esté desplegado y su autenticación comprobada (CIUDAD_ICADEM.md, sección 11).
+  var CIUDAD_SERVER_URL = '';
   function serverUrl() {
-    var url = String(window.ICADEM_CIUDAD_SERVER || '');
+    var url = String(window.ICADEM_CIUDAD_SERVER || CIUDAD_SERVER_URL || '');
     return /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(url) ? url : '';
+  }
+
+  /**
+   * Comprobación de un servidor ANTES de activarlo: no abre el juego ni guarda nada. Devuelve qué
+   * respondió el servidor a una solicitud de boleto con la sesión actual (sin mostrar el boleto).
+   * Uso desde la consola del panel: ICADEMCiudad.probe('https://servidor').then(console.log)
+   */
+  function probe(url) {
+    var server = /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(String(url || '')) ? String(url) : '';
+    var user = window.__auth && window.__auth.currentUser;
+    if (!server) return Promise.resolve({ ok: false, step: 'url', detail: 'La dirección debe ser https.' });
+    if (!user || typeof user.getIdToken !== 'function') return Promise.resolve({ ok: false, step: 'sesion', detail: 'No hay sesión iniciada.' });
+    var out = { server: server };
+    return fetch(server + '/health').then(function (r) { return r.json(); }).then(function (h) { out.health = h; return user.getIdToken(); })
+      .then(function (idToken) { return fetch(server + '/ticket', { method: 'POST', headers: { Authorization: 'Bearer ' + idToken } }); })
+      .then(function (res) { out.ticketStatus = res.status; return res.json().catch(function () { return {}; }); })
+      .then(function (body) { out.ticket = typeof body.ticket === 'string' ? 'recibido (' + body.ticket.length + ' caracteres)' : (body.error || 'no'); out.ok = out.ticketStatus === 200; return out; })
+      .catch(function (e) { out.ok = false; out.error = String(e && e.message || e); return out; });
   }
 
   /**
@@ -159,5 +180,5 @@
     if (stage && event.detail && event.detail.section !== 'ciudad') close();
   });
 
-  window.ICADEMCiudad = { mount: mount, open: open, close: close, isOpen: function () { return Boolean(stage); } };
+  window.ICADEMCiudad = { mount: mount, open: open, close: close, isOpen: function () { return Boolean(stage); }, probe: probe };
 })();
