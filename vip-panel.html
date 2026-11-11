@@ -25,11 +25,11 @@
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
 <script src="js/icadem-platform-v2.js?v=50" defer></script>
-<script src="js/icadem-course-unlocks.js?v=3" defer></script>
-<link rel="stylesheet" href="css/icadem-course-unlocks.css?v=2">
-<script src="js/icadem-learning-route.js?v=1" defer></script>
-<script src="js/icadem-learning-navigation.js?v=1" defer></script>
-<link rel="stylesheet" href="css/icadem-learning-route.css?v=1">
+<script src="js/icadem-course-unlocks.js?v=4" defer></script>
+<link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
+<script src="js/icadem-learning-route.js?v=2" defer></script>
+<script src="js/icadem-learning-navigation.js?v=2" defer></script>
+<link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
@@ -7315,6 +7315,9 @@ const Sections = (function(){
 
   /* ============================ CURSOS ============================ */
   let cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};
+  document.addEventListener('icadem:unlocks-updated',event=>{
+    if(event.detail?.prioritiesChanged&&location.hash==='#cursos'&&cursosState.orden==='prioridades')renderCursosList();
+  });
   let cursosSearchTimer=null;
   let countdownTimer=null;
 
@@ -7374,7 +7377,13 @@ const Sections = (function(){
   }
 
   function ordenarCursos(items){
+    const prioridades=new Map();
+    if(cursosState.orden==='prioridades') (window.ICADEMCourseUnlocks?.getPriorities?.()||[]).forEach((id,index)=>{if(!prioridades.has(id))prioridades.set(id,index);});
     return items.sort((a,b)=>{
+      if(cursosState.orden==='prioridades'){
+        const posicionA=prioridades.get(a.id)??Infinity,posicionB=prioridades.get(b.id)??Infinity;
+        if(posicionA!==posicionB)return posicionA<posicionB?-1:1;
+      }
       const ia=resumenEstadoCurso(a), ib=resumenEstadoCurso(b);
       if(cursosState.orden==='nombre') return String(a.titulo||'').localeCompare(String(b.titulo||''),'es',{sensitivity:'base'});
       if(cursosState.orden==='progreso') return (ib.progreso-ia.progreso)||((a.orden||0)-(b.orden||0));
@@ -7409,7 +7418,7 @@ const Sections = (function(){
             <div class="courses-selects">
               <label class="courses-select"><span>Categoría</span><select id="cur-area"><option value="todas">Todas</option>${areas.map(area=>`<option value="${esc(area)}" ${cursosState.area===area?'selected':''}>${esc(area)}</option>`).join('')}</select></label>
               <label class="courses-select"><span>Nivel</span><select id="cur-level"><option value="todos">Todos</option>${niveles.map(nivel=>`<option value="${esc(nivel)}" ${cursosState.nivel===nivel?'selected':''}>${esc(nivel)}</option>`).join('')}</select></label>
-              <label class="courses-select"><span>Ordenar</span><select id="cur-sort"><option value="proximos" ${cursosState.orden==='proximos'?'selected':''}>Próximos a desbloquear</option><option value="nombre" ${cursosState.orden==='nombre'?'selected':''}>Nombre</option><option value="progreso" ${cursosState.orden==='progreso'?'selected':''}>Progreso</option><option value="recientes" ${cursosState.orden==='recientes'?'selected':''}>Más recientes</option></select></label>
+              <label class="courses-select"><span>Ordenar</span><select id="cur-sort"><option value="proximos" ${cursosState.orden==='proximos'?'selected':''}>Próximos a desbloquear</option><option value="prioridades" ${cursosState.orden==='prioridades'?'selected':''}>Mi orden de prioridad</option><option value="nombre" ${cursosState.orden==='nombre'?'selected':''}>Nombre</option><option value="progreso" ${cursosState.orden==='progreso'?'selected':''}>Progreso</option><option value="recientes" ${cursosState.orden==='recientes'?'selected':''}>Más recientes</option></select></label>
             </div>
           </div>
           <div class="courses-controls__bottom">

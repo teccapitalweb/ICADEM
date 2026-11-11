@@ -17,7 +17,7 @@
   const icon = name => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.list}</svg>`;
   const uid = () => window.__isDemoMode ? '' : (window.__auth ? window.__auth.currentUser?.uid : window.__currentUser?.uid) || '';
   let generation = 0, loadId = 0, initialId = '', view = null, dialog = null, drag = null, keyboardId = '';
-  let state = {uid:'', status:'idle', catalog:[], data:null, order:[], base:[], query:'', category:'', busy:false, error:'', saved:false};
+  let state = {uid:'', status:'idle', catalog:[], data:null, order:[], base:[], query:'', category:'', busy:false, error:'', saved:false, conflict:false};
   const scope = () => ({uid:uid(), generation});
   const current = ticket => Boolean(ticket.uid && ticket.uid === uid() && ticket.generation === generation && !window.__sessionEnding);
   const sameOrder = (a,b) => a.length === b.length && a.every((id,i) => id === b[i]);
@@ -60,6 +60,10 @@
     body.querySelector('[data-route-search]').addEventListener('input',event => { state.query = event.target.value; paintCatalog(); });
     body.querySelector('[data-route-category]').addEventListener('change',event => { state.category = event.target.value; paintCatalog(); });
     body.querySelector('[data-route-save]').addEventListener('click',save);
+    const reload = document.createElement('button');
+    reload.type = 'button'; reload.className = 'lr-button lr-button--quiet lr-reload'; reload.dataset.routeReload = '';
+    reload.textContent = 'Cargar lista actual'; reload.addEventListener('click',reloadLatest);
+    body.querySelector('[data-route-save]').insertAdjacentElement('afterend',reload);
     paintCatalog(); paintList();
   }
   function paintCatalog() {
@@ -97,14 +101,15 @@
     const status = view.querySelector('[data-route-save-status]'); if (!status) return;
     const dirty = isDirty();
     status.classList.toggle('is-pending',dirty);
-    status.textContent = state.busy ? 'Guardando tu ruta…' : dirty ? 'Tienes cambios sin guardar' : state.saved ? 'Todos los cambios guardados' : 'Tu lista está al día';
-    const button = view.querySelector('[data-route-save]'); button.disabled = state.busy || !dirty;
+    status.textContent = state.busy ? 'Guardando tu ruta…' : state.conflict ? 'Hay una lista más reciente' : dirty ? 'Tienes cambios sin guardar' : state.saved ? 'Todos los cambios guardados' : 'Tu lista está al día';
+    const button = view.querySelector('[data-route-save]'); button.disabled = state.busy || state.conflict || !dirty;
     button.querySelector('span').textContent = state.busy ? 'Guardando…' : 'Guardar cambios';
     const error = view.querySelector('[data-route-error]'); error.hidden = !state.error; error.textContent = state.error;
     view.querySelectorAll('[data-route-search],[data-route-category]').forEach(element => { element.disabled = state.busy; });
     view.querySelector('[data-route-back]').disabled = state.busy;
+    const reload = view.querySelector('[data-route-reload]'); if (reload) { reload.hidden = !state.conflict; reload.disabled = state.busy; }
   }
-  function changed(message, focusId, focusType) { state.error = ''; state.saved = false; paintCatalog(); paintList(focusId,focusType); announce(message); }
+  function changed(message, focusId, focusType) { if (!state.conflict) state.error = ''; state.saved = false; paintCatalog(); paintList(focusId,focusType); announce(message); }
   function add(id) {
     if (state.busy || !current(scope()) || state.order.includes(id) || !state.data?.eligibleCourseIds?.includes(id)) return;
     state.order.push(id); changed(`${title(id)} agregado en la prioridad ${state.order.length}.`);
@@ -205,7 +210,7 @@
     releaseDrag(); view = container; const ticket = scope(), id = ++loadId;
     if (!current(ticket)) { state.status = 'unavailable'; state.error = 'Inicia sesión para organizar tu ruta de aprendizaje.'; shell(); paintStatus(); return; }
     if (state.uid === ticket.uid && state.status === 'ready' && isDirty()) { shell(); paintStatus(); return; }
-    state = {...state,uid:ticket.uid,status:'loading',busy:false,error:'',saved:false}; shell(); paintStatus();
+    state = {...state,uid:ticket.uid,status:'loading',busy:false,error:'',saved:false,conflict:false}; shell(); paintStatus();
     try {
       const [data,catalog] = await Promise.all([window.ICADEMCourseUnlocks?.refresh(),window.__getCourseUnlockCatalog?.()]);
       if (!current(ticket) || id !== loadId || view !== container || !container.isConnected) return;
@@ -221,14 +226,19 @@
     } catch (error) { if (current(ticket) && id === loadId && view === container && container.isConnected) { state.status = 'error'; state.error = error.message || 'No pudimos cargar tu ruta. Puedes volver a intentarlo.'; paintStatus(); } }
   }
   async function save() {
-    if (state.busy || !isDirty() || !current(scope())) return;
+    if (state.busy || state.conflict || !isDirty() || !current(scope())) return;
+    if (!Number.isSafeInteger(state.data?.revision) || state.data.revision < 0) {
+      state.conflict = true; state.error = 'Carga la lista actual para confirmar su versión antes de guardar.'; paintSave(); return;
+    }
     const ticket = scope(), order = [...state.order]; state.busy = true; state.error = ''; releaseDrag(); closeMenus(false); paintCatalog(); paintList();
     try {
-      const result = await window.ICADEMPlatform.request('/api/courses/unlocks/priorities',{method:'PUT',body:{courseIds:order}});
+      const result = await window.ICADEMPlatform.request('/api/courses/unlocks/priorities',{method:'PUT',body:{courseIds:order,expectedRevision:state.data.revision}});
       if (!current(ticket)) return;
       if (!result?.ok) throw new Error(result?.error || 'El servidor no pudo confirmar el guardado.');
+      window.ICADEMCourseUnlocks.adoptConfirmed?.(result,ticket.uid);
       const confirmed = Array.isArray(result.priorities) ? [...result.priorities] : order;
       state.order = confirmed; state.base = [...confirmed]; state.saved = true;
+      state.data = {...state.data,...result};
       let latest;
       try { latest = await window.ICADEMCourseUnlocks.refresh(); } catch (_) { /* The successful PUT already confirmed persistence. */ }
       if (!current(ticket)) return;
@@ -241,17 +251,24 @@
       notice('success','Ruta guardada','Tus prioridades se sincronizaron con tu cuenta.');
     } catch (error) {
       if (!current(ticket)) return;
+      state.conflict = error.status === 409;
       state.busy = false; state.error = error.message || 'No pudimos guardar. Tu borrador sigue aquí; vuelve a intentarlo.'; paintCatalog(); paintList(); announce('No pudimos guardar. Conservamos tus cambios para que puedas volver a intentarlo.');
     }
   }
-  function requestLeave(proceed) {
+  function reloadLatest() {
+    if (!current(scope()) || state.busy) return;
+    const proceed = () => { state.order = [...state.base]; state.conflict = false; render(view); };
+    if (requestLeave(proceed,{reload:true}) !== false) proceed();
+  }
+  function requestLeave(proceed, options) {
     if (isBusy()) { notice('info','Guardando tu ruta','Espera un momento para salir.'); return false; }
     if (!isDirty()) return true;
     if (dialog) return false;
     if (!window.Modal?.open) return false;
-    const body = document.createElement('div'); body.className = 'lr-leave-copy'; body.textContent = 'Los cambios de tu lista todavía no se han guardado. Puedes quedarte para guardarlos o salir y descartarlos.';
+    const body = document.createElement('div'); body.className = 'lr-leave-copy'; body.textContent = options?.reload ? 'Se reemplazará tu borrador por la lista actual de tu cuenta. Tu borrador no se guardará.' : 'Los cambios de tu lista todavía no se han guardado. Puedes quedarte para guardarlos o salir y descartarlos.';
     const footer = document.createElement('div'); footer.className = 'lr-leave-actions'; footer.innerHTML = '<button type="button" class="lr-button lr-button--quiet" data-route-stay>Seguir organizando</button><button type="button" class="lr-button lr-button--primary" data-route-discard>Salir sin guardar</button>';
-    const handle = window.Modal.open({id:'learning-route-leave',title:'¿Salir sin guardar?',subtitle:'Tu ruta tiene cambios pendientes',icon:'i-book',size:'sm',body,footer,onClose:() => { if (dialog === handle) dialog = null; }});
+    if (options?.reload) { footer.querySelector('[data-route-stay]').textContent = 'Conservar borrador'; footer.querySelector('[data-route-discard]').textContent = 'Cargar lista actual'; }
+    const handle = window.Modal.open({id:'learning-route-leave',title:options?.reload ? '¿Cargar la lista actual?' : '¿Salir sin guardar?',subtitle:'Tu ruta tiene cambios pendientes',icon:'i-book',size:'sm',body,footer,onClose:() => { if (dialog === handle) dialog = null; }});
     dialog = handle;
     footer.querySelector('[data-route-stay]').addEventListener('click',() => dialog?.close());
     footer.querySelector('[data-route-discard]').addEventListener('click',() => { state.order = [...state.base]; state.error = ''; state.saved = false; const handle = dialog; dialog = null; handle?.close(); proceed?.(); });
@@ -260,7 +277,7 @@
   function reset() {
     generation++; loadId++; initialId = ''; keyboardId = ''; releaseDrag();
     const handle = dialog; dialog = null; handle?.close();
-    state = {uid:'',status:'idle',catalog:[],data:null,order:[],base:[],query:'',category:'',busy:false,error:'',saved:false};
+    state = {uid:'',status:'idle',catalog:[],data:null,order:[],base:[],query:'',category:'',busy:false,error:'',saved:false,conflict:false};
     if (view?.isConnected) view.replaceChildren(); view = null;
   }
   document.addEventListener('click',event => { if (!event.target.closest?.('.lr-menu-wrap')) closeMenus(false); });

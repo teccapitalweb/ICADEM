@@ -25,7 +25,7 @@
     if (!value || value.uid !== uid) { try { value = JSON.parse(sessionStorage.getItem(KEY + uid) || 'null'); } catch (_) { value = null; } }
     if (!value || value.uid !== uid || Date.now() - value.at > MAX_AGE || Date.now() < value.at) return null;
     return {search:String(value.search || '').slice(0,300), area:String(value.area || 'todas').slice(0,150), nivel:String(value.nivel || 'todos').slice(0,100),
-      orden:['proximos','nombre','progreso','recientes'].includes(value.orden) ? value.orden : 'proximos',
+      orden:['proximos','prioridades','nombre','progreso','recientes'].includes(value.orden) ? value.orden : 'proximos',
       estado:['todos','disponibles','progreso','completados','bloqueados','proximamente','regalo'].includes(value.estado) ? value.estado : 'todos',
       tabs:Math.max(0, Number(value.tabs) || 0), scroll:value.scroll || {}};
   }

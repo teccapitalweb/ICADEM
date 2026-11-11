@@ -43,10 +43,27 @@ test('ordering writes only priorities, preserves rights and waits for server con
     assert.equal(await page.evaluate(() => window.summary.available),3);
     const calls = await page.evaluate(() => window.calls);
     const writes = calls.filter(call => call.method);
-    assert.deepEqual(writes,[{path:'/api/courses/unlocks/priorities',method:'PUT',body:{courseIds:['one','two','three']}}]);
+    assert.deepEqual(writes,[{path:'/api/courses/unlocks/priorities',method:'PUT',body:{courseIds:['one','two','three'],expectedRevision:5}}]);
     assert.equal(await page.evaluate(() => window.toasts.length),1);
   } finally { await page.close(); }
 });
+test('a successful save retains its confirmed revision when the follow-up GET fails',async () => {
+  const page = await fixture();
+  try {
+    await page.click('[data-route-add="three"]');
+    await page.evaluate(() => { window.ICADEMCourseUnlocks.refresh = async () => { throw new Error('Lectura temporalmente no disponible'); }; });
+    await page.click('[data-route-save]');
+    await page.waitForFunction(() => !window.ICADEMLearningRoute.isBusy());
+    assert.equal(await page.evaluate(() => window.ICADEMLearningRoute.isDirty()),false);
+    await page.click('[data-route-menu="three"]');
+    await page.click('[data-route-action="remove"][data-id="three"]');
+    await page.click('[data-route-save]');
+    await page.waitForFunction(() => !window.ICADEMLearningRoute.isBusy());
+    assert.deepEqual(await page.evaluate(() => window.calls.filter(call => call.method).map(call => call.body.expectedRevision)),[5,6]);
+    assert.equal(await page.evaluate(() => window.summary.available),3);
+  } finally { await page.close(); }
+});
+
 test('failed saving retains the draft and explicit discard is required before leaving',async () => {
   const page = await fixture();
   try {

@@ -7,6 +7,7 @@
   const scope = () => ({ uid: owner(), generation });
   const current = ticket => Boolean(ticket.uid && ticket.uid === owner() && ticket.generation === generation && !window.__sessionEnding);
   const state = () => summaryUid === owner() ? summary : null;
+  const getPriorities = () => { const data = state(); return owner() && !window.__sessionEnding && data && data.enabled !== false && Array.isArray(data.priorities) ? [...data.priorities] : []; };
   const count = value => Math.max(0, Math.floor(Number(value) || 0));
   const date = value => { const d = new Date(value); return value && Number.isFinite(d.getTime()) ? d.toLocaleDateString('es-MX', {day:'numeric',month:'short',year:'numeric'}).replace(/\./g, '') : ''; };
   const notice = (type, title, message) => { if (typeof Toast !== 'undefined') Toast[type]?.(title, message); };
@@ -21,10 +22,18 @@
   function apply(data, ticket) {
     if (!current(ticket)) return;
     if (summaryUid === ticket.uid && Number.isFinite(Number(data.revision)) && Number.isFinite(Number(summary?.revision)) && Number(data.revision) < Number(summary.revision)) return;
+    const previous = getPriorities();
     summary = data; summaryUid = ticket.uid;
+    const priorities = getPriorities(), prioritiesChanged = previous.length !== priorities.length || previous.some((id,index) => id !== priorities[index]);
     document.querySelectorAll('[data-course-unlocks]').forEach(paint);
     document.querySelectorAll('#cur-list').forEach(decorate);
-    document.dispatchEvent(new CustomEvent('icadem:unlocks-updated', { detail: { available:count(data.available) } }));
+    document.dispatchEvent(new CustomEvent('icadem:unlocks-updated', { detail: { available:count(data.available), prioritiesChanged, revision:data.revision } }));
+  }
+  function adoptConfirmed(data, uid) {
+    const ticket = scope();
+    if (!current(ticket) || uid !== ticket.uid || data?.ok !== true || !Number.isSafeInteger(data.revision) || data.revision < 0 || !Array.isArray(data.priorities)) return false;
+    apply(data,ticket);
+    return state() === data;
   }
   async function load(force) {
     const ticket = scope();
@@ -43,7 +52,7 @@
     if (!data || data.enabled === false) { host.hidden = true; host.replaceChildren(); return; }
     const available = count(data.available), active = data.active === true, next = date(data.nextUnlockAt);
     const free = window.UserState?.freeCourseId;
-    let headline = active ? (available ? `${available} curso${available === 1 ? '' : 's'} por elegir` : next ? `Próximo desbloqueo: ${next}` : 'Tu ruta está al día') : free ? 'Tu curso gratuito sigue disponible' : 'Elige tu curso gratuito';
+    let headline = active ? (available ? `${available} curso${available === 1 ? '' : 's'} por elegir` : next ? `Próximo cupo: ${next}` : 'Tu ruta está al día') : free ? 'Tu curso gratuito sigue disponible' : 'Elige tu curso gratuito';
     if (!active && (count(data.vipSlots) || available)) headline = 'Desbloqueos guardados · Reactiva VIP';
     if (data.isAdmin) headline = 'Acceso a todos los cursos';
     host.hidden = false;
@@ -55,9 +64,16 @@
     const ticket = scope();
     Promise.resolve(window.__getCourseUnlockCatalog?.()).then(courses => {
       if (!current(ticket) || state() !== data || !host.isConnected || !Array.isArray(courses)) return;
-      const first = (data.priorities || []).map(id => courses.find(c => c.id === id)).find(Boolean);
+      const eligible = new Set(data.eligibleCourseIds || []), selected = new Set(data.selectedCourseIds || []);
+      const first = (data.priorities || []).map(id => courses.find(c => c.id === id)).find(course => course && eligible.has(course.id) && !selected.has(course.id) && course.access?.unlocked !== true && course.catalogPending !== true);
       const hint = host.querySelector('[data-unlock-priority]');
-      if (hint && first) { hint.textContent = `En tu lista: ${first.titulo}`; host.querySelector('[data-unlock-organize]')?.setAttribute('title', hint.textContent); }
+      if (hint && first) {
+        const label = `Primero en tu lista: ${first.titulo}`;
+        hint.className = 'course-unlocks__priority'; hint.dataset.priorityCourse = first.id;
+        hint.innerHTML = `<strong>Primero en tu lista:</strong><span>${esc(first.titulo)}</span>`;
+        hint.hidden = false; hint.setAttribute('title',label); hint.setAttribute('aria-label',label);
+        host.querySelector('[data-unlock-organize]')?.setAttribute('title',label);
+      }
     }).catch(() => {});
   }
   async function mount(host) {
@@ -78,15 +94,23 @@
   function decorate(list) {
     const data = state();
     list?.querySelectorAll('[data-unlock-context]').forEach(node => node.remove());
-    if (!data || data.isAdmin || data.enabled === false || data.active !== true) return;
-    const eligible = new Set(data.eligibleCourseIds || []), priorities = new Set(data.priorities || []);
+    if (!data || data.isAdmin || data.enabled === false) return;
+    const eligible = new Set(data.eligibleCourseIds || []), positions = new Map();
+    getPriorities().forEach((id,index) => { if (!positions.has(id)) positions.set(id,index + 1); });
     list?.querySelectorAll('.curso-card[data-cid]').forEach(card => {
-      if (!eligible.has(card.dataset.cid)) return;
-      const button = document.createElement('button');
-      button.type = 'button'; button.className = 'course-unlock-context'; button.dataset.unlockContext = card.dataset.cid;
-      button.textContent = count(data.available) ? 'Elegir para desbloquear' : priorities.has(card.dataset.cid) ? 'En mi lista · Organizar' : 'Agregar a mi lista';
-      button.addEventListener('click', event => { event.stopPropagation(); open(count(state()?.available) ? 'choose' : 'priorities', card.dataset.cid); });
-      card.querySelector('.curso-card__body')?.appendChild(button);
+      const id = card.dataset.cid, rank = positions.get(id), canChoose = data.active === true && eligible.has(id) && count(data.available) > 0;
+      if (!rank && (data.active !== true || !eligible.has(id))) return;
+      const title = card.querySelector('.curso-card__title')?.textContent?.trim() || 'este curso';
+      const context = document.createElement('div'); context.className = 'course-unlock-context'; context.dataset.unlockContext = id;
+      if (rank) {
+        context.innerHTML = `<button type="button" class="course-priority-link" data-unlock-organize-course="${esc(id)}" aria-label="Prioridad #${rank}. Organizar ${esc(title)} en mi lista" title="${rank === 1 ? 'Primero en tu lista. ' : ''}Organizar prioridades"><span class="course-priority-badge${rank === 1 ? ' is-first' : ''}" data-course-priority="${rank}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5.75 3.25h8.5v13.5L10 13.5l-4.25 3.25z"/></svg>Prioridad #${rank}</span><span class="course-priority-link__label">Organizar</span></button>${canChoose ? `<button type="button" class="course-unlock-context__action" data-unlock-select-course="${esc(id)}" aria-label="Elegir ${esc(title)} para desbloquear">Elegir</button>` : ''}`;
+        context.querySelector('[data-unlock-organize-course]').addEventListener('click',event => { event.stopPropagation(); open('priorities'); });
+      } else {
+        context.innerHTML = `<button type="button" class="course-unlock-context__action" ${canChoose ? 'data-unlock-select-course' : 'data-unlock-add-course'}="${esc(id)}" aria-label="${canChoose ? `Elegir ${esc(title)} para desbloquear` : `Agregar ${esc(title)} a mi lista`}">${canChoose ? 'Elegir para desbloquear' : 'Agregar a mi lista'}</button>`;
+      }
+      context.querySelector('[data-unlock-select-course]')?.addEventListener('click',event => { event.stopPropagation(); open('choose',id); });
+      context.querySelector('[data-unlock-add-course]')?.addEventListener('click',event => { event.stopPropagation(); open('priorities',id); });
+      card.querySelector('.curso-card__body')?.appendChild(context);
     });
   }
   async function open(mode, initialId) {
@@ -191,11 +215,12 @@
     if (dialog) { const old = dialog; dialog = null; old.handle.close(); }
     document.querySelectorAll('[data-course-unlocks]').forEach(host => { host.hidden = true; host.replaceChildren(); });
     document.querySelectorAll('[data-unlock-context]').forEach(node => node.remove());
+    document.dispatchEvent(new CustomEvent('icadem:unlocks-updated', {detail:{available:0,prioritiesChanged:true,reset:true}}));
   }
   document.addEventListener('icadem:session-ending', reset);
   document.addEventListener('icadem:session-ended', reset);
   document.addEventListener('icadem:user-ready', reset);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && document.querySelector('[data-course-unlocks]')) load(true).catch(() => {}); });
   window.addEventListener('online', () => { if (document.querySelector('[data-course-unlocks]')) load(true).catch(() => {}); });
-  window.ICADEMCourseUnlocks = {mount,decorate,focus,open,refresh:() => load(true)};
+  window.ICADEMCourseUnlocks = {mount,decorate,focus,open,getPriorities,adoptConfirmed,refresh:() => load(true)};
 })();
