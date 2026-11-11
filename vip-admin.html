@@ -2938,6 +2938,7 @@ const Pages={
 
         <div id="web-container"></div>
         <div id="web-pruebas"></div>
+        <div id="web-auto"></div>
       </div>
     `;
 
@@ -2996,6 +2997,8 @@ const Pages={
     });
     Pages._pruebasRender();
     Pages._pruebasCargar().then(() => Pages._pruebasRender());
+    Pages._autoRender();
+    Pages._autoCargar().then(() => { Pages._autoRender(); Pages._autoVigilar(); });
   },
 
   // Enlace y grabación viven en el servidor (colección privada), no en el documento público
@@ -3053,7 +3056,7 @@ const Pages={
     }).join('');
     wrap.innerHTML = '<div class="dash-card" style="margin-top:18px;padding:20px;">'
       + '<h3 style="font-size:16px;font-weight:700;margin:0 0 4px;">Clases de prueba</h3>'
-      + '<p style="font-size:12px;color:var(--text-3);margin:0 0 12px;line-height:1.5;">Solo las ves tú. No se publican, no aparecen para los miembros y no les llega ningún aviso. Para probarlas entra al panel de miembros con tu cuenta de administrador: ahí se ven como una clase normal, con su cuenta regresiva, avisos y botones.</p>'
+      + '<p style="font-size:12px;color:var(--text-3);margin:0 0 12px;line-height:1.5;">Solo las ves tú. No se publican, no aparecen para los miembros y no les llega ningún aviso. Para probarlas usa «Ver como usuario»: ahí se ven como una clase normal, con su cuenta regresiva, botones y grabación.</p>'
       + (filas
         ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);"><th style="padding:6px 8px;">Título</th><th style="padding:6px 8px;">Fecha</th><th style="padding:6px 8px;">Hora</th><th style="padding:6px 8px;">Duración</th><th style="padding:6px 8px;">Enlace</th><th style="padding:6px 8px;">Acciones</th></tr></thead><tbody>' + filas + '</tbody></table></div>'
         : '<div style="padding:14px;font-size:13px;color:var(--text-3);border:1px dashed var(--border, rgba(0,0,0,.15));border-radius:12px;">Aún no hay clases de prueba. Usa «Agregar clase de prueba».</div>')
@@ -3073,6 +3076,105 @@ const Pages={
         await Pages._pruebasCargar();
         Pages._pruebasRender();
       } catch (e) { Toast.error('No se pudo eliminar', e.message || 'Intenta de nuevo'); }
+    }));
+  },
+
+  // ─── Grabaciones automáticas: Meet → Drive → Bunny, paso a paso ───
+  _auto: [],
+  _autoListo: false,
+  _autoGoogle: true,
+  _autoBunny: true,
+  _autoTimer: null,
+  async _autoCargar() {
+    try {
+      const j = await Pages._webLlamar('/admin/clases-auto');
+      Pages._auto = j.entradas || [];
+      Pages._autoGoogle = j.googleListo !== false;
+      Pages._autoBunny = j.bunnyListo !== false;
+      Pages._autoListo = true;
+    } catch (e) { /* servidor sin la ruta: la tarjeta queda vacía */ }
+  },
+  // Se actualiza sola cada 20 s mientras haya grabaciones en proceso y la pantalla esté abierta
+  _autoVigilar() {
+    if (Pages._autoTimer) return;
+    Pages._autoTimer = setInterval(async () => {
+      if (!document.getElementById('web-auto')) { clearInterval(Pages._autoTimer); Pages._autoTimer = null; return; }
+      if (!Pages._auto.some(e => e.estado !== 'lista' && e.estado !== 'error')) return;
+      await Pages._autoCargar();
+      Pages._autoRender();
+    }, 20000);
+  },
+  _autoPasos(e) {
+    const orden = { esperando: 1, descargando: 2, procesando: 3, lista: 4 };
+    const nivel = e.estado === 'error' ? (/Bunny no pudo procesar/.test(e.error) ? 3 : (e.archivoNombre ? 2 : 1)) : (orden[e.estado] ?? 1);
+    const fecha = e.inicioMs ? new Date(e.inicioMs).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+    const enError = e.estado === 'error';
+    const detalleLista = e.estado === 'lista'
+      ? (e.aviso ? e.aviso : (e.esPrueba ? 'Ya aparece en Grabaciones. Mírala en «Ver como usuario».' : 'Ya aparece en Grabaciones del panel de miembros.'))
+      : 'Cuando Bunny termine, se enlaza sola con la clase.';
+    const pasos = [
+      { t: 'Clase programada', d: fecha ? 'Para el ' + fecha.replace(',', ' a las') + ' h (hora de Ciudad de México)' : '' },
+      { t: 'Grabación encontrada', d: e.archivoNombre || 'Se busca cada pocos minutos en el Drive de la cuenta conectada, después de que empiece la clase. Hay que pulsar Grabar en Meet.' },
+      { t: 'Pasando el video a Bunny', d: 'A la colección «clases en vivo».' },
+      { t: 'Procesando en Bunny', d: 'Bunny prepara el video para reproducirlo.' },
+      { t: 'Lista', d: detalleLista }
+    ];
+    return pasos.map((p, i) => {
+      // i = 0 siempre hecho; el paso i+1 está hecho si el nivel ya lo superó
+      const hecho = i === 0 || (e.estado === 'lista' ? true : nivel > i);
+      const actual = !hecho && !enError && i === nivel;
+      const rojo = enError && i === nivel;
+      let estado = hecho ? 'ok' : (rojo ? 'error' : (actual ? 'actual' : 'espera'));
+      if (e.estado === 'esperando' && i === 1) estado = 'actual';
+      return Object.assign(p, { estado });
+    });
+  },
+  _autoRender() {
+    const wrap = document.getElementById('web-auto');
+    if (!wrap) return;
+    const esc = Pages._escWeb;
+    if (!document.getElementById('web-auto-estilo')) {
+      const st = document.createElement('style');
+      st.id = 'web-auto-estilo';
+      st.textContent = '@keyframes wauto-giro{to{transform:rotate(360deg)}}.wauto-paso{display:flex;gap:12px;align-items:flex-start;position:relative;padding-bottom:12px}.wauto-paso:not(:last-child)::before{content:"";position:absolute;left:11px;top:24px;bottom:0;width:2px;background:var(--border,rgba(0,0,0,.12))}.wauto-ic{width:24px;height:24px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;background:#9CA3AF}.wauto-ic--ok{background:#16A34A}.wauto-ic--error{background:#DC2626}.wauto-ic--actual{background:transparent;border:3px solid #2F80C9;border-top-color:transparent;animation:wauto-giro 1s linear infinite;box-sizing:border-box}';
+      document.head.appendChild(st);
+    }
+    const avisos = [];
+    if (Pages._autoListo && !Pages._autoGoogle) avisos.push('Google no está conectado en el servidor (faltan las variables GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET y GOOGLE_REFRESH_TOKEN).');
+    if (Pages._autoListo && !Pages._autoBunny) avisos.push('Falta la API Key de la biblioteca de Bunny en el servidor (BUNNY_LIBRARY_API_KEY).');
+    const tarjetas = Pages._auto.map(e => {
+      const pasos = Pages._autoPasos(e).map(p => {
+        const marca = p.estado === 'ok' ? '✓' : (p.estado === 'error' ? '!' : '');
+        return '<div class="wauto-paso"><span class="wauto-ic wauto-ic--' + p.estado + '">' + marca + '</span><div><div style="font-weight:600;font-size:13.5px;">' + esc(p.t) + '</div>'
+          + (p.d ? '<div style="font-size:12px;color:var(--text-3);line-height:1.45;">' + esc(p.d) + '</div>' : '') + '</div></div>';
+      }).join('');
+      const aviso = (e.estado !== 'lista' && e.aviso) ? '<div style="margin:6px 0 10px;padding:9px 12px;border-radius:10px;background:rgba(245,158,11,.12);color:#B45309;font-size:12px;">' + esc(e.aviso) + ' Se vuelve a intentar solo.</div>' : '';
+      const error = e.estado === 'error' ? '<div style="margin:6px 0 10px;padding:9px 12px;border-radius:10px;background:rgba(220,38,38,.1);color:#B91C1C;font-size:12px;">' + esc(e.error) + '</div>' : '';
+      const acciones = (e.estado !== 'lista' ? '<button class="btn btn--ghost" data-auto-retry="' + esc(e.id) + '">' + (e.estado === 'error' ? 'Reintentar' : 'Buscar ahora') + '</button> ' : '')
+        + '<button class="btn btn--ghost" data-auto-quitar="' + esc(e.id) + '" style="color:var(--text-3);">Quitar de la lista</button>';
+      return '<div style="border:1px solid var(--border,rgba(0,0,0,.12));border-radius:14px;padding:16px;margin-top:12px;">'
+        + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:12px;"><strong style="font-size:15px;">' + esc(e.titulo || 'Clase en vivo') + '</strong>'
+        + '<span style="font-size:11px;color:var(--text-3);white-space:nowrap;">Google Meet · ' + (e.esPrueba ? 'clase de prueba' : 'clase real') + '</span></div>'
+        + pasos + aviso + error + '<div style="margin-top:4px;">' + acciones + '</div></div>';
+    }).join('');
+    wrap.innerHTML = '<div class="dash-card" style="margin-top:18px;padding:20px;">'
+      + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;"><h3 style="font-size:16px;font-weight:700;margin:0;">Grabaciones automáticas (Meet → Drive → Bunny)</h3><button class="btn btn--ghost" id="web-auto-act">Actualizar</button></div>'
+      + '<p style="font-size:12px;color:var(--text-3);margin:6px 0 0;line-height:1.5;">Las clases creadas con «Crear la reunión de Google Meet automáticamente». Al terminar la clase, el servidor busca la grabación en el Drive de la cuenta conectada, la sube a la colección «clases en vivo» de Bunny y la enlaza con la clase. Puede tardar varios minutos. Un video que pongas a mano nunca se reemplaza.</p>'
+      + avisos.map(a => '<div style="margin-top:10px;padding:9px 12px;border-radius:10px;background:rgba(245,158,11,.12);color:#B45309;font-size:12px;">' + esc(a) + '</div>').join('')
+      + (tarjetas || '<div style="margin-top:12px;padding:14px;font-size:13px;color:var(--text-3);border:1px dashed var(--border,rgba(0,0,0,.15));border-radius:12px;">Todavía no hay clases con grabación automática. Crea una clase de prueba con la casilla de Google Meet marcada.</div>')
+      + '</div>';
+    wrap.querySelector('#web-auto-act')?.addEventListener('click', async () => { await Pages._autoCargar(); Pages._autoRender(); });
+    wrap.querySelectorAll('[data-auto-retry]').forEach(b => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await Pages._webLlamar('/admin/clases-auto/' + encodeURIComponent(b.dataset.autoRetry) + '/reintentar', { method: 'POST' }); Toast.info('Buscando la grabación…', 'Puede tardar unos segundos'); }
+      catch (e) { Toast.error('No se pudo reintentar', e.message || 'Intenta de nuevo'); }
+      setTimeout(async () => { await Pages._autoCargar(); Pages._autoRender(); }, 2500);
+    }));
+    wrap.querySelectorAll('[data-auto-quitar]').forEach(b => b.addEventListener('click', async () => {
+      if (!confirm('¿Quitar esta clase de la lista de grabaciones automáticas? No se borra la clase ni ningún video.')) return;
+      try { await Pages._webLlamar('/admin/clases-auto/' + encodeURIComponent(b.dataset.autoQuitar), { method: 'DELETE' }); }
+      catch (e) { Toast.error('No se pudo quitar', e.message || 'Intenta de nuevo'); }
+      await Pages._autoCargar(); Pages._autoRender();
     }));
   },
 
@@ -3415,20 +3517,14 @@ const Pages={
     const linkAyuda = body.querySelector('#wf-link-ayuda');
     const linkLabel = body.querySelector('#wf-link-label');
     const pintarMeet = () => {
-      if (prueba) return;
       const auto = meetChk.checked && !linkInput.value.trim();
-      linkLabel.textContent = auto ? 'Link de transmisión (se genera solo)' : 'Link de transmisión *';
+      linkLabel.textContent = auto ? 'Link de transmisión (se genera solo)' : (prueba ? 'Link de transmisión (opcional)' : 'Link de transmisión *');
       linkInput.placeholder = auto ? 'Se creará solo con Google Meet al guardar' : 'https://meet.google.com/… o https://zoom.us/…';
     };
     meetChk.addEventListener('change', pintarMeet);
     linkInput.addEventListener('input', pintarMeet);
-    if (prueba) {
-      meetChk.closest('.form-field').style.display = 'none';
-      linkLabel.textContent = 'Link de transmisión (opcional)';
-      linkAyuda.textContent = 'Opcional en una clase de prueba. Sin enlace, el botón «Unirme» no abrirá nada.';
-    }
+    if (prueba) linkAyuda.textContent = 'Opcional en una clase de prueba. Sin enlace, el botón «Unirme» no abrirá nada.';
     (async () => {
-      if (prueba) return;
       try {
         const j = await Pages._webLlamar('/admin/google/estado');
         if (!j.configurado) throw new Error('no-conectado');
@@ -3438,7 +3534,9 @@ const Pages={
           meetNota.textContent = 'Esta clase ya tiene su reunión de Meet creada por el sistema; el título, la fecha y la duración se mantienen al día en Google Calendar.';
         } else if (!esEdicion) {
           meetChk.checked = !linkInput.value.trim();
-          meetNota.textContent = 'Si lo dejas marcado y no pones un enlace, el sistema crea la reunión con la cuenta de Google conectada. Si pegas un enlace, se usa ese.';
+          meetNota.textContent = prueba
+            ? 'Crea la reunión con la cuenta de Google conectada. Al terminar la clase de prueba, el servidor busca la grabación en su Drive y la sube a Bunny; solo la verás tú, en «Ver como usuario».'
+            : 'Si lo dejas marcado y no pones un enlace, el sistema crea la reunión con la cuenta de Google conectada. Si pegas un enlace, se usa ese.';
         } else {
           meetNota.textContent = 'Márcalo para crear la reunión de Meet de esta clase (déjala sin enlace).';
         }
@@ -3463,7 +3561,7 @@ const Pages={
         if (!titulo) { Toast.error('Falta el título'); document.getElementById('wf-titulo')?.focus(); throw new Error('skip'); }
         if (!instructor) { Toast.error('Falta el instructor'); document.getElementById('wf-instructor')?.focus(); throw new Error('skip'); }
         if (!fechaStr) { Toast.error('Falta la fecha'); document.getElementById('wf-fecha')?.focus(); throw new Error('skip'); }
-        const crearMeet = !prueba && !!meetChk.checked;
+        const crearMeet = !!meetChk.checked;
         if (!link && !crearMeet && !prueba) { Toast.error('Falta el link de transmisión', 'Pega el enlace o marca «Crear la reunión de Google Meet».'); document.getElementById('wf-link')?.focus(); throw new Error('skip'); }
         if (link) { try { new URL(link); } catch(e) { Toast.error('Link inválido', 'Verifica que sea una URL completa'); throw new Error('skip'); } }
 
@@ -3484,11 +3582,12 @@ const Pages={
         if (prueba) {
           await Pages._webLlamar('/admin/clases-prueba', {
             method: 'POST',
-            body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, grabacionVideoId })
+            body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, crearMeet, grabacionVideoId })
           });
           Toast.success(editId ? 'Clase de prueba actualizada' : 'Clase de prueba guardada', titulo + ' · solo la ves tú');
           await Pages._pruebasCargar();
           Pages._pruebasRender();
+          Pages._autoCargar().then(() => Pages._autoRender());
           Modal.close();
           return;
         }

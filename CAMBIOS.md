@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-11-12 — Clases en vivo: grabación automática de Drive a Bunny y pruebas con Meet
+
+**Archivos:** `vip-admin.html`; backend `icadem-webhook`: `clases-auto.js` (nuevo), `webinar-private.js`, `bunny-webinars.js`, `google-meet.js`, `index.js`, `test/clases-auto.test.js` (nuevo)
+
+- Las clases de prueba también pueden crear su reunión de Google Meet automáticamente. Siguen siendo solo para administradores: no se publican, no avisan a nadie y su video solo se ve en «Ver como usuario».
+- Grabación automática: al crear una clase (de prueba o real) con Meet automático se registra en `clasesAuto`. Después de la hora, el servidor busca cada 3 minutos el MP4 en el Drive de la cuenta conectada (por el título del evento o el código del enlace), lo sube en flujo a la colección de Bunny «clases en vivo» y, cuando Bunny termina de procesarlo, lo enlaza con la clase. Un video puesto a mano nunca se reemplaza.
+- Admin · Clases en vivo: tarjeta «Grabaciones automáticas» con los pasos (programada, encontrada, pasando a Bunny, procesando, lista), avisos de fallos temporales, errores con motivo y botón Reintentar; se actualiza sola cada 20 segundos.
+- Al eliminar una clase real también se borran sus avisos de la campanita y su registro de grabación; al eliminar una de prueba, su evento de Calendar.
+- Con Gmail la grabación no empieza sola: la cuenta conectada debe pulsar «Grabar» en Meet y «Finalizar para todos» al terminar.
+
 ## 2026-11-11 — Admin: apartado «Ver como usuario» solo para el superadministrador
 
 **Archivos:** `vip-admin.html`
