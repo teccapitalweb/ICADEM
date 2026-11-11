@@ -92,6 +92,7 @@
   async function open(mode, initialId) {
     const ticket = scope();
     if (!current(ticket) || dialog) return;
+    if (mode === 'priorities') { window.__openLearningRoute?.(initialId); return; }
     let data, courses;
     try { [data, courses] = await Promise.all([load(true), window.__getCourseUnlockCatalog?.()]); }
     catch (error) { if (current(ticket)) notice('error', 'No pudimos abrir tu ruta', error.message); return; }
