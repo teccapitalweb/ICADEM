@@ -8,7 +8,7 @@
   const current = ticket => Boolean(ticket.uid && ticket.uid === owner() && ticket.generation === generation && !window.__sessionEnding);
   const state = () => summaryUid === owner() ? summary : null;
   const count = value => Math.max(0, Math.floor(Number(value) || 0));
-  const date = value => { const d = new Date(value); return value && Number.isFinite(d.getTime()) ? d.toLocaleDateString('es-MX', {day:'numeric',month:'long',year:'numeric'}) : ''; };
+  const date = value => { const d = new Date(value); return value && Number.isFinite(d.getTime()) ? d.toLocaleDateString('es-MX', {day:'numeric',month:'short',year:'numeric'}).replace(/\./g, '') : ''; };
   const notice = (type, title, message) => { if (typeof Toast !== 'undefined') Toast[type]?.(title, message); };
   function ended() { return Object.assign(new Error('La sesión cambió. Vuelve a abrir Mis cursos.'), {code:'session-ended'}); }
   async function request(path, options, ticket) {
@@ -43,12 +43,11 @@
     if (!data || data.enabled === false) { host.hidden = true; host.replaceChildren(); return; }
     const available = count(data.available), active = data.active === true, next = date(data.nextUnlockAt);
     const free = window.UserState?.freeCourseId;
-    let headline = active ? (available ? `Tienes ${available} curso${available === 1 ? '' : 's'} por elegir` : next ? `Tu próximo desbloqueo estará disponible el ${next}` : 'Tu ruta está al día') : 'Tu aprendizaje, a tu ritmo';
-    let detail = active ? (available && next ? `Próximo desbloqueo: ${next}` : 'Tus cursos elegidos conservan su avance.') : free ? 'Tu curso gratuito conserva su acceso parcial. Activa VIP para ampliar tu ruta.' : 'Elige un curso gratuito para empezar. Con VIP podrás elegir tus próximos cursos.';
-    if (!active && (count(data.vipSlots) || available)) detail = 'Tus desbloqueos pendientes se conservan. Reactiva VIP para utilizarlos.';
-    if (data.isAdmin) { headline = 'Tienes acceso a todos los cursos'; detail = 'Explora el catálogo y continúa aprendiendo a tu ritmo.'; }
+    let headline = active ? (available ? `${available} curso${available === 1 ? '' : 's'} por elegir` : next ? `Próximo desbloqueo: ${next}` : 'Tu ruta está al día') : free ? 'Tu curso gratuito sigue disponible' : 'Elige tu curso gratuito';
+    if (!active && (count(data.vipSlots) || available)) headline = 'Desbloqueos guardados · Reactiva VIP';
+    if (data.isAdmin) headline = 'Acceso a todos los cursos';
     host.hidden = false;
-    host.innerHTML = `<section class="course-unlocks" aria-labelledby="course-unlocks-title" tabindex="-1"><div class="course-unlocks__copy"><span class="course-unlocks__eyebrow">TU RUTA, A TU RITMO</span><h2 id="course-unlocks-title">Mis desbloqueos</h2><p>Elige qué cursos quieres aprender. Tus desbloqueos pendientes se conservan.</p><strong class="course-unlocks__status" aria-live="polite">${esc(headline)}</strong><small>${esc(detail)}</small><small data-unlock-priority hidden></small></div><div class="course-unlocks__actions">${data.isAdmin ? '<button type="button" class="cu-btn cu-btn--primary" data-unlock-explore>Explorar cursos <span aria-hidden="true">↓</span></button>' : active ? `<button type="button" class="cu-btn cu-btn--primary" data-unlock-choose ${!available ? 'disabled' : ''}>Elegir cursos <span aria-hidden="true">→</span></button>` : `<button type="button" class="cu-btn cu-btn--primary" data-unlock-vip>Conocer VIP</button>`}${data.isAdmin ? '' : '<button type="button" class="cu-btn cu-btn--quiet" data-unlock-organize>Organizar mi lista</button>'}</div></section>`;
+    host.innerHTML = `<section class="course-unlocks" aria-labelledby="course-unlocks-title" tabindex="-1"><div class="course-unlocks__copy"><span class="course-unlocks__icon" aria-hidden="true"><svg class="ic"><use href="#i-shield-check"/></svg></span><div class="course-unlocks__content"><h2 id="course-unlocks-title">Mis desbloqueos</h2><span class="course-unlocks__status${active && available && !data.isAdmin ? ' has-choices' : ''}" aria-live="polite">${esc(headline)}</span><span data-unlock-priority hidden></span></div></div><div class="course-unlocks__actions">${data.isAdmin ? '<button type="button" class="cu-btn cu-btn--primary" data-unlock-explore>Explorar cursos</button>' : active ? `<button type="button" class="cu-btn cu-btn--primary" data-unlock-choose ${!available ? 'disabled' : ''}>Elegir cursos</button>` : `<button type="button" class="cu-btn cu-btn--primary" data-unlock-vip>Conocer VIP</button>`}${data.isAdmin ? '' : '<button type="button" class="cu-btn cu-btn--quiet" data-unlock-organize>Organizar lista</button>'}</div></section>`;
     host.querySelector('[data-unlock-choose]')?.addEventListener('click', () => open('choose'));
     host.querySelector('[data-unlock-organize]')?.addEventListener('click', () => open('priorities'));
     host.querySelector('[data-unlock-vip]')?.addEventListener('click', () => window.navigateToSection?.('suscripcion'));
@@ -58,7 +57,7 @@
       if (!current(ticket) || state() !== data || !host.isConnected || !Array.isArray(courses)) return;
       const first = (data.priorities || []).map(id => courses.find(c => c.id === id)).find(Boolean);
       const hint = host.querySelector('[data-unlock-priority]');
-      if (hint && first) { hint.hidden = false; hint.textContent = `En tu lista: ${first.titulo}`; }
+      if (hint && first) { hint.textContent = `En tu lista: ${first.titulo}`; host.querySelector('[data-unlock-organize]')?.setAttribute('title', hint.textContent); }
     }).catch(() => {});
   }
   async function mount(host) {
