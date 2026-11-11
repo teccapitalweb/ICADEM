@@ -65,14 +65,19 @@ export function bestProposalId() {
 }
 
 export function newAttempt() {
-  return { talked: false, documents: [], proposals: [], compared: false, choice: null, reasons: [] };
+  return { talked: false, documents: [], proposals: [], simulated: [], compared: false, choice: null, reasons: [] };
 }
+
+const isProposal = id => PROPOSALS.some(p => p.id === id);
+const all = (list, ids) => ids.every(id => list.includes(id));
+const PROPOSAL_IDS = PROPOSALS.map(p => p.id);
 
 /** ¿Qué paso sigue? Sirve para el rastreador de misión y para bloquear atajos. */
 export function nextStep(a) {
   if (!a.talked) return 'talk';
-  if (DOCUMENTS.some(d => !a.documents.includes(d))) return 'documents';
-  if (PROPOSALS.some(p => !a.proposals.includes(p.id))) return 'proposals';
+  if (!all(a.documents, DOCUMENTS)) return 'documents';
+  if (!all(a.proposals, PROPOSAL_IDS)) return 'proposals';
+  if (!all(a.simulated || [], PROPOSAL_IDS)) return 'simulate';
   if (!a.compared) return 'compare';
   if (!a.choice) return 'choose';
   if (!a.reasons.length) return 'justify';
@@ -86,13 +91,14 @@ export function nextStep(a) {
 export function evaluate(attempt) {
   const a = { ...newAttempt(), ...attempt };
   const documents = [...new Set(a.documents)].filter(d => DOCUMENTS.includes(d));
-  const proposals = [...new Set(a.proposals)].filter(id => PROPOSALS.some(p => p.id === id));
+  const proposals = [...new Set(a.proposals)].filter(isProposal);
+  const simulated = [...new Set(a.simulated)].filter(isProposal);
   const reasons = [...new Set(a.reasons)].filter(id => REASONS.some(r => r.id === id));
-  const choice = PROPOSALS.some(p => p.id === a.choice) ? a.choice : null;
+  const choice = isProposal(a.choice) ? a.choice : null;
 
   const complete = a.talked === true && documents.length === DOCUMENTS.length &&
-    proposals.length === PROPOSALS.length && a.compared === true && Boolean(choice) &&
-    reasons.length >= 1 && reasons.length <= 2;
+    proposals.length === PROPOSALS.length && simulated.length === PROPOSALS.length &&
+    a.compared === true && Boolean(choice) && reasons.length >= 1 && reasons.length <= 2;
   if (!complete) return { valid: false, score: 0, passed: false, best: bestProposalId(), choice, breakdown: null };
 
   const best = bestProposalId();
@@ -108,13 +114,49 @@ export function evaluate(attempt) {
   const misses = reasons.length - hits;
   const justification = Math.max(0, hits * 15 - misses * 10);
 
-  const research = 10;                        // habló, leyó los dos documentos y vio las tres propuestas
+  const research = 10;                        // habló, leyó los documentos, pidió y simuló las tres propuestas
   const score = Math.min(100, decision + justification + research);
   return {
     valid: true, score, passed: score >= 70, best, choice,
     breakdown: { decision, justification, research, hits, misses, chosenFits: chosen.fits }
   };
 }
+
+/**
+ * Definición de la misión para el motor (missions/engine.js). Cada acción declara cuándo es
+ * válida: así no se puede, por ejemplo, recomendar un crédito sin haberlo simulado.
+ */
+export const BANK_CREDIT_MISSION = {
+  id: MISSION_ID,
+  building: 'banco',
+  title: 'El crédito correcto',
+  difficulty: 'sencilla',
+  reward: { amount: 15, xp: 120, repeatXp: 30 },
+  newState: newAttempt,
+  evaluate,
+  objectives: [
+    { id: 'talk', text: 'Habla con Lucía, la clienta', done: s => s.talked },
+    { id: 'documents', text: 'Revisa sus documentos en la mesa', done: s => all(s.documents, DOCUMENTS), detail: s => `${s.documents.length}/${DOCUMENTS.length}` },
+    { id: 'proposals', text: 'Pide las tres propuestas a los ejecutivos', done: s => all(s.proposals, PROPOSAL_IDS), detail: s => `${s.proposals.length}/${PROPOSALS.length}` },
+    { id: 'simulate', text: 'Calcula cada propuesta en la computadora', done: s => all(s.simulated, PROPOSAL_IDS), detail: s => `${s.simulated.length}/${PROPOSALS.length}` },
+    { id: 'compare', text: 'Compara los resultados en el tablero', done: s => s.compared },
+    { id: 'choose', text: 'Recomiéndale una opción a Lucía', done: s => Boolean(s.choice) },
+    { id: 'justify', text: 'Justifica tu decisión', done: s => s.reasons.length > 0 }
+  ],
+  actions: {
+    talk: { apply: s => { s.talked = true; } },
+    readDocument: { when: (s, p) => s.talked && DOCUMENTS.includes(p.id), apply: (s, p) => { if (!s.documents.includes(p.id)) s.documents.push(p.id); } },
+    takeProposal: { when: (s, p) => s.talked && isProposal(p.id), apply: (s, p) => { if (!s.proposals.includes(p.id)) s.proposals.push(p.id); } },
+    simulate: { when: (s, p) => isProposal(p.id) && s.proposals.includes(p.id), apply: (s, p) => { if (!s.simulated.includes(p.id)) s.simulated.push(p.id); } },
+    compare: { when: s => all(s.simulated, PROPOSAL_IDS), apply: s => { s.compared = true; } },
+    choose: { when: (s, p) => s.compared && isProposal(p.id), apply: (s, p) => { s.choice = p.id; s.reasons = []; } },
+    unchoose: { when: s => Boolean(s.choice), apply: s => { s.choice = null; s.reasons = []; } },
+    justify: {
+      when: (s, p) => Boolean(s.choice) && Array.isArray(p.reasons) && p.reasons.length >= 1 && p.reasons.length <= 2 && p.reasons.every(id => REASONS.some(r => r.id === id)),
+      apply: (s, p) => { s.reasons = [...new Set(p.reasons)]; }
+    }
+  }
+};
 
 export function money(n) {
   return '$' + Math.round(n).toLocaleString('es-MX');

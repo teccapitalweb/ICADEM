@@ -14,7 +14,8 @@
 /** Recompensas del prototipo. En producción las define administración desde el backend. */
 export const REWARDS = Object.freeze({
   tutorial: { amount: 10, xp: 40 },
-  'banco-credito-correcto': { amount: 15, xp: 120, repeatXp: 30 }
+  'banco-credito-correcto': { amount: 15, xp: 120, repeatXp: 30 },
+  'tribunal-tu-eres-el-juez': { amount: 20, xp: 160, repeatXp: 40 }
 });
 
 export class TestEconomy {

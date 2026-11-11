@@ -5,19 +5,49 @@ import * as THREE from '../three.js';
 export const FONT = '"Outfit", "Segoe UI", system-ui, sans-serif';
 
 const MAT_CACHE = new Map();
+
+/**
+ * Recorte de obstáculos: lo que queda entre la cámara y el jugador se vuelve translúcido
+ * (tramado) dentro de un cono, así un árbol, un muro o una columna nunca tapan al avatar.
+ * Se resuelve en el sombreador, sin lanzar rayos, y funciona también con mallas fusionadas.
+ * `CUTOUT.player` es la posición del pecho del jugador en espacio de cámara.
+ */
+export const CUTOUT = { player: { value: new THREE.Vector3(0, 0, -6) }, radius: { value: 0.7 } };
+export function withCutout(material) {
+  material.onBeforeCompile = shader => {
+    shader.uniforms.uCutPlayer = CUTOUT.player;
+    shader.uniforms.uCutRadius = CUTOUT.radius;
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', '#include <common>\nuniform vec3 uCutPlayer;\nuniform float uCutRadius;')
+      .replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+  if (uCutRadius > 0.0) {
+    vec3 cutF = -vViewPosition;
+    float cutT = dot(cutF, uCutPlayer) / dot(uCutPlayer, uCutPlayer);
+    if (cutT > 0.015 && cutT < 0.86) {
+      float cutD = length(cutF - uCutPlayer * cutT);
+      float cutR = uCutRadius * mix(0.5, 1.0, cutT);
+      float cutN = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+      if (cutD < cutR * (0.5 + 0.5 * cutN)) discard;
+    }
+  }`);
+  };
+  material.customProgramCacheKey = () => 'ciudad-cutout';
+  return material;
+}
 /**
  * Material estándar. Los materiales lisos (sin textura) se comparten entre mallas para poder
  * fusionarlas después; usa `own: true` cuando el material se vaya a modificar en tiempo real.
  */
 export function mat(color, o = {}) {
-  const make = () => new THREE.MeshStandardMaterial({
+  const wrap = o.solid ? m => m : withCutout;   // `solid`: nunca se recorta (avatares)
+  const make = () => wrap(new THREE.MeshStandardMaterial({
     color, roughness: o.r ?? 0.82, metalness: o.m ?? 0, flatShading: Boolean(o.flat),
     emissive: o.e ?? 0x000000, emissiveIntensity: o.ei ?? 1,
     transparent: o.opacity !== undefined, opacity: o.opacity ?? 1,
     side: o.side ?? THREE.FrontSide, map: o.map || null
-  });
+  }));
   if (o.map || o.own) return make();
-  const key = [color, o.r ?? 0.82, o.m ?? 0, o.flat ? 1 : 0, o.e ?? 0, o.ei ?? 1, o.opacity ?? 1, o.side ?? 0].join('|');
+  const key = [color, o.r ?? 0.82, o.m ?? 0, o.flat ? 1 : 0, o.e ?? 0, o.ei ?? 1, o.opacity ?? 1, o.side ?? 0, o.solid ? 1 : 0].join('|');
   let m = MAT_CACHE.get(key);
   if (!m) { m = make(); m.userData.shared = true; MAT_CACHE.set(key, m); }
   return m;

@@ -12,7 +12,11 @@
 //   · El servidor valida posición (velocidad máxima), interacciones, resultados y recompensas.
 
 export const NET_TICK_HZ = 10;
-export const ANIMS = Object.freeze(['idle', 'walk', 'run', 'jump', 'wave', 'celebrate', 'sit', 'interact']);
+// Las animaciones nuevas se agregan SIEMPRE al final: el índice viaja por la red.
+export const ANIMS = Object.freeze(['idle', 'walk', 'run', 'jump', 'wave', 'celebrate', 'sit', 'interact', 'beckon', 'clap', 'point', 'help']);
+/** Escenarios que existen en la red. La habitación es privada: nunca se comparte con otros jugadores. */
+export const NET_SCENES = Object.freeze(['room', 'plaza', 'bank', 'court']);
+export const PRIVATE_SCENES = Object.freeze(['room']);
 
 const q = (v, step) => Math.round(v / step);
 
@@ -31,12 +35,14 @@ export function decodeState(a) {
 
 /** Interfaz común de los adaptadores de red. */
 export class NetworkAdapter {
-  constructor() { this.handlers = { join: new Set(), leave: new Set(), state: new Set() }; this.connected = false; }
+  constructor() { this.handlers = { join: new Set(), leave: new Set(), state: new Set(), snap: new Set(), say: new Set(), status: new Set(), fix: new Set(), room: new Set() }; this.connected = false; }
   get isOnline() { return false; }
   async connect() { this.connected = true; }
   disconnect() { this.connected = false; }
   /** Envía el estado propio (ya codificado). */
   sendState(_encoded) {}
+  /** Envía una frase rápida (identificador de la lista cerrada). */
+  say(_phraseId) { return false; }
   on(event, fn) { this.handlers[event]?.add(fn); return () => this.handlers[event]?.delete(fn); }
   emit(event, payload) { this.handlers[event]?.forEach(fn => fn(payload)); }
 }

@@ -12,7 +12,8 @@ const icon = (name, cls = 'ic') => { const s = document.createElementNS('http://
 
 export const ACHIEVEMENTS = [
   { id: 'primeros-pasos', name: 'Primeros pasos', text: 'Completa el tutorial.' },
-  { id: 'primera-mision', name: 'Primera misión', text: 'Completa «El crédito correcto».' },
+  { id: 'primera-mision', name: 'Primera misión', text: 'Completa tu primera misión.' },
+  { id: 'toga-y-mazo', name: 'Toga y mazo', text: 'Completa «Tú eres el juez».' },
   { id: 'decision-impecable', name: 'Decisión impecable', text: 'Obtén 100 puntos en una misión.' },
   { id: 'explorador-urbano', name: 'Explorador urbano', text: 'Visita la puerta de todos los edificios.' }
 ];
@@ -26,7 +27,7 @@ export const GAMES = [
   { id: 'invernadero', n: 6, name: 'Invernadero', mission: 'Cultivo inteligente' },
   { id: 'restaurante', n: 7, name: 'Restaurante', mission: 'Cocina contra reloj' },
   { id: 'oficina', n: 8, name: 'Oficina ICADEM', mission: 'El expediente perdido' },
-  { id: 'tribunal', n: 9, name: 'Tribunal ICADEM', mission: 'Tú eres el juez' },
+  { id: 'tribunal', n: 9, name: 'Tribunal ICADEM', mission: 'Tú eres el juez', missionId: 'tribunal-tu-eres-el-juez', ready: true },
   { id: 'torre', n: 10, name: 'Torre ICADEM', mission: 'Desafío de equipos' }
 ];
 
@@ -120,6 +121,32 @@ export class UI {
       const cleanup = () => { clearInterval(typing); next.removeEventListener('click', advance); removeEventListener('keydown', key, true); box.hidden = true; this.#block(false); };
       next.addEventListener('click', advance); addEventListener('keydown', key, true);
       show(); next.focus({ preventScroll: true });
+    });
+    this.queue = this.queue.then(run, run);
+    return this.queue;
+  }
+
+  /**
+   * Hoja de opciones: aparece abajo y deja ver el escenario (audiencias, decisiones rápidas).
+   * options: [{ id, label, hint?, disabled?, done?, primary? }] → devuelve el id elegido.
+   */
+  choice({ speaker = '', text = '', options }) {
+    const run = () => new Promise(resolve => {
+      let sheet = $('choice');
+      if (!sheet) { sheet = h('div', 'choice'); sheet.id = 'choice'; sheet.hidden = true; sheet.append(h('div', 'choice__card')); $('game').append(sheet); }
+      const card = sheet.firstChild, list = h('div', 'choice__list');
+      card.replaceChildren(h('small', 'choice__speaker', speaker), h('p', 'choice__text', text), list);
+      const done = id => { removeEventListener('keydown', key, true); sheet.hidden = true; this.#block(false); resolve(id); };
+      const enabled = options.filter(o => !o.disabled);
+      const key = e => { const n = /^(?:Digit|Numpad)([1-9])$/.exec(e.code); if (n && enabled[n[1] - 1]) { e.preventDefault(); e.stopPropagation(); done(enabled[n[1] - 1].id); } };
+      options.forEach(o => {
+        const b = h('button', 'choice__opt' + (o.primary ? ' is-primary' : '') + (o.done ? ' is-done' : '')); b.type = 'button'; b.dataset.id = o.id; b.disabled = Boolean(o.disabled);
+        const i = enabled.indexOf(o); if (i >= 0 && i < 9) b.append(h('kbd', null, String(i + 1)));
+        const copy = h('span'); copy.append(h('strong', null, o.label)); if (o.hint) copy.append(h('small', null, o.hint)); b.append(copy);
+        b.addEventListener('click', () => done(o.id)); list.append(b);
+      });
+      this.#block(true); sheet.hidden = false; addEventListener('keydown', key, true);
+      (list.querySelector('.is-primary:not(:disabled)') || list.querySelector('button:not(:disabled)'))?.focus({ preventScroll: true });
     });
     this.queue = this.queue.then(run, run);
     return this.queue;
@@ -237,7 +264,7 @@ export class UI {
     GAMES.forEach(gm => {
       const rec = gm.missionId ? s.missions[gm.missionId] : null, r = h('div', 'rowi'), ic = h('span', 'rowi__icon' + (gm.ready ? '' : ' is-off'));
       ic.append(gm.ready ? icon(rec?.completed ? 'check' : 'pin') : icon('lock'));
-      const c = h('div', 'rowi__copy'); c.append(h('strong', null, `${gm.n}. ${gm.mission}`), h('span', null, gm.name + (rec?.completed ? ` · mejor puntuación ${rec.bestScore}` : gm.ready ? ` · +${REWARDS[gm.missionId].amount} créditos de prueba` : '')));
+      const c = h('div', 'rowi__copy'); c.append(h('strong', null, `${gm.n}. ${gm.mission}`), h('span', null, gm.name + (rec?.completed ? ` · mejor puntuación ${rec.bestScore}` : gm.ready ? ` · +${(this.api.missionService.rewardFor(gm.missionId) || REWARDS[gm.missionId]).amount} créditos de prueba` : '')));
       r.append(ic, c);
       if (gm.ready) { const go = h('button', 'btn btn--primary', 'Ir'); go.type = 'button'; go.addEventListener('click', () => { const b = BUILDINGS.find(x => x.id === gm.id), p = doorPoint(b, 2.2); this.api.setWaypoint({ x: p.x, z: p.z, name: b.name }); this.toast('Destino marcado: ' + b.name + '. Sal por la puerta.'); document.getElementById('modal-x').click(); }); r.append(go); }
       else r.append(h('span', 'pill pill--soon', 'Próximamente'));

@@ -11,7 +11,7 @@ import { mat, box, cyl, sph, plane, slab, sign, facadeTexture, shade } from './k
 export const BUILDINGS = [
   { id: 'banco', name: 'Banco ICADEM', mission: 'El crédito correcto', x: -13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'bank', status: 'open',
     wall: '#f6d77a', trim: '#c9952a', roof: 0xb9822a, signBg: '#7a5410', signFg: '#ffe9a8' },
-  { id: 'tribunal', name: 'Tribunal ICADEM', mission: 'Tú eres el juez', x: 13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'court', status: 'soon',
+  { id: 'tribunal', name: 'Tribunal ICADEM', mission: 'Tú eres el juez', x: 13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'court', status: 'open',
     wall: '#c79463', trim: '#7d5330', roof: 0x1f3a6e, signBg: '#1f3a6e', signFg: '#ffffff' },
   { id: 'hospital', name: 'Hospital ICADEM', mission: 'Turno de decisiones', x: -31, z: -28, w: 13, d: 10, h: 10, side: 'S', style: 'hospital', status: 'soon',
     wall: '#fbfdfd', trim: '#2bb5a0', roof: 0x2bb5a0, signBg: '#178f7e', signFg: '#ffffff', glass: '#bff1ea' },
@@ -112,6 +112,12 @@ export function buildBuilding(b, parent) {
     const dome = sph(3.1, roofM, 0, h + 0.6, 0, g, { seg: 26, rings: 16 }); dome.scale.y = 0.72;
     cyl(0.12, 0.12, 1.4, mat(0xffd166, { m: 0.7, r: 0.3 }), 0, h + 2.7, 0, g, { seg: 8 });
     sph(0.26, mat(0xffd166, { m: 0.7, r: 0.3 }), 0, h + 4.2, 0, g);
+    // frontón con balanza dorada y estandartes: la fachada se reconoce de lejos
+    const ped = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 4.4, 1.7, 3, 1), mat(0xe6dccb, { r: 0.85 })); ped.rotation.set(Math.PI / 2, Math.PI / 2, 0); ped.scale.set(1, 0.55, 1); ped.position.set(0, h + 1.15, front + 0.9); ped.castShadow = true; g.add(ped);
+    const goldM = mat(0xffd166, { m: 0.7, r: 0.3 });
+    box(0.07, 0.8, 0.07, goldM, 0, h + 0.5, front + 2.05, g, { cast: false }); box(1.0, 0.06, 0.07, goldM, 0, h + 1.22, front + 2.05, g, { cast: false });
+    for (const s of [-1, 1]) cyl(0.2, 0.12, 0.08, goldM, s * 0.46, h + 0.86, front + 2.05, g, { seg: 12, cast: false });
+    for (const s of [-1, 1]) { box(0.9, 3.4, 0.06, mat(0x1f3a6e, { r: 0.8 }), s * 3.9, 2.6, front + 0.08, g, { cast: false }); box(0.9, 0.3, 0.08, goldM, s * 3.9, 5.2, front + 0.09, g, { cast: false }); }
   }
   if (b.style === 'hospital') {
     box(4.6, 0.3, 2.4, roofM, 0, 3.4, front + 1.2, g);

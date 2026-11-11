@@ -117,6 +117,19 @@ export function buildBank(api) {
   const boardSign = sign('COMPARADOR', 1.7, 0.3, { bg: 'rgba(0,0,0,0)', fg: '#ffd166', radius: 0 }); boardSign.position.set(0, 1.75, bz + 0.075); boardSign.rotation.x = -0.12; g.add(boardSign);
   col.addBoxAt(0, bz, 2.3, 0.5);
 
+  /* computadora del simulador de crédito (junto a la entrada, mirando hacia quien llega) */
+  const kx = 3.1, kz = 1.3;
+  box(1.5, 0.06, 0.7, woodLight, kx, 1.0, kz, g); box(0.08, 1.0, 0.6, navy, kx - 0.62, 0, kz, g); box(0.08, 1.0, 0.6, navy, kx + 0.62, 0, kz, g);
+  box(1.3, 0.5, 0.04, navy, kx, 0.4, kz - 0.28, g, { cast: false });
+  cyl(0.16, 0.2, 0.03, mat(0x263248, { m: 0.4 }), kx, 1.06, kz - 0.1, g, { seg: 16 }); cyl(0.03, 0.03, 0.22, mat(0x263248, { m: 0.4 }), kx, 1.08, kz - 0.1, g, { seg: 8 });
+  const monitor = box(0.92, 0.56, 0.05, mat(0x10182b, { r: 0.35 }), kx, 1.28, kz - 0.1, g, { rx: -0.1 });
+  const screen = plane(0.84, 0.48, new THREE.MeshBasicMaterial({ color: 0x1b6fb8, toneMapped: false }), kx, 1.56, kz - 0.062, g, { rx: -0.1 });
+  const screenText = sign('SIMULADOR', 0.5, 0.11, { bg: 'rgba(0,0,0,0)', fg: '#ffffff', radius: 0 }); screenText.position.set(kx, 1.66, kz - 0.05); screenText.rotation.x = -0.1; g.add(screenText);
+  const bars = [0.5, 0.36, 0.62].map((w, i) => { const b = plane(w * 0.6, 0.05, new THREE.MeshBasicMaterial({ color: [0xffd166, 0x6fe0b5, 0xff8f7a][i], toneMapped: false }), kx - 0.39 + w * 0.3, 1.52 - i * 0.085, kz - 0.058 + i * 0.0085, g, { rx: -0.1 }); b.userData.dynamic = true; return b; });
+  box(0.5, 0.025, 0.17, mat(0x263248, { r: 0.5 }), kx - 0.08, 1.06, kz + 0.17, g, { cast: false }); box(0.08, 0.025, 0.12, mat(0x263248, { r: 0.5 }), kx + 0.34, 1.06, kz + 0.17, g, { cast: false });
+  const kioskSign = sign('SIMULADOR', 1.3, 0.26, { bg: '#12325f', fg: '#ffd166' }); kioskSign.position.set(kx, 0.62, kz - 0.305); kioskSign.rotation.y = Math.PI; g.add(kioskSign);
+  col.addBoxAt(kx, kz, 1.6, 0.8);
+
   /* lámparas */
   const lampsG = new THREE.Group(); g.add(lampsG);
   for (const [x, z] of [[-4.5, 1], [4.5, 1], [0, -3]]) {
@@ -143,6 +156,7 @@ export function buildBank(api) {
     { id: 'lucia', x: -5.9, y: 2.05, z: 1.5, radius: 2.2, color: 0xffc93c, label: () => m.labelFor('client'), highlight: () => m.wants('client'), action: () => m.talkToClient(lucia) },
     { id: 'documents', x: tx, y: 1.5, z: tz, radius: 2.0, color: 0xffc93c, label: () => m.labelFor('documents'), highlight: () => m.wants('documents'), action: () => m.openDocuments() },
     ...execs.map((e, i) => ({ id: 'exec-' + e.id, x: 5.5, y: 1.9, z: execZ[i], radius: 1.9, color: 0xffc93c, label: () => m.labelFor('proposal', e.id), highlight: () => m.wants('proposal', e.id), action: () => m.openProposal(e.id, e.npc) })),
+    { id: 'simulator', x: kx, y: 2.25, z: kz + 0.75, radius: 1.8, color: 0x4cc9f0, label: () => m.labelFor('simulator'), highlight: () => m.wants('simulator'), action: () => m.openSimulator() },
     { id: 'board', x: 0, y: 2.6, z: bz + 0.9, radius: 2.0, color: 0xffc93c, label: () => m.labelFor('compare'), highlight: () => m.wants('compare'), action: () => m.openComparison() },
     { id: 'guard', x: 3.4, y: 2.05, z: 5.4, radius: 1.6, color: 0x9fd3ff, label: 'Hablar con el guardia', action: () => api.ui.dialog({ speaker: 'Guardia', lines: ['Bienvenido al Banco ICADEM.', 'La señora Lucía está en la sala de espera, a tu izquierda. Los ejecutivos atienden en los escritorios de la derecha.'] }) },
     { id: 'teller', x: -2.6, y: 2.2, z: -3.6, radius: 1.7, color: 0x9fd3ff, label: 'Hablar con la cajera', action: () => api.ui.dialog({ speaker: 'Cajera', lines: ['En cajas recibimos depósitos y pagos.', 'Para créditos, pasa con los ejecutivos: cada uno ofrece un producto distinto. Conviene comparar los tres antes de decidir.'] }) }
@@ -155,6 +169,9 @@ export function buildBank(api) {
     camera: { distance: 6.2, minDistance: 2.4, maxDistance: 8.5, pitch: 0.46, yaw: 0, box: { minX: -11.5, maxX: 11.5, minZ: -8.5, maxZ: 10.2, maxY: 7.5 } },
     update(dt, t) {
       wheel.rotation.z = Math.sin(t * 0.5) * 0.25;
+      const sim = m.wants('simulator');
+      screen.material.color.setHex(sim ? 0x1f8fe0 : 0x1b4f86);
+      bars.forEach((b, i) => { b.scale.x = 0.55 + 0.45 * Math.abs(Math.sin(t * (sim ? 2.2 : 0.7) + i * 1.3)); });
       const ready = m.wants('compare');
       boardFace.material.color.setHex(ready ? 0x1f7a55 : 0x1b447d);
       board.material.emissive.setHex(ready ? 0x0f3d2a : 0x000000);

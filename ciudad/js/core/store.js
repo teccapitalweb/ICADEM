@@ -24,7 +24,7 @@ export function defaultState() {
     visited: [],         // ids de edificios explorados
     achievements: [],    // ids de logros
     economy: { balance: 0, ledger: [] }, // SOLO créditos de prueba
-    settings: { quality: 'auto', sensitivity: 1, invertY: false }
+    settings: { quality: 'auto', sensitivity: 1, invertY: false, muted: [] }
   };
 }
 

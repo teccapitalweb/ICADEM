@@ -37,5 +37,12 @@ export const NPC_LOOKS = Object.freeze({
   guardia: { skin: 0xb9794d, hair: 0x15100b, hairStyle: 'none', top: 0x2b3a55, topAccent: 0x2b3a55, bottom: 0x1c2638, shoes: 0x111418, accessories: ['cap', 'badge'] },
   vecina: { skin: 0xe0ab85, hair: 0x8a5a2c, hairStyle: 'long', top: 0xb56bd6, topAccent: 0xffffff, bottom: 0x4a4f7a, shoes: 0xffffff, accessories: [] },
   vecino: { skin: 0xc98e63, hair: 0x241810, hairStyle: 'short', top: 0xf08a24, topAccent: 0xffffff, bottom: 0x2f4a3c, shoes: 0xf2f2f2, accessories: ['glasses'] },
+  secretaria: { skin: 0xe0ab85, hair: 0x2a1e14, hairStyle: 'bun', top: 0x12325f, topAccent: 0xffd166, bottom: 0x1d2a40, shoes: 0x1f1a17, accessories: ['lapels', 'badge', 'glasses'] },
+  mena: { skin: 0xc98e63, hair: 0x1d140d, hairStyle: 'long', top: 0x8f2630, topAccent: 0xffffff, bottom: 0x27304a, shoes: 0x1f1a17, accessories: ['lapels'] },
+  marta: { skin: 0xf0c7a4, hair: 0x6b4a2b, hairStyle: 'bun', top: 0x58b565, topAccent: 0xffffff, bottom: 0x4b5a7a, shoes: 0xf2e6d0, accessories: [] },
+  barrera: { skin: 0xe9b58c, hair: 0x3a3a3a, hairStyle: 'side', top: 0x27304a, topAccent: 0x9fb0c8, bottom: 0x1c2638, shoes: 0x111418, accessories: ['tie', 'lapels', 'glasses'] },
+  ernesto: { skin: 0xd9a37a, hair: 0x8d8d8d, hairStyle: 'short', top: 0xc9a66b, topAccent: 0xffffff, bottom: 0x4a3a2a, shoes: 0x3a2618, accessories: ['glasses'] },
+  ruben: { skin: 0xb9794d, hair: 0x15100b, hairStyle: 'short', top: 0x33a6d8, topAccent: 0xffd23f, bottom: 0x2a3550, shoes: 0x3a2618, accessories: ['cap'] },
+  sofia: { skin: 0xe0ab85, hair: 0x8a3a2c, hairStyle: 'long', top: 0xb56bd6, topAccent: 0xffffff, bottom: 0x4a4f7a, shoes: 0xffffff, accessories: ['scarf'] },
   repartidor: { skin: 0xf0c7a4, hair: 0x3a2618, hairStyle: 'none', top: 0x33a6d8, topAccent: 0xffd23f, bottom: 0x2a3550, shoes: 0xf2f2f2, accessories: ['cap', 'backpack'] }
 });

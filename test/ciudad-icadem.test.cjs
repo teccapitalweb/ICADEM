@@ -83,7 +83,7 @@ test('misión del banco: las cuentas del crédito son correctas', async () => {
 
 test('misión del banco: la calificación se reconstruye de lo que hizo el jugador', async () => {
   const m = await load('missions/bank-credit-logic.js');
-  const full = { talked: true, documents: ['solicitud', 'flujo'], proposals: ['expres', 'pyme', 'comodo'], compared: true };
+  const full = { talked: true, documents: ['solicitud', 'flujo'], proposals: ['expres', 'pyme', 'comodo'], simulated: ['expres', 'pyme', 'comodo'], compared: true };
   assert.equal(m.evaluate({ ...full, choice: 'pyme', reasons: ['costo', 'capacidad'] }).score, 100);
   assert.equal(m.evaluate({ ...full, choice: 'pyme', reasons: ['costo'] }).passed, true);
   const cara = m.evaluate({ ...full, choice: 'comodo', reasons: ['cuota'] });
@@ -97,6 +97,7 @@ test('misión del banco: la calificación se reconstruye de lo que hizo el jugad
     { ...full, documents: ['solicitud'], choice: 'pyme', reasons: ['costo'] },
     { ...full, proposals: ['pyme', 'pyme', 'pyme'], choice: 'pyme', reasons: ['costo'] },
     { ...full, compared: false, choice: 'pyme', reasons: ['costo'] },
+    { ...full, simulated: ['pyme'], choice: 'pyme', reasons: ['costo'] },
     { ...full, talked: false, choice: 'pyme', reasons: ['costo'] },
     { ...full, choice: 'inventada', reasons: ['costo'] },
     { choice: 'pyme', reasons: ['costo', 'capacidad'] },
@@ -104,9 +105,9 @@ test('misión del banco: la calificación se reconstruye de lo que hizo el jugad
   ]) assert.equal(m.evaluate(bad).valid, false);
   const steps = []; const a = m.newAttempt();
   steps.push(m.nextStep(a)); a.talked = true; steps.push(m.nextStep(a)); a.documents = ['solicitud', 'flujo']; steps.push(m.nextStep(a));
-  a.proposals = ['expres', 'pyme', 'comodo']; steps.push(m.nextStep(a)); a.compared = true; steps.push(m.nextStep(a));
+  a.proposals = ['expres', 'pyme', 'comodo']; steps.push(m.nextStep(a)); a.simulated = ['expres', 'pyme', 'comodo']; steps.push(m.nextStep(a)); a.compared = true; steps.push(m.nextStep(a));
   a.choice = 'pyme'; steps.push(m.nextStep(a)); a.reasons = ['costo']; steps.push(m.nextStep(a));
-  assert.deepEqual(steps, ['talk', 'documents', 'proposals', 'compare', 'choose', 'justify', 'done']);
+  assert.deepEqual(steps, ['talk', 'documents', 'proposals', 'simulate', 'compare', 'choose', 'justify', 'done']);
 });
 
 test('red: formato de estado listo para multijugador y sin jugadores simulados', async () => {
@@ -137,7 +138,7 @@ test('contenido: 10 avatares (solo el Explorador disponible) y 11 edificios con 
   assert.equal(avatarById('no-existe').id, 'explorador');
   const { BUILDINGS, doorPoint, footprint } = await load('world/buildings.js');
   assert.equal(BUILDINGS.length, 11);
-  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa']);
+  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa', 'tribunal']);
   for (const b of BUILDINGS) {
     const p = doorPoint(b, 2), f = footprint(b);
     assert.ok(Math.abs(p.x - b.x) > f.w / 2 || Math.abs(p.z - b.z) > f.d / 2, b.id + ': la puerta queda fuera del edificio');
@@ -153,11 +154,16 @@ test('aislamiento: el juego no llama servicios de ICADEM ni toca créditos reale
   for (const file of files) {
     const src = fs.readFileSync(file, 'utf8'), name = path.relative(root, file);
     const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-    assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|WebSocket\s*\(|sendBeacon|EventSource/, name + ' no debe hacer llamadas de red en la Fase 1');
+    // El único módulo que abre una conexión es el adaptador multijugador, y solo en pruebas locales.
+    if (!/net[\\/]ws-adapter\.js$/.test(file)) assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|EventSource/, name + ' no debe hacer llamadas de red');
+    else { assert.doesNotMatch(code, /XMLHttpRequest|sendBeacon|EventSource/, name + ' solo puede usar el socket del juego'); assert.deepEqual(code.match(/\bfetch\s*\([^)]*/g), ["fetch(http + '/dev/ticket', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ uid, name }"], 'la única petición es al emisor de boletos del entorno de pruebas'); }
     assert.doesNotMatch(code, /firebase|firestore|railway\.app|Authorization|getIdToken|ICADEMPlatform|UserState/i, name + ' no debe tocar la sesión ni los servicios del panel');
     if (!/core[\\/]store\.js$/.test(file)) assert.doesNotMatch(code, /localStorage|sessionStorage|indexedDB/, name + ': solo store.js guarda datos');
     assert.ok(src.length < 40000, name + ' es demasiado grande para un solo módulo');
   }
+  const main = read('ciudad/js/main.js');
+  assert.match(main, /const mpUrl = LOCAL \? params\.get\('mp'\) : null;/, 'el multijugador solo se activa en pruebas locales');
+  assert.match(main, /127\\\.0\\\.0\\\.1\|localhost/, 'y solo contra un servidor en la misma máquina');
   const html = read('ciudad/index.html');
   assert.match(html, /créditos de prueba/); assert.match(html, /Prototipo · Fase 1/);
   assert.doesNotMatch(html, /firebase|railway|stripe/i);
