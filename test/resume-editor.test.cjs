@@ -40,7 +40,7 @@ function app(){
   document.body=new Element('body');const root=new Element();document.body.append(root);
   document.createElement=tag=>new Element(tag);document.querySelectorAll=selector=>document.body.querySelectorAll(selector);document.querySelector=selector=>document.body.querySelector(selector);
   const window={UserState:{uid:'owner'},crypto:{randomUUID:()=>`entry-${++uuid}`},ICADEMProfessionalNavigation:{currentProfileId:()=>window.UserState.uid},addEventListener(name,fn){windowEvents.set(name,fn);}};
-  const context={window,document,location:{hash:'#directorio-perfil'},Date,Math};vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/../js/icadem-directory.js','utf8'),context);vm.runInContext(source,context);
+  const context={window,document,location:{hash:'#directorio-perfil'},Date,Math};vm.createContext(context);vm.runInContext(fs.readFileSync(__dirname+'/../js/icadem-directory.js','utf8'),context);vm.runInContext(fs.readFileSync(__dirname+'/../js/icadem-cv-languages.js','utf8'),context);vm.runInContext(source,context);
   const options={container:root,profile:profile(),load:()=>new Promise((resolve,reject)=>loads.push({resolve,reject})),save:payload=>new Promise((resolve,reject)=>saves.push({payload:copy(payload),resolve,reject})),renderProfile:p=>{previews.push(copy(p));return '<article>Vista profesional</article>';},onClose:p=>closed.push(copy(p))};
   return{root,window,document,loads,saves,closed,previews,options,api:window.ICADEMResumeEditor,form:key=>root.querySelector('[data-cve-form="'+key+'"]'),field:(key,name)=>root.querySelector('[data-cve-form="'+key+'"]').querySelector('[name="'+name+'"]'),async open(p=profile()){options.profile=p;const opening=window.ICADEMResumeEditor.open(options);loads.at(-1).resolve({profile:copy(p)});await opening;},emitDocument(name){for(const fn of documentEvents.get(name)||[])fn({type:name});},emitWindow(name,event={}){return windowEvents.get(name)?.(event);}};
 }
@@ -168,7 +168,7 @@ test('existing custom select text keeps its label and value through unrelated sa
 test('untouched legacy rows and uppercase colors normalize consistently without a false draft or leave warning',async()=>{
   const a=app(),p=profile();p.cv.experiencia=[{id:'legacy-job',empresa:'ICADEM',cargo:'Consultor',periodo:'2020–actualidad',actual:true,fin:'2026-01'}];p.cv.formacion=[{id:'legacy-education',institucion:'Escuela',titulo:'Diplomado',estado:'Concluido',periodo:'2017'}];p.cv.idiomas=[{id:'legacy-language',idioma:'Español'}];p.cv.estilo={color:'#E9BC43',savedColor:'#E9BC43',editable:true};
   const original=JSON.stringify(p);await a.open(p);assert.equal(a.api.isDirty(),false);assert.equal(a.form('estilo').querySelector('[data-cve-color]').value,'#e9bc43');
-  assert.equal(a.form('experiencia').querySelector('[name="fin"]').value,'');assert.equal(a.form('idiomas').querySelector('[name="nivel"]').value,'A1');
+  assert.equal(a.form('experiencia').querySelector('[name="fin"]').value,'');assert.equal(a.form('idiomas').querySelector('[name="nivel"]').value,'');
   const draft=a.previews.at(-1);assert.equal(draft.cv.experiencia[0].id,'legacy-job');assert.equal(draft.cv.experiencia[0].periodo,'2020–actualidad');assert.equal(draft.cv.formacion[0].periodo,'2017');assert.equal(JSON.stringify(p),original);
   await input(a,'sobreMi','resumen','Solo esta sección cambia');assert.equal(a.api.isDirty(),true);await a.form('sobreMi').querySelector('[data-cve-cancel]').click();assert.equal(a.api.isDirty(),false);
   await a.root.querySelector('[data-cve-back]').click();assert.equal(a.closed.length,1);assert.equal(a.api.isOpen(),false);assert.equal(a.saves.length,0);
@@ -190,4 +190,61 @@ test('the actual new-editor basic bridge submits only basic fields and contacts 
   const confirmed=copy(p);for(const key of['profesion','especialidad','ciudad','areas'])confirmed.cv[key]=payload[key];confirmed.contactScopes=payload.contactScopes;confirmed.contacts.facebook=payload.facebook;patches[0].resolve({profile:confirmed});await submit;
   for(const key of protectedFields)assert.deepEqual(confirmed.cv[key],before[key]);
   delete a.window.ICADEMResumeEditor;ctx.editCv(p);const fallback=modalCalls.at(-1).body;assert.ok(fallback.elements.namedItem('resumen'));assert.ok(fallback.elements.namedItem('habilidades'));assert.ok(fallback.querySelector('[data-editor-experiencia]'));assert.ok(fallback.querySelector('[data-editor-formacion]'));
+});
+
+function languageRow(a,index=0){return a.form('idiomas').querySelectorAll('[data-cve-row]')[index];}
+async function languageInput(a,index,name,value,change=false){const el=languageRow(a,index).querySelector('[name="'+name+'"]');el.value=value;await el.emit('input');if(change)await el.emit('change');}
+
+test('language editor keeps legacy MCER/native records and unknown language names without defaulting blank levels',async()=>{
+ const a=app(),p=profile();p.cv.idiomas=[{id:'en',idioma:'Inglés',nivel:'B2'},{id:'fr',idioma:'Francés',nivel:'A1'},{id:'custom',idioma:'Lengua de señas mexicana',nivel:'Nativo'},{id:'review',idioma:'Idioma anterior',nivel:'Avanzado'}];const before=JSON.stringify(p);await a.open(p);
+ assert.equal(languageRow(a,0).querySelector('[name="sistema"]').value,'mcer');assert.equal(languageRow(a,1).querySelector('[name="nivel"]').value,'A1');
+ assert.equal(languageRow(a,2).querySelector('[name="languageChoice"]').value,'__other');assert.equal(languageRow(a,2).querySelector('[name="idioma"]').value,'Lengua de señas mexicana');assert.equal(languageRow(a,2).querySelector('[name="sistema"]').value,'nativo');
+ assert.equal(languageRow(a,3).querySelector('[name="nivel"]').value,'Avanzado');assert.equal(languageRow(a,3).querySelector('[data-cve-language-review]').hidden,false);
+ assert.equal(a.api.isDirty(),false);assert.equal(JSON.stringify(p),before);assert.equal(a.saves.length,0);
+});
+
+test('Mandarin HSK selection stays independent of MCER and preserves every other language until explicit saving',async()=>{
+ const a=app(),p=profile();p.cv.idiomas=[{id:'mandarin',idioma:'Chino mandarín',nivel:'HSK 1',sistema:'hsk'},{id:'english',idioma:'Inglés',nivel:'B2'}];await a.open(p);
+ const originalOther=JSON.stringify(a.options.profile.cv.idiomas[1]);await languageInput(a,0,'sistema','mcer',true);
+ assert.equal(languageRow(a).querySelector('[name="nivel"]').value,'HSK 1');assert.match(languageRow(a).querySelector('[data-cve-language-review]').textContent,/no se convierte automáticamente/);await a.form('idiomas').emit('submit');assert.equal(a.saves.length,0);
+ await languageInput(a,0,'nivel','C1');const submit=a.form('idiomas').emit('submit');await flush();assert.equal(a.saves[0].payload.data[0].nivel,'C1');assert.equal(a.saves[0].payload.data[0].sistema,'mcer');assert.equal(a.saves[0].payload.data[1].nivel,'B2');assert.equal(JSON.stringify(a.options.profile.cv.idiomas[1]),originalOther);
+ const ack=copy(p);ack.cv.idiomas=a.saves[0].payload.data;ack.cv.revisiones.idiomas=2;a.saves[0].resolve({profile:ack});await submit;assert.match(a.form('idiomas').querySelector('[data-cve-section-status]').textContent,/confirmados/);
+});
+
+test('new languages offer HSK 1 to 9 for Mandarin, manual names, native and no formal evaluation without certification requirements',async()=>{
+ const a=app();await a.open();await a.form('idiomas').querySelector('[data-cve-add]').click();await languageInput(a,1,'languageChoice','Chino mandarín',true);await languageInput(a,1,'sistema','hsk',true);
+ const levels=languageRow(a,1).querySelector('[name="nivel"]').querySelectorAll('option').map(x=>x.value);assert.deepEqual(levels,['','HSK 1','HSK 2','HSK 3','HSK 4','HSK 5','HSK 6','HSK 7','HSK 8','HSK 9']);assert.equal(languageRow(a,1).querySelector('[name="nivel"]').value,'');await languageInput(a,1,'nivel','HSK 9');
+ await languageInput(a,1,'languageChoice','__other',true);await languageInput(a,1,'idioma','Lengua de señas mexicana',true);assert.equal(languageRow(a,1).querySelector('[name="nivel"]').value,'HSK 9');assert.match(languageRow(a,1).querySelector('[data-cve-language-review]').textContent,/HSK corresponde/);
+ await languageInput(a,1,'sistema','sin_evaluacion',true);const submit=a.form('idiomas').emit('submit');await flush();assert.equal(a.saves[0].payload.data[1].idioma,'Lengua de señas mexicana');assert.equal(a.saves[0].payload.data[1].nivel,'');assert.equal(a.saves[0].payload.data[1].acreditacion,'');a.saves[0].resolve({profile:profile()});await submit;
+});
+
+test('declared certification metadata is optional and survives toggling accreditation and month/full-date loads',async()=>{
+ const a=app(),p=profile();p.cv.idiomas=[{id:'en',idioma:'Inglés',nivel:'B2',sistema:'mcer',acreditacion:'certificacion',organismo:'Organismo de prueba',fecha:'2025-01-19',resultado:'Resultado declarado'},{id:'fr',idioma:'Francés',nivel:'A1',sistema:'mcer',acreditacion:'certificacion',fecha:'2025-02'}];await a.open(p);
+ assert.equal(languageRow(a).querySelector('[name="fecha"]').attributes.type,'date');assert.equal(languageRow(a,1).querySelector('[name="fecha"]').attributes.type,'month');
+ await languageInput(a,0,'acreditacion','estimado',true);assert.equal(languageRow(a).querySelector('[name="organismo"]').attributes.type,'hidden');assert.equal(languageRow(a).querySelector('[name="fecha"]').value,'2025-01-19');
+ await languageInput(a,0,'acreditacion','certificacion',true);assert.equal(languageRow(a).querySelector('[name="organismo"]').value,'Organismo de prueba');assert.equal(languageRow(a).querySelector('[name="fecha"]').value,'2025-01-19');assert.equal(languageRow(a).querySelector('[name="resultado"]').value,'Resultado declarado');
+ await languageInput(a,0,'organismo','');await languageInput(a,0,'fecha','');await languageInput(a,0,'resultado','');const submit=a.form('idiomas').emit('submit');await flush();assert.equal(a.saves[0].payload.data[0].acreditacion,'certificacion');assert.equal(a.saves[0].payload.data[0].organismo,'');a.saves[0].resolve({profile:p});await submit;
+});
+
+test('skills parse every supported line separator independently, retain commas inside skills and save all three arrays',async()=>{
+ const a=app();await a.open();const sample='  Desarrollo web asistido por IA\rDiseño de interfaces de usuario\u2028Automatización de procesos\u2029Ingeniería de prompts\r\n \nDesarrollo web asistido por IA\nContabilidad, nómina y RH ';
+ for(const field of ['habilidadesTecnicas','herramientas','competencias'])await input(a,'habilidades',field,sample);
+ assert.equal(a.field('habilidades','habilidadesTecnicas').attributes.maxlength,undefined);const submit=a.form('habilidades').emit('submit');await flush();
+ for(const field of ['habilidadesTecnicas','herramientas','competencias'])assert.deepEqual(a.saves[0].payload.data[field],['Desarrollo web asistido por IA','Diseño de interfaces de usuario','Automatización de procesos','Ingeniería de prompts','Contabilidad, nómina y RH']);
+ const ack=profile();Object.assign(ack.cv,a.saves[0].payload.data);a.saves[0].resolve({profile:ack});await submit;assert.equal(a.field('habilidades','habilidadesTecnicas').value.split('\n').length,5);
+});
+
+test('skills enforce 60 characters per individual line and 40 per category without losing raw invalid input',async()=>{
+ const a=app();await a.open();const long='Primera válida\n  '+'x'.repeat(61)+'  \nTercera válida';await input(a,'habilidades','herramientas',long);await a.form('habilidades').emit('submit');assert.equal(a.saves.length,0);assert.equal(a.field('habilidades','herramientas').value,long);assert.match(a.form('habilidades').querySelector('[data-cve-section-status]').textContent,/Herramientas y software: la línea 2.*60/);
+ const maximum=Array.from({length:40},(_,i)=>String(i).padStart(2,'0')+'x'.repeat(58)).join('\n');await input(a,'habilidades','herramientas',maximum);assert.equal(a.form('habilidades').querySelector('[data-cve-section-status]').textContent,'');const submit=a.form('habilidades').emit('submit');await flush();assert.equal(a.saves[0].payload.data.herramientas.length,40);assert.ok(a.saves[0].payload.data.herramientas.every(x=>x.length===60));a.saves[0].reject(new Error('Error del servidor'));await submit;assert.equal(a.field('habilidades','herramientas').value,maximum);assert.match(a.form('habilidades').querySelector('[data-cve-section-status]').textContent,/Error del servidor/);
+ const over=Array.from({length:41},(_,i)=>'Habilidad '+i).join('\n');await input(a,'habilidades','competencias',over);await a.form('habilidades').emit('submit');assert.equal(a.saves.length,1);assert.equal(a.field('habilidades','competencias').value,over);assert.match(a.form('habilidades').querySelector('[data-cve-section-status]').textContent,/Competencias profesionales.*40/);
+});
+
+test('inconsistent saved native/unassessed rows require an explicit change; choosing those systems from MCER still saves their stated meaning',async()=>{
+ for(const sistema of ['nativo','sin_evaluacion']){
+  const a=app(),p=profile();p.cv.idiomas=[{id:'legacy',idioma:'Inglés',sistema,nivel:'B2',requiereRevision:true}];await a.open(p);
+  await a.form('idiomas').emit('submit');assert.equal(a.saves.length,0);assert.match(a.form('idiomas').querySelector('[data-cve-section-status]').textContent,/nivel anterior.*B2/);assert.equal(languageRow(a).querySelector('[name="nivel"]').value,'B2');
+  await languageInput(a,0,'sistema','mcer',true);await languageInput(a,0,'sistema',sistema,true);assert.equal(languageRow(a).querySelector('[data-cve-language-review]').hidden,true);assert.equal(languageRow(a).querySelector('[name="nivel"]').value,'B2');
+  const submit=a.form('idiomas').emit('submit');await flush();assert.equal(a.saves[0].payload.data[0].nivel,sistema==='nativo'?'Nativo':'');assert.equal(a.saves[0].payload.data[0].requiereRevision,undefined);a.saves[0].resolve({profile:p});await submit;
+ }
 });
