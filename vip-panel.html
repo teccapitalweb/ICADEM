@@ -7167,7 +7167,7 @@ const Sections = (function(){
             id: item.id, titulo: item.title, desc: item.description,
             descripcion: item.description, instructor: item.instructor,
             fecha: item.startsAt, fechaMs, duracion, area: item.area,
-            link: '', tieneGrabacion: Boolean(item.hasRecording),
+            link: '', tieneGrabacion: Boolean(item.hasRecording), prueba: Boolean(item.test),
             status: fechaMs + duracion * 60000 > ahora ? 'proxima' : 'grabada',
             enVivo: Boolean(fechaMs && fechaMs <= ahora && ahora < fechaMs + duracion * 60000),
             registrado: Boolean(item.registered), visto: false
@@ -10908,6 +10908,7 @@ const Sections = (function(){
         <div class="webinar-card__body">
           <div style="display:flex;gap:5px;flex-wrap:wrap;">
             <span class="tag tag--soon" style="color:${COLOR_AREA[w.area]};border-color:${COLOR_AREA[w.area]}40;background:${COLOR_AREA[w.area]}14;">${w.area}</span>
+            ${w.prueba?'<span class="tag tag--soon" style="color:#B45309;border-color:#B4530940;background:#B4530914;">Prueba</span>':''}
             ${isProx?(enVivo?'<span class="tag tag--live">En vivo</span>':w.registrado?'<span class="tag tag--watched">Registrado</span>':'<span class="tag tag--soon">Próxima</span>'):(w.visto?'<span class="tag tag--watched">Visto</span>':(w.tieneGrabacion?'<span class="tag tag--soon">Grabación</span>':'<span class="tag tag--soon">Grabación en proceso</span>'))}
           </div>
           <h3 class="webinar-card__title">${w.titulo}</h3>

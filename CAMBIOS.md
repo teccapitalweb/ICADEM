@@ -1,5 +1,14 @@
 # CAMBIOS
 
+## 2026-11-11 — Clases en vivo: clases de prueba solo para administradores
+
+**Archivos:** `vip-admin.html`, `vip-panel.html`; backend `icadem-webhook`: `webinar-private.js`, `mobile-webinars.js`, `index.js`, `test/webinar-private.test.js`
+
+- Admin · Clases en vivo: botón "Agregar clase de prueba" y tarjeta "Clases de prueba" (título, fecha, hora, duración, enlace, editar y eliminar). El enlace es opcional y no hay casilla de Google Meet.
+- Las clases de prueba viven en `clasesPrueba/{id}` (colección cerrada, solo el servidor): no se publican en `webinars`, no generan notificación ni aviso al teléfono y ningún miembro las ve.
+- Panel de miembros: con una cuenta de administrador, la agenda incluye las clases de prueba como una clase normal (cuenta regresiva, entrada, inscripción, grabación) con la etiqueta "Prueba". Para un miembro, entrar, inscribirse o reproducir una clase de prueba responde "no disponible".
+- Servidor: `GET|POST /admin/clases-prueba`, `DELETE /admin/clases-prueba/:id`; el módulo de agenda recibe la dependencia opcional `testData` y sin ella se comporta igual que antes.
+
 ## 2026-11-11 — Clases en vivo: reunión de Google Meet automática
 
 **Archivos:** `vip-admin.html`; backend `icadem-webhook`: `google-meet.js` (nuevo), `webinar-private.js`, `index.js`, `test/google-meet.test.js` (nuevo), `test/webinar-private.test.js`
@@ -39,7 +48,7 @@
 - Admin · Clases en vivo: campo "Grabación (Bunny Stream)" (acepta el ID o el enlace del video) y etiqueta "Grabación disponible" / "Sin grabación" en las clases pasadas.
 - Panel VIP · Clases en vivo: las clases terminadas muestran "Grabación" o "Grabación en proceso"; "Reproducir" abre el video dentro del panel con token firmado (solo miembros con membresía activa).
 - Avisos de clases en vivo: al programar la clase (también al teléfono), 1 hora antes y cuando empieza. Cada aviso se manda una sola vez por clase.
-- Admin · editar clase: botón "Sincronizar con Bunny" que lista los videos de la colección `webinars-icadem` de la biblioteca para elegir la grabación sin copiar el ID. Necesita la variable `BUNNY_LIBRARY_API_KEY` (API Key de la biblioteca de Bunny, distinta de la clave de tokens) en el servidor; backend `bunny-webinars.js` + `GET /admin/bunny/webinar-videos`.
+- Admin · editar clase: botón "Sincronizar con Bunny" que lista los videos de la colección `clases en vivo` de la biblioteca para elegir la grabación sin copiar el ID. Necesita la variable `BUNNY_LIBRARY_API_KEY` (API Key de la biblioteca de Bunny, distinta de la clave de tokens) en el servidor; backend `bunny-webinars.js` + `GET /admin/bunny/webinar-videos`.
 - Backend: `POST /api/bunny/webinar-embed-token`, `POST /admin/webinars/:id/avisar-registro` y revisión cada minuto de clases por empezar. Hay que publicar el backend junto con el sitio.
 - `sw.js`: caché v94 y versión de `icadem-platform-v2.js` alineada con el panel (v47); el verificador de contratos vuelve a pasar.
 

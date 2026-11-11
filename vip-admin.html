@@ -2897,6 +2897,10 @@ const Pages={
           <h1 class="sec-hero__title">Clases en vivo</h1>
           <p class="sec-hero__sub">Programa las transmisiones en vivo que verán los miembros VIP. <strong style="color:var(--text-2);">El countdown del Inicio del panel se actualiza automáticamente</strong> con el próximo webinar.</p>
           <div class="sec-hero__actions">
+            <button class="btn btn--ghost" id="new-web-test-btn" title="Una clase solo para ti: no se publica ni avisa a los miembros">
+              <svg class="ic"><use href="#i-plus"/></svg>
+              Agregar clase de prueba
+            </button>
             <button class="btn btn--accent" id="new-web-btn">
               <svg class="ic"><use href="#i-plus"/></svg>
               Nueva clase en vivo
@@ -2928,6 +2932,7 @@ const Pages={
         </div>
 
         <div id="web-container"></div>
+        <div id="web-pruebas"></div>
       </div>
     `;
 
@@ -2981,6 +2986,11 @@ const Pages={
     p.querySelector('#new-web-btn')?.addEventListener('click', () => {
       Pages._abrirModalWebinar(null);
     });
+    p.querySelector('#new-web-test-btn')?.addEventListener('click', () => {
+      Pages._abrirModalWebinar(null, { prueba: true });
+    });
+    Pages._pruebasRender();
+    Pages._pruebasCargar().then(() => Pages._pruebasRender());
   },
 
   // Enlace y grabación viven en el servidor (colección privada), no en el documento público
@@ -3007,6 +3017,58 @@ const Pages={
     const j = await r.json().catch(() => ({}));
     if (!r.ok || j.ok === false) throw new Error(j.error || 'No pudimos completar la operación.');
     return j;
+  },
+
+  // ─── Clases de prueba: solo las ve el administrador (no se publican ni avisan) ───
+  _pruebas: [],
+  _pruebasListas: false,
+  _escWeb(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); },
+  async _pruebasCargar() {
+    try {
+      const j = await Pages._webLlamar('/admin/clases-prueba');
+      Pages._pruebas = j.items || [];
+      Pages._pruebasListas = true;
+    } catch (e) { /* servidor sin la ruta: la tarjeta queda vacía */ }
+  },
+  _pruebasRender() {
+    const wrap = document.getElementById('web-pruebas');
+    if (!wrap) return;
+    const esc = Pages._escWeb;
+    const filas = Pages._pruebas.map(c => {
+      const f = c.fecha ? new Date(c.fecha) : null;
+      const fecha = f ? f.getFullYear() + '-' + String(f.getMonth()+1).padStart(2,'0') + '-' + String(f.getDate()).padStart(2,'0') : '—';
+      const hora = f ? String(f.getHours()).padStart(2,'0') + ':' + String(f.getMinutes()).padStart(2,'0') : '—';
+      return '<tr style="border-top:1px solid var(--border, rgba(0,0,0,.08));">'
+        + '<td style="padding:10px 8px;font-weight:700;">' + esc(c.titulo) + (c.grabacionVideoId ? ' <span style="font-size:10px;font-weight:700;color:#16A34A;">● Grabación</span>' : '') + '</td>'
+        + '<td style="padding:10px 8px;">' + fecha + '</td><td style="padding:10px 8px;">' + hora + '</td>'
+        + '<td style="padding:10px 8px;">' + esc(c.duracion) + ' min</td>'
+        + '<td style="padding:10px 8px;">' + (c.link ? '<a href="' + esc(c.link) + '" target="_blank" rel="noopener noreferrer">Enlace</a>' : '—') + '</td>'
+        + '<td style="padding:10px 8px;white-space:nowrap;"><button class="btn btn--ghost" data-prueba-edit="' + esc(c.id) + '">Editar</button> '
+        + '<button class="btn btn--ghost" data-prueba-del="' + esc(c.id) + '" style="color:#DC2626;">Eliminar</button></td></tr>';
+    }).join('');
+    wrap.innerHTML = '<div class="dash-card" style="margin-top:18px;padding:20px;">'
+      + '<h3 style="font-size:16px;font-weight:700;margin:0 0 4px;">Clases de prueba</h3>'
+      + '<p style="font-size:12px;color:var(--text-3);margin:0 0 12px;line-height:1.5;">Solo las ves tú. No se publican, no aparecen para los miembros y no les llega ningún aviso. Para probarlas entra al panel de miembros con tu cuenta de administrador: ahí se ven como una clase normal, con su cuenta regresiva, avisos y botones.</p>'
+      + (filas
+        ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);"><th style="padding:6px 8px;">Título</th><th style="padding:6px 8px;">Fecha</th><th style="padding:6px 8px;">Hora</th><th style="padding:6px 8px;">Duración</th><th style="padding:6px 8px;">Enlace</th><th style="padding:6px 8px;">Acciones</th></tr></thead><tbody>' + filas + '</tbody></table></div>'
+        : '<div style="padding:14px;font-size:13px;color:var(--text-3);border:1px dashed var(--border, rgba(0,0,0,.15));border-radius:12px;">Aún no hay clases de prueba. Usa «Agregar clase de prueba».</div>')
+      + '</div>';
+    wrap.querySelectorAll('[data-prueba-edit]').forEach(b => b.addEventListener('click', async () => {
+      await Pages._pruebasCargar();
+      const c = Pages._pruebas.find(x => x.id === b.dataset.pruebaEdit);
+      if (!c) { Toast.error('Clase de prueba no encontrada'); return; }
+      Pages._abrirModalWebinar(Object.assign({}, c, { fecha: c.fecha }), { prueba: true });
+    }));
+    wrap.querySelectorAll('[data-prueba-del]').forEach(b => b.addEventListener('click', async () => {
+      const c = Pages._pruebas.find(x => x.id === b.dataset.pruebaDel);
+      if (!c || !confirm('¿Eliminar la clase de prueba "' + c.titulo + '"? No se puede deshacer.')) return;
+      try {
+        await Pages._webLlamar('/admin/clases-prueba/' + encodeURIComponent(c.id), { method: 'DELETE' });
+        Toast.success('Clase de prueba eliminada', c.titulo);
+        await Pages._pruebasCargar();
+        Pages._pruebasRender();
+      } catch (e) { Toast.error('No se pudo eliminar', e.message || 'Intenta de nuevo'); }
+    }));
   },
 
   _webFechaToDate(w) {
@@ -3211,7 +3273,8 @@ const Pages={
     });
   },
 
-  _abrirModalWebinar(w) {
+  _abrirModalWebinar(w, opciones = {}) {
+    const prueba = !!opciones.prueba;
     const esEdicion = !!w;
     const fechaActual = esEdicion ? Pages._webFechaToDate(w) : null;
     // Formato para datetime-local: YYYY-MM-DDTHH:mm
@@ -3278,7 +3341,7 @@ const Pages={
             <button type="button" class="btn btn--ghost" id="wf-sync-bunny" style="white-space:nowrap;">Sincronizar con Bunny</button>
           </div>
           <div id="wf-sync-lista" style="display:none;margin-top:8px;border:1px solid var(--border, rgba(0,0,0,.12));border-radius:12px;max-height:220px;overflow:auto;"></div>
-          <div style="font-size:11px;color:var(--text-3);margin-top:5px;">Opcional. Sube la grabación a la colección <strong>webinars-icadem</strong> de Bunny y pulsa «Sincronizar con Bunny» para elegirla de la lista (o pega el ID / enlace del video). Al guardar, la clase queda como «Grabación disponible» en el panel VIP.</div>
+          <div style="font-size:11px;color:var(--text-3);margin-top:5px;">Opcional. Sube la grabación a la colección <strong>clases en vivo</strong> de Bunny y pulsa «Sincronizar con Bunny» para elegirla de la lista (o pega el ID / enlace del video). Al guardar, la clase queda como «Grabación disponible» en el panel VIP.</div>
         </div>
       </div>
     `;
@@ -3288,13 +3351,13 @@ const Pages={
       <button class="btn btn--ghost" id="wf-cancel">Cancelar</button>
       <button class="btn btn--accent" id="wf-save">
         <svg class="ic"><use href="#i-check"/></svg>
-        ${esEdicion ? 'Guardar cambios' : 'Programar clase'}
+        ${esEdicion ? 'Guardar cambios' : (prueba ? 'Guardar clase de prueba' : 'Programar clase')}
       </button>
     `;
 
     Modal.open({
-      title: esEdicion ? 'Editar clase en vivo' : 'Nueva clase en vivo',
-      subtitle: esEdicion ? wb.titulo : 'Programa una transmisión para los miembros VIP',
+      title: prueba ? (esEdicion ? 'Editar clase de prueba' : 'Nueva clase de prueba') : (esEdicion ? 'Editar clase en vivo' : 'Nueva clase en vivo'),
+      subtitle: prueba ? 'Solo la ves tú: no se publica ni avisa a los miembros' : (esEdicion ? wb.titulo : 'Programa una transmisión para los miembros VIP'),
       icon: 'i-broadcast',
       body,
       footer
@@ -3302,7 +3365,7 @@ const Pages={
 
     footer.querySelector('#wf-cancel').addEventListener('click', () => Modal.close());
 
-    // ─── Sincronizar con Bunny: elegir la grabación de la colección webinars-icadem ───
+    // ─── Sincronizar con Bunny: elegir la grabación de la colección clases en vivo ───
     const syncBtn = body.querySelector('#wf-sync-bunny');
     const syncLista = body.querySelector('#wf-sync-lista');
     const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
@@ -3347,13 +3410,20 @@ const Pages={
     const linkAyuda = body.querySelector('#wf-link-ayuda');
     const linkLabel = body.querySelector('#wf-link-label');
     const pintarMeet = () => {
+      if (prueba) return;
       const auto = meetChk.checked && !linkInput.value.trim();
       linkLabel.textContent = auto ? 'Link de transmisión (se genera solo)' : 'Link de transmisión *';
       linkInput.placeholder = auto ? 'Se creará solo con Google Meet al guardar' : 'https://meet.google.com/… o https://zoom.us/…';
     };
     meetChk.addEventListener('change', pintarMeet);
     linkInput.addEventListener('input', pintarMeet);
+    if (prueba) {
+      meetChk.closest('.form-field').style.display = 'none';
+      linkLabel.textContent = 'Link de transmisión (opcional)';
+      linkAyuda.textContent = 'Opcional en una clase de prueba. Sin enlace, el botón «Unirme» no abrirá nada.';
+    }
     (async () => {
+      if (prueba) return;
       try {
         const j = await Pages._webLlamar('/admin/google/estado');
         if (!j.configurado) throw new Error('no-conectado');
@@ -3388,8 +3458,8 @@ const Pages={
         if (!titulo) { Toast.error('Falta el título'); document.getElementById('wf-titulo')?.focus(); throw new Error('skip'); }
         if (!instructor) { Toast.error('Falta el instructor'); document.getElementById('wf-instructor')?.focus(); throw new Error('skip'); }
         if (!fechaStr) { Toast.error('Falta la fecha'); document.getElementById('wf-fecha')?.focus(); throw new Error('skip'); }
-        const crearMeet = !!meetChk.checked;
-        if (!link && !crearMeet) { Toast.error('Falta el link de transmisión', 'Pega el enlace o marca «Crear la reunión de Google Meet».'); document.getElementById('wf-link')?.focus(); throw new Error('skip'); }
+        const crearMeet = !prueba && !!meetChk.checked;
+        if (!link && !crearMeet && !prueba) { Toast.error('Falta el link de transmisión', 'Pega el enlace o marca «Crear la reunión de Google Meet».'); document.getElementById('wf-link')?.focus(); throw new Error('skip'); }
         if (link) { try { new URL(link); } catch(e) { Toast.error('Link inválido', 'Verifica que sea una URL completa'); throw new Error('skip'); } }
 
         // Convertir datetime-local a Date
@@ -3403,6 +3473,19 @@ const Pages={
           const m = grabRaw.match(/[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i);
           if (!m) { Toast.error('ID de grabación inválido', 'Debe ser el ID de Bunny (formato xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)'); document.getElementById('wf-grabacion')?.focus(); throw new Error('skip'); }
           grabacionVideoId = m[0].toLowerCase();
+        }
+
+        // Clase de prueba: solo para administradores, sin publicar ni avisar
+        if (prueba) {
+          await Pages._webLlamar('/admin/clases-prueba', {
+            method: 'POST',
+            body: JSON.stringify({ id: editId || undefined, titulo, descripcion, instructor, duracion, fecha: fechaDate.toISOString(), link, grabacionVideoId })
+          });
+          Toast.success(editId ? 'Clase de prueba actualizada' : 'Clase de prueba guardada', titulo + ' · solo la ves tú');
+          await Pages._pruebasCargar();
+          Pages._pruebasRender();
+          Modal.close();
+          return;
         }
 
         // El enlace y el ID de la grabación se guardan en el servidor (colección privada)
