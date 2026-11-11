@@ -20,8 +20,8 @@ test('private projected sections cannot reappear through stale biography or hidd
 });
 test('preview exposes no edit/connection actions; owner has the same CV with owner actions only',()=>{
  const preview=render({preview:true,own:false,cv:{resumen:'Draft'}});assert.ok(!preview.includes('data-connect'));assert.ok(!preview.includes('data-edit-cv'));assert.match(preview,/Vista previa del borrador público/);
- const own=render({own:true,cv:{}});assert.match(own,/Completar mi currículum/);assert.ok(!own.includes('data-connect'));
- const filled=render({own:true,cv:{idiomas:[{idioma:'Español',nivel:'Nativo'}]}});assert.match(filled,/Editar mi currículum/);
+ const own=render({own:true,cv:{}});assert.match(own,/Editar mi perfil profesional/);assert.ok(!own.includes('data-connect'));
+ const filled=render({own:true,cv:{idiomas:[{idioma:'Español',nivel:'Nativo'}]}});assert.match(filled,/Editar mi perfil profesional/);
 });
 test('text, arbitrary colors, and external hrefs cannot inject markup or JavaScript',()=>{
  const html=render({nombre:'<img src=x onerror=alert(1)>',portadaColor:'red;url(evil)',cv:{resumen:'<script>bad()</script>',estilo:{color:'red;--x:evil'},certificaciones:[{nombre:'<b>Cert</b>',url:'javascript:alert(1)'}],enlaces:[{nombre:'Unsafe',url:'http://example.test'}]}});
