@@ -28,7 +28,8 @@ test('long names and bios remain available in the existing full-profile action; 
 });
 test('directory assets are loaded once in the real head and cover edits still use the authenticated profile service',()=>{
   const head=html.slice(0,html.indexOf('</head>'));assert.match(head,/icadem-directory\.css\?v=2/);assert.match(head,/js\/icadem-directory\.js\?v=\d+/);assert.equal((html.match(/href="css\/icadem-directory\.css/g)||[]).length,1);
-  assert.match(html,/ICADEMPlatform\.saveProfile\(payload\)/);assert.match(html,/Object\.assign\(payload, coverEditor\?\.payload\(\) \|\| \{\}\)/);
+  const community=fs.readFileSync(__dirname+'/../js/icadem-community.js','utf8'),editor=fs.readFileSync(__dirname+'/../js/icadem-resume-editor.js','utf8');
+  assert.match(community,/ICADEMPlatform\.saveProfile\(payload\)/);assert.match(editor,/ICADEMDirectory\?\.bindEditor/);assert.match(editor,/coverController\.payload\(\)/);
 });
 
  test('CV consumers reuse the existing cover defaults and unrestricted hexadecimal picker without mutating cover preferences',()=>{

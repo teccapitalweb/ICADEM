@@ -172,3 +172,45 @@ test('the real own-profile button opens the authenticated owner UID and preserve
   f.window.UserState.uid='viewer-b';f.emit('icadem:user-ready');f.route('foro');assert.equal(f.api.forumState(),null);
   f.history.state={icademProfessional:{viewer:'viewer-a',origin:'foro',depth:1}};assert.equal(f.api.backLabel(),'Volver al directorio');f.api.backToDirectory();assert.equal(f.navigations.at(-1).section,'directorio');
  });
+
+function editorGuard(f){
+  const state={open:true,dirty:true,busy:false,pending:null,focus:[]};
+  f.window.ICADEMResumeEditor={isOpen:()=>state.open,isDirty:()=>state.dirty,isBusy:()=>state.busy,focusSection:key=>state.focus.push(key),requestLeave(proceed){if(!state.open)return true;if(state.busy)return false;if(state.dirty){state.pending=proceed;return false;}return true;}};
+  state.discard=()=>{const next=state.pending;state.pending=null;state.open=false;state.dirty=false;next?.();};
+  return state;
+}
+test('all editor links use the owner route, select one section and never leak editing state into shared links',()=>{
+  const f=integrated();f.ctx.navigateToSection('directorio',{reemplazar:true});f.flush();f.completeLoad();
+  assert.equal(f.window.ICADEMProfessionalNavigation.openEditor('contactos'),true);
+  assert.equal(f.location.search,'?profesional=viewer-a&editar=contactos');assert.equal(f.window.ICADEMProfessionalNavigation.currentEditorSection(),'contactos');
+  assert.equal(f.window.ICADEMProfessionalNavigation.profileHref('viewer-a'),'https://www.icademx.com/vip-panel.html?profesional=viewer-a#directorio-perfil');
+  const state=editorGuard(f),length=f.history.length;f.window.ICADEMProfessionalNavigation.openEditor('idiomas');
+  assert.deepEqual(state.focus,['idiomas']);assert.equal(f.history.length,length);assert.equal(state.dirty,true);
+});
+test('sidebar navigation keeps the current editor and URL until the user explicitly discards drafts',()=>{
+  const f=integrated();f.ctx.navigateToSection('directorio',{reemplazar:true});f.window.ICADEMProfessionalNavigation.openEditor('basicos');const current=f.location.href,length=f.history.length,state=editorGuard(f);
+  f.ctx.navigateToSection('suscripcion');assert.equal(f.location.href,current);assert.equal(f.history.length,length);assert.equal(state.open,true);assert.equal(typeof state.pending,'function');
+  // Keeping the form requires no navigation and no data mutation.
+  state.pending=null;assert.equal(f.location.href,current);
+  f.ctx.navigateToSection('suscripcion');state.discard();assert.equal(f.location.hash,'#suscripcion');assert.equal(f.location.search,'');assert.equal(f.history.length,length+1);
+});
+test('browser Back is restored while dirty and resumes the exact history step only after discard',()=>{
+  const f=integrated();f.ctx.navigateToSection('directorio',{reemplazar:true});f.window.ICADEMProfessionalNavigation.openEditor('basicos');const current=f.location.href,length=f.history.length,state=editorGuard(f);
+  f.history.back();assert.equal(f.location.href,current);assert.equal(f.history.length,length);assert.equal(typeof state.pending,'function');assert.equal(state.open,true);
+  state.pending=null;f.history.back();assert.equal(f.location.href,current);state.discard();assert.equal(f.location.hash,'#directorio');assert.equal(f.history.length,length);
+  f.history.forward();assert.equal(f.location.search,'?profesional=viewer-a&editar=basicos');
+});
+test('browser Forward is guarded without adding or replacing history entries',()=>{
+  const f=integrated();f.ctx.navigateToSection('directorio',{reemplazar:true});f.window.ICADEMProfessionalNavigation.openEditor('idiomas');f.ctx.navigateToSection('suscripcion');f.history.back();
+  const current=f.location.href,length=f.history.length,state=editorGuard(f);f.history.forward();assert.equal(f.location.href,current);assert.equal(f.history.length,length);
+  state.discard();assert.equal(f.location.hash,'#suscripcion');assert.equal(f.history.length,length);
+});
+test('a pending section save blocks route changes and same-route editor reloads do not manufacture history positions',()=>{
+  const f=integrated();f.ctx.navigateToSection('directorio',{reemplazar:true});f.window.ICADEMProfessionalNavigation.openEditor('apariencia');const current=f.location.href,state=editorGuard(f),index=f.history.state.icademProfessionalIndex;
+  state.busy=true;state.dirty=false;f.ctx.navigateToSection('suscripcion');assert.equal(f.location.href,current);assert.equal(state.pending,null);
+  state.open=false;f.ctx.navigateToSection('directorio-perfil',{profileUid:'viewer-a',editSection:'apariencia'});assert.equal(f.history.state.icademProfessionalIndex,index);
+});
+test('editing parameters in foreign profile links cannot open an editor for another professional',()=>{
+  const f=integrated('https://www.icademx.com/vip-panel.html?profesional=bob&editar=basicos#directorio-perfil');f.ctx.__sincronizarDesdeURLVIP();
+  assert.equal(f.location.search,'?profesional=bob');assert.deepEqual(f.renders,['bob']);
+});

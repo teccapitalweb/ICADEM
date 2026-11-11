@@ -9,7 +9,7 @@ function app(){
   const documentEvents=new Map(),windowEvents=new Map(),loads=[],saves=[],closed=[],previews=[];let uuid=0;
   const document={activeElement:null,addEventListener(name,fn){if(!documentEvents.has(name))documentEvents.set(name,[]);documentEvents.get(name).push(fn);}};
   class Element{
-    constructor(tag='div',attributes={}){this.tagName=tag;this.attributes={...attributes};this.dataset={};this.children=[];this.parentNode=null;this.listeners=new Map();this._value=null;this._text='';this._html='';this.hidden='hidden'in attributes;this.disabled='disabled'in attributes;this.checked='checked'in attributes;this.open='open'in attributes;
+    constructor(tag='div',attributes={}){this.tagName=tag;this.attributes={...attributes};this.dataset={};this.style={};this.children=[];this.parentNode=null;this.listeners=new Map();this._value=null;this._text='';this._html='';this.hidden='hidden'in attributes;this.disabled='disabled'in attributes;this.checked='checked'in attributes;this.open='open'in attributes;
       Object.entries(attributes).forEach(([key,value])=>{if(key.startsWith('data-'))this.dataset[key.slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=value;});
       this.classList={toggle:(name,on)=>{const all=new Set(String(this.attributes.class||'').split(/\s+/));on?all.add(name):all.delete(name);this.attributes.class=[...all].join(' ');},contains:name=>String(this.attributes.class||'').split(/\s+/).includes(name)};
     }
@@ -27,7 +27,7 @@ function app(){
     }
     get value(){if(this.attributes.type==='color'){const raw=this._value??this.attributes.value;return /^#[a-f0-9]{6}$/i.test(raw)?raw.toLowerCase():'#000000';}if(this._value!==null)return this._value;if(this.tagName==='textarea')return this.textContent;if(this.tagName==='select'){const options=this.querySelectorAll('option');return(options.find(node=>'selected'in node.attributes)||options[0])?.attributes.value||'';}return this.attributes.value||'';}set value(value){this._value=String(value);}
     get name(){return this.attributes.name||'';}get elements(){return{namedItem:name=>this.querySelector('[name="'+name+'"]')};}
-    matches(selector){if(selector.startsWith('.'))return this.classList.contains(selector.slice(1));const attr=/^\[([^=\]]+)(?:=(?:"([^"]*)"|'([^']*)'|([^\]]+)))?\]$/.exec(selector);if(!attr)return this.tagName===selector;const value=attr[1].startsWith('data-')?this.dataset[attr[1].slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]:this.attributes[attr[1]],expected=attr[2]??attr[3]??attr[4];return value!==undefined&&(expected===undefined||value===expected);}
+    matches(selector){if(selector.startsWith('#'))return this.attributes.id===selector.slice(1);if(selector.startsWith('.'))return this.classList.contains(selector.slice(1));const compound=/^([\w-]+)(\[.+\])$/.exec(selector);if(compound)return this.tagName===compound[1]&&this.matches(compound[2]);const attr=/^\[([^=\]]+)(?:=(?:"([^"]*)"|'([^']*)'|([^\]]+)))?\]$/.exec(selector);if(!attr)return this.tagName===selector;const value=attr[1].startsWith('data-')?this.dataset[attr[1].slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]:this.attributes[attr[1]],expected=attr[2]??attr[3]??attr[4];return value!==undefined&&(expected===undefined||value===expected);}
     querySelectorAll(selector){const found=[],parts=selector.split(',');function visit(node){for(const child of node.children){if(parts.some(part=>child.matches(part.trim())))found.push(child);visit(child);}}visit(this);return found;}
     querySelector(selector){return this.querySelectorAll(selector)[0]||null;}
     setAttribute(name,value){this.attributes[name]=String(value);if(name.startsWith('data-'))this.dataset[name.slice(5).replace(/-([a-z])/g,(_,c)=>c.toUpperCase())]=String(value);}removeAttribute(name){delete this.attributes[name];}
@@ -45,6 +45,7 @@ function app(){
   return{root,window,document,loads,saves,closed,previews,options,api:window.ICADEMResumeEditor,form:key=>root.querySelector('[data-cve-form="'+key+'"]'),field:(key,name)=>root.querySelector('[data-cve-form="'+key+'"]').querySelector('[name="'+name+'"]'),async open(p=profile()){options.profile=p;const opening=window.ICADEMResumeEditor.open(options);loads.at(-1).resolve({profile:copy(p)});await opening;},emitDocument(name){for(const fn of documentEvents.get(name)||[])fn({type:name});},emitWindow(name,event={}){return windowEvents.get(name)?.(event);}};
 }
 function profile(extra={}){return{uid:'owner',own:true,isVip:true,nombre:'Persona',foto:'https://images.test/current.jpg',contacts:{email:'private@test.invalid'},cv:{resumen:'Presentación confirmada',idiomas:[{id:'language',idioma:'Español',nivel:'Nativo'}],experiencia:[{id:'job-1',empresa:'Primera',cargo:'Asesor'},{id:'job-2',empresa:'Segunda',cargo:'Director'}],visibilidad:{sobreMi:'public',experiencia:'public',idiomas:'private'},revisiones:{sobreMi:2,experiencia:3,idiomas:1},estilo:{savedColor:'#316789',color:'#316789',editable:true}},...extra};}
+function sharedProfile(extra={}){return profile({editor:{basicos:{revision:4,conflicts:[],data:{nombre:'María del Carmen Hernández López',authEmail:'access@test.invalid',profesion:'Ingeniera',puesto:'Directora',especialidad:'Desarrollo de software',sector:'Tecnología',empresa:'Empresa original',ubicacion:'Puebla',bio:'Bio breve',areas:'Desarrollo de productos',visible:true}},contactos:{revision:5,conflicts:[],data:{email:'work@test.invalid',whatsapp:'+522381234567',linkedin:'https://linkedin.com/in/persona',instagram:'@persona',web:'https://example.test',facebook:'',contactScopes:{email:'connections',whatsapp:'hidden',linkedin:'vip',instagram:'hidden',web:'vip',facebook:'hidden'}}},apariencia:{revision:6,conflicts:[],data:{foto:'https://images.test/current.jpg',fotoOrigen:'custom',photoVersion:'photo-v1',portadaUrl:'https://images.test/cover.jpg',portadaColor:'#E9BC43',portadaColorPersonalizado:false}}},...extra});}
 async function input(a,key,name,value){const field=a.field(key,name);field.value=value;await field.emit('input');}
 
 test('an active identity photo change updates future previews without replacing forms, publishing, or changing another account',async()=>{
@@ -98,8 +99,13 @@ test('list entries can be added, reordered and removed as drafts without writing
 });
 
 test('session changes clear the editor and a late successful response cannot restore private drafts',async()=>{
-  const a=app();await a.open();await input(a,'sobreMi','resumen','Dato privado pendiente');const submitted=a.form('sobreMi').emit('submit');await flush();a.emitDocument('icadem:user-ready');assert.equal(a.root.children.length,0);
+  const a=app();await a.open();await input(a,'sobreMi','resumen','Dato privado pendiente');const submitted=a.form('sobreMi').emit('submit');await flush();a.window.UserState.uid='other-account';a.emitDocument('icadem:user-ready');assert.equal(a.root.children.length,0);
   a.saves[0].resolve({profile:profile()});await submitted;assert.equal(a.root.children.length,0);assert.equal(a.closed.length,0);assert.equal(a.api.isDirty(),false);
+});
+
+test('a repeated ready event for the same account preserves an editor during loading and after unsaved edits',async()=>{
+ const a=app(),p=sharedProfile(),opening=a.api.open(a.options);assert.match(a.root.textContent,/Cargando tu perfil profesional/);const loading=a.root.querySelector('[role="status"]');a.emitDocument('icadem:user-ready');assert.equal(a.root.querySelector('[role="status"]'),loading);assert.equal(a.api.isOpen(),true);a.loads[0].resolve({profile:p});await opening;await input(a,'basicos','empresa','Borrador protegido');const form=a.form('basicos');a.emitDocument('icadem:user-ready');assert.equal(a.form('basicos'),form);assert.equal(a.field('basicos','empresa').value,'Borrador protegido');assert.equal(a.api.isDirty(),true);assert.equal(a.saves.length,0);
+ a.emitDocument('icadem:session-ending');assert.equal(a.root.children.length,0);assert.equal(a.api.isOpen(),false);
 });
 
 test('a structural edit during a pending save cannot replace the active form or hide a later error',async()=>{
@@ -174,22 +180,13 @@ test('untouched legacy rows and uppercase colors normalize consistently without 
   await a.root.querySelector('[data-cve-back]').click();assert.equal(a.closed.length,1);assert.equal(a.api.isOpen(),false);assert.equal(a.saves.length,0);
 });
 
-test('the actual new-editor basic bridge submits only basic fields and contacts while preserving the expanded curriculum',async()=>{
-  const a=app(),community=fs.readFileSync(__dirname+'/../js/icadem-community.js','utf8'),modalCalls=[],patches=[];let bridge;
-  a.window.ICADEMResumeEditor={open:options=>{bridge=options;}};
-  const modal={open(config){modalCalls.push(config);a.document.body.append(config.body);return{close(){config.body.remove();config.onClose?.();}};}};
-  const ctx={window:a.window,document:a.document,generation:1,context:{kind:'profile',root:{querySelector:()=>a.root},modal},profileMarkup:()=>'',loadProfile(){},openCardEditor(){},wire(){},notify(){},api(path,options){return new Promise((resolve,reject)=>patches.push({path,options:copy(options),resolve,reject}));}};
-  vm.createContext(ctx);const start=community.indexOf('  var fieldSequence = 0;'),end=community.indexOf('  function forumState(',start);vm.runInContext(community.slice(community.indexOf('  var names = {'),community.indexOf('  function icon('))+community.slice(start,end),ctx);
-  const p=profile();p.contactScopes={whatsapp:'vip',email:'vip',linkedin:'connections',instagram:'hidden',facebook:'hidden',web:'vip'};p.cv.experiencia[0]={...p.cv.experiencia[0],inicio:'2020-01',fin:'',actual:true,logros:'Logros ampliados'};p.cv.formacion=[{id:'education',titulo:'Licenciatura',inicio:'2015-01',fin:'2019-01',estado:'Concluido',descripcion:'Formación ampliada'}];p.cv.habilidadesTecnicas=['Excel'];p.cv.proyectos=[{id:'project',nombre:'Proyecto real'}];p.cv.certificaciones=[{id:'certificate',nombre:'Certificación declarada'}];
-  const protectedFields=['resumen','habilidadesTecnicas','experiencia','formacion','idiomas','proyectos','certificaciones','estilo'],before=Object.fromEntries(protectedFields.map(key=>[key,copy(p.cv[key])]));
-  ctx.editCv(p);assert.ok(bridge);bridge.onBasic(p);const form=modalCalls.at(-1).body;assert.equal(modalCalls.at(-1).title,'Datos básicos y contactos');
-  for(const field of['resumen','habilidades'])assert.equal(form.elements.namedItem(field),null);assert.equal(form.querySelector('[data-editor-experiencia]'),null);assert.equal(form.querySelector('[data-editor-formacion]'),null);
-  form.elements.namedItem('profesion').value='Consultora';form.elements.namedItem('facebook').value='https://www.facebook.com/mi-perfil';form.elements.namedItem('scope-email').value='hidden';const submit=form.emit('submit');await flush();
-  assert.equal(patches[0].path,'/profile');assert.equal(patches[0].options.method,'PATCH');const payload=patches[0].options.body;
-  assert.deepEqual(Object.keys(payload).sort(),['areas','ciudad','contactScopes','especialidad','facebook','profesion']);for(const key of['resumen','habilidades','experiencia','formacion','estilo'])assert.equal(Object.hasOwn(payload,key),false);
-  const confirmed=copy(p);for(const key of['profesion','especialidad','ciudad','areas'])confirmed.cv[key]=payload[key];confirmed.contactScopes=payload.contactScopes;confirmed.contacts.facebook=payload.facebook;patches[0].resolve({profile:confirmed});await submit;
-  for(const key of protectedFields)assert.deepEqual(confirmed.cv[key],before[key]);
-  delete a.window.ICADEMResumeEditor;ctx.editCv(p);const fallback=modalCalls.at(-1).body;assert.ok(fallback.elements.namedItem('resumen'));assert.ok(fallback.elements.namedItem('habilidades'));assert.ok(fallback.querySelector('[data-editor-experiencia]'));assert.ok(fallback.querySelector('[data-editor-formacion]'));
+test('one editor contains twelve sections and changing profession never submits a position, biography or CV summary',async()=>{
+  const a=app(),p=sharedProfile();a.options.saveShared=a.options.save;await a.open(p);
+  assert.equal(a.root.querySelectorAll('[data-cve-section]').length,12);assert.match(a.root.querySelector('h1').textContent,/Editar mi perfil profesional/);assert.equal(a.api.isDirty(),false);
+  await input(a,'basicos','profesion','Consultora');await input(a,'sobreMi','resumen','Resumen aún pendiente');const submit=a.form('basicos').emit('submit');await flush();
+  assert.deepEqual(a.saves[0].payload,{section:'basicos',revision:4,data:{profesion:'Consultora'}});
+  const confirmed=copy(p);confirmed.editor.basicos.data.profesion='Consultora';confirmed.editor.basicos.revision++;a.saves[0].resolve({profile:confirmed});await submit;
+  assert.equal(a.field('basicos','puesto').value,'Directora');assert.equal(a.field('basicos','bio').value,'Bio breve');assert.equal(a.field('sobreMi','resumen').value,'Resumen aún pendiente');assert.equal(a.api.isDirty(),true);
 });
 
 function languageRow(a,index=0){return a.form('idiomas').querySelectorAll('[data-cve-row]')[index];}
@@ -247,4 +244,65 @@ test('inconsistent saved native/unassessed rows require an explicit change; choo
   await languageInput(a,0,'sistema','mcer',true);await languageInput(a,0,'sistema',sistema,true);assert.equal(languageRow(a).querySelector('[data-cve-language-review]').hidden,true);assert.equal(languageRow(a).querySelector('[name="nivel"]').value,'B2');
   const submit=a.form('idiomas').emit('submit');await flush();assert.equal(a.saves[0].payload.data[0].nivel,sistema==='nativo'?'Nativo':'');assert.equal(a.saves[0].payload.data[0].requiereRevision,undefined);a.saves[0].resolve({profile:p});await submit;
  }
+});
+
+test('professional editor preserves divergent historical versions until the owner explicitly selects a version',async()=>{
+ const a=app(),p=sharedProfile();p.editor.basicos.conflicts=[{campo:'profesion',directorio:'Ingeniera',curriculum:'Arquitecta'}];p.cv.profesion='Arquitecta';a.options.saveShared=a.options.save;await a.open(p);
+ assert.match(a.form('basicos').textContent,/Ingeniera/);assert.match(a.form('basicos').textContent,/Arquitecta/);assert.equal(a.api.isDirty(),false);
+ await input(a,'basicos','empresa','Otra empresa');let submit=a.form('basicos').emit('submit');await flush();assert.deepEqual(a.saves[0].payload,{section:'basicos',revision:4,data:{empresa:'Otra empresa'}});let confirmed=copy(p);confirmed.editor.basicos.data.empresa='Otra empresa';confirmed.editor.basicos.revision++;a.saves[0].resolve({profile:confirmed});await submit;
+ await input(a,'basicos','profesion','Investigadora');await a.form('basicos').emit('submit');assert.equal(a.saves.length,1);assert.equal(a.field('basicos','profesion').value,'Investigadora');assert.match(a.form('basicos').querySelector('[data-cve-section-status]').textContent,/dos versiones/);
+ const resolve=a.form('basicos').querySelector('[data-cve-resolve="profesion"]');resolve.value='curriculum';await resolve.emit('change');assert.equal(a.field('basicos','profesion').value,'Arquitecta');submit=a.form('basicos').emit('submit');await flush();assert.deepEqual(a.saves[1].payload,{section:'basicos',revision:5,data:{profesion:'Arquitecta'},resoluciones:{profesion:'curriculum'}});confirmed=copy(confirmed);confirmed.editor.basicos.data.profesion='Arquitecta';confirmed.editor.basicos.conflicts=[];confirmed.editor.basicos.revision++;a.saves[1].resolve({profile:confirmed});await submit;assert.equal(a.api.isDirty(),false);
+});
+
+test('contact privacy and optional clearing use their own revision without sending the access email or unrelated fields',async()=>{
+ const a=app(),p=sharedProfile();a.options.saveShared=a.options.save;await a.open(p);const original=JSON.stringify(p);
+ assert.match(a.form('basicos').textContent,/Correo de acceso/);assert.equal(a.form('basicos').querySelector('[readonly]').value,'access@test.invalid');
+ await input(a,'contactos','email','');await input(a,'contactos','scope-whatsapp','connections');await input(a,'basicos','bio','Otra bio pendiente');const submit=a.form('contactos').emit('submit');await flush();
+ assert.deepEqual(a.saves[0].payload,{section:'contactos',revision:5,data:{email:'',contactScopes:{...p.editor.contactos.data.contactScopes,whatsapp:'connections'}}});assert.equal(JSON.stringify(p),original);
+ const confirmed=copy(p);confirmed.editor.contactos.data.email='';confirmed.editor.contactos.data.contactScopes.whatsapp='connections';confirmed.editor.contactos.revision++;a.saves[0].resolve({profile:confirmed});await submit;assert.equal(a.field('basicos','bio').value,'Otra bio pendiente');assert.equal(a.field('contactos','email').value,'');
+});
+
+test('legacy long identity data remain intact when another field is saved and overlength new input reports an error without deleting text',async()=>{
+ const a=app(),p=sharedProfile();p.editor.basicos.data.nombre='N'.repeat(95);p.editor.basicos.data.profesion='P'.repeat(115);p.cv.resumen='R'.repeat(2200);p.cv.presentacion='T'.repeat(1500);p.cv.objetivo='O'.repeat(900);a.options.saveShared=a.options.save;await a.open(p);assert.equal(a.api.isDirty(),false);assert.equal(a.field('basicos','nombre').value.length,95);assert.equal(a.field('basicos','profesion').attributes.maxlength,'120');assert.equal(a.field('sobreMi','resumen').attributes.maxlength,'2400');assert.equal(a.field('sobreMi','presentacion').attributes.maxlength,'1600');assert.equal(a.field('sobreMi','objetivo').attributes.maxlength,'1000');
+ await input(a,'basicos','empresa','Nueva empresa');const submit=a.form('basicos').emit('submit');await flush();assert.deepEqual(a.saves[0].payload.data,{empresa:'Nueva empresa'});const confirmed=copy(p);confirmed.editor.basicos.data.empresa='Nueva empresa';a.saves[0].resolve({profile:confirmed});await submit;assert.equal(a.field('basicos','nombre').value.length,95);
+ await input(a,'basicos','profesion','X'.repeat(121));await a.form('basicos').emit('submit');assert.equal(a.saves.length,1);assert.equal(a.field('basicos','profesion').value.length,121);assert.match(a.form('basicos').querySelector('[data-cve-section-status]').textContent,/120 caracteres/);
+});
+
+test('focusSection reuses the current editor and the navigation guard requires a real discard before continuing',async()=>{
+ const a=app();a.options.section='contactos';await a.open(sharedProfile());assert.equal(a.root.querySelector('[data-cve-section="contactos"]').open,true);await input(a,'sobreMi','resumen','No perder este borrador');const originalForm=a.form('sobreMi');assert.equal(a.api.focusSection('apariencia'),true);assert.equal(a.form('sobreMi'),originalForm);assert.equal(a.field('sobreMi','resumen').value,'No perder este borrador');assert.equal(a.root.querySelector('[data-cve-section="apariencia"]').open,true);
+ let continued=0;assert.equal(a.api.requestLeave(()=>continued++),false);assert.equal(continued,0);await a.root.querySelector('[data-cve-stay]').click();assert.equal(a.api.isOpen(),true);assert.equal(a.field('sobreMi','resumen').value,'No perder este borrador');assert.equal(continued,0);assert.equal(a.api.requestLeave(()=>continued++),false);await a.root.querySelector('[data-cve-discard]').click();assert.equal(continued,1);assert.equal(a.api.isOpen(),false);assert.equal(a.saves.length,0);
+ const fresh=app();await fresh.open(sharedProfile());assert.equal(fresh.api.requestLeave(()=>continued++),true);assert.equal(continued,1,'the caller owns navigation when true is returned');
+});
+
+test('photo upload remains a draft until its own confirmed save and survives a CV save without changing Google preferences',async()=>{
+ const a=app(),p=sharedProfile(),image='data:image/jpeg;base64,aGVsbG8=';a.options.saveShared=a.options.save;a.options.preparePhoto=async()=>image;await a.open(p);await input(a,'sobreMi','resumen','Mi resumen pendiente');const file=a.form('apariencia').querySelector('[data-cve-photo-file]');file.files=[{type:'image/jpeg',size:10}];await file.emit('change');assert.equal(a.saves.length,0);assert.equal(a.api.isDirty(),true);assert.match(a.form('apariencia').querySelector('[data-cve-section-status]').textContent,/preparada/);
+ const submit=a.form('apariencia').emit('submit');await flush();assert.deepEqual(a.saves[0].payload,{section:'apariencia',revision:6,data:{avatarDataUrl:image}});assert.match(a.field('sobreMi','resumen').value,/pendiente/);assert.equal(a.api.requestLeave(()=>{}),false,'pending saves block navigation');const confirmed=copy(p);confirmed.foto='https://images.test/uploaded.jpg';confirmed.editor.apariencia.data.foto=confirmed.foto;confirmed.editor.apariencia.revision++;a.saves[0].resolve({profile:confirmed});await submit;assert.equal(a.field('sobreMi','resumen').value,'Mi resumen pendiente');
+ await a.root.querySelector('[data-cve-preview]').click();assert.equal(a.previews.at(-1).foto,confirmed.foto);assert.equal(a.previews.at(-1).editor,undefined);assert.equal(a.previews.at(-1).authEmail,undefined);
+});
+
+test('Google is an explicit immediate action which refreshes the appearance revision and preserves all other drafts',async()=>{
+ const a=app(),p=sharedProfile();let called=0;const google=copy(p);google.foto='https://lh3.googleusercontent.com/new';google.photoSource='google';google.editor.apariencia.data.foto=google.foto;google.editor.apariencia.data.fotoOrigen='google';google.editor.apariencia.revision=8;a.options.syncGoogle=async()=>{called++;return{profile:google};};a.options.saveShared=a.options.save;await a.open(p);
+ await input(a,'basicos','empresa','Empresa pendiente');await input(a,'sobreMi','resumen','Resumen pendiente');let color=a.form('apariencia').querySelector('#dirf-cover-color');color.value='#123456';await color.emit('input');await a.form('apariencia').querySelector('[data-cve-photo-google]').click();assert.equal(called,0);assert.equal(a.form('apariencia').querySelector('[data-cve-google-confirm]').hidden,false);await a.form('apariencia').querySelector('[data-cve-google-no]').click();assert.equal(called,0);await a.form('apariencia').querySelector('[data-cve-photo-google]').click();await a.form('apariencia').querySelector('[data-cve-google-yes]').click();assert.equal(called,1);assert.equal(a.field('basicos','empresa').value,'Empresa pendiente');assert.equal(a.field('sobreMi','resumen').value,'Resumen pendiente');assert.equal(a.form('apariencia').querySelector('#dirf-cover-color').value,'#123456');assert.equal(a.saves.length,0);
+ const submit=a.form('apariencia').emit('submit');await flush();assert.deepEqual(a.saves[0].payload,{section:'apariencia',revision:8,data:{portadaColor:'#123456'}});a.saves[0].resolve({profile:google});await submit;
+});
+
+test('cover removal is retained across a redraw and free accounts retain their photo tools without VIP cover controls',async()=>{
+ const a=app(),p=sharedProfile();a.options.saveShared=a.options.save;await a.open(p);await a.form('apariencia').querySelector('[data-cover-remove]').click();await a.form('experiencia').querySelector('[data-cve-add]').click();assert.equal(a.form('apariencia').querySelector('[data-cover-image]').hidden,true);const submit=a.form('apariencia').emit('submit');await flush();assert.deepEqual(a.saves[0].payload,{section:'apariencia',revision:6,data:{removeCover:true}});const confirmed=copy(p);confirmed.editor.apariencia.data.portadaUrl='';a.saves[0].resolve({profile:confirmed});await submit;
+ const free=app();await free.open(sharedProfile({isVip:false}));assert.ok(free.form('apariencia').querySelector('[data-cve-photo-pick]'));assert.equal(free.form('apariencia').querySelector('[data-cover-pick]'),null);assert.match(free.form('apariencia').textContent,/membresía VIP/);assert.equal(free.api.isDirty(),false);
+});
+
+test('an invalid untouched legacy contact never blocks another contact, while a rejected edited contact preserves its draft',async()=>{
+ const a=app(),p=sharedProfile();p.editor.contactos.data.email='correo histórico inválido';p.editor.contactos.data.linkedin='linkedin.com/antiguo';a.options.saveShared=a.options.save;await a.open(p);
+ const form=a.form('contactos');assert.equal(form.noValidate,true);assert.equal(Object.hasOwn(form.attributes,'novalidate'),true);form.reportValidity=()=>{throw Error('untouched legacy controls must not be revalidated globally');};
+ await input(a,'contactos','whatsapp','+522381111111');let submit=form.emit('submit');await flush();assert.deepEqual(a.saves[0].payload,{section:'contactos',revision:5,data:{whatsapp:'+522381111111'}});const confirmed=copy(p);confirmed.editor.contactos.data.whatsapp='+522381111111';confirmed.editor.contactos.revision++;a.saves[0].resolve({profile:confirmed});await submit;assert.equal(a.field('contactos','email').value,'correo histórico inválido');assert.equal(a.field('contactos','linkedin').value,'linkedin.com/antiguo');
+ await input(a,'contactos','email','nuevo correo inválido');submit=a.form('contactos').emit('submit');await flush();assert.deepEqual(a.saves[1].payload,{section:'contactos',revision:6,data:{email:'nuevo correo inválido'}});a.saves[1].reject(Object.assign(Error('Escribe un correo profesional válido.'),{status:400}));await submit;assert.equal(a.field('contactos','email').value,'nuevo correo inválido');assert.match(a.form('contactos').querySelector('[data-cve-section-status]').textContent,/correo profesional válido/);assert.equal(a.api.isDirty(),true);
+});
+
+test('opening a section from the public preview restores its draft and focuses its accessible summary',async()=>{
+ const a=app();await a.open(sharedProfile());await input(a,'basicos','empresa','Empresa en borrador');await a.root.querySelector('[data-cve-preview]').click();assert.equal(a.root.querySelector('[data-cve-form="basicos"]'),null);assert.equal(a.api.focusSection('basicos'),true);const section=a.root.querySelector('[data-cve-section="basicos"]');assert.equal(section.open,true);assert.equal(a.document.activeElement,section.querySelector('summary'));assert.equal(a.field('basicos','empresa').value,'Empresa en borrador');assert.equal(a.saves.length,0);
+});
+
+test('sector is a free industry field which preserves previous values and never changes the professional specialty',async()=>{
+ const a=app(),p=sharedProfile();p.editor.basicos.data.sector='Fiscal y Contable';a.options.saveShared=a.options.save;await a.open(p);const sector=a.field('basicos','sector');assert.equal(sector.tagName,'input');assert.equal(sector.attributes.type,'text');assert.equal(sector.attributes.maxlength,'80');assert.equal(sector.value,'Fiscal y Contable');assert.match(a.form('basicos').textContent,/Sector o industria/);assert.equal(a.api.isDirty(),false);
+ await input(a,'basicos','sector','Industria farmacéutica');const submit=a.form('basicos').emit('submit');await flush();assert.deepEqual(a.saves[0].payload,{section:'basicos',revision:4,data:{sector:'Industria farmacéutica'}});const confirmed=copy(p);confirmed.editor.basicos.data.sector='Industria farmacéutica';confirmed.editor.basicos.revision++;a.saves[0].resolve({profile:confirmed});await submit;assert.equal(a.field('basicos','sector').value,'Industria farmacéutica');assert.equal(a.field('basicos','especialidad').value,'Desarrollo de software');assert.equal(a.api.isDirty(),false);
 });

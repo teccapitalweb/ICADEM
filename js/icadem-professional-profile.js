@@ -7,9 +7,9 @@
     var p = profile || {}, h = helpers, e = h.esc, icon = h.icon;
     var cv = p.cv || {}, appearance = window.ICADEMDirectory.appearance(p, p.isVip);
     var name = String(p.nombre || 'Miembro ICADEM');
-    var profession = cv.profesion || p.profesion || p.puesto || '';
-    var specialty = cv.especialidad || p.especialidad || p.sector || '';
-    var place = cv.ciudad || p.ubicacion || '';
+    var profession = Object.hasOwn(p,'profesion')?p.profesion:cv.profesion||p.puesto||'';
+    var specialty = Object.hasOwn(p,'especialidad')?p.especialidad:cv.especialidad||p.sector||'';
+    var place = Object.hasOwn(p,'ubicacion')?p.ubicacion:cv.ciudad||'';
     // A projected CV can deliberately omit private sections. Do not repopulate
     // them from a cached directory biography.
     var summary = cv.resumen || (!p.cv ? p.bio : '') || '';
@@ -20,7 +20,7 @@
     var accent = /^#[0-9a-f]{6}$/i.test(cv.estilo?.color || '') ? cv.estilo.color : '#244B64';
     var hasResume=summary||cv.presentacion||cv.objetivo||['experiencia','formacion','idiomas','habilidades','habilidadesTecnicas','herramientas','competencias','certificaciones','proyectos','enlaces'].some(function(key){return cv[key]?.length;});
     var actions = p.preview ? '' : p.own
-      ? '<button type="button" class="community-primary" data-edit-cv>' + icon('edit') + (hasResume?'Editar mi currículum':'Completar mi currículum') + '</button><button type="button" class="community-secondary" data-edit-card>Foto y tarjeta</button>'
+      ? '<button type="button" class="community-primary" data-edit-cv>' + icon('edit') + 'Editar mi perfil profesional</button><button type="button" class="community-secondary" data-edit-card>Foto y portada</button>'
       : p.connection === 'received'
         ? '<span class="community-state">' + icon('users') + 'Solicitud recibida</span><button type="button" class="community-primary" data-network-action="accept" data-uid="' + e(p.uid) + '">' + icon('check') + 'Aceptar</button><button type="button" class="community-secondary" data-network-action="reject" data-uid="' + e(p.uid) + '">Rechazar</button>'
         : h.actionMarkup(p.uid, p.connection, false) + (p.connection === 'sent'

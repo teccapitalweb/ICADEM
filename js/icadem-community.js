@@ -441,7 +441,7 @@
   }
   function paintProfile(node,profile){
     node.innerHTML=profileMarkup(profile);wire(node);
-    node.querySelector('[data-edit-cv]')?.addEventListener('click',function(){editCv(profile);});
+    node.querySelector('[data-edit-cv]')?.addEventListener('click',function(){window.ICADEMProfessionalNavigation?.openEditor('basicos');});
     node.querySelector('[data-edit-card]')?.addEventListener('click',openCardEditor);
   }
   async function loadProfile(node, uid) {
@@ -466,12 +466,18 @@
         document.title=data.profile.nombre+" · Perfil profesional | ICADEM";
         if(firstLoad)node.querySelector("h1")?.focus({preventScroll:true});
       }
+      var editSection=window.ICADEMProfessionalNavigation?.currentEditorSection?.();
+      if(editSection&&data.profile.own&&uid===viewer)editCv(data.profile,editSection);
     } catch (error) {
       if (!node.isConnected || viewer!==window.UserState?.uid || ticket!==generation || window.ICADEMResumeEditor?.isOpen?.(node)) return;
       if(error.status===404 && uid===viewer){
         node.dataset.profileUid=uid;
         node.innerHTML='<div class="community-empty" role="status"><h1>Completa tu perfil profesional</h1><p>Agrega tus datos para crear tu currículum virtual en ICADEM.</p><button type="button" class="community-primary" data-create-own-profile>Completar mi perfil</button></div>';
-        node.querySelector('[data-create-own-profile]').addEventListener('click',openCardEditor);
+        node.querySelector('[data-create-own-profile]').addEventListener('click',async function(event){
+          var button=event.currentTarget;button.disabled=true;
+          try{await window.ICADEMPlatform.syncIdentity(true,{progress:false});if(node.isConnected&&viewer===window.UserState?.uid&&ticket===generation)window.ICADEMProfessionalNavigation?.openEditor('basicos');}
+          catch(error){if(node.isConnected){button.disabled=false;notify('No pudimos preparar tu perfil',error.message,true);}}
+        });
         return;
       }
       node.innerHTML =
@@ -486,12 +492,7 @@
     }
   }
   function openCardEditor() {
-    var current = generation;
-    // The card editor remains the existing owner-only editor.
-    setTimeout(function () {
-      if (current === generation && context?.root.isConnected)
-        context.editCard();
-    }, 270);
+    window.ICADEMProfessionalNavigation?.openEditor('apariencia');
   }
   function openProfile(uid) {
     if(!window.ICADEMProfessionalNavigation?.openProfile(uid))notify('Perfil no disponible','No pudimos abrir el perfil solicitado.',true);
@@ -565,234 +566,27 @@
       "</label>"
     );
   }
-  function editCv(profile) {
+  function editCv(profile, section) {
     var node=context?.kind==='profile'&&context.root.querySelector('.community-profile'),ticket=generation,viewer=window.UserState?.uid;
     if(window.ICADEMResumeEditor&&node&&profile.own&&profile.uid===viewer){
       return window.ICADEMResumeEditor.open({container:node,profile:profile,
+        section:section||'basicos',
         load:function(){return api('/profile');},
         save:function(payload){return api('/profile',{method:'PATCH',body:payload});},
+        saveShared:async function(payload){
+          if(viewer!==window.UserState?.uid||generation!==ticket)throw Error('La sesión cambió. Vuelve a abrir tu perfil.');
+          var saved=await window.ICADEMPlatform.saveProfile(payload);
+          if(!saved.professionalProfile||saved.professionalProfile.uid!==viewer||saved.professionalProfile.own!==true)throw Error('No se pudo confirmar tu perfil profesional.');
+          return {profile:saved.professionalProfile};
+        },
+        preparePhoto:function(file){return window.__dirPreparePhoto(file);},
+        syncGoogle:async function(){await window.__syncGoogleAccount();return api('/profile');},
         renderProfile:profileMarkup,
-        onBasic:function(saved){return editCvLegacy(saved,{basicOnly:true});},
-        onClose:function(){if(node.isConnected&&generation===ticket&&viewer===window.UserState?.uid&&!window.__sessionEnding)loadProfile(node,viewer);}
+        onBasic:function(){window.ICADEMResumeEditor.focusSection?.('basicos');},
+        onClose:function(){if(node.isConnected&&generation===ticket&&viewer===window.UserState?.uid&&!window.__sessionEnding)window.navigateToSection?.('directorio-perfil',{profileUid:viewer,editSection:'',reemplazar:true});}
       });
     }
-    return editCvLegacy(profile);
-  }
-  function editCvLegacy(profile, options) {
-    var basicOnly=options?.basicOnly===true,data = profile.cv || {},
-      form = document.createElement("form");
-    form.className = "community-cv-editor";
-    form.innerHTML =
-      '<p class="community-caption">'+(basicOnly?'Actualiza tus datos básicos y la privacidad de tus contactos. La información de tu currículum se conserva.':'Amplía tu presentación profesional. Tu nombre, fotografía, empresa y medios actuales se administran desde «Foto y tarjeta».')+'</p><div class="community-editor-grid">' +
-      input(
-        "Profesión",
-        "profesion",
-        data.profesion || profile.profesion,
-        120,
-      ) +
-      input(
-        "Especialidad",
-        "especialidad",
-        data.especialidad || profile.especialidad,
-        120,
-      ) +
-      input("Ciudad", "ciudad", data.ciudad || profile.ubicacion, 100) +
-      "</div>" +
-      (basicOnly?'':input(
-        "Resumen profesional",
-        "resumen",
-        data.resumen || profile.bio,
-        1200,
-        true,
-      )) +
-      input("Áreas de práctica", "areas", data.areas, 500, true) +
-      (basicOnly?'':input(
-        "Habilidades, separadas por comas",
-        "habilidades",
-        (data.habilidades || []).join(", "),
-        630,
-      )) +
-      (basicOnly?'':'<section class="community-editor-section"><h3>Experiencia</h3><div data-editor-experiencia></div><button type="button" class="community-secondary" data-add="experiencia">Agregar experiencia</button></section><section class="community-editor-section"><h3>Formación y certificaciones</h3><p class="community-fine">Incluye únicamente información real de tu trayectoria.</p><div data-editor-formacion></div><button type="button" class="community-secondary" data-add="formacion">Agregar formación</button></section>')+'<section class="community-editor-section"><h3>Privacidad de tus contactos</h3><p class="community-caption">Los contactos nunca se muestran a visitantes sin sesión. «VIP y conexiones» conserva el acceso por membresía; «Solo conexiones» requiere una solicitud aceptada.</p>' +
-      Object.keys(names)
-        .map(function (key) {
-          return (
-            '<label class="community-scope"><span>' +
-            names[key] +
-            '</span><select aria-label="' +
-            names[key] +
-            '" name="scope-' +
-            key +
-            '"><option value="vip"' +
-            (profile.contactScopes[key] === "vip" ? " selected" : "") +
-            '>VIP y conexiones</option><option value="connections"' +
-            (profile.contactScopes[key] === "connections" ? " selected" : "") +
-            '>Solo conexiones</option><option value="hidden"' +
-            (profile.contactScopes[key] === "hidden" ? " selected" : "") +
-            ">Oculto</option></select></label>"
-          );
-        })
-        .join("") +
-      input(
-        "Enlace de Facebook (opcional)",
-        "facebook",
-        profile.contacts?.facebook,
-        300,
-      ) +
-      '</section><p class="community-form-status" role="status" aria-live="polite"></p><div class="community-editor-actions"><button type="button" class="community-secondary" data-close-editor>Cancelar</button><button class="community-primary" type="submit">Guardar perfil</button></div>';
-    function add(kind, item) {
-      var parent = form.querySelector("[data-editor-" + kind + "]");
-      if (parent.children.length >= 10) return;
-      var row = document.createElement("div");
-      row.className = "community-editor-row";
-      row.dataset.kind = kind;
-      var fields =
-        kind === "experiencia"
-          ? {
-              cargo: "Cargo",
-              empresa: "Empresa",
-              periodo: "Periodo",
-              descripcion: "Responsabilidades y logros",
-            }
-          : {
-              titulo: "Estudio o certificación",
-              institucion: "Institución",
-              periodo: "Periodo",
-            };
-      row.innerHTML =
-        Object.keys(fields)
-          .map(function (key) {
-            return input(
-              fields[key],
-              key,
-              item?.[key],
-              key === "descripcion" ? 400 : 120,
-              key === "descripcion",
-            );
-          })
-          .join("") +
-        '<button type="button" class="community-remove-row">Quitar ' +
-        (kind === "experiencia" ? "experiencia" : "formación") +
-        "</button>";
-      row.querySelector("button").addEventListener("click", function () {
-        row.remove();
-      });
-      parent.append(row);
-    }
-    if(!basicOnly){(data.experiencia || []).forEach(function (x) {
-      add("experiencia", x);
-    });
-    (data.formacion || []).forEach(function (x) {
-      add("formacion", x);
-    });
-    form.querySelectorAll("[data-add]").forEach(function (button) {
-      button.addEventListener("click", function () {
-        add(button.dataset.add, {});
-      });
-    });}
-    var parent = document.querySelector('[data-modal-id="community-profile"]');
-    if (parent) parent.inert = true;
-    var modal = context.modal.open({
-      onClose: function () {
-        if (parent?.isConnected) {
-          parent.inert = false;
-          parent.querySelector("[data-edit-cv]")?.focus();
-        }
-      },
-      id: "community-cv-editor",
-      title: basicOnly?"Datos básicos y contactos":"Tu perfil profesional",
-      subtitle: basicOnly?"Tu información profesional y su privacidad":"Tu trayectoria, con tu propia voz",
-      size: "lg",
-      body: form,
-    });
-    form
-      .querySelector("[data-close-editor]")
-      .addEventListener("click", modal.close);
-    form.addEventListener("submit", async function (event) {
-      event.preventDefault();
-      if (window.UserState?.uid !== profile.uid) {
-        form.querySelector("[role=status]").textContent =
-          "La sesión cambió. Vuelve a abrir tu perfil.";
-        return;
-      }
-      var status = form.querySelector("[role=status]"),
-        button = form.querySelector("[type=submit]"),
-        payload = { contactScopes: {} };
-      var basicFields=[
-        "profesion",
-        "especialidad",
-        "ciudad",
-        "areas",
-        "facebook",
-      ];
-      if(!basicOnly){payload.experiencia=[];payload.formacion=[];basicFields.push('resumen');}
-      for (var key of basicFields)
-        payload[key] = form.elements.namedItem(key).value;
-      if(!basicOnly)payload.habilidades = form.elements
-        .namedItem("habilidades")
-        .value.split(",")
-        .map(function (x) {
-          return x.trim();
-        })
-        .filter(Boolean);
-      Object.keys(names).forEach(function (key) {
-        payload.contactScopes[key] = form.elements.namedItem(
-          "scope-" + key,
-        ).value;
-      });
-      if(!basicOnly)form.querySelectorAll("[data-kind]").forEach(function (row) {
-        var value = {};
-        row.querySelectorAll("input,textarea").forEach(function (field) {
-          value[field.name] = field.value;
-        });
-        payload[row.dataset.kind].push(value);
-      });
-      button.disabled = true;
-      button.textContent = "Guardando…";
-      status.textContent = "Guardando tus datos y preferencias…";
-      try {
-        var response = await api("/profile", {
-          method: "PATCH",
-          body: payload,
-        });
-        if (window.UserState?.uid !== profile.uid) {
-          modal.close();
-          return;
-        }
-        var ownCard = window.UserState.directoryProfile;
-        if (ownCard) {
-          ownCard.networkScopes = { ...response.profile.contactScopes };
-          ownCard.contactoVisible = { ...(ownCard.contactoVisible || {}) };
-          Object.keys(names).forEach(function (key) {
-            ownCard.contactoVisible[key] =
-              response.profile.contactScopes[key] === "vip";
-          });
-          ownCard.facebook = response.profile.contacts.facebook || "";
-        }
-        notify("Perfil actualizado", "Tus cambios ya están guardados.");
-        modal.close();
-        document
-          .querySelectorAll(".community-profile")
-          .forEach(function (node) {
-            if (node.dataset.profileUid === profile.uid) {
-              node.innerHTML = profileMarkup(response.profile);
-              wire(node);
-              node
-                .querySelector("[data-edit-cv]")
-                ?.addEventListener("click", function () {
-                  editCv(response.profile);
-                });
-              node
-                .querySelector("[data-edit-card]")
-                ?.addEventListener("click", openCardEditor);
-            }
-          });
-        await Promise.allSettled([context?.refresh?.()]);
-      } catch (error) {
-        status.textContent = error.message;
-        button.disabled = false;
-        button.textContent = "Guardar perfil";
-      }
-    });
+    notify('No pudimos abrir el editor','Actualiza la página para cargar el centro de perfil profesional.',true);
   }
   function forumState(container) {
     var text = container.querySelector("#foro-text"),
