@@ -18,7 +18,8 @@ function isIcademCourseAdmin() {
       'sinergiaagricola789@gmail.com',
       'ipcilinstituto@gmail.com',
       'juarezhernandez093@gmail.com',
-      'sofia.linares.tec@gmail.com'
+      'sofia.linares.tec@gmail.com',
+      'grupeliptica@gmail.com'
     ];
 }
 

@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-11-11 — Nueva cuenta de administración: grupeliptica@gmail.com
+
+**Archivos:** `vip-admin.html`, `vip-panel.html`, `vip-auth.html`, `firestore.courses.rules.fragment`; backend `icadem-webhook`: `index.js`
+
+- `grupeliptica@gmail.com` (la cuenta que graba las clases en Meet) se agrega a la lista de administradores en el servidor, el panel de administración, el panel de miembros, el acceso y el fragmento de reglas de cursos.
+- Pendiente fuera del código: agregar el mismo correo a la función `isAdmin()` de las reglas de Firestore publicadas en la consola de Firebase.
+
 ## 2026-11-11 — Clases en vivo: clases de prueba solo para administradores
 
 **Archivos:** `vip-admin.html`, `vip-panel.html`; backend `icadem-webhook`: `webinar-private.js`, `mobile-webinars.js`, `index.js`, `test/webinar-private.test.js`
