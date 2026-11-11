@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v154';
+const CACHE = 'icadem-vip-v155';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=3',
@@ -48,7 +48,7 @@ const SHELL = [
   './css/panel-minimal.css?v=31',
   './css/vip-banner.css?v=2',
   './css/icadem-home.css?v=8',
-  './css/icadem-courses.css?v=7',
+  './css/icadem-courses.css?v=8',
   './css/icadem-live.css?v=2',
   './css/icadem-tools.css?v=2',
   './css/icadem-support-premium.css?v=2',

@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-11-11 — Revisión final de acciones y prioridades de Mis cursos
+
+- Se conserva el diseño actual del catálogo y Mi ruta de aprendizaje. El orden por prioridades y la sincronización confirmada funcionan correctamente; cambiar filtros u ordenamiento no escribe prioridades.
+- «Ver detalles» ya no cambia de apariencia al pasar el cursor por cualquier parte de la tarjeta: el estado interactivo corresponde al botón. La acción usa un botón nativo con foco visible y navegación por teclado; disponible, bloqueado, en progreso, completado y próximamente conservan su lógica de acceso.
+- El estado temporal de recuperación de catálogo mantiene la restricción existente y muestra «Sincronizando…» con su motivo. No se modifican permisos académicos ni backend.
+- Pruebas del catálogo ampliadas para estados de acción, contraste, teclado y desbordamiento temporal; regresiones de prioridades, selector y organizador en ocho tamaños emulados. CSS v8 y caché v155.
+
 ## 2026-11-11 — Prioridades visibles y orden personal en Mis cursos
 
 - Las tarjetas muestran su posición confirmada en la lista («Prioridad #1», «Prioridad #2»…), con una acción discreta para Organizar. Elegir cursos sigue disponible cuando hay cupos. Las posiciones no se recalculan al filtrar el catálogo.

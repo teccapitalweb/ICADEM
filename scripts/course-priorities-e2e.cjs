@@ -67,6 +67,28 @@ async function scenario(width){
   assert.deepEqual(await page.locator('#cur-sort option').evaluateAll(nodes=>nodes.map(n=>n.value)),['proximos','prioridades','nombre','progreso','recientes']);
   assert.equal(await page.locator('[data-unlock-priority]:visible').count(),0);assert.deepEqual(await badges(page),{});
   const standard=await cards(page);await page.locator('#cur-sort').selectOption('prioridades');assert.deepEqual(await cards(page),standard,'no list uses the standard order');
+  // Details is a real, enabled action independently of the academic access state.
+  for(const [id,label] of [['course-0','Ver detalles'],['course-1','Iniciar curso'],['course-6','Continuar'],['course-7','Ver detalles']]){
+    const button=page.locator(`.curso-card[data-cid="${id}"] [data-course-details]`);
+    assert.equal(await button.isEnabled(),true);assert.match(await button.innerText(),new RegExp(label));
+    const contrast=await button.evaluate(el=>{const style=getComputedStyle(el),lum=value=>{const rgb=value.match(/[\d.]+/g).slice(0,3).map(n=>{const v=Number(n)/255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4;});return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;};const a=lum(style.color),b=lum(style.backgroundColor);return(Math.max(a,b)+.05)/(Math.min(a,b)+.05);});
+    assert.ok(contrast>=4.5,'enabled course action has readable contrast: '+contrast);
+  }
+  const action=page.locator('.curso-card[data-cid="course-0"] [data-course-details]');
+  await page.mouse.move(0,0);await page.waitForTimeout(240);
+  const normalColor=await action.evaluate(el=>getComputedStyle(el).backgroundColor);
+  await page.locator('.curso-card[data-cid="course-0"] .curso-card__title').hover();await page.waitForTimeout(240);
+  assert.equal(await action.evaluate(el=>getComputedStyle(el).backgroundColor),normalColor,'hovering the card does not imply another button state');
+  await action.focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>location.hash==='#curso-detalle');
+  await page.evaluate(()=>navigateToSection('cursos'));await page.waitForSelector('#cur-sort');
+  await page.evaluate(async()=>{const list=await __getCourseUnlockCatalog();list.find(c=>c.id==='course-1').status='completado';list.find(c=>c.id==='course-7').catalogPending=true;navigateToSection('cursos');});
+  assert.match(await page.locator('.curso-card[data-cid="course-1"] [data-course-details]').innerText(),/Revisar curso/);
+  assert.equal(await page.locator('.curso-card[data-cid="course-1"] [data-course-details]').isEnabled(),true);
+  assert.equal(await page.locator('.curso-card[data-cid="course-7"] [data-course-details]').isDisabled(),true);
+  assert.match(await page.locator('.curso-card[data-cid="course-7"] [data-course-details]').getAttribute('title'),/recuperando/);
+  await noOverflow(page,'pending course controls '+width);
+  await page.evaluate(async()=>{const list=await __getCourseUnlockCatalog();delete list.find(c=>c.id==='course-1').status;delete list.find(c=>c.id==='course-7').catalogPending;navigateToSection('cursos');});
+  await page.locator('#cur-sort').selectOption('prioridades');
   const covers=await page.locator('.curso-card').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.dataset.cid,node.querySelector('.curso-card__cover img').getAttribute('src')])));
   for(const list of [['course-4'],['course-4','course-0','course-2'],['course-4','course-0','course-2','course-5','course-3']]){
     await setSummary(f,{priorities:list});const expected=Object.fromEntries(list.map((id,index)=>[id,index+1]));assert.deepEqual(await badges(page),expected);assert.deepEqual((await cards(page)).slice(0,list.length),list,'catalog immediately reflects new confirmed order');assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),list[0]);

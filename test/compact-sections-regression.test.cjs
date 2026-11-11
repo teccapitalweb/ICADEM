@@ -35,7 +35,7 @@ function campus(){
     addEventListener(name,fn){this.listeners[name]=fn;}
     setAttribute(name,value){this.attributes[name]=String(value);}
     focus(){}
-    fire(name,extra={}){return this.listeners[name]?.({target:{closest:()=>null},key:'Enter',...extra});}
+    fire(name,extra={}){return this.listeners[name]?.({target:{closest:()=>null},key:'Enter',preventDefault(){},...extra});}
   }
   for(const id of ['inicio-content','dynamic-section','home-learning-card','bn-stat-cursos'])ids.set(id,new Node(id));
   const progress={course:{clasesVistas:[1],completado:false},next:{clasesVistas:[],completado:false}};
