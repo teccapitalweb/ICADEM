@@ -2,6 +2,7 @@
 import { levelFromXp } from '../core/store.js';
 import { QUALITY } from '../core/engine.js';
 import { AVATARS, avatarById } from '../characters/catalog.js';
+import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, isAvatarUnlocked } from '../progress/rules.js';
 import { BUILDINGS, doorPoint, footprint } from '../world/buildings.js';
 import { REWARDS } from '../economy/economy.js';
 import { isTouchDevice } from '../core/input.js';
@@ -277,15 +278,31 @@ export class UI {
   /* ---------- armario ---------- */
   openWardrobe() {
     if (this.isBlocking) return;
-    const current = avatarById(this.api.store.state.avatarId), rows = h('div', 'rows');
-    AVATARS.forEach(a => {
-      const r = h('div', 'rowi'), sw = h('span', 'swatch'); sw.style.background = '#' + a.look.top.toString(16).padStart(6, '0');
-      const c = h('div', 'rowi__copy'); c.append(h('strong', null, a.name), h('span', null, 'Ruta: ' + a.route));
-      r.append(sw, c, h('span', 'pill ' + (a.id === current.id ? 'pill--ok' : 'pill--soon'), a.id === current.id ? 'Puesto' : 'Fase 4'));
-      rows.append(r);
-    });
-    const wrap = h('div'); wrap.append(rows, h('p', 'note', 'El Explorador es gratuito y es el avatar de esta fase. Los otros nueve se podrán conseguir con créditos o logros cuando se active la tienda; ninguno da ventaja en el juego.'));
-    return this.modal({ eyebrow: 'Armario', title: 'Tus avatares', content: wrap });
+    const api = this.api, st = api.store.state, wrap = h('div', 'wardrobe');
+    const hex = n => '#' + n.toString(16).padStart(6, '0');
+    const render = () => {
+      wrap.replaceChildren();
+      const rows = h('div', 'rows');
+      AVATARS.forEach(a => {
+        const open = isAvatarUnlocked(a.id, st), on = a.id === st.avatarId, r = h('div', 'rowi' + (on ? ' is-on' : '')), sw = h('span', 'swatch'); r.dataset.id = a.id; sw.style.background = hex(a.look.top);
+        const c = h('div', 'rowi__copy'); c.append(h('strong', null, a.name), h('span', null, open ? 'Ruta: ' + a.route : AVATAR_UNLOCKS[a.id].text));
+        r.append(sw, c);
+        if (on) r.append(h('span', 'pill pill--ok', 'Puesto'));
+        else if (open) { const b = h('button', 'btn btn--primary', 'Usar'); b.type = 'button'; b.addEventListener('click', () => { if (api.setAvatar(a.id, st.custom)) render(); }); r.append(b); }
+        else r.append(h('span', 'pill pill--soon', 'Bloqueado'));
+        rows.append(r);
+      });
+      const pick = (label, key, options, paint) => {
+        const f = h('div', 'field'), row = h('div', 'chips'); f.append(h('span', null, label), row);
+        options.forEach(o => { const b = h('button', st.custom[key] === o.id ? 'is-on' : '', o.name); b.type = 'button'; b.dataset[key] = o.id; if (paint && o.color !== null) b.style.setProperty('--dot', hex(o.color)); b.addEventListener('click', () => { if (api.setAvatar(st.avatarId, { ...st.custom, [key]: o.id })) render(); }); row.append(b); });
+        return f;
+      };
+      const unlocked = AVATARS.filter(a => isAvatarUnlocked(a.id, st)).length;
+      wrap.append(h('p', 'note', `Tienes ${unlocked} de ${AVATARS.length} avatares. Se consiguen jugando; ninguno da ventaja ni se compra.`), rows,
+        pick('Color del atuendo', 'outfit', OUTFIT_COLORS, true), pick('Sombrero', 'hat', HAT_OPTIONS));
+    };
+    render();
+    return this.modal({ eyebrow: 'Armario', title: 'Tu avatar y equipamiento', content: wrap });
   }
 
   /* ---------- ajustes ---------- */

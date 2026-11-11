@@ -11,6 +11,8 @@ import http from 'node:http';
 import { WebSocketServer } from 'ws';
 import { Hub, LIMITS } from './hub.js';
 import { TicketAuthority, createFirebaseVerifier, googleKeys } from './auth.js';
+import { Profiles, MemoryStorage, JsonFileStorage } from './profiles.js';
+import { REWARDS } from '../ciudad/js/economy/economy.js';
 import { NET_TICK_HZ } from '../ciudad/js/net/network.js';
 import { defineMission, replay } from '../ciudad/js/missions/engine.js';
 import { BANK_CREDIT_MISSION } from '../ciudad/js/missions/bank-credit-logic.js';
@@ -27,10 +29,14 @@ const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
  *   devLogin   habilita el emisor de desarrollo, solo desde la misma máquina
  *   origins    orígenes web permitidos (obligatorio si no es devLogin)
  */
-export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {} } = {}) {
+export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null } = {}) {
   if (!devLogin && (!origins || !origins.length)) throw new Error('[ciudad] fuera del modo de prueba hay que declarar los orígenes permitidos');
   if (!devLogin && !identity) throw new Error('[ciudad] fuera del modo de prueba hace falta un verificador de identidad');
-  const hub = new Hub({ capacity, now });
+  // Conexiones: en producción las entrega el backend de ICADEM; en pruebas, el emisor de desarrollo.
+  const devLinks = new Map();
+  const link = (a, b) => { for (const [x, y] of [[a, b], [b, a]]) devLinks.set(x, (devLinks.get(x) || new Set()).add(y)); };
+  const hub = new Hub({ capacity, now, connections: connections || (async uid => [...(devLinks.get(uid) || [])]) });
+  const profiles = new Profiles({ storage, missions: MISSIONS, rewards: REWARDS });
   const sockets = new Map();   // player → socket
   const originOk = origin => !origins || origins.includes(origin);
   const reply = (res, code, body, origin) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store', ...(origin && originOk(origin) ? { 'access-control-allow-origin': origin, 'access-control-allow-headers': 'authorization, content-type', vary: 'origin' } : {}) }); res.end(JSON.stringify(body)); };
@@ -42,6 +48,13 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
     const origin = req.headers.origin, ip = req.socket.remoteAddress || '';
     if (req.url === '/health') return reply(res, 200, { ok: true, ...hub.stats() });
     if (req.method === 'OPTIONS') return reply(res, originOk(origin) ? 204 : 403, {}, origin);
+    if (req.method === 'POST' && req.url === '/dev/connect') {
+      // Solo pruebas: declara que dos usuarios de desarrollo tienen una conexión autorizada.
+      if (!devLogin || !LOOPBACK.has(ip)) return reply(res, 404, { error: 'no-disponible' }, origin);
+      const body = await readBody(req), ok = body && [body.a, body.b].every(u => /^[A-Za-z0-9_-]{1,40}$/.test(String(u || '')));
+      if (!ok) return reply(res, 400, { error: 'datos' }, origin);
+      link('dev-' + body.a, 'dev-' + body.b); return reply(res, 200, { ok: true }, origin);
+    }
     if (req.method === 'POST' && (req.url === '/ticket' || req.url === '/dev/ticket')) {
       if (origin && !originOk(origin)) return reply(res, 403, { error: 'origen' });
       if (throttled(ip)) return reply(res, 429, { error: 'demasiadas-solicitudes' }, origin);
@@ -88,21 +101,24 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         // Identidad: boleto de entrada o pase de reanudación, ambos firmados y de un solo uso.
         const who = typeof msg.resume === 'string' ? authority.redeem(msg.resume, 'resume') : authority.redeem(msg.ticket, 'entry');
         if (!who) { send(ws, { t: 'bye', reason: 'no-autorizado' }); return ws.close(4003, 'no-autorizado'); }
-        const joined = hub.join({ uid: who.uid, name: who.name, avatar: msg.avatar });
-        player = joined.player; epoch = player.epoch; identityOf = who;
+        // La apariencia sale del perfil guardado en el servidor, no de lo que anuncie el cliente.
+        const profile = await profiles.get(who.uid);
+        const joined = hub.join({ uid: who.uid, name: who.name, avatar: profile.avatarId });
+        player = joined.player; epoch = player.epoch; identityOf = who; player.avatar = profile.avatarId; player.custom = profile.custom;
+        await hub.loadFriends(player);
         const old = sockets.get(player);
         if (old && old !== ws) { send(old, { t: 'bye', reason: 'sesion-en-otro-lugar' }); old.close(4009, 'sustituida'); }
         sockets.set(player, ws); clearTimeout(helloTimer);
         send(ws, { t: 'welcome', pid: player.pid, name: player.name, instance: player.instance.id, resumed: joined.resumed, capacity: hub.capacity, tick: NET_TICK_HZ,
-          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance).filter(p => p.pid !== player.pid), room: player.room ? hub.roomView(player.room) : null });
-        if (!joined.resumed || !joined.replaced) toInstance(player.instance, { t: 'join', pid: player.pid, name: player.name, avatar: player.avatar }, player);
+          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance).filter(p => p.pid !== player.pid), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player) });
+        if (!joined.resumed || !joined.replaced) toInstance(player.instance, { t: 'join', pid: player.pid, name: player.name, avatar: player.avatar, custom: player.custom }, player);
         if (player.room) toRoom(player.room);
         log('join', player.pid, player.instance.id, joined.resumed ? 'resumed' : 'new');
         return;
       }
       if (player.epoch !== epoch) return;   // esta conexión ya fue sustituida
 
-      if (msg.t !== 'say' && msg.t !== 'ping' && !hub.allow(player, msg.t === 's' ? 's' : msg.t)) return;   // tope por tipo de acción
+      if (msg.t !== 'say' && msg.t !== 'ping' && !hub.allow(player, msg.t === 's' ? 's' : msg.t === 'party' ? 'room' : msg.t)) return;   // tope por tipo de acción
       if (msg.t === 's') { const r = hub.state(player, msg.s); if (!r.ok && r.fix) send(ws, { t: 'fix', s: r.fix, reason: r.reason }); }
       else if (msg.t === 'say') { const r = hub.say(player, msg.id); if (r.ok) { r.to.forEach(p => send(sockets.get(p), { t: 'say', pid: player.pid, id: msg.id })); send(ws, { t: 'said', id: msg.id }); } else send(ws, { t: 'nosay', reason: r.reason }); }
       else if (msg.t === 'ping') send(ws, { t: 'pong', n: msg.n });
@@ -116,6 +132,32 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         else if (!r.ok) send(ws, { t: 'room', room: player.room ? hub.roomView(player.room) : null, ok: false, op: msg.op, reason: r.reason });
         else { if (before && before !== player.room && before.members.size) toRoom(before); toRoom(player.room, { op: msg.op }); }
       }
+      else if (msg.t === 'profile') {
+        // Progreso: el cliente manda acciones; el resultado lo calcula y guarda el servidor.
+        const uid = identityOf.uid;
+        const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log) : msg.op === 'visit' ? await profiles.visit(uid, msg.id)
+          : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom) : { ok: true, profile: await profiles.get(uid) };
+        send(ws, { t: 'profile', op: msg.op || 'get', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: msg.mission });
+        if (msg.op === 'avatar' && r.ok) { player.avatar = r.profile.avatarId; player.custom = r.profile.custom; toInstance(player.instance, { t: 'look', pid: player.pid, avatar: player.avatar, custom: player.custom }, player); }
+      }
+      else if (msg.t === 'friends') {
+        if (msg.op === 'invite') {
+          if (!hub.allow(player, 'invite')) return send(ws, { t: 'friends', ok: false, reason: 'demasiadas-invitaciones' });
+          const r = hub.invite(player, msg.pid);
+          if (r.ok) send(sockets.get(r.invite.to), { t: 'invite', id: r.invite.id, from: { pid: player.pid, name: player.name }, expiresIn: LIMITS.inviteMs / 1000 });
+          send(ws, { t: 'friends', op: 'invite', ok: r.ok, reason: r.reason, list: hub.friendsView(player) });
+        } else if (msg.op === 'answer') {
+          const r = hub.answer(player, msg.id, msg.accept === true);
+          if (!r.ok) return send(ws, { t: 'friends', op: 'answer', ok: false, reason: r.reason });
+          send(sockets.get(r.from), { t: 'invited', pid: player.pid, name: player.name, accepted: r.accepted });
+          if (r.accepted) {
+            if (r.moved) { toInstance(r.moved.from, { t: 'leave', pid: player.pid }); send(ws, { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance).filter(p => p.pid !== player.pid) }); toInstance(player.instance, { t: 'join', pid: player.pid, name: player.name, avatar: player.avatar, custom: player.custom }, player); }
+            if (r.left) toRoom(r.left); toRoom(r.room, { op: 'team' });
+          }
+          send(ws, { t: 'friends', op: 'answer', ok: true, list: hub.friendsView(player) });
+        } else { await hub.loadFriends(player); send(ws, { t: 'friends', op: 'list', ok: true, list: hub.friendsView(player) }); }
+      }
+      else if (msg.t === 'party' && msg.op === 'rally') { const r = hub.rally(player); if (r.ok) r.to.forEach(p => send(sockets.get(p), { t: 'party', op: 'rally', scene: 'plaza', by: player.name })); else send(ws, { t: 'room', ok: false, reason: r.reason, room: player.room ? hub.roomView(player.room) : null }); }
       else if (msg.t === 'verify') {
         // Validación autoritativa de una misión: reproduce la bitácora. Aún NO acredita nada.
         const def = MISSIONS.get(String(msg.mission)), r = def ? replay(def, msg.log) : null;
@@ -145,7 +187,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   }, 5000);
 
   return {
-    hub, wss, server, authority,
+    hub, wss, server, authority, profiles,
     listen: () => new Promise(resolve => server.listen(port, host, () => resolve(server.address().port))),
     close: () => new Promise(resolve => { clearInterval(tick); clearInterval(upkeep); wss.clients.forEach(ws => ws.terminate()); wss.close(() => server.close(() => resolve())); })
   };
@@ -158,7 +200,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   let options;
   if (mode === 'test') {
     if (process.env.NODE_ENV === 'production') { console.error('[ciudad] El modo de prueba no se ejecuta en producción.'); process.exit(1); }
-    options = { host: '127.0.0.1', devLogin: true, origins };   // en pruebas solo escucha en esta máquina
+    options = { host: '127.0.0.1', devLogin: true, origins, storage: process.env.CIUDAD_DATA_DIR ? new JsonFileStorage(process.env.CIUDAD_DATA_DIR) : new MemoryStorage() };   // en pruebas solo escucha en esta máquina
   } else if (mode === 'firebase') {
     const projectId = process.env.CIUDAD_FIREBASE_PROJECT, secret = process.env.CIUDAD_TICKET_SECRET || '';
     if (!projectId || secret.length < 32 || !origins) { console.error('[ciudad] Faltan CIUDAD_FIREBASE_PROJECT, CIUDAD_TICKET_SECRET (32+ caracteres) o CIUDAD_ORIGINS. No se arranca.'); process.exit(1); }

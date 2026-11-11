@@ -134,7 +134,7 @@ test('red: formato de estado listo para multijugador y sin jugadores simulados',
 test('contenido: 10 avatares (solo el Explorador disponible) y 11 edificios con puerta accesible', async () => {
   const { AVATARS, avatarById } = await load('characters/catalog.js');
   assert.equal(AVATARS.length, 10); assert.equal(new Set(AVATARS.map(a => a.id)).size, 10);
-  assert.deepEqual(AVATARS.filter(a => a.available).map(a => a.id), ['explorador']);
+  assert.equal(AVATARS.filter(a => a.available).length, 10, 'los diez comparten esqueleto y se pueden usar al desbloquearlos');
   assert.equal(avatarById('no-existe').id, 'explorador');
   const { BUILDINGS, doorPoint, footprint } = await load('world/buildings.js');
   assert.equal(BUILDINGS.length, 11);
@@ -156,7 +156,7 @@ test('aislamiento: el juego no llama servicios de ICADEM ni toca créditos reale
     const code = src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
     // El único módulo que abre una conexión es el adaptador multijugador, y solo en pruebas locales.
     if (!/net[\\/]ws-adapter\.js$/.test(file)) assert.doesNotMatch(code, /\bfetch\s*\(|XMLHttpRequest|WebSocket|sendBeacon|EventSource/, name + ' no debe hacer llamadas de red');
-    else { assert.doesNotMatch(code, /XMLHttpRequest|sendBeacon|EventSource/, name + ' solo puede usar el socket del juego'); assert.deepEqual(code.match(/\bfetch\s*\([^)]*/g), ["fetch(http + '/dev/ticket', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ uid, name }"], 'la única petición es al emisor de boletos del entorno de pruebas'); }
+    else { assert.doesNotMatch(code, /XMLHttpRequest|sendBeacon|EventSource/, name + ' solo puede usar el socket del juego'); assert.deepEqual(code.match(/\bfetch\s*\([^,]*/g), ["fetch(http + '/dev/ticket'"], 'la única petición es al emisor de boletos del entorno de pruebas'); }
     assert.doesNotMatch(code, /firebase|firestore|railway\.app|Authorization|getIdToken|ICADEMPlatform|UserState/i, name + ' no debe tocar la sesión ni los servicios del panel');
     if (!/core[\\/]store\.js$/.test(file)) assert.doesNotMatch(code, /localStorage|sessionStorage|indexedDB/, name + ': solo store.js guarda datos');
     assert.ok(src.length < 40000, name + ' es demasiado grande para un solo módulo');
@@ -179,7 +179,11 @@ test('panel: la pestaña Ciudad ICADEM se integra con cambios mínimos', () => {
   assert.doesNotMatch(panel, /mobile-nav__item[^>]+data-section="ciudad"/, 'la barra inferior conserva sus cuatro destinos');
   assert.match(sw, /icadem-ciudad\.js\?v=\d+/); assert.match(sw, /icadem-ciudad\.css\?v=\d+/);
   const code = bridge.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
-  assert.doesNotMatch(code, /\bfetch\s*\(|ICADEMPlatform|credits|getIdToken|Authorization|localStorage/, 'el puente no toca red, sesión ni créditos');
+  assert.doesNotMatch(code, /ICADEMPlatform|credits|localStorage/, 'el puente no toca créditos ni guarda datos');
+  assert.deepEqual(code.match(/\bfetch\s*\([^,]*/g), ["fetch(server + '/ticket'"], 'la única petición del puente es al emisor de boletos configurado');
+  assert.match(code, /\/\^https:\\\/\\\/\[a-z0-9\.-\]\+\(:\\d\+\)\?\$\/i\.test\(url\)/, 'el servidor debe ser https y venir de la configuración del panel');
+  for (const m of code.match(/postMessage\(\{[^}]*\}/g)) assert.doesNotMatch(m, /idToken|Authorization|email|uid/, 'al juego nunca se le entrega la sesión: ' + m);
+  assert.doesNotMatch(read('vip-panel.html') + read('js/icadem-platform-v2.js'), /ICADEM_CIUDAD_SERVER/, 'el multijugador sigue apagado en producción: nadie configura el servidor');
   assert.match(code, /event\.origin !== window\.location\.origin/, 'solo acepta mensajes del mismo origen');
   assert.match(code, /event\.source !== frame\.contentWindow/, 'solo acepta mensajes del propio juego');
   assert.match(code, /postMessage\(\{ type: 'ciudad:identity', name: playerName\(\) \}, window\.location\.origin\)/, 'solo comparte el nombre visible');

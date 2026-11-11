@@ -52,8 +52,11 @@ export class MissionController {
    */
   async finish(describe) {
     const { ui, store } = this.api;
+    const log = this.run.log;
     const out = await this.service.complete(this.run);
     if (!out.ok) { ui.toast('Faltan pasos de la misión.'); return null; }
+    // Con conexión, el servidor vuelve a validar la bitácora y es él quien guarda el progreso.
+    if (this.api.net.isOnline) this.api.net.profile('mission', { mission: this.id, log });
     const { result, credits, xp } = out;
     if (result.passed) {
       if (store.unlock('primera-mision')) ui.toast('Logro desbloqueado: Primera misión');

@@ -5,7 +5,9 @@ import * as THREE from '../three.js';
 import { PHRASES, phraseById, createRateLimiter, SAY_RADIUS, BUBBLE_SECONDS } from '../social/phrases.js';
 import { COOP_MISSIONS } from '../net/scenes.js';
 
-const ROOM_ERRORS = { 'codigo-invalido': 'Ese código no corresponde a ninguna sala.', 'sala-llena': 'La sala ya está completa.', 'sala-cerrada': 'Esa sala ya no admite jugadores.', 'rol-ocupado': 'Ese rol ya lo tomó otro jugador.', 'elige-un-rol': 'Primero elige un rol.', 'solo-anfitrion': 'Solo quien creó la sala puede iniciar.', 'faltan-jugadores': 'Se necesitan al menos dos jugadores.', 'falta-juez': 'Alguien debe tomar el rol de juez.', 'no-todos-listos': 'Todos deben elegir rol y marcarse listos.', 'cooperativo-en-desarrollo': 'La sala está completa. La audiencia en equipo todavía está en desarrollo: por ahora se juega en modo individual.' };
+const FRIEND_ERRORS = { 'no-es-conexion': 'Solo puedes invitar a tus conexiones de ICADEM.', 'no-disponible': 'Esa persona ya no está en la ciudad.', 'ya-en-tu-equipo': 'Ya está en tu equipo.', 'equipo-lleno': 'El equipo ya tiene 4 personas.', 'ya-invitado': 'Ya le enviaste una invitación; espera su respuesta.', 'invitacion-vencida': 'La invitación ya venció.', 'instancia-llena': 'Su ciudad está llena por ahora.', 'demasiadas-invitaciones': 'Espera un momento antes de invitar otra vez.' };
+const PLACES = { plaza: 'En la plaza', bank: 'En el Banco', court: 'En el Tribunal' };
+const ROOM_ERRORS = { 'sin-mision': 'Elige primero una misión en equipo (por ahora, en el Tribunal).', 'codigo-invalido': 'Ese código no corresponde a ninguna sala.', 'sala-llena': 'La sala ya está completa.', 'sala-cerrada': 'Esa sala ya no admite jugadores.', 'rol-ocupado': 'Ese rol ya lo tomó otro jugador.', 'elige-un-rol': 'Primero elige un rol.', 'solo-anfitrion': 'Solo quien creó la sala puede iniciar.', 'faltan-jugadores': 'Se necesitan al menos dos jugadores.', 'falta-juez': 'Alguien debe tomar el rol de juez.', 'no-todos-listos': 'Todos deben elegir rol y marcarse listos.', 'cooperativo-en-desarrollo': 'La sala está completa. La audiencia en equipo todavía está en desarrollo: por ahora se juega en modo individual.' };
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const v = new THREE.Vector3();
@@ -23,12 +25,21 @@ export class Social {
     PHRASES.forEach((p, i) => { const b = h('button', null); b.type = 'button'; b.dataset.id = p.id; b.append(h('kbd', null, String(i + 1)), h('span', null, p.text)); b.addEventListener('click', () => { this.say(p.id); this.toggle(false); }); this.menu.append(b); });
     this.chip = h('button', 'net-chip'); this.chip.type = 'button'; this.chip.id = 'net-chip'; this.chip.hidden = true;
     this.chip.addEventListener('click', () => this.openPlayers());
+    this.friendsBtn = h('button', 'say-btn friends-btn'); this.friendsBtn.type = 'button'; this.friendsBtn.id = 'btn-friends'; this.friendsBtn.hidden = true; this.friendsBtn.setAttribute('aria-label', 'Amigos y equipo');
+    this.friendsBtn.append(h('span', 'say-btn__icon', '👥'), h('span', 'say-btn__text', 'Amigos')); this.friendsBtn.addEventListener('click', () => this.openFriends());
     this.button.addEventListener('click', () => this.toggle());
-    hud.append(this.layer, this.button, this.menu, this.chip);
+    hud.append(this.layer, this.button, this.menu, this.chip, this.friendsBtn);
     this.live = h('div', 'sr-only'); this.live.setAttribute('aria-live', 'polite'); hud.append(this.live);
 
     api.net.on('say', ({ pid, id }) => { if (this.muted.includes(pid)) return; const p = phraseById(id); if (p) { this.#bubble(pid, p.text); this.live.textContent = `${api.net.nameOf(pid)}: ${p.text}`; } });
     api.net.on('status', s => this.#status(s));
+    api.net.on('friends', m => { if (m.ok === false) api.ui.toast(FRIEND_ERRORS[m.reason] || 'No se pudo completar.', 3200); else if (m.op === 'invite') api.ui.toast('Invitación enviada.', 2200); this.friendsRender?.(); });
+    api.net.on('invited', m => api.ui.toast(m.accepted ? `${m.name} aceptó tu invitación.` : `${m.name} no puede jugar ahora.`, 3200));
+    api.net.on('invite', async m => {
+      // La invitación llega del servidor (que ya comprobó que son conexiones). Aquí solo se responde.
+      const pick = await api.ui.choice({ speaker: 'Invitación a jugar', text: `${m.from.name} te invita a su equipo.`, options: [{ id: 'si', label: 'Aceptar', hint: 'Entrarás a su misma ciudad', primary: true }, { id: 'no', label: 'Ahora no' }] });
+      api.net.friends('answer', { id: m.id, accept: pick === 'si' });
+    });
     api.net.on('leave', ({ pid }) => { this.#clear(pid); });
     api.net.on('join', p => { if (api.net.isOnline && this.announce) api.ui.toast(`${p.name} entró a la ciudad.`, 2200); });
     api.net.on('room', m => { if (m && m.ok === false && m.reason) api.ui.toast(ROOM_ERRORS[m.reason] || 'No se pudo completar la acción.', 3600); else if (m && m.reason === 'cooperativo-en-desarrollo') api.ui.toast(ROOM_ERRORS[m.reason], 4200); this.lobbyRender?.(); });
@@ -61,7 +72,7 @@ export class Social {
 
   #status(s) {
     const online = s.status === 'online';
-    this.chip.hidden = false;
+    this.chip.hidden = false; this.friendsBtn.hidden = !online;
     this.chip.className = 'net-chip is-' + s.status;
     const others = this.api.net.roster ? this.api.net.roster.size : 0;
     this.chip.textContent = online ? `En línea · ${others + 1} ${others ? 'jugadores' : 'jugador'}${s.latency != null ? ` · ${s.latency} ms` : ''}`
@@ -95,6 +106,39 @@ export class Social {
     if (!list.length) wrap.append(h('p', 'players__empty', 'Por ahora no hay otros jugadores en tu instancia.'));
     wrap.append(h('p', 'players__note', 'Aquí solo aparecen personas reales conectadas. Entre jugadores solo se pueden enviar frases predefinidas.'));
     return api.ui.modal({ eyebrow: net.instance ? 'Instancia ' + net.instance : 'Jugadores', title: 'Jugadores conectados', content: wrap });
+  }
+
+  /** Amigos (conexiones autorizadas que están en la ciudad) y equipo de 2 a 4. */
+  openFriends() {
+    const api = this.api, net = api.net, wrap = h('div', 'lobby');
+    const render = () => {
+      wrap.replaceChildren();
+      const room = net.roomState, list = net.friendList || [];
+      wrap.append(h('h4', 'lobby__title', 'Conexiones en la ciudad'));
+      if (!list.length) wrap.append(h('p', 'players__empty', 'Ninguna de tus conexiones de ICADEM está en la ciudad en este momento.'));
+      const rows = h('div', 'players');
+      list.forEach(f => {
+        const row = h('div', 'players__row'), who = h('div', 'players__who'); row.dataset.pid = f.pid;
+        who.append(h('strong', null, f.name), h('small', null, f.inMyTeam ? 'En tu equipo' : f.busy ? 'En otro equipo' : PLACES[f.place] || 'En su habitación')); row.append(who);
+        if (f.inMyTeam) row.append(h('span', 'pill pill--ok', 'Equipo'));
+        else { const b = h('button', 'btn btn--primary', 'Invitar'); b.type = 'button'; b.addEventListener('click', () => { b.disabled = true; net.friends('invite', { pid: f.pid }); }); row.append(b); }
+        rows.append(row);
+      });
+      wrap.append(rows);
+      wrap.append(h('h4', 'lobby__title', 'Tu equipo'));
+      if (!room) wrap.append(h('p', 'players__empty', 'Aún no tienes equipo. Invita a una conexión para formar uno de 2 a 4 personas.'));
+      else {
+        const team = h('div', 'players');
+        room.members.forEach(m => { const row = h('div', 'players__row'), who = h('div', 'players__who'); who.append(h('strong', null, m.pid === net.pid ? `${m.name} (tú)` : m.name), h('small', null, (room.host === m.pid ? 'Anfitrión' : 'Integrante') + (m.online ? '' : ' · reconectando'))); row.append(who); team.append(row); });
+        const acts = h('div', 'lobby__acts');
+        if (room.host === net.pid) { const rally = h('button', 'btn btn--primary', 'Reunir al equipo en la plaza'); rally.type = 'button'; rally.id = 'team-rally'; rally.addEventListener('click', () => net.rally()); acts.append(rally); }
+        const leave = h('button', 'btn', 'Salir del equipo'); leave.type = 'button'; leave.id = 'team-leave'; leave.addEventListener('click', () => net.room('leave')); acts.append(leave);
+        wrap.append(team, h('p', 'players__note', `${room.members.length} de 4 integrantes. En el Tribunal, tu equipo comparte la sala.`), acts);
+      }
+      const refresh = h('button', 'btn', 'Actualizar lista'); refresh.type = 'button'; refresh.id = 'friends-refresh'; refresh.addEventListener('click', () => net.friends('list')); wrap.append(refresh);
+    };
+    this.friendsRender = render; const off = net.on('room', () => this.friendsRender?.()); render(); net.friends('list');
+    return api.ui.modal({ eyebrow: 'Jugar con otros', title: 'Amigos y equipo', content: wrap, onClose: () => { this.friendsRender = null; off(); } });
   }
 
   /**

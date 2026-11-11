@@ -6,11 +6,12 @@ import { ThirdPersonCamera } from './core/camera.js';
 import { Store } from './core/store.js';
 import { createEconomy, REWARDS } from './economy/economy.js';
 import { OfflineAdapter, StateSync } from './net/network.js';
-import { WsAdapter, devTicketProvider } from './net/ws-adapter.js';
+import { WsAdapter, devTicketProvider, askPanelForServer, panelTicketProvider } from './net/ws-adapter.js';
 import { RemotePlayers } from './characters/remote.js';
 import { Social } from './ui/social.js';
 import { createAvatar } from './characters/avatar.js';
 import { avatarById } from './characters/catalog.js';
+import { applyCustom, cleanCustom, isAvatarUnlocked } from './progress/rules.js';
 import { buildRoom } from './world/room.js';
 import { buildPlaza } from './world/plaza.js';
 import { buildBank } from './world/bank.js';
@@ -59,13 +60,16 @@ async function boot() {
   /* Red: en producción el juego sigue sin conexión (OfflineAdapter). El multijugador solo se
      activa en pruebas locales, con ?mp=ws://127.0.0.1:PUERTO, contra el servidor de prueba. */
   const mpUrl = LOCAL ? params.get('mp') : null;
+  // En el panel: solo hay red si el panel declara un servidor; la identidad la certifica ese servidor.
+  const panelWs = !mpUrl && embedded ? await askPanelForServer() : null;
   const net = mpUrl && /^wss?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(mpUrl)
     ? new WsAdapter({ url: mpUrl, avatar: store.state.avatarId, getTicket: devTicketProvider(mpUrl, (params.get('uid') || 'local').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'local', (params.get('name') || 'Jugador de prueba').slice(0, 28)) })
-    : new OfflineAdapter();
+    : (panelWs ? new WsAdapter({ url: panelWs, getTicket: panelTicketProvider() }) : new OfflineAdapter());
   const sync = new StateSync(net);
 
   /* jugador */
-  const avatar = createAvatar(avatarById(store.state.avatarId).look);
+  const lookNow = () => applyCustom(avatarById(store.state.avatarId).look, store.state.custom);
+  let avatar = createAvatar(lookNow());
   engine.scene.add(avatar.group);
   const player = {
     position: avatar.group.position, yaw: Math.PI, vx: 0, vz: 0, vy: 0, grounded: true, speed: 0, seat: null, jumpBuffer: 0,
@@ -77,8 +81,35 @@ async function boot() {
     playerName: 'Explorador', sceneName: null, scene: null, waypoint: null,
     stats: { walked: 0, interactions: 0, maps: 0 },
     missions: {},
-    travel, sit, mirror, setWaypoint, applySettings, startTutorial, exit
+    travel, sit, mirror, setWaypoint, applySettings, startTutorial, exit, setAvatar, applyProfile,
+    get avatar() { return avatar; }
   };
+
+  /* avatar y equipamiento: un solo esqueleto; cambiar de personaje es cambiar su apariencia */
+  function rebuildAvatar() {
+    const old = avatar, next = createAvatar(lookNow());
+    next.group.position.copy(old.group.position); next.group.rotation.y = old.group.rotation.y;
+    engine.scene.remove(old.group); old.group.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
+    engine.scene.add(next.group); avatar = next; player.position = next.group.position;
+  }
+  /** Cambia avatar o equipamiento. Con conexión lo autoriza el servidor; sin ella, las reglas locales. */
+  function setAvatar(id, custom) {
+    const c = cleanCustom(custom ?? store.state.custom);
+    if (!isAvatarUnlocked(id, store.state)) { api.ui.toast('Ese avatar todavía está bloqueado.'); return false; }
+    store.state.avatarId = id; store.state.custom = c; store.save(); rebuildAvatar(); api.ui.refreshHud();
+    if (net.isOnline) net.profile('avatar', { id, custom: c });
+    return true;
+  }
+  /** El servidor es la fuente del progreso cuando hay conexión: lo recibido sustituye a lo local. */
+  function applyProfile(profile) {
+    if (!profile || typeof profile !== 'object') return;
+    const st = store.state, look = st.avatarId + JSON.stringify(st.custom);
+    st.xp = profile.xp; st.missions = { ...profile.missions }; st.visited = [...profile.visited]; st.achievements = [...profile.achievements];
+    st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = profile.avatarId; st.custom = cleanCustom(profile.custom);
+    st.economy.balance = profile.testCredits; st.synced = true; store.save();
+    if (look !== st.avatarId + JSON.stringify(st.custom)) rebuildAvatar();
+    api.ui.refreshHud(); Object.values(api.missions).forEach(m => m.refreshTracker && m.refreshTracker());
+  }
   /* misiones: un solo motor para todos los juegos; cada edificio registra la suya */
   const registry = new MissionRegistry();
   const bankDef = registry.register(defineMission(BANK_CREDIT_MISSION));
@@ -98,6 +129,8 @@ async function boot() {
   api.remotes = remotes; api.social = social;
   if (net instanceof WsAdapter) {
     net.on('status', st => { if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
+    net.on('profile', m => { if (m.profile) applyProfile(m.profile); if (m.op === 'avatar' && m.ok === false) api.ui.toast('El servidor no autorizó ese avatar.'); });
+    net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', api.sceneName === 'court' ? 'court' : api.sceneName === 'bank' ? 'bank' : 'home'); } });
     net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
   }
   net.connect();
@@ -265,6 +298,7 @@ async function boot() {
         if (store.state.visited.includes(b.id)) continue;
         const d = doorPoint(b, 2.5);
         if (Math.hypot(d.x - p.x, d.z - p.z) < 5.5 && store.visit(b.id)) {
+          if (net.isOnline) net.profile('visit', { id: b.id });
           store.addXp(10); api.ui.toast(`Edificio descubierto: ${b.name} (+10 XP)`); api.ui.refreshHud();
           if (store.state.visited.length === BUILDINGS.length && store.unlock('explorador-urbano')) api.ui.toast('Logro desbloqueado: Explorador urbano');
         }
@@ -308,7 +342,7 @@ async function boot() {
   engine.start();
   splash('Listo', 100);
   api.ui.showHud();
-  if (params.get('debug') === '1') window.__ciudad = { api, tutorial, avatar, mountScene, remotes, social };
+  if (params.get('debug') === '1') window.__ciudad = { api, tutorial, get avatar() { return avatar; }, mountScene, remotes, social };
 
   const enter = () => {
     $('splash').classList.add('is-out'); setTimeout(() => { $('splash').hidden = true; }, 520);

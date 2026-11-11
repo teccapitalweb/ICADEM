@@ -107,6 +107,21 @@ export function createAvatar(look = {}) {
   if (acc.has('badge')) part(new THREE.BoxGeometry(0.07, 0.09, 0.015), mat(0xffd166, { m: 0.5, r: 0.35 }), 0.11, 0.36, 0.175, torso);
   if (acc.has('glasses')) for (const s of [-1, 1]) { const gl = part(new THREE.TorusGeometry(0.058, 0.011, 6, 16), M.dark, s * 0.097, 0.285, 0.245, head); gl.castShadow = false; }
   if (acc.has('apron')) { const ap = part(new THREE.BoxGeometry(0.3, 0.36, 0.02), mat(0xfff6e0), 0, 0.22, 0.175, torso); ap.castShadow = false; }
+  if (acc.has('toque')) {
+    part(new THREE.CylinderGeometry(0.2, 0.21, 0.1, 18), M.white, 0, 0.45, 0, head);
+    part(new THREE.CylinderGeometry(0.24, 0.2, 0.2, 18), M.white, 0, 0.6, 0, head); part(new THREE.SphereGeometry(0.235, 16, 10), M.white, 0, 0.7, 0, head).scale.y = 0.45;
+  }
+  if (acc.has('hardhat')) {
+    part(new THREE.SphereGeometry(0.29, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), mat(0xffd23f, { r: 0.45 }), 0, 0.29, 0, head);
+    part(new THREE.CylinderGeometry(0.33, 0.33, 0.025, 20), mat(0xffd23f, { r: 0.45 }), 0, 0.31, 0.03, head); part(new THREE.BoxGeometry(0.06, 0.05, 0.5), mat(0xf2b93b, { r: 0.45 }), 0, 0.56, 0, head);
+  }
+  if (acc.has('stethoscope')) {
+    const st = part(new THREE.TorusGeometry(0.13, 0.014, 6, 18, Math.PI * 1.25), M.dark, 0, 0.56, 0.07, torso); st.rotation.set(Math.PI / 2 - 0.5, 0, Math.PI * 0.875); st.castShadow = false;
+    part(new THREE.CylinderGeometry(0.035, 0.035, 0.015, 12), mat(0xc8d0dc, { m: 0.6, r: 0.3 }), 0.07, 0.36, 0.178, torso).rotation.x = Math.PI / 2;
+  }
+  if (acc.has('robe')) {
+    part(new THREE.BoxGeometry(0.38, 0.5, 0.03), M.dark, 0, 0.2, 0.172, torso).castShadow = false; part(new THREE.BoxGeometry(0.1, 0.16, 0.02), M.white, 0, 0.5, 0.19, torso).castShadow = false;
+  }
   if (acc.has('cap')) {
     part(new THREE.SphereGeometry(0.283, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.45), M.accent, 0, 0.3, 0, head);
     const visor = part(new THREE.CylinderGeometry(0.17, 0.17, 0.02, 16, 1, false, -Math.PI / 2, Math.PI), M.accent, 0, 0.36, 0.2, head); visor.rotation.y = Math.PI / 2;

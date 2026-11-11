@@ -18,15 +18,18 @@ if (SHOTS) fs.mkdirSync(SHOTS, { recursive: true });
 const results = [];
 const ok = (name, cond, extra = '') => results.push([cond ? 'PASS' : 'FAIL', name, cond ? '' : String(extra)]);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const DATA = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'ciudad-mp-'));
+const BANK_LOG = [{ type: 'talk' }, ...['solicitud', 'flujo'].map(id => ({ type: 'readDocument', payload: { id } })), ...['expres', 'pyme', 'comodo'].flatMap(id => [{ type: 'takeProposal', payload: { id } }, { type: 'simulate', payload: { id } }]), { type: 'compare' }, { type: 'choose', payload: { id: 'pyme' } }, { type: 'justify', payload: { reasons: ['costo', 'capacidad'] } }];
 
 function startServer() {
-  const child = spawn(process.execPath, [path.join(__dirname, '..', '_ciudad-server', 'server.js')], { env: { ...process.env, PORT: String(PORT), CIUDAD_AUTH: 'test', NODE_ENV: 'development' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(process.execPath, [path.join(__dirname, '..', '_ciudad-server', 'server.js')], { env: { ...process.env, PORT: String(PORT), CIUDAD_AUTH: 'test', NODE_ENV: 'development', CIUDAD_DATA_DIR: DATA }, stdio: ['ignore', 'pipe', 'pipe'] });
   return new Promise((resolve, reject) => { child.stdout.on('data', d => { if (/servidor de PRUEBA/.test(String(d))) resolve(child); }); child.stderr.on('data', d => reject(new Error(String(d)))); setTimeout(() => reject(new Error('el servidor no arrancó')), 8000); });
 }
 const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGKILL'); });
 
 (async () => {
   let server = await startServer();
+  await fetch(`http://127.0.0.1:${PORT}/dev/connect`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ a: 'ana', b: 'beto' }) });
   const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
   try {
     const open = async (uid, name, options) => {
@@ -112,12 +115,38 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     await A.evaluate(() => window.__ciudad.api.travel('plaza', 'court')); await B.evaluate(() => window.__ciudad.api.travel('plaza', 'court'));
     ok('de vuelta en la ciudad se ven otra vez', (await until(A, seesOther, null, 50)) && (await until(B, seesOther, null, 50)));
 
+    // amigos y equipo: invitación entre conexiones autorizadas
+    await A.evaluate(() => window.__ciudad.api.net.room('leave')); await sleep(600);
+    await A.click('#btn-friends');
+    ok('Amigos muestra a la conexión que está en la ciudad', await until(A, () => [...document.querySelectorAll('.lobby .players__row strong')].some(e => e.textContent === 'Beto Ruiz'), null, 20));
+    await A.click('.lobby .players__row .btn--primary');
+    ok('la invitación le llega al otro jugador para aceptar o rechazar', await until(B, () => { const c = document.getElementById('choice'); return c && !c.hidden && /Ana Torres te invita/.test(c.textContent); }, null, 20));
+    if (SHOTS) await B.screenshot({ path: path.join(SHOTS, 'mp-invitacion-celular.png') });
+    await B.tap('#choice .choice__opt[data-id="si"]');
+    ok('al aceptar quedan en el mismo equipo', (await until(A, () => document.querySelectorAll('.lobby .players__row').length >= 3 && Boolean(document.getElementById('team-rally')), null, 20)) && (await until(B, () => window.__ciudad.api.net.roomState && window.__ciudad.api.net.roomState.members.length === 2, null, 20)));
+    if (SHOTS) await A.screenshot({ path: path.join(SHOTS, 'mp-amigos.png') });
+    await B.evaluate(() => window.__ciudad.api.travel('bank')); await until(B, () => window.__ciudad.api.sceneName === 'bank', null, 40); await sleep(1200);
+    await A.click('#team-rally');
+    ok('el anfitrión reúne al equipo: el compañero regresa a la plaza', await until(B, () => window.__ciudad.api.sceneName === 'plaza', null, 40));
+    await A.keyboard.press('Escape');
+    // progreso y avatar: lo decide y lo guarda el servidor
+    ok('un avatar bloqueado no se puede usar', await A.evaluate(() => window.__ciudad.api.setAvatar('ejecutivo') === false));
+    await A.evaluate(log => window.__ciudad.api.net.profile('mission', { mission: 'banco-credito-correcto', log }), BANK_LOG);
+    ok('el servidor valida la misión y entrega XP y créditos de prueba', await until(A, () => { const s = window.__ciudad.api.store.state; return s.xp >= 120 && s.missions['banco-credito-correcto'] && s.missions['banco-credito-correcto'].completed && s.economy.balance === 15 && document.getElementById('credits-value').textContent === '15'; }, null, 20));
+    ok('al desbloquearlo, el nuevo avatar se equipa', await A.evaluate(() => window.__ciudad.api.setAvatar('ejecutivo', { outfit: 'coral', hat: 'cap' }) === true && window.__ciudad.avatar.look.top === 0xe86a5c));
+    ok('el otro jugador ve el avatar y el equipamiento nuevos', await until(B, () => { const r = [...window.__ciudad.api.net.roster.values()][0], m = [...window.__ciudad.remotes.map.values()][0]; return r && r.avatar === 'ejecutivo' && r.custom.hat === 'cap' && m && m.avatar.look.top === 0xe86a5c && m.avatar.look.accessories.includes('tie'); }, null, 30));
+    if (SHOTS) { await B.evaluate(() => { const a = window.__ciudad.api, r = [...window.__ciudad.remotes.map.values()][0]; a.camera.yaw = Math.atan2(a.player.position.x - r.x, a.player.position.z - r.z) + 0.4; a.camera.distance = 5; a.camera.snap(a.player.position); }); await sleep(500); await B.screenshot({ path: path.join(SHOTS, 'mp-avatar-nuevo.png') }); }
+
     // reconexión: se cae el servidor y vuelve
     await stop(server);
     ok('si se pierde la conexión el juego lo avisa y no muestra jugadores fantasma', (await until(A, () => window.__ciudad.api.net.status === 'reconnecting' && window.__ciudad.remotes.count === 0 && /Reconectando/.test(document.getElementById('net-chip').textContent), null, 30)));
     ok('sin conexión se puede seguir jugando', await A.evaluate(() => !window.__ciudad.api.ui.isBlocking && window.__ciudad.api.input.enabled));
     server = await startServer();
     ok('al volver el servidor, ambos se reconectan solos y se vuelven a ver', (await until(A, seesOther, null, 60)) && (await until(B, seesOther, null, 60)));
+    // otro dispositivo, misma cuenta: el progreso viene del servidor (que además se reinició)
+    const C = await open('ana', 'Ana Torres', { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, userAgent: devices['iPhone 13'].userAgent });
+    ok('en otro dispositivo aparece el mismo progreso, avatar y equipamiento', await until(C, () => { const c = window.__ciudad; if (!c || c.api.net.status !== 'online') return false; const s = c.api.store.state; return s.xp >= 120 && s.avatarId === 'ejecutivo' && s.custom.outfit === 'coral' && s.missions['banco-credito-correcto'].completed && s.economy.balance === 15 && c.avatar.look.top === 0xe86a5c; }, null, 80));
+    ok('la sesión anterior de esa cuenta se cierra', await until(A, () => window.__ciudad.api.net.status === 'closed' && /otro dispositivo/.test(document.getElementById('net-chip').textContent), null, 30));
     ok('sin errores de JavaScript en ninguno de los dos', A.errs.length === 0 && B.errs.length === 0, [...A.errs, ...B.errs].slice(0, 4).join(' | '));
   } finally { await browser.close(); await stop(server).catch(() => {}); }
   console.log(results.map(r => r[0] + '  ' + r[1] + (r[2] ? '  → ' + r[2] : '')).join('\n'));

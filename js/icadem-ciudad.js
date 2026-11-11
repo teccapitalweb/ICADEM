@@ -32,9 +32,32 @@
       stage.classList.add('is-ready');
       // Solo se comparte el nombre visible. El juego no recibe token, correo ni saldo.
       frame.contentWindow.postMessage({ type: 'ciudad:identity', name: playerName() }, window.location.origin);
+    } else if (event.data.type === 'ciudad:net?') {
+      // Multijugador: solo si administración configuró el servidor. El juego recibe la dirección, nunca la sesión.
+      frame.contentWindow.postMessage({ type: 'ciudad:net', ws: serverUrl() ? serverUrl().replace(/^http/, 'ws') : null }, window.location.origin);
+    } else if (event.data.type === 'ciudad:ticket?') {
+      requestTicket().then(function (ticket) { if (stage) frame.contentWindow.postMessage({ type: 'ciudad:ticket', n: event.data.n, ticket: ticket }, window.location.origin); });
     } else if (event.data.type === 'ciudad:exit') {
       close();
     }
+  }
+
+  /** Dirección del servidor de sesiones. Mientras no se configure, el juego sigue sin red. */
+  function serverUrl() {
+    var url = String(window.ICADEM_CIUDAD_SERVER || '');
+    return /^https:\/\/[a-z0-9.-]+(:\d+)?$/i.test(url) ? url : '';
+  }
+
+  /**
+   * Pide un boleto de entrada para el usuario con sesión iniciada. El token de sesión viaja solo
+   * del panel al servidor de boletos; al juego se le entrega únicamente el boleto (60 s, un uso).
+   */
+  function requestTicket() {
+    var server = serverUrl(), user = window.__auth && window.__auth.currentUser;
+    if (!server || !user || typeof user.getIdToken !== 'function') return Promise.resolve(null);
+    return user.getIdToken().then(function (idToken) {
+      return fetch(server + '/ticket', { method: 'POST', headers: { Authorization: 'Bearer ' + idToken } });
+    }).then(function (res) { return res.ok ? res.json() : null; }).then(function (body) { return body && typeof body.ticket === 'string' ? body.ticket : null; }).catch(function () { return null; });
   }
 
   function onKey(event) {
