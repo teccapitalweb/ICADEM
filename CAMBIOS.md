@@ -1,5 +1,14 @@
 # CAMBIOS
 
+## 2026-11-11 — Mi ruta de aprendizaje y filtros compactos de Mis cursos
+
+- «Organizar lista» abre una sección interna del panel, con las mismas portadas y el mismo catálogo de Mis cursos. En computadora se exploran cursos junto a la lista; en pantallas pequeñas la lista aparece primero.
+- Las prioridades se reorganizan desde el asa de arrastre, con ratón o tacto, o mediante teclado y el menú de tres puntos. Guardar sigue usando únicamente el endpoint existente de prioridades: organizar no selecciona cursos ni consume desbloqueos.
+- El panel avisa antes de descartar un borrador y lo conserva si falla el guardado. Atrás/Adelante y «Volver a Mis cursos» usan el historial existente; al volver se recuperan búsqueda, filtros y desplazamiento cuando están disponibles para la misma sesión.
+- Buscador de 46 px, categoría y nivel compactos, valores de 13 px, Ordenar ligero y todas las pestañas en una fila desplazable. Sin cambios al diseño de las tarjetas principales ni a los criterios de filtrado y ordenamiento.
+- Recursos nuevos del organizador y actualización del caché a `icadem-vip-v153`. Pruebas locales con APIs simuladas y Chrome: anchos 320, 360, 375, 390, 414, 768, 1024 y 1440 px; el tacto se verifica mediante emulación, no en dispositivos físicos.
+- Reversión: revertir el commit de esta mejora y publicar el sitio; subir de nuevo la versión del Service Worker para que los clientes reciban los recursos restaurados. Las prioridades guardadas permanecen en el backend existente.
+
 ## 2026-11-12 — Admin · Clases en vivo: carga fiable tras recargar la página
 
 **Archivos:** `vip-admin.html`

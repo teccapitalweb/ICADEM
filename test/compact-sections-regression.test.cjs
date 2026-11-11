@@ -53,7 +53,8 @@ function campus(){
     CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},console};
   window.history=context.history;window.location=location;
   vm.createContext(context);
-  const code=between(panel,'  function progresoCursoPct(','  // ═══════════════════════════════════════════════════════════════\n  // 🎓 SPLASH')
+  const code=between(panel,'  window.__courseCoverICADEM =',"  document.addEventListener('icadem:course-unlocks-changed'")
+    +between(panel,'  function progresoCursoPct(','  // ═══════════════════════════════════════════════════════════════\n  // 🎓 SPLASH')
     +between(panel,'  function actualizarInicioAprendizaje(){','  // ─── Cargar catálogo sanitizado')
     +between(panel,'  let cursosState={','  // ═══════════════════════════════════════════════════════════════════\n  // DETALLE DE CURSO')
     +between(panel,'  function openCursoDetalle(id){','  function renderCursoDetalle(container){')
