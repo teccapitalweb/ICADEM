@@ -125,7 +125,10 @@
 .courses-page--premium .curso-card__body { padding:20px 21px; }
 .courses-page--premium .curso-card__title { font-size:18px; line-height:1.35; }
 .courses-page--premium .curso-card__action { transition:background .2s,color .2s,border-color .2s; }
-.courses-page--premium .curso-card:hover .curso-card__action { background:var(--primary-deep); color:#fff; border-color:var(--primary-deep); }
+.courses-page--premium .curso-card__action { cursor:pointer; font-family:inherit; }
+.courses-page--premium .curso-card__action:hover:not(:disabled),.courses-page--premium .curso-card__action:focus-visible { background:var(--primary-deep); color:#fff; border-color:var(--primary-deep); }
+.courses-page--premium .curso-card__action:focus-visible { outline:2px solid var(--primary); outline-offset:3px; }
+.courses-page--premium .curso-card__action:disabled { cursor:not-allowed; background:var(--surface-2); color:var(--text-2); border-color:var(--border); }
 @container(min-width:560px) {
   .courses-page--premium .courses-selects { grid-template-columns:minmax(0,1fr) minmax(0,.8fr) minmax(0,1.45fr); }
   .courses-page--premium .courses-select:last-child { grid-column:auto; }

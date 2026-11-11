@@ -7521,7 +7521,7 @@ const Sections = (function(){
           </div>
           ${rating}
           ${pct > 0 ? `<div class="curso-card__progress" aria-label="${pct}% completado"><div class="curso-card__progress-bar"><div class="curso-card__progress-fill" style="width:${pct}%"></div></div><span class="curso-card__progress-pct">${pct}%</span></div>` : ''}
-          <div class="curso-card__footer"><span class="curso-card__state curso-card__state--${info.clave}"><svg class="ic"><use href="#${info.icono}"/></svg>${htmlEsc(info.etiqueta)}</span><span class="curso-card__action">${accion}<svg class="ic"><use href="#i-arrow-right"/></svg></span></div>
+          <div class="curso-card__footer"><span class="curso-card__state curso-card__state--${info.clave}"><svg class="ic"><use href="#${info.icono}"/></svg>${htmlEsc(info.etiqueta)}</span><button type="button" class="curso-card__action" data-course-details ${c.catalogPending===true?'disabled title="Estamos recuperando el acceso a sus clases"':''}>${c.catalogPending===true?'Sincronizando…':accion}<svg class="ic"><use href="#i-arrow-right"/></svg></button></div>
           ${puedeElegirGratis ? `<button type="button" class="curso-card__free-cta" data-free-course-cta="${String(c.id).replace(/"/g,'&quot;')}"><svg class="ic"><use href="#i-play"/></svg>Elegir gratis</button>` : ''}
         </div>
       </article>
@@ -7538,8 +7538,9 @@ const Sections = (function(){
         }
         openCursoDetalle(card.dataset.cid);
       };
+      card.querySelector('[data-course-details]')?.addEventListener('click',event=>{event.stopPropagation();abrir();});
       card.addEventListener('click',event=>{if(!event.target.closest('button,a'))abrir();});
-      card.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.target.closest('button,a'))abrir();});
+      card.addEventListener('keydown',e=>{if(['Enter',' '].includes(e.key)&&!e.target.closest('button,a')){e.preventDefault();abrir();}});
     });
     window.ICADEMCourseUnlocks?.decorate(list);
   }
@@ -22382,7 +22383,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-onboarding.js?v=23"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
-<link rel="stylesheet" href="css/icadem-courses.css?v=7">
+<link rel="stylesheet" href="css/icadem-courses.css?v=8">
 <link rel="stylesheet" href="css/icadem-live.css?v=2">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
