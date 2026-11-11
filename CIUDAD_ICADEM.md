@@ -458,3 +458,161 @@ Pendiente:
 - Fase 2: regla de `ciudadProfiles` en Firestore y `CIUDAD_PROFILES=firestore` (hasta entonces el progreso en servidor se pierde al reiniciar).
 - Juego real entre dos cuentas piloto (amigos/conexiones, salas) y teléfonos físicos.
 - Fase 5: quitar `CIUDAD_PILOT_EMAILS` para abrir a todas las cuentas gratuitas y VIP.
+
+## 12. Etapa 5 · Supermercado y reportes persistentes (rama `feature/ciudad-mejoras-piloto`, sin publicar)
+
+Primera mejora posterior al piloto, según el orden acordado (expansión hacia los 10 juegos). Nada
+de esta rama está en `main`: se integra solo con autorización.
+
+### 12.1 Tercer juego: Supermercado · «Rescate de inventario» (misión intermedia, 20 créditos de prueba)
+- El supermercado de la plaza pasa de «próximamente» a abierto, con interior propio
+  (`ciudad/js/world/market.js`): caja, oficina, refrigerador de lácteos, góndola, mesa de frutas,
+  mesa de revisión y terminal de inventario, con don Ramiro, una empleada y una cajera.
+- La misión usa el mismo motor que el Banco y el Tribunal. Reglas y calificación en
+  `ciudad/js/missions/market-inventory-logic.js` (módulo puro, el mismo que ejecuta el servidor):
+  hablar con el gerente → leer el sistema → contar 3 estantes → decidir 5 productos (caducado y
+  dañado se retiran; lo por caducar se vende primero) → acomodar lotes con PEPS → registrar
+  ajustes → reporte con justificación. 100 puntos: revisión 30, PEPS 20, ajustes 30,
+  justificación 10, investigación 10; pasa con 70.
+- Recompensa idempotente (20 créditos de prueba, 160 XP; repetición 40 XP), registrada en
+  `economy.js` y validada por el servidor (`_ciudad-server/server.js` reproduce la bitácora).
+- Escena en red: `market` en `NET_SCENES` y `SCENE_RULES` (pública, conectada solo con la plaza,
+  entrada por la puerta). Transiciones solo por puertas, como siempre.
+- Pruebas: `test/ciudad-supermercado.test.cjs` (5 pruebas: coherencia del caso, orden sin atajos,
+  pesos de la calificación, recompensa idempotente y presencia en red/servidor) y
+  `scripts/ciudad-market-e2e.cjs` (12 comprobaciones en Chromium real, 12/12: puerta, misión
+  completa con interfaz, 100/100, créditos y salida, sin errores de JavaScript).
+
+### 12.2 Reportes de moderación persistentes (apagado por defecto)
+- `Hub` acepta `onReport`; `_ciudad-server/icadem.js` agrega `saveReport` → colección nueva
+  `ciudadReports` (uid y pid de ambos, motivo recortado, instancia; sin correos ni nombres).
+- Se activa solo con `CIUDAD_REPORTS=firestore` en Railway; sin la variable todo sigue como hoy
+  (memoria + logs). Un fallo de Firestore nunca rompe el reporte (queda en memoria y en logs).
+- El fragmento de reglas (`_ciudad-server/firestore.ciudad.rules.fragment`) ya incluye el bloque
+  que cierra `ciudadReports` al navegador: hay que volver a pegarlo en Firebase antes de activar.
+- Pruebas en `test/ciudad-icadem-adaptador.test.cjs` (solo esa colección; el fallo no tumba nada).
+
+### 12.3 Estado
+- Suite completa: 363/363. El total de esta rama no toca `icadem-webhook`, Stripe, créditos
+  reales, membresías ni archivos de Codex (`vip-panel.html` y `sw.js` sin cambios aquí).
+- Para publicar el Supermercado: PR a `main` con autorización (no requiere cambios en Railway;
+  el servidor nuevo se despliega solo al redesplegar el servicio porque la rama del servicio
+  tendría que actualizarse o integrarse — ver nota).
+- Nota: el servicio de Railway construye desde `feature/ciudad-icadem-social`. Cuando esta etapa
+  se autorice, conviene apuntar el servicio a `main` (ya integrado) para que servidor y cliente
+  queden siempre en la misma versión.
+
+## 13. Etapa 6 · Obra «Inspector de seguridad», consolidación y mejoras visuales (rama `feature/ciudad-mejoras-piloto`, sin publicar)
+
+### 13.1 Cuarto juego: Obra · «Inspector de seguridad» (intermedia, 20 créditos de prueba)
+- La obra de la plaza pasa a abierta, con escenario propio a cielo abierto (`ciudad/js/world/site.js`):
+  barda con portón, caseta con EPP, tablero con el plano, estructura de concreto con varilla,
+  andamio sur defectuoso (sin barandal, con trabajador arriba) y andamio norte completo, zanja
+  con montones de tierra al borde, mezcladora con extensión dañada cruzando un charco, escalera
+  mal apoyada, extintor, acopio de materiales, grúa torre con pluma que gira dentro de un área
+  restringida, retroexcavadora, carretilla, la Ing. Paula (residente) y tres trabajadores.
+- Mecánica física: el jugador se pone el EPP (sin casco, chaleco y botas no hay recorrido), toma
+  el plano, camina a cada uno de los 8 puntos y lo califica en el lugar (riesgo / en regla); cada
+  riesgo pide su medida correctiva; coloca la señalización en la zanja (aparecen conos, cinta y
+  aviso en la escena); decide qué actividad se detiene de inmediato y entrega el reporte.
+- Reglas y calificación en `ciudad/js/missions/site-inspector-logic.js` (módulo puro, el mismo
+  que ejecuta el servidor): identificación 40, medidas 30, paro de la actividad crítica 10,
+  justificación 10, EPP/plano/señalización 10; pasa con 70. Criterios generales de seguridad en
+  obra; el juego aclara que no sustituye la capacitación oficial.
+- Mismo motor, mismo servicio de misiones, misma recompensa idempotente; `site` registrada en red
+  (pública, conectada solo con la plaza). El servidor rechaza bitácoras con atajos (p. ej. sin EPP).
+
+### 13.2 Consolidación de los juegos anteriores
+- `scripts/ciudad-juegos-e2e.cjs`: Banco, Tribunal, Supermercado y Obra en Chromium real — puerta,
+  escena, diálogo real, recorrido completo con las acciones que valida el servidor, pantalla final
+  100, créditos una sola vez, repetir sin duplicar, salida y sin errores: 36/36.
+- Prueba de socket real (`test/ciudad-obra.test.cjs`): el servidor valida Supermercado y Obra,
+  rechaza atajos y no duplica créditos.
+- Los recorridos largos de `scripts/ciudad-e2e.cjs` (Banco completo y Tribunal completo) se traban
+  con el render por software del entorno de pruebas; el nuevo script los cubre en páginas cortas.
+  Panel 16/16, pantallas/táctil 15/15 y multijugador 38/38 siguen pasando.
+
+### 13.3 Mejoras visuales
+- Letrero «ABIERTO · <misión>» en las fachadas de los edificios jugables.
+- Puntos de llegada a la plaza sin vegetación encima (`ARRIVALS` en `world/plaza.js`); el del
+  Supermercado se alejó del toldo para que la cámara no quede tapada.
+- Señalización de la obra creada fuera de la fusión de geometría (aparece solo al colocarla).
+
+### 13.4 Estado
+- 369/369 pruebas. Nada en `main`; Railway, reglas de Firebase, `CIUDAD_REPORTS` y el acceso
+  piloto sin cambios. Sin cambios en `vip-panel.html`, `sw.js`, `icadem-webhook` ni archivos de Codex.
+
+## 14. Etapa 7 · Hospital «Turno de decisiones» y ciudad más viva (rama `feature/ciudad-mejoras-piloto`, sin publicar)
+
+### 14.1 Quinto juego: Hospital ICADEM · «Turno de decisiones» (intermedia, 20 créditos de prueba)
+- El hospital de la plaza pasa a abierto (`ciudad/js/world/hospital.js`): recepción con la jefa de
+  enfermería, pizarrón de pacientes, sala de espera, área de triaje, estación de enfermería con la
+  bitácora, urgencias (dos camas, carro rojo), observación con cortinas y consultorio con mampara;
+  médico de urgencias, camillero en ronda y familiares.
+- Cada cama tiene paciente, monitor con trazo animado al ritmo de su frecuencia cardiaca,
+  expediente al pie y una luz de triaje que toma el color asignado (también en el pizarrón).
+- Mecánica: recibir turno → pizarrón → ronda junto a cada cama (entrevista, monitor y expediente
+  son objetos distintos) → marcar signos de alarma y color de triaje → ordenar por prioridad en el
+  pizarrón → decidir acción y si se pide apoyo (el médico camina a la cama) → firmar bitácora →
+  entregar turno con justificación.
+- Calificación en `ciudad/js/missions/hospital-shift-logic.js` (módulo puro, el mismo del
+  servidor): triaje 24, alarmas 16, prioridad 12, acciones 20, apoyo 8, justificación 10, ronda y
+  bitácora 10; pasa con 70. Cuatro pacientes ficticios; sin fármacos, dosis ni indicaciones
+  (hay una prueba que lo vigila). El juego aclara que no sustituye la capacitación clínica.
+- Mismo motor, servicio, recompensa idempotente y validación en servidor; escena `hospital` en red.
+
+### 14.2 Ciudad más viva
+- Letrero de transición al cruzar una puerta: nombre del lugar y su misión durante el fundido.
+- Ambulancia estacionada frente al hospital con torreta intermitente (lugar reservado sin árboles).
+
+### 14.3 Integración con `main` (PR #39 de Codex, «Mis cursos»)
+- Se mezcló `main` en la rama sin conflictos: los archivos del PR #39 (`js/icadem-course-unlocks.js`,
+  `css/icadem-course-unlocks.css`, `vip-admin.html`, `vip-auth.html`, `vip-panel.html`, `sw.js`, etc.)
+  no se cruzan con los de Ciudad ICADEM. La rama no modifica ninguno de ellos.
+- En `main` hay 3 pruebas de redirección de perfil (`test/professional-profile-auth.test.cjs`) que
+  fallan desde el PR #39, con o sin los cambios de esta rama. No se tocaron: son archivos de Codex.
+
+### 14.4 Estado
+- 375 pruebas en verde (más las 3 preexistentes de `main` indicadas arriba). Navegador: cinco juegos
+  45/45, hospital con interfaz 17/17, obra 16/16, supermercado 12/12, multijugador 38/38 (una corrida
+  intermitente 37/38 por tiempo en la animación remota), pantallas/táctil 15/15, panel 16/16.
+
+## 15. Publicación coordinada de los cinco juegos en el piloto (preparada; pendiente de autorización)
+
+### 15.1 Por qué el orden importa
+El servicio `ciudad-icadem` de Railway construye desde `feature/ciudad-icadem-social` (`20d1dd7`), que solo
+conoce Banco y Tribunal. Reproducido con `scripts/ciudad-servidor-e2e.cjs` contra ese código:
+
+- Cliente nuevo + servidor viejo: Supermercado, Obra y Hospital se juegan, pero el servidor responde
+  `mision-desconocida`; el juego muestra los créditos y al reconectar desaparecen (9/20). Dentro de esos
+  edificios los estados se rechazan (`formato`) y al salir hay corrección de posición (`velocidad`).
+- Servidor nuevo + cliente publicado hoy (Banco y Tribunal, `?v=3`): 11/11, sin cambios para el piloto.
+- Servidor nuevo + cliente nuevo: 20/20 (cinco juegos acreditados una vez, persistencia al reconectar,
+  repetición sin duplicar, bitácora falsificada rechazada, ninguna entrada o salida por puerta rechazada).
+
+Por eso: **primero el servidor, después el cliente.** El esquema de perfiles (`profiles.js`,
+`progress/rules.js`) no cambió: los perfiles del piloto en `ciudadProfiles` se conservan.
+
+### 15.2 Pasos
+1. Servidor: avanzar `feature/ciudad-icadem-social` (fast-forward, sin reescribir historia) al commit de
+   esta rama. Railway lo redespliega solo (watch paths `_ciudad-server/**` y `ciudad/js/**`), sin cambiar
+   la rama configurada del servicio. Verificar `/health`, logs de arranque y una sesión del piloto.
+2. Cliente: mezclar el PR a `main`. Versiones: `js/icadem-ciudad.js?v=4` (`vip-panel.html`, `sw.js`),
+   `ciudad/index.html?v=4`, `css/ciudad.css?v=4`, `main.js?v=4` y caché `icadem-vip-v153`.
+3. Verificar en el piloto los cinco juegos desde el panel.
+
+Reversa: el servidor nuevo acepta el cliente anterior, así que revertir el PR del cliente no requiere
+tocar Railway. Para revertir el servidor, regresar `feature/ciudad-icadem-social` a `20d1dd7` solo
+después de revertir el cliente.
+
+### 15.3 Cambio en `sw.js` (archivo compartido)
+Además de las versiones, solo para rutas `/ciudad/`: red primero con validación (`cache: 'no-cache'`) y
+caché como respaldo sin conexión. Evita que, en la primera carga después de publicar, el service worker
+anterior entregue módulos viejos del juego (sin versión en el nombre) junto con un `main.js` nuevo. Fuera
+de `/ciudad/` la estrategia no cambia (`test/ciudad-sw.test.cjs`).
+
+### 15.4 Prueba intermitente de multijugador
+La comprobación «la animación de caminar se sincroniza» esperaba un tiempo fijo (1.8 s). La red entrega
+el estado «quieto» de forma determinista (10 Hz, interpolación de 0.15 s); la demora venía del dibujo por
+software del entorno de pruebas. Ahora la prueba separa red y dibujo con espera acotada: 3 corridas
+seguidas 39/39.

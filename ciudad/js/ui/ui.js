@@ -100,7 +100,13 @@ export class UI {
     const ol = $('tracker-steps'); ol.replaceChildren();
     data.steps.forEach(s => { const li = h('li', s.done ? 'is-done' : s.active ? 'is-active' : '', s.text); if (s.detail) li.append(h('b', null, s.detail)); ol.append(li); });
   }
-  async fade(on) { $('fade').classList.toggle('is-on', on); await new Promise(r => setTimeout(r, 300)); }
+  /** Fundido entre escenarios; con `card` muestra el nombre del lugar y su misión mientras dura. */
+  async fade(on, card) {
+    const c = $('fade').querySelector('.fade__card');
+    if (on && c) { $('fade-title').textContent = card ? card.title : ''; $('fade-sub').textContent = card && card.sub ? card.sub : ''; c.classList.toggle('has-text', Boolean(card)); }
+    $('fade').classList.toggle('is-on', on);
+    await new Promise(r => setTimeout(r, card && on ? 650 : 300));
+  }
 
   /* ---------- diálogo ---------- */
   dialog({ speaker, lines }) {

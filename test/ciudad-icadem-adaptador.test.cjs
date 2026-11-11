@@ -18,6 +18,7 @@ function fakeDb(data) {
   });
   const col = name => ({
     doc: id => ref(name, id),
+    async add(value) { log.push(['add', name]); const id = 'auto-' + ((data[name] && Object.keys(data[name]).length) || 0); (data[name] ||= {})[id] = JSON.parse(JSON.stringify(value)); return { id }; },
     where: (field, op, value) => ({ async get() { log.push(['query', name, field, op, value]); assert.equal(op, 'array-contains'); return { docs: Object.values(data[name] || {}).filter(d => Array.isArray(d[field]) && d[field].includes(value)).map(d => ({ data: () => d })) }; } })
   });
   const db = { collection: col, log, data, beforeCommit: null,
@@ -168,4 +169,30 @@ test('servidor: un fallo de la base no lo tumba, y los topes por dirección usan
   assert.equal(s3.refused, 401, 'la tercera desde la misma dirección se rechaza');
   assert.ok(other.send, 'otra dirección entra');
   [a, s1, s2, other].forEach(ws => ws.terminate && ws.terminate());
+});
+
+test('reportes: saveReport escribe solo en ciudadReports, con uids y motivo recortado', async () => {
+  const { createIcademServices } = await load('_ciudad-server/icadem.js');
+  const db = fakeDb({});
+  const icadem = createIcademServices({ db, auth: fakeAuth({}), now: () => 1700 });
+  await icadem.saveReport({ at: 5, fromUid: 'uid-ana', targetUid: 'uid-beto', fromPid: 'p1', targetPid: 'p2', reason: 'x'.repeat(200), instance: 'plaza-1' });
+  const guardados = Object.values(db.data.ciudadReports || {});
+  assert.equal(guardados.length, 1);
+  const r = guardados[0];
+  assert.deepEqual([r.fromUid, r.targetUid, r.fromPid, r.targetPid, r.instance, r.at, r.savedAt], ['uid-ana', 'uid-beto', 'p1', 'p2', 'plaza-1', 5, 1700]);
+  assert.equal(r.reason.length, 80);
+  assert.deepEqual(Object.keys(db.data), ['ciudadReports'], 'no toca ninguna otra colección');
+});
+
+test('reportes: un fallo al persistir no rompe el reporte y el hub sigue', async () => {
+  const { Hub } = await load('_ciudad-server/hub.js');
+  const recibidos = [];
+  const hub = new Hub({ onReport: async entry => { recibidos.push(entry); throw new Error('firestore caído'); } });
+  const a = hub.join({ uid: 'uid-a', name: 'Ana' }).player, b = hub.join({ uid: 'uid-b', name: 'Beto' }).player;
+  assert.equal(hub.report(a, b.pid, 'conducta').ok, true);
+  await new Promise(r => setImmediate(r));
+  assert.equal(recibidos.length, 1);
+  assert.deepEqual([recibidos[0].fromUid, recibidos[0].targetUid], ['uid-a', 'uid-b']);
+  assert.equal(recibidos[0].fromPid, a.pid);
+  assert.equal(hub.reports.length, 1, 'el reporte queda también en memoria');
 });

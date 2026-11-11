@@ -16,12 +16,21 @@ import { buildRoom } from './world/room.js';
 import { buildPlaza } from './world/plaza.js';
 import { buildBank } from './world/bank.js';
 import { buildCourt } from './world/court.js';
+import { buildMarket } from './world/market.js';
+import { buildSite } from './world/site.js';
+import { buildHospital } from './world/hospital.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
 import { BankCreditMission } from './missions/bank-credit.js';
 import { BANK_CREDIT_MISSION } from './missions/bank-credit-logic.js';
 import { CourtJudgeMission } from './missions/court-judge.js';
+import { MarketInventoryMission } from './missions/market-inventory.js';
+import { SiteInspectorMission } from './missions/site-inspector.js';
+import { HospitalShiftMission } from './missions/hospital-shift.js';
 import { COURT_JUDGE_MISSION } from './missions/court-judge-logic.js';
+import { MARKET_INVENTORY_MISSION } from './missions/market-inventory-logic.js';
+import { SITE_INSPECTOR_MISSION } from './missions/site-inspector-logic.js';
+import { HOSPITAL_SHIFT_MISSION } from './missions/hospital-shift-logic.js';
 import { defineMission, MissionRegistry, MissionService } from './missions/engine.js';
 import { UI } from './ui/ui.js';
 import { Tutorial } from './ui/tutorial.js';
@@ -29,7 +38,7 @@ import { Tutorial } from './ui/tutorial.js';
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
-const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt };
+const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital };
 const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
 const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
 
@@ -124,13 +133,16 @@ async function boot() {
   api.ui = new UI(api);
   api.missions.bank = new BankCreditMission(api, bankDef);
   api.missions.court = new CourtJudgeMission(api, registry.register(defineMission(COURT_JUDGE_MISSION)));
+  api.missions.market = new MarketInventoryMission(api, registry.register(defineMission(MARKET_INVENTORY_MISSION)));
+  api.missions.site = new SiteInspectorMission(api, registry.register(defineMission(SITE_INSPECTOR_MISSION)));
+  api.missions.hospital = new HospitalShiftMission(api, registry.register(defineMission(HOSPITAL_SHIFT_MISSION)));
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social;
   if (net instanceof WsAdapter) {
     net.on('status', st => { if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
     net.on('profile', m => { if (m.profile) applyProfile(m.profile); if (m.op === 'avatar' && m.ok === false) api.ui.toast('El servidor no autorizó ese avatar.'); });
-    net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', api.sceneName === 'court' ? 'court' : api.sceneName === 'bank' ? 'bank' : 'home'); } });
+    net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', api.sceneName === 'court' ? 'court' : api.sceneName === 'bank' ? 'bank' : api.sceneName === 'market' ? 'market' : api.sceneName === 'site' ? 'obra' : api.sceneName === 'hospital' ? 'hospital' : 'home'); } });
     net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
   }
   net.connect();
@@ -180,7 +192,9 @@ async function boot() {
   async function travel(name, spawnKey = 'default') {
     if (busyTravel) return;
     busyTravel = true; input.setEnabled(false);
-    await api.ui.fade(true);
+    const PLACES = { room: 'Tu habitación', plaza: 'Ciudad ICADEM', bank: 'Banco ICADEM', court: 'Tribunal ICADEM', market: 'Supermercado', site: 'Obra en construcción', hospital: 'Hospital ICADEM' };
+    const mission = api.missions[name];
+    await api.ui.fade(true, PLACES[name] ? { title: PLACES[name], sub: mission ? 'Misión · ' + mission.def.title : (name === 'plaza' ? 'Plaza principal' : '') } : null);
     try { mountScene(name, spawnKey); } finally {
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       await api.ui.fade(false);

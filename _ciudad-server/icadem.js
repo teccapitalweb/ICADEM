@@ -13,11 +13,13 @@
 //                 solo las aceptadas. El Directorio se consulta, nunca se modifica.
 //   · nombre:     `directorio/{uid}` (nombre personalizado o nombre) y, si no hay, el del token.
 //   · progreso:   colección propia `ciudadProfiles/{uid}` (solo si CIUDAD_PROFILES=firestore).
+//   · reportes:   colección propia `ciudadReports` (solo si CIUDAD_REPORTS=firestore), para que
+//                 moderación los conserve aunque el servicio se reinicie.
 //
 // Este módulo nunca lee ni escribe `credits`, Stripe, notificaciones, foro ni perfiles.
 import { cleanCustom } from '../ciudad/js/progress/rules.js';
 
-const CONNECTIONS = 'professionalConnections', MEMBERS = 'miembros', DIRECTORY = 'directorio', PROFILES = 'ciudadProfiles', DELETIONS = '_accountDeletions';
+const CONNECTIONS = 'professionalConnections', MEMBERS = 'miembros', DIRECTORY = 'directorio', PROFILES = 'ciudadProfiles', DELETIONS = '_accountDeletions', REPORTS = 'ciudadReports';
 const toDate = v => (v && typeof v.toDate === 'function') ? v.toDate() : v ? new Date(v) : null;
 const later = (a, b) => { const da = toDate(a), db = toDate(b); if (da && isNaN(da)) return db && !isNaN(db) ? db : null; if (db && isNaN(db)) return da; return !da ? db : !db ? da : (db > da ? db : da); };
 
@@ -113,7 +115,23 @@ export function createIcademServices({ db, auth, admins = [], pilot = [], blocke
     }
   };
 
-  return { identity, authorize, connections, storage };
+  /**
+   * Reporte de moderación en su propia colección (solo si CIUDAD_REPORTS=firestore). Guarda los uid
+   * reales (además de los identificadores públicos) para poder actuar con CIUDAD_BLOCKED_UIDS;
+   * nunca guarda correos, nombres ni el contenido de otras colecciones.
+   */
+  async function saveReport(entry) {
+    const e = entry || {};
+    await db.collection(REPORTS).add({
+      at: Number(e.at) || now(),
+      fromUid: String(e.fromUid || ''), targetUid: String(e.targetUid || ''),
+      fromPid: String(e.fromPid || ''), targetPid: String(e.targetPid || ''),
+      reason: String(e.reason || '').slice(0, 80), instance: String(e.instance || ''),
+      savedAt: now()
+    });
+  }
+
+  return { identity, authorize, connections, storage, saveReport };
 }
 
 /** Arranque con firebase-admin a partir del JSON de la cuenta de servicio (la misma del backend). */

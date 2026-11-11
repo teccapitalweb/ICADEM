@@ -53,11 +53,19 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     const start = (await view(A)).self;
     await A.keyboard.down('KeyW'); let sawWalk = false;
     for (let i = 0; i < 40; i++) { await sleep(250); const v = await view(B); if (v.remote && (v.remote.anim === 'walk' || v.remote.anim === 'run')) sawWalk = true; const s = (await view(A)).self; if (Math.hypot(s.x - start.x, s.z - start.z) > 4) break; }
-    await A.keyboard.up('KeyW'); await sleep(1800);
+    await A.keyboard.up('KeyW');
+    // Red: el último estado recibido por Beto debe decir «quieto» (lo envía el cliente de Ana al detenerse).
+    const t0 = Date.now();
+    const netIdle = await until(B, () => { const r = [...window.__ciudad.remotes.map.values()][0], q = r && r.samples; return Boolean(q && q.length && q[q.length - 1].anim === 'idle'); }, null, 12);
+    const netMs = Date.now() - t0;
+    // Dibujo: la animación del avatar remoto se calcula cuadro a cuadro; con render por software puede tardar más.
+    const t1 = Date.now(); await until(B, () => { const r = [...window.__ciudad.remotes.map.values()][0]; return r && r.avatar.anim === 'idle'; }, null, 16); const drawMs = Date.now() - t1;
+    console.log(`[mp] estado «quieto» recibido por red en ${netMs} ms; avatar remoto en reposo ${drawMs} ms después`);
     va = await view(A); vb = await view(B);
     const gap = Math.hypot(vb.remote.x - va.self.x, vb.remote.z - va.self.z), moved = Math.hypot(va.self.x - start.x, va.self.z - start.z);
     ok('el movimiento de un jugador se ve en la pantalla del otro', moved > 3 && gap < 0.4, `caminó ${moved.toFixed(2)} m, diferencia ${gap.toFixed(2)} m`);
-    ok('la animación de caminar también se sincroniza', sawWalk && vb.remote.anim === 'idle', vb.remote.anim);
+    ok('la animación de caminar también se sincroniza (se ve caminar y el estado «quieto» llega por red)', sawWalk && netIdle, `sawWalk=${sawWalk} red=${netIdle}`);
+    ok('el avatar remoto vuelve al reposo al detenerse', vb.remote.anim === 'idle', vb.remote.anim);
 
     // frase rápida con gesto, de celular a computadora
     // identidad: el nombre del HUD es el que certificó el servidor, y un teletransporte se corrige

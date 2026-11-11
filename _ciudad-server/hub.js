@@ -31,8 +31,8 @@ const cleanName = name => String(name || '').replace(/[\u0000-\u001f<>]/g, '').t
 
 export class Hub {
   /** connections: async uid → uids con los que tiene una conexión AUTORIZADA en ICADEM (la fuente es el backend, nunca el navegador). */
-  constructor({ now = Date.now, capacity = LIMITS.capacity, salt = randomBytes(8).toString('hex'), connections = async () => [] } = {}) {
-    this.now = now; this.capacity = capacity; this.salt = salt; this.connections = connections; this.invites = new Map(); this.inviteSeq = 0;
+  constructor({ now = Date.now, capacity = LIMITS.capacity, salt = randomBytes(8).toString('hex'), connections = async () => [], onReport = null } = {}) {
+    this.now = now; this.capacity = capacity; this.salt = salt; this.connections = connections; this.onReport = onReport; this.invites = new Map(); this.inviteSeq = 0;
     this.instances = new Map();   // id → { id, players: Map<pid, player> }
     this.byUid = new Map();       // uid → player
     this.reports = [];
@@ -155,12 +155,15 @@ export class Hub {
     return { ok: true, to };
   }
 
-  /** Reporte de un jugador hacia otro. Se guarda para moderación (máx. 500 en memoria). */
+  /** Reporte de un jugador hacia otro. Se guarda para moderación (máx. 500 en memoria) y, si hay
+   *  un destino externo (onReport), también ahí; un fallo al persistir nunca rompe el reporte. */
   report(player, targetPid, reason) {
     const target = player.instance.players.get(String(targetPid));
     if (!target || target === player) return { ok: false };
-    this.reports.push({ at: this.now(), from: player.pid, target: target.pid, reason: String(reason || '').slice(0, 80), instance: player.instance.id });
+    const entry = { at: this.now(), from: player.pid, target: target.pid, reason: String(reason || '').slice(0, 80), instance: player.instance.id };
+    this.reports.push(entry);
     if (this.reports.length > 500) this.reports.shift();
+    if (this.onReport) { try { Promise.resolve(this.onReport({ ...entry, fromPid: player.pid, targetPid: target.pid, fromUid: player.uid, targetUid: target.uid })).catch(() => {}); } catch (_) {} }
     return { ok: true };
   }
 
