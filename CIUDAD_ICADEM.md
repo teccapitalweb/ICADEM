@@ -409,41 +409,49 @@ Todas las pruebas de tablet y celular son **emulación táctil en Chrome con ren
 
 ## 11. Despliegue del servidor de sesiones en Railway (preparado; pendiente de ejecutar)
 
-Decisión: el servidor va como **servicio nuevo en el mismo proyecto de Railway del backend**, construido desde este repositorio. No se toca `icadem-webhook`.
+Decisión: el servidor va como **servicio nuevo dentro del proyecto `content-spirit`, entorno `production`**, construido desde la rama `feature/ciudad-icadem-social`. No se toca `icadem-webhook` ni se crea un entorno nuevo (duplicaría sus crons y correos). La guía completa de activación (Railway, variables, Firebase, pruebas, costos y fases) está en el documento de la auditoría; aquí queda el resumen técnico.
 
 ### 11.1 Cómo se integra con ICADEM (sin modificar el backend)
 `_ciudad-server/icadem.js` usa la **misma cuenta de servicio de Firebase** que el backend, en modo lectura:
 
 | Dato | De dónde | Regla |
 |---|---|---|
-| Identidad | Token de sesión del panel, verificado con `firebase-admin` | Igual que el backend |
+| Identidad | Token del panel, `verifyIdToken(token, true)` (revisa sesiones revocadas y cuentas deshabilitadas) | Igual que el backend |
 | Nombre | `directorio/{uid}` (`nombrePersonalizado` o `nombre`); si no, el del token | Solo lectura |
-| Acceso | `miembros/{uid}` con las mismas reglas que `membresiaActiva()` del backend (copiadas, con prueba) | Solo lectura; administradores por `CIUDAD_ADMINS` |
-| Conexiones | `professionalConnections` donde `participants` contiene al usuario y `status === 'accepted'` | Solo lectura; el Directorio no se modifica |
-| Progreso del juego | `ciudadProfiles/{uid}` (colección **nueva**, propia del juego) | Solo si `CIUDAD_PROFILES=firestore`; **requiere autorización** |
+| Acceso | **Cuentas gratuitas y VIP.** Se rechazan: cuentas en `_accountDeletions` (salvo cuenta recreada después), `CIUDAD_BLOCKED_UIDS` y, en piloto, quien no esté en `CIUDAD_PILOT_EMAILS` (los `CIUDAD_ADMINS` siempre entran) | Solo lectura |
+| VIP | `miembros/{uid}` con las mismas reglas que `membresiaActiva()` del backend; solo se marca, no limita | Solo lectura |
+| Conexiones | `professionalConnections` donde `participants` contiene al usuario y `status === 'accepted'` | Solo lectura; misma consulta que el backend, sin índice nuevo |
+| Progreso del juego | `ciudadProfiles/{uid}` (colección **nueva**), en transacción con control de versión | Solo si `CIUDAD_PROFILES=firestore`; **requiere autorización** y la regla `_ciudad-server/firestore.ciudad.rules.fragment` |
 
 Nunca lee ni escribe `credits`, Stripe, notificaciones, foro ni `professionalProfiles` (hay prueba que lo vigila).
 
 ### 11.2 Pasos (los hace quien tenga acceso a Railway)
-1. En el proyecto de Railway del backend: **New → GitHub Repo → `teccapitalweb/ICADEM`**, rama `main` (cuando esta rama esté integrada).
-2. Settings del servicio: Root Directory `/`; variable `RAILWAY_DOCKERFILE_PATH=_ciudad-server/Dockerfile`. (`_ciudad-server/railway.json` trae watch paths, healthcheck `/health` y 1 réplica.)
-3. Variables:
+1. GitHub → Railway App → Repository access: incluir `teccapitalweb/ICADEM`.
+2. `content-spirit` (entorno `production`) → **New → GitHub Repo → `teccapitalweb/ICADEM`**, rama `feature/ciudad-icadem-social`.
+3. Settings: Root Directory vacío; Watch Paths `/_ciudad-server/**` y `/ciudad/js/**`; Healthcheck `/health`; **1 réplica**; Replica Limits 0.5 vCPU / 512 MB; sin Start Command; Serverless apagado en el piloto. **No se usa `railway.json`** (Config as Code ya no se admite en servicios nuevos).
+4. Variables:
 
 | Variable | Valor |
 |---|---|
-| `CIUDAD_AUTH` | `firebase` |
-| `CIUDAD_TICKET_SECRET` | 32+ caracteres aleatorios nuevos (no reutilizar otros secretos) |
-| `CIUDAD_ORIGINS` | `https://www.icademx.com` (y `https://icademx.com` si aplica) |
-| `FIREBASE_SERVICE_ACCOUNT` | referencia a la del backend: `${{icadem-webhook.FIREBASE_SERVICE_ACCOUNT}}` |
-| `CIUDAD_ADMINS` | opcional: correos de administradores separados por coma |
-| `CIUDAD_PROFILES` | dejar vacío hasta autorizar la colección `ciudadProfiles`; entonces `firestore` |
+| `RAILWAY_DOCKERFILE_PATH` | `_ciudad-server/Dockerfile` |
+| `CIUDAD_TICKET_SECRET` | 32+ caracteres nuevos (`openssl rand -hex 32`), sellada; no reutilizar otros secretos |
+| `CIUDAD_ORIGINS` | `https://www.icademx.com,https://icademx.com` |
+| `FIREBASE_SERVICE_ACCOUNT` | referencia `${{icadem-webhook.FIREBASE_SERVICE_ACCOUNT}}` |
+| `CIUDAD_PILOT_EMAILS` | correos del piloto (vacío = abierto a todas las cuentas válidas) |
+| `CIUDAD_ADMINS` | correos de administradores del juego |
+| `CIUDAD_MAX_PLAYERS` | `64` (2–500) |
+| `CIUDAD_PROFILES` | vacío hasta autorizar `ciudadProfiles`; entonces `firestore` |
+| `CIUDAD_BLOCKED_UIDS` | opcional |
 
-4. Generar dominio público (https). Anotar la URL.
-5. **Comprobar antes de activar** (sin sesión ni datos): `node scripts/ciudad-server-check.cjs https://<url>` → 11/11.
-6. **Comprobar con una sesión real** desde la consola del panel (no abre el juego): `ICADEMCiudad.probe('https://<url>').then(console.log)` → `ok: true, ticketStatus: 200` con un miembro activo; `403` con una cuenta sin membresía.
-7. Solo entonces: poner la URL en `CIUDAD_SERVER_URL` de `js/icadem-ciudad.js` (archivo del juego, un cambio de una línea) y subir su `?v=`. Hasta ese momento, el juego sigue sin red.
+`CIUDAD_AUTH=firebase`, `CIUDAD_TRUST_PROXY=1` y `NODE_ENV=production` ya vienen en la imagen. No poner `PORT`, `HOST`, `CIUDAD_DATA_DIR` ni variables del backend.
+
+5. Networking → Generate Domain. Anotar la URL.
+6. **Comprobar sin sesión:** `node scripts/ciudad-server-check.cjs https://<url>` → 11/11.
+7. **Comprobar con sesión real** desde la consola de www.icademx.com: `window.__auth.currentUser.getIdToken().then(t => fetch('https://<url>/ticket', {method: 'POST', headers: {Authorization: 'Bearer ' + t}})).then(r => console.log(r.status))` → `200` con cuenta gratuita o VIP del piloto; `403` fuera del piloto.
+8. Solo entonces, con autorización: `CIUDAD_SERVER_URL` en `js/icadem-ciudad.js`, `?v=3` en `vip-panel.html`, `sw.js` y `ciudad/index.html`, y `CACHE` nuevo en `sw.js`.
 
 ### 11.3 Qué queda sin probar hasta desplegar
-- Verificación de tokens reales y lectura real de `miembros`, `directorio` y `professionalConnections` (aquí se probó con un Firestore simulado con la misma forma de datos).
-- Latencia real y comportamiento con 10–20 jugadores.
-- Sin `CIUDAD_PROFILES=firestore`, el progreso en servidor se pierde al reiniciar el servicio (el del dispositivo se conserva).
+- Tokens reales y lectura real de `miembros`, `directorio`, `_accountDeletions` y `professionalConnections` (aquí se probó con Firebase simulado con la misma forma de datos).
+- El despliegue real en Railway, la latencia y el comportamiento con 10–20 jugadores.
+- Teléfonos físicos (solo tamaños emulados).
+- Sin `CIUDAD_PROFILES=firestore`, el progreso en servidor se pierde al reiniciar el servicio.
