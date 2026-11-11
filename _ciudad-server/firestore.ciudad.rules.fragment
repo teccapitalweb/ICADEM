@@ -1,0 +1,7 @@
+// Ciudad ICADEM · fragmento para las reglas de Firestore de producción.
+// Se pega DENTRO de `match /databases/{database}/documents { ... }`, junto a las reglas existentes.
+// Nadie lo lee ni lo escribe desde el navegador: solo el servidor de sesiones (Admin SDK, que no
+// pasa por estas reglas). Así un jugador no puede leer ni alterar el progreso propio ni ajeno.
+match /ciudadProfiles/{uid} {
+  allow read, write: if false;
+}

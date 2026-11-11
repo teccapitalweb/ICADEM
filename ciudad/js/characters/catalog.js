@@ -1,27 +1,27 @@
 // Catálogo de los 10 avatares de Ciudad ICADEM.
-// Fase 1: solo el Explorador está disponible y es el que se juega. Los demás quedan definidos
-// (nombre, ruta y apariencia base) para la tienda e inventario de la Fase 4; ninguno da ventaja jugable.
+// Los diez comparten esqueleto y animaciones (characters/avatar.js); cambian apariencia y accesorios.
+// El Explorador es gratuito; los demás se desbloquean jugando (progress/rules.js). Ninguno da ventaja.
 
 export const AVATARS = Object.freeze([
   { id: 'explorador', name: 'Explorador', route: 'Exploración', available: true, price: 0,
     look: { skin: 0xf2c29b, hair: 0x4a2f22, hairStyle: 'short', top: 0x2f9e8f, topAccent: 0xffffff, bottom: 0x3b4a6b, shoes: 0xf7f3ea, accessories: ['explorerHat', 'backpack', 'scarf'] } },
-  { id: 'ejecutivo', name: 'Ejecutivo', route: 'Administración', available: false,
+  { id: 'ejecutivo', name: 'Ejecutivo', route: 'Administración', available: true,
     look: { skin: 0xe9b58c, hair: 0x2b2118, hairStyle: 'side', top: 0x22345c, topAccent: 0xd9a441, bottom: 0x1b2540, shoes: 0x2a1d14, accessories: ['tie', 'lapels'] } },
-  { id: 'cientifica', name: 'Científica', route: 'Ciencia', available: false,
+  { id: 'cientifica', name: 'Científica', route: 'Ciencia', available: true,
     look: { skin: 0xc98e63, hair: 0x23180f, hairStyle: 'bun', top: 0xf6f8fb, topAccent: 0x33b6c9, bottom: 0x3a5a78, shoes: 0xffffff, accessories: ['glasses', 'badge'] } },
-  { id: 'ingeniero', name: 'Ingeniero', route: 'Ingeniería', available: false,
-    look: { skin: 0xd9a37a, hair: 0x3a2a1c, hairStyle: 'none', top: 0xf08a24, topAccent: 0xffd23f, bottom: 0x384455, shoes: 0x5a3d22, accessories: ['cap', 'badge'] } },
-  { id: 'medico', name: 'Médico', route: 'Salud', available: false,
-    look: { skin: 0xf0c7a4, hair: 0x5a3b22, hairStyle: 'short', top: 0xffffff, topAccent: 0x2bb5a0, bottom: 0x2bb5a0, shoes: 0xffffff, accessories: ['badge'] } },
-  { id: 'agronomo', name: 'Agrónomo', route: 'Agronomía', available: false,
+  { id: 'ingeniero', name: 'Ingeniero', route: 'Ingeniería', available: true,
+    look: { skin: 0xd9a37a, hair: 0x3a2a1c, hairStyle: 'none', top: 0xf08a24, topAccent: 0xffd23f, bottom: 0x384455, shoes: 0x5a3d22, accessories: ['hardhat', 'badge'] } },
+  { id: 'medico', name: 'Médico', route: 'Salud', available: true,
+    look: { skin: 0xf0c7a4, hair: 0x5a3b22, hairStyle: 'short', top: 0xffffff, topAccent: 0x2bb5a0, bottom: 0x2bb5a0, shoes: 0xffffff, accessories: ['badge', 'stethoscope'] } },
+  { id: 'agronomo', name: 'Agrónomo', route: 'Agronomía', available: true,
     look: { skin: 0xb9794d, hair: 0x1f150d, hairStyle: 'short', top: 0x6fae45, topAccent: 0xf3e2a9, bottom: 0x6b4a2b, shoes: 0x4c3520, accessories: ['explorerHat'] } },
-  { id: 'chef', name: 'Chef', route: 'Gastronomía', available: false,
-    look: { skin: 0xf2c29b, hair: 0x2c1d12, hairStyle: 'side', top: 0xffffff, topAccent: 0xe8483f, bottom: 0x2d2f3a, shoes: 0x1d1d22, accessories: ['apron'] } },
-  { id: 'veterinario', name: 'Veterinario', route: 'Veterinaria', available: false,
-    look: { skin: 0xe0ab85, hair: 0x6a4424, hairStyle: 'long', top: 0x4fb8a8, topAccent: 0xffffff, bottom: 0x3d8f84, shoes: 0xffffff, accessories: ['badge'] } },
-  { id: 'juez', name: 'Juez', route: 'Justicia', available: false,
-    look: { skin: 0xd6a57e, hair: 0xc9ccd3, hairStyle: 'side', top: 0x1d2230, topAccent: 0xf4f1e8, bottom: 0x1d2230, shoes: 0x14161c, accessories: ['lapels', 'glasses'] } },
-  { id: 'embajador', name: 'Embajador ICADEM', route: 'Comunidad', available: false,
+  { id: 'chef', name: 'Chef', route: 'Gastronomía', available: true,
+    look: { skin: 0xf2c29b, hair: 0x2c1d12, hairStyle: 'side', top: 0xffffff, topAccent: 0xe8483f, bottom: 0x2d2f3a, shoes: 0x1d1d22, accessories: ['apron', 'toque'] } },
+  { id: 'veterinario', name: 'Veterinario', route: 'Veterinaria', available: true,
+    look: { skin: 0xe0ab85, hair: 0x6a4424, hairStyle: 'long', top: 0x4fb8a8, topAccent: 0xffffff, bottom: 0x3d8f84, shoes: 0xffffff, accessories: ['badge', 'stethoscope'] } },
+  { id: 'juez', name: 'Juez', route: 'Justicia', available: true,
+    look: { skin: 0xd6a57e, hair: 0xc9ccd3, hairStyle: 'side', top: 0x1d2230, topAccent: 0xf4f1e8, bottom: 0x1d2230, shoes: 0x14161c, accessories: ['robe', 'glasses'] } },
+  { id: 'embajador', name: 'Embajador ICADEM', route: 'Comunidad', available: true,
     look: { skin: 0xc98e63, hair: 0x231a12, hairStyle: 'short', top: 0x1e63c4, topAccent: 0xf2b93b, bottom: 0x123c8a, shoes: 0xffffff, accessories: ['scarf', 'badge'] } }
 ]);
 

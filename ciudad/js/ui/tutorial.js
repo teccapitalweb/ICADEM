@@ -60,6 +60,7 @@ export class Tutorial {
     const { store, economy, ui } = this.api;
     const first = !store.state.tutorialDone;
     store.state.tutorialDone = true; store.save();
+    if (this.api.net.isOnline) this.api.net.profile('tutorial');
     if (skipped) { ui.toast('Tutorial omitido. Puedes repetirlo desde Ajustes.'); return; }
     const grant = await economy.grant({ key: 'tutorial', amount: REWARDS.tutorial.amount, reason: 'Tutorial completado' });
     if (first) store.addXp(REWARDS.tutorial.xp);

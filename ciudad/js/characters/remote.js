@@ -5,6 +5,7 @@
 import { createAvatar } from './avatar.js';
 import { avatarById } from './catalog.js';
 import { decodeState } from '../net/network.js';
+import { applyCustom } from '../progress/rules.js';
 
 const DELAY = 0.15, TAU = Math.PI * 2, EMOTES = new Set(['wave', 'celebrate', 'interact', 'beckon', 'clap', 'point', 'help']);
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
@@ -14,6 +15,7 @@ export class RemotePlayers {
     this.parent = parent; this.net = net; this.map = new Map(); this.clock = 0; this.last = 0; this.scene = null;
     net.on('snap', list => this.#snap(list));
     net.on('leave', ({ pid }) => this.#drop(pid));
+    net.on('look', ({ pid }) => this.#drop(pid));   // se vuelve a crear con su nueva apariencia en la siguiente fotografía
   }
 
   setScene(name) { if (name !== this.scene) { this.scene = name; [...this.map.keys()].forEach(pid => this.#drop(pid)); } }
@@ -33,7 +35,7 @@ export class RemotePlayers {
       let r = this.map.get(pid);
       if (!r) {
         const info = this.net.roster.get(pid) || {};
-        const avatar = createAvatar(avatarById(info.avatar).look);
+        const avatar = createAvatar(applyCustom(avatarById(info.avatar).look, info.custom));
         avatar.group.userData.dynamic = true; avatar.group.position.set(s.x, s.y, s.z); avatar.group.rotation.y = s.yaw;
         this.parent.add(avatar.group);
         r = { pid, avatar, samples: [], speed: 0, x: s.x, y: s.y, z: s.z, yaw: s.yaw };

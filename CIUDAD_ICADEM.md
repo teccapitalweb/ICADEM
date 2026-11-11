@@ -2,7 +2,7 @@
 
 Videojuego 3D explorable integrado al panel VIP como la pestaña **Ciudad ICADEM**.
 Las secciones 1 a 7 describen la **Fase 1 (prototipo jugable)**, ya publicada.
-Las **secciones 8 y 9** describen lo desarrollado después en la rama `feature/ciudad-icadem`, **aún no publicado**: donde haya diferencia, manda la sección más reciente (9).
+Las **secciones 8 y 9** describen lo desarrollado después en la rama `feature/ciudad-icadem`, **aún no publicado**: donde haya diferencia, manda la sección más reciente. Las secciones 8 y 9 ya están publicadas (PR #36); la **sección 10** está en la rama `feature/ciudad-icadem-social`, sin publicar.
 
 Última actualización: 2026-11-10.
 
@@ -325,3 +325,133 @@ Igual que 8.5: al momento del merge, subir `CACHE` en `sw.js` y el `?v=` de `ciu
 - Al reconectar, el primer estado solo se valida contra el mapa (para no castigar a quien caminó sin red): permite un salto por reconexión.
 - Un caso con una sola resolución «mejor» se aprende rápido; harán falta más expedientes para rejugarlo.
 - El Tribunal suma ~270 llamadas de dibujo con diez personajes: falta medirlo en celulares reales.
+
+## 10. Etapa 4 · social, avatares y progreso en servidor (rama `feature/ciudad-icadem-social`, sin publicar)
+
+Worktree propio, rama creada desde `main` después del PR #36. Sin merge, sin despliegue, sin escrituras en la base de datos de producción.
+
+### 10.1 Autenticación del multijugador: qué hay y qué falta
+
+Cadena de identidad (nada depende de lo que diga el navegador):
+
+1. El panel ya tiene la sesión del usuario (Firebase, proyecto `icadem-vip`).
+2. `js/icadem-ciudad.js` pide un boleto: `POST {servidor}/ticket` con `Authorization: Bearer <token de sesión>`. Solo lo hace si existe `window.ICADEM_CIUDAD_SERVER` (https). **Hoy nadie la define: en producción el juego sigue sin red.**
+3. El servidor verifica el token (firma RS256 con las llaves públicas de Google, proyecto, emisor, vigencia), consulta `authorize()` y emite un boleto firmado de 60 s y un solo uso.
+4. El panel entrega al juego **solo el boleto** (el token de sesión nunca entra al juego).
+5. El socket acepta el boleto; el nombre, el avatar y el progreso salen del servidor.
+
+| Punto | Estado |
+|---|---|
+| Boletos firmados, un solo uso, reanudación, sesión única, anti-teletransporte, topes | Probado (unitarias, socket real y dos navegadores) |
+| Verificador del token de sesión | Probado con llaves generadas en la prueba. **No probado con tokens reales**: desde este entorno no hay salida a `googleapis.com` |
+| Entrega panel → juego | Escrita; verificada solo por contrato estático. Falta la prueba de extremo a extremo con sesión real |
+| `authorize()` (membresía activa) | Gancho listo; sin conectar |
+| Servidor público | **No desplegado.** No debe desplegarse hasta cerrar los tres puntos anteriores |
+
+Variables de entorno del servidor (valores fuera del repositorio):
+
+| Variable | Para qué |
+|---|---|
+| `CIUDAD_AUTH=firebase` | Modo real. En `test` el servidor solo escucha en la misma máquina y se niega a arrancar con `NODE_ENV=production` |
+| `CIUDAD_FIREBASE_PROJECT=icadem-vip` | Proyecto contra el que se validan los tokens |
+| `CIUDAD_TICKET_SECRET` | Secreto de firma de boletos, 32+ caracteres aleatorios. Secreto |
+| `CIUDAD_ORIGINS` | Orígenes permitidos, p. ej. `https://www.icademx.com` |
+| `PORT`, `HOST` | Los pone la plataforma |
+| `CIUDAD_DATA_DIR` | Solo pruebas: carpeta para guardar perfiles en archivos |
+
+Servicios nuevos que harían falta: un servicio Node (≥ 22.7) con WebSocket, y un adaptador de almacenamiento sobre la base de datos (pendiente de autorización). En el panel: definir `window.ICADEM_CIUDAD_SERVER` (cambio compatible de una línea, a proponer cuando se autorice).
+
+Moderación revisada: sin chat libre; seis frases; tope 3 cada 8 s; silenciar (local); reportar (se guarda en memoria del servidor, máx. 500). Falta persistir reportes y un panel para revisarlos.
+
+### 10.2 Amigos y equipos
+- **Fuente de las conexiones**: `connections(uid)` en el servidor. En producción debe consultarlo el backend de ICADEM (contrato: recibe un usuario autenticado y devuelve los identificadores con los que tiene conexión aceptada). **No se tocó el Directorio Profesional**; en pruebas se declaran con `/dev/connect`.
+- Solo se muestran conexiones **mutuas** que están en la ciudad; de los demás no se revela nada.
+- Invitar → aceptar o rechazar (caduca en 60 s, una respuesta, tope 6/min) → mismo equipo y misma instancia (el invitado se cambia de ciudad si hay lugar).
+- Equipos de 2 a 4; el equipo puede elegir misión sin deshacerse; el anfitrión puede reunir a todos en la plaza.
+
+### 10.3 Avatares y equipamiento
+- Los diez avatares aprobados comparten esqueleto y animaciones; cada uno tiene apariencia propia (nuevos accesorios: gorro de chef, casco, estetoscopio, toga).
+- Se desbloquean jugando (`progress/rules.js`): misiones, nivel o exploración. No se compran y ninguno da ventaja.
+- Equipamiento: color del atuendo (7) y sombrero (4). Se ve en los demás jugadores.
+- Con conexión, el servidor decide si un avatar está desbloqueado; el que anuncie el cliente se ignora.
+
+### 10.4 Progreso entre dispositivos
+- `_ciudad-server/profiles.js`: perfil por usuario autenticado (misiones, XP, logros, edificios, tutorial, avatar, equipamiento, créditos **de prueba**).
+- El cliente envía acciones (bitácora de misión, edificio descubierto, avatar elegido); el servidor recalcula y guarda. XP, logros y recompensas no se aceptan del cliente.
+- Recompensa única aunque dos dispositivos cierren la misión a la vez.
+- Almacenamiento por interfaz: memoria y archivos JSON (pruebas). **El adaptador de la base real no está hecho**: requiere autorización.
+- Sin conexión (producción hoy) todo sigue guardándose en el dispositivo, como antes. La cartera real no se toca en ningún caso.
+
+### 10.5 Mundo
+Plaza: banderines entre faroles, ocho jardineras, botes, carrito de aguas frescas, aves y hojas en el aire. Fachadas, iluminación general y transiciones siguen como estaban.
+
+### 10.6 Fase futura registrada: Ciudad ICADEM Living
+Casas ampliables, propiedades, muebles, vehículos, estudios, tiendas, skins y compras opcionales. **No implementada**; solo queda anotada.
+
+### 10.7 Pruebas
+| Batería | Resultado |
+|---|---|
+| `node --test test/*.test.cjs` | 334/334 (27 de Ciudad ICADEM) |
+| Dos navegadores (computadora + celular emulado; al final, un tercero como "otro dispositivo") | 38/38 |
+| Banco y ciudad (computadora) | 39/39 |
+| Tribunal (computadora) | 19/19 |
+| Tablet y celular | 15/15 |
+| Integración con el panel (escritorio y celular) | 16/16 |
+
+Todas las pruebas de tablet y celular son **emulación táctil en Chrome con render por software**. **No se hizo ninguna prueba en dispositivos físicos.**
+
+### 10.8 Riesgos
+- Lo más importante: la identidad real no se ha probado contra el servicio real. Hasta entonces el servidor no debe hacerse público.
+- La fuente de conexiones depende de un servicio del backend que hay que acordar; hoy no existe ese contrato.
+- Sin adaptador de base de datos, el progreso en servidor solo existe en pruebas.
+- Al conectarse, el progreso del servidor sustituye al local: quien ya jugó sin conexión no lo "sube" (decisión de seguridad; habrá que avisarlo o migrarlo de forma controlada).
+- La plaza subió a ~230 llamadas de dibujo; falta medir en celulares reales.
+
+## 11. Despliegue del servidor de sesiones en Railway (preparado; pendiente de ejecutar)
+
+Decisión: el servidor va como **servicio nuevo dentro del proyecto `content-spirit`, entorno `production`**, construido desde la rama `feature/ciudad-icadem-social`. No se toca `icadem-webhook` ni se crea un entorno nuevo (duplicaría sus crons y correos). La guía completa de activación (Railway, variables, Firebase, pruebas, costos y fases) está en el documento de la auditoría; aquí queda el resumen técnico.
+
+### 11.1 Cómo se integra con ICADEM (sin modificar el backend)
+`_ciudad-server/icadem.js` usa la **misma cuenta de servicio de Firebase** que el backend, en modo lectura:
+
+| Dato | De dónde | Regla |
+|---|---|---|
+| Identidad | Token del panel, `verifyIdToken(token, true)` (revisa sesiones revocadas y cuentas deshabilitadas) | Igual que el backend |
+| Nombre | `directorio/{uid}` (`nombrePersonalizado` o `nombre`); si no, el del token | Solo lectura |
+| Acceso | **Cuentas gratuitas y VIP.** Se rechazan: cuentas en `_accountDeletions` (salvo cuenta recreada después), `CIUDAD_BLOCKED_UIDS` y, en piloto, quien no esté en `CIUDAD_PILOT_EMAILS` (los `CIUDAD_ADMINS` siempre entran) | Solo lectura |
+| VIP | `miembros/{uid}` con las mismas reglas que `membresiaActiva()` del backend; solo se marca, no limita | Solo lectura |
+| Conexiones | `professionalConnections` donde `participants` contiene al usuario y `status === 'accepted'` | Solo lectura; misma consulta que el backend, sin índice nuevo |
+| Progreso del juego | `ciudadProfiles/{uid}` (colección **nueva**), en transacción con control de versión | Solo si `CIUDAD_PROFILES=firestore`; **requiere autorización** y la regla `_ciudad-server/firestore.ciudad.rules.fragment` |
+
+Nunca lee ni escribe `credits`, Stripe, notificaciones, foro ni `professionalProfiles` (hay prueba que lo vigila).
+
+### 11.2 Pasos (los hace quien tenga acceso a Railway)
+1. GitHub → Railway App → Repository access: incluir `teccapitalweb/ICADEM`.
+2. `content-spirit` (entorno `production`) → **New → GitHub Repo → `teccapitalweb/ICADEM`**, rama `feature/ciudad-icadem-social`.
+3. Settings: Root Directory vacío; Watch Paths `/_ciudad-server/**` y `/ciudad/js/**`; Healthcheck `/health`; **1 réplica**; Replica Limits 0.5 vCPU / 512 MB; sin Start Command; Serverless apagado en el piloto. **No se usa `railway.json`** (Config as Code ya no se admite en servicios nuevos).
+4. Variables:
+
+| Variable | Valor |
+|---|---|
+| `RAILWAY_DOCKERFILE_PATH` | `_ciudad-server/Dockerfile` |
+| `CIUDAD_TICKET_SECRET` | 32+ caracteres nuevos (`openssl rand -hex 32`), sellada; no reutilizar otros secretos |
+| `CIUDAD_ORIGINS` | `https://www.icademx.com,https://icademx.com` |
+| `FIREBASE_SERVICE_ACCOUNT` | referencia `${{icadem-webhook.FIREBASE_SERVICE_ACCOUNT}}` |
+| `CIUDAD_PILOT_EMAILS` | correos del piloto (vacío = abierto a todas las cuentas válidas) |
+| `CIUDAD_ADMINS` | correos de administradores del juego |
+| `CIUDAD_MAX_PLAYERS` | `64` (2–500) |
+| `CIUDAD_PROFILES` | vacío hasta autorizar `ciudadProfiles`; entonces `firestore` |
+| `CIUDAD_BLOCKED_UIDS` | opcional |
+
+`CIUDAD_AUTH=firebase`, `CIUDAD_TRUST_PROXY=1` y `NODE_ENV=production` ya vienen en la imagen. No poner `PORT`, `HOST`, `CIUDAD_DATA_DIR` ni variables del backend.
+
+5. Networking → Generate Domain. Anotar la URL.
+6. **Comprobar sin sesión:** `node scripts/ciudad-server-check.cjs https://<url>` → 11/11.
+7. **Comprobar con sesión real** desde la consola de www.icademx.com: `window.__auth.currentUser.getIdToken().then(t => fetch('https://<url>/ticket', {method: 'POST', headers: {Authorization: 'Bearer ' + t}})).then(r => console.log(r.status))` → `200` con cuenta gratuita o VIP del piloto; `403` fuera del piloto.
+8. Solo entonces, con autorización: `CIUDAD_SERVER_URL` en `js/icadem-ciudad.js`, `?v=3` en `vip-panel.html`, `sw.js` y `ciudad/index.html`, y `CACHE` nuevo en `sw.js`.
+
+### 11.3 Qué queda sin probar hasta desplegar
+- Tokens reales y lectura real de `miembros`, `directorio`, `_accountDeletions` y `professionalConnections` (aquí se probó con Firebase simulado con la misma forma de datos).
+- El despliegue real en Railway, la latencia y el comportamiento con 10–20 jugadores.
+- Teléfonos físicos (solo tamaños emulados).
+- Sin `CIUDAD_PROFILES=firestore`, el progreso en servidor se pierde al reiniciar el servicio.

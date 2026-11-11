@@ -100,6 +100,42 @@ export function buildPlaza(api) {
     if (Math.hypot(x, z) < 15.5) continue; const l = lamp(x, z, g); col.addCircle(x, z, 0.25);
   }
 
+  /* ambiente: banderines, jardineras, mobiliario y vida (todo ligero: casi todo se fusiona) */
+  const flagM = [0xe86a5c, 0xffd166, 0x2f9e8f, 0x3a8fd6, 0xb56bd6, 0xffffff].map(c => mat(c, { r: 0.9, side: THREE.DoubleSide }));
+  const flagGeo = new THREE.BufferGeometry(); flagGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([-0.17, 0, 0, 0.17, 0, 0, 0, -0.36, 0]), 3)); flagGeo.computeVertexNormals();
+  const cord = mat(0x4a3a2a, { r: 1 });
+  for (let i = 0; i < 8; i++) {
+    const a0 = i * Math.PI / 4 + Math.PI / 8 + 0.25, a1 = a0 + Math.PI / 4, x0 = Math.cos(a0) * 13.6, z0 = Math.sin(a0) * 13.6, x1 = Math.cos(a1) * 13.6, z1 = Math.sin(a1) * 13.6;
+    const len = Math.hypot(x1 - x0, z1 - z0), yaw = Math.atan2(x1 - x0, z1 - z0);
+    for (let k = 0; k < 9; k++) {
+      const t = (k + 0.5) / 9, sag = Math.sin(t * Math.PI) * 0.45, f = new THREE.Mesh(flagGeo, flagM[(i + k) % flagM.length]);
+      f.position.set(x0 + (x1 - x0) * t, 3.55 - sag, z0 + (z1 - z0) * t); f.rotation.y = yaw + Math.PI / 2; f.castShadow = false; g.add(f);
+      if (k < 8) { const t2 = (k + 1.5) / 9, sag2 = Math.sin(t2 * Math.PI) * 0.45, seg = box(0.015, 0.015, len / 9 + 0.02, cord, x0 + (x1 - x0) * (t + t2) / 2, 3.55 - (sag + sag2) / 2, z0 + (z1 - z0) * (t + t2) / 2, g, { ry: yaw, cast: false }); seg.rotation.x = Math.atan2(sag2 - sag, len / 9); }
+    }
+  }
+  // jardineras con flores y botes de basura al borde de las banquetas (fuera de los pasos)
+  for (const [x, z] of [[-9, -17.2], [9, -17.2], [-9, 17.2], [9, 17.2], [-23.4, -9], [-23.4, 9], [23.4, -9], [23.4, 9]]) {
+    box(1.5, 0.5, 0.7, mat(0xe6dccb, { r: 0.9 }), x, 0, z, g); box(1.36, 0.08, 0.56, mat(0x5a3d22, { r: 1 }), x, 0.46, z, g, { cast: false });
+    flowers(x - 0.35, z, g).position.y = 0.5; flowers(x + 0.35, z, g, [0xffffff, 0xff8fb1, 0xffd166]).position.y = 0.5; col.addBoxAt(x, z, 1.6, 0.8);
+  }
+  for (const [x, z] of [[-6, -17.4], [6, 17.4], [-23.6, -4.6], [23.6, 4.6]]) { cyl(0.26, 0.22, 0.75, mat(0x2f9e8f, { r: 0.7 }), x, 0, z, g, { seg: 12 }); cyl(0.29, 0.29, 0.06, mat(0x12325f, { r: 0.6 }), x, 0.75, z, g, { seg: 12, cast: false }); col.addCircle(x, z, 0.32); }
+  // carrito de aguas frescas junto a la plaza
+  const cart = new THREE.Group(); cart.position.set(-17.5, 0, 12.5); cart.rotation.y = 0.6; g.add(cart);
+  box(2.0, 0.9, 1.0, mat(0xfff0d6, { r: 0.8 }), 0, 0.45, 0, cart); box(2.1, 0.08, 1.1, mat(0xe86a5c, { r: 0.8 }), 0, 1.35, 0, cart);
+  for (const sx of [-0.9, 0.9]) { cyl(0.03, 0.03, 1.2, mat(0x8a5a36), sx, 1.35, 0.45, cart, { seg: 6 }); cyl(0.03, 0.03, 1.2, mat(0x8a5a36), sx, 1.35, -0.45, cart, { seg: 6 }); }
+  for (let i = 0; i < 4; i++) box(0.55, 0.06, 1.3, mat(i % 2 ? 0xffffff : 0xe86a5c, { r: 0.9 }), -0.825 + i * 0.55, 2.55, 0, cart, { cast: i === 0 });
+  for (const [dx, c] of [[-0.6, 0xff8fb1], [0, 0xfff3a8], [0.6, 0xb7e08a]]) { cyl(0.17, 0.15, 0.4, mat(c, { r: 0.2, opacity: 0.85 }), dx, 1.39, 0.1, cart, { seg: 14, cast: false }); cyl(0.18, 0.18, 0.03, mat(0xffffff), dx, 1.79, 0.1, cart, { seg: 14, cast: false }); }
+  for (const sx of [-0.7, 0.7]) { const w = cyl(0.3, 0.3, 0.08, mat(0x3a2a1c), sx, 0.3, 0.55, cart, { seg: 14 }); w.rotation.x = Math.PI / 2; }
+  const cs = sign('AGUAS FRESCAS', 1.8, 0.3, { bg: '#2f9e8f', fg: '#ffffff' }); cs.position.set(0, 0.95, 0.51); cart.add(cs);
+  col.addCircle(-17.5, 12.5, 1.3);
+  // aves que sobrevuelan la plaza y hojas que flotan (dinámicos, muy baratos)
+  const birdGeo = new THREE.BufferGeometry(); birdGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0.16, 0, 0, -0.16, 0.42, 0.05, 0]), 3)); birdGeo.computeVertexNormals();
+  const birdM = new THREE.MeshBasicMaterial({ color: 0x2a3550, side: THREE.DoubleSide });
+  animated.birds = Array.from({ length: 7 }, (_, i) => { const b = new THREE.Group(); b.userData.dynamic = true; const l = new THREE.Mesh(birdGeo, birdM), r = new THREE.Mesh(birdGeo, birdM); r.scale.x = -1; b.add(l, r); g.add(b); return { b, l, r, radius: 16 + (i % 3) * 7, h: 15 + (i % 4) * 2.2, speed: 0.16 + (i % 3) * 0.035, phase: i * 0.9 }; });
+  const leafN = 60, leafPos = new Float32Array(leafN * 3), leafSeed = Array.from({ length: leafN }, () => [(Math.random() - 0.5) * 70, Math.random() * 9 + 1, (Math.random() - 0.5) * 70, Math.random() * 6.28]);
+  const leafGeo = new THREE.BufferGeometry(); leafGeo.setAttribute('position', new THREE.BufferAttribute(leafPos, 3));
+  const leaves = new THREE.Points(leafGeo, new THREE.PointsMaterial({ color: 0xfff1b8, size: 0.13, transparent: true, opacity: 0.75, depthWrite: false })); leaves.frustumCulled = false; g.add(leaves); animated.leaves = { leaves, leafSeed, leafN };
+
   /* fondo: colinas y cielo */
   const hillM = [mat(0x8fd08a, { flat: true, r: 1 }), mat(0x79c2a0, { flat: true, r: 1 }), mat(0x9bd6b0, { flat: true, r: 1 })];
   for (let i = 0; i < 22; i++) { const a = i / 22 * 6.283 + 0.1, r = 86 + (i % 3) * 14; const h = new THREE.Mesh(new THREE.ConeGeometry(20 + (i % 4) * 7, 14 + (i % 5) * 6, 7), hillM[i % 3]); h.position.set(Math.cos(a) * r, 4 + (i % 5) * 2, Math.sin(a) * r); h.rotation.y = i; g.add(h); }
@@ -160,6 +196,10 @@ export function buildPlaza(api) {
         arr[i * 3] = Math.cos(a) * r; arr[i * 3 + 2] = Math.sin(a) * r; arr[i * 3 + 1] = 4.2 + life * 2.2 - life * life * 5.4;
       }
       d.mesh.geometry.attributes.position.needsUpdate = true;
+      for (const o of animated.birds) { const a = t * o.speed + o.phase; o.b.position.set(Math.cos(a) * o.radius, o.h + Math.sin(a * 2.3) * 0.8, Math.sin(a) * o.radius); o.b.rotation.y = -a; const flap = Math.sin(t * 9 + o.phase) * 0.7; o.l.rotation.z = flap; o.r.rotation.z = -flap; }
+      const lf = animated.leaves, la = lf.leaves.geometry.attributes.position.array;
+      for (let i = 0; i < lf.leafN; i++) { const sd = lf.leafSeed[i]; la[i * 3] = sd[0] + Math.sin(t * 0.3 + sd[3]) * 1.6; la[i * 3 + 1] = 0.6 + ((sd[1] - t * 0.22 + 400) % 9); la[i * 3 + 2] = sd[2] + Math.cos(t * 0.25 + sd[3]) * 1.6; }
+      lf.leaves.geometry.attributes.position.needsUpdate = true;
       if (playerPos) { sun.position.set(playerPos.x + 34, 52, playerPos.z + 26); sun.target.position.set(playerPos.x, 0, playerPos.z); }
     }
   };
