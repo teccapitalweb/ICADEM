@@ -1067,6 +1067,8 @@ window._fb = {
   serverTimestamp, Timestamp, writeBatch, increment
 };
 window.__adminEmails = ADMINS;
+// Cuenta de superadministración: la única que ve el apartado «Ver como usuario»
+window.__superAdminEmail = 'teccapitalweb@gmail.com';
 
 onAuthStateChanged(auth, (user) => {
   if (!user) { window.location.href = 'vip-auth.html'; return; }
@@ -1074,6 +1076,8 @@ onAuthStateChanged(auth, (user) => {
   if (!ADMINS.includes(email)) { window.location.href = 'vip-panel.html'; return; }
   // Es admin: mostrar contenido + actualizar avatar
   window.__currentAdmin = { uid: user.uid, email, displayName: user.displayName || email };
+  const navVerComo = document.getElementById('nav-vercomo');
+  if (navVerComo) navVerComo.style.display = (email === window.__superAdminEmail) ? '' : 'none';
   document.body.style.visibility = 'visible';
   const nameEl = document.querySelector('.avatar__name');
   const picEl = document.querySelector('.avatar__pic');
@@ -1197,6 +1201,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Cuenta</div>
       <a class="nav-item" data-section="config"><svg class="ic"><use href="#i-settings"/></svg>Configuración</a>
+      <a class="nav-item" data-section="vercomo" id="nav-vercomo" style="display:none;"><svg class="ic"><use href="#i-eye"/></svg>Ver como usuario</a>
       <a class="nav-item" id="btn-logout"><svg class="ic"><use href="#i-logout"/></svg>Cerrar sesión</a>
     </div>
   </aside>
@@ -6420,6 +6425,53 @@ const Pages={
       Toast.error('No se pudo ejecutar el cron', e.message || 'Revisa que el webhook tenga la última versión');
     }
     btn.disabled = false; btn.innerHTML = orig;
+  },
+
+  // ─── Ver como usuario · solo el superadministrador (teccapitalweb@gmail.com) ───
+  vercomo(p) {
+    if (!window.__currentAdmin) {
+      p.innerHTML = '<div class="fade-up"><p style="padding:24px;color:var(--text-3);">Cargando…</p></div>';
+      window.addEventListener('adminready', () => { if (__seccionActual === 'vercomo') Pages.vercomo(p); }, { once: true });
+      return;
+    }
+    if (window.__currentAdmin.email !== window.__superAdminEmail) {
+      navigate('dashboard', { reemplazar: true });
+      Toast.info('Apartado no disponible', 'Solo lo usa la cuenta de superadministración.');
+      return;
+    }
+    p.innerHTML = `
+      <div class="fade-up">
+        <div class="sec-hero">
+          <span class="sec-hero__eyebrow">Solo superadministrador</span>
+          <h1 class="sec-hero__title">Ver como usuario</h1>
+          <p class="sec-hero__sub">Abre el panel de miembros con tu propia sesión, en otra pestaña, para revisar lo que ven y usan los miembros sin salir del administrador.</p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
+          <div class="dash-card" style="padding:22px;">
+            <h3 style="font-size:16px;font-weight:700;margin:0 0 6px;">Todo desbloqueado</h3>
+            <p style="font-size:13px;color:var(--text-3);line-height:1.55;margin:0 0 16px;">Cursos, retos, materiales, clases en vivo y grabaciones abiertos, sin membresía ni calendario de desbloqueo. Aquí también ves tus clases de prueba, con la etiqueta «Prueba».</p>
+            <button class="btn btn--accent" id="vc-todo"><svg class="ic"><use href="#i-eye"/></svg>Abrir el panel de miembros</button>
+          </div>
+
+          <div class="dash-card" style="padding:22px;">
+            <h3 style="font-size:16px;font-weight:700;margin:0 0 6px;">Como un miembro normal</h3>
+            <p style="font-size:13px;color:var(--text-3);line-height:1.55;margin:0 0 12px;">Con las reglas de acceso de un miembro: los cursos se desbloquean poco a poco. Para probar el goteo, indica cuántos días han pasado desde el alta.</p>
+            <label for="vc-dias" style="font-size:12px;color:var(--text-3);display:block;margin-bottom:4px;">Días desde el alta (opcional)</label>
+            <input type="number" min="0" max="3650" class="input" id="vc-dias" placeholder="Ej: 12" style="max-width:160px;margin-bottom:14px;">
+            <div><button class="btn btn--ghost" id="vc-miembro"><svg class="ic"><use href="#i-user"/></svg>Abrir como miembro</button></div>
+          </div>
+        </div>
+      </div>
+    `;
+    p.querySelector('#vc-todo').addEventListener('click', () => {
+      window.open('vip-panel.html', '_blank', 'noopener');
+    });
+    p.querySelector('#vc-miembro').addEventListener('click', () => {
+      const dias = (p.querySelector('#vc-dias').value || '').trim();
+      const url = 'vip-panel.html?como=user' + (/^\d{1,4}$/.test(dias) ? '&dias=' + dias : '');
+      window.open(url, '_blank', 'noopener');
+    });
   },
 
   config(p){

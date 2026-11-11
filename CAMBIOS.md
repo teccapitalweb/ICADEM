@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-11-11 — Admin: apartado «Ver como usuario» solo para el superadministrador
+
+**Archivos:** `vip-admin.html`
+
+- Nuevo apartado «Ver como usuario» en el menú (sección Cuenta), visible únicamente con la sesión `teccapitalweb@gmail.com`. Abre el panel de miembros en otra pestaña con la misma sesión: «Todo desbloqueado» (`vip-panel.html`, el administrador ya tiene todo abierto) o «Como un miembro normal» (`?como=user`, con los días desde el alta opcionales para probar el goteo de cursos).
+- Para las demás cuentas de administración el elemento del menú no se muestra, y abrir `#vercomo` a mano las devuelve al inicio con un aviso.
+- Límite conocido: oculta el apartado del menú; no cambia el acceso al panel de miembros, que cualquier administrador sigue pudiendo abrir escribiendo `vip-panel.html`.
+
 ## 2026-11-11 — Nueva cuenta de administración: grupeliptica@gmail.com
 
 **Archivos:** `vip-admin.html`, `vip-panel.html`, `vip-auth.html`, `firestore.courses.rules.fragment`; backend `icadem-webhook`: `index.js`
