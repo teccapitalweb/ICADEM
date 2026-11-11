@@ -2931,9 +2931,9 @@ const Pages={
         </div>
 
         <div class="curso-pills">
-          <button class="curso-pill" data-web-tab="proximos" data-active="1"><span class="curso-pill__dot" style="background:#EF4444;"></span>Próximos</button>
+          <button class="curso-pill" data-web-tab="todos" data-active="1">Todos</button>
+          <button class="curso-pill" data-web-tab="proximos"><span class="curso-pill__dot" style="background:#EF4444;"></span>Próximos</button>
           <button class="curso-pill" data-web-tab="pasados">Pasados</button>
-          <button class="curso-pill" data-web-tab="todos">Todos</button>
         </div>
 
         <div id="web-container"></div>
@@ -2942,8 +2942,8 @@ const Pages={
       </div>
     `;
 
-    // Por defecto mostrar próximos
-    Pages._webState.tab = 'proximos';
+    // Por defecto mostrar todos
+    Pages._webState.tab = 'todos';
     Pages._renderKpisWebs();
     Pages._renderListaWebs();
     const pintarProteger = () => {
@@ -3056,7 +3056,7 @@ const Pages={
     }).join('');
     wrap.innerHTML = '<div class="dash-card" style="margin-top:18px;padding:20px;">'
       + '<h3 style="font-size:16px;font-weight:700;margin:0 0 4px;">Clases de prueba</h3>'
-      + '<p style="font-size:12px;color:var(--text-3);margin:0 0 12px;line-height:1.5;">Solo las ves tú. No se publican, no aparecen para los miembros y no les llega ningún aviso. Para probarlas usa «Ver como usuario»: ahí se ven como una clase normal, con su cuenta regresiva, botones y grabación.</p>'
+      + '<p style="font-size:12px;color:var(--text-3);margin:0 0 12px;line-height:1.5;">Solo las ves tú. No se publican, no aparecen para los miembros y no les llega ningún aviso. Los avisos de una clase de prueba (campanita y teléfono) solo le llegan a la cuenta de superadministración. Para verla usa «Ver como usuario»: ahí se ve como una clase normal, con su cuenta regresiva, botones y grabación.</p>'
       + (filas
         ? '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:13px;"><thead><tr style="text-align:left;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-3);"><th style="padding:6px 8px;">Título</th><th style="padding:6px 8px;">Fecha</th><th style="padding:6px 8px;">Hora</th><th style="padding:6px 8px;">Duración</th><th style="padding:6px 8px;">Enlace</th><th style="padding:6px 8px;">Acciones</th></tr></thead><tbody>' + filas + '</tbody></table></div>'
         : '<div style="padding:14px;font-size:13px;color:var(--text-3);border:1px dashed var(--border, rgba(0,0,0,.15));border-radius:12px;">Aún no hay clases de prueba. Usa «Agregar clase de prueba».</div>')
@@ -3088,7 +3088,13 @@ const Pages={
   async _autoCargar() {
     try {
       const j = await Pages._webLlamar('/admin/clases-auto');
+      const listasAntes = Pages._auto.filter(e => e.estado === 'lista').length;
       Pages._auto = j.entradas || [];
+      if (Pages._autoListo && Pages._auto.filter(e => e.estado === 'lista').length > listasAntes) {
+        // una grabación terminó: se refrescan la marca «Grabación» de las pruebas y el conteo de clases con video
+        Pages._pruebasCargar().then(() => Pages._pruebasRender());
+        Pages._webCargarPrivados().then(() => { Pages._renderListaWebs(); Pages._renderKpisWebs(); });
+      }
       Pages._autoGoogle = j.googleListo !== false;
       Pages._autoBunny = j.bunnyListo !== false;
       Pages._autoListo = true;
@@ -3103,6 +3109,12 @@ const Pages={
       await Pages._autoCargar();
       Pages._autoRender();
     }, 20000);
+  },
+  // La clase (real o de prueba) a la que pertenece una grabación automática
+  _autoClaseDe(e) {
+    if (e.esPrueba) return Pages._pruebas.find(c => 'prueba-' + c.id === e.claseId) || null;
+    const w = (window.AdminStore?.webinars || []).find(x => x.id === e.claseId);
+    return w ? Pages._webConPrivados(w) : null;
   },
   _autoPasos(e) {
     const orden = { esperando: 1, descargando: 2, procesando: 3, lista: 4 };
@@ -3143,6 +3155,21 @@ const Pages={
     if (Pages._autoListo && !Pages._autoGoogle) avisos.push('Google no está conectado en el servidor (faltan las variables GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET y GOOGLE_REFRESH_TOKEN).');
     if (Pages._autoListo && !Pages._autoBunny) avisos.push('Falta la API Key de la biblioteca de Bunny en el servidor (BUNNY_LIBRARY_API_KEY).');
     const tarjetas = Pages._auto.map(e => {
+      if (e.estado === 'lista') {
+        // Terminada: se quita la ruta de pasos y queda la clase, con su portada
+        const c = Pages._autoClaseDe(e) || {};
+        const f = e.inicioMs ? new Date(e.inicioMs).toLocaleString('es-MX', { timeZone: 'America/Mexico_City', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }) : '';
+        const nota = e.aviso ? e.aviso : (e.esPrueba ? 'Ya aparece en Grabaciones. Mírala en «Ver como usuario» (clase de prueba: solo la ve la cuenta de superadministración).' : 'Ya aparece en Grabaciones del panel de miembros.');
+        return '<div style="border:1px solid var(--border,rgba(0,0,0,.12));border-radius:14px;padding:16px;margin-top:12px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;">'
+          + '<div style="width:150px;height:100px;border-radius:12px;flex:none;background-image:url(\'' + Pages._coverSVG(c.area, e.titulo) + '\');background-size:cover;background-position:center;"></div>'
+          + '<div style="min-width:200px;flex:1;"><div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#16A34A;">✓ CLASE YA DISPONIBLE</div>'
+          + '<div style="font-size:18px;font-weight:800;margin:3px 0;">' + esc(e.titulo || 'Clase en vivo') + '</div>'
+          + '<div style="font-size:12px;color:var(--text-3);">Google Meet · ' + esc(f.replace(',', '')) + (c.instructor ? ' · ' + esc(c.instructor) : '') + ' · ' + (e.esPrueba ? 'clase de prueba' : 'clase real') + '</div>'
+          + '<div style="font-size:12px;color:var(--text-3);margin:6px 0 12px;line-height:1.45;">' + esc(nota) + '</div>'
+          + '<button class="btn btn--ghost" data-auto-edit="' + esc(e.id) + '">Editar</button> '
+          + '<button class="btn btn--ghost" data-auto-del="' + esc(e.id) + '" style="color:#DC2626;">Eliminar</button> '
+          + '<button class="btn btn--ghost" data-auto-quitar="' + esc(e.id) + '" style="color:var(--text-3);">Quitar de la lista</button></div></div>';
+      }
       const pasos = Pages._autoPasos(e).map(p => {
         const marca = p.estado === 'ok' ? '✓' : (p.estado === 'error' ? '!' : '');
         return '<div class="wauto-paso"><span class="wauto-ic wauto-ic--' + p.estado + '">' + marca + '</span><div><div style="font-weight:600;font-size:13.5px;">' + esc(p.t) + '</div>'
@@ -3169,6 +3196,27 @@ const Pages={
       try { await Pages._webLlamar('/admin/clases-auto/' + encodeURIComponent(b.dataset.autoRetry) + '/reintentar', { method: 'POST' }); Toast.info('Buscando la grabación…', 'Puede tardar unos segundos'); }
       catch (e) { Toast.error('No se pudo reintentar', e.message || 'Intenta de nuevo'); }
       setTimeout(async () => { await Pages._autoCargar(); Pages._autoRender(); }, 2500);
+    }));
+    wrap.querySelectorAll('[data-auto-edit]').forEach(b => b.addEventListener('click', async () => {
+      const e = Pages._auto.find(x => x.id === b.dataset.autoEdit);
+      const c = e ? Pages._autoClaseDe(e) : null;
+      if (!e || !c) { Toast.error('No encontramos la clase', 'Quizá ya se eliminó. Pulsa Actualizar.'); return; }
+      if (e.esPrueba) { Pages._abrirModalWebinar(c, { prueba: true }); return; }
+      await Pages._webCargarPrivados();
+      Pages._abrirModalWebinar(Pages._webConPrivados(c));
+    }));
+    wrap.querySelectorAll('[data-auto-del]').forEach(b => b.addEventListener('click', async () => {
+      const e = Pages._auto.find(x => x.id === b.dataset.autoDel);
+      if (!e) return;
+      const c = Pages._autoClaseDe(e) || {};
+      if (!confirm('¿Eliminar la clase "' + (e.titulo || c.titulo || '') + '"?' + (e.esPrueba ? '' : ' Los miembros que se hayan registrado ya no la verán.') + ' El video de Bunny no se borra. Esta acción NO se puede deshacer.')) return;
+      try {
+        const ruta = e.esPrueba ? '/admin/clases-prueba/' + encodeURIComponent(e.claseId.replace(/^prueba-/, '')) : '/admin/webinars/' + encodeURIComponent(e.claseId);
+        await Pages._webLlamar(ruta, { method: 'DELETE' });
+        Toast.success('Clase eliminada', e.titulo || '');
+        await Promise.all([Pages._pruebasCargar(), Pages._autoCargar(), Pages._webCargarPrivados()]);
+        Pages._pruebasRender(); Pages._autoRender(); Pages._renderListaWebs(); Pages._renderKpisWebs();
+      } catch (err) { Toast.error('No se pudo eliminar', err.message || 'Intenta de nuevo'); }
     }));
     wrap.querySelectorAll('[data-auto-quitar]').forEach(b => b.addEventListener('click', async () => {
       if (!confirm('¿Quitar esta clase de la lista de grabaciones automáticas? No se borra la clase ni ningún video.')) return;
@@ -3228,6 +3276,11 @@ const Pages={
         <div class="kpi-card__label">Total programadas</div>
         <div class="kpi-card__value">${webs.length}</div>
         <div class="kpi-card__sub">${ready ? 'En Firestore' : 'Cargando…'}</div>
+      </div>
+      <div class="kpi-card" style="--c1:#16A34A;--c2:#4ADE80;">
+        <div class="kpi-card__label">Con grabación</div>
+        <div class="kpi-card__value">${webs.filter(w => Pages._webConPrivados(w).grabacionVideoId).length}</div>
+        <div class="kpi-card__sub">Con video en Bunny</div>
       </div>
     `;
   },
@@ -6543,7 +6596,7 @@ const Pages={
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Solo superadministrador</span>
           <h1 class="sec-hero__title">Ver como usuario</h1>
-          <p class="sec-hero__sub">Abre el panel de miembros con tu propia sesión, en otra pestaña, para revisar lo que ven y usan los miembros sin salir del administrador.</p>
+          <p class="sec-hero__sub">Abre el panel de miembros con tu propia sesión, en esta misma pestaña, para revisar lo que ven y usan los miembros. Allí encontrarás el botón «Volver al administrador».</p>
         </div>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;">
@@ -6563,13 +6616,17 @@ const Pages={
         </div>
       </div>
     `;
-    p.querySelector('#vc-todo').addEventListener('click', () => {
-      window.open('vip-panel.html', '_blank', 'noopener');
-    });
+    // Se abre en esta misma pestaña (como en FisioTeck): otra pestaña con Firebase abierto en las dos páginas
+    // a la vez puede hacer que se pierda la sesión. Si aun así hubiera que iniciar sesión, vip-auth.html
+    // lee este destino y devuelve al panel en lugar de mandar al administrador.
+    const ir = url => {
+      try { sessionStorage.setItem('icadem:vista-admin', JSON.stringify({ url, t: Date.now() })); } catch (e) { /* sin sessionStorage: se abre igual */ }
+      window.location.href = url;
+    };
+    p.querySelector('#vc-todo').addEventListener('click', () => ir('vip-panel.html?desde=admin'));
     p.querySelector('#vc-miembro').addEventListener('click', () => {
       const dias = (p.querySelector('#vc-dias').value || '').trim();
-      const url = 'vip-panel.html?como=user' + (/^\d{1,4}$/.test(dias) ? '&dias=' + dias : '');
-      window.open(url, '_blank', 'noopener');
+      ir('vip-panel.html?como=user' + (/^\d{1,4}$/.test(dias) ? '&dias=' + dias : '') + '&desde=admin');
     });
   },
 

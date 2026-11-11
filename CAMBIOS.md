@@ -1,5 +1,14 @@
 # CAMBIOS
 
+## 2026-11-12 — Clases de prueba: avisos solo para el superadministrador, sesión en «Ver como usuario» y ajustes del admin
+
+**Archivos:** `vip-admin.html`, `vip-auth.html`, `vip-panel.html`; backend `icadem-webhook`: `webinar-alerts.js`, `webinar-private.js`, `index.js`, `test/webinar-alerts-prueba.test.js` (nuevo)
+
+- Avisos de clases de prueba: al programarla, 1 hora antes y al empezar, con el prefijo «Prueba ·». Llegan únicamente a la cuenta de superadministración (campanita dirigida con `destinatarioUid` y push solo a sus dispositivos). Los miembros y los demás administradores no los reciben. Las clases reales siguen avisando a todos. La cuenta se resuelve por correo (`SUPERADMIN_EMAIL`, por defecto teccapitalweb@gmail.com); sin ella no se avisa a nadie. Al eliminar una prueba se borran sus avisos.
+- «Ver como usuario» se abre en la misma pestaña (antes, otra pestaña con Firebase abierto en dos páginas a la vez), con el botón «Volver al administrador» en el panel (`?desde=admin`).
+- Inicio de sesión: si hubo que iniciar sesión viniendo de «Ver como usuario», un administrador vuelve al panel que estaba viendo (destino de un solo uso en sessionStorage, validado) en lugar de caer siempre en el administrador.
+- Admin · Clases en vivo: pestañas Todos, Próximos y Pasados (Todos por defecto); tarjeta «Con grabación»; al terminar la grabación automática la tarjeta pasa a «Clase ya disponible» (portada, Editar y Eliminar) y la tabla de pruebas y los conteos se actualizan solos.
+
 ## 2026-11-12 — Clases en vivo: grabación automática de Drive a Bunny y pruebas con Meet
 
 **Archivos:** `vip-admin.html`; backend `icadem-webhook`: `clases-auto.js` (nuevo), `webinar-private.js`, `bunny-webinars.js`, `google-meet.js`, `index.js`, `test/clases-auto.test.js` (nuevo)

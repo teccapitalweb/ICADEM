@@ -6146,6 +6146,22 @@ const Sections = (function(){
     return Number.isFinite(remaining) ? Math.max(0, remaining) : null;
   }
 
+  // Llegada desde «Ver como usuario» del administrador (?desde=admin): botón para volver, solo para administradores
+  if (_urlParams.get('desde') === 'admin') {
+    let intentos = 0;
+    const espera = setInterval(() => {
+      intentos += 1;
+      if (intentos > 60) { clearInterval(espera); return; }
+      if (!window.UserState?.isAdmin || !document.body) return;
+      clearInterval(espera);
+      const volver = document.createElement('a');
+      volver.href = 'vip-admin.html#vercomo';
+      volver.textContent = '← Volver al administrador';
+      volver.style.cssText = 'position:fixed;bottom:18px;left:18px;z-index:9997;background:#0f1626;color:#fff;padding:10px 16px;border-radius:999px;font:700 12px/1 Inter,system-ui,sans-serif;text-decoration:none;box-shadow:0 8px 24px rgba(0,0,0,.28);';
+      document.body.appendChild(volver);
+    }, 500);
+  }
+
   // Mostrar banner si está en modo preview (solo admins lo ven)
   if (PREVIEW_AS_USER) {
     document.addEventListener('DOMContentLoaded', () => {
