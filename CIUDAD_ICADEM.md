@@ -326,7 +326,7 @@ Igual que 8.5: al momento del merge, subir `CACHE` en `sw.js` y el `?v=` de `ciu
 - Un caso con una sola resolución «mejor» se aprende rápido; harán falta más expedientes para rejugarlo.
 - El Tribunal suma ~270 llamadas de dibujo con diez personajes: falta medirlo en celulares reales.
 
-## 10. Etapa 4 · social, avatares y progreso en servidor (rama `feature/ciudad-icadem-social`, sin publicar)
+## 10. Etapa 4 · social, avatares y progreso en servidor (publicado en `main` — PR #38, 11 nov 2026, piloto privado)
 
 Worktree propio, rama creada desde `main` después del PR #36. Sin merge, sin despliegue, sin escrituras en la base de datos de producción.
 
@@ -407,9 +407,9 @@ Todas las pruebas de tablet y celular son **emulación táctil en Chrome con ren
 - Al conectarse, el progreso del servidor sustituye al local: quien ya jugó sin conexión no lo "sube" (decisión de seguridad; habrá que avisarlo o migrarlo de forma controlada).
 - La plaza subió a ~230 llamadas de dibujo; falta medir en celulares reales.
 
-## 11. Despliegue del servidor de sesiones en Railway (preparado; pendiente de ejecutar)
+## 11. Despliegue del servidor de sesiones en Railway (DESPLEGADO — servicio `ciudad-icadem` en `content-spirit`)
 
-Decisión: el servidor va como **servicio nuevo dentro del proyecto `content-spirit`, entorno `production`**, construido desde la rama `feature/ciudad-icadem-social`. No se toca `icadem-webhook` ni se crea un entorno nuevo (duplicaría sus crons y correos). La guía completa de activación (Railway, variables, Firebase, pruebas, costos y fases) está en el documento de la auditoría; aquí queda el resumen técnico.
+Estado (11 nov 2026): **desplegado y encendido en modo piloto**. Servicio `ciudad-icadem` en el proyecto `content-spirit` (entorno `production`), URL `https://ciudad-icadem-production.up.railway.app`, construido desde la rama social (hoy ya en `main`). El panel apunta al servidor desde el PR #38 (`?v=3`, caché `icadem-vip-v150`). Solo juegan en línea las cuentas de `CIUDAD_PILOT_EMAILS`; el resto recibe `403 sin-acceso` y sigue en modo individual. `icadem-webhook` no se tocó. La guía completa está en el documento de la auditoría.
 
 ### 11.1 Cómo se integra con ICADEM (sin modificar el backend)
 `_ciudad-server/icadem.js` usa la **misma cuenta de servicio de Firebase** que el backend, en modo lectura:
@@ -450,8 +450,11 @@ Nunca lee ni escribe `credits`, Stripe, notificaciones, foro ni `professionalPro
 7. **Comprobar con sesión real** desde la consola de www.icademx.com: `window.__auth.currentUser.getIdToken().then(t => fetch('https://<url>/ticket', {method: 'POST', headers: {Authorization: 'Bearer ' + t}})).then(r => console.log(r.status))` → `200` con cuenta gratuita o VIP del piloto; `403` fuera del piloto.
 8. Solo entonces, con autorización: `CIUDAD_SERVER_URL` en `js/icadem-ciudad.js`, `?v=3` en `vip-panel.html`, `sw.js` y `ciudad/index.html`, y `CACHE` nuevo en `sw.js`.
 
-### 11.3 Qué queda sin probar hasta desplegar
-- Tokens reales y lectura real de `miembros`, `directorio`, `_accountDeletions` y `professionalConnections` (aquí se probó con Firebase simulado con la misma forma de datos).
-- El despliegue real en Railway, la latencia y el comportamiento con 10–20 jugadores.
-- Teléfonos físicos (solo tamaños emulados).
-- Sin `CIUDAD_PROFILES=firestore`, el progreso en servidor se pierde al reiniciar el servicio.
+### 11.3 Verificado contra el despliegue real y pendientes
+Verificado (11 nov 2026, desde el origen real www.icademx.com): `/health` sin datos personales; `/ticket` 401 sin token y con token falso; `/dev/*` 404; WebSocket sin boleto rechazado (`bye no-autorizado`); origen ajeno rechazado (fetch por CORS y WebSocket en el upgrade).
+
+Pendiente:
+- Boleto con sesión real (paso 7 de 11.2): 200 con cuenta piloto, 403 fuera del piloto.
+- Fase 2: regla de `ciudadProfiles` en Firestore y `CIUDAD_PROFILES=firestore` (hasta entonces el progreso en servidor se pierde al reiniciar).
+- Juego real entre dos cuentas piloto (amigos/conexiones, salas) y teléfonos físicos.
+- Fase 5: quitar `CIUDAD_PILOT_EMAILS` para abrir a todas las cuentas gratuitas y VIP.
