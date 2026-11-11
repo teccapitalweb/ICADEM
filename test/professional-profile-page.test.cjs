@@ -149,12 +149,11 @@ test('accepting or rejecting on the page reuses the connection APIs and renders 
   }
 });
 
-test('own profile keeps the existing CV editor and photo/card action without restoring the removed profile popup',async()=>{
+test('owned profile edit actions open sections of the same owner editor without creating either old modal',async()=>{
   const f=fixture(async()=>({profile:professional({uid:'viewer',own:true,connection:'self',contactScopes:{}})}),'viewer');
   const node=f.render('viewer');await settle();
-  node.querySelector('[data-edit-cv]').click();assert.equal(f.opened.length,1);assert.equal(f.opened[0].id,'community-cv-editor');
-  assert.ok(!f.opened.some(item=>item.id==='community-profile'));
-  node.querySelector('[data-edit-card]').click();f.flushTimers();assert.ok(f.notices.some(item=>item[0]==='edit-card'));
+  node.querySelector('[data-edit-cv]').click();assert.equal(f.opened.length,0);assert.equal(f.navigations.at(-1).options.editSection,'basicos');assert.equal(f.navigations.at(-1).options.profileUid,'viewer');
+  node.querySelector('[data-edit-card]').click();assert.equal(f.navigations.at(-1).options.editSection,'apariencia');assert.equal(f.navigations.at(-1).options.profileUid,'viewer');assert.equal(f.opened.length,0);
 });
 
 test('the successful card-save refresh hook reloads an owned page photo, cover and identity from the current API',async()=>{
@@ -175,13 +174,14 @@ test('the owned card-save refresh hook does not reload an unrelated, detached or
   own.container.isConnected=true;own.api.cleanup();await own.api.refreshCurrentProfile();assert.equal(own.calls.length,1);
 });
 
-test('a missing owned profile offers the existing completion editor and refreshes after creation; a missing foreign profile never offers editing',async()=>{
+test('missing owner cards reuse identity bootstrap before opening the unified editor; foreign missing cards never expose editing',async()=>{
   let created=false;
   const own=fixture(async()=>{if(!created)throw Object.assign(Error('Este perfil no está disponible.'),{status:404});return{profile:professional({uid:'viewer',own:true,connection:'self',contactScopes:{}})};},'viewer');
   const node=own.render('viewer');await settle();
   assert.match(node.innerHTML,/Completa tu perfil profesional/);assert.equal(node.dataset.profileUid,'viewer');
   assert.equal(own.container.querySelector('[data-professional-copy]').disabled,true);
-  node.querySelector('[data-create-own-profile]').click();own.flushTimers();assert.ok(own.notices.some(item=>item[0]==='edit-card'));
+  let identityCalls=0;own.window.ICADEMPlatform.syncIdentity=async()=>{identityCalls++;created=true;};
+  node.querySelector('[data-create-own-profile]').click();await settle();assert.equal(identityCalls,1);assert.equal(own.navigations.at(-1).options.editSection,'basicos');assert.equal(own.navigations.at(-1).options.profileUid,'viewer');assert.equal(own.opened.length,0);
   created=true;await own.api.refreshCurrentProfile();assert.match(node.innerHTML,/professional-profile-page/);assert.equal(own.container.querySelector('[data-professional-copy]').disabled,false);
   const foreign=fixture(async()=>{throw Object.assign(Error('Este perfil no está disponible.'),{status:404});});const unavailable=foreign.render();await settle();
   assert.match(unavailable.innerHTML,/Perfil no disponible/);assert.equal(unavailable.querySelector('[data-create-own-profile]'),null);assert.equal(unavailable.querySelector('[data-edit-card]'),null);

@@ -4065,13 +4065,13 @@ body.has-fomo .main{padding-top:18px}
 <script src="js/icadem-directory.js?v=2"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=3">
-<link rel="stylesheet" href="css/icadem-resume-editor.css?v=2">
-<script src="js/icadem-professional-navigation.js?v=3"></script>
+<link rel="stylesheet" href="css/icadem-resume-editor.css?v=3">
+<script src="js/icadem-professional-navigation.js?v=4"></script>
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
-<script src="js/icadem-professional-profile.js?v=3"></script>
-<script src="js/icadem-resume-editor.js?v=3"></script>
-<script src="js/icadem-community.js?v=6"></script>
+<script src="js/icadem-professional-profile.js?v=4"></script>
+<script src="js/icadem-resume-editor.js?v=4"></script>
+<script src="js/icadem-community.js?v=7"></script>
 <script src="js/icadem-notifications.js?v=2" defer></script>
 </head>
 <body style="visibility:hidden">
@@ -5898,8 +5898,9 @@ function __leerSeccionURLVIP(){
   return __seccionesValidasVIP().has(s) ? s : SECCION_DEFAULT_VIP;
 }
 function __sincronizarDesdeURLVIP(){
+  if(window.ICADEMProfessionalNavigation?.handleHistory?.())return;
   const s = __leerSeccionURLVIP();
-  if (s !== __seccionActualVIP || (s==='directorio-perfil' && window.ICADEMProfessionalNavigation?.currentProfileId()!==window.__perfilProfesionalRutaActual)) navigateToSection(s, { reemplazar: true });
+  if (s !== __seccionActualVIP || (s==='directorio-perfil' && (window.ICADEMProfessionalNavigation?.currentProfileId()!==window.__perfilProfesionalRutaActual || window.ICADEMProfessionalNavigation?.currentEditorSection()!==window.__perfilProfesionalEdicionActual))) navigateToSection(s, { reemplazar: true, fromHistory:true });
 }
 window.addEventListener('popstate', __sincronizarDesdeURLVIP);
 window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
@@ -5911,6 +5912,7 @@ function __entradaAprendizajeActiva(host){
 function navigateToSection(section, opciones){
   // Sección inexistente (link viejo, # inventado) → al inicio
   if(!__seccionesValidasVIP().has(section)) section = SECCION_DEFAULT_VIP;
+  if(window.ICADEMProfessionalNavigation?.allowNavigation?.(section,opciones,()=>navigateToSection(section,{...opciones,professionalApproved:true}))===false)return;
 
   // ── Dejar la pestaña escrita en la URL ──
   if(__seccionActualVIP && __seccionActualVIP!==section) window.__seccionAnteriorVIP=__seccionActualVIP;
@@ -5921,8 +5923,11 @@ function navigateToSection(section, opciones){
   if(__actual !== __destino && window.history){
     if(opciones && opciones.reemplazar) history.replaceState(__profileRoute?.historyState||null, '', __destino);
     else history.pushState(__profileRoute?.historyState||null, '', __destino);
+  }else if(__profileRoute && history.state?.icademProfessionalIndex!==__profileRoute.historyState.icademProfessionalIndex){
+    history.replaceState(__profileRoute.historyState,'',__destino);
   }
   window.__perfilProfesionalRutaActual=section==='directorio-perfil'?window.ICADEMProfessionalNavigation?.currentProfileId():null;
+  window.__perfilProfesionalEdicionActual=section==='directorio-perfil'?window.ICADEMProfessionalNavigation?.currentEditorSection():'';
   window.__scrollNavigationRevision=(window.__scrollNavigationRevision||0)+1;
   const navigationRevision=window.__scrollNavigationRevision;
   const navigationUid=window.__auth?.currentUser?.uid;
@@ -11251,7 +11256,7 @@ const Sections = (function(){
   const SECTORES = ['Fiscal y Contable','Nómina y RH','Legal y Corporativo','Finanzas','Consultoría de Negocios','Marketing y Ventas','Tecnología','Educación','Otro'];
   let _dirUnsub = null;
   window.__dirCleanup = function(){ window.ICADEMCommunity?.cleanup(); try{ if(typeof _dirUnsub==='function'){ _dirUnsub(); _dirUnsub=null; } }catch(e){} };
-  window.__dirEditar = function(){ return dirEditarMiTarjeta(); };
+  window.__dirEditar = function(section){ return dirEditarMiTarjeta(section); };
   let _dirCards = [];
   let _dirFiltroSector = 'todos';
   let _dirFiltroTier = 'todos';
@@ -11355,6 +11360,12 @@ const Sections = (function(){
       r.onerror=reject; r.readAsDataURL(file);
     });
   }
+
+  window.__dirPreparePhoto = function(file){
+    if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type))return Promise.reject(new Error('Usa una imagen JPEG, PNG o WebP.'));
+    if(file.size>2*1024*1024)return Promise.reject(new Error('La fotografía debe pesar menos de 2 MB.'));
+    return dirComprimirFoto(file);
+  };
 
   // ═══════════ NOTICIAS reales en el Home (Firestore noticias_auto) ═══════════
   let _noticiasCargadas = false;
@@ -11696,150 +11707,9 @@ const Sections = (function(){
     container.innerHTML='<div class="community-empty" role="alert">No se pudo cargar el perfil profesional. Actualiza la página para reintentar.</div>';
   }
 
-  async function dirEditarMiTarjeta(){
-    const fs = window.__fs;
-    const uid = window.UserState?.uid;
-    if (!uid){ Toast.error('Inicia sesión',''); return; }
-    // Cargar tarjeta existente
-    let data = window.UserState?.directoryProfile || {};
-    try { const ds = await fs.getDoc(fs.doc(fs.db,'directorio',uid)); if (ds.exists()) data = ds.data(); } catch(e){}
-    _dirFotoTmp = undefined;
-    let coverEditor = null;
-
-    const fotoActual = dirFotoSrc(data);
-    // Foto de Google: se puede volver a poner (o vincular Google) en cualquier momento.
-    let googleFoto = data.authPhotoURL || window.UserState?.authPhotoURL || '';
-    const googleVinculado = (window.UserState?.providerIds || []).includes('google.com') || Boolean(googleFoto);
-    const usaGoogle = Boolean(googleFoto) && (data.fotoOrigen === 'google' || data.photoSource === 'google' || !data.fotoPersonalizada && data.foto === googleFoto);
-    const body = `
-      <div class="dir-form">
-        <div class="dir-form__foto-wrap">
-          <div class="dir-form__foto" id="dirf-foto-prev">
-            ${fotoActual ? `<img src="${fotoActual}" alt="">` : `<svg class="ic"><use href="#i-user"/></svg>`}
-          </div>
-          <div class="dir-form__foto-acts">
-            <button class="btn btn--ghost btn--sm" id="dirf-foto-btn"><svg class="ic"><use href="#i-image"/></svg>Subir foto</button>
-            <button class="btn btn--ghost btn--sm dirf-google" id="dirf-foto-google" type="button" ${usaGoogle?'hidden':''}><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" stroke="none" d="M22.6 12.2c0-.8-.1-1.5-.2-2.2H12v4.2h5.9a5 5 0 0 1-2.2 3.3v2.7h3.6c2.1-1.9 3.3-4.8 3.3-8z"/><path fill="#34A853" stroke="none" d="M12 23c3 0 5.5-1 7.3-2.7l-3.6-2.7c-1 .7-2.2 1.1-3.7 1.1-2.9 0-5.3-1.9-6.2-4.5H2.1v2.8A11 11 0 0 0 12 23z"/><path fill="#FBBC05" stroke="none" d="M5.8 14.2a6.6 6.6 0 0 1 0-4.3V7.1H2.1a11 11 0 0 0 0 9.9z"/><path fill="#EA4335" stroke="none" d="M12 5.4c1.6 0 3.1.6 4.2 1.7l3.2-3.2A11 11 0 0 0 2.1 7.1l3.7 2.8C6.7 7.3 9.1 5.4 12 5.4z"/></svg>${googleVinculado?'Usar mi foto de Google':'Vincular Google y usar su foto'}</button>
-            ${fotoActual && !googleVinculado?`<button class="btn btn--ghost btn--sm" id="dirf-foto-quitar">Quitar</button>`:''}
-            <input type="file" id="dirf-foto-file" accept="image/*" style="display:none;">
-          </div>
-        </div>
-        <label class="dir-form__lbl">Nombre completo</label>
-        <input class="dir-form__in" id="dirf-nombre" maxlength="50" value="${(data.nombre||window.UserState?.nombre||'').replace(/"/g,'&quot;')}" placeholder="Ej. Felipe Estrada Ramírez">
-        <label class="dir-form__lbl">Puesto / cargo</label>
-        <input class="dir-form__in" id="dirf-puesto" maxlength="60" value="${(data.puesto||'').replace(/"/g,'&quot;')}" placeholder="Ej. Jefe de Contabilidad">
-        <label class="dir-form__lbl">Empresa</label>
-        <input class="dir-form__in" id="dirf-empresa" maxlength="60" value="${(data.empresa||'').replace(/"/g,'&quot;')}" placeholder="Ej. Contabilidad del Bajío">
-        <label class="dir-form__lbl">Sector</label>
-        <select class="dir-form__in" id="dirf-sector">
-          <option value="">Selecciona…</option>
-          ${SECTORES.map(s=>`<option value="${s}" ${data.sector===s?'selected':''}>${s}</option>`).join('')}
-        </select>
-        <label class="dir-form__lbl">Bio breve <span class="dir-form__opt">(opcional)</span></label>
-        <textarea class="dir-form__in" id="dirf-bio" maxlength="160" rows="2" placeholder="Una línea sobre tu experiencia…">${escapeHtml(data.bio||'')}</textarea>
-        <div class="dir-form__sep">Contacto <span class="dir-form__opt">(todos opcionales)</span></div>
-        <label class="dir-form__lbl">WhatsApp</label>
-        <input class="dir-form__in" id="dirf-wa" maxlength="20" value="${(data.whatsapp||'').replace(/"/g,'&quot;')}" placeholder="Ej. 52 238 123 4567">
-        <label class="dir-form__lbl">Correo</label>
-        <input class="dir-form__in" id="dirf-email" maxlength="80" value="${(data.email||'').replace(/"/g,'&quot;')}" placeholder="correo@ejemplo.com">
-        <label class="dir-form__check"><input type="checkbox" id="dirf-email-publico" ${data.contactoVisible?.email===true?'checked':''}> Mostrar mi correo públicamente</label>
-        <label class="dir-form__check"><input type="checkbox" id="dirf-wa-publico" ${data.contactoVisible?.whatsapp===true?'checked':''}> Mostrar mi WhatsApp públicamente</label>
-        <label class="dir-form__lbl">LinkedIn</label>
-        <input class="dir-form__in" id="dirf-linkedin" maxlength="120" value="${(data.linkedin||'').replace(/"/g,'&quot;')}" placeholder="linkedin.com/in/tu-perfil">
-        <label class="dir-form__lbl">Instagram</label>
-        <input class="dir-form__in" id="dirf-instagram" maxlength="180" autocomplete="url" value="${(data.instagram||'').replace(/"/g,'&quot;')}" placeholder="@usuario o instagram.com/usuario">
-        <label class="dir-form__lbl">Sitio web</label>
-        <input class="dir-form__in" id="dirf-web" maxlength="120" value="${(data.web||'').replace(/"/g,'&quot;')}" placeholder="tusitio.com">
-        ${window.UserState?.modo==='vip'?window.ICADEMDirectory.editorMarkup():''}
-        <label class="dir-form__check"><input type="checkbox" id="dirf-visible" ${data.visible!==false?'checked':''}> Mostrar mi tarjeta en el directorio</label>
-      </div>
-    `;
-    const footer = document.createElement('div');
-    footer.innerHTML = `<button class="btn btn--ghost" id="dirf-cancel">Cancelar</button><button class="btn btn--accent" id="dirf-guardar">Guardar tarjeta</button>`;
-    const m = Modal.open({id:'dir-form', title:'Mi perfil profesional', subtitle:'Tu identidad en toda la plataforma', icon:'i-user', size:'md', body, footer});
-
-    // Foto
-    const fileInput = document.getElementById('dirf-foto-file');
-    document.getElementById('dirf-foto-btn').addEventListener('click', ()=> fileInput.click());
-    fileInput.addEventListener('change', async (e)=>{
-      const f=e.target.files[0]; if(!f) return;
-      if(!f.type.startsWith('image/')){ Toast.error('Solo imágenes',''); return; }
-      try { _dirFotoTmp = await dirComprimirFoto(f); document.getElementById('dirf-foto-prev').innerHTML = `<img src="${_dirFotoTmp}" alt="">`; const g = document.getElementById('dirf-foto-google'); if (g) g.hidden = false; }
-      catch(err){ console.error(err); Toast.error('No se pudo cargar la foto',''); }
-      fileInput.value='';
-    });
-    const btnGoogle = document.getElementById('dirf-foto-google');
-    if (btnGoogle) btnGoogle.addEventListener('click', async ()=>{
-      const label = btnGoogle.innerHTML;
-      try {
-        if (!googleFoto || !googleVinculado) {
-          if (typeof window.__syncGoogleAccount !== 'function') throw new Error('La vinculación con Google no está disponible en este momento.');
-          btnGoogle.disabled = true; btnGoogle.textContent = 'Conectando con Google…';
-          await window.__syncGoogleAccount();
-          googleFoto = window.UserState?.authPhotoURL || '';
-          if (!googleFoto) throw new Error('Tu cuenta de Google no tiene foto de perfil.');
-        }
-        _dirFotoTmp = null; // al guardar, la tarjeta vuelve a usar la foto de Google
-        document.getElementById('dirf-foto-prev').innerHTML = `<img src="${escapeHtml(window.__avatarSrc?.(googleFoto) || googleFoto)}" alt="" referrerpolicy="no-referrer">`;
-        btnGoogle.hidden = true;
-        Toast.success('Foto de Google lista','Se aplicará al guardar tu tarjeta');
-      } catch(err) {
-        if (err?.code !== 'auth/popup-closed-by-user' && err?.code !== 'auth/cancelled-popup-request') Toast.error('No se pudo usar la foto de Google', err?.message || 'Intenta nuevamente');
-      } finally {
-        btnGoogle.disabled = false;
-        if (!btnGoogle.hidden) btnGoogle.innerHTML = label;
-      }
-    });
-    const btnQuitar = document.getElementById('dirf-foto-quitar');
-    if (btnQuitar) btnQuitar.addEventListener('click', ()=>{ _dirFotoTmp = null; document.getElementById('dirf-foto-prev').innerHTML = `<svg class="ic"><use href="#i-user"/></svg>`; });
-    coverEditor = window.ICADEMDirectory.bindEditor(document.getElementById('dirf-cover-editor'), data);
-
-    footer.querySelector('#dirf-cancel').addEventListener('click', ()=> m.close());
-    footer.querySelector('#dirf-guardar').addEventListener('click', async ()=>{
-      if (coverEditor && !coverEditor.ready()) return;
-      const nombre = document.getElementById('dirf-nombre').value.trim();
-      if (nombre.length<3){ Toast.error('Falta tu nombre','Escribe tu nombre completo'); return; }
-      const instagramRaw = document.getElementById('dirf-instagram').value.trim();
-      const instagram = dirInstagramPerfil(instagramRaw);
-      if (instagramRaw && !instagram){ Toast.error('Instagram inválido','Escribe @usuario o la URL de un perfil de Instagram.'); return; }
-      const btn = footer.querySelector('#dirf-guardar'); btn.disabled=true; btn.textContent='Guardando…';
-      const payload = {
-        uid,
-        nombre,
-        puesto: document.getElementById('dirf-puesto').value.trim(),
-        empresa: document.getElementById('dirf-empresa').value.trim(),
-        sector: document.getElementById('dirf-sector').value,
-        bio: document.getElementById('dirf-bio').value.trim(),
-        whatsapp: document.getElementById('dirf-wa').value.trim(),
-        email: document.getElementById('dirf-email').value.trim(),
-        linkedin: document.getElementById('dirf-linkedin').value.trim(),
-        instagram,
-        web: document.getElementById('dirf-web').value.trim(),
-        visible: document.getElementById('dirf-visible').checked,
-        contactoVisible: {
-          email: document.getElementById('dirf-email-publico').checked,
-          whatsapp: document.getElementById('dirf-wa-publico').checked,
-          linkedin: true,
-          instagram: true,
-          web: true
-        }
-      };
-      if (_dirFotoTmp === null) payload.removeCustomPhoto = true;
-      else if (typeof _dirFotoTmp === 'string') payload.avatarDataUrl = _dirFotoTmp;
-      Object.assign(payload, coverEditor?.payload() || {});
-      coverEditor?.saving(true);
-      try {
-        if (!window.ICADEMPlatform?.saveProfile) throw new Error('El servicio de perfil no está disponible');
-        await window.ICADEMPlatform.saveProfile(payload);
-        Toast.success('Perfil guardado','Tu identidad ya se actualizó en ICADEM');
-        m.close();
-        dirSuscribir();
-        window.ICADEMCommunity?.refreshCurrentProfile?.();
-        if (window.UserState) { window.UserState.nombre = nombre; window.UserState.displayName = nombre; window.UserState.customName = nombre; }
-        document.querySelectorAll('.perfil-hero__name,[data-field="nombre"] .perfil-field__val').forEach(el => el.textContent = nombre);
-        window.__refreshPerfilDatos?.();
-      } catch(e){ console.error(e); Toast.error('No se pudo guardar', e.message||''); coverEditor?.saving(false); coverEditor?.error(e.message); btn.disabled=false; btn.textContent='Guardar tarjeta'; }
-    });
+  async function dirEditarMiTarjeta(section){
+    if(!window.UserState?.uid){Toast.error('Inicia sesión','');return;}
+    if(!window.ICADEMProfessionalNavigation?.openEditor(typeof section==='string'?section:'basicos'))Toast.error('No pudimos abrir el editor','Actualiza la página e inténtalo de nuevo.');
   }
 
   /* ============================ FORO VIP ============================ */
@@ -12338,9 +12208,9 @@ const Sections = (function(){
               <span class="tag tag--down"><b data-credit-balance>${Number(S.credits?.balance)||0}</b>&nbsp; créditos</span>
             </div>
           </div>
-          <button class="btn btn--ghost" id="btn-edit-profile" style="align-self:flex-start;"><svg class="ic"><use href="#i-tools"/></svg>Editar perfil</button>
+          <button class="btn btn--ghost" id="btn-edit-profile" style="align-self:flex-start;"><svg class="ic"><use href="#i-tools"/></svg>Editar mi perfil profesional</button>
           <button class="btn btn--ghost" id="btn-mi-tarjeta-dir" style="align-self:flex-start;"><svg class="ic"><use href="#i-users"/></svg>Ver mi perfil</button>
-          <button class="btn btn--ghost" id="btn-sync-google" style="align-self:flex-start;"><svg class="ic"><use href="#i-image"/></svg>${_googleLinked?'Actualizar foto de Google':'Vincular Google'}</button>
+          <button class="btn btn--ghost" id="btn-sync-google" style="align-self:flex-start;"><svg class="ic"><use href="#i-image"/></svg>Fotografía y portada</button>
         </section>
 
         <section id="ambassador-profile-promo" class="ambassador-promo" aria-label="Programa ICADEM Embajadores" hidden></section>
@@ -12351,9 +12221,11 @@ const Sections = (function(){
             <div class="perfil-field" data-field="nombre"><span class="perfil-field__lbl">Nombre</span><span class="perfil-field__val">${_nom}</span><button class="perfil-field__edit" type="button" aria-label="Editar nombre"><svg class="ic"><use href="#i-tools"/></svg></button></div>
             <div class="perfil-field" data-field="email" data-readonly="1"><span class="perfil-field__lbl">Email</span><span class="perfil-field__val">${_em}</span><button class="perfil-field__edit" type="button" aria-label="Información del email"><svg class="ic"><use href="#i-tools"/></svg></button></div>
             <div class="perfil-field" data-field="whatsapp"><span class="perfil-field__lbl">WhatsApp</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar whatsapp"><svg class="ic"><use href="#i-tools"/></svg></button></div>
-            <div class="perfil-field" data-field="puesto"><span class="perfil-field__lbl">Profesión</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar profesión"><svg class="ic"><use href="#i-tools"/></svg></button></div>
+            <div class="perfil-field" data-field="profesion"><span class="perfil-field__lbl">Profesión</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar profesión"><svg class="ic"><use href="#i-tools"/></svg></button></div>
+            <div class="perfil-field" data-field="puesto"><span class="perfil-field__lbl">Puesto actual</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar puesto actual"><svg class="ic"><use href="#i-tools"/></svg></button></div>
             <div class="perfil-field" data-field="empresa"><span class="perfil-field__lbl">Empresa</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar empresa"><svg class="ic"><use href="#i-tools"/></svg></button></div>
-            <div class="perfil-field" data-field="sector"><span class="perfil-field__lbl">Área</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar área"><svg class="ic"><use href="#i-tools"/></svg></button></div>
+            <div class="perfil-field" data-field="sector"><span class="perfil-field__lbl">Sector</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar sector"><svg class="ic"><use href="#i-tools"/></svg></button></div>
+            <div class="perfil-field" data-field="especialidad"><span class="perfil-field__lbl">Especialidad</span><span class="perfil-field__val">—</span><button class="perfil-field__edit" type="button" aria-label="Editar especialidad"><svg class="ic"><use href="#i-tools"/></svg></button></div>
           </div>
 
           <div class="perfil-card">
@@ -13642,7 +13514,7 @@ window.__refreshPerfilDatos = async function(){
   const profileOwner=window.__auth?.currentUser?.uid;
   const card = await leerTarjetaPropia();
   if(profileOwner!==window.__auth?.currentUser?.uid)return;
-  const values = { whatsapp: card.whatsapp, puesto: card.puesto || card.profesion, empresa: card.empresa || card.institucion, sector: card.sector || card.especialidad };
+    const values = { whatsapp: card.whatsapp, profesion: Object.hasOwn(card,'profesion')?card.profesion:card.puesto, puesto:card.puesto, empresa:card.empresa??card.institucion, sector:card.sector, especialidad:Object.hasOwn(card,'especialidad')?card.especialidad:card.sector };
   Object.entries(values).forEach(([field, value]) => {
     const el = document.querySelector(`.perfil-grid [data-field="${field}"] .perfil-field__val`);
     if (el) { el.textContent = String(value || '').trim() || '—'; el.dataset.value = String(value || '').trim(); }
@@ -14260,14 +14132,7 @@ function initNav(){
     }
 
     if(t.closest('#btn-sync-google,#btn-link-google')){
-      const btn=t.closest('#btn-sync-google,#btn-link-google'); btn.disabled=true;
-      try{
-        await window.__syncGoogleAccount();
-        Toast.success('Foto sincronizada','La identidad vigente de Google ya aparece en ICADEM');
-        navigateToSection('perfil');
-      }catch(error){
-        console.error(error); Toast.error('No se pudo sincronizar Google',error.message||'Intenta nuevamente'); btn.disabled=false;
-      }
+      window.ICADEMProfessionalNavigation?.openEditor('apariencia');
       return;
     }
 
@@ -14285,8 +14150,8 @@ function initNav(){
         const field=wrap.dataset.field;
         if(wrap.dataset.readonly==='1'){
           Toast.info('Email no editable','El email viene de tu cuenta de acceso');
-        } else if(['nombre','whatsapp','empresa','puesto','sector'].includes(field)){
-          openEditField(field);
+        } else if(['nombre','whatsapp','empresa','profesion','puesto','sector','especialidad'].includes(field)){
+          window.ICADEMProfessionalNavigation?.openEditor(field==='whatsapp'?'contactos':'basicos');
         }
         return;
       }
