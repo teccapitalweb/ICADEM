@@ -7,7 +7,8 @@
 // la sesión; en pruebas, el emisor de desarrollo) y, para reconectarse, el pase que le dio el servidor.
 import { NetworkAdapter } from './network.js';
 
-const BACKOFF = [600, 1200, 2500, 5000, 8000];
+// Espera entre reintentos: crece hasta un minuto para no saturar el servidor si está caído.
+const BACKOFF = [600, 1200, 2500, 5000, 10000, 20000, 30000, 60000];
 
 export class WsAdapter extends NetworkAdapter {
   /** @param {{url:string, getTicket:() => Promise<string>, avatar?:string, WebSocketImpl?:any}} o */
@@ -30,7 +31,11 @@ export class WsAdapter extends NetworkAdapter {
   #open() {
     clearTimeout(this.timer);
     this.#set(this.attempt ? 'reconnecting' : 'connecting');
-    this.#connect().catch(() => this.#retry());
+    this.#connect().catch(error => {
+      if (error && error.code === 'sin-acceso') { this.status = 'closed'; this.emit('status', { status: 'closed', detail: 'sin-acceso' }); return; }   // sin acceso: el juego sigue sin red
+      if (error && error.code === 'ciudad-llena') this.attempt = Math.max(this.attempt, BACKOFF.length - 1);
+      this.#retry();
+    });
   }
 
   async #connect() {
@@ -82,7 +87,10 @@ export class WsAdapter extends NetworkAdapter {
       case 'instance': { const had = [...this.roster.keys()]; this.roster.clear(); had.forEach(pid => this.emit('leave', { pid })); this.instance = m.instance; (m.roster || []).forEach(p => { this.roster.set(p.pid, p); this.emit('join', p); }); this.#set('online'); break; }
       case 'room': this.roomState = m.room || null; this.emit('room', m); break;
       // Un pase vencido no es definitivo: se reintenta con un boleto nuevo. Lo demás sí cierra.
-      case 'bye': if (m.reason === 'no-autorizado' && this.attempt < 3) break; this.status = 'closed'; this.emit('status', { status: 'closed', detail: m.reason }); break;
+      case 'bye':
+        if (m.reason === 'no-autorizado' && this.attempt < 3) break;                                                       // pase vencido: se pide boleto nuevo
+        if (m.reason === 'ciudad-llena' || m.reason === 'no-disponible') { this.attempt = Math.max(this.attempt, BACKOFF.length - 2); break; }   // se reintenta más tarde
+        this.status = 'closed'; this.emit('status', { status: 'closed', detail: m.reason }); break;
     }
   }
 
@@ -133,7 +141,11 @@ export function panelTicketProvider() {
   let n = 0;
   return () => new Promise((resolve, reject) => {
     const id = ++n, timer = setTimeout(() => { removeEventListener('message', on); reject(new Error('sin boleto')); }, 10000);
-    const on = e => { if (e.origin !== location.origin || e.source !== window.parent || !e.data || e.data.type !== 'ciudad:ticket' || e.data.n !== id) return; removeEventListener('message', on); clearTimeout(timer); e.data.ticket ? resolve(e.data.ticket) : reject(new Error('sin boleto')); };
+    const on = e => {
+      if (e.origin !== location.origin || e.source !== window.parent || !e.data || e.data.type !== 'ciudad:ticket' || e.data.n !== id) return;
+      removeEventListener('message', on); clearTimeout(timer);
+      if (typeof e.data.ticket === 'string' && e.data.ticket) resolve(e.data.ticket); else reject(Object.assign(new Error('sin boleto'), { code: e.data.denied || null }));
+    };
     addEventListener('message', on); window.parent.postMessage({ type: 'ciudad:ticket?', n: id }, location.origin);
   });
 }

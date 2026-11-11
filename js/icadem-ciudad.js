@@ -36,7 +36,7 @@
       // Multijugador: solo si administración configuró el servidor. El juego recibe la dirección, nunca la sesión.
       frame.contentWindow.postMessage({ type: 'ciudad:net', ws: serverUrl() ? serverUrl().replace(/^http/, 'ws') : null }, window.location.origin);
     } else if (event.data.type === 'ciudad:ticket?') {
-      requestTicket().then(function (ticket) { if (stage) frame.contentWindow.postMessage({ type: 'ciudad:ticket', n: event.data.n, ticket: ticket }, window.location.origin); });
+      requestTicket().then(function (r) { if (stage) frame.contentWindow.postMessage({ type: 'ciudad:ticket', n: event.data.n, ticket: r.ticket || null, denied: r.denied || null }, window.location.origin); });
     } else if (event.data.type === 'ciudad:exit') {
       close();
     }
@@ -75,10 +75,16 @@
    */
   function requestTicket() {
     var server = serverUrl(), user = window.__auth && window.__auth.currentUser;
-    if (!server || !user || typeof user.getIdToken !== 'function') return Promise.resolve(null);
+    // Sin servidor o sin sesión: el juego sigue sin red y no vuelve a preguntar.
+    if (!server || !user || typeof user.getIdToken !== 'function') return Promise.resolve({ denied: 'sin-acceso' });
+    var status = 0;
     return user.getIdToken().then(function (idToken) {
       return fetch(server + '/ticket', { method: 'POST', headers: { Authorization: 'Bearer ' + idToken } });
-    }).then(function (res) { return res.ok ? res.json() : null; }).then(function (body) { return body && typeof body.ticket === 'string' ? body.ticket : null; }).catch(function () { return null; });
+    }).then(function (res) { status = res.status; return res.ok ? res.json() : null; }).then(function (body) {
+      if (body && typeof body.ticket === 'string') return { ticket: body.ticket };
+      // 401/403: sin acceso (no se reintenta) · 503: ciudad llena (se reintenta más tarde) · otro: falla temporal.
+      return { denied: status === 401 || status === 403 ? 'sin-acceso' : status === 503 ? 'ciudad-llena' : null };
+    }).catch(function () { return { denied: null }; });
   }
 
   function onKey(event) {

@@ -35,7 +35,11 @@ export class Profiles {
   constructor({ storage = new MemoryStorage(), missions, rewards = {} }) { this.storage = storage; this.missions = missions; this.rewards = rewards; this.locks = new Map(); }
 
   /** Las operaciones de un mismo usuario se encadenan: dos dispositivos a la vez no se pisan. */
-  #serial(uid, fn) { const next = (this.locks.get(uid) || Promise.resolve()).then(fn, fn); this.locks.set(uid, next.catch(() => {})); return next; }
+  #serial(uid, fn) {
+    // Si el guardado detecta que otro proceso escribió entre la lectura y la escritura, se repite desde una lectura nueva.
+    const run = async () => { for (let i = 0; ; i++) { try { return await fn(); } catch (e) { if (e && e.code === 'conflict' && i < 3) continue; throw e; } } };
+    const next = (this.locks.get(uid) || Promise.resolve()).then(run, run); this.locks.set(uid, next.catch(() => {})); return next;
+  }
 
   async #read(uid) {
     const saved = await this.storage.load(uid);

@@ -72,6 +72,8 @@ export class Social {
 
   #status(s) {
     const online = s.status === 'online';
+    // Sin acceso al multijugador (o sin servidor): el juego es de un jugador y no se muestra nada de red.
+    if (s.status === 'closed' && s.detail === 'sin-acceso') { this.chip.hidden = true; this.friendsBtn.hidden = true; this.lastStatus = s.status; return; }
     this.chip.hidden = false; this.friendsBtn.hidden = !online;
     this.chip.className = 'net-chip is-' + s.status;
     const others = this.api.net.roster ? this.api.net.roster.size : 0;

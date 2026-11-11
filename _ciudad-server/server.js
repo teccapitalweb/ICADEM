@@ -30,7 +30,7 @@ const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
  *   devLogin   habilita el emisor de desarrollo, solo desde la misma máquina
  *   origins    orígenes web permitidos (obligatorio si no es devLogin)
  */
-export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null } = {}) {
+export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null, maxPlayers = 64, maxConnsPerIp = 8, trustProxy = false } = {}) {
   if (!devLogin && (!origins || !origins.length)) throw new Error('[ciudad] fuera del modo de prueba hay que declarar los orígenes permitidos');
   if (!devLogin && !identity) throw new Error('[ciudad] fuera del modo de prueba hace falta un verificador de identidad');
   // Conexiones: en producción las entrega el backend de ICADEM; en pruebas, el emisor de desarrollo.
@@ -42,16 +42,22 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   const originOk = origin => !origins || origins.includes(origin);
   const reply = (res, code, body, origin) => { res.writeHead(code, { 'content-type': 'application/json', 'cache-control': 'no-store', ...(origin && originOk(origin) ? { 'access-control-allow-origin': origin, 'access-control-allow-headers': 'authorization, content-type', vary: 'origin' } : {}) }); res.end(JSON.stringify(body)); };
   const readBody = req => new Promise(resolve => { let data = ''; req.on('data', c => { data += c; if (data.length > 2048) { data = ''; req.destroy(); } }); req.on('end', () => { try { resolve(JSON.parse(data || '{}')); } catch (_) { resolve(null); } }); req.on('error', () => resolve(null)); });
+  // Dirección del cliente. Detrás de Railway todas las conexiones llegan desde su proxy: con
+  // trustProxy se usa X-Real-IP, que el borde de Railway reescribe siempre (el cliente no puede falsearla).
+  const clientIp = req => { const real = trustProxy ? String(req.headers['x-real-ip'] || '').trim() : ''; return /^[0-9a-f.:]{3,45}$/i.test(real) ? real : (req.socket.remoteAddress || ''); };
+  const online = () => { let n = 0; for (const p of hub.byUid.values()) if (p.online) n++; return n; };
+  const full = uid => online() >= maxPlayers && !(hub.byUid.get(uid) || {}).online;   // tope global de jugadores conectados
+  const perIp = new Map();        // dirección → sockets abiertos
   const ticketHits = new Map();   // dirección → [marcas de tiempo]: máximo 20 boletos por minuto
   const throttled = ip => { const t = now(), list = (ticketHits.get(ip) || []).filter(x => t - x < 60000); list.push(t); ticketHits.set(ip, list); return list.length > 20; };
 
   const server = http.createServer(async (req, res) => {
-    const origin = req.headers.origin, ip = req.socket.remoteAddress || '';
+    const origin = req.headers.origin, ip = clientIp(req), loopback = LOOPBACK.has(req.socket.remoteAddress || '');
     if (req.url === '/health') return reply(res, 200, { ok: true, ...hub.stats() });
     if (req.method === 'OPTIONS') return reply(res, originOk(origin) ? 204 : 403, {}, origin);
     if (req.method === 'POST' && req.url === '/dev/connect') {
       // Solo pruebas: declara que dos usuarios de desarrollo tienen una conexión autorizada.
-      if (!devLogin || !LOOPBACK.has(ip)) return reply(res, 404, { error: 'no-disponible' }, origin);
+      if (!devLogin || !loopback) return reply(res, 404, { error: 'no-disponible' }, origin);
       const body = await readBody(req), ok = body && [body.a, body.b].every(u => /^[A-Za-z0-9_-]{1,40}$/.test(String(u || '')));
       if (!ok) return reply(res, 400, { error: 'datos' }, origin);
       link('dev-' + body.a, 'dev-' + body.b); return reply(res, 200, { ok: true }, origin);
@@ -62,7 +68,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
       let who = null;
       if (req.url === '/dev/ticket') {
         // Emisor de desarrollo: sustituye al inicio de sesión real SOLO en pruebas y SOLO en esta máquina.
-        if (!devLogin || !LOOPBACK.has(ip)) return reply(res, 404, { error: 'no-disponible' }, origin);
+        if (!devLogin || !loopback) return reply(res, 404, { error: 'no-disponible' }, origin);
         const body = await readBody(req), uid = body && /^[A-Za-z0-9_-]{1,40}$/.test(String(body.uid || '')) ? String(body.uid) : null;
         if (!uid) return reply(res, 400, { error: 'datos' }, origin);
         who = { uid: 'dev-' + uid, name: String(body.name || '') };
@@ -72,25 +78,38 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         try { who = await identity(bearer[1]); } catch (_) { who = null; }
         if (!who) return reply(res, 401, { error: 'no-autorizado' }, origin);
       }
-      let allowed = false; try { allowed = await authorize(who); } catch (_) {}
+      let allowed = false; try { allowed = await authorize(who); } catch (error) { log('authorize-error', error && (error.code || error.message)); }
       if (!allowed) return reply(res, 403, { error: 'sin-acceso' }, origin);
+      if (full(who.uid)) return reply(res, 503, { error: 'ciudad-llena' }, origin);
       return reply(res, 200, { ticket: authority.issue({ uid: who.uid, name: who.name || 'Jugador' }), expiresIn: 60 }, origin);
     }
     reply(res, 404, {});
   });
-  const wss = new WebSocketServer({ server, maxPayload: 4096, verifyClient: info => originOk(info.origin) });
+  const wss = new WebSocketServer({ server, maxPayload: 4096, verifyClient: info => {
+    if (!originOk(info.origin)) return false;
+    if (wss.clients.size >= maxPlayers * 2) return false;                        // sockets abiertos en total
+    return (perIp.get(clientIp(info.req)) || 0) < maxConnsPerIp;                // y por dirección
+  } });
   const send = (ws, msg) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg)); };
   const toRoom = (room, extra = {}) => { if (!room) return; const view = hub.roomView(room); for (const m of room.members.values()) send(sockets.get(m.player), { t: 'room', room: view, ...extra }); };
   const toInstance = (instance, msg, except) => { for (const p of instance.players.values()) if (p !== except && p.online) send(sockets.get(p), msg); };
 
-  wss.on('connection', ws => {
+  wss.on('connection', (ws, req) => {
+    const ip = clientIp(req); perIp.set(ip, (perIp.get(ip) || 0) + 1);
+    let helloing = false;
     let player = null, epoch = 0, alive = true, budget = 0, budgetAt = now(), identityOf = null;
     ws.renew = () => { if (player && identityOf && sockets.get(player) === ws) send(ws, { t: 'resume', token: authority.issue({ ...identityOf, kind: 'resume' }) }); };
     const helloTimer = setTimeout(() => { if (!player) ws.close(4001, 'sin-identificar'); }, 5000);
     ws.on('pong', () => { alive = true; });
     ws.hb = () => { if (!alive) return ws.terminate(); alive = false; try { ws.ping(); } catch (_) {} };
 
-    ws.on('message', async raw => {
+    ws.on('message', raw => handle(raw).catch(error => {
+      // Un fallo (p. ej. la base de datos no responde) nunca tumba el servidor ni deja datos a medias.
+      log('error', player ? player.pid : '-', error && (error.code || error.message));
+      if (!player) { send(ws, { t: 'bye', reason: 'no-disponible' }); ws.close(4011, 'no-disponible'); } else send(ws, { t: 'error' });
+    }));
+
+    async function handle(raw) {
       // Tope de mensajes por conexión: 40 por segundo (el juego envía 10 estados por segundo).
       const t = now(); if (t - budgetAt >= 1000) { budgetAt = t; budget = 0; }
       if (++budget > 40) return ws.close(4008, 'demasiados-mensajes');
@@ -98,10 +117,12 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
       if (!msg || typeof msg.t !== 'string') return;
 
       if (!player) {
-        if (msg.t !== 'hello') return;
+        if (msg.t !== 'hello' || helloing) return;
+        helloing = true;
         // Identidad: boleto de entrada o pase de reanudación, ambos firmados y de un solo uso.
         const who = typeof msg.resume === 'string' ? authority.redeem(msg.resume, 'resume') : authority.redeem(msg.ticket, 'entry');
         if (!who) { send(ws, { t: 'bye', reason: 'no-autorizado' }); return ws.close(4003, 'no-autorizado'); }
+        if (full(who.uid)) { send(ws, { t: 'bye', reason: 'ciudad-llena' }); return ws.close(4013, 'ciudad-llena'); }
         // La apariencia sale del perfil guardado en el servidor, no de lo que anuncie el cliente.
         const profile = await profiles.get(who.uid);
         const joined = hub.join({ uid: who.uid, name: who.name, avatar: profile.avatarId });
@@ -164,10 +185,11 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         const def = MISSIONS.get(String(msg.mission)), r = def ? replay(def, msg.log) : null;
         send(ws, { t: 'verified', mission: msg.mission, ok: Boolean(r && r.ok && r.result.valid), score: r && r.ok ? r.result.score : 0, passed: Boolean(r && r.ok && r.result.passed) });
       }
-    });
+    }
 
     ws.on('close', () => {
       clearTimeout(helloTimer);
+      const left = (perIp.get(ip) || 1) - 1; if (left > 0) perIp.set(ip, left); else perIp.delete(ip);
       if (!player || player.epoch !== epoch || sockets.get(player) !== ws) return;
       sockets.delete(player); hub.detach(player); if (player.room) toRoom(player.room);
       toInstance(player.instance, { t: 'leave', pid: player.pid, soft: true }, player);
@@ -210,8 +232,10 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       options = { host: process.env.HOST || '0.0.0.0', devLogin: false, origins, authority: new TicketAuthority({ secret }) };
       if (sa) {
         // Misma cuenta de servicio que el backend: identidad, membresía y conexiones vienen de ICADEM.
-        const { db, auth, projectId } = await connectFirebase(sa, { storageBucket: process.env.FIREBASE_STORAGE_BUCKET });
-        const icadem = createIcademServices({ db, auth, admins });
+        const { db, auth, projectId } = await connectFirebase(sa);
+        const list = name => (process.env[name] || '').split(',').map(s => s.trim()).filter(Boolean);
+        const icadem = createIcademServices({ db, auth, admins, pilot: list('CIUDAD_PILOT_EMAILS'), blocked: list('CIUDAD_BLOCKED_UIDS') });
+        if (list('CIUDAD_PILOT_EMAILS').length) print(`modo piloto: solo ${list('CIUDAD_PILOT_EMAILS').length} cuentas autorizadas (más administradores)`);
         options.identity = icadem.identity; options.authorize = icadem.authorize; options.connections = icadem.connections;
         options.storage = process.env.CIUDAD_PROFILES === 'firestore' ? icadem.storage : new MemoryStorage();
         print(`identidad y conexiones: Firebase (${projectId}) · progreso: ${process.env.CIUDAD_PROFILES === 'firestore' ? 'Firestore (ciudadProfiles)' : 'memoria (se pierde al reiniciar)'}`);
@@ -222,9 +246,11 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         print(`identidad: llaves públicas (${projectId}) · sin membresía ni conexiones · progreso en memoria`);
       }
     } else die('CIUDAD_AUTH desconocido: ' + mode + '.');
-    const app = createServer({ port: Number(process.env.PORT || 8787), log: print, ...options });
+    const limits = { maxPlayers: Math.max(2, Math.min(500, Number(process.env.CIUDAD_MAX_PLAYERS) || 64)), trustProxy: process.env.CIUDAD_TRUST_PROXY === '1' };
+    const app = createServer({ port: Number(process.env.PORT || 8787), log: print, ...options, ...limits });
+    process.on('unhandledRejection', error => print('error-no-controlado', error && (error.code || error.message)));
     const port = await app.listen();
-    print(`servidor de ${mode === 'test' ? 'PRUEBA' : 'sesiones'} en el puerto ${port} · capacidad ${LIMITS.capacity} por instancia · identidad: ${mode}`);
+    print(`servidor de ${mode === 'test' ? 'PRUEBA' : 'sesiones'} en el puerto ${port} · ${LIMITS.capacity} por instancia · máximo ${limits.maxPlayers} conectados · identidad: ${mode}`);
     for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { print('apagando…'); app.close().then(() => process.exit(0)); });
   };
   run().catch(error => die(String(error && error.message || error)));
