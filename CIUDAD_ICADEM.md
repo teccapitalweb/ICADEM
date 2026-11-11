@@ -576,3 +576,43 @@ de esta rama está en `main`: se integra solo con autorización.
 - 375 pruebas en verde (más las 3 preexistentes de `main` indicadas arriba). Navegador: cinco juegos
   45/45, hospital con interfaz 17/17, obra 16/16, supermercado 12/12, multijugador 38/38 (una corrida
   intermitente 37/38 por tiempo en la animación remota), pantallas/táctil 15/15, panel 16/16.
+
+## 15. Publicación coordinada de los cinco juegos en el piloto (preparada; pendiente de autorización)
+
+### 15.1 Por qué el orden importa
+El servicio `ciudad-icadem` de Railway construye desde `feature/ciudad-icadem-social` (`20d1dd7`), que solo
+conoce Banco y Tribunal. Reproducido con `scripts/ciudad-servidor-e2e.cjs` contra ese código:
+
+- Cliente nuevo + servidor viejo: Supermercado, Obra y Hospital se juegan, pero el servidor responde
+  `mision-desconocida`; el juego muestra los créditos y al reconectar desaparecen (9/20). Dentro de esos
+  edificios los estados se rechazan (`formato`) y al salir hay corrección de posición (`velocidad`).
+- Servidor nuevo + cliente publicado hoy (Banco y Tribunal, `?v=3`): 11/11, sin cambios para el piloto.
+- Servidor nuevo + cliente nuevo: 20/20 (cinco juegos acreditados una vez, persistencia al reconectar,
+  repetición sin duplicar, bitácora falsificada rechazada, ninguna entrada o salida por puerta rechazada).
+
+Por eso: **primero el servidor, después el cliente.** El esquema de perfiles (`profiles.js`,
+`progress/rules.js`) no cambió: los perfiles del piloto en `ciudadProfiles` se conservan.
+
+### 15.2 Pasos
+1. Servidor: avanzar `feature/ciudad-icadem-social` (fast-forward, sin reescribir historia) al commit de
+   esta rama. Railway lo redespliega solo (watch paths `_ciudad-server/**` y `ciudad/js/**`), sin cambiar
+   la rama configurada del servicio. Verificar `/health`, logs de arranque y una sesión del piloto.
+2. Cliente: mezclar el PR a `main`. Versiones: `js/icadem-ciudad.js?v=4` (`vip-panel.html`, `sw.js`),
+   `ciudad/index.html?v=4`, `css/ciudad.css?v=4`, `main.js?v=4` y caché `icadem-vip-v153`.
+3. Verificar en el piloto los cinco juegos desde el panel.
+
+Reversa: el servidor nuevo acepta el cliente anterior, así que revertir el PR del cliente no requiere
+tocar Railway. Para revertir el servidor, regresar `feature/ciudad-icadem-social` a `20d1dd7` solo
+después de revertir el cliente.
+
+### 15.3 Cambio en `sw.js` (archivo compartido)
+Además de las versiones, solo para rutas `/ciudad/`: red primero con validación (`cache: 'no-cache'`) y
+caché como respaldo sin conexión. Evita que, en la primera carga después de publicar, el service worker
+anterior entregue módulos viejos del juego (sin versión en el nombre) junto con un `main.js` nuevo. Fuera
+de `/ciudad/` la estrategia no cambia (`test/ciudad-sw.test.cjs`).
+
+### 15.4 Prueba intermitente de multijugador
+La comprobación «la animación de caminar se sincroniza» esperaba un tiempo fijo (1.8 s). La red entrega
+el estado «quieto» de forma determinista (10 Hz, interpolación de 0.15 s); la demora venía del dibujo por
+software del entorno de pruebas. Ahora la prueba separa red y dibujo con espera acotada: 3 corridas
+seguidas 39/39.
