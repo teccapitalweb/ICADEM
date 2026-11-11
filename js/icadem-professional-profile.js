@@ -47,6 +47,22 @@
     function period(row){var start=month(row.inicio),end=row.actual?'Actualidad':month(row.fin);return start||end?[start,end].filter(Boolean).join(' — '):row.periodo||'';}
     function external(url,label){var safe=h.safeUrl(url);return safe&&/^https:\/\//i.test(safe)?'<a class="pp-external" href="'+e(safe)+'" target="_blank" rel="noopener noreferrer">'+e(label||'Ver enlace')+icon('arrow-up-right')+'</a>':'';}
     function tagList(values,label){return values.length?'<div class="pp-skill-group"><h3>'+e(label)+'</h3><ul class="pp-skills">'+values.map(function(value){return '<li>'+e(value)+'</li>';}).join('')+'</ul></div>':'';}
+    function languageMarkup(row){
+      var description=window.ICADEMCVLanguages?.describe(row)||{label:String(row.nivel||''),accreditation:'',review:false};
+      var details=[];
+      // These details are declarations from the professional, not a verification
+      // badge. The API has already applied the privacy of the entire section.
+      if(row.acreditacion==='certificacion'){
+        if(row.organismo)details.push(['Organismo indicado',row.organismo]);
+        if(row.fecha)details.push(['Fecha indicada',row.fecha.length===7?month(row.fecha):row.fecha]);
+        if(row.resultado)details.push(['Resultado declarado',row.resultado]);
+      }
+      return '<li class="pp-language"><div class="pp-language-content"><div class="pp-language-title"><strong>'+e(row.idioma)+'</strong><span class="pp-language-level">'+e(description.label)+'</span></div>'+
+        (description.accreditation?'<p class="pp-language-note">'+e(description.accreditation)+'</p>':'')+
+        (details.length?'<dl class="pp-language-details">'+details.map(function(pair){return '<div><dt>'+e(pair[0])+'</dt><dd>'+e(pair[1])+'</dd></div>';}).join('')+'</dl>':'')+
+        (row.acreditacion==='certificacion'?'<p class="pp-language-note">Información declarada por el profesional, sin verificación de ICADEM.</p>':'')+
+        (p.own&&description.review?'<p class="pp-language-review">Revisa este nivel en el editor antes de confirmar cambios.</p>':'')+'</div></li>';
+    }
     var main = '';
     if (summary||cv.presentacion||cv.objetivo) main += section('about', 'Sobre mí', 'user', (summary?'<p class="pp-copy">' + e(summary) + '</p>':'')+(cv.presentacion?'<div class="pp-copy-block"><h3>Presentación</h3><p class="pp-copy">'+e(cv.presentacion)+'</p></div>':'')+(cv.objetivo?'<div class="pp-copy-block"><h3>Objetivo profesional</h3><p class="pp-copy">'+e(cv.objetivo)+'</p></div>':''));
     if (experience.length) main += section('experience', 'Trayectoria profesional', 'briefcase', '<div class="pp-timeline">' + experience.map(function (x) {
@@ -60,7 +76,7 @@
       return '<article class="pp-education-item"><span class="pp-education-icon" aria-hidden="true">' + icon('book') + '</span><div>' + (x.titulo ? '<h3>' + e(x.titulo) + '</h3>' : '') +
         (x.institucion ? '<p class="pp-organization">' + e(x.institucion) + '</p>' : '') + (x.area?'<p class="pp-copy">'+e(x.area)+'</p>':'') + (period(x) ? '<span class="pp-period">' + e(period(x)) + '</span>' : '') + (x.estado?'<p class="pp-period">'+e(x.estado)+'</p>':'') + (x.descripcion?'<p class="pp-copy">'+e(x.descripcion)+'</p>':'') + '</div></article>';
     }).join('') + '</div><p class="pp-fine">Información proporcionada por el profesional.</p>');
-    if(cv.idiomas?.length)main+=section('languages','Idiomas','globe','<ul class="pp-languages">'+cv.idiomas.map(function(x){return '<li><strong>'+e(x.idioma)+'</strong><span>'+e(x.nivel)+'</span></li>';}).join('')+'</ul>');
+    if(cv.idiomas?.length)main+=section('languages','Idiomas','book','<ul class="pp-languages">'+cv.idiomas.map(languageMarkup).join('')+'</ul>');
     if(cv.certificaciones?.length)main+=section('certifications','Certificaciones','certificate','<div class="pp-records">'+cv.certificaciones.map(function(x){return '<article><h3>'+e(x.nombre)+'</h3>'+(x.institucion?'<p class="pp-organization">'+e(x.institucion)+'</p>':'')+(x.fecha?'<span class="pp-period">'+e(month(x.fecha))+'</span>':'')+(x.identificador?'<p class="pp-copy">Identificador: '+e(x.identificador)+'</p>':'')+external(x.url,'Consultar certificación')+'</article>';}).join('')+'</div><p class="pp-fine">Certificaciones declaradas por el profesional. No implican verificación de ICADEM.</p>');
     if(cv.proyectos?.length)main+=section('projects','Proyectos destacados','briefcase','<div class="pp-records">'+cv.proyectos.map(function(x){return '<article><h3>'+e(x.nombre)+'</h3>'+(period(x)?'<span class="pp-period">'+e(period(x))+'</span>':'')+(x.descripcion?'<p class="pp-copy">'+e(x.descripcion)+'</p>':'')+(x.participacion?'<div class="pp-copy-block"><h3>Participación</h3><p class="pp-copy">'+e(x.participacion)+'</p></div>':'')+external(x.url,'Ver proyecto')+'</article>';}).join('')+'</div>');
 
