@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-11-11 — Prioridades visibles y orden personal en Mis cursos
+
+- Las tarjetas muestran su posición confirmada en la lista («Prioridad #1», «Prioridad #2»…), con una acción discreta para Organizar. Elegir cursos sigue disponible cuando hay cupos. Las posiciones no se recalculan al filtrar el catálogo.
+- Mis desbloqueos conserva su diseño compacto y añade «Primero en tu lista» con el primer curso pendiente elegible, nombre completo accesible y truncamiento visual. «Próximo cupo» evita sugerir un desbloqueo automático.
+- Nuevo orden «Mi orden de prioridad»: aplica primero los filtros actuales, presenta los cursos de la lista en su orden guardado y después el resto con el criterio estándar. Se conservan los cuatro ordenamientos anteriores y las portadas actuales.
+- Las confirmaciones del servidor actualizan inmediatamente números, primer curso y orden del catálogo. Una lectura tardía con una revisión antigua no reemplaza la información confirmada.
+- El guardado envía `expectedRevision`; el backend lo compara dentro de la transacción. Un conflicto conserva el borrador y pide confirmar la carga de la lista actual. No modifica derechos ni consume cupos. El backend compatible se publicó antes del frontend.
+- Validación visual y funcional en 320/360/375/390/414/768/1024/1440 px con Chrome y APIs aisladas; dispositivos y tacto emulados. Concurrencia comprobada también contra Firestore emulado. Recursos versionados y caché `icadem-vip-v154`.
+- Reversión: revertir este cambio, incrementar de nuevo el Service Worker y publicar Pages. La precondición opcional del backend es compatible con el frontend anterior; las prioridades guardadas permanecen en su colección existente.
+
 ## 2026-11-11 — Mi ruta de aprendizaje y filtros compactos de Mis cursos
 
 - «Organizar lista» abre una sección interna del panel, con las mismas portadas y el mismo catálogo de Mis cursos. En computadora se exploran cursos junto a la lista; en pantallas pequeñas la lista aparece primero.

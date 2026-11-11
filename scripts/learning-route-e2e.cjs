@@ -124,7 +124,7 @@ async function routeScenario(width) {
   if(width<1024){assert.ok(filterMetrics.font>=13 && filterMetrics.font<=14,JSON.stringify(filterMetrics));assert.equal(filterMetrics.area.top,filterMetrics.level.top,'category and level use one row');assert.ok(filterMetrics.area.right<=filterMetrics.level.left+1,'filters do not overlap');}
   assert.equal(filterMetrics.tabRows,1,'tabs remain horizontally scrollable in one line');
   assert.deepEqual(filterMetrics.labels,['todos','disponibles','progreso','completados','bloqueados','proximamente']);
-  assert.deepEqual(filterMetrics.sorts,['proximos','nombre','progreso','recientes']);
+  assert.deepEqual(filterMetrics.sorts,['proximos','prioridades','nombre','progreso','recientes']);
   if(shotWidths.includes(width))await screenshot(page,`after-filters-${width}`);
   const covers=await page.evaluate(()=>Object.fromEntries([...document.querySelectorAll('.curso-card')].map(card=>[card.dataset.cid,card.querySelector('.curso-card__cover img')?.getAttribute('src')||card.querySelector('img')?.getAttribute('src')])));
   // Keep real courses controls and scroll context while opening the actual button.
