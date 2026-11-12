@@ -42,7 +42,7 @@ function campus(){
   const courses=[{id:'course',titulo:'Curso en progreso',area:'Legal',nivel:'Intermedio',horas:5,status:'progreso',portada:'/cover.jpg',access:{unlocked:true},sesiones:[{numero:1,accessible:true},{numero:2,accessible:true}]},{id:'next',titulo:'Otro curso',area:'Finanzas',nivel:'Básico',horas:3,portada:'/next.jpg',access:{unlocked:false},sesiones:[{numero:1},{numero:2}]}];
   const location=new URL('https://www.icademx.com/vip-panel.html#inicio');
   const window={__auth:{currentUser:{uid:'test-user'}},UserState:{modo:'vip'},dispatchEvent:event=>events.push(event),scrollTo(){}};
-  const context={window,location,cursos:courses,_cursosLoaded:true,FREE_CLASS_COUNT:4,cursosState:{estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'},
+  const context={window,location,URL,URLSearchParams,cursos:courses,_cursosLoaded:true,FREE_CLASS_COUNT:4,cursosState:{estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'},
     document:{addEventListener(){},getElementById:id=>ids.get(id)||null,querySelectorAll:selector=>selector==='[data-course-filter]'?ids.get('dynamic-section').querySelectorAll(selector):[]},
     history:{pushState(_,__,hash){location.hash=hash;},replaceState(_,__,hash){location.hash=hash;}},
     getProgresoCurso:id=>progress[id]||{clasesVistas:[],completado:false},getPortadaCurso:c=>c.portada,primerCursoGratisId:()=>'',toolEsVIP:()=>true,

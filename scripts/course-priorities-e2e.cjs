@@ -41,8 +41,9 @@ async function fixture(width,shared={data:initial()}){
   });
   await page.addInitScript(()=>{for(const uid of ['demo','fixture-a','fixture-b'])for(const key of ['tour','credit-gift','free-course-offer-seen'])localStorage.setItem(`icadem:experience:v3:${uid}:${key}`,'complete');});
   async function boot(){
+    const previousOrder=new URL(page.url()).searchParams.get('ordenCursos');
     if(page.url().startsWith(base))await page.reload({waitUntil:'domcontentloaded'});
-    await page.goto(base+'/vip-panel.html?modo=demo#cursos',{waitUntil:'domcontentloaded'});
+    await page.goto(base+'/vip-panel.html?modo=demo'+(previousOrder?'&ordenCursos='+encodeURIComponent(previousOrder):'')+'#cursos',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.ICADEMPlatform&&window.ICADEMCourseUnlocks&&typeof navigateToSection==='function');
     await page.evaluate(()=>{if(window.ICADEMPush)window.ICADEMPush.revisar=async()=>'seen';window.__isDemoMode=false;window.__currentUser={uid:'fixture-a',getIdToken:()=>Promise.resolve('browser-fixture-only')};window.__auth={currentUser:window.__currentUser};Object.assign(window.UserState,{uid:'fixture-a',modo:'vip',identityReady:true,isAdmin:false,profileComplete:true,profileIntakeSeen:true,displayName:'Estudiante de prueba',freeCourseId:''});window.__serverProgressOwner='fixture-a';window.__serverCourseProgress={'course-6':{clasesVistas:[1],completado:false}};window.navigateToSection('cursos');});
     await page.waitForSelector('.course-unlocks__status');await page.waitForFunction(()=>document.querySelectorAll('.curso-card').length===8);
@@ -92,6 +93,7 @@ async function scenario(width){
   const covers=await page.locator('.curso-card').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.dataset.cid,node.querySelector('.curso-card__cover img').getAttribute('src')])));
   for(const list of [['course-4'],['course-4','course-0','course-2'],['course-4','course-0','course-2','course-5','course-3']]){
     await setSummary(f,{priorities:list});const expected=Object.fromEntries(list.map((id,index)=>[id,index+1]));assert.deepEqual(await badges(page),expected);assert.deepEqual((await cards(page)).slice(0,list.length),list,'catalog immediately reflects new confirmed order');assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),list[0]);
+    if(list.length===5){await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades');assert.deepEqual((await cards(page)).slice(0,5),list,'five saved priorities remain first in the LARGE catalog after reload');}
     assert.match(await page.locator('[data-unlock-priority]').innerText(),/Primero en tu lista/);assert.ok((await page.locator('[data-unlock-priority]').getAttribute('title')).includes(names[4]));
   }
   const raw=['removed','course-1','course-4','course-2','course-6'];await setSummary(f,{priorities:raw});
@@ -121,7 +123,7 @@ async function scenario(width){
   state.failPut=true;await page.locator('[data-route-save]').click();await page.waitForSelector('[data-route-error]:not([hidden])');assert.deepEqual(state.shared.data.priorities,['course-0','course-2','course-4']);assert.deepEqual(await routeOrder(page),draft);
   await save(page);await back(page);assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades');assert.deepEqual((await cards(page)).slice(0,3),draft);assert.deepEqual(await badges(page),{'course-4':1,'course-2':2,'course-3':3});assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),'course-4');
   assert.deepEqual(await page.locator('.curso-card').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.dataset.cid,node.querySelector('.curso-card__cover img').getAttribute('src')]))),covers,'covers are unchanged by priority updates');
-  await f.boot();await page.locator('#cur-sort').selectOption('prioridades');assert.deepEqual((await cards(page)).slice(0,3),draft,'reload reads server order');
+  await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades','reload retains the main catalog criterion without selecting it again');assert.deepEqual((await cards(page)).slice(0,3),draft,'reload reads server order');
   if(width===390){
     const other=await fixture(768,state.shared);await other.page.locator('#cur-sort').selectOption('prioridades');assert.deepEqual((await cards(other.page)).slice(0,3),draft,'fresh browser/device context reads same server order');
     await open(page);await act(page,'course-3','up');const localDraft=await routeOrder(page);
