@@ -1,5 +1,10 @@
 /* Keys are mapped locally; persisted values never become arbitrary CSS. */
-[data-post-accent="gold"]{--post-accent:#C5A15B}[data-post-accent="blue"]{--post-accent:#78A6BE}[data-post-accent="mint"]{--post-accent:#8AB9AC}[data-post-accent="lavender"]{--post-accent:#ADA0C6}[data-post-accent="coral"]{--post-accent:#D8A293}[data-post-accent="default"]{--post-accent:#DCE5E5}
+[data-post-accent="gold"]{--post-accent:#C5A15B;--post-background:#FFFAF0}[data-post-accent="blue"]{--post-accent:#78A6BE;--post-background:#F2F8FC}[data-post-accent="mint"]{--post-accent:#8AB9AC;--post-background:#F1F9F5}[data-post-accent="lavender"]{--post-accent:#ADA0C6;--post-background:#F7F4FC}[data-post-accent="coral"]{--post-accent:#D8A293;--post-background:#FFF5F1}[data-post-accent="default"]{--post-accent:#DCE5E5;--post-background:#fff}
+/* Pale cards keep a local light palette, including inside the night theme. */
+:is(.foro-page--clean .post,.activity-card,.post-style-preview)[data-post-accent]{--surface:#fff;--surface-2:#f1f5f7;--text:#203446;--text-2:#526777;--text-3:#526777;--primary:#245b78;--primary-deep:#173f59;--border:#dce5e5;--border-2:#c7d5dd;--activity-blue:#1b4258;--activity-line:#dce5e5;color:var(--text);background:var(--post-background,#fff)!important;color-scheme:light}
+.professional-activity .activity-card[data-post-accent] [data-activity-open]:hover{background:#edf5f4;color:var(--activity-blue)}
+.foro-page--clean .post[data-post-accent] .post__btn.is-liked{color:#a64b48}
+.foro-page--clean .post[data-post-accent] :is(.post__avatar,.com__avatar){color:#fff}
 .foro-page--clean .post[data-post-accent]:not([data-post-accent="default"]),.foro-page--clean .post[data-post-accent]:not([data-post-accent="default"]):hover{border-top:3px solid var(--post-accent)!important}
 .activity-card[data-post-accent]:not([data-post-accent="default"]){border-top-color:var(--post-accent)!important}
 [data-post-style-slot]{grid-column:1/-1;min-width:0;width:100%}[data-post-style-slot][hidden],.post-style-dialog [hidden]{display:none!important}
