@@ -29,6 +29,17 @@ test('direct activity links and reloads retain the explicit owner, remove editor
  assert.equal(f.location.search,'?profesional=owner-B');assert.equal(f.api.currentEditorSection(),'');const reload=fixture({url:f.location.href,state:f.history.state});reload.window.navigateToSection('directorio-actividad',{reemplazar:true});reload.api.backToProfile();
  assert.equal(reload.location.hash,'#directorio-perfil');assert.equal(reload.api.currentProfileId(),'owner-B');assert.equal(reload.history.length,1);
 });
+
+test('loaded activity page count survives opening a post, browser return and reload preparation alongside its scroll',()=>{
+ const f=fixture();f.api.openProfile('owner-B');f.api.openActivity('owner-B');f.window.scrollY=1820;
+ f.history.replaceState({...f.history.state,icademActivity:{...f.history.state.icademActivity,pages:3}},'',f.location.href);
+ f.api.openActivityPost('post-from-third-page');assert.equal(f.history.state.icademActivity.pages,3);
+ const forumReload=fixture({url:f.location.href,state:f.history.state});forumReload.window.navigateToSection('foro',{reemplazar:true});assert.equal(forumReload.history.state.icademActivity.pages,3);
+ f.api.backToActivity();assert.equal(f.history.state.icademActivity.pages,3);assert.equal(f.history.state.icademActivity.scroll.window,1820);
+ assert.equal(f.api.prepare('directorio-actividad',{reemplazar:true,fromHistory:true}).restoreDirectory,true,'the panel must skip its delayed scroll-to-top when restoring activity');
+ const activityReload=fixture({url:f.location.href,state:f.history.state});activityReload.window.navigateToSection('directorio-actividad',{reemplazar:true});assert.equal(activityReload.history.state.icademActivity.pages,3);
+ activityReload.window.scrollY=0;activityReload.api.activityReady({isConnected:true});activityReload.flush();assert.equal(activityReload.window.scrollY,1820);
+});
 test('forum reload preserves an owner-scoped activity return and falls back to the activity URL without a matching history index',()=>{
  const f=fixture();f.api.openProfile('owner-B');f.api.openActivity('owner-B');f.api.openActivityPost('post-123');
  const reload=fixture({url:f.location.href,state:f.history.state});reload.window.navigateToSection('foro',{reemplazar:true});assert.equal(reload.api.activityReturn().owner,'owner-B');reload.api.backToActivity();assert.equal(reload.location.hash,'#directorio-actividad');assert.equal(reload.api.currentProfileId(),'owner-B');

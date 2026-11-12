@@ -125,7 +125,7 @@
     state.icademProfessionalIndex=historyIndex;
     if(section===ACTIVITY&&state.icademActivity)state.icademActivity.activityIndex=historyIndex;
     committed={url:url.pathname+url.search+url.hash,state:state};
-    return {url:committed.url,historyState:state,restoreDirectory:restore||restoreForum};
+    return {url:committed.url,historyState:state,restoreDirectory:restore||restoreForum||restoreActivity};
   }
   function directoryState(){return restore?saved(activeSection):null;}
   function directoryReady(root,readyTab){

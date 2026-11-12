@@ -62,7 +62,7 @@
       if(unavailable||!c.profile){c.root.querySelector('[data-activity-list]').replaceChildren();c.root.querySelector('[data-activity-identity]').replaceChildren();c.items=[];c.cursor=null;clearTimeout(expiryTimer);}
       status(c,unavailable?'La actividad de este perfil no está disponible para tu cuenta.':c.profile?'No pudimos actualizar la actividad. Reintenta para consultar la versión actual.':'No pudimos cargar la actividad. Revisa tu conexión e inténtalo de nuevo.',true);
       c.root.querySelector('[data-activity-retry]').hidden=false;
-    }finally{if(active(c)){c.busy=false;button.disabled=false;button.hidden=!c.cursor;}}
+    }finally{if(active(c)){c.busy=false;button.disabled=false;button.hidden=!c.cursor;c.root.querySelector('[data-activity-list]').removeAttribute('aria-busy');}}
   }
   function cleanup(){epoch++;clearInterval(timer);clearTimeout(expiryTimer);context=null;}
   function render(root){
