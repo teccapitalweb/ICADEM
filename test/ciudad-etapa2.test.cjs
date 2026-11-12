@@ -105,7 +105,11 @@ test('motor de misiones: recompensa una sola vez, reintentos y registro', async 
   const second = await service.complete(play('pyme', ['costo']));
   assert.equal(second.credits, 0, 'repetir no vuelve a dar créditos'); assert.equal(second.xp, 30); assert.equal(second.duplicate, true);
   assert.equal(await economy.getBalance(), 15);
-  assert.deepEqual(service.record(def.id), { completed: true, bestScore: 100, attempts: 3, lastScore: 85 });
+  const { record: rec } = { record: service.record(def.id) };
+  assert.match(rec.repeatDay, /^\d{4}-\d{2}-\d{2}$/, 'la XP de práctica guarda el día');
+  assert.deepEqual({ ...rec, repeatDay: undefined }, { completed: true, bestScore: 100, attempts: 3, lastScore: 85, repeatDay: undefined });
+  const third = await service.complete(play('pyme', ['costo', 'capacidad']));
+  assert.equal(third.xp, 0, 'la XP de práctica se da una vez al día por misión'); assert.equal(third.credits, 0);
   // manipular el estado sin pasar por las acciones no sirve: se evalúa la bitácora, no el estado
   const cheat = service.start(def.id); Object.assign(cheat.state, good.state);
   assert.equal((await service.complete(cheat)).ok, false);

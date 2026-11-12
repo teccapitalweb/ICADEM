@@ -8,6 +8,7 @@
 // Regla de seguridad: el resultado NUNCA se toma de un marcador del navegador. Se reconstruye
 // reproduciendo la bitácora de acciones (`replay`). Este mismo archivo es el que debe ejecutar
 // el servidor antes de acreditar créditos reales.
+import { missionXp } from '../edu/play-rules.js';
 
 /** Rango de créditos permitido por dificultad (configurable desde administración más adelante). */
 export const DIFFICULTY = Object.freeze({
@@ -138,6 +139,10 @@ export class MissionService {
       attempts: (before.attempts || 0) + 1,
       lastScore: result.score
     };
+    if (typeof before.repeatDay === 'string') record.repeatDay = before.repeatDay;
+    // Misma regla que el servidor: XP completa la primera vez y la de práctica una vez al día.
+    const gained = result.passed ? missionXp(reward, firstPass, before) : { xp: 0, repeatDay: null };
+    if (gained.repeatDay) record.repeatDay = gained.repeatDay;
     this.progress.set(id, record);
 
     let credits = 0, xp = 0, duplicate = false;
@@ -146,7 +151,7 @@ export class MissionService {
       const grant = await this.economy.grant({ key: 'mission:' + id, amount: reward.amount, reason: 'Misión: ' + run.def.title });
       credits = grant.granted ? grant.amount : 0;
       duplicate = Boolean(grant.duplicate);
-      xp = firstPass ? reward.xp : reward.repeatXp;
+      xp = gained.xp;
       if (xp) this.progress.addXp(xp);
     }
     return { ok: true, result, record, firstPass, credits, xp, duplicate };

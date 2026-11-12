@@ -97,6 +97,34 @@ test('adaptador: entran cuentas gratuitas y VIP; no las deshabilitadas, en borra
   assert.ok(db.data._accountDeletions['uid-borrando'] && db.data._accountDeletions['uid-renacida'], 'la barrera de borrado se lee, no se archiva ni se borra');
 });
 
+test('apertura general: CIUDAD_ACCESS open / pilot / closed sin quitar ningún control de seguridad', async () => {
+  const { createIcademServices, ACCESS_MODES } = await load('_ciudad-server/icadem.js');
+  assert.deepEqual([...ACCESS_MODES], ['open', 'pilot', 'closed']);
+  const db = fakeDb({ miembros: { 'uid-vip': { activa: true } }, _accountDeletions: { 'uid-borrando': { requestedAt: '2026-11-10T00:00:00Z' } } });
+  const tokens = { 'tok-gratis': { uid: 'uid-gratis', email: 'gratis@x.test' }, 'tok-vip': { uid: 'uid-vip', email: 'vip@x.test' }, 'tok-piloto': { uid: 'uid-piloto', email: 'piloto@x.test' },
+    'tok-off': { uid: 'uid-off', email: 'off@x.test' }, 'tok-borrando': { uid: 'uid-borrando', email: 'b@x.test' }, 'tok-malo': { uid: 'uid-malo', email: 'm@x.test' }, 'tok-admin': { uid: 'uid-admin', email: 'admin@x.test' } };
+  const users = { 'uid-off': { disabled: true }, 'uid-borrando': { created: '2024-01-01T00:00:00Z' } };
+  const make = access => createIcademServices({ db, auth: fakeAuth(tokens, users), admins: ['admin@x.test'], pilot: ['piloto@x.test'], blocked: ['uid-malo'], access });
+  const can = async (svc, t) => { const who = await svc.identity(t); return Boolean(who) && svc.authorize(who); };
+  // abierto: gratuitas y VIP entran aunque no estén en la lista piloto
+  const open = make('open');
+  for (const t of ['tok-gratis', 'tok-vip', 'tok-piloto', 'tok-admin']) assert.equal(await can(open, t), true, t + ' entra con acceso abierto');
+  const vip = await open.identity('tok-vip'); await open.authorize(vip); assert.equal(vip.vip, true);
+  const free = await open.identity('tok-gratis'); await open.authorize(free); assert.equal(free.vip, false, 'gratuito: sin restricciones nuevas, solo se marca');
+  // los controles siguen activos con acceso abierto
+  assert.equal(await can(open, 'tok-off'), false, 'deshabilitada o con sesión revocada');
+  assert.equal(await can(open, 'tok-borrando'), false, 'en proceso de borrado');
+  assert.equal(await can(open, 'tok-malo'), false, 'bloqueada por moderación');
+  assert.equal(await can(open, 'falso'), false, 'token falso');
+  // piloto: se conserva la lista para poder volver
+  const pilot = make('pilot');
+  assert.equal(await can(pilot, 'tok-piloto'), true); assert.equal(await can(pilot, 'tok-gratis'), false); assert.equal(await can(pilot, 'tok-admin'), true);
+  // cerrado: reversión rápida, solo administradores
+  const closed = make('closed');
+  assert.equal(await can(closed, 'tok-piloto'), false); assert.equal(await can(closed, 'tok-vip'), false); assert.equal(await can(closed, 'tok-admin'), true);
+  assert.throws(() => createIcademServices({ db, auth: fakeAuth(tokens), access: 'todos' }), /modo de acceso/);
+});
+
 test('adaptador: el progreso se guarda en ciudadProfiles con control de escrituras simultáneas', async () => {
   const { createIcademServices } = await load('_ciudad-server/icadem.js');
   const { Profiles } = await load('_ciudad-server/profiles.js');

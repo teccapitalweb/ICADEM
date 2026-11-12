@@ -130,7 +130,7 @@ test('carrera y tesoro: el servidor solo acepta puntos donde de verdad estuvo el
   t += 500; at('park', 20, 20); assert.equal(hub.playCheck(p, { i: 1 }).reason, 'lejos', 'decir que llegó no basta');
   t += 500; at('park', -6, 3, 0); assert.equal(hub.playCheck(p, { i: 1 }).reason, 'lejos', 'el arco sobre la plataforma exige estar arriba');
   let last; for (let i = 1; i < RACE.checkpoints.length; i++) { t += 3000; at('park', ...RACE.checkpoints[i]); last = hub.playCheck(p, { i }); assert.equal(last.ok, true, 'punto ' + i); }
-  assert.equal(last.done, true); assert.ok(last.score >= 50 && last.score <= 100);
+  assert.equal(last.done, true); assert.ok(last.score >= 50 && last.score <= 100); assert.equal(last.game, 'carrera', 'el juego lo dice el servidor');
   t += 1000; at('park', 0, 8); hub.playStart(p, 'carrera'); for (let i = 0; i < RACE.checkpoints.length; i++) { t += 100; at('park', ...RACE.checkpoints[i]); last = hub.playCheck(p, { i }); }
   assert.equal(last.reason, 'imposible', 'demasiado rápido para ser real');
   at('plaza', 0, 9); const s = hub.playStart(p, 'tesoro', 42); assert.deepEqual(s.items, treasureRounds(42)[0]);
@@ -138,8 +138,42 @@ test('carrera y tesoro: el servidor solo acepta puntos donde de verdad estuvo el
   assert.equal(hub.playCheck(p, { id: first.id }).reason, 'lejos');
   const other = TREASURES.find(x => !treasureRounds(42)[0].includes(x.id)); t += 100; at('plaza', ...other.at); assert.equal(hub.playCheck(p, { id: other.id }).reason, 'no-es-de-esta-ronda');
   for (const round of treasureRounds(42)) for (const id of round) { t += 4000; at('plaza', ...TREASURES.find(x => x.id === id).at); last = hub.playCheck(p, { id }); assert.equal(last.ok, true, id); }
-  assert.equal(last.done, true);
+  assert.equal(last.done, true); assert.equal(last.game, 'tesoro');
   t += 10000; assert.equal(hub.playCheck(p, { id: first.id }).reason, 'sin-partida');
+});
+
+test('apertura: XP de práctica una vez al día por misión, sin tocar la XP de primera vez ni duplicar créditos', async () => {
+  const { Profiles, MemoryStorage } = await load('_ciudad-server/profiles.js');
+  const { defineMission } = await load('ciudad/js/missions/engine.js');
+  const { BANK_CREDIT_MISSION, PROPOSALS, bestProposalId } = await load('ciudad/js/missions/bank-credit-logic.js');
+  const { REWARDS } = await load('ciudad/js/economy/economy.js');
+  const def = defineMission(BANK_CREDIT_MISSION), storage = new MemoryStorage();
+  const profiles = new Profiles({ storage, missions: new Map([[def.id, def]]), rewards: REWARDS });
+  const log = [['talk'], ['readDocument', { id: 'solicitud' }], ['readDocument', { id: 'flujo' }], ...PROPOSALS.map(p => ['takeProposal', { id: p.id }]), ...PROPOSALS.map(p => ['simulate', { id: p.id }]),
+    ['compare'], ['choose', { id: bestProposalId() }], ['justify', { reasons: ['costo', 'capacidad'] }]].map(([type, payload]) => ({ type, payload: payload || {} }));
+  const day1 = Date.parse('2026-11-12T18:00:00Z'), day2 = day1 + 86400000;
+  const run = now => profiles.completeMission('u1', def.id, log, { now });
+  const a = await run(day1), b = await run(day1 + 1000), c = await run(day1 + 2000), d = await run(day2);
+  assert.deepEqual([a.xp, a.credits], [120, 15], 'primera vez: XP completa y créditos de prueba');
+  assert.deepEqual([b.xp, b.credits], [30, 0], 'repetir: XP de práctica, sin créditos');
+  assert.deepEqual([c.xp, c.credits], [0, 0], 'el mismo día ya no suma');
+  assert.deepEqual([d.xp, d.credits], [30, 0], 'al día siguiente vuelve la XP de práctica');
+  assert.equal(d.profile.xp, 180); assert.equal(d.profile.testCredits, 15); assert.equal(d.profile.missions[def.id].attempts, 4);
+  // muchas repeticiones el mismo día no inflan la XP
+  for (let i = 0; i < 20; i++) await run(day2 + 5000 + i);
+  assert.equal((await profiles.get('u1')).xp, 180);
+});
+
+test('apertura: Carrera y Tesoro solo acreditan a su propio juego y el progreso descarta nombres inventados', async () => {
+  const { Profiles, MemoryStorage } = await load('_ciudad-server/profiles.js');
+  const { cleanPlay, PLAY_GAMES } = await load('ciudad/js/edu/play-rules.js');
+  const profiles = new Profiles({ storage: new MemoryStorage(), missions: new Map(), rewards: {} });
+  assert.equal((await profiles.grantPositional('u1', 'memoria', 100)).ok, false, 'un juego con semilla no se acredita por posición');
+  assert.equal((await profiles.grantPositional('u1', 'inventado', 100)).ok, false);
+  assert.equal((await profiles.grantPositional('u1', 'undefined', 100)).ok, false);
+  const r = await profiles.grantPositional('u1', 'carrera', 100); assert.deepEqual([r.ok, r.xp], [true, 50]);
+  assert.deepEqual(PLAY_GAMES, ['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro']);
+  assert.deepEqual(Object.keys(cleanPlay({ act: { carrera: { best: 1 }, x1: { best: 1 }, undefined: { best: 1 } } }).act), ['carrera']);
 });
 
 test('servidor (socket real): presencia, código de invitación, reto de NPC y minijuego con XP sin duplicar', async t => {
