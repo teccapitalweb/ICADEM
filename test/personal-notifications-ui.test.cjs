@@ -127,7 +127,7 @@ test('batch dismissal chunks the unified inbox to the server limit',async()=>{
 
 test('navigation retains existing connection and withdrawal destinations',async()=>{
   const ui=app({uid:'alice',request:async(path,config)=>config?{ok:true}:inbox([event()])});await ui.boot();
-  ui.api.open(ui.api.visibleItems()[0]);assert.deepEqual(ui.routes,['directorio']);assert.equal(ui.api.consume('directorio').profileUid,'ana');assert.equal(ui.api.consume('directorio'),null);
+  ui.api.open(ui.api.visibleItems()[0]);assert.deepEqual(ui.routes,['directorio-solicitudes']);assert.equal(ui.api.consume('directorio').profileUid,'ana');assert.equal(ui.api.consume('directorio'),null);
   ui.api.open(event('transfer',{target:{section:'embajadores',view:'withdrawals',withdrawalId:'request-1'}}));assert.equal(ui.routes.at(-1),'embajadores');assert.equal(ui.api.consume('embajadores').withdrawalId,'request-1');
   ui.api.open(event('webinar',{source:'general',target:{section:'webinars'}}));assert.equal(ui.routes.at(-1),'webinars');await flush();
 });
@@ -163,7 +163,7 @@ test('the actual bell row template escapes notification titles, descriptions, ID
 });
 
 test('explicit bell opening refreshes cross-device changes once, while internal repaint never loops into another sync',()=>{
-  const html=fs.readFileSync(__dirname+'/../vip-panel.html','utf8'),start=html.indexOf('function toggleNotifDropdown(skipSync=false){'),end=html.indexOf('  const notifUid =',start);
+  const html=fs.readFileSync(__dirname+'/../vip-panel.html','utf8'),start=html.indexOf('function toggleNotifDropdown(skipSync=false,presentation=false){'),end=html.indexOf('  const notifUid =',start);
   assert(start>=0&&end>start);
   let existing=null,syncs=0,closes=0;
   const context={document:{getElementById:()=>existing},window:{ICADEMNotifications:{sync(){syncs++;}}},cerrarNotifDropdown(){closes++;}};
@@ -172,7 +172,26 @@ test('explicit bell opening refreshes cross-device changes once, while internal 
   context.toggleNotifDropdown(true);assert.equal(syncs,1);
   existing={};context.toggleNotifDropdown();assert.equal(syncs,1);assert.equal(closes,1);
   const refreshStart=html.indexOf('window.refreshNotifDropdown = function(){'),refreshEnd=html.indexOf('// Helper global para que admins',refreshStart),repaints=[];
-  const refreshContext={document:{getElementById:()=>({scrollTop:42})},window:{},cerrarNotifDropdown(){},toggleNotifDropdown:skip=>repaints.push(skip)};
+  const refreshContext={document:{getElementById:()=>({scrollTop:42,querySelector:()=>null})},window:{},cerrarNotifDropdown(){},toggleNotifDropdown:skip=>repaints.push(skip)};
   vm.runInNewContext(html.slice(refreshStart,refreshEnd),refreshContext);refreshContext.window.refreshNotifDropdown();assert.deepEqual(repaints,[true]);
-  assert.match(html,/const repintarNotifDropdown = \(\) => \{ cerrarNotifDropdown\(\); toggleNotifDropdown\(true\); \}/);
+  assert.match(html,/const repintarNotifDropdown = \(\) => window.refreshNotifDropdown\(\)/);
+});
+
+test('seen acknowledgment waits for backend, preserves unread history, and excludes unrendered or subsequent arrivals',async()=>{
+  const ui=app({uid:'alice',request:async()=>inbox([event('shown'),event('unrendered')])});await ui.boot();
+  const ack=deferred();ui.setRequest(()=>ack.promise);
+  const dropdown={__owner:'alice',__awaitPresentation:true,querySelectorAll:()=>[{dataset:{notifId:'personal-shown'}}]};ui.document.getElementById=()=>dropdown;
+  ui.api.present();assert.equal(ui.api.visibleItems().every(n=>!n.seen),true);assert.equal(ui.calls.at(-1).path,'/api/notifications/seen');
+  ack.resolve({ok:true});await flush();assert.equal(ui.api.visibleItems().find(n=>n.serverId==='shown').seen,true);assert.equal(ui.api.visibleItems().every(n=>!n.read),true);assert.equal(ui.api.visibleItems().length,2);
+  const calls=ui.calls.length;ui.api.present();await flush();assert.equal(ui.calls.length,calls);assert.equal(ui.api.visibleItems().find(n=>n.serverId==='unrendered').seen,false);
+});
+test('failed or unconfirmed inbox presentation cannot clear unseen state',async()=>{
+  const ui=app({uid:'alice',request:async()=>inbox([event()])});await ui.boot();
+  ui.document.getElementById=()=>({__owner:'alice',__awaitPresentation:true,querySelectorAll:()=>[{dataset:{notifId:'personal-event-1'}}]});
+  ui.window.__notifsState.error=true;const before=ui.calls.length;ui.api.present();assert.equal(ui.calls.length,before);
+  ui.window.__notifsState.error=false;ui.setRequest(async()=>{throw new Error('Offline');});assert.equal(await ui.api.mark(['personal-event-1'],'seen'),false);assert.equal(ui.api.visibleItems()[0].seen,false);
+});
+test('seen from another independent session is restored without local storage',async()=>{
+  const seen=new Set();const request=async(path,config)=>{if(config){for(const n of config.body.items)seen.add(n.id);return {ok:true};}return inbox([event('one',{seen:seen.has('one')}),event('two',{seen:seen.has('two')})]);};
+  const a=app({uid:'alice',request}),b=app({uid:'alice',request});await a.boot();await b.boot();await a.api.mark(['personal-one','personal-two'],'seen');await b.api.sync();assert.equal(b.api.visibleItems().filter(n=>!n.seen).length,0);assert.equal(b.api.visibleItems().filter(n=>!n.read).length,2);
 });

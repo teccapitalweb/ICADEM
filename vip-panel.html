@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=51" defer></script>
+<script src="js/icadem-platform-v2.js?v=52" defer></script>
 <script src="js/icadem-course-unlocks.js?v=5" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
@@ -155,6 +155,17 @@ body::after{
 .icon-btn:hover{color:var(--text);border-color:var(--border-strong);background:var(--surface-2)}
 .icon-btn .ic{width:16px;height:16px}
 .icon-btn .dot{position:absolute;top:8px;right:9px;width:6px;height:6px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 2px var(--surface)}
+#btn-notif{overflow:visible}
+#btn-notif .notif-count{top:1px;right:0;min-width:17px;width:auto;height:17px;padding:0 4px;box-sizing:border-box;border-radius:10px;background:#bd3342;color:#fff;font:700 10px/17px var(--font-sans,Arial,sans-serif);text-align:center;pointer-events:none;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px var(--surface)}
+.notif-count.is-arriving{animation:notif-arrive .22s ease-out}
+@keyframes notif-arrive{from{transform:scale(.82)}to{transform:scale(1)}}
+#notif-dropdown button:focus-visible,#notif-dropdown [role=link]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+#notif-dropdown .notif-del-btn{min-width:32px;min-height:32px}
+#notif-dropdown details{padding:10px 12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-2)}
+#notif-dropdown summary{cursor:pointer;font-weight:600;padding:5px 0}
+#notif-dropdown label{display:flex;gap:9px;align-items:center;padding:8px 0;line-height:1.4;cursor:pointer}
+.post.is-notification-target{outline:2px solid var(--primary);outline-offset:3px;scroll-margin-top:90px}
+@media(prefers-reduced-motion:reduce){.notif-count.is-arriving{animation:none}#notif-dropdown .notif-item{transition:none!important}}
 
 .theme-toggle{display:flex;align-items:center;gap:7px;padding:7px 13px 7px 11px;border-radius:100px;background:var(--surface);border:0.5px solid var(--border-2);font-size:11.5px;color:var(--text-2);font-weight:500;transition:color .15s,border-color .15s,background .15s}
 .theme-toggle:hover{color:var(--text);border-color:var(--border-strong);background:var(--surface-2)}
@@ -4072,13 +4083,13 @@ body.has-fomo .main{padding-top:18px}
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=3">
 <link rel="stylesheet" href="css/icadem-resume-editor.css?v=3">
-<script src="js/icadem-professional-navigation.js?v=5"></script>
+<script src="js/icadem-professional-navigation.js?v=6"></script>
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
 <script src="js/icadem-professional-profile.js?v=4"></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
-<script src="js/icadem-community.js?v=8"></script>
-<script src="js/icadem-notifications.js?v=2" defer></script>
+<script src="js/icadem-community.js?v=9"></script>
+<script src="js/icadem-notifications.js?v=3" defer></script>
 </head>
 <body style="visibility:hidden">
 
@@ -4791,9 +4802,9 @@ window.__setDisplayName = async (nombre) => {
           <svg class="ic"><use href="#i-download"/></svg>
           <span>Instalar</span>
         </button>
-        <button class="icon-btn" id="btn-notif" aria-label="Notificaciones">
+        <button class="icon-btn" id="btn-notif" aria-label="Notificaciones" aria-expanded="false" aria-controls="notif-dropdown">
           <svg class="ic"><use href="#i-bell"/></svg>
-          <span class="dot"></span>
+          <span class="dot notif-count" style="display:none" aria-hidden="true"></span>
         </button>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Cambiar a modo noche" title="Cambiar a modo noche">
           <svg class="ic" id="theme-icon"><use href="#i-moon"/></svg>
@@ -11988,6 +11999,31 @@ const Sections = (function(){
     window.ICADEMCommunity?.enhanceForum(container);
     // Suscripción en tiempo real
     foroSuscribir();
+    foroAbrirNotificacion(container);
+  }
+
+  async function foroAbrirNotificacion(container){
+    const params=new URLSearchParams(location.search),postId=params.get('publicacion'),commentId=params.get('comentario');
+    if(!/^[A-Za-z0-9_-]{1,180}$/.test(postId||''))return;
+    const owner=window.__currentUser?.uid,list=container.querySelector('#foro-list');
+    window.ICADEMNotifications?.consume('foro');
+    try{
+      const response=await window.ICADEMPlatform.request('/api/forum/posts/'+encodeURIComponent(postId)+(commentId?'?comentario='+encodeURIComponent(commentId):''));
+      if(owner!==window.__currentUser?.uid||!container.isConnected||list!==document.getElementById('foro-list'))return;
+      const post=response.post;if(!post||post.id!==postId)throw new Error('No disponible');
+      post.createdAt={toDate:()=>new Date(post.createdAtMs)};
+      _foroPosts=_foroPosts.filter(p=>p.id!==postId);_foroPosts.unshift(post);
+      _foroFiltro='recientes';
+      container.querySelectorAll('[data-foro-tab]').forEach(b=>{const active=b.dataset.foroTab==='recientes';b.classList.toggle('is-active',active);b.setAttribute('aria-pressed',String(active));});
+      foroPintar();
+      const row=list.querySelector(`[data-post="${CSS.escape(postId)}"]`);
+      if(row){row.classList.add('is-notification-target');row.tabIndex=-1;row.scrollIntoView({block:'center',behavior:'instant'});row.focus({preventScroll:true});}
+      if(commentId)foroToggleComentarios(postId);
+    }catch(error){
+      if(owner!==window.__currentUser?.uid||!container.isConnected)return;
+      const message=document.createElement('p');message.className='foro-empty';message.setAttribute('role','status');
+      message.textContent=error.message||'Esta publicación o comentario ya no está disponible o expiró.';list.before(message);
+    }
   }
 
   function foroSuscribir(){
@@ -12084,9 +12120,12 @@ const Sections = (function(){
 
   async function foroToggleLike(postId){
     if (!(window.UserState?.modo==='vip' || esAdminReal())) { Toast.info('Solo VIP','Activa tu membresía para reaccionar'); return; }
+    const button=document.querySelector(`[data-like="${CSS.escape(postId)}"]`);if(button?.disabled)return;
+    const liked=button?.getAttribute('aria-pressed')!=='true';if(button)button.disabled=true;
     try {
-      await window.ICADEMPlatform.toggleForumLike(postId);
+      await window.ICADEMPlatform.toggleForumLike(postId,liked);
     } catch(e){ console.error(e); Toast.error('No se pudo reaccionar',''); }
+    finally{if(button)button.disabled=false;}
   }
 
   async function foroBorrarPost(postId){
@@ -12159,7 +12198,9 @@ const Sections = (function(){
     if (btn) btn.disabled = true;
     try {
       if (!window.ICADEMPlatform?.createForumComment) throw new Error('El servicio del foro no está disponible.');
-      await window.ICADEMPlatform.createForumComment(postId, { texto: t });
+      if(inp.__requestText!==t){inp.__requestText=t;inp.__requestId=crypto.randomUUID();}
+      await window.ICADEMPlatform.createForumComment(postId, { texto: t,requestId:inp.__requestId });
+      inp.__requestText=null;inp.__requestId=null;
       inp.value = '';
     } catch(e){ console.error(e); Toast.error('No se pudo responder',e.message||'Intenta de nuevo'); }
     finally { inp.disabled = false; if (btn) btn.disabled = false; }
@@ -13732,7 +13773,7 @@ async function marcarNotifsEliminadas(ids) {
 
 // Cuenta cuántas notif son nuevas (no leídas y no eliminadas)
 function contarNotifsNuevas() {
-  return (window.ICADEMNotifications?.visibleItems() || []).filter(n=>!n.read).length;
+  return (window.ICADEMNotifications?.visibleItems() || []).filter(n=>!n.seen&&!n.read).length;
 }
 
 // Actualiza el badge (puntito rojo) según haya notif nuevas
@@ -13742,7 +13783,16 @@ function actualizarBadgeNotif() {
   const dot = btn.querySelector('.dot');
   if (!dot) return;
   const nuevas = contarNotifsNuevas();
+  const previous = Number(dot.dataset.count || 0);
+  dot.classList.add('notif-count');
+  dot.textContent = nuevas > 99 ? '99+' : String(nuevas);
+  dot.setAttribute('aria-hidden','true');
+  dot.dataset.count = String(nuevas);
   dot.style.display = nuevas > 0 ? '' : 'none';
+  btn.setAttribute('aria-label',nuevas ? `Notificaciones: ${nuevas} nuevas` : 'Notificaciones: sin novedades');
+  if(nuevas>previous&&document.visibilityState==='visible'){
+    dot.classList.remove('is-arriving');void dot.offsetWidth;dot.classList.add('is-arriving');
+  }
 }
 
 // Helper de formato relativo de tiempo ("Hoy", "Ayer", "X días", "X h")
@@ -13768,7 +13818,7 @@ function cerrarNotifDropdown(){
   document.getElementById('btn-notif')?.setAttribute('aria-expanded', 'false');
 }
 
-function toggleNotifDropdown(skipSync=false){
+function toggleNotifDropdown(skipSync=false,presentation=false){
   let dd=document.getElementById('notif-dropdown');
   if(dd){cerrarNotifDropdown();return;}
   if(!skipSync)window.ICADEMNotifications?.sync();
@@ -13779,6 +13829,9 @@ function toggleNotifDropdown(skipSync=false){
 
   dd=document.createElement('div');
   dd.id='notif-dropdown';
+  dd.__owner=notifUid;
+  dd.__awaitPresentation=!skipSync||presentation;
+  dd.setAttribute('role','region');dd.setAttribute('aria-label','Centro de notificaciones');
   // ⚠️ Forzar text-align:left en TODO el dropdown · evita que herede el center del topbar/avatar
   dd.style.textAlign = 'left';
   // Responsive: en móvil (<=768) fixed con left+right (sin transform · evita bug Safari iOS)
@@ -13824,9 +13877,12 @@ function toggleNotifDropdown(skipSync=false){
   dd.innerHTML=`
     <div style="padding:10px 12px 12px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
       <strong style="font-size:13px;font-weight:600;">Notificaciones</strong>
-      <span style="font-size:10px;color:${nuevasCount>0?'var(--primary)':'var(--text-3)'};letter-spacing:.5px;text-transform:uppercase;font-weight:700;">${nuevasCount>0 ? nuevasCount + ' nuevas' : 'Al día'}</span>
+      <span style="font-size:10px;color:${nuevasCount>0?'var(--primary)':'var(--text-3)'};letter-spacing:.5px;text-transform:uppercase;font-weight:700;">${nuevasCount>0 ? nuevasCount + ' sin leer' : 'Al día'}</span>
     </div>
     ${bodyHTML}
+    ${notifs.length&&window.__notifsState.error?'<p role="status" style="padding:8px 12px;font-size:12px;color:var(--text-2)">No pudimos actualizar la bandeja. <button id="notif-retry" type="button">Reintentar</button></p>':''}
+    ${nuevasCount?'<div style="padding:5px 12px 10px"><button id="notif-read-all" type="button" style="border:0;background:transparent;color:var(--primary);cursor:pointer;font:inherit;font-size:12px;padding:8px 0">Marcar como leídas</button></div>':''}
+    ${window.__notifsState.loaded&&!window.__isDemoMode?`<details><summary>Preferencias del Foro VIP</summary><label><input type="checkbox" data-notif-pref="forumActivity" ${window.__notifsState.preferences?.forumActivity!==false?'checked':''}> Comentarios y reacciones en mis publicaciones</label><label><input type="checkbox" data-notif-pref="forumNews" ${window.__notifsState.preferences?.forumNews?'checked':''}> Novedades generales del foro</label><small>Las novedades generales son opcionales y requieren acceso VIP. Los cambios se guardan en tu cuenta.</small><span id="notif-preferences-status" role="status"></span></details>`:''}
     ${notifs.length > 0 ? `<div style="padding:9px 12px;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text-3);">Mostrando últimas ${notifs.length}</span>${notifs.length > 1 ? `<button id="notif-del-all" style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--danger);background:transparent;border:0;cursor:pointer;font-weight:600;padding:2px 4px;font-family:inherit;"><svg class="ic" style="width:13px;height:13px;"><use href="#i-trash"/></svg>Eliminar todo</button>` : ''}</div>` : ''}`;
 
   dd.querySelectorAll('.notif-item').forEach(el=>{
@@ -13839,9 +13895,22 @@ function toggleNotifDropdown(skipSync=false){
   });
 
   // repinta el dropdown desde cero (refleja empty state, contador y footer)
-  const repintarNotifDropdown = () => { cerrarNotifDropdown(); toggleNotifDropdown(true); };
+  const repintarNotifDropdown = () => window.refreshNotifDropdown();
+  dd.querySelectorAll('[data-notif-pref]').forEach(input=>input.addEventListener('change',async()=>{
+    const value=input.checked;input.checked=!value;input.disabled=true;
+    const saved=await window.ICADEMNotifications.preferences({[input.dataset.notifPref]:value});
+    if(notifUid!==(window.__currentUser?.uid||''))return;
+    if(saved){input.checked=value;window.Toast?.success?.('Preferencia guardada','');}
+    input.disabled=false;
+  }));
 
   dd.querySelector('#notif-retry')?.addEventListener('click',()=>window.ICADEMNotifications?.sync());
+  dd.querySelector('#notif-read-all')?.addEventListener('click',async event=>{
+    event.currentTarget.disabled=true;
+    if(await marcarNotifsLeidas(notifs.map(n=>n.id)))window.refreshNotifDropdown();
+    else if(dd.isConnected)dd.querySelector('#notif-read-all').disabled=false;
+  });
+  dd.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();cerrarNotifDropdown();document.getElementById('btn-notif')?.focus();}});
 
   // Esperar la confirmación del servidor antes de retirar una notificación.
   dd.querySelectorAll('.notif-del-btn').forEach(btn=>{
@@ -13899,13 +13968,8 @@ function toggleNotifDropdown(skipSync=false){
     };
   }
 
-  // Marcar todas como leídas después de un pequeño delay (para que el usuario vea la diferencia)
-  if (nuevasCount > 0) {
-    setTimeout(async() => {
-      if(!dd.isConnected||notifUid!==(window.__currentUser?.uid||''))return;
-      if(await marcarNotifsLeidas(notifs.map(n => n.id)))actualizarBadgeNotif();
-    }, 800);
-  }
+  // The successful inbox response acknowledges only the batch actually rendered.
+  if(window.__isDemoMode)window.ICADEMNotifications?.present();
 
   // Cerrar al click fuera
   setTimeout(()=>{
@@ -13924,9 +13988,13 @@ window.refreshNotifDropdown = function(){
   const dd=document.getElementById('notif-dropdown');
   if(!dd)return;
   const scroll=dd.scrollTop;
-  cerrarNotifDropdown();toggleNotifDropdown(true);
+  const presentation=dd.__awaitPresentation;
+  const preferencesOpen=dd.querySelector('details')?.open;
+  const focusKey=dd.querySelector(':focus')?.dataset.notifPref;
+  cerrarNotifDropdown();toggleNotifDropdown(true,presentation);
   const next=document.getElementById('notif-dropdown');
-  if(next)next.scrollTop=scroll;
+  if(next){next.scrollTop=scroll;if(preferencesOpen&&next.querySelector('details'))next.querySelector('details').open=true;
+    if(focusKey)next.querySelector(`[data-notif-pref="${focusKey}"]`)?.focus({preventScroll:true});}
 };
 
 // Helper global para que admins puedan crear notificaciones desde la consola
