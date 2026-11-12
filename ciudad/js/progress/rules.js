@@ -1,6 +1,7 @@
 // Reglas del progreso del jugador, compartidas por el cliente y el servidor (módulo puro).
 // El servidor es quien las aplica de verdad; el cliente solo las usa para mostrar qué falta.
 import { levelFromXp } from '../core/store.js';
+import { emptyPlay, playAchievements } from '../edu/play-rules.js';
 
 export const PROFILE_VERSION = 1;
 export const VISIT_XP = 10, TUTORIAL_XP = 40, TUTORIAL_CREDITS = 10;
@@ -51,9 +52,10 @@ export function deriveAchievements(p) {
   if (Object.values(p.missions).some(m => m.bestScore === 100)) list.push('decision-impecable');
   if (p.missions[MISSION_COURT]?.completed) list.push('toga-y-mazo');
   if (BUILDING_IDS.every(id => p.visited.includes(id))) list.push('explorador-urbano');
+  list.push(...playAchievements(p.play));
   return list;
 }
 
 export function emptyProfile() {
-  return { v: PROFILE_VERSION, rev: 0, xp: 0, missions: {}, visited: [], tutorialDone: false, achievements: [], avatarId: 'explorador', custom: cleanCustom(null), testCredits: 0, testLedger: [] };
+  return { v: PROFILE_VERSION, rev: 0, xp: 0, missions: {}, visited: [], tutorialDone: false, achievements: [], avatarId: 'explorador', custom: cleanCustom(null), testCredits: 0, testLedger: [], play: emptyPlay(), privacy: { listed: true } };
 }

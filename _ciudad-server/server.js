@@ -112,6 +112,10 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
     }
     toRoom(room, { op: 'done' });
   }
+  /** Aviso de llegada personalizado: cada quien recibe el nombre que le corresponde ver. */
+  const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom }); };
+  const moveInstance = (player, moved) => { toInstance(moved.from, { t: 'leave', pid: player.pid }); send(sockets.get(player), { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance, player) }); announce(player); };
+  const renameAll = player => { for (const p of player.instance.players.values()) if (p !== player && p.online) send(sockets.get(p), { t: 'name', pid: player.pid, name: hub.nameFor(p, player) }); };
   const toInstance = (instance, msg, except) => { for (const p of instance.players.values()) if (p !== except && p.online) send(sockets.get(p), msg); };
 
   wss.on('connection', (ws, req) => {
@@ -146,14 +150,14 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         // La apariencia sale del perfil guardado en el servidor, no de lo que anuncie el cliente.
         const profile = await profiles.get(who.uid);
         const joined = hub.join({ uid: who.uid, name: who.name, avatar: profile.avatarId });
-        player = joined.player; epoch = player.epoch; identityOf = who; player.avatar = profile.avatarId; player.custom = profile.custom;
+        player = joined.player; epoch = player.epoch; identityOf = who; player.avatar = profile.avatarId; player.custom = profile.custom; player.listed = !(profile.privacy && profile.privacy.listed === false);
         await hub.loadFriends(player);
         const old = sockets.get(player);
         if (old && old !== ws) { send(old, { t: 'bye', reason: 'sesion-en-otro-lugar' }); old.close(4009, 'sustituida'); }
         sockets.set(player, ws); clearTimeout(helloTimer);
         send(ws, { t: 'welcome', pid: player.pid, name: player.name, instance: player.instance.id, resumed: joined.resumed, capacity: hub.capacity, tick: NET_TICK_HZ,
-          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance).filter(p => p.pid !== player.pid), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player) });
-        if (!joined.resumed || !joined.replaced) toInstance(player.instance, { t: 'join', pid: player.pid, name: player.name, avatar: player.avatar, custom: player.custom }, player);
+          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance, player), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player), presence: hub.presence(player), codes: hub.codesOf(player) });
+        if (!joined.resumed || !joined.replaced) announce(player);
         if (player.room) { toRoom(player.room); if (player.room.session && !player.room.session.done) toCoop(player.room, { op: 'sync' }); }
         log('join', player.pid, player.instance.id, joined.resumed ? 'resumed' : 'new');
         return;
@@ -174,6 +178,26 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         else if (!r.ok) send(ws, { t: 'room', room: player.room ? hub.roomView(player.room) : null, ok: false, op: msg.op, reason: r.reason });
         else { if (before && before !== player.room && before.members.size) toRoom(before); toRoom(player.room, { op: msg.op }); if (msg.op === 'start') { toCoop(player.room, { op: 'start' }); log('coop-start', player.room.id, player.room.mission); } }
       }
+      else if (msg.t === 'play') {
+        // Carrera y búsqueda del tesoro: el servidor valida con las posiciones que ya comprobó.
+        const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id }) : hub.playQuit(player);
+        send(ws, { t: 'play', op: msg.op, game: msg.game, ...r });
+        if (r.done) { const g = await profiles.grantPositional(identityOf.uid, String(msg.game), r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: msg.game, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
+      }
+      else if (msg.t === 'code') {
+        // Códigos temporales para unirse a un equipo: vencen, tienen usos limitados y se revocan.
+        if (msg.op === 'create') { const r = hub.createCode(player, { uses: msg.uses, minutes: msg.minutes }); send(ws, { t: 'code', op: 'create', ok: r.ok, reason: r.reason, code: r.code, codes: hub.codesOf(player) }); if (r.ok) toRoom(r.room); }
+        else if (msg.op === 'revoke') { const r = hub.revokeCode(player, msg.code); send(ws, { t: 'code', op: 'revoke', ok: r.ok, reason: r.reason, codes: hub.codesOf(player) }); }
+        else if (msg.op === 'redeem') {
+          const r = hub.redeemCode(player, msg.code);
+          if (!r.ok) return send(ws, { t: 'code', op: 'redeem', ok: false, reason: r.reason });
+          if (r.moved) moveInstance(player, r.moved);
+          if (r.left) toRoom(r.left);
+          send(ws, { t: 'code', op: 'redeem', ok: true, host: hub.nameFor(player, r.owner), mission: r.room.mission });
+          if (!r.already) send(sockets.get(r.owner), { t: 'invited', pid: player.pid, name: player.name, accepted: true, byCode: true, codes: hub.codesOf(r.owner) });
+          toRoom(r.room, { op: 'team' }); log('code-redeem', player.pid, '→', r.room.id);
+        } else send(ws, { t: 'code', op: 'list', ok: true, codes: hub.codesOf(player) });
+      }
       else if (msg.t === 'coop') {
         // Intento en equipo: el navegador propone una acción; el servidor decide si procede.
         if (msg.op === 'sync') { const view = player.room && hub.coopView(player.room); return send(ws, view ? { t: 'coop', op: 'sync', ...view } : { t: 'coop', op: 'none' }); }
@@ -187,8 +211,13 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         // Progreso: el cliente manda acciones; el resultado lo calcula y guarda el servidor.
         const uid = identityOf.uid;
         const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log) : msg.op === 'visit' ? await profiles.visit(uid, msg.id)
-          : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom) : { ok: true, profile: await profiles.get(uid) };
-        send(ws, { t: 'profile', op: msg.op || 'get', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: msg.mission });
+          : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom)
+          : msg.op === 'quiz' ? (hub.allow(player, 'quiz') ? await profiles.answerQuiz(uid, msg.id, msg.choice) : { ok: false, reason: 'demasiado-rapido' })
+          : msg.op === 'activity' ? (hub.allow(player, 'activity') ? await profiles.playActivity(uid, String(msg.id), msg.seed, String(msg.level), msg.log) : { ok: false, reason: 'demasiado-rapido' })
+          : msg.op === 'privacy' ? await profiles.setPrivacy(uid, msg.listed !== false) : { ok: true, profile: await profiles.get(uid) };
+        send(ws, { t: 'profile', op: msg.op || 'get', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: msg.mission,
+          ...(msg.op === 'quiz' ? { id: msg.id, correct: r.correct, answer: r.answer, explain: r.explain, why: r.why } : {}), ...(msg.op === 'activity' ? { id: msg.id, bonus: r.bonus, capped: r.capped } : {}), n: msg.n });
+        if (msg.op === 'privacy' && r.ok) { player.listed = r.profile.privacy.listed; renameAll(player); }
         if (msg.op === 'avatar' && r.ok) { player.avatar = r.profile.avatarId; player.custom = r.profile.custom; toInstance(player.instance, { t: 'look', pid: player.pid, avatar: player.avatar, custom: player.custom }, player); }
       }
       else if (msg.t === 'friends') {
@@ -202,7 +231,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
           if (!r.ok) return send(ws, { t: 'friends', op: 'answer', ok: false, reason: r.reason });
           send(sockets.get(r.from), { t: 'invited', pid: player.pid, name: player.name, accepted: r.accepted });
           if (r.accepted) {
-            if (r.moved) { toInstance(r.moved.from, { t: 'leave', pid: player.pid }); send(ws, { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance).filter(p => p.pid !== player.pid) }); toInstance(player.instance, { t: 'join', pid: player.pid, name: player.name, avatar: player.avatar, custom: player.custom }, player); }
+            if (r.moved) moveInstance(player, r.moved);
             if (r.left) toRoom(r.left); toRoom(r.room, { op: 'team' });
           }
           send(ws, { t: 'friends', op: 'answer', ok: true, list: hub.friendsView(player) });
@@ -234,6 +263,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   let renewTick = 0;
   const upkeep = setInterval(() => {
     for (const p of [...hub.byUid.values()]) if (!p.online && now() - p.detachedAt >= LIMITS.resumeMs) { const room = p.room; hub.remove(p); toInstance(p.instance, { t: 'leave', pid: p.pid }); if (room && room.members.size) toRoom(room); log('expired', p.pid); }
+    for (const [p, ws] of sockets) { const pr = hub.presence(p), key = pr.city + ':' + pr.instance; if (ws.presenceKey !== key) { ws.presenceKey = key; send(ws, { t: 'presence', ...pr }); } }
     if (++renewTick % 12 === 0) wss.clients.forEach(ws => ws.renew && ws.renew());   // pase de reanudación nuevo cada minuto
     wss.clients.forEach(ws => ws.hb && ws.hb());
   }, 5000);

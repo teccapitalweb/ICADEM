@@ -14,6 +14,9 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { replay } from '../ciudad/js/missions/engine.js';
+import { questionById } from '../ciudad/js/edu/questions.js';
+import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
+import { cleanPlay, rewardQuiz, rewardActivity } from '../ciudad/js/edu/play-rules.js';
 import { emptyProfile, cleanCustom, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
 export class MemoryStorage {
@@ -44,7 +47,7 @@ export class Profiles {
   async #read(uid) {
     const saved = await this.storage.load(uid);
     if (!saved || saved.v !== PROFILE_VERSION) return emptyProfile();
-    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom) };
+    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom), play: cleanPlay(saved.play), privacy: { listed: !(saved.privacy && saved.privacy.listed === false) } };
   }
   async #write(uid, p) { p.achievements = deriveAchievements(p); p.rev++; p.updatedAt = Date.now(); await this.storage.save(uid, p); return p; }
 
@@ -85,6 +88,49 @@ export class Profiles {
     return this.#serial(uid, async () => {
       const p = await this.#read(uid); if (p.tutorialDone) return { ok: true, profile: this.view(p) };
       p.tutorialDone = true; p.xp += TUTORIAL_XP; p.testCredits += TUTORIAL_CREDITS; p.testLedger.push({ key: 'tutorial', amount: TUTORIAL_CREDITS, at: Date.now() });
+      return { ok: true, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /**
+   * Reto de un NPC: la respuesta correcta sale del banco del servidor, no del navegador. Da XP con
+   * límites (tope diario y una vez por pregunta cada 7 días). Nunca toca créditos.
+   */
+  answerQuiz(uid, questionId, choice, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      const qn = questionById(String(questionId || ''));
+      if (!qn || !Number.isInteger(choice) || choice < 0 || choice >= qn.options.length) return { ok: false, reason: 'pregunta-invalida' };
+      const p = await this.#read(uid), correct = choice === qn.answer, r = rewardQuiz(p.play, qn.id, correct, now);
+      p.xp += r.xp;
+      return { ok: true, correct, answer: qn.answer, explain: qn.explain, xp: r.xp, why: r.why, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Minijuego con semilla: el servidor regenera la partida y reproduce la bitácora. */
+  playActivity(uid, id, seed, level, log, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      if (!ACTIVITIES[id] || !Array.isArray(log) || log.length > 200) return { ok: false, reason: 'actividad-invalida' };
+      const r = checkActivity(id, seed, level, log);
+      if (!r.valid) return { ok: false, reason: 'actividad-invalida' };
+      const p = await this.#read(uid), g = rewardActivity(p.play, id, r.score, now);
+      p.xp += g.xp;
+      return { ok: true, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Minijuegos validados por posición (carrera, tesoro): el hub ya comprobó el recorrido. */
+  grantPositional(uid, id, score, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid), g = rewardActivity(p.play, id, Math.max(0, Math.min(100, Math.round(score))), now);
+      p.xp += g.xp;
+      return { ok: true, score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Privacidad: aparecer o no con el nombre propio en las listas de jugadores. */
+  setPrivacy(uid, listed) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid); p.privacy = { listed: listed !== false };
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }

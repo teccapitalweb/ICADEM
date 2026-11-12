@@ -43,7 +43,7 @@ test('avatares: diez con un mismo esqueleto, desbloqueo por juego y equipamiento
 test('progreso en servidor: el cliente manda acciones y el servidor calcula XP, logros y recompensas de prueba', async () => {
   const profiles = await makeProfiles();
   const r = await load('ciudad/js/progress/rules.js');
-  assert.deepEqual(await profiles.get('ana'), { ...r.emptyProfile(), testLedger: undefined, testMoves: 0 }.testLedger === undefined && { v: 1, rev: 0, xp: 0, missions: {}, visited: [], tutorialDone: false, achievements: [], avatarId: 'explorador', custom: { outfit: 'base', hat: 'base' }, testCredits: 0, testMoves: 0 });
+  assert.deepEqual(await profiles.get('ana'), { ...r.emptyProfile(), testLedger: undefined, testMoves: 0 }.testLedger === undefined && { v: 1, rev: 0, xp: 0, missions: {}, visited: [], tutorialDone: false, achievements: [], avatarId: 'explorador', custom: { outfit: 'base', hat: 'base' }, testCredits: 0, testMoves: 0, play: { day: '', quizToday: 0, quizCorrect: 0, quizSeen: {}, act: {} }, privacy: { listed: true } });
   assert.equal((await profiles.completeMission('ana', r.MISSION_BANK, [{ type: 'talk' }, { type: 'justify', payload: { reasons: ['costo'] } }])).reason, 'bitacora-invalida', 'una bitácora que se salta pasos no cuenta');
   assert.equal((await profiles.completeMission('ana', 'inventada', [])).reason, 'mision-desconocida');
   assert.equal((await profiles.completeMission('ana', r.MISSION_BANK, 'x')).ok, false);
