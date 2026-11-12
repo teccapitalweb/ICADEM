@@ -46,7 +46,11 @@ const GAMES = [
     perfect: `const L = await import('./js/missions/kitchen-rush-logic.js');
       return [...L.ORDERS.map(o => ['readOrder', { id: o.id }]), ['wash'], ...L.FRIDGES.map(f => ['checkFridge', { id: f.id, ok: f.ok }]), ['fridgeAction', { id: 'retirar' }],
         ...L.INGREDIENTS.map(i => ['prep', { id: i.id, board: i.board }]), ['allergy', { id: 'protocolo' }], ['cook', { id: 'pollo', temp: 76 }], ['cook', { id: 'pescado', temp: 65 }],
-        ...L.ORDERS.map(o => ['assign', { id: o.id, station: o.station }]), ['serve'], ['debrief', { reasons: ['cruzada', 'temperatura'] }]];` }
+        ...L.ORDERS.map(o => ['assign', { id: o.id, station: o.station }]), ['serve'], ['debrief', { reasons: ['cruzada', 'temperatura'] }]];` },
+  { key: 'greenhouse', door: 'invernadero', spawn: 'greenhouse', scene: 'greenhouse', opener: 'tomas', mission: 'invernadero-cultivo-inteligente', credits: 20, talkAction: 'brief',
+    perfect: `const L = await import('./js/missions/greenhouse-logic.js');
+      return [['readChart'], ...L.SENSORS.flatMap(s => [['readSensor', { id: s.id }], ['diagnose', { id: s.id, level: s.level }]]), ['climate', { vent: 60, shade: 40 }], ['solution', { nutrient: 12, acid: 0 }],
+        ...L.BEDS.map(b => ['irrigate', { id: b.id, action: b.correct }]), ...L.TRAPS.map(t => ['inspectTrap', { id: t.id }]), ['pest', { zone: 'B', action: 'biologico' }], ['debrief', { reasons: ['medir', 'umbral'] }]];` }
 ];
 
 module.exports = { GAMES };
