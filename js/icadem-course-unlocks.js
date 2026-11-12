@@ -8,6 +8,7 @@
   const current = ticket => Boolean(ticket.uid && ticket.uid === owner() && ticket.generation === generation && !window.__sessionEnding);
   const state = () => summaryUid === owner() ? summary : null;
   const getPriorities = () => { const data = state(); return owner() && !window.__sessionEnding && data && data.enabled !== false && Array.isArray(data.priorities) ? [...data.priorities] : []; };
+  const getSummary = () => { const data = state(); return owner() && !window.__sessionEnding && data ? JSON.parse(JSON.stringify(data)) : null; };
   const count = value => Math.max(0, Math.floor(Number(value) || 0));
   const date = value => { const d = new Date(value); return value && Number.isFinite(d.getTime()) ? d.toLocaleDateString('es-MX', {day:'numeric',month:'short',year:'numeric'}).replace(/\./g, '') : ''; };
   const notice = (type, title, message) => { if (typeof Toast !== 'undefined') Toast[type]?.(title, message); };
@@ -220,7 +221,7 @@
   document.addEventListener('icadem:session-ending', reset);
   document.addEventListener('icadem:session-ended', reset);
   document.addEventListener('icadem:user-ready', reset);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && document.querySelector('[data-course-unlocks]')) load(true).catch(() => {}); });
-  window.addEventListener('online', () => { if (document.querySelector('[data-course-unlocks]')) load(true).catch(() => {}); });
-  window.ICADEMCourseUnlocks = {mount,decorate,focus,open,getPriorities,adoptConfirmed,refresh:() => load(true)};
+  document.addEventListener('visibilitychange', () => { if (!window.ICADEMCourseSync && document.visibilityState === 'visible' && document.querySelector('[data-course-unlocks]')) load(true).catch(() => {}); });
+  window.addEventListener('online', () => { if (!window.ICADEMCourseSync && document.querySelector('[data-course-unlocks]')) load(true).catch(() => {}); });
+  window.ICADEMCourseUnlocks = {mount,decorate,focus,open,getPriorities,getSummary,adoptConfirmed,refresh:() => load(true)};
 })();

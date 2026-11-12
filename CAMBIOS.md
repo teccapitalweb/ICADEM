@@ -1,5 +1,15 @@
 # CAMBIOS
 
+## 2026-11-11 — Vistas del Directorio y actualización de datos académicos
+
+- Solicitudes, Mis conexiones y Profesionales VIP abren vistas internas dedicadas del Directorio. Reutilizan las tarjetas, servicios, filtros y reglas de contacto actuales; los perfiles regresan a la vista de origen y se conserva su contexto de navegación.
+- Banner más compacto, buscador de 46 px y selector de especialidades con etiqueta de 11 px y valor de 14 px. Se eliminan los textos solicitados del Directorio y el subtítulo de Mis cursos. El catálogo conserva distribución, portadas, criterios de orden y desbloqueos.
+- El Directorio consulta la API actual: una copia local no decide membresías, profesionales ni conexiones. Actualiza al recuperar visibilidad/foco/conexión y usa su intervalo existente. Las acciones esperan confirmación y evitan duplicar operaciones en curso.
+- Se publica también la corrección pendiente de sincronización de cursos: el ciclo existente consulta catálogo y prioridades además de identidad/progreso; las respuestas quedan vinculadas al UID y a la generación de sesión. Un fallo muestra que los datos no pudieron actualizarse. Un cambio remoto conserva el borrador y exige revisar el conflicto; se mantiene la revisión transaccional existente del backend.
+- Chrome y WebKit: Directorio en 320/360/375/390/414/768/1024/1440 px con APIs aisladas. Dos contextos independientes verifican acciones de comunidad y prioridades en ambas direcciones, recargas, conflictos, errores y recuperación. Las pruebas de mutación son simuladas: no se cambiaron datos reales de usuarios. No se presenta esa evidencia como dos sesiones autenticadas contra producción ni como dispositivos físicos.
+- Se integra main tras el PR de Ciudad ICADEM 1.0 y se conserva su referencia v5. Caché v160; no se modifica su código, infraestructura ni configuración. Sin cambios de backend académico, reglas Firebase, Stripe, membresías, créditos o emisión de certificados.
+- Reversión: revertir únicamente este PR e incrementar de nuevo el Service Worker; no revertir el PR de Ciudad ni cambiar datos de cuentas.
+
 ## 2026-11-11 — Mis cursos: abiertos primero y vistas por categoría
 
 - «Mi orden de prioridad» presenta primero los cursos con acceso académico, con el orden secundario existente; después, los pendientes priorizados con sus números guardados; finalmente, el resto. Los otros cuatro criterios y los permisos permanecen iguales.

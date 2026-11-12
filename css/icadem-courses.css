@@ -168,6 +168,8 @@
   .courses-page--category .courses-view-icon { flex-basis:36px; height:36px; border-radius:10px; }
   .courses-page--category .courses-controls { padding-bottom:10px; }
 }
+#dynamic-section .courses-sync-status { margin:0 0 14px; color:var(--text-2); font-size:12px; line-height:1.6; }
+#dynamic-section .courses-sync-status[hidden] { display:none; }
 @media(prefers-reduced-motion:reduce) {
   .courses-page--premium *, .courses-page--premium *::before, .courses-page--premium *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
 }
