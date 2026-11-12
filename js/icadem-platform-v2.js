@@ -451,7 +451,8 @@
       method: 'POST',
       body: {
         texto: String(post?.texto || '').trim(),
-        imagen: typeof post?.imagen === 'string' ? post.imagen : null
+        imagen: typeof post?.imagen === 'string' ? post.imagen : null,
+        requestId:post?.requestId || crypto.randomUUID()
       }
     });
   }

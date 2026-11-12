@@ -1,7 +1,7 @@
 /* Navigation state only. No profiles, contacts or membership data are cached. */
 (function () {
   'use strict';
-  var SECTION='directorio-perfil', ACTIVITY='directorio-actividad', memory=null, forumMemory=null, activeSection='', restore=false, restoreForum=false, restoreActivity=false, revision=0;
+  var SECTION='directorio-perfil', ACTIVITY='directorio-actividad', NETWORK='directorio-red', memory=null, forumMemory=null, activeSection='', restore=false, restoreForum=false, restoreActivity=false, restoreNetwork=false, revision=0;
   var KEY='icadem:directory-return:v1:', MAX_AGE=4*60*60*1000;
   var FORUM_KEY='icadem:forum-return:v1:';
   var DIRECTORY_VIEWS=['directorio','directorio-solicitudes','directorio-conexiones','directorio-vip'],directoryMemory={};
@@ -41,6 +41,14 @@
     var url=new URL('vip-panel.html',location.href);url.search='';url.searchParams.set('profesional',uid);url.hash=SECTION;return url.href;
   }
   function activityHref(uid){if(!validUid(uid))return '';var url=new URL(profileHref(uid));url.hash=ACTIVITY;return url.href;}
+  function networkContext(state){
+    if(window.__sessionEnding)return null;
+    var value=state?.icademNetwork;
+    if(!value||value.viewer!==viewer()||!validUid(value.owner)||!Number.isFinite(value.at)||value.at>Date.now()||Date.now()-value.at>MAX_AGE)return null;
+    return {viewer:viewer(),owner:value.owner,at:value.at,tab:value.tab==='mutual'?'mutual':'connections',scroll:value.scroll||null,
+      profileIndex:Number.isInteger(value.profileIndex)?value.profileIndex:null,networkIndex:Number.isInteger(value.networkIndex)?value.networkIndex:null,pages:Number.isInteger(value.pages)?Math.max(1,Math.min(20,value.pages)):1};
+  }
+  function networkTab(){return new URL(location.href).searchParams.get('red')==='mutual'?'mutual':'connections';}
   function activityContext(state){
     var value=state?.icademActivity,at=Number(value?.at);
     if(!value||value.viewer!==viewer()||!validUid(value.owner)||!Number.isFinite(at)||at>Date.now()||Date.now()-at>MAX_AGE)return null;
@@ -84,6 +92,17 @@
     if(DIRECTORY_VIEWS.includes(activeSection)&&(section===SECTION||DIRECTORY_VIEWS.includes(section)&&section!==activeSection))capture();
     if(activeSection==='foro'&&section===SECTION)captureForum();
     var url=new URL(location.href),state=Object.assign({},history.state||{}),previous=activeSection;
+    var network=networkContext(state);
+    if(section===NETWORK){
+      var owner=options.profileUid===undefined?currentProfileId():options.profileUid;
+      if(!network||network.owner!==owner)network={viewer:viewer(),owner:owner,at:Date.now(),profileIndex:previous===SECTION&&currentProfileId()===owner?historyIndex:null,networkIndex:null,scroll:null,tab:'connections'};
+      network.tab=options.networkTab===undefined?(options.fromHistory||options.reemplazar?networkTab():network.tab):options.networkTab==='mutual'?'mutual':'connections';
+      state.icademNetwork=validUid(owner)?network:null;url.searchParams.set('red',network.tab);
+    }else{
+      url.searchParams.delete('red');
+      if(section===SECTION&&network&&previous===NETWORK&&options.networkProfile){state.icademNetwork={...network,tab:networkTab(),scroll:scrollPosition(),networkIndex:historyIndex,at:Date.now()};}
+      else if(!network||options.networkOwner||![SECTION,ACTIVITY,'foro'].includes(section)||![NETWORK,SECTION,ACTIVITY,'foro'].includes(previous))delete state.icademNetwork;
+    }
     var activity=activityContext(state),activityUid=section===ACTIVITY?(options.profileUid===undefined?currentProfileId():options.profileUid):null;
     if(section===ACTIVITY){
       if(!activity||activity.owner!==activityUid){
@@ -103,7 +122,7 @@
         else url.searchParams.delete('comentario');
       }
     }else{url.searchParams.delete('publicacion');url.searchParams.delete('comentario');}
-    if(section===SECTION||section===ACTIVITY){
+    if(section===SECTION||section===ACTIVITY||section===NETWORK){
       var uid=options.profileUid===undefined?currentProfileId():options.profileUid;
       // Invalid identifiers remain an explicit error view; never guess a user.
       if(validUid(uid))url.searchParams.set('profesional',uid);else url.searchParams.delete('profesional');
@@ -114,18 +133,20 @@
         state.icademProfessional=DIRECTORY_VIEWS.includes(previous)?Object.assign({viewer:viewer(),depth:1},previous!=='directorio'?{origin:previous}:{}):previous==='foro'?{viewer:viewer(),depth:1,origin:'foro'}:
           previous===SECTION&&prior?.viewer===viewer()?Object.assign({viewer:viewer(),depth:Math.min(20,prior.depth+1)},prior.origin?{origin:prior.origin}:{}):null;
       }
-    }else{url.searchParams.delete('profesional');url.searchParams.delete('editar');if(!state.icademActivity)delete state.icademProfessional;}
+    }else{url.searchParams.delete('profesional');url.searchParams.delete('editar');if(!state.icademActivity&&!state.icademNetwork)delete state.icademProfessional;}
     if(DIRECTORY_VIEWS.includes(section)&&section!=='directorio'&&previous==='directorio'&&!options.fromHistory)state.icademDirectoryReturn={viewer:viewer(),index:history.state?.icademProfessionalIndex};
-    else if(!DIRECTORY_VIEWS.includes(section)&&section!==SECTION&&section!==ACTIVITY&&!state.icademActivity)delete state.icademDirectoryReturn;
+    else if(!DIRECTORY_VIEWS.includes(section)&&section!==SECTION&&section!==ACTIVITY&&section!==NETWORK&&!state.icademActivity&&!state.icademNetwork)delete state.icademDirectoryReturn;
     restore=DIRECTORY_VIEWS.includes(section)&&(previous===SECTION||DIRECTORY_VIEWS.includes(previous)&&previous!==section||options.fromHistory)&&Boolean(saved(section));
     restoreForum=section==='foro'&&previous===SECTION&&Boolean(savedForum());
     restoreActivity=section===ACTIVITY&&Boolean(activityContext(state)?.scroll)&&(previous==='foro'||options.fromHistory||!previous);
+    restoreNetwork=section===NETWORK&&Boolean(networkContext(state)?.scroll)&&(previous===SECTION||options.fromHistory||!previous);
     activeSection=section;url.hash=section;
     historyIndex=options.fromHistory&&Number.isInteger(state.icademProfessionalIndex)?state.icademProfessionalIndex:options.reemplazar||url.pathname+url.search+url.hash===routeLocation()?historyIndex:historyIndex+1;
     state.icademProfessionalIndex=historyIndex;
     if(section===ACTIVITY&&state.icademActivity)state.icademActivity.activityIndex=historyIndex;
+    if(section===NETWORK&&state.icademNetwork)state.icademNetwork.networkIndex=historyIndex;
     committed={url:url.pathname+url.search+url.hash,state:state};
-    return {url:committed.url,historyState:state,restoreDirectory:restore||restoreForum||restoreActivity};
+    return {url:committed.url,historyState:state,restoreDirectory:restore||restoreForum||restoreActivity||restoreNetwork};
   }
   function directoryState(){return restore?saved(activeSection):null;}
   function directoryReady(root,readyTab){
@@ -143,6 +164,22 @@
     });
   }
   function openProfile(uid){if(!validUid(uid))return false;window.navigateToSection?.(SECTION,{profileUid:uid});return true;}
+  function openNetwork(uid){if(!validUid(uid))return false;window.navigateToSection?.(NETWORK,{profileUid:uid});return true;}
+  function openNetworkProfile(uid){
+    if(!validUid(uid))return false;
+    var network=networkContext(history.state);
+    if(activeSection===NETWORK&&network){var state={...history.state,icademNetwork:{...network,scroll:scrollPosition(),tab:networkTab(),networkIndex:historyIndex,at:Date.now()}};history.replaceState(state,'',routeLocation());if(committed)committed.state=state;}
+    window.navigateToSection?.(SECTION,{profileUid:uid,networkProfile:true});return true;
+  }
+  function backToNetwork(){var value=networkContext(history.state),index=history.state?.icademProfessionalIndex;if(!value)return false;
+    if(Number.isInteger(value.networkIndex)&&Number.isInteger(index)&&index>value.networkIndex&&index-value.networkIndex<=20&&history.length>index-value.networkIndex)history.go(value.networkIndex-index);
+    else window.navigateToSection?.(NETWORK,{profileUid:value.owner,networkTab:value.tab,reemplazar:true});return true;}
+  function networkOwnerBack(){var value=networkContext(history.state),owner=currentProfileId(),index=history.state?.icademProfessionalIndex;if(!validUid(owner))return false;
+    if(value&&Number.isInteger(value.profileIndex)&&Number.isInteger(index)&&index>value.profileIndex&&index-value.profileIndex<=20&&history.length>index-value.profileIndex)history.go(value.profileIndex-index);
+    else window.navigateToSection?.(SECTION,{profileUid:owner,networkOwner:true,reemplazar:true});return true;}
+  function networkReady(root){if(!restoreNetwork||activeSection!==NETWORK||!root?.isConnected)return;var value=networkContext(history.state),run=revision;if(!value?.scroll)return;
+    requestAnimationFrame(()=>{if(!restoreNetwork||run!==revision||!root.isConnected)return;restoreNetwork=false;var p=value.scroll;window.scrollTo({top:Math.max(0,Number(p.window)||0),left:0,behavior:'instant'});
+      var els={document:document.documentElement,body:document.body,scrolling:document.scrollingElement,main:document.querySelector('main.main'),dynamic:document.getElementById('dynamic-section')};Object.entries(els).forEach(([key,el])=>{if(el)el.scrollTop=Math.max(0,Number(p[key])||0);});});}
   function openActivity(uid){if(!validUid(uid))return false;window.navigateToSection?.(ACTIVITY,{profileUid:uid});return true;}
   function backToProfile(){
     var value=activityContext(history.state),owner=currentProfileId(),index=history.state?.icademProfessionalIndex;
@@ -202,8 +239,9 @@
       window.scrollTo({top:Math.max(0,Number(position.window)||0),left:0,behavior:'instant'});
     });
   }
-  function backLabel(){var source=history.state?.icademProfessional;return source?.viewer===viewer()&&source.origin==='foro'?'Volver al Foro VIP':source?.viewer===viewer()&&source.origin==='directorio-vip'?'Volver a Profesionales VIP':source?.viewer===viewer()&&source.origin==='directorio-solicitudes'?'Volver a Solicitudes':source?.viewer===viewer()&&source.origin==='directorio-conexiones'?'Volver a Mis conexiones':'Volver al directorio';}
+  function backLabel(){if(networkContext(history.state))return 'Volver a la red';var source=history.state?.icademProfessional;return source?.viewer===viewer()&&source.origin==='foro'?'Volver a Comunidad ICADEM':source?.viewer===viewer()&&source.origin==='directorio-vip'?'Volver a Profesionales VIP':source?.viewer===viewer()&&source.origin==='directorio-solicitudes'?'Volver a Solicitudes':source?.viewer===viewer()&&source.origin==='directorio-conexiones'?'Volver a Mis conexiones':'Volver al directorio';}
   function backToDirectory(){
+    if(activeSection===SECTION&&networkContext(history.state)){backToNetwork();return;}
     if(DIRECTORY_VIEWS.includes(activeSection)&&activeSection!=='directorio'){
       var parent=history.state?.icademDirectoryReturn,index=history.state?.icademProfessionalIndex;
       if(parent?.viewer===viewer()&&Number.isInteger(parent.index)&&Number.isInteger(index)&&index>parent.index&&index-parent.index<=20)history.go(parent.index-index);
@@ -215,12 +253,14 @@
     else window.navigateToSection?.(source?.viewer===viewer()&&(source.origin==='foro'||DIRECTORY_VIEWS.includes(source.origin))?source.origin:'directorio',{reemplazar:true});
   }
   function reset(){
-    revision++;restore=false;restoreForum=false;restoreActivity=false;activeSection='';memory=null;directoryMemory={};forumMemory=null;committed=null;restoring=null;acceptedHistory=null;
+    revision++;restore=false;restoreForum=false;restoreActivity=false;restoreNetwork=false;activeSection='';memory=null;directoryMemory={};forumMemory=null;committed=null;restoring=null;acceptedHistory=null;
+    if(history.state?.icademNetwork){var state={...history.state};delete state.icademNetwork;history.replaceState(state,'',routeLocation());}
     try{if(viewer()){DIRECTORY_VIEWS.forEach(function(s){sessionStorage.removeItem(KEY+viewer()+(s==='directorio'?'':':'+s));});sessionStorage.removeItem(FORUM_KEY+viewer());}}catch(_){}
   }
   document.addEventListener('icadem:session-ending',reset);
   document.addEventListener('icadem:user-ready',function(){if(memory&&memory.uid!==viewer()||forumMemory&&forumMemory.uid!==viewer())reset();});
   window.ICADEMProfessionalNavigation={validUid:validUid,currentProfileId:currentProfileId,currentEditorSection:currentEditorSection,profileHref:profileHref,prepare:prepare,allowNavigation:allowNavigation,handleHistory:handleHistory,openEditor:openEditor,
     directoryState:directoryState,directoryReady:directoryReady,forumState:forumState,forumReady:forumReady,backLabel:backLabel,openProfile:openProfile,backToDirectory:backToDirectory,
-    activityHref:activityHref,openActivity:openActivity,backToProfile:backToProfile,openActivityPost:openActivityPost,activityReturn:activityReturn,backToActivity:backToActivity,activityReady:activityReady};
+    activityHref:activityHref,openActivity:openActivity,backToProfile:backToProfile,openActivityPost:openActivityPost,activityReturn:activityReturn,backToActivity:backToActivity,activityReady:activityReady,
+    openNetwork,openNetworkProfile,backToNetwork,networkOwnerBack,networkTab,networkReady};
 })();

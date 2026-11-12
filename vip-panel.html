@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=52" defer></script>
+<script src="js/icadem-platform-v2.js?v=53" defer></script>
 <script src="js/icadem-course-unlocks.js?v=5" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
@@ -4088,14 +4088,16 @@ body.has-fomo .main{padding-top:18px}
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=3">
 <link rel="stylesheet" href="css/icadem-professional-activity.css?v=1">
+<link rel="stylesheet" href="css/icadem-professional-network.css?v=1">
 <link rel="stylesheet" href="css/icadem-resume-editor.css?v=3">
-<script src="js/icadem-professional-navigation.js?v=7"></script>
+<script src="js/icadem-professional-navigation.js?v=8"></script>
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
-<script src="js/icadem-professional-profile.js?v=5"></script>
+<script src="js/icadem-professional-profile.js?v=6"></script>
 <script src="js/icadem-professional-activity.js?v=1" defer></script>
+<script src="js/icadem-professional-network.js?v=1" defer></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
-<script src="js/icadem-community.js?v=10"></script>
+<script src="js/icadem-community.js?v=11"></script>
 <script src="js/icadem-notifications.js?v=3" defer></script>
 </head>
 <body style="visibility:hidden">
@@ -4770,7 +4772,7 @@ window.__setDisplayName = async (nombre) => {
 
     <div class="nav-section">
       <div class="nav-label">Comunidad</div>
-      <a href="#foro" class="nav-item" data-section="foro"><svg class="ic"><use href="#i-messages"/></svg>Foro VIP</a>
+      <a href="#foro" class="nav-item" data-section="foro"><svg class="ic"><use href="#i-messages"/></svg>Comunidad ICADEM</a>
       <a href="#directorio" class="nav-item" data-section="directorio"><svg class="ic"><use href="#i-users"/></svg>Directorio VIP</a>
       <a href="#canal" class="nav-item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
     </div>
@@ -4981,7 +4983,7 @@ window.__setDisplayName = async (nombre) => {
 
       <div class="mobile-drawer__section">
         <div class="mobile-drawer__label">Comunidad</div>
-        <a href="#foro" class="mobile-drawer__item" data-section="foro"><svg class="ic"><use href="#i-messages"/></svg>Foro VIP</a>
+        <a href="#foro" class="mobile-drawer__item" data-section="foro"><svg class="ic"><use href="#i-messages"/></svg>Comunidad ICADEM</a>
         <a href="#directorio" class="mobile-drawer__item" data-section="directorio"><svg class="ic"><use href="#i-users"/></svg>Directorio VIP</a>
         <a href="#canal" class="mobile-drawer__item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
         <a class="mobile-drawer__item" id="drawer-whatsapp-support"><svg class="ic"><use href="#i-whatsapp"/></svg>Soporte por WhatsApp</a>
@@ -5941,7 +5943,7 @@ function __sincronizarDesdeURLVIP(){
   if(window.ICADEMLearningNavigation?.handleHistory?.())return;
   if(window.ICADEMProfessionalNavigation?.handleHistory?.())return;
   const s = __leerSeccionURLVIP();
-  if (s !== __seccionActualVIP || (['directorio-perfil','directorio-actividad'].includes(s) && (window.ICADEMProfessionalNavigation?.currentProfileId()!==window.__perfilProfesionalRutaActual || window.ICADEMProfessionalNavigation?.currentEditorSection()!==window.__perfilProfesionalEdicionActual)) || (s==='foro'&&new URLSearchParams(location.search).get('publicacion')!==window.__foroPublicacionRutaActual)) navigateToSection(s, { reemplazar: true, fromHistory:true });
+  if (s !== __seccionActualVIP || (['directorio-perfil','directorio-actividad','directorio-red'].includes(s) && (window.ICADEMProfessionalNavigation?.currentProfileId()!==window.__perfilProfesionalRutaActual || window.ICADEMProfessionalNavigation?.currentEditorSection()!==window.__perfilProfesionalEdicionActual)) || (s==='directorio-red'&&window.ICADEMProfessionalNavigation?.networkTab()!==window.__redProfesionalTabActual) || (s==='foro'&&new URLSearchParams(location.search).get('publicacion')!==window.__foroPublicacionRutaActual)) navigateToSection(s, { reemplazar: true, fromHistory:true });
 }
 window.addEventListener('popstate', __sincronizarDesdeURLVIP);
 window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
@@ -5969,7 +5971,8 @@ function navigateToSection(section, opciones){
   }else if(__profileRoute && history.state?.icademProfessionalIndex!==__profileRoute.historyState.icademProfessionalIndex){
     history.replaceState(__profileRoute.historyState,'',__destino);
   }
-  window.__perfilProfesionalRutaActual=['directorio-perfil','directorio-actividad'].includes(section)?window.ICADEMProfessionalNavigation?.currentProfileId():null;
+  window.__perfilProfesionalRutaActual=['directorio-perfil','directorio-actividad','directorio-red'].includes(section)?window.ICADEMProfessionalNavigation?.currentProfileId():null;
+  window.__redProfesionalTabActual=section==='directorio-red'?window.ICADEMProfessionalNavigation?.networkTab():null;
   window.__foroPublicacionRutaActual=section==='foro'?new URLSearchParams(location.search).get('publicacion'):null;
   window.__perfilProfesionalEdicionActual=section==='directorio-perfil'?window.ICADEMProfessionalNavigation?.currentEditorSection():'';
   window.__scrollNavigationRevision=(window.__scrollNavigationRevision||0)+1;
@@ -6037,7 +6040,7 @@ function __subirAlInicioVIP(){
 }
 
 function sectionPlaceholder(section){
-  const names={'mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Foro VIP',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
+  const names={'mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Comunidad ICADEM',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
   const name=names[section]||section;
   return `<div class="fade-up" style="padding:80px 20px;text-align:center;"><div style="width:80px;height:80px;margin:0 auto 18px;border-radius:20px;background:var(--surface);border:0.5px solid var(--border-2);display:flex;align-items:center;justify-content:center;color:var(--primary);"><svg class="ic ic--xl"><use href="#i-tools"/></svg></div><h2 style="font-size:22px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;">${name}</h2><p style="color:var(--text-2);max-width:380px;margin:0 auto;line-height:1.55;font-size:13.5px;">Sección en construcción. La entrego en el siguiente sprint.</p><button class="btn btn--ghost" style="margin-top:20px;" onclick="navigateToSection('inicio')">Volver al inicio</button></div>`;
 }
@@ -11933,7 +11936,7 @@ const Sections = (function(){
   function renderForo(container){
     const savedForum = window.ICADEMProfessionalNavigation?.forumState();
     if (savedForum) _foroFiltro = savedForum.filter;
-    const esVip = window.UserState?.modo === 'vip' || esAdminReal();
+    const canParticipate = !!(window.__currentUser?.uid || window.__auth?.currentUser?.uid);
     const ini = window.UserState?.iniciales || 'IN';
     const miColor = foroColorFor(window.UserState?.uid);
 
@@ -11942,7 +11945,7 @@ const Sections = (function(){
         ${window.ICADEMProfessionalNavigation?.activityReturn()?'<nav class="professional-profile-toolbar"><button type="button" data-forum-back-activity><svg class="ic"><use href="#i-arrow-left"/></svg>Volver a Actividad profesional</button></nav>':''}
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Comunidad activa</span>
-          <h1 class="sec-hero__title">Foro VIP</h1>
+          <h1 class="sec-hero__title">Comunidad ICADEM</h1>
           <p class="sec-hero__sub">Comparte experiencia. Encuentra nuevas perspectivas.</p>
         </div>
 
@@ -11951,7 +11954,7 @@ const Sections = (function(){
           <span>Las publicaciones se eliminan automáticamente <strong>15 días</strong> después de publicarse.</span>
         </div>
 
-        ${esVip ? `
+        ${canParticipate ? `
         <div class="foro-composer">
           <div class="foro-composer__avatar${window.UserState?.photoURL?' has-photo':''}" style="background:linear-gradient(135deg,${miColor},${miColor}aa);">${window.UserState?.photoURL?`<img src="${escapeHtml(window.__avatarSrc?.(window.UserState.photoURL,window.UserState.photoVersion)||window.UserState.photoURL)}" alt="">`:ini}</div>
           <div class="foro-composer__main">
@@ -11975,10 +11978,10 @@ const Sections = (function(){
         <div class="foro-paywall">
           <div class="foro-paywall__ic"><svg class="ic"><use href="#i-crown"/></svg></div>
           <div>
-            <div class="foro-paywall__t">Únete al club VIP para participar</div>
-            <div class="foro-paywall__d">Puedes leer el foro, pero para publicar, comentar y reaccionar necesitas tu membresía VIP activa.</div>
+            <div class="foro-paywall__t">Inicia sesión para participar</div>
+            <div class="foro-paywall__d">Las cuentas gratuitas y VIP pueden publicar, comentar y reaccionar en Comunidad ICADEM.</div>
           </div>
-          <button class="btn btn--accent btn--sm" onclick="window.navigateToSection && window.navigateToSection('suscripcion')">Activar VIP</button>
+          <a class="btn btn--accent btn--sm" href="vip-auth.html">Iniciar sesión</a>
         </div>
         `}
 
@@ -11994,9 +11997,9 @@ const Sections = (function(){
       </div>
     `;
 
-    // Composer (solo VIP)
+    // Basic participation is available to every authenticated account.
     container.querySelector('[data-forum-back-activity]')?.addEventListener('click',()=>window.ICADEMProfessionalNavigation.backToActivity());
-    if (esVip) {
+    if (canParticipate) {
       const txt = container.querySelector('#foro-text');
       const charEl = container.querySelector('#foro-char');
       const fileInput = container.querySelector('#foro-file');
@@ -12110,7 +12113,7 @@ const Sections = (function(){
         <div class="post__main">
           <div class="post__header">
             ${foroAutorMarkup(p,'name')}
-            ${p.esAdmin?'<span class="post__role">ICADEM</span>':'<span class="post__role post__role--vip">VIP</span>'}
+            ${p.esAdmin?'<span class="post__role">ICADEM</span>':p.esVip===true?'<span class="post__role post__role--vip">VIP</span>':'<span class="post__role">Miembro</span>'}
             <span class="post__time">${foroTiempoRel(p.createdAt)}</span>
             ${puedeBorrar?`<button class="post__del" data-del="${p.id}" title="Eliminar">&times;</button>`:''}
           </div>
@@ -12144,10 +12147,14 @@ const Sections = (function(){
     const orig = btn.innerHTML; btn.dataset.publishing='true'; btn.disabled = true; btn.textContent = 'Publicando…';
     try {
       if (!window.ICADEMPlatform?.createForumPost) throw new Error('El servicio del foro no está disponible.');
+      const requestText=contenido+'\n'+(_foroImg||'');
+      if(txt.__requestText!==requestText){txt.__requestText=requestText;txt.__requestId=crypto.randomUUID();}
       await window.ICADEMPlatform.createForumPost({
         texto: contenido,
-        imagen: _foroImg || null
+        imagen: _foroImg || null,
+        requestId:txt.__requestId
       });
+      txt.__requestText=null;txt.__requestId=null;
       txt.value = ''; container.querySelector('#foro-char').textContent = '0 / 1500';
       _foroImg = null; container.querySelector('#foro-img-preview').style.display = 'none';
       container.querySelector('#foro-image-status').textContent='';
@@ -12157,7 +12164,7 @@ const Sections = (function(){
   }
 
   async function foroToggleLike(postId){
-    if (!(window.UserState?.modo==='vip' || esAdminReal())) { Toast.info('Solo VIP','Activa tu membresía para reaccionar'); return; }
+    if (!(window.__currentUser?.uid || window.__auth?.currentUser?.uid)) { Toast.info('Inicia sesión','Accede a tu cuenta para reaccionar'); return; }
     const button=document.querySelector(`[data-like="${CSS.escape(postId)}"]`);if(button?.disabled)return;
     const liked=button?.getAttribute('aria-pressed')!=='true';if(button)button.disabled=true;
     try {
@@ -12190,16 +12197,16 @@ const Sections = (function(){
   }
   function foroCargarComentarios(postId, cont){
     const fs = window.__fs;
-    const esVip = window.UserState?.modo==='vip' || esAdminReal();
+    const canParticipate = !!(window.__currentUser?.uid || window.__auth?.currentUser?.uid);
     cont.innerHTML = `
       <div class="com-list" id="comlist-${postId}"><div class="foro-empty foro-empty--sm">Cargando…</div></div>
-      ${esVip?`
+      ${canParticipate?`
       <div class="com-form">
         <input type="text" class="com-input" id="cominput-${postId}" placeholder="Escribe una respuesta…" maxlength="600">
         <button class="btn btn--accent btn--sm" data-com-send="${postId}">Responder</button>
       </div>`:''}
     `;
-    if (esVip){
+    if (canParticipate){
       const send = ()=> foroEnviarComentario(postId);
       cont.querySelector('[data-com-send]').addEventListener('click', send);
       cont.querySelector('#cominput-'+postId).addEventListener('keydown', e=>{ if(e.key==='Enter') send(); });
@@ -12427,7 +12434,7 @@ const Sections = (function(){
             <div class="perfil-card__title">Notificaciones</div>
             <div class="perfil-field"><span class="perfil-field__lbl">Nuevos cursos</span><span class="perfil-field__val" style="color:var(--success);">✓ Activado</span></div>
             <div class="perfil-field"><span class="perfil-field__lbl">Clases en vivo</span><span class="perfil-field__val" style="color:var(--success);">✓ Activado</span></div>
-            <div class="perfil-field"><span class="perfil-field__lbl">Foro VIP</span><span class="perfil-field__val" style="color:var(--success);">✓ Activado</span></div>
+            <div class="perfil-field"><span class="perfil-field__lbl">Comunidad ICADEM</span><span class="perfil-field__val" style="color:var(--success);">✓ Activado</span></div>
             <div class="perfil-field"><span class="perfil-field__lbl">Newsletter quincenal</span><span class="perfil-field__val" style="color:var(--text-3);">— Desactivado</span></div>
           </div>
 
@@ -12854,7 +12861,7 @@ const Sections = (function(){
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>5 herramientas pro</div>
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Clases en vivo quincenales</div>
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Certificados con folio QR</div>
-            <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Foro VIP y canal WhatsApp</div>
+            <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>Comunidad ICADEM y canal WhatsApp</div>
             <div class="plan-feat"><svg class="ic"><use href="#i-check"/></svg>20% descuento en certificaciones</div>
           </div>
           <div class="plan-card__footer">
@@ -13259,6 +13266,7 @@ const Sections = (function(){
       'directorio-vip':container=>renderDirectorio(container,'vip'),
       'directorio-perfil':renderPerfilProfesional,
       'directorio-actividad':container=>window.ICADEMProfessionalActivity.render(container),
+      'directorio-red':container=>window.ICADEMProfessionalNetwork.render(container),
       canal:renderCanal,
       perfil:renderPerfil,
       embajadores:renderEmbajadores,
@@ -13925,7 +13933,7 @@ function toggleNotifDropdown(skipSync=false,presentation=false){
     ${bodyHTML}
     ${notifs.length&&window.__notifsState.error?'<p role="status" style="padding:8px 12px;font-size:12px;color:var(--text-2)">No pudimos actualizar la bandeja. <button id="notif-retry" type="button">Reintentar</button></p>':''}
     ${nuevasCount?'<div style="padding:5px 12px 10px"><button id="notif-read-all" type="button" style="border:0;background:transparent;color:var(--primary);cursor:pointer;font:inherit;font-size:12px;padding:8px 0">Marcar como leídas</button></div>':''}
-    ${window.__notifsState.loaded&&!window.__isDemoMode?`<details><summary>Preferencias del Foro VIP</summary><label><input type="checkbox" data-notif-pref="forumActivity" ${window.__notifsState.preferences?.forumActivity!==false?'checked':''}> Comentarios y reacciones en mis publicaciones</label><label><input type="checkbox" data-notif-pref="forumNews" ${window.__notifsState.preferences?.forumNews?'checked':''}> Novedades generales del foro</label><small>Las novedades generales son opcionales y requieren acceso VIP. Los cambios se guardan en tu cuenta.</small><span id="notif-preferences-status" role="status"></span></details>`:''}
+    ${window.__notifsState.loaded&&!window.__isDemoMode?`<details><summary>Preferencias del Comunidad ICADEM</summary><label><input type="checkbox" data-notif-pref="forumActivity" ${window.__notifsState.preferences?.forumActivity!==false?'checked':''}> Comentarios y reacciones en mis publicaciones</label><label><input type="checkbox" data-notif-pref="forumNews" ${window.__notifsState.preferences?.forumNews?'checked':''}> Novedades generales del foro</label><small>Las novedades generales son opcionales para todas las cuentas registradas. Los cambios se guardan en tu cuenta.</small><span id="notif-preferences-status" role="status"></span></details>`:''}
     ${notifs.length > 0 ? `<div style="padding:9px 12px;border-top:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:10px;"><span style="font-size:11px;color:var(--text-3);">Mostrando últimas ${notifs.length}</span>${notifs.length > 1 ? `<button id="notif-del-all" style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--danger);background:transparent;border:0;cursor:pointer;font-weight:600;padding:2px 4px;font-family:inherit;"><svg class="ic" style="width:13px;height:13px;"><use href="#i-trash"/></svg>Eliminar todo</button>` : ''}</div>` : ''}`;
 
   dd.querySelectorAll('.notif-item').forEach(el=>{

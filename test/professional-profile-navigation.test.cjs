@@ -161,7 +161,7 @@ test('the real own-profile button opens the authenticated owner UID and preserve
  test('forum author navigation preserves its filter and all scroll surfaces while keeping the existing profile route',()=>{
   const f=fixture({url:'https://www.icademx.com/vip-panel.html#foro'});f.route('foro');f.forumFilter.dataset.foroTab='mios';f.window.scrollY=1480;
   assert.equal(f.api.openProfile('viewer-a'),true);assert.equal(f.location.search,'?profesional=viewer-a');assert.equal(f.location.hash,'#directorio-perfil');
-  assert.equal(f.api.backLabel(),'Volver al Foro VIP');assert.equal(f.history.state.icademProfessional.origin,'foro');
+  assert.equal(f.api.backLabel(),'Volver a Comunidad ICADEM');assert.equal(f.history.state.icademProfessional.origin,'foro');
   const route=f.route('foro');assert.equal(route.restoreDirectory,true);assert.equal(f.api.forumState().filter,'mios');
   f.window.scrollY=0;f.main.scrollTop=0;f.dynamic.scrollTop=0;f.api.forumReady(f.forum);f.flush();
   assert.equal(f.window.scrollY,1480);assert.equal(f.main.scrollTop,360);assert.equal(f.dynamic.scrollTop,420);assert.equal(f.api.forumState(),null);
