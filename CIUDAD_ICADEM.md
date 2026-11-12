@@ -732,5 +732,11 @@ Logros nuevos: Mente curiosa, Políglota, Memoria de oro, Calculadora humana, Gr
   con semilla, carrera y tesoro por posición, socket real) y `test/ciudad-familia.test.cjs`.
 - Navegador: `scripts/ciudad-fase11-e2e.cjs` (dos y tres navegadores contra el servidor de prueba: conteo,
   panel, código, enlace, uso único, revocación, privacidad, NPC, respuesta correcta e incorrecta, minijuego,
-  logro, carrera por posición, reconexión). Emulación de computadora, tableta y teléfono; no se probó en
-  teléfonos físicos ni con dos cuentas reales del piloto.
+  logro, reconexión). Emulación de computadora, tableta y teléfono; no se probó en teléfonos físicos.
+- Navegador: `scripts/ciudad-retos-e2e.cjs` (carrera y búsqueda del tesoro con un jugador: arrancan tras
+  estar quieto más de 2.5 s; cada arco y tesoro lo confirma el servidor y la XP queda bajo «carrera» y
+  «tesoro»). Solo cuentan las respuestas reales del servidor.
+- Corrección 1.1.1 (encontrada en la prueba del piloto en producción): el cliente manda su posición actual
+  antes de arrancar o de cada punto de control (quieto no enviaba estado y el servidor la daba por vieja) y
+  cada mensaje dice su juego (antes el cliente ignoraba la confirmación del servidor y se quedaba en el
+  primer arco o tesoro). Solo cliente; el servidor no cambia.

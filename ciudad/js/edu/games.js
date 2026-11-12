@@ -5,6 +5,7 @@ import * as THREE from '../three.js';
 import { ACTIVITIES, RACE, TREASURES, TREASURE_RADIUS, treasureRounds, SORT_THEMES } from './activities.js';
 import { ACTIVITY_DAILY_XP } from './play-rules.js';
 import { h } from '../missions/controller.js';
+import { encodeState } from '../net/network.js';
 
 export const GAME_LIST = Object.freeze([
   { id: 'carrera', icon: '🏃', title: 'Carrera del conocimiento', text: 'Salta plataformas, esquiva barras y llega a la meta en el Parque de retos.', place: 'park' },
@@ -174,8 +175,19 @@ export class Games {
     if (this.race) { const q = await api.ui.choice({ speaker: 'Carrera del conocimiento', text: '¿Abandonar la carrera?', options: [{ id: 'si', label: 'Abandonar' }, { id: 'no', label: 'Seguir corriendo', primary: true }] }); if (q === 'si') this.raceQuit(); return; }
     await api.ui.dialog({ speaker: 'Carrera del conocimiento', lines: ['Pasa por los 7 arcos en orden. Los que están sobre plataformas se alcanzan saltando (Espacio o el botón de salto).', 'Cuidado con las barras rojas: si te alcanzan, te empujan. ¡La meta está en el centro!'] });
     this.race = { next: 0, t0: performance.now(), bumps: 0, server: this.api.net.isOnline };
-    if (this.race.server) { this.pending = true; api.net.play('start', { game: 'carrera' }); }
+    if (this.race.server) { this.pending = true; this.#play('start', { game: 'carrera' }); }
     this.#raceHud();
+  }
+
+  /**
+   * Envío al servidor de carrera/tesoro. Antes se manda la posición actual: quieto (p. ej. leyendo el
+   * diálogo) el cliente no envía estado y el servidor la daría por vieja; el servidor sigue validándola
+   * con su control de velocidad. Cada mensaje dice su juego para que la respuesta se reconozca.
+   */
+  #play(op, payload) {
+    const api = this.api, net = api.net, last = net.lastSent, p = api.player.position;
+    if (last) { const now = encodeState({ scene: api.sceneName, x: p.x, y: p.y, z: p.z, yaw: api.player.yaw || 0 }); now[5] = last[5]; net.sendState(now); }
+    net.play(op, payload);
   }
 
   raceBump() { if (this.race) this.race.bumps++; }
@@ -193,7 +205,7 @@ export class Games {
     await api.ui.dialog({ speaker: 'Búsqueda del tesoro', lines: ['Hay objetos de distintas profesiones escondidos por la plaza. Sigue las pistas del panel.', 'Son tres rondas: 2, 3 y 5 tesoros. Acércate a cada uno para recogerlo.'] });
     const seed = api.edu.seed();
     this.hunt = { seed, rounds: treasureRounds(seed), round: 0, found: [], t0: performance.now(), server: api.net.isOnline };
-    if (this.hunt.server) { this.pending = true; api.net.play('start', { game: 'tesoro', seed }); }
+    if (this.hunt.server) { this.pending = true; this.#play('start', { game: 'tesoro', seed }); }
     this.#huntRender();
   }
   huntQuit() { if (!this.hunt) return; if (this.hunt.server) this.api.net.play('quit', {}); this.hunt = null; this.pending = false; this.#clearObjs(); this.api.ui.setTracker(null); }
@@ -255,7 +267,7 @@ export class Games {
       this.hudTick = (this.hudTick || 0) + dt; if (this.hudTick > 0.5) { this.hudTick = 0; this.#raceHud(); }
       const cp = RACE.checkpoints[this.race.next];
       if (cp && !this.pending && performance.now() > (this.waitUntil || 0) && Math.hypot(p.x - cp[0], p.z - cp[1]) <= RACE.radius - 0.2 && p.y >= (cp[2] || 0) - 0.3) {
-        if (this.race.server) { this.pending = true; setTimeout(() => api.net.play('check', { i: this.race?.next }), 150); }
+        if (this.race.server) { this.pending = true; setTimeout(() => this.#play('check', { game: 'carrera', i: this.race?.next }), 150); }
         else { this.race.next++; if (this.race.next >= RACE.checkpoints.length) { const s = (performance.now() - this.race.t0) / 1000; this.#raceDone(Math.max(50, Math.min(100, Math.round(100 - Math.max(0, s - 30) * 1.5))), s, false); } else this.#raceHud(); }
       }
     }
@@ -267,7 +279,7 @@ export class Games {
         if (this.hunt.found.includes(id) || this.pending || performance.now() < (this.waitUntil || 0)) continue;
         const tr = TREASURES.find(x => x.id === id);
         if (Math.hypot(p.x - tr.at[0], p.z - tr.at[1]) > TREASURE_RADIUS - 0.2) continue;
-        if (this.hunt.server) { this.pending = true; setTimeout(() => api.net.play('check', { id }), 150); }
+        if (this.hunt.server) { this.pending = true; setTimeout(() => this.#play('check', { game: 'tesoro', id }), 150); }
         else {
           this.#found(id);
           if (ids.every(x => this.hunt.found.includes(x))) { this.hunt.round++; this.hunt.found = []; if (this.hunt.round >= 3) { const s = (performance.now() - this.hunt.t0) / 1000; this.#huntDone(Math.max(60, Math.min(100, Math.round(100 - Math.max(0, s - 240) / 6))), false); return; } this.api.ui.toast(`¡Ronda completa! Ronda ${this.hunt.round + 1} de 3`, 2400); }
