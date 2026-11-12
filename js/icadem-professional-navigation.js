@@ -45,10 +45,10 @@
     if(window.__sessionEnding)return null;
     var value=state?.icademNetwork;
     if(!value||value.viewer!==viewer()||!validUid(value.owner)||!Number.isFinite(value.at)||value.at>Date.now()||Date.now()-value.at>MAX_AGE)return null;
-    return {viewer:viewer(),owner:value.owner,at:value.at,tab:value.tab==='mutual'?'mutual':'connections',scroll:value.scroll||null,
+    return {viewer:viewer(),owner:value.owner,at:value.at,tab:value.owner!==viewer()&&value.tab==='mutual'?'mutual':'connections',scroll:value.scroll||null,
       profileIndex:Number.isInteger(value.profileIndex)?value.profileIndex:null,networkIndex:Number.isInteger(value.networkIndex)?value.networkIndex:null,pages:Number.isInteger(value.pages)?Math.max(1,Math.min(20,value.pages)):1};
   }
-  function networkTab(){return new URL(location.href).searchParams.get('red')==='mutual'?'mutual':'connections';}
+  function networkTab(){return currentProfileId()!==viewer()&&new URL(location.href).searchParams.get('red')==='mutual'?'mutual':'connections';}
   function activityContext(state){
     var value=state?.icademActivity,at=Number(value?.at);
     if(!value||value.viewer!==viewer()||!validUid(value.owner)||!Number.isFinite(at)||at>Date.now()||Date.now()-at>MAX_AGE)return null;
@@ -97,6 +97,7 @@
       var owner=options.profileUid===undefined?currentProfileId():options.profileUid;
       if(!network||network.owner!==owner)network={viewer:viewer(),owner:owner,at:Date.now(),profileIndex:previous===SECTION&&currentProfileId()===owner?historyIndex:null,networkIndex:null,scroll:null,tab:'connections'};
       network.tab=options.networkTab===undefined?(options.fromHistory||options.reemplazar?networkTab():network.tab):options.networkTab==='mutual'?'mutual':'connections';
+      if(owner===viewer())network.tab='connections';
       state.icademNetwork=validUid(owner)?network:null;url.searchParams.set('red',network.tab);
     }else{
       url.searchParams.delete('red');
