@@ -4087,13 +4087,15 @@ body.has-fomo .main{padding-top:18px}
 <script src="js/icadem-directory.js?v=2"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=3">
+<link rel="stylesheet" href="css/icadem-professional-activity.css?v=1">
 <link rel="stylesheet" href="css/icadem-resume-editor.css?v=3">
-<script src="js/icadem-professional-navigation.js?v=6"></script>
+<script src="js/icadem-professional-navigation.js?v=7"></script>
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
-<script src="js/icadem-professional-profile.js?v=4"></script>
+<script src="js/icadem-professional-profile.js?v=5"></script>
+<script src="js/icadem-professional-activity.js?v=1" defer></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
-<script src="js/icadem-community.js?v=9"></script>
+<script src="js/icadem-community.js?v=10"></script>
 <script src="js/icadem-notifications.js?v=3" defer></script>
 </head>
 <body style="visibility:hidden">
@@ -5939,7 +5941,7 @@ function __sincronizarDesdeURLVIP(){
   if(window.ICADEMLearningNavigation?.handleHistory?.())return;
   if(window.ICADEMProfessionalNavigation?.handleHistory?.())return;
   const s = __leerSeccionURLVIP();
-  if (s !== __seccionActualVIP || (s==='directorio-perfil' && (window.ICADEMProfessionalNavigation?.currentProfileId()!==window.__perfilProfesionalRutaActual || window.ICADEMProfessionalNavigation?.currentEditorSection()!==window.__perfilProfesionalEdicionActual))) navigateToSection(s, { reemplazar: true, fromHistory:true });
+  if (s !== __seccionActualVIP || (['directorio-perfil','directorio-actividad'].includes(s) && (window.ICADEMProfessionalNavigation?.currentProfileId()!==window.__perfilProfesionalRutaActual || window.ICADEMProfessionalNavigation?.currentEditorSection()!==window.__perfilProfesionalEdicionActual)) || (s==='foro'&&new URLSearchParams(location.search).get('publicacion')!==window.__foroPublicacionRutaActual)) navigateToSection(s, { reemplazar: true, fromHistory:true });
 }
 window.addEventListener('popstate', __sincronizarDesdeURLVIP);
 window.addEventListener('hashchange', __sincronizarDesdeURLVIP);
@@ -5967,7 +5969,8 @@ function navigateToSection(section, opciones){
   }else if(__profileRoute && history.state?.icademProfessionalIndex!==__profileRoute.historyState.icademProfessionalIndex){
     history.replaceState(__profileRoute.historyState,'',__destino);
   }
-  window.__perfilProfesionalRutaActual=section==='directorio-perfil'?window.ICADEMProfessionalNavigation?.currentProfileId():null;
+  window.__perfilProfesionalRutaActual=['directorio-perfil','directorio-actividad'].includes(section)?window.ICADEMProfessionalNavigation?.currentProfileId():null;
+  window.__foroPublicacionRutaActual=section==='foro'?new URLSearchParams(location.search).get('publicacion'):null;
   window.__perfilProfesionalEdicionActual=section==='directorio-perfil'?window.ICADEMProfessionalNavigation?.currentEditorSection():'';
   window.__scrollNavigationRevision=(window.__scrollNavigationRevision||0)+1;
   const navigationRevision=window.__scrollNavigationRevision;
@@ -11851,7 +11854,7 @@ const Sections = (function(){
     Toast.error('No pudimos abrir el perfil','Actualiza la página para cargar la vista profesional.');
   }
   function renderPerfilProfesional(container){
-    if(window.ICADEMCommunity)return window.ICADEMCommunity.renderProfilePage(container,{modal:Modal,toast:Toast,editCard:dirEditarMiTarjeta});
+    if(window.ICADEMCommunity)return window.ICADEMCommunity.renderProfilePage(container,{modal:Modal,toast:Toast,editCard:dirEditarMiTarjeta,confirmDisconnect:()=>confirmModal('¿Desconectar a este profesional?','Podrás volver a enviar una solicitud más adelante.','Desconectar')});
     container.innerHTML='<div class="community-empty" role="alert">No se pudo cargar el perfil profesional. Actualiza la página para reintentar.</div>';
   }
 
@@ -11936,6 +11939,7 @@ const Sections = (function(){
 
     container.innerHTML = `
       <div class="fade-up foro-page--clean" data-community-forum>
+        ${window.ICADEMProfessionalNavigation?.activityReturn()?'<nav class="professional-profile-toolbar"><button type="button" data-forum-back-activity><svg class="ic"><use href="#i-arrow-left"/></svg>Volver a Actividad profesional</button></nav>':''}
         <div class="sec-hero">
           <span class="sec-hero__eyebrow">Comunidad activa</span>
           <h1 class="sec-hero__title">Foro VIP</h1>
@@ -11991,6 +11995,7 @@ const Sections = (function(){
     `;
 
     // Composer (solo VIP)
+    container.querySelector('[data-forum-back-activity]')?.addEventListener('click',()=>window.ICADEMProfessionalNavigation.backToActivity());
     if (esVip) {
       const txt = container.querySelector('#foro-text');
       const charEl = container.querySelector('#foro-char');
@@ -12259,22 +12264,25 @@ const Sections = (function(){
   }
 
   // Modal de confirmación simple (reutilizable)
-  function confirmModal(titulo, desc){
+  function confirmModal(titulo, desc, confirmLabel='Eliminar'){
     return new Promise(resolve=>{
+      const previousFocus=document.activeElement;
       let ov = document.getElementById('cf-modal'); if(ov) ov.remove();
       ov = document.createElement('div'); ov.id='cf-modal';
       ov.innerHTML = `
         <div class="cf-ov"></div>
-        <div class="cf-box">
-          <h3 class="cf-title">${escapeHtml(titulo)}</h3>
-          <p class="cf-desc">${escapeHtml(desc||'')}</p>
+        <div class="cf-box" role="alertdialog" aria-modal="true" aria-labelledby="cf-title" aria-describedby="cf-desc">
+          <h3 class="cf-title" id="cf-title">${escapeHtml(titulo)}</h3>
+          <p class="cf-desc" id="cf-desc">${escapeHtml(desc||'')}</p>
           <div class="cf-actions">
             <button class="btn btn--ghost btn--sm" id="cf-no">Cancelar</button>
-            <button class="btn btn--accent btn--sm" id="cf-si">Eliminar</button>
+            <button class="btn btn--accent btn--sm" id="cf-si">${escapeHtml(confirmLabel)}</button>
           </div>
         </div>`;
       document.body.appendChild(ov);
-      const cerrar = (val)=>{ ov.remove(); resolve(val); };
+      const onKey=event=>{if(event.key==='Escape'){event.preventDefault();cerrar(false);}else if(event.key==='Tab'){const buttons=[...ov.querySelectorAll('button')],index=buttons.indexOf(document.activeElement);event.preventDefault();buttons[(index+(event.shiftKey?-1:1)+buttons.length)%buttons.length].focus();}};
+      const cerrar = (val)=>{ document.removeEventListener('keydown',onKey);ov.remove();previousFocus?.isConnected&&previousFocus.focus();resolve(val); };
+      document.addEventListener('keydown',onKey);ov.querySelector('#cf-no').focus();
       ov.querySelector('.cf-ov').addEventListener('click', ()=>cerrar(false));
       ov.querySelector('#cf-no').addEventListener('click', ()=>cerrar(false));
       ov.querySelector('#cf-si').addEventListener('click', ()=>cerrar(true));
@@ -13250,6 +13258,7 @@ const Sections = (function(){
       'directorio-conexiones':container=>renderDirectorio(container,'connections'),
       'directorio-vip':container=>renderDirectorio(container,'vip'),
       'directorio-perfil':renderPerfilProfesional,
+      'directorio-actividad':container=>window.ICADEMProfessionalActivity.render(container),
       canal:renderCanal,
       perfil:renderPerfil,
       embajadores:renderEmbajadores,

@@ -19,15 +19,16 @@
     var color = /^#[0-9a-f]{6}$/i.test(appearance.color || '') ? appearance.color : p.isVip ? '#E9BC43' : '#244B64';
     var accent = /^#[0-9a-f]{6}$/i.test(cv.estilo?.color || '') ? cv.estilo.color : '#244B64';
     var hasResume=summary||cv.presentacion||cv.objetivo||['experiencia','formacion','idiomas','habilidades','habilidadesTecnicas','herramientas','competencias','certificaciones','proyectos','enlaces'].some(function(key){return cv[key]?.length;});
+    var activity = '<button type="button" class="community-primary pp-activity" data-profile-activity data-uid="'+e(p.uid)+'">'+icon('messages')+(p.own?'Ver mi actividad':'Ver actividad')+'</button>';
     var actions = p.preview ? '' : p.own
-      ? '<button type="button" class="community-primary" data-edit-cv>' + icon('edit') + 'Editar mi perfil profesional</button><button type="button" class="community-secondary" data-edit-card>Foto y portada</button>'
+      ? activity+'<button type="button" class="community-secondary" data-edit-cv>' + icon('edit') + 'Editar mi perfil profesional</button><button type="button" class="community-secondary" data-edit-card>Foto y portada</button>'
       : p.connection === 'received'
-        ? '<span class="community-state">' + icon('users') + 'Solicitud recibida</span><button type="button" class="community-primary" data-network-action="accept" data-uid="' + e(p.uid) + '">' + icon('check') + 'Aceptar</button><button type="button" class="community-secondary" data-network-action="reject" data-uid="' + e(p.uid) + '">Rechazar</button>'
-        : h.actionMarkup(p.uid, p.connection, false) + (p.connection === 'sent'
-          ? '<button type="button" class="community-secondary" data-network-action="cancel" data-uid="' + e(p.uid) + '">Cancelar solicitud</button>'
-          : p.connection === 'connected'
-            ? '<button type="button" class="community-secondary" data-network-action="remove" data-uid="' + e(p.uid) + '">Desconectar</button>'
-            : '');
+        ? '<span class="community-state">' + icon('users') + 'Solicitud recibida</span>'+activity+'<button type="button" class="community-secondary" data-network-action="accept" data-uid="' + e(p.uid) + '">' + icon('check') + 'Aceptar</button><button type="button" class="community-secondary" data-network-action="reject" data-uid="' + e(p.uid) + '">Rechazar</button>'
+        : p.connection === 'connected'
+          ? '<span class="community-state pp-connected">'+icon('check')+'Conectados</span>'+activity+'<button type="button" class="community-secondary" data-network-action="remove" data-uid="'+e(p.uid)+'">'+icon('users')+'Desconectar</button>'
+          : p.connection === 'sent'
+            ? '<span class="community-state">Solicitud pendiente</span>'+activity+'<button type="button" class="community-secondary" data-network-action="cancel" data-uid="'+e(p.uid)+'">Cancelar solicitud</button>'
+            : (p.connection==='none'?h.actionMarkup(p.uid,p.connection,false):'')+activity;
     var experience = (Array.isArray(cv.experiencia) ? cv.experiencia : []).filter(function (x) {
       return x && [x.cargo, x.empresa, x.periodo, x.descripcion].some(Boolean);
     });
