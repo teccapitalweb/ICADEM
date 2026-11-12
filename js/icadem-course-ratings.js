@@ -68,7 +68,7 @@
     if(!Number.isSafeInteger(count)||count<0||!Number.isFinite(average)||(count>0&&(average<1||average>5))||(count===0&&average!==0))throw new Error('Respuesta de valoraciones inválida.');
     return {ratingCount:count,average:average};
   }
-  function catalogActive(){return location.hash==='#cursos'&&!document.hidden;}
+  function catalogActive(){return /^#cursos(?:-(?:disponibles|progreso|completados|bloqueados|proximamente|regalo))?$/.test(location.hash)&&!document.hidden;}
   function refreshCatalog(force){
     var user=window.__auth&&window.__auth.currentUser,generation=sessionGeneration;
     if(!user||window.__sessionEnding||window.__isDemoMode)return Promise.resolve(null);

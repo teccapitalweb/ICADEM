@@ -36,6 +36,7 @@ function fixture(url='https://www.icademx.com/vip-panel.html#cursos'){
     requestAnimationFrame:fn=>frames.push(fn),setTimeout:fn=>timers.push(fn),clearTimeout(){},clearInterval(){},
     SECCION_DEFAULT_VIP:'inicio',__seccionActualVIP:null};
   ctx.Sections={renderers:{inicio(){},cursos(){renders.push('cursos');dynamic.innerHTML='Mis cursos';},'ruta-aprendizaje'(){renders.push('ruta-aprendizaje');dynamic.innerHTML='Mi ruta';},suscripcion(){renders.push('suscripcion');dynamic.innerHTML='VIP';}}};
+  for(const view of ['disponibles','progreso','completados','bloqueados','proximamente','regalo'])ctx.Sections.renderers['cursos-'+view]=()=>renders.push('cursos-'+view);
   vm.runInNewContext(fs.readFileSync(path.join(ROOT,'js/icadem-professional-navigation.js'),'utf8'),ctx);
   vm.runInNewContext(fs.readFileSync(path.join(ROOT,'js/icadem-learning-navigation.js'),'utf8'),ctx);
   vm.runInNewContext(between(panel,'function __seccionesValidasVIP(){','function sectionPlaceholder('),ctx);
@@ -52,6 +53,23 @@ test('the organizer is an internal route using the real panel renderer and brows
   assert.equal(f.location.hash,'#ruta-aprendizaje');assert.equal(f.history.length,2);assert.equal(f.renders.at(-1),'ruta-aprendizaje');
   f.history.back();f.flush();assert.equal(f.location.hash,'#cursos');assert.equal(f.renders.at(-1),'cursos');
   f.history.forward();f.flush();assert.equal(f.location.hash,'#ruta-aprendizaje');assert.equal(f.history.length,2);
+});
+
+for(const view of ['disponibles','progreso','completados','bloqueados','proximamente','regalo'])test('category '+view+' retains the parent context and uses actual indexed browser history',()=>{
+  const f=fixture();f.ctx.navigateToSection('cursos',{reemplazar:true});f.flush();
+  f.window.scrollY=377;f.main.scrollTop=188;f.ctx.navigateToSection('cursos-'+view);f.flush();
+  assert.equal(f.location.hash,'#cursos-'+view);assert.equal(f.renders.at(-1),'cursos-'+view);
+  f.window.ICADEMLearningNavigation.backToCourses();f.flush();
+  assert.equal(f.location.hash,'#cursos');assert.equal(f.window.ICADEMLearningNavigation.coursesState().search,'Nómina');
+  f.window.ICADEMLearningNavigation.coursesReady(f.courses);f.flush();assert.equal(f.window.scrollY,377);assert.equal(f.main.scrollTop,188);
+  f.history.forward();f.flush();assert.equal(f.location.hash,'#cursos-'+view);
+  f.window.ICADEMLearningNavigation.backToCourses();f.flush();assert.equal(f.location.hash,'#cursos');assert.equal(f.history.length,2);
+});
+
+test('a direct category link returns safely without trusting a foreign account marker',()=>{
+  const f=fixture('https://www.icademx.com/vip-panel.html#cursos-bloqueados');f.ctx.__sincronizarDesdeURLVIP();f.flush();
+  assert.equal(f.renders.at(-1),'cursos-bloqueados');f.history.state.icademCourseViewReturn={uid:'another-user',index:0};
+  f.window.ICADEMLearningNavigation.backToCourses();f.flush();assert.equal(f.location.hash,'#cursos');assert.equal(f.history.length,1);
 });
 
 test('dirty sidebar navigation waits for explicit discard and cancellation leaves URL and history intact',()=>{

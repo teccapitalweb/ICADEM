@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   const SECTION = 'ruta-aprendizaje', KEY = 'icadem:courses-return:v1:', MAX_AGE = 4 * 60 * 60 * 1000;
+  const courseViews = new Set(['cursos-disponibles','cursos-progreso','cursos-completados','cursos-bloqueados','cursos-proximamente','cursos-regalo']);
   let active = '', memory = null, restore = false, revision = 0, committed = null, restoring = null, accepted = null;
   const viewer = () => (window.__auth ? window.__auth.currentUser?.uid : window.UserState?.uid || window.__currentUser?.uid) || '';
   const here = () => location.pathname + location.search + location.hash;
@@ -59,12 +60,14 @@
   }
   function prepare(section, options, route) {
     revision++;
-    if (active === 'cursos' && section === SECTION) capture();
-    restore = section === 'cursos' && (active === SECTION || Boolean(options?.fromHistory && history.state?.icademLearningCourses)) && Boolean(saved());
+    if (active === 'cursos' && (section === SECTION || courseViews.has(section))) capture();
+    restore = section === 'cursos' && (active === SECTION || courseViews.has(active) || Boolean(options?.fromHistory && history.state?.icademLearningCourses)) && Boolean(saved());
     if (route?.historyState) {
       const state = route.historyState;
       if (section === SECTION && active === 'cursos') state.icademLearningReturn = {uid:viewer(), index:history.state?.icademProfessionalIndex};
       else if (section !== SECTION) delete state.icademLearningReturn;
+      if (courseViews.has(section) && active === 'cursos' && !options?.fromHistory) state.icademCourseViewReturn = {uid:viewer(), index:history.state?.icademProfessionalIndex};
+      else if (!courseViews.has(section)) delete state.icademCourseViewReturn;
       if (section === 'cursos') state.icademLearningCourses = true;
       else delete state.icademLearningCourses;
     }
@@ -98,7 +101,12 @@
   window.addEventListener('icadem:navigation', () => { committed = {url:here(), state:history.state}; });
   document.addEventListener('icadem:session-ending', reset);
   document.addEventListener('icadem:user-ready', () => { if (memory && memory.uid !== viewer()) reset(); });
-  window.ICADEMLearningNavigation = {allowNavigation, handleHistory, prepare, coursesState, coursesReady, back};
+  function backToCourses() {
+    const source = history.state?.icademCourseViewReturn, index = history.state?.icademProfessionalIndex;
+    if (source?.uid === viewer() && Number.isInteger(source.index) && Number.isInteger(index) && index > source.index && index - source.index <= 20) history.go(source.index - index);
+    else window.navigateToSection?.('cursos', {reemplazar:true});
+  }
+  window.ICADEMLearningNavigation = {allowNavigation, handleHistory, prepare, coursesState, coursesReady, back, backToCourses};
   window.__backToCoursesFromRoute = back;
   window.__openLearningRoute = id => { window.ICADEMLearningRoute?.setInitialCourse?.(id); window.navigateToSection?.(SECTION); };
 })();

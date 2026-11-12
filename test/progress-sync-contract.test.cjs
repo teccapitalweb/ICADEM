@@ -12,7 +12,8 @@ function fixture(){
   vm.createContext(context);
   const functions=panel.slice(panel.indexOf('  function getProgresoKey()'),panel.indexOf('  // El servidor conserva el avance por UID.'));
   const merge=panel.slice(panel.indexOf('  window.__mergeServerProgress = function'),panel.indexOf('  if (window.__pendingServerProgress)'));
-  vm.runInContext(functions+merge,context);
+  const courseViews=panel.slice(panel.indexOf('  const vistasCursos='),panel.indexOf("  document.addEventListener('icadem:session-ending',()=>{estadosVistasCursos"));
+  vm.runInContext(courseViews+functions+merge,context);
   return {context,get renders(){return renders;},get reads(){return reads;},flush(){while(timers.length)timers.shift()();}};
 }
 test('real academic progress ignores a forged browser copy and is isolated by account',()=>{
