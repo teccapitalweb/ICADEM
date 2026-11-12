@@ -115,8 +115,10 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   }
   /** Aviso de llegada personalizado: cada quien recibe el nombre que le corresponde ver. */
   const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom }); };
-  const moveInstance = (player, moved) => { toInstance(moved.from, { t: 'leave', pid: player.pid }); send(sockets.get(player), { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance, player) }); announce(player); };
+  const moveInstance = (player, moved) => { toInstance(moved.from, { t: 'leave', pid: player.pid }); send(sockets.get(player), { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance, player) }); announce(player); pushPresence(); };
   const renameAll = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'name', pid: player.pid, name: hub.nameFor(p, player) }); };
+  /** Presencia: a cada quien se le avisa en cuanto cambia el número de jugadores conectados. */
+  const pushPresence = () => { for (const [p, ws] of sockets) { const pr = hub.presence(p), key = pr.city + ':' + pr.instance; if (ws.presenceKey !== key) { ws.presenceKey = key; send(ws, { t: 'presence', ...pr }); } } };
   const toInstance = (instance, msg, except) => { for (const p of instance.players.values()) if (p !== except && p.online) send(sockets.get(p), msg); };
 
   wss.on('connection', (ws, req) => {
@@ -168,6 +170,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         send(ws, { t: 'welcome', pid: player.pid, name: player.name, instance: player.instance.id, resumed: joined.resumed, capacity: hub.capacity, tick: NET_TICK_HZ,
           resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance, player), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player), presence: hub.presence(player), codes: hub.codesOf(player), family: { enabled: Boolean(family), kind: player.minor ? 'infantil' : 'adulto' } });
         if (!joined.resumed || !joined.replaced) announce(player);
+        ws.presenceKey = ''; pushPresence();
         if (player.room) { toRoom(player.room); if (player.room.session && !player.room.session.done) toCoop(player.room, { op: 'sync' }); }
         log('join', player.pid, player.instance.id, joined.resumed ? 'resumed' : 'new');
         return;
@@ -267,7 +270,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
       clearTimeout(helloTimer);
       const left = (perIp.get(ip) || 1) - 1; if (left > 0) perIp.set(ip, left); else perIp.delete(ip);
       if (!player || player.epoch !== epoch || sockets.get(player) !== ws) return;
-      sockets.delete(player); hub.detach(player); if (player.room) toRoom(player.room);
+      sockets.delete(player); hub.detach(player); if (player.room) toRoom(player.room); pushPresence();
       toInstance(player.instance, { t: 'leave', pid: player.pid, soft: true }, player);
       log('detach', player.pid);
     });
@@ -281,7 +284,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   let renewTick = 0;
   const upkeep = setInterval(() => {
     for (const p of [...hub.byUid.values()]) if (!p.online && now() - p.detachedAt >= LIMITS.resumeMs) { const room = p.room; hub.remove(p); toInstance(p.instance, { t: 'leave', pid: p.pid }); if (room && room.members.size) toRoom(room); log('expired', p.pid); }
-    for (const [p, ws] of sockets) { const pr = hub.presence(p), key = pr.city + ':' + pr.instance; if (ws.presenceKey !== key) { ws.presenceKey = key; send(ws, { t: 'presence', ...pr }); } }
+    pushPresence();
     if (++renewTick % 12 === 0) wss.clients.forEach(ws => ws.renew && ws.renew());   // pase de reanudación nuevo cada minuto
     wss.clients.forEach(ws => ws.hb && ws.hb());
   }, 5000);
