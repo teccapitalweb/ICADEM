@@ -36,6 +36,11 @@ import { TowerChallengeMission } from './missions/tower-challenge.js';
 import { TOWER_CHALLENGE_MISSION } from './missions/tower-challenge-logic.js';
 import { placeByScene, SCENE_TITLES } from './world/places.js';
 import { COOP_MISSIONS } from './net/scenes.js';
+import { groundHeight, pushOut } from './core/platforms.js';
+import { EduService } from './edu/service.js';
+import { NpcQuiz } from './edu/npc-quiz.js';
+import { Games } from './edu/games.js';
+import { buildPark } from './world/park.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
 import { BankCreditMission } from './missions/bank-credit.js';
@@ -55,7 +60,7 @@ import { Tutorial } from './ui/tutorial.js';
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
-const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant , greenhouse: buildGreenhouse , office: buildOffice , tower: buildTower };
+const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant , greenhouse: buildGreenhouse , office: buildOffice , tower: buildTower, park: buildPark };
 const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
 const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
 
@@ -132,7 +137,7 @@ async function boot() {
     const st = store.state, look = st.avatarId + JSON.stringify(st.custom);
     st.xp = profile.xp; st.missions = { ...profile.missions }; st.visited = [...profile.visited]; st.achievements = [...profile.achievements];
     st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = profile.avatarId; st.custom = cleanCustom(profile.custom);
-    st.economy.balance = profile.testCredits; st.synced = true; store.save();
+    st.economy.balance = profile.testCredits; st.synced = true; if (profile.play) st.play = profile.play; if (profile.privacy) st.privacyListed = profile.privacy.listed !== false; store.save();
     if (look !== st.avatarId + JSON.stringify(st.custom)) rebuildAvatar();
     api.ui.refreshHud(); Object.values(api.missions).forEach(m => m.refreshTracker && m.refreshTracker());
   }
@@ -158,6 +163,7 @@ async function boot() {
   api.missions.greenhouse = new GreenhouseMission(api, registry.register(defineMission(GREENHOUSE_MISSION)));
   api.missions.office = new LostFileMission(api, registry.register(defineMission(LOST_FILE_MISSION)));
   api.missions.tower = new TowerChallengeMission(api, registry.register(defineMission(TOWER_CHALLENGE_MISSION)));
+  api.edu = new EduService(api); api.npcQuiz = new NpcQuiz(api); api.games = new Games(api);
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social;
@@ -190,8 +196,22 @@ async function boot() {
     });
     net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
   }
+  /* invitación por enlace (?unirme=CÓDIGO): se pregunta antes y se canjea con la sesión propia */
+  const inviteCode = String(params.get('unirme') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (/^[A-HJ-NP-Z2-9]{8}$/.test(inviteCode)) {
+    let asked = false;
+    const offInvite = net.on('status', async st => {
+      if (asked) return;
+      if (st.status === 'closed') { asked = true; offInvite(); setTimeout(() => api.ui.toast('Para unirte a un equipo con código necesitas acceso al multijugador de Ciudad ICADEM.', 4200), 1500); return; }
+      if (st.status !== 'online') return;
+      asked = true; offInvite();
+      await new Promise(r => setTimeout(r, 1200));
+      const pick = await api.ui.choice({ speaker: 'Invitación', text: `Abriste una invitación a un equipo (código ${inviteCode.slice(0, 4)}-${inviteCode.slice(4)}). ¿Quieres unirte?`, options: [{ id: 'si', label: 'Unirme al equipo', hint: 'Entrarás a la misma ciudad que quien te invitó', primary: true }, { id: 'no', label: 'Ahora no' }] });
+      if (pick === 'si') net.code('redeem', { code: inviteCode });
+    });
+  }
   net.connect();
-  const tutorial = new Tutorial(api);
+  const tutorial = new Tutorial(api); api.tutorial = tutorial;
   events.on('map-opened', () => { api.stats.maps++; });
 
   /* identidad: solo lectura, viene del panel cuando el juego está incrustado */
@@ -218,7 +238,7 @@ async function boot() {
     if (api.scene) { engine.scene.remove(api.scene.group); disposeTree(api.scene.group); api.missions[api.sceneName]?.leave(); }
     disposeTree(markers); markers.clear(); current = null;
     const scene = SCENES[name](api);
-    api.scene = scene; api.sceneName = name; api.remotes?.setScene(name);
+    api.scene = scene; api.sceneName = name; api.remotes?.setScene(name); api.npcQuiz?.reset();
     engine.scene.add(scene.group);
     engine.scene.background = new THREE.Color(scene.background);
     engine.scene.fog = scene.fog ? new THREE.Fog(scene.fog.color, scene.fog.near, scene.fog.far) : null;
@@ -311,12 +331,17 @@ async function boot() {
       /* salto con margen: si se pide justo antes de tocar el suelo, sale al aterrizar */
       if (input.consume('jump')) player.jumpBuffer = JUMP_BUFFER; else player.jumpBuffer = Math.max(0, player.jumpBuffer - dt);
       if (player.jumpBuffer > 0 && player.grounded) { player.vy = JUMP; player.grounded = false; player.jumpBuffer = 0; }
-      if (!player.grounded) { player.vy -= GRAVITY * dt; p.y += player.vy * dt; if (p.y <= 0) { p.y = 0; player.vy = 0; player.grounded = true; } }
+      if (scene.platforms && pushOut(scene.platforms, p, PLAYER_RADIUS)) { player.vx *= 0.3; player.vz *= 0.3; }   // las plataformas altas son muro
+      // Piso: el suelo (0) o la cara de una plataforma (Parque de retos). Al salir por la orilla, se cae.
+      const floor = scene.platforms ? groundHeight(scene.platforms, p.x, p.z, p.y) : 0;
+      if (player.grounded && p.y > floor + 0.05) player.grounded = false;
+      if (!player.grounded) { player.vy -= GRAVITY * dt; p.y += player.vy * dt; if (p.y <= floor) { p.y = floor; player.vy = 0; player.grounded = true; } }
     }
     avatar.group.rotation.y = player.yaw;
     avatar.update(dt, { speed: player.speed, grounded: player.grounded, sitting: Boolean(player.seat) });
 
     for (const n of scene.npcs) n.update(dt, p);
+    api.npcQuiz.update(dt); api.games.update(dt, t);
     remotes.update(dt);
     scene.update(dt, t, p);
 

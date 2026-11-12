@@ -157,20 +157,21 @@ export function checkActivity(id, seed, level, log) {
 
 /* ---------------- A · Carrera y E · Búsqueda del tesoro (validadas por posición) ---------------- */
 /** Puntos de control del circuito del Parque de retos (escena `park`), en orden. */
-export const RACE = Object.freeze({ scene: 'park', radius: 2.4, minSeconds: 12, checkpoints: [[0, 8], [-6, 3], [-7, -4], [0, -8.5], [7, -4], [6, 3.4], [0, 0]] });
+/** [x, z, altura mínima]: los que van sobre plataforma exigen estar arriba (el servidor ve la altura). */
+export const RACE = Object.freeze({ scene: 'park', radius: 2.4, minSeconds: 12, checkpoints: [[0, 8, 0], [-6, 3, 0.9], [-7, -4, 0], [0, -8.5, 1.5], [7, -4, 0], [6, 3.4, 1.2], [0, 0, 0.4]] });
 
 /** Tesoros en la plaza: cada uno junto a un edificio, con una pista de su profesión. */
 export const TREASURES = Object.freeze([
-  { id: 'estetoscopio', icon: '🩺', name: 'Estetoscopio', clue: 'Búscalo donde atienden a los pacientes.', at: [-25.2, -14.6] },
-  { id: 'mazo', icon: '⚖️', name: 'Mazo de juez', clue: 'Cerca de donde se dictan sentencias.', at: [-7.6, -14.2] },
-  { id: 'calculadora', icon: '🧮', name: 'Calculadora', clue: 'Junto al lugar donde se piden créditos.', at: [-7.6, 16.6] },
-  { id: 'huella', icon: '🐾', name: 'Collar de mascota', clue: 'Cerca de la clínica de los animales.', at: [-25.2, 15.0] },
-  { id: 'cucharon', icon: '🥄', name: 'Cucharón', clue: 'Donde huele a comida recién hecha.', at: [17.6, 15.0] },
-  { id: 'semilla', icon: '🌱', name: 'Bolsa de semillas', clue: 'Donde crecen los jitomates bajo cristal.', at: [-21.0, -4.4] },
-  { id: 'casco', icon: '⛑️', name: 'Casco de obra', clue: 'Donde se construye algo nuevo.', at: [21.0, 1.6] },
-  { id: 'carpeta', icon: '📁', name: 'Carpeta perdida', clue: 'Cerca de los archiveros de la oficina.', at: [-21.0, 4.4] },
-  { id: 'carrito', icon: '🛒', name: 'Ticket de compra', clue: 'Junto al lugar de los anaqueles.', at: [26.4, 9.6] },
-  { id: 'llave', icon: '🔑', name: 'Llave de la torre', clue: 'Al pie del edificio más alto.', at: [26.4, -14.6] }
+  { id: 'estetoscopio', icon: '🩺', name: 'Estetoscopio', clue: 'Búscalo donde atienden a los pacientes.', at: [-27.5, -19.5] },
+  { id: 'mazo', icon: '⚖️', name: 'Mazo de juez', clue: 'Cerca de donde se dictan sentencias.', at: [17.5, -19.0] },
+  { id: 'calculadora', icon: '🧮', name: 'Calculadora', clue: 'Junto al lugar donde se piden créditos.', at: [-8.5, -19.0] },
+  { id: 'huella', icon: '🐾', name: 'Collar de mascota', clue: 'Cerca de la clínica de los animales.', at: [-27.5, 19.5] },
+  { id: 'cucharon', icon: '🥄', name: 'Cucharón', clue: 'Donde huele a comida recién hecha.', at: [17.5, 19.5] },
+  { id: 'semilla', icon: '🌱', name: 'Bolsa de semillas', clue: 'Donde crecen los jitomates bajo cristal.', at: [-24.5, -12.5] },
+  { id: 'casco', icon: '⛑️', name: 'Casco de obra', clue: 'Donde se construye algo nuevo.', at: [24.5, -12.5] },
+  { id: 'carpeta', icon: '📁', name: 'Carpeta perdida', clue: 'Cerca de los archiveros de la oficina.', at: [-24.5, 12.5] },
+  { id: 'carrito', icon: '🛒', name: 'Ticket de compra', clue: 'Junto al lugar de los anaqueles.', at: [26.5, 17.0] },
+  { id: 'llave', icon: '🔑', name: 'Llave de la torre', clue: 'Al pie del edificio más alto.', at: [26.5, -17.0] }
 ]);
 export const TREASURE_RADIUS = 2.2;
 /** Rondas de dificultad creciente: 2, 3 y 5 tesoros distintos (elegidos con la semilla). */

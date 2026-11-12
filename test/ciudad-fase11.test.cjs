@@ -122,12 +122,13 @@ test('carrera y tesoro: el servidor solo acepta puntos donde de verdad estuvo el
   const { RACE, TREASURES, treasureRounds } = await load('ciudad/js/edu/activities.js');
   let t = 0; const hub = new Hub({ now: () => t, salt: 's' });
   const p = hub.join({ uid: 'a', name: 'A' }).player;
-  const at = (scene, x, z) => { p.state = { scene, x, y: 0, z, yaw: 0, anim: 'run' }; p.stateAt = t; };
+  const at = (scene, x, z, y = 0) => { p.state = { scene, x, y, z, yaw: 0, anim: 'run' }; p.stateAt = t; };
   at('plaza', 0, 9); assert.equal(hub.playStart(p, 'carrera').reason, 'fuera-del-parque');
   at('park', 0, 8); assert.equal(hub.playStart(p, 'carrera').ok, true);
   assert.equal(hub.playCheck(p, { i: 1 }).reason, 'fuera-de-orden');
   t += 500; at('park', 0, 8); assert.equal(hub.playCheck(p, { i: 0 }).next, 1);
   t += 500; at('park', 20, 20); assert.equal(hub.playCheck(p, { i: 1 }).reason, 'lejos', 'decir que llegó no basta');
+  t += 500; at('park', -6, 3, 0); assert.equal(hub.playCheck(p, { i: 1 }).reason, 'lejos', 'el arco sobre la plataforma exige estar arriba');
   let last; for (let i = 1; i < RACE.checkpoints.length; i++) { t += 3000; at('park', ...RACE.checkpoints[i]); last = hub.playCheck(p, { i }); assert.equal(last.ok, true, 'punto ' + i); }
   assert.equal(last.done, true); assert.ok(last.score >= 50 && last.score <= 100);
   t += 1000; at('park', 0, 8); hub.playStart(p, 'carrera'); for (let i = 0; i < RACE.checkpoints.length; i++) { t += 100; at('park', ...RACE.checkpoints[i]); last = hub.playCheck(p, { i }); }

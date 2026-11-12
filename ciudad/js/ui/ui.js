@@ -16,7 +16,14 @@ export const ACHIEVEMENTS = [
   { id: 'primera-mision', name: 'Primera misión', text: 'Completa tu primera misión.' },
   { id: 'toga-y-mazo', name: 'Toga y mazo', text: 'Completa «Tú eres el juez».' },
   { id: 'decision-impecable', name: 'Decisión impecable', text: 'Obtén 100 puntos en una misión.' },
-  { id: 'explorador-urbano', name: 'Explorador urbano', text: 'Visita la puerta de todos los edificios.' }
+  { id: 'explorador-urbano', name: 'Explorador urbano', text: 'Visita la puerta de todos los edificios.' },
+  { id: 'mente-curiosa', name: 'Mente curiosa', text: 'Responde bien 10 retos de los personajes de la ciudad.' },
+  { id: 'poliglota', name: 'Políglota', text: 'Obtén 80 o más en Aventura de idiomas.' },
+  { id: 'memoria-de-oro', name: 'Memoria de oro', text: 'Obtén 90 o más en Memoria ICADEM.' },
+  { id: 'calculadora-humana', name: 'Calculadora humana', text: 'Obtén 90 o más en Matemáticas contra reloj.' },
+  { id: 'gran-clasificador', name: 'Gran clasificador', text: 'Obtén 80 o más en Clasificación inteligente.' },
+  { id: 'atleta-icadem', name: 'Atleta ICADEM', text: 'Termina la Carrera del conocimiento.' },
+  { id: 'cazatesoros', name: 'Cazatesoros', text: 'Encuentra todos los tesoros de la plaza.' }
 ];
 
 export const GAMES = [
@@ -39,6 +46,7 @@ export class UI {
     this.queue = Promise.resolve();
     this.trackerData = null;
     $('btn-map').addEventListener('click', () => this.openMap());
+    $('btn-games')?.addEventListener('click', () => this.api.games?.open());
     $('btn-pass').addEventListener('click', () => this.openPassport());
     $('btn-player').addEventListener('click', () => this.openPassport());
     $('btn-settings').addEventListener('click', () => this.openSettings());
@@ -321,6 +329,7 @@ export class UI {
     const sens = h('input'); sens.type = 'range'; sens.min = '0.4'; sens.max = '2'; sens.step = '0.1'; sens.value = String(st.sensitivity);
     sens.addEventListener('input', () => { st.sensitivity = Number(sens.value); api.store.save(); api.applySettings(); });
     const inv = h('div', 'seg'); [[false, 'Normal'], [true, 'Invertida']].forEach(([v, t]) => { const b = h('button', st.invertY === v ? 'is-on' : '', t); b.type = 'button'; b.addEventListener('click', () => { st.invertY = v; api.store.save(); api.applySettings(); inv.querySelectorAll('button').forEach(o => o.classList.toggle('is-on', o === b)); }); inv.append(b); });
+    const npc = h('div', 'seg'); [[true, 'Activados'], [false, 'Desactivados']].forEach(([v, t]) => { const b = h('button', (st.npcQuiz !== false) === v ? 'is-on' : '', t); b.type = 'button'; b.addEventListener('click', () => { st.npcQuiz = v; api.store.save(); npc.querySelectorAll('button').forEach(o => o.classList.toggle('is-on', o === b)); }); npc.append(b); });
     const keys = h('dl', 'keys');
     (document.documentElement.classList.contains('is-touch')
       ? [['Mover', 'Arrastra en la parte izquierda de la pantalla'], ['Cámara', 'Arrastra en el resto de la pantalla'], ['Interactuar', 'Botón amarillo que aparece al acercarte'], ['Saltar / correr', 'Botones de la derecha']]
@@ -329,7 +338,7 @@ export class UI {
     const tut = h('button', 'btn', 'Repetir tutorial'); tut.type = 'button'; tut.addEventListener('click', () => { document.getElementById('modal-x').click(); api.startTutorial(true); });
     const reset = h('button', 'btn', 'Borrar datos de prueba'); reset.type = 'button'; reset.addEventListener('click', () => { if (reset.dataset.sure) { api.store.reset(); location.reload(); } else { reset.dataset.sure = '1'; reset.textContent = 'Toca otra vez para confirmar'; } });
     const acts = h('div', 'seg'); acts.append(tut, reset);
-    wrap.append(field('Calidad gráfica', seg), field('Sensibilidad de la cámara', sens), field('Cámara vertical', inv), field('Controles', keys), acts,
+    wrap.append(field('Calidad gráfica', seg), field('Sensibilidad de la cámara', sens), field('Cámara vertical', inv), field('Retos de los personajes de la ciudad', npc), field('Controles', keys), acts,
       h('p', 'note', `Calidad activa: ${QUALITY[api.engine.quality].label} · ${api.engine.fps || '—'} cuadros por segundo. El progreso del prototipo se guarda solo en este dispositivo.`));
     return this.modal({ eyebrow: 'Ajustes', title: 'Juego y controles', content: wrap });
   }

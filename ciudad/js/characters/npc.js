@@ -32,7 +32,18 @@ export class Npc {
     let speed = 0, headYaw = 0;
     const dx = playerPos ? playerPos.x - p.x : 99, dz = playerPos ? playerPos.z - p.z : 99;
     const near = dx * dx + dz * dz < 12;
-    if (this.route && !this.talking) {
+    if (this.approach) {
+      // Se acerca al jugador para proponerle un reto: camina hasta quedar a distancia de plática,
+      // rodeando obstáculos con el mundo de colisiones del escenario.
+      const a = this.approach, ex = a.x - p.x, ez = a.z - p.z, d = Math.hypot(ex, ez);
+      if (d > a.stop) {
+        const step = Math.min(d - a.stop, this.speed * 1.25 * dt);
+        let nx = p.x + ex / d * step, nz = p.z + ez / d * step;
+        if (a.collision) { const r = a.collision.resolve(nx, nz, 0.35); nx = r.x; nz = r.z; }
+        a.moved = Math.hypot(nx - p.x, nz - p.z); p.x = nx; p.z = nz; speed = this.speed * 1.25;
+        this.yaw += angleDelta(this.yaw, Math.atan2(ex, ez)) * Math.min(1, dt * 7);
+      } else { a.arrived = true; a.moved = 0; this.yaw += angleDelta(this.yaw, Math.atan2(dx, dz)) * Math.min(1, dt * 6); }
+    } else if (this.route && !this.talking) {
       if (this.wait > 0) this.wait -= dt;
       else {
         const [tx, tz] = this.route[this.leg];
