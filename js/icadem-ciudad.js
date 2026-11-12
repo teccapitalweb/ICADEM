@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=6';
+  var GAME_URL = 'ciudad/index.html?v=7';
 
   // Enlace de invitación (?ciudad=CÓDIGO). Solo se lleva el código al juego: no da acceso a ninguna
   // cuenta ni salta el piloto. El juego lo canjea con la sesión de quien lo abre, y pregunta antes.
@@ -161,7 +161,7 @@
     img.alt = 'Vista de la plaza de Ciudad ICADEM con el avatar Explorador frente a la fuente y el Banco ICADEM';
     img.width = 1280; img.height = 720; img.decoding = 'async';
     var veil = el('div', 'ciudad-cover__veil');
-    veil.appendChild(el('span', 'ciudad-cover__badge', 'Versión 1.1 · Piloto'));
+    veil.appendChild(el('span', 'ciudad-cover__badge', 'Versión 1.1'));
     veil.appendChild(el('strong', null, 'Diez misiones profesionales, minijuegos y retos en la plaza'));
     var play = el('button', 'btn btn--primary ciudad-cover__play', 'Entrar a Ciudad ICADEM');
     play.type = 'button';
@@ -184,8 +184,8 @@
     ]));
     grid.appendChild(card('Antes de jugar', [
       'Los créditos del juego son de prueba: no suman ni restan a tu cartera ICADEM. Retos y minijuegos solo dan XP del juego.',
-      'Con acceso al multijugador, tu avance se guarda en tu cuenta; sin él, en este dispositivo.',
-      'El multijugador está en piloto privado: solo para cuentas autorizadas.',
+      'Tu avance se guarda en tu cuenta de ICADEM: sigue donde lo dejaste desde cualquier dispositivo.',
+      'Juega en línea con otros miembros: invítalos con un código o formen equipo en la Torre y el Tribunal.',
       'No hay chat libre: entre jugadores solo se usan frases predefinidas.'
     ]));
 
