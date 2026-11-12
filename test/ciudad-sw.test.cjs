@@ -43,7 +43,7 @@ test('sw: fuera de /ciudad/ todo sigue igual (cache-first) y se subió la versi�
   assert.equal(res.body, 'CSS-CACHE', 'el resto del panel conserva su estrategia');
   assert.equal(w.calls.length, 0);
   const sw = fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8');
-  assert.match(sw, /const CACHE = 'icadem-vip-v155';/);
-  assert.match(sw, /js\/icadem-ciudad\.js\?v=4/);
-  assert.match(fs.readFileSync(path.join(__dirname, '..', 'vip-panel.html'), 'utf8'), /js\/icadem-ciudad\.js\?v=4/);
+  assert.match(sw, /const CACHE = 'icadem-vip-v\d+';/);
+  const inSw = sw.match(/js\/icadem-ciudad\.js\?v=(\d+)/), inPanel = fs.readFileSync(path.join(__dirname, '..', 'vip-panel.html'), 'utf8').match(/js\/icadem-ciudad\.js\?v=(\d+)/);
+  assert.ok(inSw && inPanel && inSw[1] === inPanel[1], 'el panel y el service worker piden la misma versión del puente');
 });

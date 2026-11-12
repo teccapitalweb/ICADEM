@@ -19,6 +19,7 @@ import { buildCourt } from './world/court.js';
 import { buildMarket } from './world/market.js';
 import { buildSite } from './world/site.js';
 import { buildHospital } from './world/hospital.js';
+import { placeByScene, SCENE_TITLES } from './world/places.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
 import { BankCreditMission } from './missions/bank-credit.js';
@@ -142,7 +143,7 @@ async function boot() {
   if (net instanceof WsAdapter) {
     net.on('status', st => { if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
     net.on('profile', m => { if (m.profile) applyProfile(m.profile); if (m.op === 'avatar' && m.ok === false) api.ui.toast('El servidor no autorizó ese avatar.'); });
-    net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', api.sceneName === 'court' ? 'court' : api.sceneName === 'bank' ? 'bank' : api.sceneName === 'market' ? 'market' : api.sceneName === 'site' ? 'obra' : api.sceneName === 'hospital' ? 'hospital' : 'home'); } });
+    net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', (placeByScene(api.sceneName) || { spawn: 'home' }).spawn); } });
     net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
   }
   net.connect();
@@ -192,9 +193,8 @@ async function boot() {
   async function travel(name, spawnKey = 'default') {
     if (busyTravel) return;
     busyTravel = true; input.setEnabled(false);
-    const PLACES = { room: 'Tu habitación', plaza: 'Ciudad ICADEM', bank: 'Banco ICADEM', court: 'Tribunal ICADEM', market: 'Supermercado', site: 'Obra en construcción', hospital: 'Hospital ICADEM' };
     const mission = api.missions[name];
-    await api.ui.fade(true, PLACES[name] ? { title: PLACES[name], sub: mission ? 'Misión · ' + mission.def.title : (name === 'plaza' ? 'Plaza principal' : '') } : null);
+    await api.ui.fade(true, SCENE_TITLES[name] ? { title: SCENE_TITLES[name], sub: mission ? 'Misión · ' + mission.def.title : (name === 'plaza' ? 'Plaza principal' : '') } : null);
     try { mountScene(name, spawnKey); } finally {
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       await api.ui.fade(false);
