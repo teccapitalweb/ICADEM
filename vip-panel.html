@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=53" defer></script>
+<script src="js/icadem-platform-v2.js?v=54" defer></script>
 <script src="js/icadem-course-unlocks.js?v=5" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
@@ -4086,6 +4086,7 @@ body.has-fomo .main{padding-top:18px}
 <link rel="stylesheet" href="css/icadem-directory.css?v=3">
 <script src="js/icadem-directory.js?v=2"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
+<link rel="stylesheet" href="css/icadem-post-style.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=3">
 <link rel="stylesheet" href="css/icadem-professional-activity.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-network.css?v=1">
@@ -4094,8 +4095,9 @@ body.has-fomo .main{padding-top:18px}
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
 <script src="js/icadem-professional-profile.js?v=6"></script>
-<script src="js/icadem-professional-activity.js?v=1" defer></script>
+<script src="js/icadem-professional-activity.js?v=2" defer></script>
 <script src="js/icadem-professional-network.js?v=1" defer></script>
+<script src="js/icadem-post-style.js?v=1" defer></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
 <script src="js/icadem-community.js?v=11"></script>
 <script src="js/icadem-notifications.js?v=3" defer></script>
@@ -11964,6 +11966,7 @@ const Sections = (function(){
               <button id="foro-img-quitar" type="button" class="foro-img-quitar" aria-label="Quitar imagen" title="Quitar">&times;</button>
             </div>
             <p class="community-image-status" id="foro-image-status" role="status" aria-live="polite"></p>
+            <div data-post-style-slot hidden></div>
             <div class="foro-composer__actions">
               <div class="foro-composer__tools">
                 <button class="foro-composer__tool" id="foro-add-img" title="Adjuntar imagen"><svg class="ic"><use href="#i-image"/></svg> Imagen</button>
@@ -12038,6 +12041,7 @@ const Sections = (function(){
     });
 
     window.ICADEMCommunity?.enhanceForum(container);
+    window.ICADEMPostStyle?.mount(container,patch=>{const post=_foroPosts.find(item=>item.id===patch.id);if(post){post.style=patch.style;post.styleRevision=patch.styleRevision;}});
     // Suscripción en tiempo real
     foroSuscribir();
     foroAbrirNotificacion(container);
@@ -12092,6 +12096,9 @@ const Sections = (function(){
   function foroPintar(){
     const list = document.getElementById('foro-list');
     if (!list) return;
+    const openComments=Array.from(list.querySelectorAll('.post__comments')).filter(node=>node.style.display==='block');
+    const commentFocus=document.activeElement?.closest?.('.post__comments')?document.activeElement:null;
+    const restoreComments=()=>{openComments.forEach(node=>{const replacement=document.getElementById(node.id);if(replacement)replacement.replaceWith(node);});if(commentFocus?.isConnected)commentFocus.focus({preventScroll:true});};
     let posts = _foroPosts.slice();
     const uid = window.UserState?.uid;
     if (_foroFiltro==='populares') posts.sort((a,b)=>(b.likes||0)-(a.likes||0));
@@ -12100,6 +12107,7 @@ const Sections = (function(){
     if (!posts.length){
       list.innerHTML = `<div class="foro-empty"><svg class="ic" aria-hidden="true"><use href="#i-messages"/></svg><strong>Un espacio para compartir experiencia</strong>${_foroFiltro==='mios'?'Aún no has publicado nada. ¡Comparte algo con la comunidad!':'Todavía no hay publicaciones. Sé el primero en compartir.'}</div>`;
       window.ICADEMProfessionalNavigation?.forumReady(document.querySelector('[data-community-forum]'));
+      window.ICADEMPostStyle?.posts([],list);
       return;
     }
     const esAdmin = esAdminReal();
@@ -12108,7 +12116,7 @@ const Sections = (function(){
       const puedeBorrar = (p.uid===uid) || esAdmin;
       const dias = foroDiasRestantes(p.createdAt);
       return `
-      <article class="post" data-post="${p.id}">
+      <article class="post" data-post="${p.id}" data-post-accent="default">
         ${foroAutorMarkup(p,'avatar')}
         <div class="post__main">
           <div class="post__header">
@@ -12128,6 +12136,7 @@ const Sections = (function(){
         </div>
       </article>`;
     }).join('');
+    restoreComments();
 
     // Handlers
     list.querySelectorAll('[data-like]').forEach(b=> b.addEventListener('click', ()=> foroToggleLike(b.dataset.like)));
@@ -12136,6 +12145,7 @@ const Sections = (function(){
     list.querySelectorAll('[data-lightbox]').forEach(im=> im.addEventListener('click', ()=> foroLightbox(im.src)));
     window.ICADEMForumAuthors?.bind(list);
     window.ICADEMForumAuthors?.hydrate(posts);
+    window.ICADEMPostStyle?.posts(posts,list);
     window.ICADEMProfessionalNavigation?.forumReady(document.querySelector('[data-community-forum]'));
   }
 
@@ -12147,15 +12157,18 @@ const Sections = (function(){
     const orig = btn.innerHTML; btn.dataset.publishing='true'; btn.disabled = true; btn.textContent = 'Publicando…';
     try {
       if (!window.ICADEMPlatform?.createForumPost) throw new Error('El servicio del foro no está disponible.');
-      const requestText=contenido+'\n'+(_foroImg||'');
+      const postAccent=window.ICADEMPostStyle?.selected()||'default';
+      const requestText=contenido+'\n'+(_foroImg||'')+'\n'+postAccent;
       if(txt.__requestText!==requestText){txt.__requestText=requestText;txt.__requestId=crypto.randomUUID();}
       await window.ICADEMPlatform.createForumPost({
         texto: contenido,
         imagen: _foroImg || null,
-        requestId:txt.__requestId
+        requestId:txt.__requestId,
+        ...(postAccent!=='default'?{style:{accent:postAccent}}:{})
       });
       txt.__requestText=null;txt.__requestId=null;
       txt.value = ''; container.querySelector('#foro-char').textContent = '0 / 1500';
+      window.ICADEMPostStyle?.resetComposer();
       _foroImg = null; container.querySelector('#foro-img-preview').style.display = 'none';
       container.querySelector('#foro-image-status').textContent='';
       Toast.success('Publicado','Tu mensaje ya está en el foro');
