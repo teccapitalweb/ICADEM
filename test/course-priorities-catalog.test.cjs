@@ -21,8 +21,8 @@ function fixture(){
 }
 test('priority ordering uses the confirmed saved order and keeps a stable standard order for the remainder',()=>{
   const f=fixture();f.setPriorities(['e','a','d']);const before=JSON.stringify(f.catalog),saved=f.priorities();
-  assert.deepEqual(f.run().slice(0,3),['e','a','d']);assert.deepEqual(f.run(),f.run());
-  assert.deepEqual(f.run().slice(3),['c','b']);assert.deepEqual(f.priorities(),saved);assert.equal(JSON.stringify(f.catalog),before);
+  assert.deepEqual(f.run(),['c','b','e','a','d']);assert.deepEqual(f.run(),f.run());
+  assert.deepEqual(f.priorities(),saved);assert.equal(JSON.stringify(f.catalog),before);
 });
 test('empty priorities fall back to the existing next-unlock order without changing any academic state',()=>{
   const f=fixture();const priority=f.run();f.context.cursosState.orden='proximos';assert.deepEqual(priority,f.run());
@@ -37,8 +37,19 @@ test('search, category, level and access filters apply before priority ordering 
   assert.deepEqual(f.priorities(),saved);
 });
 test('unknown saved IDs do not remove courses or mutate the saved list',()=>{
-  const f=fixture();f.setPriorities(['removed','d','unknown','a']);assert.deepEqual(f.run().slice(0,2),['d','a']);
+  const f=fixture();f.setPriorities(['removed','d','unknown','a']);assert.deepEqual(f.run(),['c','b','d','a','e']);
   assert.equal(new Set(f.run()).size,5);assert.deepEqual(f.priorities(),['removed','d','unknown','a']);
+});
+
+test('an academically unlocked priority moves to the open group without mutating its saved rank or consuming anything',()=>{
+  const f=fixture();f.setPriorities(['e','a','d']);
+  f.catalog.find(c=>c.id==='a').info={clave:'disponible',dias:0,desbloqueado:true,progreso:0};
+  assert.deepEqual(f.run(),['c','b','a','e','d']);assert.deepEqual(f.priorities(),['e','a','d']);
+});
+
+test('completed courses retain their existing academic access and are not inferred to be blocked',()=>{
+  const f=fixture();f.setPriorities(['e','b']);f.catalog.find(c=>c.id==='b').info.clave='completado';
+  assert.deepEqual(f.run(),['c','b','e','d','a']);assert.equal(f.catalog[1].info.clave,'completado');
 });
 test('all four previous order criteria keep their existing behavior beside the new option',()=>{
   const f=fixture();f.setPriorities(['e','a']);

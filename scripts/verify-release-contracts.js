@@ -50,7 +50,7 @@ assert.match(panel, /@media \(max-width: 1380px\)\{[\s\S]*?grid-template-columns
 assert.match(panel, /id="icadem-wide-shell-fix"[\s\S]*?@media \(min-width:1201px\) and \(max-width:1380px\)[\s\S]*?grid-template-columns:220px minmax\(0,1fr\)!important/);
 assert.match(panel, /@media \(max-width: 900px\)\{[\s\S]*?\.course-detail-layout\{ grid-template-columns: minmax\(0,1fr\) !important;/);
 assert.match(panel, /\.course-detail-progress\{ position: static; grid-column: 1; grid-row: 1; \}/);
-assert.match(panel, /\['curso-detalle','clase-detalle','ruta-aprendizaje'\]\.includes\(section\) \? 'cursos'/);
+assert.match(panel, /\['curso-detalle','clase-detalle','ruta-aprendizaje'\]\.includes\(section\)\|\|section\.startsWith\('cursos-'\)\) \? 'cursos'/);
 assert.match(panel, /const cursoGratis = window\.UserState\?\.modo !== 'vip'/);
 assert.match(panel, /font-size:16px!important/);
 assert.match(panel, /id="theme-toggle"[^>]+aria-label="Cambiar a modo noche"/);

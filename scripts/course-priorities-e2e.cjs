@@ -52,6 +52,7 @@ async function fixture(width,shared={data:initial()}){
   await boot();return{context,page,state,boot};
 }
 const cards=page=>page.locator('.curso-card').evaluateAll(nodes=>nodes.map(node=>node.dataset.cid));
+const pendingCards=async page=>(await cards(page)).filter(id=>!['course-1','course-6'].includes(id));
 const badges=page=>page.locator('[data-course-priority]').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.closest('[data-cid]').dataset.cid,Number(node.dataset.coursePriority)])));
 const routeOrder=page=>page.locator('[data-route-item]').evaluateAll(nodes=>nodes.map(node=>node.dataset.routeItem));
 async function setSummary(f,change){f.state.shared.data={...f.state.shared.data,...change,revision:f.state.shared.data.revision+1};await f.page.evaluate(()=>ICADEMCourseUnlocks.refresh());await f.page.waitForTimeout(100);}
@@ -92,8 +93,8 @@ async function scenario(width){
   await page.locator('#cur-sort').selectOption('prioridades');
   const covers=await page.locator('.curso-card').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.dataset.cid,node.querySelector('.curso-card__cover img').getAttribute('src')])));
   for(const list of [['course-4'],['course-4','course-0','course-2'],['course-4','course-0','course-2','course-5','course-3']]){
-    await setSummary(f,{priorities:list});const expected=Object.fromEntries(list.map((id,index)=>[id,index+1]));assert.deepEqual(await badges(page),expected);assert.deepEqual((await cards(page)).slice(0,list.length),list,'catalog immediately reflects new confirmed order');assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),list[0]);
-    if(list.length===5){await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades');assert.deepEqual((await cards(page)).slice(0,5),list,'five saved priorities remain first in the LARGE catalog after reload');}
+    await setSummary(f,{priorities:list});const expected=Object.fromEntries(list.map((id,index)=>[id,index+1]));assert.deepEqual(await badges(page),expected);assert.deepEqual((await pendingCards(page)).slice(0,list.length),list,'catalog immediately reflects new confirmed order');assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),list[0]);
+    if(list.length===5){await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades');assert.deepEqual((await pendingCards(page)).slice(0,5),list,'five saved priorities follow the open group in the LARGE catalog after reload');}
     assert.match(await page.locator('[data-unlock-priority]').innerText(),/Primero en tu lista/);assert.ok((await page.locator('[data-unlock-priority]').getAttribute('title')).includes(names[4]));
   }
   const raw=['removed','course-1','course-4','course-2','course-6'];await setSummary(f,{priorities:raw});
@@ -101,10 +102,12 @@ async function scenario(width){
   await page.locator('#cur-area').selectOption('Fiscal');assert.deepEqual(await cards(page),['course-1','course-4','course-7']);assert.equal((await badges(page))['course-4'],3);
   await page.locator('#cur-search').fill('nómina');await page.waitForTimeout(150);assert.deepEqual(await cards(page),['course-4']);assert.equal((await badges(page))['course-4'],3);
   await page.locator('#cur-search-clear').click();await page.locator('#cur-area').selectOption('todas');
-  await page.locator('[data-course-filter="bloqueados"]').click();const locked=await cards(page);assert.ok(locked.includes('course-4'));assert.ok(!locked.includes('course-1')&&!locked.includes('course-6'));assert.equal((await badges(page))['course-4'],3);
-  await page.locator('[data-course-filter="disponibles"]').click();assert.ok((await cards(page)).includes('course-1'));
-  await page.locator('[data-course-filter="progreso"]').click();assert.deepEqual(await cards(page),['course-6']);
-  await page.locator('[data-course-filter="todos"]').click();
+  await page.locator('[data-course-filter="bloqueados"]').click();await page.waitForSelector('[data-course-view="bloqueados"]');const locked=await cards(page);assert.ok(locked.includes('course-4'));assert.ok(!locked.includes('course-1')&&!locked.includes('course-6'));assert.equal((await badges(page))['course-4'],3);
+  await page.locator('[data-courses-back]').click();await page.waitForSelector('[data-course-view="todos"]');
+  await page.locator('[data-course-filter="disponibles"]').click();await page.waitForSelector('[data-course-view="disponibles"]');assert.ok((await cards(page)).includes('course-1'));
+  await page.locator('[data-courses-back]').click();await page.waitForSelector('[data-course-view="todos"]');
+  await page.locator('[data-course-filter="progreso"]').click();await page.waitForSelector('[data-course-view="progreso"]');assert.deepEqual(await cards(page),['course-6']);
+  await page.locator('[data-courses-back]').click();await page.waitForSelector('[data-course-view="todos"]');
   await setSummary(f,{priorities:['course-0','course-2','course-4']});
   if(shotWidths.includes(width)){
     await shot(page,`${prefix}-compact-${width}`,'[data-course-unlocks]');
@@ -123,32 +126,32 @@ async function scenario(width){
   await open(page);await act(page,'course-4','up');await act(page,'course-0','remove');await page.locator('[data-route-add="course-3"]').click();const draft=await routeOrder(page);assert.deepEqual(draft,['course-4','course-2','course-3']);
   state.failPut=true;await page.locator('[data-route-save]').click();await page.waitForSelector('[data-route-error]:not([hidden])');assert.deepEqual(state.shared.data.priorities,['course-0','course-2','course-4']);assert.deepEqual(await routeOrder(page),draft);
   assert.equal(await page.evaluate(()=>localStorage.getItem('icadem:catalog-sort:v1:fixture-a')),'nombre','failed save must not change the catalog preference');
-  await save(page);await back(page);assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades');assert.deepEqual((await cards(page)).slice(0,3),draft);assert.deepEqual(await badges(page),{'course-4':1,'course-2':2,'course-3':3});assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),'course-4');
+  await save(page);await back(page);assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades');assert.deepEqual((await pendingCards(page)).slice(0,3),draft);assert.deepEqual(await badges(page),{'course-4':1,'course-2':2,'course-3':3});assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),'course-4');
   assert.deepEqual(await page.locator('.curso-card').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.dataset.cid,node.querySelector('.curso-card__cover img').getAttribute('src')]))),covers,'covers are unchanged by priority updates');
-  await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades','reload retains the main catalog criterion without selecting it again');assert.deepEqual((await cards(page)).slice(0,3),draft,'reload reads server order');
+  await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades','reload retains the main catalog criterion without selecting it again');assert.deepEqual((await pendingCards(page)).slice(0,3),draft,'reload reads server order');
   await page.locator('#cur-sort').selectOption('nombre');
   await page.evaluate(()=>{navigateToSection('inicio');navigateToSection('cursos');});
   assert.equal(await page.locator('#cur-sort').inputValue(),'nombre','menu respects the manually selected preference');
   await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'nombre','manual preference survives reload');
   await page.locator('#cur-sort').selectOption('prioridades');
   if(width===390){
-    const other=await fixture(768,state.shared);await other.page.locator('#cur-sort').selectOption('prioridades');assert.deepEqual((await cards(other.page)).slice(0,3),draft,'fresh browser/device context reads same server order');
+    const other=await fixture(768,state.shared);await other.page.locator('#cur-sort').selectOption('prioridades');assert.deepEqual((await pendingCards(other.page)).slice(0,3),draft,'fresh browser/device context reads same server order');
     await open(page);await act(page,'course-3','up');const localDraft=await routeOrder(page);
     await open(other.page);await act(other.page,'course-4','down');await save(other.page);const remote=structuredClone(state.shared.data.priorities),writesBefore=state.puts.length;
     await page.locator('[data-route-save]').click();await page.waitForSelector('[data-route-error]:not([hidden])');assert.deepEqual(state.shared.data.priorities,remote,'stale editor cannot overwrite another device');assert.deepEqual(await routeOrder(page),localDraft,'conflict retains local draft');assert.ok(state.puts.length<=writesBefore+1);
     assert.equal(await page.locator('[data-route-save]').isDisabled(),true,'conflict cannot silently retry with a newer revision');assert.equal(await page.locator('[data-route-reload]').isVisible(),true);
     const readsBefore=state.reads;await page.locator('[data-route-reload]').click();await page.waitForSelector('[data-route-stay]');await page.locator('[data-route-stay]').click();await page.waitForSelector('[data-route-stay]',{state:'detached'});assert.deepEqual(await routeOrder(page),localDraft);assert.equal(state.reads,readsBefore,'cancel keeps draft without fetching a replacement');
     await page.locator('[data-route-reload]').click();await page.waitForSelector('[data-route-discard]');await page.locator('[data-route-discard]').click();await page.waitForSelector('[data-route-discard]',{state:'detached'});await page.waitForFunction(()=>!ICADEMLearningRoute.isDirty()&&!ICADEMLearningRoute.isBusy());assert.deepEqual(await routeOrder(page),remote,'explicit reload adopts the confirmed remote order');assert.ok(state.reads>readsBefore);await back(page);await other.context.close();
-    await setSummary(f,{priorities:['course-5','course-0'],available:0});assert.deepEqual((await cards(page)).slice(0,2),['course-5','course-0']);
+    await setSummary(f,{priorities:['course-5','course-0'],available:0});assert.deepEqual((await pendingCards(page)).slice(0,2),['course-5','course-0']);
     await open(page);await act(page,'course-0','up');const confirmedOrder=await routeOrder(page);
     state.holdRead=true;const held=page.evaluate(()=>ICADEMCourseUnlocks.refresh());await page.waitForTimeout(80);assert.ok(state.heldRead);
     await page.locator('[data-route-save]').click();await page.waitForFunction(expected=>JSON.stringify(ICADEMCourseUnlocks.getPriorities())===JSON.stringify(expected),confirmedOrder);
     assert.deepEqual(state.shared.data.priorities,confirmedOrder,'PUT is confirmed while the older GET is still pending');
     state.releaseRead();state.holdRead=false;await held;await page.waitForFunction(()=>!ICADEMLearningRoute.isBusy()&&!ICADEMLearningRoute.isDirty());
-    assert.deepEqual(await page.evaluate(()=>ICADEMCourseUnlocks.getPriorities()),confirmedOrder,'late lower-revision GET cannot resurrect old priorities');await back(page);assert.deepEqual((await cards(page)).slice(0,2),confirmedOrder);
+    assert.deepEqual(await page.evaluate(()=>ICADEMCourseUnlocks.getPriorities()),confirmedOrder,'late lower-revision GET cannot resurrect old priorities');await back(page);assert.deepEqual((await pendingCards(page)).slice(0,2),confirmedOrder);
     await page.evaluate(()=>{document.dispatchEvent(new Event('icadem:session-ending'));window.__currentUser={uid:'fixture-b',getIdToken:()=>Promise.resolve('fixture-b')};window.__auth.currentUser=window.__currentUser;window.UserState.uid='fixture-b';});assert.deepEqual(await badges(page),{});assert.deepEqual(await page.evaluate(()=>ICADEMCourseUnlocks.getPriorities()),[]);
   }
   assert.equal(state.shared.data.available,start.available);assert.equal(state.shared.data.vipSlots,start.vipSlots);assert.deepEqual(state.shared.data.selectedCourseIds,start.selectedCourseIds);assert.deepEqual(state.selects,[]);assert.deepEqual(state.errors,[]);
-  console.log(`PASS ${width}px: 0/1/3/5 priorities; original numbers, pending first, 5 sorts, filters/access/progress, save/error/reload${width===390?', second context + concurrent conflict + session reset':''}; no selects or rights consumed`);await f.context.close();
+  console.log(`PASS ${width}px: 0/1/3/5 priorities; original numbers, open courses first, 5 sorts, filters/access/progress, save/error/reload${width===390?', second context + concurrent conflict + session reset':''}; no selects or rights consumed`);await f.context.close();
 }
 (async()=>{await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));base=`http://127.0.0.1:${server.address().port}`;browser=await chromium.launch({headless:true,channel:'chrome'});for(const width of widths)await scenario(width);console.log(`PASS ${widths.length}/${widths.length} ${BASELINE?'baseline captures':'priority scenarios'}; APIs isolated; devices emulated.`);})().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{await browser?.close();server.close();});

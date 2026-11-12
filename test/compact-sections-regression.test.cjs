@@ -48,7 +48,7 @@ function campus(){
     getProgresoCurso:id=>progress[id]||{clasesVistas:[],completado:false},getPortadaCurso:c=>c.portada,primerCursoGratisId:()=>'',toolEsVIP:()=>true,
     cursoDesbloqueado:(_,c)=>c.access?.unlocked===true,diasParaDesbloquear:(_,c)=>c.access?.unlocked?0:6,
     coverSVG:()=>'/fallback.svg',escapeHtml:value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),
-    __guardarContextoAprendizajeVIP:id=>opened.push(id),__seccionesValidasVIP:()=>new Set(['inicio','cursos','curso-detalle']),SECCION_DEFAULT_VIP:'inicio',__seccionActualVIP:'',
+    __guardarContextoAprendizajeVIP:id=>opened.push(id),__seccionesValidasVIP:()=>new Set(['inicio','cursos','cursos-progreso','curso-detalle']),SECCION_DEFAULT_VIP:'inicio',__seccionActualVIP:'',
     __subirAlInicioVIP(){},sectionPlaceholder:()=>'',setTimeout:fn=>(timers.push(fn),timers.length),clearTimeout(){},clearInterval(){},requestAnimationFrame:fn=>frames.push(fn),
     CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},console};
   window.history=context.history;window.location=location;
@@ -60,7 +60,7 @@ function campus(){
     +between(panel,'  function openCursoDetalle(id){','  function renderCursoDetalle(container){')
     +between(panel,'function navigateToSection(section, opciones){','// Cada sección abre arriba.');
   vm.runInContext(code.replace(/\r\n/g,'\n'),context);
-  context.Sections={renderers:{cursos:context.renderCursos,'curso-detalle':host=>{host.innerHTML='<h1>Detalle del curso</h1>';}},countdownTimer:null};
+  context.Sections={renderers:{cursos:context.renderCursos,'cursos-progreso':host=>context.renderCursos(host,'progreso'),'curso-detalle':host=>{host.innerHTML='<h1>Detalle del curso</h1>';}},countdownTimer:null};
   return {context,ids,courses,progress,opened,events,timers,frames,navigate:section=>context.navigateToSection(section),async ready(){await flush();while(frames.length)frames.shift()();}};
 }
 
