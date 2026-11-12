@@ -35,9 +35,11 @@ function memoryStorage() {
 }
 
 export class Store {
-  constructor(storage) {
+  /** `profile`: perfil infantil supervisado (su progreso local va aparte del adulto). */
+  constructor(storage, { profile = null } = {}) {
+    this.key = profile ? `${STORE_KEY}:${profile}` : STORE_KEY;
     let s = storage;
-    if (!s) { try { s = globalThis.localStorage; s.getItem(STORE_KEY); } catch (_) { s = null; } }
+    if (!s) { try { s = globalThis.localStorage; s.getItem(this.key); } catch (_) { s = null; } }
     this.storage = s || memoryStorage();
     this.persistent = Boolean(s);
     this.state = this.#load();
@@ -47,7 +49,7 @@ export class Store {
   #load() {
     const base = defaultState();
     try {
-      const raw = this.storage.getItem(STORE_KEY);
+      const raw = this.storage.getItem(this.key);
       if (!raw) return base;
       const saved = JSON.parse(raw);
       if (!saved || saved.version !== 1) return base;
@@ -63,7 +65,7 @@ export class Store {
   }
 
   save() {
-    try { this.storage.setItem(STORE_KEY, JSON.stringify(this.state)); } catch (_) { /* almacenamiento lleno o bloqueado */ }
+    try { this.storage.setItem(this.key, JSON.stringify(this.state)); } catch (_) { /* almacenamiento lleno o bloqueado */ }
     this.listeners.forEach(fn => { try { fn(this.state); } catch (_) {} });
   }
 
@@ -92,7 +94,7 @@ export class Store {
 
   reset() {
     this.state = defaultState();
-    try { this.storage.removeItem(STORE_KEY); } catch (_) {}
+    try { this.storage.removeItem(this.key); } catch (_) {}
     this.save();
   }
 }

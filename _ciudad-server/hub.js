@@ -8,6 +8,7 @@ import { SCENE_RULES, ENTRY_RADIUS, COOP_MISSIONS } from '../ciudad/js/net/scene
 import { phraseById, createRateLimiter, SAY_LIMIT, SAY_RADIUS } from '../ciudad/js/social/phrases.js';
 import { coopCan, pendingApprovals } from '../ciudad/js/net/coop.js';
 import { MissionRun } from '../ciudad/js/missions/engine.js';
+import { RACE, TREASURES, TREASURE_RADIUS, treasureRounds, validSeed } from '../ciudad/js/edu/activities.js';
 
 /** Equipo libre (sin misión): de 2 a 4 personas, sin roles. */
 const TEAM = Object.freeze({ title: 'Equipo', min: 2, max: 4, roles: [], playable: false });
@@ -21,10 +22,14 @@ export const LIMITS = Object.freeze({
   resumeMs: 30000,       // tiempo que se guarda el lugar de alguien que perdió la conexión
   nameMax: 28,
   // Topes por tipo de acción (máximo, ventana en ms). Lo que los excede se descarta.
-  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], coop: [40, 10000] },
+  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], coop: [40, 10000], code: [10, 60000], quiz: [20, 60000], activity: [20, 60000], play: [40, 60000] },
   inviteMs: 60000,       // una invitación sin responder caduca en un minuto
   coopLog: 400,          // acciones máximas de un intento en equipo
-  coopPayload: 1500      // bytes máximos de los datos de una acción en equipo
+  coopPayload: 1500,     // bytes máximos de los datos de una acción en equipo
+  codeMs: 30 * 60000,    // vigencia por omisión de un código de invitación (30 min; máximo 2 h)
+  codeMaxMs: 2 * 3600000,
+  codeUses: 3,           // usos por omisión de un código (máximo 5)
+  codesPerPlayer: 3      // códigos activos por persona
 });
 
 /** Límites caminables de cada escenario (compartidos con el cliente). */
@@ -44,6 +49,7 @@ export class Hub {
     this.rooms = new Map();       // id → sala privada (sala de espera cooperativa)
     this.codes = new Map();       // código de invitación → sala
     this.seq = 0; this.roomSeq = 0;
+    this.joinCodes = new Map();   // código temporal de invitación → { code, owner, room, uses, max, exp }
   }
 
   /** Identificador público y estable de un usuario (no revela su uid). */
@@ -61,7 +67,14 @@ export class Hub {
    * Entrada de un usuario ya autenticado. Una sola sesión por usuario: si vuelve a entrar
    * (otra pestaña o reconexión) recupera su lugar y la conexión anterior queda sustituida.
    */
-  join({ uid, name, avatar = 'explorador' }) {
+  /* ---------- perfiles infantiles supervisados (modo familiar; apagado salvo CIUDAD_FAMILY=on) ---------- */
+
+  /** ¿Son de la misma familia? (el perfil infantil y su adulto responsable, o perfiles infantiles del mismo adulto) */
+  family(a, b) { return (a.minor ? a.guardian : a.uid) === (b.minor ? b.guardian : b.uid); }
+  /** Un perfil infantil solo existe para su familia: nadie más lo ve, lo lista ni le habla. */
+  sees(viewer, other) { return !(viewer.minor || other.minor) || this.family(viewer, other); }
+
+  join({ uid, name, avatar = 'explorador', minor = false, guardian = null }) {
     const existing = this.byUid.get(uid);
     if (existing) {
       const replaced = existing.online;
@@ -70,8 +83,9 @@ export class Hub {
     }
     const instance = this.#pick();
     const player = {
+      minor: Boolean(minor), guardian: minor ? guardian : null,
       uid, pid: this.publicId(uid), name: cleanName(name), avatar: String(avatar).slice(0, 24), instance,
-      online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null,
+      online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null, listed: true,
       allowSay: createRateLimiter(SAY_LIMIT),
       limits: Object.fromEntries(Object.entries(LIMITS.actions).map(([k, [max, windowMs]]) => [k, createRateLimiter({ max, windowMs })]))
     };
@@ -134,6 +148,8 @@ export class Hub {
   visible(viewer, other) {
     if (viewer === other || !other.online || !other.state || !viewer.state) return false;
     if (viewer.instance !== other.instance || viewer.state.scene !== other.state.scene) return false;
+    // Perfiles infantiles: solo los ve su familia, y únicamente dentro de su propio equipo familiar.
+    if ((viewer.minor || other.minor) && !(this.family(viewer, other) && viewer.room && viewer.room === other.room)) return false;
     const privacy = SCENE_RULES[other.state.scene].privacy;
     if (privacy === 'private') return false;
     if (privacy === 'party') return Boolean(viewer.room) && viewer.room === other.room;
@@ -180,6 +196,7 @@ export class Hub {
   }
 
   createRoom(player, { mission } = {}) {
+    if (player.minor) return { ok: false, reason: 'no-permitido' };
     if (mission !== null && mission !== undefined && !COOP_MISSIONS[mission]) return { ok: false, reason: 'mision-sin-cooperativo' };
     mission = mission ?? null;
     // Un equipo ya formado puede elegir misión sin deshacerse: lo decide su anfitrión.
@@ -196,6 +213,7 @@ export class Hub {
     const room = this.codes.get(String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''));
     if (!room) return { ok: false, reason: 'codigo-invalido' };
     if (room.members.has(player.pid)) return { ok: true, room };
+    if ([...room.members.values()].some(m => !this.sees(player, m.player))) return { ok: false, reason: 'no-permitido' };
     if (room.members.size >= specOf(room).max) return { ok: false, reason: 'sala-llena' };
     if (room.status !== 'espera') return { ok: false, reason: 'sala-cerrada' };
     this.leaveRoom(player);
@@ -295,6 +313,7 @@ export class Hub {
 
   /** Conexiones mutuas que están ahora mismo en Ciudad ICADEM. De los demás jugadores no se revela nada. */
   friendsView(player) {
+    if (player.minor) return [];   // un perfil infantil no tiene conexiones profesionales
     const list = [];
     for (const uid of player.friends) {
       const o = this.byUid.get(uid); if (!o || !o.online || !o.friends.has(player.uid)) continue;
@@ -305,6 +324,7 @@ export class Hub {
   }
 
   invite(from, toPid) {
+    if (from.minor) return { ok: false, reason: 'no-permitido' };
     const to = this.#friend(from, String(toPid)); if (!to) return { ok: false, reason: 'no-es-conexion' };
     if (!to.online) return { ok: false, reason: 'no-disponible' };
     if (from.room && to.room === from.room) return { ok: false, reason: 'ya-en-tu-equipo' };
@@ -346,7 +366,127 @@ export class Hub {
     return { ok: true, to: [...room.members.values()].map(m => m.player).filter(p => p.online) };
   }
 
-  roster(instance) { return [...instance.players.values()].filter(p => p.online).map(p => ({ pid: p.pid, name: p.name, avatar: p.avatar, custom: p.custom })); }
+  /** Nombre que ve `viewer`: quien eligió no aparecer en listas se muestra como «Jugador privado», salvo para sus conexiones mutuas. */
+  nameFor(viewer, p) {
+    if (!viewer || viewer === p || p.listed !== false) return p.name;
+    if (viewer.friends.has(p.uid) && p.friends.has(viewer.uid)) return p.name;
+    if (viewer.room && viewer.room === p.room) return p.name;
+    return 'Jugador privado';
+  }
+
+  /** Jugadores reales conectados en la instancia (sin NPC), con el nombre que le corresponde ver a `viewer`. */
+  roster(instance, viewer = null) { return [...instance.players.values()].filter(p => p.online && p !== viewer && (!viewer ? !p.minor : this.sees(viewer, p))).map(p => ({ pid: p.pid, name: this.nameFor(viewer, p), avatar: p.avatar, custom: p.custom })); }
+
+  /** Presencia controlada por el servidor: solo cuenta sesiones conectadas (las desconectadas expiran en `resumeMs`). */
+  presence(player) {
+    let city = 0; for (const p of this.byUid.values()) if (p.online) city++;
+    let instance = 0; for (const p of player.instance.players.values()) if (p.online) instance++;
+    return { city, instance };
+  }
+
+  /* ---------- códigos temporales de invitación ---------- */
+
+  #sweepCodes() { const t = this.now(); for (const [k, c] of this.joinCodes) if (c.exp <= t || c.uses >= c.max || !c.owner.room || c.owner.room !== c.room || !this.byUid.has(c.owner.uid)) this.joinCodes.delete(k); }
+  codesOf(player) { this.#sweepCodes(); const t = this.now(); return [...this.joinCodes.values()].filter(c => c.owner === player).map(c => ({ code: c.code, usesLeft: c.max - c.uses, expiresIn: Math.max(0, Math.round((c.exp - t) / 1000)), mission: c.room.mission })); }
+
+  /**
+   * Crea un código para unirse al equipo de quien lo genera (si no tiene equipo, se crea uno).
+   * El código no da acceso a ninguna cuenta: solo sirve a alguien que ya entró con su propia sesión
+   * autorizada (piloto incluido). Vence, tiene usos limitados y se puede revocar.
+   */
+  createCode(player, { uses, minutes } = {}) {
+    this.#sweepCodes();
+    if (player.minor) return { ok: false, reason: 'no-permitido' };
+    if ([...this.joinCodes.values()].filter(c => c.owner === player).length >= LIMITS.codesPerPlayer) return { ok: false, reason: 'demasiados-codigos' };
+    if (!player.room) this.createRoom(player, { mission: null });
+    const room = player.room;
+    if (room.status === 'en-curso') return { ok: false, reason: 'en-curso' };
+    if (room.members.size >= specOf(room).max) return { ok: false, reason: 'equipo-lleno' };
+    const max = Math.min(5, Math.max(1, Math.round(Number(uses) || LIMITS.codeUses)));
+    const ms = Math.min(LIMITS.codeMaxMs, Math.max(5 * 60000, (Number(minutes) || LIMITS.codeMs / 60000) * 60000));
+    let code; do { code = Array.from(randomBytes(8), b => CODE_ALPHABET[b % CODE_ALPHABET.length]).join(''); } while (this.joinCodes.has(code) || this.codes.has(code));
+    const entry = { code, owner: player, room, uses: 0, max, exp: this.now() + ms };
+    this.joinCodes.set(code, entry);
+    return { ok: true, code, room };
+  }
+
+  revokeCode(player, code) {
+    const c = this.joinCodes.get(String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''));
+    if (!c || c.owner !== player) return { ok: false, reason: 'codigo-invalido' };
+    this.joinCodes.delete(c.code); return { ok: true };
+  }
+
+  /** Canjear un código: queda en el equipo (y en la misma instancia) de quien invitó. */
+  redeemCode(player, code) {
+    this.#sweepCodes();
+    const c = this.joinCodes.get(String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''));
+    if (!c) return { ok: false, reason: 'codigo-invalido' };
+    const owner = c.owner, room = c.room;
+    if (owner === player) return { ok: false, reason: 'es-tu-codigo' };
+    if (!this.sees(player, owner) || [...room.members.values()].some(m => !this.sees(player, m.player))) return { ok: false, reason: 'no-permitido' };
+    if (room.members.has(player.pid)) return { ok: true, room, owner, already: true };
+    if (!owner.online) return { ok: false, reason: 'no-disponible' };
+    if (room.status === 'en-curso') return { ok: false, reason: 'sala-cerrada' };
+    if (room.members.size >= specOf(room).max) return { ok: false, reason: 'equipo-lleno' };
+    let moved = null;
+    if (player.instance !== owner.instance) {
+      if (owner.instance.players.size >= this.capacity) return { ok: false, reason: 'instancia-llena' };
+      moved = { from: player.instance, to: owner.instance };
+      player.instance.players.delete(player.pid); if (!player.instance.players.size) this.instances.delete(player.instance.id);
+      owner.instance.players.set(player.pid, player); player.instance = owner.instance;
+    }
+    const left = this.leaveRoom(player);
+    room.members.set(player.pid, { player, role: null, ready: false }); player.room = room;
+    c.uses++; if (c.uses >= c.max) this.joinCodes.delete(c.code);
+    return { ok: true, room, owner, moved, left };
+  }
+
+  /* ---------- minijuegos validados por posición (carrera y búsqueda del tesoro) ---------- */
+
+  /** Posición validada del jugador (la que el servidor ya aceptó), si es reciente. */
+  #where(player, scene) { const st = player.state; return st && st.scene === scene && this.now() - player.stateAt < 2500 ? st : null; }
+
+  playStart(player, game, seed) {
+    if (game === 'carrera') { if (!this.#where(player, RACE.scene)) return { ok: false, reason: 'fuera-del-parque' }; player.play = { game, next: 0, at: this.now() }; return { ok: true, next: 0 }; }
+    if (game === 'tesoro') {
+      if (!validSeed(seed)) return { ok: false, reason: 'datos' };
+      if (!this.#where(player, 'plaza')) return { ok: false, reason: 'fuera-de-la-plaza' };
+      player.play = { game, rounds: treasureRounds(seed), round: 0, found: [], at: this.now() }; return { ok: true, round: 0, items: player.play.rounds[0] };
+    }
+    return { ok: false, reason: 'juego-desconocido' };
+  }
+
+  /**
+   * Punto de control o tesoro: procede solo si la ÚLTIMA posición que el servidor aceptó (con su
+   * control de velocidad y de puertas) está junto al punto. El navegador no puede «llegar» por decirlo.
+   */
+  playCheck(player, payload = {}) {
+    const run = player.play; if (!run) return { ok: false, reason: 'sin-partida' };
+    if (run.game === 'carrera') {
+      const st = this.#where(player, RACE.scene), i = payload.i, cp = RACE.checkpoints[run.next];
+      if (!st) return { ok: false, reason: 'fuera-del-parque' };
+      if (i !== run.next || !cp) return { ok: false, reason: 'fuera-de-orden' };
+      if (Math.hypot(st.x - cp[0], st.z - cp[1]) > RACE.radius + 0.6 || st.y < (cp[2] || 0) - 0.35) return { ok: false, reason: 'lejos' };
+      run.next++;
+      if (run.next < RACE.checkpoints.length) return { ok: true, next: run.next };
+      const seconds = (this.now() - run.at) / 1000; player.play = null;
+      if (seconds < RACE.minSeconds) return { ok: false, reason: 'imposible' };
+      return { ok: true, done: true, seconds: Math.round(seconds), score: Math.max(50, Math.min(100, Math.round(100 - Math.max(0, seconds - 30) * 1.5))) };
+    }
+    const st = this.#where(player, 'plaza'), t = TREASURES.find(x => x.id === payload.id), round = run.rounds[run.round];
+    if (!st) return { ok: false, reason: 'fuera-de-la-plaza' };
+    if (!t || !round.includes(t.id) || run.found.includes(t.id)) return { ok: false, reason: 'no-es-de-esta-ronda' };
+    if (Math.hypot(st.x - t.at[0], st.z - t.at[1]) > TREASURE_RADIUS + 0.6) return { ok: false, reason: 'lejos' };
+    run.found.push(t.id);
+    if (round.every(id => run.found.includes(id))) {
+      run.round++;
+      if (run.round >= run.rounds.length) { const seconds = (this.now() - run.at) / 1000; player.play = null; return { ok: true, done: true, seconds: Math.round(seconds), score: Math.max(60, Math.min(100, Math.round(100 - Math.max(0, seconds - 240) / 6))) }; }
+      return { ok: true, found: t.id, round: run.round, items: run.rounds[run.round] };
+    }
+    return { ok: true, found: t.id, round: run.round };
+  }
+
+  playQuit(player) { player.play = null; return { ok: true }; }
 
   stats() { return { instances: this.instances.size, players: [...this.byUid.values()].filter(p => p.online).length, rooms: this.rooms.size, reports: this.reports.length }; }
 }

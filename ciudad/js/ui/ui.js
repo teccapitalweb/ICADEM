@@ -16,7 +16,14 @@ export const ACHIEVEMENTS = [
   { id: 'primera-mision', name: 'Primera misión', text: 'Completa tu primera misión.' },
   { id: 'toga-y-mazo', name: 'Toga y mazo', text: 'Completa «Tú eres el juez».' },
   { id: 'decision-impecable', name: 'Decisión impecable', text: 'Obtén 100 puntos en una misión.' },
-  { id: 'explorador-urbano', name: 'Explorador urbano', text: 'Visita la puerta de todos los edificios.' }
+  { id: 'explorador-urbano', name: 'Explorador urbano', text: 'Visita la puerta de todos los edificios.' },
+  { id: 'mente-curiosa', name: 'Mente curiosa', text: 'Responde bien 10 retos de los personajes de la ciudad.' },
+  { id: 'poliglota', name: 'Políglota', text: 'Obtén 80 o más en Aventura de idiomas.' },
+  { id: 'memoria-de-oro', name: 'Memoria de oro', text: 'Obtén 90 o más en Memoria ICADEM.' },
+  { id: 'calculadora-humana', name: 'Calculadora humana', text: 'Obtén 90 o más en Matemáticas contra reloj.' },
+  { id: 'gran-clasificador', name: 'Gran clasificador', text: 'Obtén 80 o más en Clasificación inteligente.' },
+  { id: 'atleta-icadem', name: 'Atleta ICADEM', text: 'Termina la Carrera del conocimiento.' },
+  { id: 'cazatesoros', name: 'Cazatesoros', text: 'Encuentra todos los tesoros de la plaza.' }
 ];
 
 export const GAMES = [
@@ -39,6 +46,7 @@ export class UI {
     this.queue = Promise.resolve();
     this.trackerData = null;
     $('btn-map').addEventListener('click', () => this.openMap());
+    $('btn-games')?.addEventListener('click', () => this.api.games?.open());
     $('btn-pass').addEventListener('click', () => this.openPassport());
     $('btn-player').addEventListener('click', () => this.openPassport());
     $('btn-settings').addEventListener('click', () => this.openSettings());
@@ -312,6 +320,37 @@ export class UI {
   }
 
   /* ---------- ajustes ---------- */
+  /** Modo familiar: perfiles infantiles supervisados. Solo funciona si el servidor lo tiene activo. */
+  #familyField() {
+    const api = this.api, net = api.net, box = h('div', 'family');
+    if (api.store.state.profileKind === 'infantil') { box.append(h('p', 'note', 'Estás jugando con un perfil infantil supervisado. Para cambiar de perfil, sal del juego y vuelve a entrar.')); return box; }
+    if (!net.isOnline || !net.family || !net.family.enabled) {
+      box.append(h('p', 'note', 'En preparación. Los perfiles infantiles supervisados (alias, avatar y progreso propios, sin chat ni contacto con desconocidos) se activarán cuando concluya la revisión de privacidad y consentimiento.'));
+      return box;
+    }
+    const list = h('div', 'players'), render = kids => {
+      list.replaceChildren();
+      (kids || []).forEach(k => {
+        const row = h('div', 'players__row'), who = h('div', 'players__who'); who.append(h('strong', null, k.alias), h('small', null, k.band + ' años')); row.append(who);
+        const play = h('button', 'btn btn--primary', 'Jugar con este perfil'); play.type = 'button'; play.addEventListener('click', () => { const u = new URL(location.href); u.searchParams.set('perfil', k.id); location.replace(u.toString()); });
+        const del = h('button', 'btn', 'Quitar'); del.type = 'button'; del.addEventListener('click', () => net.profile('family', { action: 'remove', id: k.id }));
+        row.append(play, del); list.append(row);
+      });
+      if (!(kids || []).length) list.append(h('p', 'players__empty', 'Aún no hay perfiles infantiles.'));
+    };
+    const off = net.on('profile', m => { if (m.op !== 'family') return; if (m.ok === false) this.toast({ 'falta-consentimiento': 'Confirma que eres la persona adulta responsable.', 'alias-invalido': 'Usa un alias de 2 a 16 letras o números (sin datos personales).', 'familia-llena': 'Máximo 4 perfiles infantiles.', 'alias-repetido': 'Ya existe un perfil con ese alias.' }[m.reason] || 'No se pudo guardar.', 3200); else render(m.family); });
+    const alias = h('input', 'lobby__code'); alias.maxLength = 16; alias.placeholder = 'Alias (no el nombre real)'; alias.style.letterSpacing = '0'; alias.style.textTransform = 'none';
+    const band = document.createElement('select'); [['6-8', '6 a 8 años'], ['9-12', '9 a 12 años'], ['13-17', '13 a 17 años']].forEach(([v, t]) => { const o = document.createElement('option'); o.value = v; o.textContent = t; band.append(o); });
+    const consent = h('label', 'social__privacy'), cb = document.createElement('input'); cb.type = 'checkbox'; consent.append(cb, h('span', null, 'Soy madre, padre o tutor de este menor y autorizo su perfil supervisado.'));
+    const add = h('button', 'btn btn--primary', 'Agregar perfil infantil'); add.type = 'button';
+    add.addEventListener('click', () => net.profile('family', { action: 'add', alias: alias.value, band: band.value, consent: cb.checked }));
+    const row = h('div', 'lobby__join'); row.append(alias, band);
+    box.append(list, row, consent, add, h('p', 'note', 'Solo se guarda un alias, un avatar y el rango de edad. Los perfiles infantiles no tienen chat, no ven ni son vistos por personas fuera de tu equipo familiar y no ven el Directorio Profesional.'));
+    net.profile('family', { action: 'list' });
+    setTimeout(() => { const obs = new MutationObserver(() => { if (!document.body.contains(box)) { off(); obs.disconnect(); } }); obs.observe(document.body, { childList: true, subtree: true }); }, 0);
+    return box;
+  }
+
   openSettings() {
     if (this.isBlocking) return;
     const api = this.api, st = api.store.state.settings, wrap = h('div');
@@ -321,6 +360,8 @@ export class UI {
     const sens = h('input'); sens.type = 'range'; sens.min = '0.4'; sens.max = '2'; sens.step = '0.1'; sens.value = String(st.sensitivity);
     sens.addEventListener('input', () => { st.sensitivity = Number(sens.value); api.store.save(); api.applySettings(); });
     const inv = h('div', 'seg'); [[false, 'Normal'], [true, 'Invertida']].forEach(([v, t]) => { const b = h('button', st.invertY === v ? 'is-on' : '', t); b.type = 'button'; b.addEventListener('click', () => { st.invertY = v; api.store.save(); api.applySettings(); inv.querySelectorAll('button').forEach(o => o.classList.toggle('is-on', o === b)); }); inv.append(b); });
+    const npc = h('div', 'seg'); [[true, 'Activados'], [false, 'Desactivados']].forEach(([v, t]) => { const b = h('button', (st.npcQuiz !== false) === v ? 'is-on' : '', t); b.type = 'button'; b.addEventListener('click', () => { st.npcQuiz = v; api.store.save(); npc.querySelectorAll('button').forEach(o => o.classList.toggle('is-on', o === b)); }); npc.append(b); });
+    const fam = this.#familyField();
     const keys = h('dl', 'keys');
     (document.documentElement.classList.contains('is-touch')
       ? [['Mover', 'Arrastra en la parte izquierda de la pantalla'], ['Cámara', 'Arrastra en el resto de la pantalla'], ['Interactuar', 'Botón amarillo que aparece al acercarte'], ['Saltar / correr', 'Botones de la derecha']]
@@ -329,7 +370,7 @@ export class UI {
     const tut = h('button', 'btn', 'Repetir tutorial'); tut.type = 'button'; tut.addEventListener('click', () => { document.getElementById('modal-x').click(); api.startTutorial(true); });
     const reset = h('button', 'btn', 'Borrar datos de prueba'); reset.type = 'button'; reset.addEventListener('click', () => { if (reset.dataset.sure) { api.store.reset(); location.reload(); } else { reset.dataset.sure = '1'; reset.textContent = 'Toca otra vez para confirmar'; } });
     const acts = h('div', 'seg'); acts.append(tut, reset);
-    wrap.append(field('Calidad gráfica', seg), field('Sensibilidad de la cámara', sens), field('Cámara vertical', inv), field('Controles', keys), acts,
+    wrap.append(field('Calidad gráfica', seg), field('Sensibilidad de la cámara', sens), field('Cámara vertical', inv), field('Retos de los personajes de la ciudad', npc), field('Modo familiar', fam), field('Controles', keys), acts,
       h('p', 'note', `Calidad activa: ${QUALITY[api.engine.quality].label} · ${api.engine.fps || '—'} cuadros por segundo. El progreso del prototipo se guarda solo en este dispositivo.`));
     return this.modal({ eyebrow: 'Ajustes', title: 'Juego y controles', content: wrap });
   }

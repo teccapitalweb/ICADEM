@@ -14,7 +14,7 @@ export class WsAdapter extends NetworkAdapter {
   /** @param {{url:string, getTicket:() => Promise<string>, avatar?:string, WebSocketImpl?:any}} o */
   constructor(o) {
     super();
-    this.url = o.url; this.getTicket = o.getTicket; this.avatar = o.avatar || 'explorador'; this.resumeToken = null; this.roomState = null; this.friendList = [];
+    this.url = o.url; this.getTicket = o.getTicket; this.kid = o.kid || null; this.family = null; this.avatar = o.avatar || 'explorador'; this.resumeToken = null; this.roomState = null; this.friendList = []; this.presence = null; this.codes = []; this.invites = [];
     this.WS = o.WebSocketImpl || globalThis.WebSocket;
     this.ws = null; this.pid = null; this.instance = null; this.roster = new Map();
     this.status = 'offline';     // offline → connecting → online → reconnecting → closed
@@ -41,7 +41,7 @@ export class WsAdapter extends NetworkAdapter {
   async #connect() {
     // Credencial de un solo uso: primero el pase de reanudación; si no hay, un boleto nuevo.
     const hello = { t: 'hello' };
-    if (this.resumeToken) { hello.resume = this.resumeToken; this.resumeToken = null; } else hello.ticket = await this.getTicket();
+    if (this.resumeToken) { hello.resume = this.resumeToken; this.resumeToken = null; } else { hello.ticket = await this.getTicket(); if (this.kid) hello.kid = this.kid; }
     if (this.closedByUs) return;
     const ws = new this.WS(this.url);
     this.ws = ws;
@@ -62,7 +62,7 @@ export class WsAdapter extends NetworkAdapter {
       case 'welcome':
         this.pid = m.pid; this.instance = m.instance; this.attempt = 0; this.roster.clear(); this.resumeToken = m.resume || null; this.name = m.name;
         this.roomState = m.room || null; this.emit('room', { room: this.roomState });
-        this.friendList = m.friends || []; if (m.profile) this.emit('profile', { op: 'get', ok: true, profile: m.profile });
+        this.friendList = m.friends || []; this.presence = m.presence || null; this.codes = m.codes || []; this.family = m.family || null; if (m.presence) this.emit('presence', this.presence); if (m.profile) this.emit('profile', { op: 'get', ok: true, profile: m.profile });
         (m.roster || []).forEach(p => this.roster.set(p.pid, p));
         this.#set('online', { resumed: m.resumed });
         (m.roster || []).forEach(p => this.emit('join', p));
@@ -79,14 +79,18 @@ export class WsAdapter extends NetworkAdapter {
       case 'resume': this.resumeToken = m.token; break;
       case 'profile': this.emit('profile', m); break;
       case 'friends': if (m.list) this.friendList = m.list; this.emit('friends', m); break;
-      case 'invite': this.emit('invite', m); break;
-      case 'invited': this.emit('invited', m); break;
+      case 'invite': this.invites = this.invites.filter(i => i.id !== m.id && i.exp > Date.now()).concat([{ id: m.id, from: m.from, exp: Date.now() + (m.expiresIn || 60) * 1000 }]); this.emit('invite', m); break;
+      case 'invited': if (m.codes) this.codes = m.codes; this.emit('invited', m); break;
       case 'party': this.emit('party', m); break;
       case 'look': { const r = this.roster.get(m.pid); if (r) { r.avatar = m.avatar; r.custom = m.custom; } this.emit('look', m); break; }
       // Cambio de instancia (al aceptar una invitación): la lista de jugadores se reemplaza.
       case 'instance': { const had = [...this.roster.keys()]; this.roster.clear(); had.forEach(pid => this.emit('leave', { pid })); this.instance = m.instance; (m.roster || []).forEach(p => { this.roster.set(p.pid, p); this.emit('join', p); }); this.#set('online'); break; }
       case 'room': this.roomState = m.room || null; this.emit('room', m); break;
       case 'coop': this.emit('coop', m); break;
+      case 'presence': this.presence = { city: m.city, instance: m.instance }; this.emit('presence', this.presence); this.#set('online'); break;
+      case 'name': { const r = this.roster.get(m.pid); if (r) r.name = m.name; this.emit('name', m); break; }
+      case 'code': if (m.codes) this.codes = m.codes; this.emit('code', m); break;
+      case 'play': this.emit('play', m); break;
       // Un pase vencido no es definitivo: se reintenta con un boleto nuevo. Lo demás sí cierra.
       case 'bye':
         if (m.reason === 'no-autorizado' && this.attempt < 3) break;                                                       // pase vencido: se pide boleto nuevo
@@ -109,6 +113,10 @@ export class WsAdapter extends NetworkAdapter {
   friends(op, payload = {}) { return this.#send({ t: 'friends', op, ...payload }); }
   rally() { return this.#send({ t: 'party', op: 'rally' }); }
   coop(op, payload = {}) { return this.#send({ t: 'coop', op, ...payload }); }
+  code(op, payload = {}) { return this.#send({ t: 'code', op, ...payload }); }
+  play(op, payload = {}) { return this.#send({ t: 'play', op, ...payload }); }
+  /** Respuesta a una invitación de una conexión: se quita de la lista de pendientes. */
+  answerInvite(id, accept) { this.invites = this.invites.filter(i => i.id !== id); return this.friends('answer', { id, accept }); }
   nameOf(pid) { return this.roster.get(pid)?.name || 'Jugador'; }
 
   disconnect() { this.closedByUs = true; clearTimeout(this.timer); clearInterval(this.pingTimer); this.status = 'offline'; try { this.ws?.close(); } catch (_) {} this.ws = null; super.disconnect(); }

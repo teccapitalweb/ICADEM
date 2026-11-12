@@ -165,7 +165,7 @@ test('aislamiento: el juego no llama servicios de ICADEM ni toca créditos reale
   assert.match(main, /const mpUrl = LOCAL \? params\.get\('mp'\) : null;/, 'el multijugador solo se activa en pruebas locales');
   assert.match(main, /127\\\.0\\\.0\\\.1\|localhost/, 'y solo contra un servidor en la misma máquina');
   const html = read('ciudad/index.html');
-  assert.match(html, /créditos de prueba/); assert.match(html, /Versión 1.0 · Evaluación/);
+  assert.match(html, /créditos de prueba/); assert.match(html, /Versión 1.1 · Piloto/);
   assert.doesNotMatch(html, /firebase|railway|stripe/i);
 });
 

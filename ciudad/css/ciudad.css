@@ -390,3 +390,81 @@ input[type=range]{width:100%;accent-color:var(--night)}
 .wardrobe .rowi.is-on{border-color:var(--teal);background:#e3f4ec}
 .wardrobe .field{margin-top:12px}
 .wardrobe .chips button[style*="--dot"]::before{content:"";display:inline-block;width:11px;height:11px;border-radius:50%;background:var(--dot);margin-right:6px;vertical-align:-1px}
+
+/* ---------- Fase 1.1 · panel social ---------- */
+.social__stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.social__stats>div{background:linear-gradient(160deg,#12325f,#1d4a85);color:#fff;border-radius:14px;padding:12px 10px;text-align:center;box-shadow:inset 0 1px 0 rgba(255,255,255,.12)}
+.social__stats b{display:block;font-size:24px;line-height:1.05;color:var(--sun)}
+.social__stats span{font-size:12px;opacity:.85}
+.social__tabs{display:flex;gap:4px;background:#eef2f8;border-radius:12px;padding:4px;overflow-x:auto}
+.social__tab{flex:1;white-space:nowrap;border-radius:9px;padding:9px 10px;font-weight:700;font-size:14px;color:#3b4963;position:relative;transition:background .18s,color .18s}
+.social__tab.is-on{background:#fff;color:var(--night);box-shadow:0 2px 8px rgba(15,31,61,.12)}
+.social__badge{display:inline-grid;place-items:center;min-width:18px;height:18px;margin-left:6px;border-radius:9px;background:var(--coral);color:#fff;font:800 11px/1 var(--font);font-style:normal}
+.social__body{display:flex;flex-direction:column;gap:10px;animation:fadeUp .22s ease}
+.social__privacy{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:#f5f7fb;font-size:14px;color:#3b4963;cursor:pointer}
+.social__privacy input{width:20px;height:20px;accent-color:var(--night)}
+.code-card{display:grid;grid-template-columns:1fr auto;gap:4px 12px;align-items:center;padding:14px 16px;border-radius:14px;background:linear-gradient(135deg,#fff8e3,#fff);border:1.5px dashed #e3b64a}
+.code-card__code{font-size:26px;letter-spacing:.18em;color:var(--night);user-select:all}
+.code-card small{grid-column:1;color:var(--muted)}
+.code-card__acts{grid-row:1/3;grid-column:2;display:flex;flex-direction:column;gap:6px}
+.lobby__join select{padding:10px 12px;border-radius:12px;border:1.5px solid rgba(15,31,61,.2);font:600 14px var(--font);background:#fff;color:var(--ink)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.is-touch .net-chip{font-size:12px;padding:5px 12px 5px 24px}
+@media (max-width:560px){.social__stats b{font-size:20px}.social__tab{font-size:13px;padding:8px}.code-card{grid-template-columns:1fr}.code-card__acts{grid-row:auto;grid-column:1;flex-direction:row}}
+
+/* ---------- Fase 1.1 · tarjeta de reto (NPC) ---------- */
+.quiz{position:relative;display:flex;flex-direction:column;gap:14px}
+.quiz__head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.quiz__chip{background:#eef2f8;color:var(--night-2);font-weight:800;font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:5px 10px;border-radius:999px}
+.quiz__speaker{color:var(--muted);font-size:13px;font-weight:600}
+.quiz__q{margin:0;font-size:21px;line-height:1.3;font-weight:800;color:var(--ink)}
+.quiz__opts{display:grid;gap:10px}
+.quiz__opt{display:flex;align-items:center;gap:12px;text-align:left;padding:14px 16px;min-height:54px;border-radius:14px;background:#f5f7fb;border:2px solid transparent;color:var(--ink);font-size:16px;font-weight:600;transition:transform .12s,background .2s,border-color .2s}
+.quiz__opt b{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:9px;background:var(--night);color:var(--sun);font-size:14px}
+.quiz__opt:not(:disabled):hover{transform:translateY(-1px);border-color:rgba(15,31,61,.25)}
+.quiz__opt.is-picked{border-color:var(--night)}
+.quiz__opt.is-right{background:#e3f6ec;border-color:var(--ok)} .quiz__opt.is-right b{background:var(--ok);color:#fff}
+.quiz__opt.is-wrong{background:#fbe7e6;border-color:var(--bad)} .quiz__opt.is-wrong b{background:var(--bad);color:#fff}
+.quiz__opt:disabled{cursor:default}
+.quiz__feedback{border-radius:14px;padding:12px 14px;animation:fadeUp .25s ease}
+.quiz__feedback strong{font-size:17px} .quiz__feedback p{margin:4px 0 0;font-size:14.5px;line-height:1.4}
+.quiz__feedback.is-good{background:#e3f6ec;color:#11553a} .quiz__feedback.is-bad{background:#fff3df;color:#6a4b10}
+.xp-pop{position:absolute;right:6px;top:-6px;background:linear-gradient(135deg,var(--sun),var(--sun-2));color:var(--night);font-weight:900;font-size:18px;padding:6px 12px;border-radius:999px;box-shadow:0 8px 20px rgba(242,185,59,.45);animation:xpPop 1.6s ease forwards;pointer-events:none}
+@keyframes xpPop{0%{opacity:0;transform:scale(.6) translateY(10px)}15%{opacity:1;transform:scale(1.12)}30%{transform:scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-26px)}}
+@media (prefers-reduced-motion:reduce){.xp-pop,.social__body,.quiz__feedback{animation:none}}
+
+/* ---------- Fase 1.1 · minijuegos ---------- */
+.arcade{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.arcade__card{display:flex;flex-direction:column;gap:6px;text-align:left;padding:16px;border-radius:18px;color:var(--ink);background:linear-gradient(160deg,#ffffff,#f1f5fb);border:1.5px solid rgba(15,31,61,.08);box-shadow:0 6px 18px rgba(15,31,61,.08);transition:transform .15s,box-shadow .15s}
+.arcade__card:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,31,61,.14)}
+.arcade__card strong{font-size:17px} .arcade__card span{font-size:14px;color:#3b4963;line-height:1.35} .arcade__card small{color:var(--muted);font-size:12.5px}
+.arcade__top{display:flex;justify-content:space-between;align-items:center}
+.arcade__card .arcade__icon{font-size:30px;line-height:1;width:52px;height:52px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#fff3c4,#ffe08a)}
+.arcade__card .arcade__best{font-size:12px!important;font-weight:800;color:var(--night-2)!important;background:#eef2f8;border-radius:999px;padding:3px 9px}
+.mg{display:flex;flex-direction:column;gap:12px}
+.mg-bar{color:var(--muted);font-size:13.5px;font-weight:600} .mg-bar b{color:var(--night)}
+.memory{display:grid;gap:10px;grid-template-columns:repeat(4,1fr);width:100%;max-width:470px;margin:0 auto}
+.memory__card{position:relative;aspect-ratio:1/1;border-radius:14px;perspective:600px;padding:0;min-height:64px}
+.memory__back,.memory__face{position:absolute;inset:0;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;backface-visibility:hidden;transition:transform .35s ease}
+.memory__back{background:linear-gradient(135deg,#16305c,#2f6db5);color:var(--sun);font-size:28px;font-weight:900}
+.memory__face{background:#fff;color:var(--ink);transform:rotateY(180deg);border:2px solid #e3e9f3;padding:4px}
+.memory__face i{font-style:normal;font-size:clamp(22px,5vw,34px)} .memory__face small{font-size:clamp(10px,2.4vw,12.5px);font-weight:700;text-align:center;line-height:1.1}
+.memory__card.is-up .memory__back{transform:rotateY(180deg)} .memory__card.is-up .memory__face{transform:rotateY(360deg)}
+.memory__card.is-match .memory__face{border-color:var(--ok);background:#e3f6ec}
+.timebar{height:10px;border-radius:6px;background:#e7ecf4;overflow:hidden} .timebar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--teal),#4cc9f0);transition:width .2s linear}
+.timebar i.is-low{background:linear-gradient(90deg,var(--coral),#ff9f43)}
+.math__q{margin:4px 0;text-align:center;font-size:clamp(30px,7vw,44px);font-weight:900;color:var(--night)}
+.math__opts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.math__opt{padding:16px;border-radius:14px;background:#f5f7fb;border:2px solid transparent;font-size:24px;font-weight:800;color:var(--ink)} .math__opt:hover{border-color:rgba(15,31,61,.25)}
+.math__fb{min-height:22px;text-align:center;font-weight:800} .math__fb.is-good{color:var(--ok)} .math__fb.is-bad{color:var(--bad)}
+.lang__prompt{text-align:center;font-size:28px;font-weight:900;color:var(--night);padding:8px} .lang__prompt.is-emoji{font-size:72px;line-height:1}
+.lang__hint{margin:0;text-align:center;color:var(--muted);font-weight:600}
+.sort__item{align-self:center;padding:18px 26px;border-radius:18px;background:#fff8e3;border:2px dashed #e3b64a;font-size:22px;font-weight:800;color:var(--ink)}
+.sort__item.is-in{animation:fadeUp .25s ease}
+.sort__bins{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.sort__bin{padding:18px 10px;border-radius:16px;background:linear-gradient(160deg,#16305c,#2f6db5);color:#fff;font-weight:800;font-size:16px;transition:transform .12s}
+.sort__bin:hover{transform:translateY(-2px)} .sort__bin.is-good{background:var(--ok)} .sort__bin.is-bad{background:var(--bad)}
+.mg-result{display:flex;flex-direction:column;align-items:center;gap:10px}
+.mg-result__stars{font-size:34px;letter-spacing:.12em;color:var(--sun-2);text-shadow:0 2px 0 rgba(15,31,61,.15)}
+@media (max-width:560px){.arcade{grid-template-columns:1fr 1fr}.arcade__card{padding:12px}.arcade__card span{display:none}.memory{gap:7px}}
+@media (max-height:480px){.quiz{gap:8px}.quiz__q{font-size:17px}.quiz__opts{gap:7px}.quiz__opt{min-height:42px;padding:8px 12px;font-size:14.5px}.quiz__opt b{width:26px;height:26px}.math__q{font-size:28px}.math__opt{padding:10px;font-size:20px}.lang__prompt.is-emoji{font-size:52px}.memory{max-width:340px}.sort__item{padding:12px 18px;font-size:18px}.social__stats>div{padding:8px}.social__stats b{font-size:18px}}

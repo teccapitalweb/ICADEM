@@ -14,6 +14,10 @@ import { mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { replay } from '../ciudad/js/missions/engine.js';
+import { questionById } from '../ciudad/js/edu/questions.js';
+import { FAMILY_MAX, AGE_BANDS, KID_MISSIONS, cleanAlias } from '../ciudad/js/edu/family.js';
+import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
+import { cleanPlay, rewardQuiz, rewardActivity } from '../ciudad/js/edu/play-rules.js';
 import { emptyProfile, cleanCustom, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
 export class MemoryStorage {
@@ -44,7 +48,7 @@ export class Profiles {
   async #read(uid) {
     const saved = await this.storage.load(uid);
     if (!saved || saved.v !== PROFILE_VERSION) return emptyProfile();
-    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom) };
+    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom), play: cleanPlay(saved.play), privacy: { listed: !(saved.privacy && saved.privacy.listed === false) } };
   }
   async #write(uid, p) { p.achievements = deriveAchievements(p); p.rev++; p.updatedAt = Date.now(); await this.storage.save(uid, p); return p; }
 
@@ -53,9 +57,10 @@ export class Profiles {
 
   get(uid) { return this.#serial(uid, async () => this.view(await this.#read(uid))); }
 
-  completeMission(uid, missionId, log) {
+  completeMission(uid, missionId, log, { minor = false } = {}) {
     return this.#serial(uid, async () => {
       const def = this.missions.get(String(missionId)); if (!def) return { ok: false, reason: 'mision-desconocida' };
+      if (minor && !KID_MISSIONS.includes(def.id)) return { ok: false, reason: 'mision-no-disponible' };
       if (!Array.isArray(log) || log.length > 400) return { ok: false, reason: 'bitacora-invalida' };
       const check = replay(def, log);
       if (!check.ok || !check.result.valid) return { ok: false, reason: 'bitacora-invalida' };
@@ -66,7 +71,7 @@ export class Profiles {
       if (result.passed) {
         xp = first ? reward.xp : reward.repeatXp; p.xp += xp;
         const key = 'mission:' + def.id;
-        if (!p.testLedger.some(e => e.key === key)) { credits = reward.amount; p.testCredits += credits; p.testLedger.push({ key, amount: credits, at: Date.now() }); }
+        if (!minor && !p.testLedger.some(e => e.key === key)) { credits = reward.amount; p.testCredits += credits; p.testLedger.push({ key, amount: credits, at: Date.now() }); }
       }
       return { ok: true, score: result.score, passed: result.passed, credits, xp, profile: this.view(await this.#write(uid, p)) };
     });
@@ -88,6 +93,79 @@ export class Profiles {
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }
+
+  /**
+   * Reto de un NPC: la respuesta correcta sale del banco del servidor, no del navegador. Da XP con
+   * límites (tope diario y una vez por pregunta cada 7 días). Nunca toca créditos.
+   */
+  answerQuiz(uid, questionId, choice, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      const qn = questionById(String(questionId || ''));
+      if (!qn || !Number.isInteger(choice) || choice < 0 || choice >= qn.options.length) return { ok: false, reason: 'pregunta-invalida' };
+      const p = await this.#read(uid), correct = choice === qn.answer, r = rewardQuiz(p.play, qn.id, correct, now);
+      p.xp += r.xp;
+      return { ok: true, correct, answer: qn.answer, explain: qn.explain, xp: r.xp, why: r.why, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Minijuego con semilla: el servidor regenera la partida y reproduce la bitácora. */
+  playActivity(uid, id, seed, level, log, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      if (!ACTIVITIES[id] || !Array.isArray(log) || log.length > 200) return { ok: false, reason: 'actividad-invalida' };
+      const r = checkActivity(id, seed, level, log);
+      if (!r.valid) return { ok: false, reason: 'actividad-invalida' };
+      const p = await this.#read(uid), g = rewardActivity(p.play, id, r.score, now);
+      p.xp += g.xp;
+      return { ok: true, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Minijuegos validados por posición (carrera, tesoro): el hub ya comprobó el recorrido. */
+  grantPositional(uid, id, score, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid), g = rewardActivity(p.play, id, Math.max(0, Math.min(100, Math.round(score))), now);
+      p.xp += g.xp;
+      return { ok: true, score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Privacidad: aparecer o no con el nombre propio en las listas de jugadores. */
+  setPrivacy(uid, listed) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid); p.privacy = { listed: listed !== false };
+      return { ok: true, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /* ---------- familia (solo cuando el modo familiar está activo) ---------- */
+  familyList(uid) { return this.#serial(uid, async () => ({ ok: true, family: ((await this.#read(uid)).family || []).map(k => ({ id: k.id, alias: k.alias, avatarId: k.avatarId, band: k.band })) })); }
+
+  /** Alta de un perfil infantil: exige el consentimiento explícito del adulto responsable. */
+  familyAdd(uid, { alias, avatarId, band, consent } = {}, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      if (consent !== true) return { ok: false, reason: 'falta-consentimiento' };
+      const name = cleanAlias(alias); if (!name) return { ok: false, reason: 'alias-invalido' };
+      if (!AGE_BANDS.some(([b]) => b === band)) return { ok: false, reason: 'edad-invalida' };
+      const p = await this.#read(uid), list = p.family || [];
+      if (list.length >= FAMILY_MAX) return { ok: false, reason: 'familia-llena' };
+      if (list.some(k => k.alias.toLowerCase() === name.toLowerCase())) return { ok: false, reason: 'alias-repetido' };
+      const id = 'k' + createHash('sha256').update(uid + ':' + name + ':' + now).digest('hex').slice(0, 8);
+      p.family = [...list, { id, alias: name, avatarId: isAvatarUnlocked(String(avatarId), emptyProfile()) ? String(avatarId) : 'explorador', band, consentAt: now }];
+      await this.#write(uid, p);
+      return { ok: true, family: p.family.map(k => ({ id: k.id, alias: k.alias, avatarId: k.avatarId, band: k.band })) };
+    });
+  }
+
+  familyRemove(uid, id) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid); p.family = (p.family || []).filter(k => k.id !== id);
+      await this.#write(uid, p);
+      return { ok: true, family: p.family.map(k => ({ id: k.id, alias: k.alias, avatarId: k.avatarId, band: k.band })) };
+    });
+  }
+
+  /** Perfil infantil de un adulto (para entrar con él). */
+  async kidOf(uid, id) { const p = await this.#serial(uid, () => this.#read(uid)); return (p.family || []).find(k => k.id === id) || null; }
 
   setAvatar(uid, avatarId, custom) {
     return this.#serial(uid, async () => {

@@ -5,7 +5,18 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=5';
+  var GAME_URL = 'ciudad/index.html?v=6';
+
+  // Enlace de invitación (?ciudad=CÓDIGO). Solo se lleva el código al juego: no da acceso a ninguna
+  // cuenta ni salta el piloto. El juego lo canjea con la sesión de quien lo abre, y pregunta antes.
+  var pendingCode = null;
+  try {
+    var here = new URL(window.location.href), raw = String(here.searchParams.get('ciudad') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (/^[A-HJ-NP-Z2-9]{8}$/.test(raw)) {
+      pendingCode = raw; here.searchParams.delete('ciudad');
+      window.history.replaceState(window.history.state, '', here.pathname + (here.search || '') + here.hash);
+    }
+  } catch (_) { pendingCode = null; }
   var stage = null;
   var previousOverflow = '';
   var lastFocus = null;
@@ -99,7 +110,8 @@
     stage.setAttribute('aria-modal', 'true');
     stage.setAttribute('aria-label', 'Ciudad ICADEM');
     var frame = document.createElement('iframe');
-    frame.src = GAME_URL;
+    frame.src = GAME_URL + (pendingCode ? '&unirme=' + pendingCode : '');
+    pendingCode = null;
     frame.title = 'Ciudad ICADEM';
     frame.setAttribute('allow', 'fullscreen; gamepad');
     frame.setAttribute('allowfullscreen', '');
@@ -141,7 +153,7 @@
     var hero = el('div', 'sec-hero');
     hero.appendChild(el('span', 'sec-hero__eyebrow', 'Mundo 3D'));
     hero.appendChild(el('h1', 'sec-hero__title', 'Ciudad ICADEM'));
-    hero.appendChild(el('p', 'sec-hero__sub', 'Recorre una ciudad en 3D con tu avatar, entra al Banco ICADEM y resuelve tu primera misión.'));
+    hero.appendChild(el('p', 'sec-hero__sub', 'Recorre una ciudad en 3D con tu avatar, resuelve misiones de diez profesiones, juega minijuegos y comparte la experiencia con tu equipo.'));
 
     var cover = el('section', 'ciudad-cover');
     var img = document.createElement('img');
@@ -149,8 +161,8 @@
     img.alt = 'Vista de la plaza de Ciudad ICADEM con el avatar Explorador frente a la fuente y el Banco ICADEM';
     img.width = 1280; img.height = 720; img.decoding = 'async';
     var veil = el('div', 'ciudad-cover__veil');
-    veil.appendChild(el('span', 'ciudad-cover__badge', 'Prototipo · Fase 1'));
-    veil.appendChild(el('strong', null, 'Tu habitación, la plaza y la primera misión ya son jugables'));
+    veil.appendChild(el('span', 'ciudad-cover__badge', 'Versión 1.1 · Piloto'));
+    veil.appendChild(el('strong', null, 'Diez misiones profesionales, minijuegos y retos en la plaza'));
     var play = el('button', 'btn btn--primary ciudad-cover__play', 'Entrar a Ciudad ICADEM');
     play.type = 'button';
     play.id = 'ciudad-play';
@@ -160,21 +172,21 @@
 
     var grid = el('div', 'ciudad-grid');
     grid.appendChild(card('Qué puedes hacer hoy', [
-      'Controlar a tu avatar Explorador en tercera persona.',
-      'Salir de tu habitación y recorrer la plaza con sus once edificios.',
-      'Entrar al Banco ICADEM y jugar la misión «El crédito correcto».',
-      'Usar el mapa, marcar destinos y llenar tu pasaporte.'
+      'Jugar las diez misiones profesionales: Banco, Tribunal, Supermercado, Obra, Hospital, Veterinaria, Restaurante, Invernadero, Oficina y Torre.',
+      'Jugar en equipo la Torre y el Tribunal, cada quien con su rol.',
+      'Seis minijuegos (carrera, memoria, matemáticas, idiomas, búsqueda del tesoro y clasificación) y retos rápidos de los personajes de la plaza.',
+      'Invitar a tus conexiones o a tu familia con un código temporal.'
     ]));
     grid.appendChild(card('Controles', [
       'Computadora: W A S D para moverte, mouse para la cámara, E para interactuar, Espacio para saltar y M para el mapa.',
       'Celular: arrastra a la izquierda para moverte y a la derecha para mirar. Los botones aparecen en pantalla.',
       'En celular se juega mejor con el teléfono en horizontal.'
     ]));
-    grid.appendChild(card('Sobre este prototipo', [
-      'Los créditos del juego son de prueba: no suman ni restan a tu cartera ICADEM.',
-      'Tu avance se guarda por ahora solo en este dispositivo.',
-      'Todavía no hay otros jugadores conectados: el multijugador llega en la siguiente fase.',
-      'Las otras nueve misiones ya tienen su edificio y se activarán una por una.'
+    grid.appendChild(card('Antes de jugar', [
+      'Los créditos del juego son de prueba: no suman ni restan a tu cartera ICADEM. Retos y minijuegos solo dan XP del juego.',
+      'Con acceso al multijugador, tu avance se guarda en tu cuenta; sin él, en este dispositivo.',
+      'El multijugador está en piloto privado: solo para cuentas autorizadas.',
+      'No hay chat libre: entre jugadores solo se usan frases predefinidas.'
     ]));
 
     root.append(hero, cover, grid);
@@ -185,6 +197,16 @@
   window.addEventListener('icadem:navigation', function (event) {
     if (stage && event.detail && event.detail.section !== 'ciudad') close();
   });
+
+  // Con un enlace de invitación, el juego se abre solo cuando ya hay sesión en el panel.
+  if (pendingCode) {
+    var tries = 0, wait = setInterval(function () {
+      tries++;
+      var user = window.__auth && window.__auth.currentUser;
+      if (user && pendingCode && !stage) { clearInterval(wait); setTimeout(function () { if (pendingCode && !stage) open(); }, 1200); }
+      if (tries > 60) clearInterval(wait);
+    }, 500);
+  }
 
   window.ICADEMCiudad = { mount: mount, open: open, close: close, isOpen: function () { return Boolean(stage); }, probe: probe };
 })();
