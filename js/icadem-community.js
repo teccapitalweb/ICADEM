@@ -5,7 +5,7 @@
     records = { received: [], sent: [], connected: [] },
     generation = 0,
     refreshTimer = null;
-  var connectionRead=0, pendingRequestUid='',pendingActions=new Set();
+  var connectionRead=0, profileRead=0, pendingRequestUid='',pendingActions=new Set();
   var routes={directory:'directorio',requests:'directorio-solicitudes',connections:'directorio-conexiones'};
   var names = {
     whatsapp: "WhatsApp",
@@ -397,7 +397,8 @@
     context = null;
   }
   function refreshDirectory(){
-    if(!context?.root.isConnected||context.kind==='profile'||context.viewer!==window.UserState?.uid||window.__sessionEnding)return;
+    if(context?.kind==='profile')return refreshVisibleProfile();
+    if(!context?.root.isConnected||context.viewer!==window.UserState?.uid||window.__sessionEnding)return;
     return Promise.allSettled([loadConnections(),context.tab==='directory'?context.refresh?.():null]);
   }
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshDirectory();});
@@ -461,22 +462,28 @@
     node.querySelector('[data-edit-cv]')?.addEventListener('click',function(){window.ICADEMProfessionalNavigation?.openEditor('basicos');});
     node.querySelector('[data-edit-card]')?.addEventListener('click',openCardEditor);
   }
-  async function loadProfile(node, uid) {
+  async function loadProfile(node, uid, background) {
     var viewer = window.UserState?.uid,
-      ticket = generation;
-    node.setAttribute("aria-busy", "true");
+      ticket = generation,read=++profileRead;
+    if(!background)node.setAttribute("aria-busy", "true");
     try {
       var data = await api("/profiles/" + encodeURIComponent(uid));
       if (
         !node.isConnected ||
         viewer !== window.UserState?.uid ||
-        ticket !== generation ||
+        ticket !== generation || read!==profileRead || (background&&pendingActions.size) ||
         window.ICADEMResumeEditor?.isOpen?.(node)
       )
         return;
+      var snapshot=JSON.stringify(data.profile);
+      if(background&&node.__profileSnapshot===snapshot)return;
       var firstLoad=!node.dataset.profileUid;
+      var focused=document.activeElement?.closest?.('[data-connect],[data-network-action],[data-profile-activity]');
+      var focusData=focused&&node.contains?.(focused)?{...focused.dataset}:null;
       node.dataset.profileUid = uid;
+      node.__profileSnapshot=snapshot;
       paintProfile(node,data.profile);
+      if(focusData){var candidates=Array.from(node.querySelectorAll('[data-connect],[data-network-action],[data-profile-activity]')),next=candidates.find(function(button){return focusData.connect?button.dataset.connect===focusData.connect:focusData.networkAction?button.dataset.networkAction===focusData.networkAction:button.hasAttribute('data-profile-activity');});(next||node.querySelector('[data-profile-activity]'))?.focus({preventScroll:true});}
       var page=node.closest("[data-professional-view]");
       if(page){
         page.querySelector("[data-professional-copy]").disabled=false;
@@ -486,7 +493,9 @@
       var editSection=window.ICADEMProfessionalNavigation?.currentEditorSection?.();
       if(editSection&&data.profile.own&&uid===viewer)editCv(data.profile,editSection);
     } catch (error) {
-      if (!node.isConnected || viewer!==window.UserState?.uid || ticket!==generation || window.ICADEMResumeEditor?.isOpen?.(node)) return;
+      if (!node.isConnected || viewer!==window.UserState?.uid || ticket!==generation || read!==profileRead || background&&pendingActions.size || window.ICADEMResumeEditor?.isOpen?.(node)) return;
+      if(background&&node.__profileSnapshot&&![400,401,403,404,410].includes(error.status))return;
+      delete node.__profileSnapshot;
       if(error.status===404 && uid===viewer){
         node.dataset.profileUid=uid;
         node.innerHTML='<div class="community-empty" role="status"><h1>Completa tu perfil profesional</h1><p>Agrega tus datos para crear tu currículum virtual en ICADEM.</p><button type="button" class="community-primary" data-create-own-profile>Completar mi perfil</button></div>';
@@ -505,7 +514,7 @@
         loadProfile(node, uid);
       });
     } finally {
-      node.removeAttribute("aria-busy");
+      if(read===profileRead)node.removeAttribute("aria-busy");
     }
   }
   function openCardEditor() {
@@ -519,6 +528,12 @@
     var node=context.root.querySelector('.community-profile');
     if(window.ICADEMResumeEditor?.isOpen?.(node))return;
     if(node?.dataset.profileUid===window.UserState?.uid)return loadProfile(node,node.dataset.profileUid);
+  }
+  function refreshVisibleProfile(){
+    if(document.visibilityState==='hidden'||context?.kind!=='profile'||context.viewer!==window.UserState?.uid||!context.root.isConnected||window.__sessionEnding||pendingActions.size)return;
+    var node=context.root.querySelector('.community-profile');
+    if(!node?.dataset.profileUid||window.ICADEMResumeEditor?.isOpen?.(node))return;
+    return loadProfile(node,node.dataset.profileUid,true);
   }
   function syncOwnProfilePhoto(event){
     var photo=event.detail?.profile,viewer=window.UserState?.uid;
@@ -555,6 +570,7 @@
     var uid=window.ICADEMProfessionalNavigation?.currentProfileId();
     if(!window.ICADEMProfessionalNavigation?.validUid(uid)){node.innerHTML='<div class="community-empty" role="alert"><h1>Perfil no disponible</h1><p>Este enlace no identifica un perfil válido. Puedes volver al directorio para encontrarlo.</p></div>';return;}
     loadProfile(node,uid);
+    refreshTimer=setInterval(refreshVisibleProfile,45000);
   }
   var fieldSequence = 0;
   function input(label, key, value, max, textarea) {
