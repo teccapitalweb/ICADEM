@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=4';
+  var GAME_URL = 'ciudad/index.html?v=5';
   var stage = null;
   var previousOverflow = '';
   var lastFocus = null;
