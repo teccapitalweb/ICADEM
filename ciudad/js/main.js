@@ -22,6 +22,9 @@ import { buildHospital } from './world/hospital.js';
 import { buildVet } from './world/vet.js';
 import { VetWelfareMission } from './missions/vet-welfare.js';
 import { VET_WELFARE_MISSION } from './missions/vet-welfare-logic.js';
+import { buildRestaurant } from './world/restaurant.js';
+import { KitchenRushMission } from './missions/kitchen-rush.js';
+import { KITCHEN_RUSH_MISSION } from './missions/kitchen-rush-logic.js';
 import { placeByScene, SCENE_TITLES } from './world/places.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
@@ -42,7 +45,7 @@ import { Tutorial } from './ui/tutorial.js';
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
-const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet };
+const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant };
 const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
 const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
 
@@ -141,6 +144,7 @@ async function boot() {
   api.missions.site = new SiteInspectorMission(api, registry.register(defineMission(SITE_INSPECTOR_MISSION)));
   api.missions.hospital = new HospitalShiftMission(api, registry.register(defineMission(HOSPITAL_SHIFT_MISSION)));
   api.missions.vet = new VetWelfareMission(api, registry.register(defineMission(VET_WELFARE_MISSION)));
+  api.missions.restaurant = new KitchenRushMission(api, registry.register(defineMission(KITCHEN_RUSH_MISSION)));
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social;

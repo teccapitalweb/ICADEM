@@ -21,7 +21,7 @@ export const BUILDINGS = [
     wall: '#bfe8f7', trim: '#3c9fc9', roof: 0xf08aa8, signBg: '#3c9fc9', signFg: '#ffffff' },
   { id: 'casa', name: 'Tu casa', mission: 'Habitación y misiones', x: -13, z: 28, w: 9, d: 8, h: 6, side: 'N', style: 'home', status: 'open',
     wall: '#ffe2c2', trim: '#e86a5c', roof: 0xe86a5c, signBg: '#2f9e8f', signFg: '#ffffff', cols: 3, rows: 2 },
-  { id: 'restaurante', name: 'Restaurante', mission: 'Cocina contra reloj', x: 13, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'restaurant', status: 'soon',
+  { id: 'restaurante', name: 'Restaurante', mission: 'Cocina contra reloj', x: 13, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'restaurant', status: 'open',
     wall: '#fff0d6', trim: '#f08a24', roof: 0xd9452f, signBg: '#d9452f', signFg: '#fff0d6' },
   { id: 'supermercado', name: 'Supermercado', mission: 'Rescate de inventario', x: 31, z: 28, w: 13, d: 10, h: 6.5, side: 'N', style: 'market', status: 'open',
     wall: '#ff8f6b', trim: '#b8452a', roof: 0x7a2d1a, signBg: '#ffffff', signFg: '#d9452f', cols: 5, rows: 1 },

@@ -41,7 +41,12 @@ const GAMES = [
       return [...L.ANIMALS.flatMap(x => L.REVIEWS.map(what => ['review', { id: x.id, what }])),
         ...L.ANIMALS.map(x => ['assess', { id: x.id, flags: x.findings.filter(f => f.alert).map(f => f.id), priority: x.priority, domain: x.domain }]),
         ...L.ANIMALS.map(x => ['decide', { id: x.id, action: x.actions.find(y => y.correct).id }]),
-        ...['arenero', 'repisa', 'escondite', 'rascador'].map(id => ['place', { id }]), ['counsel', { reasons: ['dominios', 'senales'] }]];` }
+        ...['arenero', 'repisa', 'escondite', 'rascador'].map(id => ['place', { id }]), ['counsel', { reasons: ['dominios', 'senales'] }]];` },
+  { key: 'restaurant', door: 'restaurante', spawn: 'restaurant', scene: 'restaurant', opener: 'rosario', mission: 'restaurante-cocina-contra-reloj', credits: 20, talkAction: 'brief',
+    perfect: `const L = await import('./js/missions/kitchen-rush-logic.js');
+      return [...L.ORDERS.map(o => ['readOrder', { id: o.id }]), ['wash'], ...L.FRIDGES.map(f => ['checkFridge', { id: f.id, ok: f.ok }]), ['fridgeAction', { id: 'retirar' }],
+        ...L.INGREDIENTS.map(i => ['prep', { id: i.id, board: i.board }]), ['allergy', { id: 'protocolo' }], ['cook', { id: 'pollo', temp: 76 }], ['cook', { id: 'pescado', temp: 65 }],
+        ...L.ORDERS.map(o => ['assign', { id: o.id, station: o.station }]), ['serve'], ['debrief', { reasons: ['cruzada', 'temperatura'] }]];` }
 ];
 
 module.exports = { GAMES };
