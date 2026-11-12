@@ -115,7 +115,7 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     if (SHOTS) { await A.screenshot({ path: path.join(SHOTS, 'mp-sala-espera.png') }); await B.screenshot({ path: path.join(SHOTS, 'mp-sala-espera-celular.png') }); }
     ok('solo el anfitrión puede iniciar', (await B.evaluate(() => !document.getElementById('lobby-start'))) && (await A.evaluate(() => Boolean(document.getElementById('lobby-start')))));
     await A.click('#lobby-start');
-    ok('la audiencia en equipo se anuncia como en desarrollo (no se simula)', await until(A, () => [...document.querySelectorAll('#toasts > *')].some(e => /todavía está en desarrollo/.test(e.textContent)), null, 12));
+    ok('el anfitrión inicia la audiencia en equipo y el servidor reparte los roles', (await until(A, () => window.__ciudad.api.missions.court.coop?.role === 'juez' && [...document.querySelectorAll('#toasts > *')].some(e => /Misión en equipo/.test(e.textContent)), null, 20)) && (await until(B, () => window.__ciudad.api.missions.court.coop?.role === 'abogadoA', null, 20)));
     await A.keyboard.press('Escape'); await B.evaluate(() => document.getElementById('modal-x').click());
     ok('quienes comparten sala sí se ven dentro del Tribunal', (await until(A, seesOther, null, 30)) && (await until(B, seesOther, null, 30)));
     await B.evaluate(() => window.__ciudad.api.net.room('leave'));

@@ -19,6 +19,23 @@ import { buildCourt } from './world/court.js';
 import { buildMarket } from './world/market.js';
 import { buildSite } from './world/site.js';
 import { buildHospital } from './world/hospital.js';
+import { buildVet } from './world/vet.js';
+import { VetWelfareMission } from './missions/vet-welfare.js';
+import { VET_WELFARE_MISSION } from './missions/vet-welfare-logic.js';
+import { buildRestaurant } from './world/restaurant.js';
+import { KitchenRushMission } from './missions/kitchen-rush.js';
+import { KITCHEN_RUSH_MISSION } from './missions/kitchen-rush-logic.js';
+import { buildGreenhouse } from './world/greenhouse.js';
+import { GreenhouseMission } from './missions/greenhouse.js';
+import { GREENHOUSE_MISSION } from './missions/greenhouse-logic.js';
+import { buildOffice } from './world/office.js';
+import { LostFileMission } from './missions/lost-file.js';
+import { LOST_FILE_MISSION } from './missions/lost-file-logic.js';
+import { buildTower } from './world/tower.js';
+import { TowerChallengeMission } from './missions/tower-challenge.js';
+import { TOWER_CHALLENGE_MISSION } from './missions/tower-challenge-logic.js';
+import { placeByScene, SCENE_TITLES } from './world/places.js';
+import { COOP_MISSIONS } from './net/scenes.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
 import { BankCreditMission } from './missions/bank-credit.js';
@@ -38,7 +55,7 @@ import { Tutorial } from './ui/tutorial.js';
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
-const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital };
+const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant , greenhouse: buildGreenhouse , office: buildOffice , tower: buildTower };
 const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
 const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
 
@@ -136,13 +153,41 @@ async function boot() {
   api.missions.market = new MarketInventoryMission(api, registry.register(defineMission(MARKET_INVENTORY_MISSION)));
   api.missions.site = new SiteInspectorMission(api, registry.register(defineMission(SITE_INSPECTOR_MISSION)));
   api.missions.hospital = new HospitalShiftMission(api, registry.register(defineMission(HOSPITAL_SHIFT_MISSION)));
+  api.missions.vet = new VetWelfareMission(api, registry.register(defineMission(VET_WELFARE_MISSION)));
+  api.missions.restaurant = new KitchenRushMission(api, registry.register(defineMission(KITCHEN_RUSH_MISSION)));
+  api.missions.greenhouse = new GreenhouseMission(api, registry.register(defineMission(GREENHOUSE_MISSION)));
+  api.missions.office = new LostFileMission(api, registry.register(defineMission(LOST_FILE_MISSION)));
+  api.missions.tower = new TowerChallengeMission(api, registry.register(defineMission(TOWER_CHALLENGE_MISSION)));
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social;
   if (net instanceof WsAdapter) {
     net.on('status', st => { if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
     net.on('profile', m => { if (m.profile) applyProfile(m.profile); if (m.op === 'avatar' && m.ok === false) api.ui.toast('El servidor no autorizó ese avatar.'); });
-    net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', api.sceneName === 'court' ? 'court' : api.sceneName === 'bank' ? 'bank' : api.sceneName === 'market' ? 'market' : api.sceneName === 'site' ? 'obra' : api.sceneName === 'hospital' ? 'hospital' : 'home'); } });
+    net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', (placeByScene(api.sceneName) || { spawn: 'home' }).spawn); } });
+    /* misiones en equipo: el servidor guarda el intento; aquí solo se refleja y se muestra */
+    const COOP_ERRORS = { 'no-es-tu-rol': 'Ese paso le toca a otro rol del equipo.', 'faltan-aprobaciones': 'Falta que todo el equipo apruebe.', 'no-procede': 'Ese paso todavía no procede.', 'sin-intento': 'No hay una misión en equipo en curso.', 'bitacora-llena': 'El intento llegó a su límite de acciones.' };
+    const ACTION_TEXT = { brief: 'recibió el reto', budget: 'envió el presupuesto', permits: 'envió los permisos', schedule: 'envió el calendario', message: 'envió el aviso a vecinos', reopen: 'pidió rehacer una parte', approve: 'aprobó el plan', present: 'presentó el plan',
+      takeCase: 'tomó el expediente', readBackground: 'leyó los antecedentes', examineExhibit: 'examinó una prueba', openHearing: 'abrió la audiencia', hearParty: 'presentó a su parte', ruleObjection: 'resolvió una objeción', examineWitness: 'subió al estrado', askWitness: 'interrogó al testigo', confront: 'confrontó declaraciones', weigh: 'valoró una prueba', rule: 'dictó sentencia' };
+    const coopOf = id => Object.values(api.missions).find(c => c.id === id);
+    net.on('coop', m => {
+      if (m.op === 'none') { Object.values(api.missions).forEach(c => { if (c.coop && !c.coop.result) c.leaveCoop(); }); return; }
+      const c = coopOf(m.mission), spec = COOP_MISSIONS[m.mission]; if (!c || !spec) return;
+      if (m.op === 'done') { c.coopDone(m); c.closeFromTeam(); return; }
+      const role = m.roles ? m.roles[net.pid] : null; if (!role) return;
+      if (m.op === 'start' || !c.coop || c.coop.session !== m.session) {
+        if (c.joinCoop(m, role)) {
+          api.ui.toast(`Misión en equipo: ${spec.title}. Tu rol: ${c.coopRoleName}.`, 4200);
+          const place = placeByScene(spec.scene); if (place && api.sceneName !== spec.scene) setTimeout(() => api.ui.toast(`Reúnanse en ${place.title}.`, 3600), 4300);
+        }
+      } else c.syncCoop(m);
+      if (m.op === 'rejected') api.ui.toast(COOP_ERRORS[m.reason] || 'El servidor no aceptó esa acción.', 2800);
+      else if (m.op === 'state' && m.last && m.last.pid !== net.pid) api.ui.toast(`${m.last.name} (${c.coopRoleNameOf(m.last.role)}) ${ACTION_TEXT[m.last.type] || 'avanzó'}.`, 2400);
+    });
+    net.on('room', () => {
+      const room = net.roomState;
+      Object.values(api.missions).forEach(c => { if (c.coop && !c.coop.result && !c.coop.finishing && (!room || room.session !== c.coop.session)) { c.leaveCoop(); api.ui.toast('La misión en equipo terminó.', 3000); } });
+    });
     net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
   }
   net.connect();
@@ -192,9 +237,8 @@ async function boot() {
   async function travel(name, spawnKey = 'default') {
     if (busyTravel) return;
     busyTravel = true; input.setEnabled(false);
-    const PLACES = { room: 'Tu habitación', plaza: 'Ciudad ICADEM', bank: 'Banco ICADEM', court: 'Tribunal ICADEM', market: 'Supermercado', site: 'Obra en construcción', hospital: 'Hospital ICADEM' };
     const mission = api.missions[name];
-    await api.ui.fade(true, PLACES[name] ? { title: PLACES[name], sub: mission ? 'Misión · ' + mission.def.title : (name === 'plaza' ? 'Plaza principal' : '') } : null);
+    await api.ui.fade(true, SCENE_TITLES[name] ? { title: SCENE_TITLES[name], sub: mission ? 'Misión · ' + mission.def.title : (name === 'plaza' ? 'Plaza principal' : '') } : null);
     try { mountScene(name, spawnKey); } finally {
       await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
       await api.ui.fade(false);

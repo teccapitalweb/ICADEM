@@ -86,6 +86,7 @@ export class WsAdapter extends NetworkAdapter {
       // Cambio de instancia (al aceptar una invitación): la lista de jugadores se reemplaza.
       case 'instance': { const had = [...this.roster.keys()]; this.roster.clear(); had.forEach(pid => this.emit('leave', { pid })); this.instance = m.instance; (m.roster || []).forEach(p => { this.roster.set(p.pid, p); this.emit('join', p); }); this.#set('online'); break; }
       case 'room': this.roomState = m.room || null; this.emit('room', m); break;
+      case 'coop': this.emit('coop', m); break;
       // Un pase vencido no es definitivo: se reintenta con un boleto nuevo. Lo demás sí cierra.
       case 'bye':
         if (m.reason === 'no-autorizado' && this.attempt < 3) break;                                                       // pase vencido: se pide boleto nuevo
@@ -107,6 +108,7 @@ export class WsAdapter extends NetworkAdapter {
   /** Amigos: op = list | invite | answer. */
   friends(op, payload = {}) { return this.#send({ t: 'friends', op, ...payload }); }
   rally() { return this.#send({ t: 'party', op: 'rally' }); }
+  coop(op, payload = {}) { return this.#send({ t: 'coop', op, ...payload }); }
   nameOf(pid) { return this.roster.get(pid)?.name || 'Jugador'; }
 
   disconnect() { this.closedByUs = true; clearTimeout(this.timer); clearInterval(this.pingTimer); this.status = 'offline'; try { this.ws?.close(); } catch (_) {} this.ws = null; super.disconnect(); }

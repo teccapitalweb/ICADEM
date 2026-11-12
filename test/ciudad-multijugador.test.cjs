@@ -124,7 +124,7 @@ test('servidor: salas privadas con código, roles únicos y separación entre sa
   assert.equal(hub.startRoom(b).reason, 'solo-anfitrion');
   assert.equal(hub.startRoom(a).reason, 'no-todos-listos');
   hub.setRole(b, 'abogadoA'); hub.setReady(a, true); hub.setReady(b, true);
-  assert.equal(hub.startRoom(a).reason, 'cooperativo-en-desarrollo', 'la sala se valida completa, pero la audiencia en equipo aún no se puede iniciar');
+  assert.equal(hub.startRoom(a).reason, 'cooperativo-en-desarrollo', 'la sala se valida completa, pero sin la definición de la misión en el servidor no se inicia');
   assert.equal(room.status, 'espera');
   hub.setRole(a, 'testigo'); assert.equal(hub.setReady(a, true).ok, true); assert.equal(hub.startRoom(a).reason, 'falta-juez');
   const solo = hub.createRoom(c, { mission: M }).room; hub.setRole(c, 'juez'); hub.setReady(c, true); assert.equal(hub.startRoom(c).reason, 'faltan-jugadores');
@@ -206,7 +206,9 @@ test('servidor (socket real): solo entra quien trae un boleto firmado; reconexi�
   beto.tell({ t: 'room', op: 'role', role: 'abogadoA' }); beto.tell({ t: 'room', op: 'ready', ready: true }); ana.tell({ t: 'room', op: 'ready', ready: true });
   await ana.wait('room', 3000, m => m.room && m.room.members.every(x => x.ready));
   beto.tell({ t: 'room', op: 'start' }); assert.equal((await beto.wait('room', 3000, m => m.ok === false)).reason, 'solo-anfitrion');
-  ana.tell({ t: 'room', op: 'start' }); assert.equal((await ana.wait('room', 3000, m => m.ok === false)).reason, 'cooperativo-en-desarrollo');
+  ana.tell({ t: 'room', op: 'start' }); const started = await ana.wait('coop', 3000, m => m.op === 'start');
+  assert.deepEqual([started.mission, started.log.length, started.done], ['tribunal-tu-eres-el-juez', 0, false], 'el intento del equipo lo abre y lo guarda el servidor');
+  assert.equal((await beto.wait('coop', 3000, m => m.op === 'start')).session, started.session);
 
   // reconexión con el pase firmado: recupera lugar y sala; el pase no se reutiliza
   beto.terminate(); assert.equal((await ana.wait('leave')).soft, true);
@@ -236,6 +238,6 @@ test('red: las entradas de cada escenario coinciden con las puertas del juego', 
   for (const [id, dist] of [['casa', 6.2], ['banco', 7.4], ['tribunal', 7.4]]) assert.ok(near(doorPoint(BUILDINGS.find(b => b.id === id), dist), SCENE_RULES.plaza.entries), id);
   for (const [scene, rule] of Object.entries(SCENE_RULES)) for (const to of rule.links) assert.ok(SCENE_RULES[to].links.includes(scene), `${scene} ↔ ${to}`);
   assert.deepEqual([SCENE_RULES.room.privacy, SCENE_RULES.court.privacy, SCENE_RULES.plaza.privacy], ['private', 'party', 'public']);
-  assert.equal(COOP_MISSIONS['tribunal-tu-eres-el-juez'].playable, false, 'la audiencia en equipo no se anuncia como jugable');
-  assert.deepEqual(COOP_MISSIONS['tribunal-tu-eres-el-juez'].roles.map(r => r.name), ['Juez', 'Abogado A', 'Abogado B', 'Testigo']);
+  assert.deepEqual(COOP_MISSIONS['tribunal-tu-eres-el-juez'].roles.map(r => r.name), ['Juez', 'Abogado de la actora', 'Abogado del demandado', 'Testigo']);
+  assert.deepEqual(COOP_MISSIONS['torre-desafio-equipos'].roles.map(r => r.id), ['finanzas', 'legal', 'operaciones', 'comunicacion']);
 });

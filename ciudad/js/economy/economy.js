@@ -18,7 +18,12 @@ export const REWARDS = Object.freeze({
   'tribunal-tu-eres-el-juez': { amount: 20, xp: 160, repeatXp: 40 },
   'super-rescate-inventario': { amount: 20, xp: 160, repeatXp: 40 },
   'obra-inspector-seguridad': { amount: 20, xp: 160, repeatXp: 40 },
-  'hospital-turno-decisiones': { amount: 20, xp: 160, repeatXp: 40 }
+  'hospital-turno-decisiones': { amount: 20, xp: 160, repeatXp: 40 },
+  'vet-guardianes-bienestar': { amount: 20, xp: 160, repeatXp: 40 },
+  'restaurante-cocina-contra-reloj': { amount: 20, xp: 160, repeatXp: 40 },
+  'invernadero-cultivo-inteligente': { amount: 20, xp: 160, repeatXp: 40 },
+  'oficina-expediente-perdido': { amount: 20, xp: 160, repeatXp: 40 },
+  'torre-desafio-equipos': { amount: 20, xp: 160, repeatXp: 40 }
 });
 
 export class TestEconomy {
