@@ -161,6 +161,11 @@ body::after{
 @keyframes notif-arrive{from{transform:scale(.82)}to{transform:scale(1)}}
 #notif-dropdown button:focus-visible,#notif-dropdown [role=link]:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
 #notif-dropdown .notif-del-btn{min-width:32px;min-height:32px}
+#notif-dropdown .notif-time,#notif-dropdown .notif-del-btn{color:var(--text-2)!important}
+#notif-dropdown .notif-del-btn{opacity:1!important}
+#notif-dropdown .notif-del-btn:hover{color:var(--danger)!important}
+[data-theme="night"] #notif-dropdown .notif-event-icon,[data-theme="night"] #notif-dropdown .notif-status,[data-theme="night"] #notif-read-all{color:#a9c8f5!important}
+[data-theme="night"] #notif-dropdown .notif-unread-dot{background:#a9c8f5!important}
 #notif-dropdown details{padding:10px 12px;border-top:1px solid var(--border);font-size:12px;color:var(--text-2)}
 #notif-dropdown summary{cursor:pointer;font-weight:600;padding:5px 0}
 #notif-dropdown label{display:flex;gap:9px;align-items:center;padding:8px 0;line-height:1.4;cursor:pointer}
@@ -13891,11 +13896,11 @@ function toggleNotifDropdown(skipSync=false,presentation=false){
       const esNueva = !leidas.has(n.id);
       return `
         <div class="notif-item" data-notif-id="${escapeNotif(n.id)}" ${n.target?'role="link" tabindex="0"':''} style="display:flex;gap:11px;padding:11px 12px;border-radius:9px;cursor:pointer;transition:background .15s;align-items:flex-start;text-align:left;${esNueva?'background:color-mix(in srgb,'+n.color+' 5%,transparent);':''}">
-          <div style="width:32px;height:32px;border-radius:8px;background:color-mix(in srgb,${n.color} 14%,transparent);color:${n.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg class="ic" style="width:16px;height:16px;"><use href="#${n.icono}"/></svg></div>
+          <div class="notif-event-icon" style="width:32px;height:32px;border-radius:8px;background:color-mix(in srgb,${n.color} 14%,transparent);color:${n.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg class="ic" style="width:16px;height:16px;"><use href="#${n.icono}"/></svg></div>
           <div style="flex:1;min-width:0;text-align:left;">
-            <div style="font-size:12.5px;font-weight:600;color:var(--text);line-height:1.35;display:flex;align-items:center;gap:6px;text-align:left;">${escapeNotif(n.titulo)} ${esNueva?'<span style="width:6px;height:6px;border-radius:50%;background:'+n.color+';flex-shrink:0;"></span>':''}</div>
+            <div style="font-size:12.5px;font-weight:600;color:var(--text);line-height:1.35;display:flex;align-items:center;gap:6px;text-align:left;">${escapeNotif(n.titulo)} ${esNueva?'<span class="notif-unread-dot" style="width:6px;height:6px;border-radius:50%;background:'+n.color+';flex-shrink:0;"></span>':''}</div>
             <div style="font-size:11.5px;color:var(--text-2);line-height:1.45;margin-top:3px;text-align:left;">${escapeNotif(n.descripcion)}${n.personal&&n.status?`<small style="display:block;margin-top:4px;font-weight:600">${escapeNotif(({pending:'En validación',available:'Disponible',reversed:'Revertida',paid:'Pagada'}[n.status]||n.status))}</small>`:''}</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:5px;letter-spacing:.3px;text-transform:uppercase;text-align:left;">${formatNotifTime(n.createdAtMs)}</div>
+            <div class="notif-time" style="font-size:10px;color:var(--text-3);margin-top:5px;letter-spacing:.3px;text-transform:uppercase;text-align:left;">${formatNotifTime(n.createdAtMs)}</div>
           </div>
           <button class="notif-del-btn" data-id="${escapeNotif(n.id)}" aria-label="Eliminar notificación" title="Eliminar" style="flex-shrink:0;width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--text-3);cursor:pointer;padding:0;margin:-1px -2px 0 0;opacity:.65;transition:opacity .15s,color .15s;"><svg class="ic" style="width:13px;height:13px;"><use href="#i-x"/></svg></button>
         </div>
@@ -13906,7 +13911,7 @@ function toggleNotifDropdown(skipSync=false,presentation=false){
   dd.innerHTML=`
     <div style="padding:10px 12px 12px;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
       <strong style="font-size:13px;font-weight:600;">Notificaciones</strong>
-      <span style="font-size:10px;color:${nuevasCount>0?'var(--primary)':'var(--text-3)'};letter-spacing:.5px;text-transform:uppercase;font-weight:700;">${nuevasCount>0 ? nuevasCount + ' sin leer' : 'Al día'}</span>
+      <span class="notif-status" style="font-size:10px;color:${nuevasCount>0?'var(--primary)':'var(--text-3)'};letter-spacing:.5px;text-transform:uppercase;font-weight:700;">${nuevasCount>0 ? nuevasCount + ' sin leer' : 'Al día'}</span>
     </div>
     ${bodyHTML}
     ${notifs.length&&window.__notifsState.error?'<p role="status" style="padding:8px 12px;font-size:12px;color:var(--text-2)">No pudimos actualizar la bandeja. <button id="notif-retry" type="button">Reintentar</button></p>':''}
