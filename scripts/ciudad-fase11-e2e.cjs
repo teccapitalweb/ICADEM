@@ -1,7 +1,7 @@
 'use strict';
 // Ciudad ICADEM · Fase 1.1 en navegadores reales conectados al servidor de sesiones (modo de prueba):
 // jugadores en línea, panel social, código de invitación con enlace, privacidad, NPC con preguntas
-// validadas por el servidor, un minijuego con XP del servidor y la carrera validada por posición.
+// validadas por el servidor y un minijuego con XP del servidor.
 //
 // Uso:  node scripts/ciudad-fase11-e2e.cjs http://127.0.0.1:8766
 const path = require('node:path');
@@ -36,12 +36,12 @@ function startServer() {
   };
   const tap = async (page, sel) => { await until(() => page.evaluate(s => Boolean(document.querySelector(s)), sel), 15000); return page.evaluate(s => { const el = document.querySelector(s); if (!el) throw new Error('no existe ' + s); el.click(); }, sel); };
   const close = p => p.evaluate(() => { const bs = [...document.querySelectorAll('#modal-actions button')]; (bs.find(b => /Cerrar|Continuar/.test(b.textContent)) || bs[0])?.click(); });
-  const walk = (page, x, z, y = null) => page.evaluate(async ([x, z, y]) => {
+  const walk = (page, x, z, y = null, step = 0.45) => page.evaluate(async ([x, z, y, step]) => {
     const a = window.__ciudad.api, p = a.player.position;
-    for (let i = 0; i < 400; i++) { const dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz); if (d < 0.2) break; const s = Math.min(d, 0.45); p.x += dx / d * s; p.z += dz / d * s; await new Promise(r => setTimeout(r, 80)); }
+    for (let i = 0; i < 600; i++) { const dx = x - p.x, dz = z - p.z, d = Math.hypot(dx, dz); if (d < 0.2) break; const s = Math.min(d, step); p.x += dx / d * s; p.z += dz / d * s; await new Promise(r => setTimeout(r, 80)); }
     if (y !== null) { p.y = y; a.player.grounded = true; a.player.vy = 0; }
     await new Promise(r => setTimeout(r, 400));
-  }, [x, z, y]);
+  }, [x, z, y, step]);
 
   try {
     const ana = await open('ana', 'Ana'), beto = await open('beto', 'Beto');
@@ -100,17 +100,8 @@ function startServer() {
     ok('Aventura de idiomas: el servidor califica 100 y da XP (+bono de primera vez)', await until(() => ana.evaluate(() => /100de 100\+50 XP/.test(document.querySelector('.mg-result')?.textContent || ''))), await ana.evaluate(() => document.querySelector('.mg-result')?.textContent));
     ok('logro educativo «Políglota» desbloqueado por el servidor', await until(() => ana.evaluate(() => window.__ciudad.api.store.state.achievements.includes('poliglota'))));
     await close(ana); await sleep(400);
-    // carrera validada por posición
-    await ana.evaluate(() => { window.__ciudad.api.travel('plaza', 'park'); }); await sleep(2500);
-    await ana.evaluate(() => window.__ciudad.api.scene.interactables.find(i => i.id === 'park').action()); await until(() => ana.evaluate(() => window.__ciudad.api.sceneName === 'park'));
-    await sleep(1500);
-    await ana.evaluate(() => { window.__ciudad.api.games.raceStartUI(); }); await sleep(500);
-    for (let i = 0; i < 3; i++) { await ana.evaluate(() => document.getElementById('dialog-next')?.click()); await sleep(250); }
-    await until(() => ana.evaluate(() => window.__ciudad.api.games.race && !window.__ciudad.api.games.pending));
-    const RACE = await ana.evaluate(async () => (await import('./js/edu/activities.js')).RACE);
-    for (const [x, z, y] of RACE.checkpoints) { await walk(ana, x, z, y || null); await until(() => ana.evaluate(i => !window.__ciudad.api.games.race || window.__ciudad.api.games.race.next > i, RACE.checkpoints.findIndex(c => c[0] === x && c[1] === z)), 6000); }
-    ok('carrera completa: cada arco lo confirmó el servidor con la posición real', await until(() => ana.evaluate(() => /de 100\+\d+ XP/.test(document.querySelector('.mg-result')?.textContent || '')), 15000), await ana.evaluate(() => document.querySelector('.mg-result')?.textContent || window.__toasts.slice(-3).join(' | ')));
-    await close(ana);
+    // La carrera y la búsqueda del tesoro (validadas por posición) tienen su propia prueba:
+    // scripts/ciudad-retos-e2e.cjs (un solo jugador; los recorridos largos agotan el render por software).
     // reconexión: Beto recarga y sigue en el equipo
     await beto2.reload(); await until(() => beto2.evaluate(() => window.__ciudad && window.__ciudad.api.net.isOnline), 40000);
     ok('al recargar, sigue en su equipo', await until(() => beto2.evaluate(() => window.__ciudad.api.net.roomState?.members.length === 2)));
