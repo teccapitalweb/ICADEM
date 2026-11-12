@@ -670,3 +670,67 @@ de ahí salen las llegadas de la plaza, los títulos y el regreso con el equipo.
 3. Acceso de evaluación: agregar el correo de la cuenta ICADEM de quien evalúa a `CIUDAD_PILOT_EMAILS`
    (Railway → `ciudad-icadem` → Variables). No se comparten contraseñas; el resto de las cuentas sigue en
    modo individual.
+
+## 17. Fase 1.1 · ciudad social, minijuegos y NPC educativos (piloto privado)
+
+Rama `feature/ciudad-1.1`. Todo lo nuevo da solo XP del juego (nunca créditos) y lo valida el servidor.
+
+### 17.1 Jugadores en línea y panel social
+- «Jugadores en línea · N»: N lo envía el servidor (`presence`): sesiones reales conectadas en toda la
+  ciudad. Los NPC no cuentan. Las sesiones desconectadas dejan de contar al instante y expiran a los 30 s.
+- Panel con pestañas: En la ciudad (jugadores visibles, silenciar, reportar), Amigos (conexiones mutuas
+  de ICADEM), Invitaciones (recibidas, códigos propios, canjear) y Mi equipo (preparar Torre/Tribunal).
+- Privacidad: «Mostrar mi nombre a otros jugadores». Si se desactiva, los demás ven «Jugador privado»;
+  las conexiones mutuas y el propio equipo sí ven el nombre. Se guarda en el perfil del servidor.
+
+### 17.2 Invitaciones seguras
+- Código temporal de 8 caracteres (`XXXX-XXXX`): vence (15 min a 2 h; 30 min por omisión), tiene usos
+  limitados (1, 3 o 5), se puede revocar, máximo 3 activos por persona y tope de 10 operaciones por minuto.
+- Enlace: `https://www.icademx.com/vip-panel.html?ciudad=CÓDIGO`. El panel exige sesión; el juego recibe solo
+  el código (`?unirme=`), pregunta antes de unirse y lo canjea con la sesión de quien lo abrió. No da acceso
+  a ninguna cuenta, membresía ni dato privado, ni salta el piloto: sin boleto autorizado no hay socket.
+- Al canjearlo se entra al equipo (y a la instancia) de quien invitó; si el equipo prepara una misión en
+  equipo, se llega a su sala de espera. Las invitaciones de conexiones ya no interrumpen misiones ni menús:
+  quedan pendientes en el panel.
+
+### 17.3 NPC educativos y banco de preguntas
+- Doña Rosa, Don Memo, Profa. Lupita e Ing. Saúl caminan por la plaza y, de vez en cuando, se acercan a
+  proponer un reto (`edu/npc-quiz.js`). No interrumpen misiones, diálogos, menús, frases ni minijuegos; solo
+  se acercan a quien está quieto o caminando, desisten si se aleja o no hay camino, y esperan 90 s tras un
+  reto, 3 min tras un «Ahora no» y 5 min por personaje. Se pueden desactivar en Ajustes.
+- `edu/questions.js`: 73 preguntas en 10 categorías y 4 niveles, separadas del código. Las que dependen de
+  reglas vigentes llevan fuente y fecha de revisión (revisar cada 6 meses). Sin IA en tiempo real y sin
+  pedir datos personales (hay prueba que lo vigila).
+- El servidor decide si la respuesta es correcta (`profile` op `quiz`) y da 10 XP: máximo 10 retos con XP
+  por día y la misma pregunta solo una vez cada 7 días.
+
+### 17.4 Minijuegos (Juegos en el HUD)
+| Minijuego | Validación en el servidor |
+|---|---|
+| A · Carrera del conocimiento (Parque de retos, al sur de la plaza) | Cada arco se acepta solo si la última posición que el servidor ya validó (velocidad, puertas y altura) está en el arco; tiempo mínimo. |
+| B · Memoria ICADEM (3 dificultades) | Semilla + bitácora de cartas volteadas: el servidor regenera la partida. |
+| C · Matemáticas contra reloj (3 niveles, 90 s) | El servidor recalcula cada operación desde la semilla. |
+| D · Aventura de idiomas (2 niveles) | Semilla + respuestas. Sin audio: solo se agregará con grabaciones autorizadas. |
+| E · Búsqueda del tesoro (3 rondas en la plaza) | Igual que la carrera: posición validada junto a cada objeto. |
+| F · Clasificación inteligente (4 temas) | Semilla + objetos colocados. |
+XP: 30 % del puntaje por partida, tope de 60 XP diarios por minijuego y bono único de 20 al completarlo.
+Logros nuevos: Mente curiosa, Políglota, Memoria de oro, Calculadora humana, Gran clasificador, Atleta ICADEM y Cazatesoros.
+
+### 17.5 Familias: perfiles infantiles supervisados — IMPLEMENTADOS Y APAGADOS
+- Solo se activan con `CIUDAD_FAMILY=on` en Railway. **No se activó.** Antes hace falta: aviso de privacidad
+  para menores, mecanismo de consentimiento verificable de madre, padre o tutor (LFPDPPP), revisión legal y
+  de moderación, y decidir la edad mínima.
+- Diseño ya probado: alta solo por el adulto con casilla de consentimiento; se guarda alias (sin datos
+  personales), avatar, rango de edad y fecha de consentimiento; progreso propio (`ciudadProfiles/{uid}~{id}`)
+  sin créditos; solo misiones adecuadas (Supermercado, Veterinaria, Invernadero y Restaurante) más minijuegos y
+  retos de nivel infantil/juvenil. Un perfil infantil no ve ni es visto por nadie fuera de su equipo familiar,
+  no aparece en listas, no tiene conexiones ni Directorio, no crea códigos, no recibe invitaciones y solo
+  envía frases a su familia. Sin chat. Sin rankings.
+
+### 17.6 Pruebas
+- Unidad: `test/ciudad-fase11.test.cjs` (presencia, privacidad, códigos, banco de preguntas, XP, minijuegos
+  con semilla, carrera y tesoro por posición, socket real) y `test/ciudad-familia.test.cjs`.
+- Navegador: `scripts/ciudad-fase11-e2e.cjs` (dos y tres navegadores contra el servidor de prueba: conteo,
+  panel, código, enlace, uso único, revocación, privacidad, NPC, respuesta correcta e incorrecta, minijuego,
+  logro, carrera por posición, reconexión). Emulación de computadora, tableta y teléfono; no se probó en
+  teléfonos físicos ni con dos cuentas reales del piloto.

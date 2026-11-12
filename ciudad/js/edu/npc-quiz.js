@@ -92,7 +92,7 @@ export class NpcQuiz {
   /** Tarjeta de pregunta: opciones grandes (fáciles de tocar), la respuesta la confirma el servidor. */
   async ask(speaker = 'Reto rápido', question = null) {
     const api = this.api, q = question || this.pickQuestion();
-    const card = h('div', 'quiz'), opts = h('div', 'quiz__opts'), feedback = h('div', 'quiz__feedback'); feedback.hidden = true;
+    const card = h('div', 'quiz'), opts = h('div', 'quiz__opts'), feedback = h('div', 'quiz__feedback'); feedback.hidden = true; feedback.setAttribute('role', 'status');
     const head = h('div', 'quiz__head'); head.append(h('span', 'quiz__chip', CATEGORIES[q.cat]), h('span', 'quiz__speaker', speaker));
     card.append(head, h('p', 'quiz__q', q.q), opts, feedback);
     let answered = false;

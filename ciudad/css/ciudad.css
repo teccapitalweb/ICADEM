@@ -467,3 +467,4 @@ input[type=range]{width:100%;accent-color:var(--night)}
 .mg-result{display:flex;flex-direction:column;align-items:center;gap:10px}
 .mg-result__stars{font-size:34px;letter-spacing:.12em;color:var(--sun-2);text-shadow:0 2px 0 rgba(15,31,61,.15)}
 @media (max-width:560px){.arcade{grid-template-columns:1fr 1fr}.arcade__card{padding:12px}.arcade__card span{display:none}.memory{gap:7px}}
+@media (max-height:480px){.quiz{gap:8px}.quiz__q{font-size:17px}.quiz__opts{gap:7px}.quiz__opt{min-height:42px;padding:8px 12px;font-size:14.5px}.quiz__opt b{width:26px;height:26px}.math__q{font-size:28px}.math__opt{padding:10px;font-size:20px}.lang__prompt.is-emoji{font-size:52px}.memory{max-width:340px}.sort__item{padding:12px 18px;font-size:18px}.social__stats>div{padding:8px}.social__stats b{font-size:18px}}
