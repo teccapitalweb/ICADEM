@@ -1,4 +1,4 @@
-/* Public network projection. Relationships and privacy are always server-owned. */
+/* Member-visible network projection. Accepted relationships remain server-owned. */
 (function(){
  'use strict';var current=null,summary=null,timer;
  const nav=()=>window.ICADEMProfessionalNavigation,viewer=()=>window.__currentUser?.uid||window.UserState?.uid||'';
@@ -13,7 +13,7 @@
  function summaryAlive(c){return summary===c&&c.slot.isConnected&&viewer()===c.viewer&&!window.__sessionEnding;}
  function paintSummary(c,data){
   const peers=data?[...new Map(data.preview.map(p=>[p.uid,p])).values()].slice(0,3):[];
-  c.slot.innerHTML='<button type="button" class="profile-network-strip" data-profile-network><span class="network-stack" aria-hidden="true">'+(peers.length?peers.map(photo).join(''):'<span class="network-empty-icon">'+icon('users')+'</span>')+'</span><span class="network-strip-copy"><strong>Red profesional</strong><small>'+(data?data.visibleCount+' '+(data.visibleCount===1?'conexión visible':'conexiones visibles'):'No pudimos cargar las conexiones')+'</small>'+(data?.profile.own&&data.privacy?.shareNetwork!==true?'<small class="network-strip-private">Tu red es privada</small>':'')+'</span>'+icon('arrow-right')+'</button>';
+  c.slot.innerHTML='<button type="button" class="profile-network-strip" data-profile-network><span class="network-stack" aria-hidden="true">'+(peers.length?peers.map(photo).join(''):'<span class="network-empty-icon">'+icon('users')+'</span>')+'</span><span class="network-strip-copy"><strong>Red profesional</strong><small>'+(data?data.visibleCount+' '+(data.visibleCount===1?'conexión':'conexiones'):'No pudimos cargar las conexiones')+'</small></span>'+icon('arrow-right')+'</button>';
   c.slot.hidden=false;wirePhotos(c.slot);c.slot.querySelector('button').addEventListener('click',()=>nav().openNetwork(c.owner));
  }
  async function loadSummary(c){
@@ -41,9 +41,7 @@
   const data=c.data,list=c.root.querySelector('[data-network-list]'),focused=list.querySelector(':focus'),focusUid=focused?.dataset.uid,focusAction=focused?.dataset.networkAction;
   c.root.querySelector('[data-network-owner]').textContent=data.profile.nombre||'Profesional ICADEM';
   c.root.querySelectorAll('[data-network-tab]').forEach(b=>{const selected=b.dataset.networkTab===c.tab;b.setAttribute('aria-selected',String(selected));b.classList.toggle('is-active',selected);b.querySelector('span').textContent=String(b.dataset.networkTab==='mutual'?data.mutualCount:data.visibleCount);});
-  const privacy=c.root.querySelector('[data-network-privacy-box]');privacy.hidden=!data.profile.own;
-  if(data.profile.own){const input=privacy.querySelector('input');input.checked=data.privacy?.shareNetwork===true;input.disabled=c.privacyBusy;}
-  list.innerHTML=c.items.length?c.items.map(p=>'<article class="network-person" data-network-row="'+esc(p.uid)+'"><button class="network-person-profile" data-network-profile="'+esc(p.uid)+'">'+photo(p)+'<span><strong>'+esc(p.nombre)+'</strong>'+(p.profesion||p.puesto?'<small>'+esc(p.profesion||p.puesto)+'</small>':'')+'</span></button><div class="network-person-actions">'+actions(p,c)+'</div></article>').join(''):'<p class="network-empty" role="status">'+(c.tab==='mutual'?'Todavía no tienen conexiones en común':'Este profesional todavía no tiene conexiones visibles')+'</p>';
+  list.innerHTML=c.items.length?c.items.map(p=>'<article class="network-person" data-network-row="'+esc(p.uid)+'"><button class="network-person-profile" data-network-profile="'+esc(p.uid)+'">'+photo(p)+'<span><strong>'+esc(p.nombre)+'</strong>'+(p.profesion||p.puesto?'<small>'+esc(p.profesion||p.puesto)+'</small>':'')+'</span></button><div class="network-person-actions">'+actions(p,c)+'</div></article>').join(''):'<p class="network-empty" role="status">'+(c.tab==='mutual'?'Todavía no tienen conexiones en común':c.owner===c.viewer?'Todavía no tienes conexiones':'Este profesional todavía no tiene conexiones')+'</p>';
   wirePhotos(list);
   list.querySelectorAll('[data-network-profile]').forEach(b=>b.addEventListener('click',()=>nav().openNetworkProfile(b.dataset.networkProfile)));
   list.querySelectorAll('[data-connect],[data-network-action]').forEach(b=>b.addEventListener('click',()=>act(c,b,b.dataset.networkAction||'request')));
@@ -59,8 +57,8 @@
    if(!alive(c))return;if(version!==c.version){c.queued=true;return;}c.data=d;c.items=[...new Map(items.map(p=>[p.uid,p])).values()];c.cursor=cursor;if(more)c.pages++;
    const state=history.state?.icademNetwork;if(state?.owner===c.owner&&state.viewer===c.viewer)history.replaceState({...history.state,icademNetwork:{...state,pages:c.pages}},'',location.href);
    message(c,'');c.root.querySelector('[data-network-retry]').hidden=true;paint(c,true);
-  }catch(error){if(!alive(c))return;if([400,403,404,410].includes(error.status)||!c.data){c.items=[];c.cursor=null;c.data=null;c.root.querySelector('[data-network-list]').replaceChildren();c.root.querySelector('[data-network-privacy-box]').hidden=true;c.root.querySelector('[data-network-owner]').textContent='';c.root.querySelectorAll('[data-network-tab] span').forEach(n=>n.textContent='—');c.root.querySelector('[data-network-more]').hidden=true;}
-   message(c,[403,404,410].includes(error.status)?'Esta red no está disponible para tu cuenta.':'No pudimos actualizar la red. Reintenta para consultar los datos actuales.',true);c.root.querySelector('[data-network-retry]').hidden=false;
+  }catch(error){if(!alive(c))return;if([400,401,403,404,410].includes(error.status)||!c.data){c.items=[];c.cursor=null;c.data=null;c.root.querySelector('[data-network-list]').replaceChildren();c.root.querySelector('[data-network-owner]').textContent='';c.root.querySelectorAll('[data-network-tab] span').forEach(n=>n.textContent='—');c.root.querySelector('[data-network-more]').hidden=true;}
+   message(c,[401,403,404,410].includes(error.status)?'Esta red no está disponible para tu cuenta.':'No pudimos actualizar la red. Reintenta para consultar los datos actuales.',true);c.root.querySelector('[data-network-retry]').hidden=false;
   }finally{if(alive(c)){c.busy=false;c.root.querySelector('[data-network-more]').disabled=false;c.root.querySelector('[data-network-list]').removeAttribute('aria-busy');if(c.queued){c.queued=false;load(false);}}}
  }
  async function act(c,button,action){const uid=button.dataset.uid;if(!alive(c)||c.pending.has(uid))return;c.pending.add(uid);const label=button.innerHTML;button.disabled=true;button.textContent='Guardando…';
@@ -68,20 +66,14 @@
   catch(error){if(alive(c))window.Toast?.error?.('No se pudo guardar',error.message||'Reintenta cuando tengas conexión.');}
   finally{c.pending.delete(uid);if(button.isConnected){button.disabled=false;button.innerHTML=label;}}
  }
- async function privacy(){const c=current,input=c?.root.querySelector('[data-network-privacy]');if(!c||!alive(c)||!c.data?.profile.own||c.privacyBusy)return;
-  const desired=input.checked;input.checked=!desired;input.disabled=true;c.privacyBusy=true;
-  try{const result=await api('/network/privacy',{method:'PATCH',body:{shareNetwork:desired,revision:c.data.privacy.revision}});if(alive(c)){if(result?.ok!==true)throw Error('El servidor no confirmó tu preferencia.');c.version++;await load(false);window.Toast?.success?.('Privacidad guardada','');}}
-  catch(error){if(alive(c)){window.Toast?.error?.('No se pudo guardar',error.message||'Reintenta la actualización.');await load(false);}}
-  finally{if(alive(c)){c.privacyBusy=false;input.disabled=false;}}
- }
  function cleanup(){clearInterval(timer);current=null;summary=null;}
- function render(root){cleanup();window.ICADEMCommunity?.cleanup();const owner=nav().currentProfileId(),tab=nav().networkTab();
-  root.innerHTML='<section class="professional-network" data-professional-network><nav class="professional-profile-toolbar"><button data-network-owner-back>'+icon('arrow-left')+'Volver al perfil</button></nav><header class="network-heading"><span>DIRECTORIO PROFESIONAL</span><h1 tabindex="-1">Red profesional</h1><p data-network-owner></p></header><div class="network-tabs" role="tablist" aria-label="Explorar la red"><button role="tab" data-network-tab="connections">Conexiones <span>0</span></button><button role="tab" data-network-tab="mutual">En común <span>0</span></button></div><div class="network-privacy" data-network-privacy-box hidden><label><input type="checkbox" data-network-privacy> Compartir mi red profesional</label><p>Las relaciones solo son visibles para otros si ambas personas comparten su red. Esta opción está desactivada inicialmente.</p></div><p data-network-status role="status">Cargando conexiones visibles…</p><button class="community-secondary" data-network-retry hidden>Reintentar</button><div class="network-list" data-network-list role="tabpanel" aria-busy="true"></div><button class="community-secondary" data-network-more hidden>Ver más conexiones</button></section>';
+ function render(root){cleanup();window.ICADEMCommunity?.cleanup();const owner=nav().currentProfileId(),own=owner===viewer(),tab=own?'connections':nav().networkTab();
+  root.innerHTML='<section class="professional-network" data-professional-network><nav class="professional-profile-toolbar"><button data-network-owner-back>'+icon('arrow-left')+'Volver al perfil</button></nav><header class="network-heading"><span>DIRECTORIO PROFESIONAL</span><h1 tabindex="-1">Red profesional</h1><p data-network-owner></p></header><div class="network-tabs'+(own?' network-tabs--own':'')+'" role="tablist" aria-label="Explorar la red"><button role="tab" data-network-tab="connections">Conexiones <span>0</span></button>'+(own?'':'<button role="tab" data-network-tab="mutual">En común <span>0</span></button>')+'</div><p data-network-status role="status">Cargando conexiones…</p><button class="community-secondary" data-network-retry hidden>Reintentar</button><div class="network-list" data-network-list role="tabpanel" aria-busy="true"></div><button class="community-secondary" data-network-more hidden>Ver más conexiones</button></section>';
   root.querySelector('[data-network-owner-back]').addEventListener('click',()=>nav().networkOwnerBack());
   if(!nav().validUid(owner)){root.querySelector('[data-network-status]').textContent='Este enlace no identifica un perfil válido.';return;}
-  const saved=history.state?.icademNetwork;current={root,owner,viewer:viewer(),tab,data:null,items:[],cursor:null,pages:saved?.owner===owner&&saved.viewer===viewer()&&Number.isInteger(saved.pages)?Math.max(1,Math.min(20,saved.pages)):1,busy:false,pending:new Set(),privacyBusy:false,version:0,queued:false};
-  root.querySelector('[data-network-privacy]').addEventListener('change',privacy);root.querySelector('[data-network-retry]').addEventListener('click',()=>load(false));root.querySelector('[data-network-more]').addEventListener('click',()=>load(true));
-  const tabs=[...root.querySelectorAll('[data-network-tab]')];tabs.forEach((b,i)=>{b.addEventListener('click',()=>window.navigateToSection('directorio-red',{profileUid:owner,networkTab:b.dataset.networkTab,reemplazar:true}));b.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();tabs[event.key==='Home'?0:event.key==='End'?1:(i+1)%2].focus();}});});
+  const saved=history.state?.icademNetwork;current={root,owner,viewer:viewer(),tab,data:null,items:[],cursor:null,pages:saved?.owner===owner&&saved.viewer===viewer()&&Number.isInteger(saved.pages)?Math.max(1,Math.min(20,saved.pages)):1,busy:false,pending:new Set(),version:0,queued:false};
+  root.querySelector('[data-network-retry]').addEventListener('click',()=>load(false));root.querySelector('[data-network-more]').addEventListener('click',()=>load(true));
+  const tabs=[...root.querySelectorAll('[data-network-tab]')];tabs.forEach((b,i)=>{b.addEventListener('click',()=>window.navigateToSection('directorio-red',{profileUid:owner,networkTab:b.dataset.networkTab,reemplazar:true}));b.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();tabs[event.key==='Home'?0:event.key==='End'?tabs.length-1:(i+1)%tabs.length].focus();}});});
   root.querySelector('h1').focus({preventScroll:true});load(false);timer=setInterval(refresh,30000);
  }
  function refresh(){if(document.visibilityState==='hidden')return;if(current)load(false);else if(summary?.slot.isConnected&&summary.viewer===viewer())loadSummary(summary);}

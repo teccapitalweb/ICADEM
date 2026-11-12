@@ -19,6 +19,28 @@ test('direct network routes preserve explicit owner and two allowed tabs, clear 
  const safe=fixture();safe.api.openNetwork('owner-B');assert.equal(safe.api.currentProfileId(),'owner-B');assert.equal(safe.location.hash,'#directorio-red');assert.equal(safe.api.networkTab(),'connections');
  safe.window.navigateToSection('directorio-red',{profileUid:'owner-B',networkTab:'injected'});assert.equal(safe.api.networkTab(),'connections');
 });
+
+test('an old own-network mutual link becomes the connections route and history state',()=>{
+ const f=fixture({url:'https://www.icademx.com/vip-panel.html?profesional=viewer&red=mutual#directorio-red'});
+ assert.equal(f.api.networkTab(),'connections');
+ f.window.navigateToSection('directorio-red',{reemplazar:true});
+ assert.equal(f.location.searchParams.get('red'),'connections');assert.equal(f.history.state.icademNetwork.tab,'connections');
+ assert.equal(f.api.currentProfileId(),'viewer');
+});
+
+test('explicit own mutual requests are canonicalized while another profile keeps its mutual tab',()=>{
+ const f=fixture();f.window.navigateToSection('directorio-red',{profileUid:'viewer',networkTab:'mutual'});
+ assert.equal(f.api.networkTab(),'connections');assert.equal(f.location.searchParams.get('red'),'connections');
+ f.window.navigateToSection('directorio-red',{profileUid:'owner-B',networkTab:'mutual'});
+ assert.equal(f.api.networkTab(),'mutual');assert.equal(f.history.state.icademNetwork.tab,'mutual');
+});
+
+test('returning through a legacy own-network context restores connections instead of duplicated mutuals',()=>{
+ const f=fixture({url:'https://www.icademx.com/vip-panel.html?profesional=owner-B#directorio-perfil',state:{icademNetwork:{owner:'viewer',viewer:'viewer',tab:'mutual',at:Date.now()}}});
+ assert.equal(f.api.backToNetwork(),true);assert.equal(f.api.currentProfileId(),'viewer');
+ assert.equal(f.location.hash,'#directorio-red');assert.equal(f.location.searchParams.get('red'),'connections');
+ assert.equal(f.history.state.icademNetwork.tab,'connections');
+});
 test('nested network exploration returns to each source owner, original mutual tab and captured scroll without replacing profile identity',()=>{
  const f=fixture();f.api.openProfile('owner-A');const ownerProfile=f.location.href;
  f.api.openNetwork('owner-A');f.window.navigateToSection('directorio-red',{profileUid:'owner-A',networkTab:'mutual',reemplazar:true});

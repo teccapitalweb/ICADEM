@@ -1,6 +1,6 @@
 'use strict';
 // Production panel, synthetic authenticated API fixtures, isolated browser contexts.
-// This does not create/read real people's connections or change production privacy.
+// This does not create/read real people's connections or change production data.
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const source=fs.readFileSync(path.join(__dirname,'professional-network-e2e.cjs'),'utf8');
 const {h,server,openProfile,openNetwork,rowReady,row,refresh}=new Function('require','__dirname','process',source.slice(0,source.lastIndexOf('async function scenario(width)'))+'\nreturn {h,server,openProfile,openNetwork,rowReady,row,refresh};')(require,__dirname,process);
@@ -47,37 +47,40 @@ async function scenario(width){
   return raw(route,url);
  };
  const f=await h.fixture(width,s),p=f.page,errors=[];p.on('pageerror',e=>{if(/professional-network|professional-navigation|professional-profile|icadem-community/.test(e.stack||''))errors.push(e.message);});
- for(const [uid,total] of [['empty',0],['private',0],['single',1],['owner',5]]){
+ for(const [uid,total] of [['empty',0],['private',1],['single',1],['owner',6]]){
   await openProfile(p,uid);await ready(p,total);await geometry(p,width,total);await h.noOverflow(p,'profile strip '+width+' '+uid);
+  assert.doesNotMatch(await strip(p).innerText(),/Tu red es privada/,'all visible profiles use the new connection policy');
   if([390,1440].includes(width))await h.shot(p,'profile-strip-'+uid+'-'+width,'.pp-hero');
  }
+ await openNetwork(p,'fixture-a','mutual');await rowReady(p,'owner');assert.equal(await p.locator('[data-network-tab]').count(),1);assert.equal(await p.locator('[data-network-tab="mutual"]').count(),0);assert.equal(await p.locator('[data-network-privacy]').count(),0);assert.equal(new URL(p.url()).searchParams.get('red'),'connections');await h.noOverflow(p,'own network '+width);if([390,1440].includes(width))await h.shot(p,'profile-own-network-'+width);
  await openProfile(p,'other');await ready(p,1);await actionGeometry(p,width,false);await h.shot(p,'profile-actions-none-'+width,'.pp-hero');
- await openProfile(p,'owner');await ready(p,5);await actionGeometry(p,width,true);await h.shot(p,'profile-actions-connected-'+width,'.pp-hero');
+ await openProfile(p,'owner');await ready(p,6);await actionGeometry(p,width,true);await h.shot(p,'profile-actions-connected-'+width,'.pp-hero');assert.doesNotMatch(await strip(p).innerText(),/Tu red es privada/);
+ const photos=await strip(p).locator('img').evaluateAll(ns=>ns.map(n=>n.currentSrc||n.src));for(const uid of ['fixture-a','extra','mutual'])assert(photos.some(src=>src.includes('photo='+uid)),'preview uses the server-projected accepted profile '+uid);
  const cover=await p.locator('.pp-cover').getAttribute('style'),cv=await cvMarkup(p);
- await strip(p).click();await rowReady(p,'other');assert.equal(await p.locator('[data-network-tab]').count(),2);assert.equal(await p.locator('[data-network-row]').count(),5);assert.equal(await p.locator('[data-network-row="hidden"]').count(),0);
+ await strip(p).click();await rowReady(p,'other');assert.equal(await p.locator('[data-network-tab]').count(),2);assert.equal(await p.locator('[data-network-row]').count(),6);assert.equal(await p.locator('[data-network-row="hidden"]').count(),0);assert.equal(await p.locator('[data-network-privacy]').count(),0);
  for(const [uid,label] of [['other',/Conectar/],['sent',/Pendiente/],['received',/Aceptar/],['mutual',/Conectados/]])assert.match(await row(p,uid).innerText(),label);
  await p.locator('[data-network-tab="mutual"]').click();await rowReady(p,'mutual');assert.deepEqual(await p.locator('[data-network-row]').evaluateAll(ns=>ns.map(n=>n.dataset.networkRow)),['mutual']);
  await p.locator('[data-network-tab="connections"]').click();await rowReady(p,'other');await h.noOverflow(p,'network '+width);await h.shot(p,'profile-full-network-'+width);
  const button=row(p,'other').locator('[data-connect]');s.holdAction=true;await button.click();while(!s.releaseAction)await p.waitForTimeout(10);assert.equal(await button.isDisabled(),true);assert.doesNotMatch(await row(p,'other').innerText(),/Pendiente/,'request is not confirmed early');s.holdAction=false;s.releaseAction();await p.waitForFunction(()=>/Pendiente/.test(document.querySelector('[data-network-row="other"]')?.innerText||''));
- await p.locator('[data-network-owner-back]').click();await p.waitForSelector('.professional-profile-page');await ready(p,5);assert.equal(await p.locator('.pp-cover').getAttribute('style'),cover);assert.equal(await cvMarkup(p),cv,'CV content unaffected');
+ await p.locator('[data-network-owner-back]').click();await p.waitForSelector('.professional-profile-page');await ready(p,6);assert.equal(await p.locator('.pp-cover').getAttribute('style'),cover);assert.equal(await cvMarkup(p),cv,'CV content unaffected');
  if(width===390){
-  const other=await h.fixture(1440,s);await openProfile(other.page,'owner');await ready(other.page,5);
+  const other=await h.fixture(1440,s);await openProfile(other.page,'owner');await ready(other.page,6);
   const acceptedOwner=['fixture-a','owner'].sort().join('|');s.accepted.delete(acceptedOwner);
   for(const page of [p,other.page]){await refresh(page);await page.waitForSelector('.pp-actions [data-connect="owner"]');assert.match(await page.locator('.pp-actions').innerText(),/Conectar/);assert.equal(await cvMarkup(page),cv);assert.equal(await page.locator('[data-profile-section="contact"]').count(),0,'revoked relationship also revokes connection-only contacts');}
   s.accepted.add(acceptedOwner);
-  for(const page of [p,other.page]){await refresh(page);await page.waitForSelector('.pp-actions .pp-connected');await ready(page,5);}
+  for(const page of [p,other.page]){await refresh(page);await page.waitForSelector('.pp-actions .pp-connected');await ready(page,6);}
   s.shares.owner=false;
-  for(const page of [p,other.page]){await refresh(page);await ready(page,0);assert.equal(await strip(page).locator('img').count(),0,'privacy change clears thumbnails in both sessions');}
+  for(const page of [p,other.page]){await refresh(page);await ready(page,6);assert.equal(await strip(page).locator('img').count(),3,'legacy private preferences no longer hide accepted connections');}
   s.shares.owner=true;s.accepted.delete(['owner','extra'].sort().join('|'));
-  for(const page of [p,other.page]){await refresh(page);await ready(page,4);}
+  for(const page of [p,other.page]){await refresh(page);await ready(page,5);}
   s.photos.mutual='/missing-real-photo.jpg';
-  for(const page of [p,other.page]){await refresh(page);await page.waitForFunction(()=>document.querySelector('[data-profile-network] .network-photo')?.textContent==='Br');assert.equal(await strip(page).locator('.network-photo').count(),3,'broken real photo keeps actual profile initials, not invented profile');}
+  for(const page of [p,other.page]){await refresh(page);await page.waitForFunction(()=>[...document.querySelectorAll('[data-profile-network] .network-photo')].some(n=>n.textContent==='Br'));assert.equal(await strip(page).locator('.network-photo').count(),3,'broken real photo keeps actual profile initials, not invented profile');}
   s.photos.mutual='/assets/juegos/foto-fiscal.webp?photo=updated';
-  for(const page of [p,other.page]){await refresh(page);await page.waitForFunction(()=>document.querySelector('[data-profile-network] img')?.src.includes('photo=updated'));}
+  for(const page of [p,other.page]){await refresh(page);await page.waitForFunction(()=>[...document.querySelectorAll('[data-profile-network] img')].some(n=>n.src.includes('photo=updated')));}
   await other.context.close();
   s.summaryFailure='owner';await refresh(p);await p.waitForFunction(()=>document.querySelector('[data-profile-network]')?.innerText.includes('No pudimos cargar'));
-  assert.equal(await strip(p).locator('img').count(),0,'failed permission/read clears old thumbnails');assert.doesNotMatch(await strip(p).innerText(),/4 conexiones/,'old count is not presented as current');
-  s.summaryFailure=null;await refresh(p);await ready(p,4);
+  assert.equal(await strip(p).locator('img').count(),0,'failed permission/read clears old thumbnails');assert.doesNotMatch(await strip(p).innerText(),/5 conexiones/,'old count is not presented as current');
+  s.summaryFailure=null;await refresh(p);await ready(p,5);
   s.heldFailure='owner';await refresh(p);for(let n=0;n<100&&!s.failedHeld;n++)await p.waitForTimeout(20);assert(s.failedHeld);
   await openProfile(p,'empty');await ready(p,0);s.heldFailure=null;s.releaseFailure();await p.waitForTimeout(100);await ready(p,0);assert.equal(new URL(p.url()).searchParams.get('profesional'),'empty','stale failure cannot alter newly opened profile');
   // Refresh remains live after normal navigation's cleanup and reflects remote changes.
