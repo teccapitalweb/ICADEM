@@ -54,7 +54,10 @@ const GAMES = [
   { key: 'office', door: 'oficina', spawn: 'office', scene: 'office', opener: 'paola', mission: 'oficina-expediente-perdido', credits: 20, talkAction: 'brief',
     perfect: `const L = await import('./js/missions/lost-file-logic.js');
       return [['index'], ...L.NEEDED_SPOTS.map(id => ['search', { id }]), ...L.CHRONO.map(id => ['take', { id }]), ['order', { ids: [...L.CHRONO] }],
-        ['flag', { ids: ['monto', 'cantidad'] }], ['resolve', { id: 'retener' }], ['file', { cabinet: 'C' }], ['debrief', { reasons: ['trazabilidad', 'no-alterar'] }]];` }
+        ['flag', { ids: ['monto', 'cantidad'] }], ['resolve', { id: 'retener' }], ['file', { cabinet: 'C' }], ['debrief', { reasons: ['trazabilidad', 'no-alterar'] }]];` },
+  { key: 'tower', door: 'torre', spawn: 'tower', scene: 'tower', opener: 'elena', mission: 'torre-desafio-equipos', credits: 20, talkAction: 'brief',
+    perfect: `return [['budget', { computers: 'nuevo', contingency: 5 }], ['permits', { ids: ['uso-suelo', 'construccion', 'proteccion-civil'] }], ['schedule', { ids: ['tramites', 'cimentacion', 'estructura', 'instalaciones', 'mobiliario'] }],
+        ['message', { text: 'claro', channels: ['asamblea', 'carteles'] }], ['approve', { role: 'individual' }], ['present', { reasons: ['especialidad', 'dependencias'] }]];` }
 ];
 
 module.exports = { GAMES };

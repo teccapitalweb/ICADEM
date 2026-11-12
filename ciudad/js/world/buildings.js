@@ -15,7 +15,7 @@ export const BUILDINGS = [
     wall: '#c79463', trim: '#7d5330', roof: 0x1f3a6e, signBg: '#1f3a6e', signFg: '#ffffff' },
   { id: 'hospital', name: 'Hospital ICADEM', mission: 'Turno de decisiones', x: -31, z: -28, w: 13, d: 10, h: 10, side: 'S', style: 'hospital', status: 'open',
     wall: '#fbfdfd', trim: '#2bb5a0', roof: 0x2bb5a0, signBg: '#178f7e', signFg: '#ffffff', glass: '#bff1ea' },
-  { id: 'torre', name: 'Torre ICADEM', mission: 'Desafío de equipos', x: 31, z: -28, w: 10, d: 10, h: 21, side: 'S', style: 'tower', status: 'soon',
+  { id: 'torre', name: 'Torre ICADEM', mission: 'Desafío de equipos', x: 31, z: -28, w: 10, d: 10, h: 21, side: 'S', style: 'tower', status: 'open',
     wall: '#7f8cf5', trim: '#4b55c7', roof: 0x3a43a8, signBg: '#3a43a8', signFg: '#ffffff', glass: '#d8e2ff', rows: 7, cols: 3 },
   { id: 'veterinaria', name: 'Clínica Veterinaria', mission: 'Guardianes del bienestar', x: -31, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'vet', status: 'open',
     wall: '#bfe8f7', trim: '#3c9fc9', roof: 0xf08aa8, signBg: '#3c9fc9', signFg: '#ffffff' },

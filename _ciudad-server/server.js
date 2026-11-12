@@ -21,12 +21,13 @@ import { COURT_JUDGE_MISSION } from '../ciudad/js/missions/court-judge-logic.js'
 import { MARKET_INVENTORY_MISSION } from '../ciudad/js/missions/market-inventory-logic.js';
 import { SITE_INSPECTOR_MISSION } from '../ciudad/js/missions/site-inspector-logic.js';
 import { HOSPITAL_SHIFT_MISSION } from '../ciudad/js/missions/hospital-shift-logic.js';
+import { TOWER_CHALLENGE_MISSION } from '../ciudad/js/missions/tower-challenge-logic.js';
 import { LOST_FILE_MISSION } from '../ciudad/js/missions/lost-file-logic.js';
 import { GREENHOUSE_MISSION } from '../ciudad/js/missions/greenhouse-logic.js';
 import { KITCHEN_RUSH_MISSION } from '../ciudad/js/missions/kitchen-rush-logic.js';
 import { VET_WELFARE_MISSION } from '../ciudad/js/missions/vet-welfare-logic.js';
 
-const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION), defineMission(MARKET_INVENTORY_MISSION), defineMission(SITE_INSPECTOR_MISSION), defineMission(HOSPITAL_SHIFT_MISSION), defineMission(VET_WELFARE_MISSION), defineMission(KITCHEN_RUSH_MISSION), defineMission(GREENHOUSE_MISSION), defineMission(LOST_FILE_MISSION)].map(d => [d.id, d]));
+const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION), defineMission(MARKET_INVENTORY_MISSION), defineMission(SITE_INSPECTOR_MISSION), defineMission(HOSPITAL_SHIFT_MISSION), defineMission(VET_WELFARE_MISSION), defineMission(KITCHEN_RUSH_MISSION), defineMission(GREENHOUSE_MISSION), defineMission(LOST_FILE_MISSION), defineMission(TOWER_CHALLENGE_MISSION)].map(d => [d.id, d]));
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 /**
@@ -43,7 +44,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   // Conexiones: en producción las entrega el backend de ICADEM; en pruebas, el emisor de desarrollo.
   const devLinks = new Map();
   const link = (a, b) => { for (const [x, y] of [[a, b], [b, a]]) devLinks.set(x, (devLinks.get(x) || new Set()).add(y)); };
-  const hub = new Hub({ capacity, now, connections: connections || (async uid => [...(devLinks.get(uid) || [])]), onReport: onReport && (entry => Promise.resolve(onReport(entry)).catch(error => log('report-error', error && (error.code || error.message)))) });
+  const hub = new Hub({ capacity, now, missions: MISSIONS, connections: connections || (async uid => [...(devLinks.get(uid) || [])]), onReport: onReport && (entry => Promise.resolve(onReport(entry)).catch(error => log('report-error', error && (error.code || error.message)))) });
   const profiles = new Profiles({ storage, missions: MISSIONS, rewards: REWARDS });
   const sockets = new Map();   // player → socket
   const originOk = origin => !origins || origins.includes(origin);
@@ -99,6 +100,18 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   } });
   const send = (ws, msg) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(msg)); };
   const toRoom = (room, extra = {}) => { if (!room) return; const view = hub.roomView(room); for (const m of room.members.values()) send(sockets.get(m.player), { t: 'room', room: view, ...extra }); };
+  const toCoop = (room, extra = {}) => { const view = room && hub.coopView(room); if (!view) return; for (const m of room.members.values()) send(sockets.get(m.player), { t: 'coop', ...view, ...extra }); };
+  /** Cierre del intento en equipo: el servidor guarda el resultado de cada integrante (sin duplicar recompensas). */
+  async function finishCoop(room, session) {
+    const log = session.run.log.map(e => ({ type: e.type, payload: e.payload }));
+    for (const m of [...room.members.values()]) {
+      const r = await profiles.completeMission(m.player.uid, session.mission, log);
+      const ws = sockets.get(m.player);
+      send(ws, { t: 'profile', op: 'mission', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: session.mission, coop: session.id });
+      send(ws, { t: 'coop', op: 'done', session: session.id, mission: session.mission, ok: r.ok, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp });
+    }
+    toRoom(room, { op: 'done' });
+  }
   const toInstance = (instance, msg, except) => { for (const p of instance.players.values()) if (p !== except && p.online) send(sockets.get(p), msg); };
 
   wss.on('connection', (ws, req) => {
@@ -141,7 +154,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         send(ws, { t: 'welcome', pid: player.pid, name: player.name, instance: player.instance.id, resumed: joined.resumed, capacity: hub.capacity, tick: NET_TICK_HZ,
           resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance).filter(p => p.pid !== player.pid), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player) });
         if (!joined.resumed || !joined.replaced) toInstance(player.instance, { t: 'join', pid: player.pid, name: player.name, avatar: player.avatar, custom: player.custom }, player);
-        if (player.room) toRoom(player.room);
+        if (player.room) { toRoom(player.room); if (player.room.session && !player.room.session.done) toCoop(player.room, { op: 'sync' }); }
         log('join', player.pid, player.instance.id, joined.resumed ? 'resumed' : 'new');
         return;
       }
@@ -159,7 +172,16 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
           : msg.op === 'ready' ? hub.setReady(player, msg.ready) : msg.op === 'start' ? hub.startRoom(player) : { ok: false, reason: 'operacion' };
         if (r.left) { send(ws, { t: 'room', room: null, ok: true, op: 'leave' }); toRoom(r.room); }
         else if (!r.ok) send(ws, { t: 'room', room: player.room ? hub.roomView(player.room) : null, ok: false, op: msg.op, reason: r.reason });
-        else { if (before && before !== player.room && before.members.size) toRoom(before); toRoom(player.room, { op: msg.op }); }
+        else { if (before && before !== player.room && before.members.size) toRoom(before); toRoom(player.room, { op: msg.op }); if (msg.op === 'start') { toCoop(player.room, { op: 'start' }); log('coop-start', player.room.id, player.room.mission); } }
+      }
+      else if (msg.t === 'coop') {
+        // Intento en equipo: el navegador propone una acción; el servidor decide si procede.
+        if (msg.op === 'sync') { const view = player.room && hub.coopView(player.room); return send(ws, view ? { t: 'coop', op: 'sync', ...view } : { t: 'coop', op: 'none' }); }
+        if (msg.op !== 'act') return;
+        const r = hub.coopAct(player, msg.type, msg.payload);
+        if (!r.ok) { const view = player.room && hub.coopView(player.room); return send(ws, { t: 'coop', op: 'rejected', reason: r.reason, type: msg.type, ...(view || {}) }); }
+        toCoop(r.room, { op: 'state' });
+        if (r.complete) { log('coop-done', r.room.id, r.session.mission, r.result.score); await finishCoop(r.room, r.session); }
       }
       else if (msg.t === 'profile') {
         // Progreso: el cliente manda acciones; el resultado lo calcula y guarda el servidor.

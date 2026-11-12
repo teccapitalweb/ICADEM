@@ -20,4 +20,27 @@ async function openSession(t, uid = 'jugador') {
   return { mission: (mission, log) => { ws.send(JSON.stringify({ t: 'profile', op: 'mission', mission, log })); return wait('profile'); }, ws, wait, port };
 }
 
-module.exports = { openSession, root };
+/** Servidor real con varios jugadores identificados (para pruebas de equipos). */
+async function openServer(t, options = {}) {
+  if (!fs.existsSync(path.join(root, '_ciudad-server/node_modules/ws'))) return null;
+  const WebSocket = require(path.join(root, '_ciudad-server/node_modules/ws'));
+  const { createServer } = await import(pathToFileURL(path.join(root, '_ciudad-server/server.js')).href);
+  const app = createServer({ devLogin: true, ...options }); const port = await app.listen(); t.after(() => app.close());
+  const http = `http://127.0.0.1:${port}`;
+  const post = (url, body) => fetch(http + url, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+  async function client(uid, hello = null) {
+    const ws = new WebSocket('ws://127.0.0.1:' + port), inbox = [];
+    ws.on('message', m => inbox.push(JSON.parse(m.toString())));
+    ws.wait = (type, pred = () => true, ms = 3000) => new Promise((res, rej) => { const t0 = Date.now(); (function poll() { const i = inbox.findIndex(m => m.t === type && pred(m)); if (i >= 0) return res(inbox.splice(i, 1)[0]); if (Date.now() - t0 > ms) return rej(new Error('sin ' + type)); setTimeout(poll, 15); })(); });
+    ws.tell = msg => ws.send(JSON.stringify(msg));
+    ws.drain = () => inbox.splice(0);
+    await new Promise(r => ws.on('open', r));
+    const ticket = hello ? null : (await (await post('/dev/ticket', { uid, name: uid })).json()).ticket;
+    ws.tell({ t: 'hello', ...(hello || { ticket }) }); ws.welcome = await ws.wait('welcome');
+    t.after(() => ws.terminate());
+    return ws;
+  }
+  return { app, port, client, post };
+}
+
+module.exports = { openSession, openServer, root };

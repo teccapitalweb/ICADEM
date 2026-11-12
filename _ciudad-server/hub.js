@@ -6,6 +6,8 @@ import { createHash, randomBytes } from 'node:crypto';
 import { decodeState, encodeState, NET_SCENES } from '../ciudad/js/net/network.js';
 import { SCENE_RULES, ENTRY_RADIUS, COOP_MISSIONS } from '../ciudad/js/net/scenes.js';
 import { phraseById, createRateLimiter, SAY_LIMIT, SAY_RADIUS } from '../ciudad/js/social/phrases.js';
+import { coopCan, pendingApprovals } from '../ciudad/js/net/coop.js';
+import { MissionRun } from '../ciudad/js/missions/engine.js';
 
 /** Equipo libre (sin misión): de 2 a 4 personas, sin roles. */
 const TEAM = Object.freeze({ title: 'Equipo', min: 2, max: 4, roles: [], playable: false });
@@ -19,8 +21,10 @@ export const LIMITS = Object.freeze({
   resumeMs: 30000,       // tiempo que se guarda el lugar de alguien que perdió la conexión
   nameMax: 28,
   // Topes por tipo de acción (máximo, ventana en ms). Lo que los excede se descarta.
-  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000] },
-  inviteMs: 60000        // una invitación sin responder caduca en un minuto
+  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], coop: [40, 10000] },
+  inviteMs: 60000,       // una invitación sin responder caduca en un minuto
+  coopLog: 400,          // acciones máximas de un intento en equipo
+  coopPayload: 1500      // bytes máximos de los datos de una acción en equipo
 });
 
 /** Límites caminables de cada escenario (compartidos con el cliente). */
@@ -31,7 +35,8 @@ const cleanName = name => String(name || '').replace(/[\u0000-\u001f<>]/g, '').t
 
 export class Hub {
   /** connections: async uid → uids con los que tiene una conexión AUTORIZADA en ICADEM (la fuente es el backend, nunca el navegador). */
-  constructor({ now = Date.now, capacity = LIMITS.capacity, salt = randomBytes(8).toString('hex'), connections = async () => [], onReport = null } = {}) {
+  constructor({ now = Date.now, capacity = LIMITS.capacity, salt = randomBytes(8).toString('hex'), connections = async () => [], onReport = null, missions = new Map() } = {}) {
+    this.missions = missions; this.sessionSeq = 0;
     this.now = now; this.capacity = capacity; this.salt = salt; this.connections = connections; this.onReport = onReport; this.invites = new Map(); this.inviteSeq = 0;
     this.instances = new Map();   // id → { id, players: Map<pid, player> }
     this.byUid = new Map();       // uid → player
@@ -170,7 +175,7 @@ export class Hub {
   /* ---------- salas privadas (sala de espera cooperativa) ---------- */
 
   roomView(room) {
-    return { id: room.id, code: room.code, mission: room.mission, host: room.host, status: room.status,
+    return { id: room.id, code: room.code, mission: room.mission, host: room.host, status: room.status, session: room.session && !room.session.done ? room.session.id : null,
       members: [...room.members.entries()].map(([pid, m]) => ({ pid, name: m.player.name, role: m.role, ready: m.ready, online: m.player.online })) };
   }
 
@@ -178,7 +183,7 @@ export class Hub {
     if (mission !== null && mission !== undefined && !COOP_MISSIONS[mission]) return { ok: false, reason: 'mision-sin-cooperativo' };
     mission = mission ?? null;
     // Un equipo ya formado puede elegir misión sin deshacerse: lo decide su anfitrión.
-    if (player.room && mission) { const r = player.room; if (r.host !== player.pid) return { ok: false, reason: 'solo-anfitrion' }; if (r.members.size > COOP_MISSIONS[mission].max) return { ok: false, reason: 'sala-llena' }; r.mission = mission; for (const m of r.members.values()) { m.role = null; m.ready = false; } return { ok: true, room: r }; }
+    if (player.room && mission) { const r = player.room; if (r.host !== player.pid) return { ok: false, reason: 'solo-anfitrion' }; if (r.status === 'en-curso') return { ok: false, reason: 'en-curso' }; if (r.members.size > COOP_MISSIONS[mission].max) return { ok: false, reason: 'sala-llena' }; r.mission = mission; for (const m of r.members.values()) { m.role = null; m.ready = false; } return { ok: true, room: r }; }
     this.leaveRoom(player);
     let code; do { code = Array.from(randomBytes(6), b => CODE_ALPHABET[b % CODE_ALPHABET.length]).join(''); } while (this.codes.has(code));
     const room = { id: 'sala-' + (++this.roomSeq), code, mission, host: player.pid, status: 'espera', members: new Map([[player.pid, { player, role: null, ready: false }]]) };
@@ -210,6 +215,7 @@ export class Hub {
   setRole(player, role) {
     const room = player.room; if (!room) return { ok: false, reason: 'sin-sala' };
     const me = room.members.get(player.pid);
+    if (room.status === 'en-curso') return { ok: false, reason: 'en-curso' };
     if (role === null || role === '') { me.role = null; me.ready = false; return { ok: true, room }; }
     if (!specOf(room).roles.some(r => r.id === role)) return { ok: false, reason: 'rol-desconocido' };
     for (const [pid, m] of room.members) if (pid !== player.pid && m.role === role) return { ok: false, reason: 'rol-ocupado' };
@@ -220,14 +226,16 @@ export class Hub {
   setReady(player, ready) {
     const room = player.room; if (!room) return { ok: false, reason: 'sin-sala' };
     const me = room.members.get(player.pid);
+    if (room.status === 'en-curso') return { ok: false, reason: 'en-curso' };
     if (ready && !me.role) return { ok: false, reason: 'elige-un-rol' };
     me.ready = Boolean(ready);
     return { ok: true, room };
   }
 
-  /** Valida que la sala esté completa. La audiencia cooperativa todavía no se puede iniciar. */
+  /** Valida que la sala esté completa e inicia el intento del equipo, que guarda el servidor. */
   startRoom(player) {
     const room = player.room; if (!room) return { ok: false, reason: 'sin-sala' };
+    if (room.status === 'en-curso') return { ok: false, reason: 'en-curso' };
     const spec = specOf(room), members = [...room.members.values()];
     if (room.host !== player.pid) return { ok: false, reason: 'solo-anfitrion' };
     if (!room.mission) return { ok: false, reason: 'sin-mision' };
@@ -235,8 +243,47 @@ export class Hub {
     for (const r of spec.roles) if (r.required && !members.some(m => m.role === r.id)) return { ok: false, reason: 'falta-' + r.id };
     if (members.some(m => !m.role || !m.ready)) return { ok: false, reason: 'no-todos-listos' };
     if (!spec.playable) return { ok: false, reason: 'cooperativo-en-desarrollo', room };
+    const def = this.missions.get(room.mission); if (!def) return { ok: false, reason: 'cooperativo-en-desarrollo', room };
     room.status = 'en-curso';
+    room.session = { id: ++this.sessionSeq, mission: room.mission, run: new MissionRun(def), done: false, last: null };
     return { ok: true, room };
+  }
+
+  /* ---------- intento en equipo (lo guarda y valida el servidor) ---------- */
+
+  onlineRoles(room) { return [...room.members.values()].filter(m => m.player.online && m.role).map(m => m.role); }
+
+  /** Lo que todos los integrantes necesitan para reconstruir el intento: la bitácora validada. */
+  coopView(room) {
+    const s = room && room.session; if (!s) return null;
+    return { session: s.id, mission: s.mission, log: s.run.log, done: s.done, last: s.last, roles: Object.fromEntries([...room.members.entries()].map(([pid, m]) => [pid, m.role])), online: this.onlineRoles(room) };
+  }
+
+  /**
+   * Acción de un integrante sobre el intento del equipo. Se valida: que haya un intento en
+   * curso, que la acción le toque a su rol, el consenso antes del paso final y las reglas del
+   * motor. Lo que no procede se rechaza sin cambiar nada.
+   */
+  coopAct(player, type, payload) {
+    const room = player.room, sess = room && room.session;
+    if (!sess || sess.done || room.status !== 'en-curso') return { ok: false, reason: 'sin-intento' };
+    const spec = specOf(room), me = room.members.get(player.pid);
+    if (typeof type !== 'string' || !spec.permissions || !Object.prototype.hasOwnProperty.call(spec.permissions, type)) return { ok: false, reason: 'accion' };
+    if (payload === null || payload === undefined) payload = {};
+    if (typeof payload !== 'object' || Array.isArray(payload)) return { ok: false, reason: 'datos' };
+    let size = 0; try { size = JSON.stringify(payload).length; } catch (_) { return { ok: false, reason: 'datos' }; }
+    if (size > LIMITS.coopPayload) return { ok: false, reason: 'datos' };
+    payload = JSON.parse(JSON.stringify(payload));
+    const online = this.onlineRoles(room);
+    if (!coopCan(spec, type, payload, me.role, online)) return { ok: false, reason: 'no-es-tu-rol' };
+    if (spec.consensus && type === spec.consensus.approve) payload = { role: me.role };   // el rol lo pone el servidor
+    if (spec.consensus && type === spec.consensus.final && pendingApprovals(spec, sess.run.state, online).length) return { ok: false, reason: 'faltan-aprobaciones' };
+    if (sess.run.log.length >= LIMITS.coopLog) return { ok: false, reason: 'bitacora-llena' };
+    if (!sess.run.act(type, payload)) return { ok: false, reason: 'no-procede' };
+    sess.last = { pid: player.pid, name: player.name, role: me.role, type };
+    const result = sess.run.evaluate();
+    if (result.valid) { sess.done = true; room.status = 'espera'; for (const m of room.members.values()) m.ready = false; }
+    return { ok: true, room, session: sess, complete: result.valid, result };
   }
 
   /* ---------- amigos, invitaciones y equipos ---------- */
