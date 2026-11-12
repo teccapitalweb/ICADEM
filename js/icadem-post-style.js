@@ -11,8 +11,8 @@
  const api=(path,options)=>window.ICADEMPlatform.request('/api/forum'+path,options);
  const sourceKey=post=>String(post.uid||'')+':'+String(post.createdAtMs||post.createdAt?.toDate?.().getTime()||'');
  function current(c){return scope===c&&c.uid===viewer()&&c.root.isConnected&&!window.__sessionEnding;}
- function picker(selected){return '<div class="post-accent-options" role="radiogroup" aria-label="Color del borde superior">'+palette.map(([key,label,color])=>'<button type="button" role="radio" data-post-accent="'+key+'" aria-checked="'+(key===selected)+'" aria-label="'+label+'" title="'+label+'"><span style="--swatch:'+color+'">'+(key===selected?'✓':'')+'</span><small>'+(key==='default'?'Original':label)+'</small></button>').join('')+'</div>';}
- function preview(text,key){return '<article class="post-style-preview" data-post-style-preview data-post-accent="'+key+'"><strong>Vista previa</strong><p>'+esc(String(text||'Así se verá el borde de tu publicación.').slice(0,180))+'</p></article>';}
+ function picker(selected){return '<div class="post-accent-options" role="radiogroup" aria-label="Color del borde y fondo">'+palette.map(([key,label,color])=>'<button type="button" role="radio" data-post-accent="'+key+'" aria-checked="'+(key===selected)+'" aria-label="'+label+'" title="'+label+'"><span style="--swatch:'+color+'">'+(key===selected?'✓':'')+'</span><small>'+(key==='default'?'Original':label)+'</small></button>').join('')+'</div>';}
+ function preview(text,key){return '<article class="post-style-preview" data-post-style-preview data-post-accent="'+key+'"><strong>Vista previa</strong><p>'+esc(String(text||'Así se verá el borde y fondo de tu publicación.').slice(0,180))+'</p></article>';}
  function choose(root,key){if(!root)return;root.querySelectorAll('[role=radio]').forEach(button=>{const chosen=button.dataset.postAccent===key;button.setAttribute('aria-checked',String(chosen));button.querySelector('span').textContent=chosen?'✓':'';});root.querySelector('[data-post-style-preview]')?.setAttribute('data-post-accent',key);}
  function wirePicker(root,onSelect){root.querySelectorAll('[role=radio]').forEach((b,index,buttons)=>{b.addEventListener('click',()=>{choose(root,b.dataset.postAccent);onSelect(b.dataset.postAccent);});b.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(index+(event.key==='ArrowLeft'?-1:1)+buttons.length)%buttons.length;buttons[next].focus();buttons[next].click();}});});}
  async function capabilities(force){
@@ -38,7 +38,7 @@
    const existing=row.querySelector('[data-post-style-edit]');
    if(!allowed()||post.uid!==viewer()){existing?.remove();continue;}
    if(existing)continue;
-   const button=document.createElement('button');button.type='button';button.className='post-style-edit';button.dataset.postStyleEdit=post.id;button.textContent='Estilo';button.title='Cambiar el borde de esta publicación';button.setAttribute('aria-label','Cambiar el borde de mi publicación');
+   const button=document.createElement('button');button.type='button';button.className='post-style-edit';button.dataset.postStyleEdit=post.id;button.textContent='Estilo';button.title='Cambiar el borde y fondo de esta publicación';button.setAttribute('aria-label','Cambiar el borde y fondo de mi publicación');
    button.addEventListener('click',()=>edit(post.id));row.querySelector('.post__header')?.append(button);
   }
  }
@@ -67,7 +67,7 @@
    const post=result?.post;if(!result.ok||post?.uid!==owner||post.id!==postId)throw Error('No pudimos abrir tu publicación.');
    if(dialog)dialog.close();const node=document.createElement('dialog');dialog=node;node.className='post-style-dialog';node.setAttribute('aria-labelledby','post-style-dialog-title');
    let selected=accent(post.style),busy=false;
-   node.innerHTML='<h2 id="post-style-dialog-title">Estilo de publicación</h2><p class="post-style-hint">Cambia únicamente el borde superior.</p><div data-post-style-picker>'+picker(selected)+preview(post.texto,selected)+'</div><p class="post-style-error" role="alert" hidden></p><div class="post-style-actions"><button type="button" data-post-style-cancel>Cancelar</button><button type="button" data-post-style-save>Guardar color</button></div>';
+   node.innerHTML='<h2 id="post-style-dialog-title">Estilo de publicación</h2><p class="post-style-hint">Cambia el borde superior y el fondo suave.</p><div data-post-style-picker>'+picker(selected)+preview(post.texto,selected)+'</div><p class="post-style-error" role="alert" hidden></p><div class="post-style-actions"><button type="button" data-post-style-cancel>Cancelar</button><button type="button" data-post-style-save>Guardar color</button></div>';
    wirePicker(node,key=>{selected=key;});node.querySelector('[data-post-style-cancel]').addEventListener('click',()=>node.close());
    node.addEventListener('cancel',event=>{if(busy)event.preventDefault();});
    node.addEventListener('close',()=>{node.remove();if(dialog===node)dialog=null;scope?.root.querySelector('[data-post-style-edit="'+CSS.escape(postId)+'"]')?.focus({preventScroll:true});});
@@ -87,13 +87,13 @@
  }
  function mount(root,onSaved){
   scope={root,uid:viewer(),selected:'default',posts:[],onSaved};const c=scope;
-  root.querySelector('#foro-text')?.addEventListener('input',()=>{const p=root.querySelector('[data-post-style-preview] p');if(p)p.textContent=String(root.querySelector('#foro-text').value||'Así se verá el borde de tu publicación.').slice(0,180);});
+  root.querySelector('#foro-text')?.addEventListener('input',()=>{const p=root.querySelector('[data-post-style-preview] p');if(p)p.textContent=String(root.querySelector('#foro-text').value||'Así se verá el borde y fondo de tu publicación.').slice(0,180);});
   capabilities().then(()=>{if(current(c)){composer(c);decorate(c.posts,root.querySelector('#foro-list'));hydrate(c,false);}});
   clearInterval(timer);timer=setInterval(refresh,30000);
  }
  function posts(items,list){if(scope&&current(scope)){scope.posts=items;decorate(items,list);hydrate(scope,false);}}
  function selected(){return scope&&current(scope)&&allowed()?scope.selected:'default';}
- function resetComposer(){if(scope){scope.selected='default';choose(scope.root.querySelector('[data-post-style-slot]'),'default');const p=scope.root.querySelector('[data-post-style-preview] p');if(p)p.textContent='Así se verá el borde de tu publicación.';}}
+ function resetComposer(){if(scope){scope.selected='default';choose(scope.root.querySelector('[data-post-style-slot]'),'default');const p=scope.root.querySelector('[data-post-style-preview] p');if(p)p.textContent='Así se verá el borde y fondo de tu publicación.';}}
  function reset(){epoch++;styleVersion++;confirmed.clear();clearInterval(timer);if(dialog)dialog.close();scope=null;capability=null;capOwner='';capTime=0;capRequest=null;}
  function refresh(event){if(scope&&current(scope)&&document.visibilityState!=='hidden')capabilities(true).then(()=>{if(scope&&current(scope)){composer(scope);decorate(scope.posts,scope.root.querySelector('#foro-list'));hydrate(scope,!!event);}});}
  document.addEventListener('icadem:session-ending',reset);document.addEventListener('icadem:user-ready',()=>{if((scope&&scope.uid!==viewer())||(capOwner&&capOwner!==viewer()))reset();});
