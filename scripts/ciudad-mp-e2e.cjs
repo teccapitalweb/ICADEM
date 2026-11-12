@@ -46,7 +46,7 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     const view = page => page.evaluate(() => { const c = window.__ciudad, a = c.api, r = [...c.remotes.map.values()][0]; return { me: a.net.pid, inst: a.net.instance, roster: [...a.net.roster.values()].map(x => x.name), tags: [...document.querySelectorAll('.nametag')].map(e => e.textContent), chip: document.getElementById('net-chip').textContent, remote: r ? { pid: r.pid, x: r.x, z: r.z, anim: r.avatar.anim } : null, self: { x: a.player.position.x, z: a.player.position.z } }; });
     let va = await view(A), vb = await view(B);
     ok('misma instancia y nombres reales de cada quien', va.inst === vb.inst && va.roster.join() === 'Beto Ruiz' && vb.roster.join() === 'Ana Torres' && va.tags.join() === 'Beto Ruiz' && vb.tags.join() === 'Ana Torres', JSON.stringify({ va, vb }));
-    ok('el indicador muestra 2 jugadores', /2 jugadores/.test(va.chip) && /2 jugadores/.test(vb.chip), va.chip + ' | ' + vb.chip);
+    ok('el indicador muestra 2 jugadores en línea', va.chip === 'Jugadores en línea · 2' && vb.chip === 'Jugadores en línea · 2', va.chip + ' | ' + vb.chip);
 
     // movimiento sincronizado: Ana camina con el teclado; Beto la ve en el mismo lugar
     await A.evaluate(() => { const a = window.__ciudad.api; a.camera.yaw = Math.PI / 2; });
