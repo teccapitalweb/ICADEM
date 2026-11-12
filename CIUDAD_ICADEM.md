@@ -698,7 +698,7 @@ Rama `feature/ciudad-1.1`. Todo lo nuevo da solo XP del juego (nunca créditos) 
   proponer un reto (`edu/npc-quiz.js`). No interrumpen misiones, diálogos, menús, frases ni minijuegos; solo
   se acercan a quien está quieto o caminando, desisten si se aleja o no hay camino, y esperan 90 s tras un
   reto, 3 min tras un «Ahora no» y 5 min por personaje. Se pueden desactivar en Ajustes.
-- `edu/questions.js`: 73 preguntas en 10 categorías y 4 niveles, separadas del código. Las que dependen de
+- `edu/questions.js`: 75 preguntas en 10 categorías y 4 niveles, separadas del código. Las que dependen de
   reglas vigentes llevan fuente y fecha de revisión (revisar cada 6 meses). Sin IA en tiempo real y sin
   pedir datos personales (hay prueba que lo vigila).
 - El servidor decide si la respuesta es correcta (`profile` op `quiz`) y da 10 XP: máximo 10 retos con XP
