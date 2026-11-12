@@ -239,6 +239,7 @@
       const confirmed = Array.isArray(result.priorities) ? [...result.priorities] : order;
       state.order = confirmed; state.base = [...confirmed]; state.saved = true;
       state.data = {...state.data,...result};
+      document.dispatchEvent(new CustomEvent('icadem:priorities-saved',{detail:{uid:ticket.uid}}));
       let latest;
       try { latest = await window.ICADEMCourseUnlocks.refresh(); } catch (_) { /* The successful PUT already confirmed persistence. */ }
       if (!current(ticket)) return;

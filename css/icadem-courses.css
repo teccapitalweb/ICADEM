@@ -150,6 +150,24 @@
 @media(max-width:480px) {
   .courses-page--premium .courses-library-head__count { display:none; }
 }
+.courses-page--category .courses-view-back { display:inline-flex; align-items:center; gap:8px; min-height:44px; margin:0 0 12px; padding:8px 3px; border:0; border-radius:7px; color:var(--primary); background:transparent; font:inherit; font-size:13px; font-weight:600; line-height:1.4; cursor:pointer; transition:color .16s,background .16s; }
+.courses-page--category .courses-view-back:hover { color:var(--primary-deep); background:var(--surface-2); }
+.courses-page--category .courses-view-back:focus-visible { outline:2px solid var(--primary); outline-offset:3px; }
+.courses-page--category .courses-view-head { display:flex; align-items:flex-start; gap:15px; margin-bottom:20px; }
+.courses-page--category .courses-view-head > div { min-width:0; }
+.courses-page--category .courses-view-head h1 { margin:0 0 6px; font-size:clamp(24px,3vw,32px); line-height:1.2; letter-spacing:-.025em; color:var(--text); }
+.courses-page--category .courses-view-head p { margin:0; font-size:14px; line-height:1.6; color:var(--text-2); }
+.courses-page--category .courses-view-icon { display:grid; place-items:center; flex:0 0 42px; height:42px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); color:var(--primary); }
+.courses-page--category[data-course-view="completados"] .courses-view-icon { color:#27644e; background:#f0f7f3; }
+.courses-page--category[data-course-view="regalo"] .courses-view-icon { color:#87692e; background:#faf7f0; }
+.courses-page--category .courses-view-count { display:inline-block; margin-top:8px; font-size:12px; font-weight:600; color:var(--text-2); }
+.courses-page--category .courses-controls { padding-bottom:12px; }
+@media(max-width:760px) {
+  .courses-page--category .courses-view-head { gap:11px; margin-bottom:16px; }
+  .courses-page--category .courses-view-head p { font-size:13px; }
+  .courses-page--category .courses-view-icon { flex-basis:36px; height:36px; border-radius:10px; }
+  .courses-page--category .courses-controls { padding-bottom:10px; }
+}
 @media(prefers-reduced-motion:reduce) {
   .courses-page--premium *, .courses-page--premium *::before, .courses-page--premium *::after { animation:none !important; transition:none !important; scroll-behavior:auto !important; }
 }

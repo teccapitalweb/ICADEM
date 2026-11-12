@@ -27,8 +27,8 @@
 <script src="js/icadem-platform-v2.js?v=50" defer></script>
 <script src="js/icadem-course-unlocks.js?v=4" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
-<script src="js/icadem-learning-route.js?v=2" defer></script>
-<script src="js/icadem-learning-navigation.js?v=2" defer></script>
+<script src="js/icadem-learning-route.js?v=3" defer></script>
+<script src="js/icadem-learning-navigation.js?v=3" defer></script>
 <link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
@@ -5953,7 +5953,7 @@ function navigateToSection(section, opciones){
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
   document.querySelectorAll(`[data-section="${section}"]`).forEach(ni => ni.classList.add('is-active'));
-  const dockSection = section==='directorio-perfil'?'directorio':['curso-detalle','clase-detalle','ruta-aprendizaje'].includes(section) ? 'cursos' : section;
+  const dockSection = section==='directorio-perfil'?'directorio':(['curso-detalle','clase-detalle','ruta-aprendizaje'].includes(section)||section.startsWith('cursos-')) ? 'cursos' : section;
   if (dockSection !== section) {
     document.querySelectorAll(`[data-section="${dockSection}"]`).forEach(ni => ni.classList.add('is-active'));
   }
@@ -6256,7 +6256,7 @@ const Sections = (function(){
         const host = document.getElementById('dynamic-section');
         if (!host?.isConnected || document.querySelector('.learning-game') || __entradaAprendizajeActiva(host)) return;
         try {
-          if (section === 'cursos') renderCursos(host);
+          if (esRutaCursos()) renderVistaCursosActual(host);
           else if (section === 'curso-detalle') renderCursoDetalle(host);
           else if (section === 'clase-detalle') renderClaseDetalle(host);
         } catch (e) { console.warn('[ICADEM progreso] No se pudo actualizar la vista', e); }
@@ -6935,11 +6935,11 @@ const Sections = (function(){
   window.__courseCoverICADEM = (course, fallbackOnly) => String((!fallbackOnly && course.portada) || coverSVG(course.area, course.titulo)).replace(/'/g,'%27');
   document.addEventListener('icadem:course-unlocks-changed', () => {
     const host = document.getElementById('dynamic-section');
-    if (host?.isConnected && location.hash === '#cursos') renderCursos(host);
+    if (host?.isConnected && esRutaCursos()) renderVistaCursosActual(host);
   });
   document.addEventListener('icadem:course-ratings-updated', () => {
     const list = document.getElementById('cur-list');
-    if (location.hash !== '#cursos' || !list) return;
+    if (!esRutaCursos() || !list) return;
     list.querySelectorAll('[data-cid]').forEach(card => {
       const rating = card.querySelector('.curso-card__rating');
       const markup = window.ICADEMCourseRatings?.cardMarkup(String(card.dataset.cid));
@@ -6951,7 +6951,7 @@ const Sections = (function(){
       const section = String(location.hash || '').replace(/^#/,'');
       const host = document.getElementById('dynamic-section');
       if(__entradaAprendizajeActiva(host))return;
-      if (host?.isConnected && section === 'cursos') renderCursos(host);
+      if (host?.isConnected && esRutaCursos()) renderVistaCursosActual(host);
       else if (host?.isConnected && section === 'curso-detalle') renderCursoDetalle(host);
       else if (host?.isConnected && section === 'clase-detalle') renderClaseDetalle(host);
     }).catch(() => {});
@@ -7091,7 +7091,7 @@ const Sections = (function(){
     }
   };
   document.addEventListener('icadem:free-course-selected', function(){
-    if (location.hash === '#cursos') renderCursosList();
+    if (esRutaCursos()) renderCursosList();
     if (location.hash === '#curso-detalle') {
       const container = document.getElementById('dynamic-section');
       if (container) renderCursoDetalle(container);
@@ -7315,17 +7315,46 @@ const Sections = (function(){
 
   /* ============================ CURSOS ============================ */
   let cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};
-  function leerOrdenCatalogo(){
-    const orden=new URLSearchParams(location.search).get('ordenCursos');
-    return ['proximos','prioridades','nombre','progreso','recientes'].includes(orden)?orden:null;
+  const vistasCursos={
+    disponibles:{ruta:'cursos-disponibles',titulo:'Cursos disponibles',descripcion:'Explora los cursos que ya puedes comenzar',icono:'i-play',vacio:'Por ahora no tienes cursos disponibles'},
+    progreso:{ruta:'cursos-progreso',titulo:'Cursos en progreso',descripcion:'Continúa aprendiendo donde te quedaste',icono:'i-play',vacio:'Todavía no tienes cursos en progreso'},
+    completados:{ruta:'cursos-completados',titulo:'Cursos completados',descripcion:'Consulta los programas que has finalizado',icono:'i-check',vacio:'Tus cursos completados aparecerán aquí'},
+    bloqueados:{ruta:'cursos-bloqueados',titulo:'Cursos bloqueados',descripcion:'Explora los cursos que todavía no tienes disponibles',icono:'i-shield-check',vacio:'No tienes cursos bloqueados'},
+    proximamente:{ruta:'cursos-proximamente',titulo:'Próximos cursos',descripcion:'Descubre los contenidos que estarán disponibles más adelante',icono:'i-clock',vacio:'Aquí aparecerán los próximos cursos'},
+    regalo:{ruta:'cursos-regalo',titulo:'Curso de regalo',descripcion:'Consulta tu selección especial de cursos',icono:'i-gift',vacio:'Tu selección de regalo aparecerá aquí'}
+  };
+  let vistaCursosActual='todos';
+  const estadosVistasCursos=new Map();
+  function estadoRutaCursos(){return Object.keys(vistasCursos).find(estado=>location.hash==='#'+vistasCursos[estado].ruta)||'todos';}
+  function esRutaCursos(){return location.hash==='#cursos'||Object.values(vistasCursos).some(v=>location.hash==='#'+v.ruta);}
+  function renderVistaCursosActual(container){return renderCursos(container,estadoRutaCursos());}
+  document.addEventListener('icadem:session-ending',()=>{estadosVistasCursos.clear();vistaCursosActual='todos';cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};});
+  const ordenesCatalogo=['proximos','prioridades','nombre','progreso','recientes'];
+  function claveOrdenCatalogo(){
+    const uid=window.__auth?.currentUser?.uid;
+    return uid&&!window.__isDemoMode?'icadem:catalog-sort:v1:'+uid:'';
   }
-  function guardarOrdenCatalogo(orden){
+  function leerOrdenCatalogo(){
+    let preferido=null;
+    try{const clave=claveOrdenCatalogo();if(clave)preferido=localStorage.getItem(clave);}catch(_){}
+    const orden=ordenesCatalogo.includes(preferido)?preferido:new URLSearchParams(location.search).get('ordenCursos');
+    return ordenesCatalogo.includes(orden)?orden:null;
+  }
+  function guardarOrdenCatalogo(orden,actualizarURL=true){
+    if(!ordenesCatalogo.includes(orden))return;
+    try{const clave=claveOrdenCatalogo();if(clave)localStorage.setItem(clave,orden);}catch(_){}
+    if(!actualizarURL)return;
     const url=new URL(location.href);
     url.searchParams.set('ordenCursos',orden);
     history.replaceState(history.state,'',url.pathname+url.search+url.hash);
   }
+  document.addEventListener('icadem:priorities-saved',event=>{
+    if(!event.detail?.uid||event.detail.uid!==window.__auth?.currentUser?.uid||window.__sessionEnding)return;
+    cursosState.orden='prioridades';
+    guardarOrdenCatalogo('prioridades',false);
+  });
   document.addEventListener('icadem:unlocks-updated',event=>{
-    if(event.detail?.prioritiesChanged&&location.hash==='#cursos'&&cursosState.orden==='prioridades')renderCursosList();
+    if(event.detail?.prioritiesChanged&&esRutaCursos()&&cursosState.orden==='prioridades')renderCursosList();
   });
   let cursosSearchTimer=null;
   let countdownTimer=null;
@@ -7389,11 +7418,14 @@ const Sections = (function(){
     const prioridades=new Map();
     if(cursosState.orden==='prioridades') (window.ICADEMCourseUnlocks?.getPriorities?.()||[]).forEach((id,index)=>{if(!prioridades.has(id))prioridades.set(id,index);});
     return items.sort((a,b)=>{
-      if(cursosState.orden==='prioridades'){
-        const posicionA=prioridades.get(a.id)??Infinity,posicionB=prioridades.get(b.id)??Infinity;
-        if(posicionA!==posicionB)return posicionA<posicionB?-1:1;
-      }
       const ia=resumenEstadoCurso(a), ib=resumenEstadoCurso(b);
+      if(cursosState.orden==='prioridades'){
+        if(ia.desbloqueado!==ib.desbloqueado)return ia.desbloqueado?-1:1;
+        if(!ia.desbloqueado){
+          const posicionA=prioridades.get(a.id)??Infinity,posicionB=prioridades.get(b.id)??Infinity;
+          if(posicionA!==posicionB)return posicionA<posicionB?-1:1;
+        }
+      }
       if(cursosState.orden==='nombre') return String(a.titulo||'').localeCompare(String(b.titulo||''),'es',{sensitivity:'base'});
       if(cursosState.orden==='progreso') return (ib.progreso-ia.progreso)||((a.orden||0)-(b.orden||0));
       if(cursosState.orden==='recientes') return (Number(b.orden)||0)-(Number(a.orden)||0);
@@ -7406,23 +7438,31 @@ const Sections = (function(){
     return `<div class="courses-skeleton" aria-label="Cargando cursos">${Array.from({length:8},()=>`<div class="course-skeleton" aria-hidden="true"><div class="course-skeleton__cover"></div><div class="course-skeleton__body"><div class="course-skeleton__line is-short"></div><div class="course-skeleton__line is-title"></div><div class="course-skeleton__line is-copy"></div><div class="course-skeleton__line is-copy2"></div></div></div>`).join('')}</div>`;
   }
 
-  function renderCursos(container){
-    const ordenURL=leerOrdenCatalogo();
-    if(ordenURL)cursosState.orden=ordenURL;
-    const returnedState=window.ICADEMLearningNavigation?.coursesState?.();
+  function renderCursos(container,estado='todos'){
+    estado=vistasCursos[estado]?estado:'todos';
+    if(estado!==vistaCursosActual){
+      estadosVistasCursos.set(vistaCursosActual,{...cursosState});
+      cursosState={...(estadosVistasCursos.get(estado)||estadosVistasCursos.get('todos')||cursosState)};
+    }
+    vistaCursosActual=estado;
+    const vista=vistasCursos[estado],ruta=vista?.ruta||'cursos';
+    const returnedState=!vista?window.ICADEMLearningNavigation?.coursesState?.():null;
     if(returnedState)cursosState={...cursosState,estado:returnedState.estado,area:returnedState.area,nivel:returnedState.nivel,search:returnedState.search,orden:returnedState.orden};
+    cursosState.estado=estado;
+    const ordenElegido=leerOrdenCatalogo();
+    if(ordenElegido)cursosState.orden=ordenElegido;
+    guardarOrdenCatalogo(cursosState.orden);
     window.ICADEMCourseRatings?.refreshCatalog();
     const esc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const areas=[...new Set(cursos.map(c=>c.area).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
     const niveles=[...new Set(cursos.map(c=>c.nivel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
     const tieneRegalo=Boolean(primerCursoGratisId());
     container.innerHTML=`
-      <div class="fade-up courses-page--premium">
-        <header class="courses-library-head">
-          <div><span class="courses-library-head__eyebrow">Biblioteca profesional</span><h1>Mis cursos</h1><p>Encuentra tu siguiente programa, continúa donde te quedaste y consulta cuándo se habilitará nuevo contenido.</p></div>
+      <div class="fade-up courses-page--premium${vista?' courses-page--category':''}" data-course-view="${estado}">
+        ${vista?`<button type="button" class="courses-view-back" data-courses-back><svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>Volver a Mis cursos</button><header class="courses-view-head"><span class="courses-view-icon" aria-hidden="true"><svg class="ic"><use href="#${vista.icono}"/></svg></span><div><h1>${vista.titulo}</h1><p>${vista.descripcion}</p><span class="courses-view-count" id="cur-result-count" role="status">${_cursosLoaded?'':'Cargando cursos…'}</span></div></header>`:`<header class="courses-library-head">
+          <div><h1>Mis cursos</h1><p>Encuentra tu siguiente programa, continúa donde te quedaste y consulta cuándo se habilitará nuevo contenido.</p></div>
           <div class="courses-library-head__count"><strong>${cursos.length || '—'}</strong><span>programas</span></div>
-        </header>
-        <div data-course-unlocks hidden></div>
+        </header><div data-course-unlocks hidden></div>`}
         <section class="courses-controls" aria-label="Buscar y filtrar cursos">
           <div class="courses-controls__top">
             <label class="courses-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Buscar cursos</span><input id="cur-search" type="search" aria-label="Buscar cursos" value="${esc(cursosState.search)}" placeholder="Buscar un curso…" autocomplete="off"><button class="courses-search__clear" id="cur-search-clear" type="button" aria-label="Limpiar búsqueda" ${cursosState.search?'':'hidden'}>×</button></label>
@@ -7432,21 +7472,22 @@ const Sections = (function(){
               <label class="courses-select"><span>Ordenar</span><select id="cur-sort"><option value="proximos" ${cursosState.orden==='proximos'?'selected':''}>Próximos a desbloquear</option><option value="prioridades" ${cursosState.orden==='prioridades'?'selected':''}>Mi orden de prioridad</option><option value="nombre" ${cursosState.orden==='nombre'?'selected':''}>Nombre</option><option value="progreso" ${cursosState.orden==='progreso'?'selected':''}>Progreso</option><option value="recientes" ${cursosState.orden==='recientes'?'selected':''}>Más recientes</option></select></label>
             </div>
           </div>
-          <div class="courses-controls__bottom">
+          ${vista?'':`<div class="courses-controls__bottom">
             <div class="courses-status-filters" role="group" aria-label="Estado del curso">
               ${[['todos','Todos'],['disponibles','Disponibles'],['progreso','En progreso'],['completados','Completados'],['bloqueados','Bloqueados'],['proximamente','Próximamente'],...(tieneRegalo?[['regalo','Curso de regalo']]:[])].map(([valor,label])=>`<button type="button" class="courses-filter-chip ${cursosState.estado===valor?'is-active':''}" data-course-filter="${valor}" aria-pressed="${cursosState.estado===valor}">${label}</button>`).join('')}
             </div>
             <span class="courses-results-count" id="cur-result-count"></span>
-          </div>
+          </div>`}
         </section>
         <div id="cur-list"></div>
       </div>
     `;
 
-    window.ICADEMCourseUnlocks?.mount(container.querySelector('[data-course-unlocks]'));
+    if(!vista)window.ICADEMCourseUnlocks?.mount(container.querySelector('[data-course-unlocks]'));
+    else window.ICADEMCourseUnlocks?.refresh().catch(()=>{});
+    container.querySelector('[data-courses-back]')?.addEventListener('click',()=>window.ICADEMLearningNavigation?.backToCourses?.());
     container.querySelectorAll('[data-course-filter]').forEach(button=>button.addEventListener('click',()=>{
-      cursosState.estado=button.dataset.courseFilter;
-      renderCursosList();
+      navigateToSection(vistasCursos[button.dataset.courseFilter]?.ruta||'cursos');
     }));
     container.querySelector('#cur-area')?.addEventListener('change',event=>{cursosState.area=event.target.value;renderCursosList();});
     container.querySelector('#cur-level')?.addEventListener('change',event=>{cursosState.nivel=event.target.value;renderCursosList();});
@@ -7465,10 +7506,10 @@ const Sections = (function(){
     if (!_cursosLoaded) {
       const list=container.querySelector('#cur-list');
       if(list) list.innerHTML=cursosSkeleton();
-      cargarCursosFirestore().then(()=>{if(container.isConnected&&location.hash==='#cursos')renderCursos(container);});
+      cargarCursosFirestore().then(()=>{if(container.isConnected&&location.hash==='#'+ruta)renderCursos(container,estado);});
     } else {
       renderCursosList();
-      window.ICADEMLearningNavigation?.coursesReady?.(container);
+      if(!vista)window.ICADEMLearningNavigation?.coursesReady?.(container);
     }
   }
 
@@ -7478,18 +7519,20 @@ const Sections = (function(){
       const activo=button.dataset.courseFilter===cursosState.estado;
       button.classList.toggle('is-active',activo);button.setAttribute('aria-pressed',String(activo));
     });
+    const vista=vistasCursos[vistaCursosActual];
     // Empty state: si todavía no hay cursos publicados
-    if (cursos.length === 0) {
+    if (cursos.length === 0 && !vista) {
       list.innerHTML = `<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic"><use href="#i-book"/></svg></span><h3>Aún no hay cursos publicados</h3><p>Estamos preparando los primeros programas de ICADEM. En cuanto estén disponibles aparecerán en esta biblioteca.</p></div></div>`;
       document.getElementById('cur-result-count').textContent='0 cursos';
       return;
     }
     const items=ordenarCursos(cursosFiltrados().slice());
     const contador=document.getElementById('cur-result-count');
-    if(contador)contador.textContent=`${items.length} de ${cursos.length} curso${cursos.length===1?'':'s'}`;
+    if(contador)contador.textContent=vistaCursosActual==='todos'?`${items.length} de ${cursos.length} curso${cursos.length===1?'':'s'}`:`${items.length} curso${items.length===1?'':'s'}`;
     if(items.length===0){
-      list.innerHTML=`<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic"><use href="#i-search"/></svg></span><h3>No encontramos cursos</h3><p>Prueba con otro término o restablece los filtros para volver a ver todo el catálogo.</p><button type="button" data-clear-course-filters>Restablecer filtros</button></div></div>`;
-      list.querySelector('[data-clear-course-filters]')?.addEventListener('click',()=>{cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};guardarOrdenCatalogo('proximos');renderCursos(document.getElementById('dynamic-section'));});
+      const filtrado=Boolean(cursosState.search||cursosState.area!=='todas'||cursosState.nivel!=='todos');
+      list.innerHTML=`<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic" aria-hidden="true"><use href="#${!filtrado&&vista?vista.icono:'i-search'}"/></svg></span><h3>${!filtrado&&vista?vista.vacio:'No encontramos cursos'}</h3><p>${filtrado?'Prueba con otro término o restablece los filtros.':vista?'Puedes consultar las demás categorías en Mis cursos.':'Prueba con otro término o restablece los filtros para volver a ver todo el catálogo.'}</p>${filtrado?'<button type="button" data-clear-course-filters>Restablecer filtros</button>':''}</div></div>`;
+      list.querySelector('[data-clear-course-filters]')?.addEventListener('click',()=>{cursosState={...cursosState,area:'todas',nivel:'todos',search:''};renderCursos(document.getElementById('dynamic-section'),vistaCursosActual);});
       return;
     }
     const catalogoEnRespaldo = items.some(c => c.catalogPending === true);
@@ -7498,7 +7541,7 @@ const Sections = (function(){
         <div class="free-course-banner__copy"><span>Catálogo protegido</span><strong>Tus cursos siguen aquí</strong><p>Estamos recuperando la conexión con las clases. Puedes consultar todas las tarjetas; el acceso se habilitará automáticamente al terminar la sincronización.</p></div>
       </section>` : '';
     const eligiendoGratis = !catalogoEnRespaldo && !toolEsVIP() && !primerCursoGratisId() && cursos.some(c => c.marcarProximamente !== true && Array.isArray(c.sesiones) && c.sesiones.length > 1);
-    const bannerGratis = eligiendoGratis ? `<section class="free-course-banner">
+    const bannerGratis = eligiendoGratis && !vista ? `<section class="free-course-banner">
         <span class="free-course-banner__icon"><svg class="ic"><use href="#i-gift"/></svg></span>
         <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca «Elegir gratis» en el curso que más te interese. Tendrás hasta ${FREE_CLASS_COUNT} clases iniciales; la clase final permanece reservada. Solo puedes elegir uno.</p></div>
         <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
@@ -13116,6 +13159,12 @@ const Sections = (function(){
   return {
     renderers:{
       cursos:renderCursos,
+      'cursos-disponibles':container=>renderCursos(container,'disponibles'),
+      'cursos-progreso':container=>renderCursos(container,'progreso'),
+      'cursos-completados':container=>renderCursos(container,'completados'),
+      'cursos-bloqueados':container=>renderCursos(container,'bloqueados'),
+      'cursos-proximamente':container=>renderCursos(container,'proximamente'),
+      'cursos-regalo':container=>renderCursos(container,'regalo'),
       'ruta-aprendizaje':container=>window.ICADEMLearningRoute.render(container),
       'curso-detalle':renderCursoDetalle,
       'clase-detalle':renderClaseDetalle,
@@ -22389,12 +22438,12 @@ h1, h2, h3, h4{ color: var(--text); }
   .lesson-tools-bottom .lesson-outline{grid-template-columns:1fr;gap:8px}
 }
 </style>
-<script src="js/icadem-course-ratings.js?v=6"></script>
+<script src="js/icadem-course-ratings.js?v=7"></script>
 <script src="js/icadem-credit-rewards.js?v=1"></script>
 <script src="js/icadem-onboarding.js?v=23"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
-<link rel="stylesheet" href="css/icadem-courses.css?v=8">
+<link rel="stylesheet" href="css/icadem-courses.css?v=9">
 <link rel="stylesheet" href="css/icadem-live.css?v=2">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">

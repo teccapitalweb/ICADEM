@@ -1,5 +1,21 @@
 # CAMBIOS
 
+## 2026-11-11 — Mis cursos: abiertos primero y vistas por categoría
+
+- «Mi orden de prioridad» presenta primero los cursos con acceso académico, con el orden secundario existente; después, los pendientes priorizados con sus números guardados; finalmente, el resto. Los otros cuatro criterios y los permisos permanecen iguales.
+- Disponibles, En progreso, Completados, Bloqueados, Próximamente y Curso de regalo abren rutas internas `#cursos-…`, con encabezado compacto, contador y regreso a Mis cursos. Comparten catálogo, filtros, tarjetas, progreso y valoraciones. No repiten Mis desbloqueos ni las estadísticas generales.
+- El regreso conserva los filtros y desplazamiento de la biblioteca para la misma cuenta; Atrás/Adelante usa el historial existente. Se elimina únicamente «Biblioteca profesional» de Mis cursos. Sin cambios al organizador ni al backend.
+- Pruebas aisladas en Chrome a 320/360/375/390/414/768/1024/1440 px: grupos de orden, prioridades, estados, navegación, filtros, portadas, errores de guardado y concurrencia entre sesiones. Responsive y tacto emulados; capturas revisadas. La suite general conserva tres fallos preexistentes de fixtures de acceso a perfiles (`destinoVistaAdmin`), reproducidos en el commit base; no se modifica autenticación.
+- CSS del catálogo v9, navegación v3, valoraciones v7 y caché v158. La estrategia de caché de Ciudad permanece intacta; su prueba admite versiones posteriores de caché.
+- Reversión: revertir el commit de esta tarea, incrementar otra vez la versión del Service Worker y publicar Pages. No hay migraciones ni modificaciones de datos que revertir.
+
+## 2026-11-11 — Guardar prioridades activa su orden al regresar al catálogo
+
+- Una confirmación correcta del PUT de prioridades activa «Mi orden de prioridad» para Mis cursos. Al volver se conserva el resto de los filtros y el catálogo grande utiliza el orden confirmado, en lugar del criterio previo al organizador. Un guardado fallido no activa esta preferencia.
+- La elección manual de otro criterio se conserva al navegar por el menú y recargar. Se guarda solo el nombre del criterio por cuenta; las prioridades permanecen exclusivamente en el backend. Sin cambios al algoritmo de «Próximos a desbloquear», accesos, diseño o portadas.
+- Diagnóstico de sesión: Firebase está configurado con persistencia local; el panel redirige al acceso si Firebase devuelve un usuario nulo. La pérdida de la sesión de Britney en la prueba anterior no pudo atribuirse a una causa concreta: la sesión actualmente conectada es administrativa. No se modificó autenticación ni se considera verificada la recarga de esa cuenta real.
+- Pruebas aisladas en Chrome a 390/1440 px: guardar desde otro criterio, volver, tarjetas grandes, recarga, menú, elección manual, error y aislamiento de cuenta. Caché v157.
+
 ## 2026-11-11 — Conservar el orden elegido del catálogo principal al recargar
 
 - Se confirmó en la sesión abierta que seleccionar «Mi orden de prioridad» y recargar devolvía el selector a «Próximos a desbloquear». El catálogo principal conserva ahora el criterio elegido en el parámetro de interfaz `ordenCursos`; las prioridades siguen obteniéndose exclusivamente del backend.

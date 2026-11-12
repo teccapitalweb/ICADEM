@@ -122,7 +122,9 @@ test('the actual catalog listener updates only rating markup and retains cards, 
   const panel = fs.readFileSync(__dirname + '/../vip-panel.html', 'utf8');
   const start = panel.indexOf("  document.addEventListener('icadem:course-ratings-updated',");
   const end = panel.indexOf("  document.addEventListener('icadem:identity-ready',", start);
-  assert.ok(start > 0 && end > start); app.run(panel.slice(start, end));
+  assert.ok(start > 0 && end > start);
+  app.run(panel.slice(panel.indexOf('  const vistasCursos='),panel.indexOf('  function renderVistaCursosActual(')));
+  app.run(panel.slice(start, end));
   app.window.ICADEMCourseRatings.refreshCatalog(true); await flush();
   app.pending(batchPath).respond(snapshot(3, 4.33, 5)); await flush();
   assert.match(markup, /4\.3 \(3 valoraciones\)/); assert.match(markup, /Tu valoración: 5\/5/);
