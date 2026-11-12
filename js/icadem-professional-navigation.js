@@ -77,6 +77,13 @@
     if(DIRECTORY_VIEWS.includes(activeSection)&&(section===SECTION||DIRECTORY_VIEWS.includes(section)&&section!==activeSection))capture();
     if(activeSection==='foro'&&section===SECTION)captureForum();
     var url=new URL(location.href),state=Object.assign({},history.state||{}),previous=activeSection;
+    if(section==='foro'){
+      if(options.notificationPost&&/^[A-Za-z0-9_-]{1,180}$/.test(options.notificationPost)){
+        url.searchParams.set('publicacion',options.notificationPost);
+        if(options.notificationComment&&/^[A-Za-z0-9_-]{1,180}$/.test(options.notificationComment))url.searchParams.set('comentario',options.notificationComment);
+        else url.searchParams.delete('comentario');
+      }
+    }else{url.searchParams.delete('publicacion');url.searchParams.delete('comentario');}
     if(section===SECTION){
       var uid=options.profileUid===undefined?currentProfileId():options.profileUid;
       // Invalid identifiers remain an explicit error view; never guess a user.

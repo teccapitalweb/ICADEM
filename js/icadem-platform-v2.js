@@ -440,10 +440,10 @@
     return request(`/api/forum/posts/${encodeURIComponent(id)}/delete`, { method: 'POST', body: {} });
   }
 
-  async function toggleForumLike(postId) {
+  async function toggleForumLike(postId, liked) {
     const id = String(postId || '').trim();
     if (!id) throw new Error('Publicación inválida.');
-    return request(`/api/forum/posts/${encodeURIComponent(id)}/like`, { method: 'POST', body: {} });
+    return request(`/api/forum/posts/${encodeURIComponent(id)}/like`, { method: 'POST', body: typeof liked==='boolean'?{liked}:{} });
   }
 
   async function createForumPost(post) {
@@ -461,7 +461,7 @@
     if (!id) throw new Error('Publicación inválida.');
     return request(`/api/forum/posts/${encodeURIComponent(id)}/comments`, {
       method: 'POST',
-      body: { texto: String(comment?.texto || '').trim() }
+      body: { texto: String(comment?.texto || '').trim(), requestId:comment?.requestId || crypto.randomUUID() }
     });
   }
 
