@@ -456,6 +456,7 @@
   }
   function paintProfile(node,profile){
     node.innerHTML=profileMarkup(profile);wire(node);
+    window.ICADEMProfessionalNetwork?.mountSummary(node.querySelector('[data-profile-network-slot]'),profile);
     node.querySelector('[data-profile-activity]')?.addEventListener('click',function(){window.ICADEMProfessionalNavigation?.openActivity(profile.uid);});
     node.querySelector('[data-edit-cv]')?.addEventListener('click',function(){window.ICADEMProfessionalNavigation?.openEditor('basicos');});
     node.querySelector('[data-edit-card]')?.addEventListener('click',openCardEditor);
@@ -624,7 +625,7 @@
     if (text) {
       text.setAttribute(
         "aria-label",
-        "Escribe una publicación para el Foro VIP",
+        "Escribe una publicación para Comunidad ICADEM",
       );
       text.addEventListener("input", function () {
         forumState(container);

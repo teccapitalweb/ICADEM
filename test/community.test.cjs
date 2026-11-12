@@ -72,6 +72,7 @@ test("the existing forum publisher retains a failed draft and confirms success o
     },
     container = { querySelector: (s) => nodes[s] },
     ctx = {
+      crypto:require('node:crypto').webcrypto,
       window: {
         ICADEMPlatform: { createForumPost: () => api },
         ICADEMCommunity: { forumState: () => events.push("state") },

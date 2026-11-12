@@ -915,9 +915,9 @@ function destinoSeguro(isAdmin) {
     try {
       const parsed = new URL(requested, window.location.origin);
       const profileId = parsed.searchParams.get('profesional');
-      const profileIntent = ['#directorio-perfil','#directorio-actividad'].includes(parsed.hash) || parsed.searchParams.has('profesional');
-      if (profileIntent && parsed.origin === window.location.origin && !parsed.username && !parsed.password && parsed.pathname === '/vip-panel.html' && ['#directorio-perfil','#directorio-actividad'].includes(parsed.hash) && /^[A-Za-z0-9_-]{1,128}$/.test(profileId || '')) {
-        return 'vip-panel.html?profesional=' + encodeURIComponent(profileId) + parsed.hash;
+      const profileIntent = ['#directorio-perfil','#directorio-actividad','#directorio-red'].includes(parsed.hash) || parsed.searchParams.has('profesional');
+      if (profileIntent && parsed.origin === window.location.origin && !parsed.username && !parsed.password && parsed.pathname === '/vip-panel.html' && ['#directorio-perfil','#directorio-actividad','#directorio-red'].includes(parsed.hash) && /^[A-Za-z0-9_-]{1,128}$/.test(profileId || '')) {
+        return 'vip-panel.html?profesional=' + encodeURIComponent(profileId) + (parsed.hash==='#directorio-red'?'&red='+(parsed.searchParams.get('red')==='mutual'?'mutual':'connections'):'') + parsed.hash;
       }
       if (!isAdmin && !profileIntent && parsed.origin === window.location.origin && /\/(vip-panel|curso|clase)[^/]*\.html$/i.test(parsed.pathname)) {
         return parsed.pathname.replace(/^\//,'') + parsed.search + parsed.hash;
