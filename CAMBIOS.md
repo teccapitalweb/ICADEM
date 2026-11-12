@@ -1,5 +1,11 @@
 # CAMBIOS
 
+## 2026-11-11 — Conservar el orden elegido del catálogo principal al recargar
+
+- Se confirmó en la sesión abierta que seleccionar «Mi orden de prioridad» y recargar devolvía el selector a «Próximos a desbloquear». El catálogo principal conserva ahora el criterio elegido en el parámetro de interfaz `ordenCursos`; las prioridades siguen obteniéndose exclusivamente del backend.
+- No cambia el comparador estándar, los filtros, permisos, portadas ni Mi ruta de aprendizaje. La prueba de recarga verifica el selector sin volver a seleccionarlo y las cinco primeras tarjetas grandes contra las prioridades guardadas.
+- Verificación en Chrome con datos aislados de varias prioridades, a 390/768/1440 px; sesión real conectada usada para reproducir la pérdida del criterio. Caché v156.
+
 ## 2026-11-11 — Revisión final de acciones y prioridades de Mis cursos
 
 - Se conserva el diseño actual del catálogo y Mi ruta de aprendizaje. El orden por prioridades y la sincronización confirmada funcionan correctamente; cambiar filtros u ordenamiento no escribe prioridades.

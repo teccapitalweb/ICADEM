@@ -7315,6 +7315,15 @@ const Sections = (function(){
 
   /* ============================ CURSOS ============================ */
   let cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};
+  function leerOrdenCatalogo(){
+    const orden=new URLSearchParams(location.search).get('ordenCursos');
+    return ['proximos','prioridades','nombre','progreso','recientes'].includes(orden)?orden:null;
+  }
+  function guardarOrdenCatalogo(orden){
+    const url=new URL(location.href);
+    url.searchParams.set('ordenCursos',orden);
+    history.replaceState(history.state,'',url.pathname+url.search+url.hash);
+  }
   document.addEventListener('icadem:unlocks-updated',event=>{
     if(event.detail?.prioritiesChanged&&location.hash==='#cursos'&&cursosState.orden==='prioridades')renderCursosList();
   });
@@ -7398,6 +7407,8 @@ const Sections = (function(){
   }
 
   function renderCursos(container){
+    const ordenURL=leerOrdenCatalogo();
+    if(ordenURL)cursosState.orden=ordenURL;
     const returnedState=window.ICADEMLearningNavigation?.coursesState?.();
     if(returnedState)cursosState={...cursosState,estado:returnedState.estado,area:returnedState.area,nivel:returnedState.nivel,search:returnedState.search,orden:returnedState.orden};
     window.ICADEMCourseRatings?.refreshCatalog();
@@ -7439,7 +7450,7 @@ const Sections = (function(){
     }));
     container.querySelector('#cur-area')?.addEventListener('change',event=>{cursosState.area=event.target.value;renderCursosList();});
     container.querySelector('#cur-level')?.addEventListener('change',event=>{cursosState.nivel=event.target.value;renderCursosList();});
-    container.querySelector('#cur-sort')?.addEventListener('change',event=>{cursosState.orden=event.target.value;renderCursosList();});
+    container.querySelector('#cur-sort')?.addEventListener('change',event=>{cursosState.orden=event.target.value;guardarOrdenCatalogo(cursosState.orden);renderCursosList();});
     const search=container.querySelector('#cur-search');
     const clear=container.querySelector('#cur-search-clear');
     search?.addEventListener('input',()=>{
@@ -7478,7 +7489,7 @@ const Sections = (function(){
     if(contador)contador.textContent=`${items.length} de ${cursos.length} curso${cursos.length===1?'':'s'}`;
     if(items.length===0){
       list.innerHTML=`<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic"><use href="#i-search"/></svg></span><h3>No encontramos cursos</h3><p>Prueba con otro término o restablece los filtros para volver a ver todo el catálogo.</p><button type="button" data-clear-course-filters>Restablecer filtros</button></div></div>`;
-      list.querySelector('[data-clear-course-filters]')?.addEventListener('click',()=>{cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};renderCursos(document.getElementById('dynamic-section'));});
+      list.querySelector('[data-clear-course-filters]')?.addEventListener('click',()=>{cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};guardarOrdenCatalogo('proximos');renderCursos(document.getElementById('dynamic-section'));});
       return;
     }
     const catalogoEnRespaldo = items.some(c => c.catalogPending === true);
