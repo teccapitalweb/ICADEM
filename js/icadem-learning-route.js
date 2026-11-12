@@ -41,8 +41,9 @@
   function goBack() { if (window.__backToCoursesFromRoute) window.__backToCoursesFromRoute(); else window.navigateToSection?.('cursos'); }
   function shell() {
     if (!view?.isConnected) return;
-    view.innerHTML = `<div class="learning-route" data-learning-route><button class="lr-back" type="button" data-route-back>${icon('back')}<span>Volver a Mis cursos</span></button><header class="lr-header"><div><span class="lr-eyebrow">TU APRENDIZAJE, A TU RITMO</span><h1>Mi ruta de aprendizaje</h1><p>Organiza los cursos que quieres estudiar después.</p></div><span class="lr-assurance">${icon('lock')}Organizar no consume desbloqueos</span></header><div data-route-body></div><span class="lr-sr-only" data-route-live role="status" aria-live="polite" aria-atomic="true"></span></div>`;
+    view.innerHTML = `<div class="learning-route" data-learning-route><button class="lr-back" type="button" data-route-back>${icon('back')}<span>Volver a Mis cursos</span></button><header class="lr-header"><div><span class="lr-eyebrow">TU APRENDIZAJE, A TU RITMO</span><h1>Mi ruta de aprendizaje</h1><p>Organiza los cursos que quieres estudiar después.</p></div><span class="lr-assurance">${icon('lock')}Organizar no consume desbloqueos</span></header><p class="courses-sync-status" data-course-sync role="status" hidden></p><div data-route-body></div><span class="lr-sr-only" data-route-live role="status" aria-live="polite" aria-atomic="true"></span></div>`;
     view.querySelector('[data-route-back]').addEventListener('click',goBack);
+    window.ICADEMCourseSync?.paint();
   }
   function paintStatus() {
     const body = view?.querySelector('[data-route-body]'); if (!body) return;
@@ -282,6 +283,18 @@
     if (view?.isConnected) view.replaceChildren(); view = null;
   }
   document.addEventListener('click',event => { if (!event.target.closest?.('.lr-menu-wrap')) closeMenus(false); });
+  document.addEventListener('icadem:unlocks-updated',() => {
+    if (!view?.isConnected || location.hash !== '#ruta-aprendizaje' || state.status !== 'ready' || state.busy || !current(scope()) || state.uid !== uid()) return;
+    const latest = window.ICADEMCourseUnlocks?.getSummary?.();
+    if (!Number.isSafeInteger(latest?.revision) || latest.revision <= state.data?.revision) return;
+    if (isDirty()) {
+      state.conflict = true; state.saved = false;
+      state.error = 'Tu lista cambió en otra sesión. Conservamos tu borrador; revisa la lista actual antes de guardar.';
+      paintSave(); announce(state.error); return;
+    }
+    state.data = latest; state.order = [...(latest.priorities || [])]; state.base = [...state.order]; state.saved = false;
+    paintCatalog(); paintList(); announce('Lista actualizada desde tu cuenta.');
+  });
   window.addEventListener('icadem:navigation',event => { if (event.detail?.section !== 'ruta-aprendizaje') { releaseDrag(); closeMenus(false); keyboardId = ''; } });
   document.addEventListener('icadem:session-ending',reset); document.addEventListener('icadem:session-ended',reset); document.addEventListener('icadem:user-ready',reset);
   window.addEventListener('beforeunload',event => { if (isDirty() || isBusy()) { event.preventDefault(); event.returnValue = ''; } });

@@ -242,7 +242,7 @@
     state.providerIds = profile.providerIds || [];
     state.customName = profile.customName || state.customName || '';
     state.profileComplete = profile.profileComplete === true;
-    state.freeCourseId = profile.freeCourseId || state.freeCourseId || '';
+    state.freeCourseId = typeof profile.freeCourseId === 'string' ? profile.freeCourseId : '';
     state.freeCourseOfferSeen = profile.freeCourseOfferSeen === true;
     state.profileIntakeSeen = profile.profileIntakeSeen === true || state.profileIntakeSeen === true;
     state.hasWhatsapp = profile.hasWhatsapp === true;
@@ -2571,14 +2571,21 @@
   function refreshCriticalData() {
     const scope = platformSession();
     if (window.__isDemoMode || !currentPlatformSession(scope) || document.visibilityState === 'hidden' || window.navigator?.onLine === false) return Promise.resolve(null);
-    if (criticalRefreshPromise && currentPlatformSession(criticalRefreshPromise.scope)) return criticalRefreshPromise.promise;
+    if (criticalRefreshPromise && currentPlatformSession(criticalRefreshPromise.scope)) {
+      if (window.ICADEMCourseSync?.active() && !criticalRefreshPromise.academic) return criticalRefreshPromise.promise.then(() => refreshCriticalData());
+      return criticalRefreshPromise.promise;
+    }
     lastCriticalRefresh = Date.now();
-    const entry = { scope };
+    const entry = { scope, academic:window.ICADEMCourseSync?.active() === true };
     entry.promise = Promise.allSettled([
       syncIdentity(true, { progress: false }),
       loadLearningProgress(true),
-      loadCreditWallet(true)
-    ]).finally(() => { if (criticalRefreshPromise === entry) criticalRefreshPromise = null; });
+      loadCreditWallet(true),
+      window.ICADEMCourseSync?.refresh()
+    ]).then(results => {
+      if (currentPlatformSession(scope) && entry.academic) window.ICADEMCourseSync?.settled(results[0],results[1],results[3]);
+      return results;
+    }).finally(() => { if (criticalRefreshPromise === entry) criticalRefreshPromise = null; });
     criticalRefreshPromise = entry;
     return entry.promise;
   }
@@ -2606,7 +2613,7 @@
   window.ICADEMPlatform = {
     request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadCourseCatalog, loadLibrary, redeemBook, loadMaterials, redeemMaterial, selectFreeCourse, markFreeCourseOfferSeen, claimExperience, markMembershipWelcomeSeen,
     createForumPost, deleteForumPost, toggleForumLike, createForumComment, deleteForumComment, mountRanking,
-    loadLearningProgress,
+    loadLearningProgress, refreshCriticalData,
     loadCreditWallet, openCreditWallet, applyDemoCreditMovement, syncCreditSnapshot,
     saveProfile, markProfileIntakeSeen, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, openProPicker, mountRetosStatus
   };

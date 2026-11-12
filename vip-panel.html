@@ -24,11 +24,12 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=11">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=50" defer></script>
-<script src="js/icadem-course-unlocks.js?v=4" defer></script>
+<script src="js/icadem-platform-v2.js?v=51" defer></script>
+<script src="js/icadem-course-unlocks.js?v=5" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
-<script src="js/icadem-learning-route.js?v=3" defer></script>
+<script src="js/icadem-learning-route.js?v=4" defer></script>
 <script src="js/icadem-learning-navigation.js?v=3" defer></script>
+<script src="js/icadem-course-sync.js?v=1" defer></script>
 <link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
@@ -4066,17 +4067,17 @@ body.has-fomo .main{padding-top:18px}
 @media(prefers-reduced-motion:reduce){.courses-page--premium .curso-card,.courses-page--premium .curso-card__cover>img,.courses-page--premium .curso-card__progress-fill,.courses-filter-chip{transition:none}.course-skeleton__cover,.course-skeleton__line{animation:none}}
 </style>
 <link rel="stylesheet" href="css/icadem-support-premium.css?v=2">
-<link rel="stylesheet" href="css/icadem-directory.css?v=2">
+<link rel="stylesheet" href="css/icadem-directory.css?v=3">
 <script src="js/icadem-directory.js?v=2"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=3">
 <link rel="stylesheet" href="css/icadem-resume-editor.css?v=3">
-<script src="js/icadem-professional-navigation.js?v=4"></script>
+<script src="js/icadem-professional-navigation.js?v=5"></script>
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
 <script src="js/icadem-professional-profile.js?v=4"></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
-<script src="js/icadem-community.js?v=7"></script>
+<script src="js/icadem-community.js?v=8"></script>
 <script src="js/icadem-notifications.js?v=2" defer></script>
 </head>
 <body style="visibility:hidden">
@@ -5953,7 +5954,7 @@ function navigateToSection(section, opciones){
 
   document.querySelectorAll('.nav-item, .mobile-nav__item, .mobile-drawer__item').forEach(n=>n.classList.remove('is-active'));
   document.querySelectorAll(`[data-section="${section}"]`).forEach(ni => ni.classList.add('is-active'));
-  const dockSection = section==='directorio-perfil'?'directorio':(['curso-detalle','clase-detalle','ruta-aprendizaje'].includes(section)||section.startsWith('cursos-')) ? 'cursos' : section;
+  const dockSection = section.startsWith('directorio-')?'directorio':(['curso-detalle','clase-detalle','ruta-aprendizaje'].includes(section)||section.startsWith('cursos-')) ? 'cursos' : section;
   if (dockSection !== section) {
     document.querySelectorAll(`[data-section="${dockSection}"]`).forEach(ni => ni.classList.add('is-active'));
   }
@@ -5973,7 +5974,7 @@ function navigateToSection(section, opciones){
   if(Sections.countdownTimer){clearInterval(Sections.countdownTimer);Sections.countdownTimer=null;}
   // Limpiar listeners del foro al salir de la sección
   if(section!=='foro' && typeof window.__foroCleanup==='function'){ window.__foroCleanup(); }
-  if(!['directorio','directorio-perfil'].includes(section) && typeof window.__dirCleanup==='function'){ window.__dirCleanup(); }
+  if(section!=='directorio'&&!section.startsWith('directorio-') && typeof window.__dirCleanup==='function'){ window.__dirCleanup(); }
   // Destruir el Embedded Checkout de Stripe al salir de Suscripción
   // (evita el error "multiple Embedded Checkout objects" al regresar)
   if(section!=='suscripcion' && window.__icademCheckout){
@@ -6054,6 +6055,14 @@ const Sections = (function(){
   let _cursosLoaded = false;
   let _cursosLoading = false;
   let _cursosLoadPromise = null;
+  let _cursosGeneration = 0, _cursosConfirmed = false;
+  const cuentaCatalogo = () => window.__isDemoMode ? 'demo' : window.__auth?.currentUser?.uid || '';
+  function resetCatalogoCuenta(){
+    _cursosGeneration++; _cursosConfirmed=false; _cursosLoaded=false; _cursosLoading=false; _cursosLoadPromise=null; cursos=[];
+  }
+  document.addEventListener('icadem:session-ending',resetCatalogoCuenta);
+  document.addEventListener('icadem:session-ended',resetCatalogoCuenta);
+  document.addEventListener('icadem:user-ready',resetCatalogoCuenta);
 
   // ─── Lógica de desbloqueo progresivo (copiada de Sinergia) ───
   // Un curso se desbloquea cada 6 días desde fechaAlta del miembro
@@ -6856,14 +6865,18 @@ const Sections = (function(){
   }
 
   async function cargarCursosFirestore(force){
+    const ticket={generation:_cursosGeneration,uid:cuentaCatalogo()};
+    const vigente=()=>ticket.generation===_cursosGeneration&&ticket.uid===cuentaCatalogo()&&!window.__sessionEnding;
     if (_cursosLoadPromise) {
       await _cursosLoadPromise;
+      if(!vigente())return cursos;
       return force ? cargarCursosFirestore(true) : cursos;
     }
     if (_cursosLoaded && !force) return cursos;
     _cursosLoading = true;
-    _cursosLoadPromise = (async () => { try {
+    const flight = (async () => { try {
       const payload = await pedirCatalogoCursos();
+      if(!vigente())return;
       if (!payload?.ok || !Array.isArray(payload.courses)) throw new Error('Respuesta de catálogo inválida');
       window.__icademDefaultPreviewCourseId = String(payload.viewer?.defaultPreviewCourseId || '');
       if (window.__isDemoMode && window.__icademDefaultPreviewCourseId) {
@@ -6909,17 +6922,21 @@ const Sections = (function(){
         _ce('bn-stat-retos', 3);
       } catch(_e){}
       _cursosLoaded = true;
+      _cursosConfirmed = true;
       actualizarInicioAprendizaje();
     } catch (e) {
+      if(!vigente())return;
+      _cursosConfirmed = false;
       console.warn('No se pudo cargar el catálogo seguro:', e.message);
       if (!_cursosLoaded || !cursos.length) cursos = catalogoCursosPublicoDeRespaldo();
       _cursosLoaded = true;
       actualizarInicioAprendizaje();
     } finally {
-      _cursosLoading = false;
+      if(vigente())_cursosLoading = false;
     } })();
-    try { await _cursosLoadPromise; }
-    finally { _cursosLoadPromise = null; }
+    _cursosLoadPromise=flight;
+    try { await flight; }
+    finally { if(_cursosLoadPromise===flight)_cursosLoadPromise = null; }
     return cursos;
   }
   window.__cargarCursosFirestore = cargarCursosFirestore;
@@ -6927,6 +6944,20 @@ const Sections = (function(){
     await cargarCursosFirestore(true);
     actualizarInicioAprendizaje();
     return cursos;
+  };
+  window.__refreshAcademicCourseCatalog = async function(){
+    const generation=_cursosGeneration,uid=cuentaCatalogo(),before=JSON.stringify(cursos);
+    await cargarCursosFirestore(true);
+    if(generation!==_cursosGeneration||uid!==cuentaCatalogo()||window.__sessionEnding)return null;
+    if(!_cursosConfirmed)throw new Error('No pudimos confirmar el catálogo actual.');
+    if(before!==JSON.stringify(cursos)&&esRutaCursos()){
+      const active=document.activeElement,card=active?.closest?.('.curso-card'),id=card?.dataset.cid;
+      const action=['data-course-details','data-unlock-organize-course','data-unlock-select-course','data-unlock-add-course'].find(attr=>active?.hasAttribute?.(attr));
+      renderCursosList();
+      const count=document.querySelector('.courses-library-head__count strong');if(count)count.textContent=String(cursos.length);
+      if(id&&action){const next=Array.from(document.querySelectorAll('.curso-card')).find(node=>node.dataset.cid===id);next?.querySelector('['+action+']')?.focus({preventScroll:true});}
+    }
+    return true;
   };
   window.__getCourseUnlockCatalog = async function(){
     await cargarCursosFirestore();
@@ -7460,7 +7491,7 @@ const Sections = (function(){
     container.innerHTML=`
       <div class="fade-up courses-page--premium${vista?' courses-page--category':''}" data-course-view="${estado}">
         ${vista?`<button type="button" class="courses-view-back" data-courses-back><svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>Volver a Mis cursos</button><header class="courses-view-head"><span class="courses-view-icon" aria-hidden="true"><svg class="ic"><use href="#${vista.icono}"/></svg></span><div><h1>${vista.titulo}</h1><p>${vista.descripcion}</p><span class="courses-view-count" id="cur-result-count" role="status">${_cursosLoaded?'':'Cargando cursos…'}</span></div></header>`:`<header class="courses-library-head">
-          <div><h1>Mis cursos</h1><p>Encuentra tu siguiente programa, continúa donde te quedaste y consulta cuándo se habilitará nuevo contenido.</p></div>
+          <div><h1>Mis cursos</h1></div>
           <div class="courses-library-head__count"><strong>${cursos.length || '—'}</strong><span>programas</span></div>
         </header><div data-course-unlocks hidden></div>`}
         <section class="courses-controls" aria-label="Buscar y filtrar cursos">
@@ -7479,6 +7510,7 @@ const Sections = (function(){
             <span class="courses-results-count" id="cur-result-count"></span>
           </div>`}
         </section>
+        <p class="courses-sync-status" data-course-sync role="status" hidden></p>
         <div id="cur-list"></div>
       </div>
     `;
@@ -7511,6 +7543,7 @@ const Sections = (function(){
       renderCursosList();
       if(!vista)window.ICADEMLearningNavigation?.coursesReady?.(container);
     }
+    window.ICADEMCourseSync?.paint();
   }
 
   function renderCursosList(){
@@ -11365,7 +11398,8 @@ const Sections = (function(){
   // ═══════════════════════════════════════════════════════════════
   const SECTORES = ['Fiscal y Contable','Nómina y RH','Legal y Corporativo','Finanzas','Consultoría de Negocios','Marketing y Ventas','Tecnología','Educación','Otro'];
   let _dirUnsub = null;
-  window.__dirCleanup = function(){ window.ICADEMCommunity?.cleanup(); try{ if(typeof _dirUnsub==='function'){ _dirUnsub(); _dirUnsub=null; } }catch(e){} };
+  let _dirGeneration=0,_dirRead=0;
+  window.__dirCleanup = function(){ _dirGeneration++; window.ICADEMCommunity?.cleanup(); try{ if(typeof _dirUnsub==='function'){ _dirUnsub(); _dirUnsub=null; } }catch(e){} };
   window.__dirEditar = function(section){ return dirEditarMiTarjeta(section); };
   let _dirCards = [];
   let _dirFiltroSector = 'todos';
@@ -11373,45 +11407,8 @@ const Sections = (function(){
   let _dirBusqueda = '';
   let _dirFotoTmp = undefined; // undefined=sin cambio, null=quitar, string=nueva
   let _dirCanViewContacts = false;
-  const DIR_SAFE_CACHE_KEY = 'icadem:directory-public-cache:v1';
-  const DIR_SAFE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-
-  function dirTarjetaCacheSegura(card){
-    const foto = String(card?.foto || '');
-    const fotoSegura = /^(?:https:\/\/|assets\/|\.\/|\/)/i.test(foto) ? foto : '';
-    return {
-      uid:card?.uid || card?.id || '', id:card?.uid || card?.id || '',
-      nombre:card?.nombre || 'Miembro ICADEM', foto:fotoSegura,
-      fotoOrigen:card?.fotoOrigen || '', iniciales:card?.iniciales || '',
-      profesion:card?.profesion || '', especialidad:card?.especialidad || '',
-      puesto:card?.puesto || '', empresa:card?.empresa || '',
-      institucion:card?.institucion || '', ubicacion:card?.ubicacion || '',
-      bio:card?.bio || '', sector:card?.sector || '',
-      intereses:Array.isArray(card?.intereses) ? card.intereses.slice(0,12) : [],
-      isVip:card?.isVip === true, plan:card?.plan || null,
-      portadaColorPersonalizado:card?.portadaColorPersonalizado === true,
-      portadaColor:card?.portadaColor || '#173b56',
-      portadaUrl:/^(?:https:\/\/|assets\/|\.\/|\/)/i.test(String(card?.portadaUrl || '')) ? card.portadaUrl : '',
-      verificado:card?.verificado === true, perfilCompleto:card?.perfilCompleto === true,
-      visible:card?.visible !== false, contactLocked:card?.hasPublicContact === true,
-      hasPublicContact:card?.hasPublicContact === true,
-      whatsapp:'', email:'', linkedin:'', instagram:'', web:''
-    };
-  }
-  function dirGuardarCacheSeguro(items){
-    try {
-      const tarjetas = (items || []).slice(0,100).map(dirTarjetaCacheSegura).filter(card=>card.uid && card.visible!==false);
-      localStorage.setItem(DIR_SAFE_CACHE_KEY, JSON.stringify({ at:Date.now(), items:tarjetas }));
-    } catch(e) { console.warn('[directorio cache]', e.message); }
-  }
-  function dirLeerCacheSeguro(){
-    try {
-      const cached = JSON.parse(localStorage.getItem(DIR_SAFE_CACHE_KEY) || 'null');
-      if (!cached?.at || Date.now()-cached.at > DIR_SAFE_CACHE_TTL_MS || !Array.isArray(cached.items)) return [];
-      return cached.items.map(dirTarjetaCacheSegura).filter(card=>card.uid && card.visible!==false);
-    } catch(e) { return []; }
-  }
-
+  const dirCuenta=()=>window.__auth?window.__auth.currentUser?.uid||'':window.UserState?.uid||'';
+  document.addEventListener('icadem:session-ending',()=>{window.__dirCleanup();_dirCards=[];_dirCanViewContacts=false;_dirBusqueda='';_dirFiltroSector='todos';_dirFiltroTier='todos';});
   // Instagram: acepta @usuario o la URL del perfil; siempre abre el perfil.
   function dirInstagramPerfil(value){
     const raw = String(value || '').trim();
@@ -11595,25 +11592,28 @@ const Sections = (function(){
     return String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
   }
 
-  function renderDirectorio(container){
+  function renderDirectorio(container,vista='directory'){
+    const vistas={requests:{titulo:'Solicitudes de conexión',icono:'i-users'},connections:{titulo:'Mis conexiones',icono:'i-users'},vip:{titulo:'Profesionales VIP',icono:'i-crown'}};
+    const especifica=vistas[vista];
+    _dirGeneration++;_dirCards=[];_dirCanViewContacts=false;
     const puedeEditar = window.UserState?.modo!=='invitado' && !!window.UserState?.uid;
     const restored=window.ICADEMProfessionalNavigation?.directoryState();
     _dirFiltroSector = restored?.sector || 'todos';
-    _dirFiltroTier = restored?.tier || 'todos';
+    _dirFiltroTier = vista==='vip'?'vip':'todos';
     _dirBusqueda = dirNormalizarBusqueda(restored?.search || '');
     container.innerHTML = `
-      <div class="fade-up directory-page directory-premium" data-directory-refined>
-        <header class="network-heading"><div><span class="network-eyebrow">PERSONAS QUE SUMAN</span><h1>Directorio profesional</h1><p>Conecta con la comunidad ICADEM y descubre la experiencia detrás de cada perfil.</p></div><span class="network-heading__icon" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span></header>
+      <div class="fade-up directory-page directory-premium${especifica?' directory-view':''}" data-directory-refined data-directory-view="${vista}">
+        ${especifica?`<button class="network-back" type="button" data-directory-back><svg class="ic" aria-hidden="true"><use href="#i-arrow-left"/></svg>Volver al Directorio</button><header class="network-view-heading"><span class="network-view-icon" aria-hidden="true"><svg class="ic"><use href="#${especifica.icono}"/></svg></span><div><h1>${especifica.titulo}</h1><span class="network-view-count" data-network-view-count role="status">Cargando…</span></div></header>`:`<header class="network-heading"><div><h1>Directorio profesional</h1></div><span class="network-heading__icon" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span></header>
         <section class="network-summary" aria-label="Comunidad ICADEM">
-          <div class="network-summary__intro"><span class="network-summary__symbol" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div><strong>Tu próxima conexión<br>puede empezar aquí.</strong><span>Una comunidad, distintas especialidades.</span></div></div>
+          <div class="network-summary__intro"><span class="network-summary__symbol" aria-hidden="true"><svg class="ic"><use href="#i-users"/></svg></span><div><strong>Tu próxima conexión puede empezar aquí.</strong></div></div>
           <div class="network-summary__numbers" aria-label="Resumen del directorio"><div><strong id="dir-vip-summary">—</strong><span><svg class="ic" aria-hidden="true"><use href="#i-crown"/></svg>Membresías VIP</span></div><div><strong id="dir-member-summary">—</strong><span>Miembros</span></div></div>
           ${puedeEditar?`<div class="network-self-actions"><button type="button" class="network-edit" id="dir-mi-perfil"><svg class="ic" aria-hidden="true"><use href="#i-user"/></svg><span>Ver mi perfil</span><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button><button type="button" class="network-edit network-self-edit" id="dir-mi-tarjeta"><svg class="ic" aria-hidden="true"><use href="#i-edit"/></svg><span>Editar mi tarjeta</span></button></div>`:''}
-        </section>
-        <section class="network-filters" aria-label="Buscar profesionales">
+        </section>`}
+        <section class="network-filters" aria-label="Buscar profesionales" ${['requests','connections'].includes(vista)?'hidden':''}>
           <div class="network-filters__fields"><label class="network-search"><svg class="ic" aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">Buscar por nombre, empresa o puesto</span><input id="dir-search-input" type="search" aria-label="Buscar por nombre, empresa o puesto" placeholder="Nombre, empresa o puesto…" autocomplete="off" disabled><button type="button" id="dir-search-clear" aria-label="Limpiar búsqueda" hidden>×</button></label><label class="network-sector"><span>Especialidad</span><select id="dir-sector-select" disabled><option value="todos">Todas las especialidades</option>${SECTORES.map(sector=>`<option value="${sector}">${sector}</option>`).join('')}</select></label></div>
-          <div class="network-filters__bottom"><div class="network-tiers" role="group" aria-label="Tipo de membresía"><button type="button" class="is-active" data-tier="todos" aria-pressed="true" disabled>Todos</button><button type="button" data-tier="vip" aria-pressed="false" disabled><svg class="ic" aria-hidden="true"><use href="#i-crown"/></svg>Solo VIP</button></div><span id="dir-result-count" role="status">Cargando comunidad…</span></div>
+          <div class="network-filters__bottom">${vista==='directory'?`<div class="network-tiers" role="group" aria-label="Explorar profesionales"><button type="button" class="is-active" data-tier="todos" aria-pressed="true" disabled>Todos</button><button type="button" data-tier="vip" disabled><svg class="ic" aria-hidden="true"><use href="#i-crown"/></svg>Solo VIP<svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button></div>`:''}<span id="dir-result-count" role="status">Cargando comunidad…</span></div>
         </section>
-        <div class="directory-results" id="dir-results" aria-live="polite"><div class="foro-empty network-empty" role="status"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg><h2>Preparando tu red profesional</h2><p>Estamos cargando las tarjetas de la comunidad.</p></div></div>
+        <div class="directory-results" id="dir-results" aria-live="polite" ${['requests','connections'].includes(vista)?'hidden':''}><div class="foro-empty network-empty" role="status"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg><h2>Preparando tu red profesional</h2><p>Estamos cargando las tarjetas de la comunidad.</p></div></div>
       </div>`;
     const search = container.querySelector('#dir-search-input');
     const clear = container.querySelector('#dir-search-clear');
@@ -11624,13 +11624,12 @@ const Sections = (function(){
     clear.addEventListener('click',()=>{ search.value=''; _dirBusqueda=''; clear.hidden=true; dirPintar(); search.focus(); });
     container.querySelector('#dir-sector-select').addEventListener('change',event=>{ _dirFiltroSector=event.target.value; dirPintar(); });
     container.querySelectorAll('[data-tier]').forEach(button=>button.addEventListener('click',()=>{
-      _dirFiltroTier=button.dataset.tier;
-      container.querySelectorAll('[data-tier]').forEach(item=>{ const active=item===button; item.classList.toggle('is-active',active); item.setAttribute('aria-pressed',String(active)); });
-      dirPintar();
+      if(button.dataset.tier==='vip')navigateToSection('directorio-vip');
     }));
-    if (puedeEditar) {container.querySelector('#dir-mi-tarjeta').addEventListener('click', dirEditarMiTarjeta);container.querySelector('#dir-mi-perfil').addEventListener('click',()=>dirVerDetalle(window.UserState.uid));}
-    window.ICADEMCommunity?.attach(container.querySelector("[data-directory-refined]"),{modal:Modal,toast:Toast,editCard:dirEditarMiTarjeta,refresh:dirSuscribir,cards:()=>_dirCards,directoryState:restored});
-    dirSuscribir();
+    if (puedeEditar) {container.querySelector('#dir-mi-tarjeta')?.addEventListener('click', dirEditarMiTarjeta);container.querySelector('#dir-mi-perfil')?.addEventListener('click',()=>dirVerDetalle(window.UserState.uid));}
+    container.querySelector('[data-directory-back]')?.addEventListener('click',()=>window.ICADEMProfessionalNavigation.backToDirectory());
+    window.ICADEMCommunity?.attach(container.querySelector("[data-directory-refined]"),{modal:Modal,toast:Toast,editCard:dirEditarMiTarjeta,refresh:dirSuscribir,cards:()=>_dirCards,directoryState:restored,view:vista});
+    if(!['requests','connections'].includes(vista))dirSuscribir();
   }
 
   function dirMostrarErrorCarga(){
@@ -11643,12 +11642,15 @@ const Sections = (function(){
   }
 
   async function dirSuscribir(){
+    const ticket={uid:dirCuenta(),generation:_dirGeneration,read:++_dirRead};
+    const vigente=()=>ticket.uid===dirCuenta()&&ticket.generation===_dirGeneration&&ticket.read===_dirRead&&!window.__sessionEnding;
     if (window.ICADEMPlatform?.loadDirectory && !window.__isDemoMode) {
       try {
         const response = await window.ICADEMPlatform.loadDirectory();
+        if(!vigente())return;
+        if(response?.degraded)throw new Error('No pudimos confirmar el directorio actual.');
         _dirCanViewContacts = response?.canViewContacts === true;
         _dirCards = (response?.items || []).map(x=>({...x,id:x.id||x.uid}));
-        dirGuardarCacheSeguro(_dirCards);
         dirPintar();
         if (response?.degraded) {
           const count=document.getElementById('dir-result-count');
@@ -11656,16 +11658,9 @@ const Sections = (function(){
         }
         return;
       } catch (error) {
+        if(!vigente())return;
         console.warn('[directorio API]', error.message);
-        const cached = dirLeerCacheSeguro();
-        if (cached.length) {
-          _dirCanViewContacts = false;
-          _dirCards = cached;
-          dirPintar();
-          const count=document.getElementById('dir-result-count');
-          if(count) count.textContent += ' · copia reciente';
-          return;
-        }
+        _dirCards=[];_dirCanViewContacts=false;
         const g=document.getElementById('dir-results');
         if(g) {
           g.innerHTML='<div class="foro-empty">El directorio está temporalmente limitado; ninguna tarjeta fue eliminada.<br><button type="button" class="btn btn--outline" id="dir-retry" style="margin-top:14px">Reintentar</button></div>';
@@ -11676,9 +11671,7 @@ const Sections = (function(){
     }
     // Live sessions use the filtered API; the document store is owner/admin only.
     if(!window.__isDemoMode){
-      const cached=dirLeerCacheSeguro();
-      if(cached.length){_dirCanViewContacts=false;_dirCards=cached;dirPintar();const count=document.getElementById('dir-result-count');if(count)count.textContent+=' · copia reciente';}
-      else dirMostrarErrorCarga();
+      dirMostrarErrorCarga();
       return;
     }
     const fs = window.__fs;
@@ -11731,6 +11724,7 @@ const Sections = (function(){
     });
     const count = document.getElementById('dir-result-count');
     if (count) count.textContent = cards.length===1?'1 profesional':`${cards.length} profesionales`;
+    const viewCount=document.querySelector('[data-directory-view="vip"] [data-network-view-count]');if(viewCount)viewCount.textContent=cards.length===1?'1 profesional':`${cards.length} profesionales`;
     if (!cards.length){
       grid.innerHTML = `<div class="foro-empty network-empty"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg><h2>${_dirBusqueda||_dirFiltroSector!=='todos'||_dirFiltroTier==='vip'?'No encontramos coincidencias':'La comunidad está por crecer'}</h2><p>${_dirBusqueda||_dirFiltroSector!=='todos'||_dirFiltroTier==='vip'?'Prueba otro nombre o cambia la especialidad y el tipo de membresía.':'Aún no hay tarjetas en el directorio. Crea la tuya para presentar tu experiencia.'}</p></div>`;
       return;
@@ -11783,7 +11777,7 @@ const Sections = (function(){
         </header>
         <div class="dir-grid">${list.map(c=>renderCard(c,kind==='vip')).join('')}</div>
       </section>`:'';
-    grid.innerHTML = [
+    grid.innerHTML = _dirFiltroTier==='vip'?`<div class="dir-grid">${vipCards.map(c=>renderCard(c,true)).join('')}</div>`:[
       section('vip','MEMBRESÍA ACTIVA','Profesionales VIP','Miembros con suscripción VIP verificada en ICADEM.',vipCards),
       _dirFiltroTier==='vip'?'':section('community','TALENTO Y EXPERIENCIA','Nuestra comunidad','Conoce a los profesionales que forman parte de ICADEM.',memberCards)
     ].join('');
@@ -13178,6 +13172,9 @@ const Sections = (function(){
       webinars:renderWebinars,
       foro:renderForo,
       directorio:renderDirectorio,
+      'directorio-solicitudes':container=>renderDirectorio(container,'requests'),
+      'directorio-conexiones':container=>renderDirectorio(container,'connections'),
+      'directorio-vip':container=>renderDirectorio(container,'vip'),
       'directorio-perfil':renderPerfilProfesional,
       canal:renderCanal,
       perfil:renderPerfil,
@@ -22443,7 +22440,7 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-onboarding.js?v=23"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
-<link rel="stylesheet" href="css/icadem-courses.css?v=9">
+<link rel="stylesheet" href="css/icadem-courses.css?v=10">
 <link rel="stylesheet" href="css/icadem-live.css?v=2">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">

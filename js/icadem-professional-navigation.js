@@ -4,6 +4,8 @@
   var SECTION='directorio-perfil', memory=null, forumMemory=null, activeSection='', restore=false, restoreForum=false, revision=0;
   var KEY='icadem:directory-return:v1:', MAX_AGE=4*60*60*1000;
   var FORUM_KEY='icadem:forum-return:v1:';
+  var DIRECTORY_VIEWS=['directorio','directorio-solicitudes','directorio-conexiones','directorio-vip'],directoryMemory={};
+  function directoryTab(section){return section==='directorio-solicitudes'?'requests':section==='directorio-conexiones'?'connections':'directory';}
   var EDIT_SECTIONS=['basicos','apariencia','contactos','sobreMi','experiencia','formacion','idiomas','habilidades','certificaciones','proyectos','enlaces','estilo'];
   var historyIndex=Number.isInteger(history.state?.icademProfessionalIndex)?history.state.icademProfessionalIndex:0,committed=null,restoring=null,acceptedHistory=null;
   function viewer(){return window.UserState?.uid||window.__currentUser?.uid||'';}
@@ -44,15 +46,17 @@
   }
   function capture(){
     var uid=viewer(),root=document.querySelector('[data-directory-refined]');if(!uid||!root)return;
-    memory={uid,at:Date.now(),search:root.querySelector('#dir-search-input')?.value||'',sector:root.querySelector('#dir-sector-select')?.value||'todos',
+    var value={uid,at:Date.now(),search:root.querySelector('#dir-search-input')?.value||'',sector:root.querySelector('#dir-sector-select')?.value||'todos',
       tier:root.querySelector('[data-tier][aria-pressed="true"]')?.dataset.tier||'todos',
-      tab:root.querySelector('[data-community-tab][aria-pressed="true"]')?.dataset.communityTab||'directory',scroll:scrollPosition()};
-    try{sessionStorage.setItem(KEY+uid,JSON.stringify(memory));}catch(_){}
+      tab:activeSection==='directorio'?root.querySelector('[data-community-tab][aria-pressed="true"]')?.dataset.communityTab||'directory':directoryTab(activeSection),scroll:scrollPosition()};
+    directoryMemory[activeSection]=value;if(activeSection==='directorio')memory=value;
+    try{sessionStorage.setItem(KEY+uid+(activeSection==='directorio'?'':':'+activeSection),JSON.stringify(value));}catch(_){}
   }
-  function saved(){
-    var uid=viewer(),value=memory;
+  function saved(section){
+    section=section||'directorio';
+    var uid=viewer(),value=section==='directorio'?memory:directoryMemory[section];
     if(!uid)return null;
-    if(!value||value.uid!==uid){try{value=JSON.parse(sessionStorage.getItem(KEY+uid)||'null');}catch(_){value=null;}}
+    if(!value||value.uid!==uid){try{value=JSON.parse(sessionStorage.getItem(KEY+uid+(section==='directorio'?'':':'+section))||'null');}catch(_){value=null;}}
     if(!value||value.uid!==uid||Date.now()-value.at>MAX_AGE||Date.now()<value.at)return null;
     return {search:String(value.search||'').slice(0,300),sector:String(value.sector||'todos').slice(0,100),tier:value.tier==='vip'?'vip':'todos',
       tab:['directory','requests','connections'].includes(value.tab)?value.tab:'directory',scroll:value.scroll||{}};
@@ -70,7 +74,7 @@
   }
   function prepare(section,options){
     options=options||{};revision++;
-    if(activeSection==='directorio'&&section===SECTION)capture();
+    if(DIRECTORY_VIEWS.includes(activeSection)&&(section===SECTION||DIRECTORY_VIEWS.includes(section)&&section!==activeSection))capture();
     if(activeSection==='foro'&&section===SECTION)captureForum();
     var url=new URL(location.href),state=Object.assign({},history.state||{}),previous=activeSection;
     if(section===SECTION){
@@ -81,11 +85,13 @@
       if(uid===viewer()&&EDIT_SECTIONS.includes(edit))url.searchParams.set('editar',edit);else url.searchParams.delete('editar');
       if(!options.reemplazar){
         var prior=state.icademProfessional;
-        state.icademProfessional=previous==='directorio'?{viewer:viewer(),depth:1}:previous==='foro'?{viewer:viewer(),depth:1,origin:'foro'}:
-          previous===SECTION&&prior?.viewer===viewer()?Object.assign({viewer:viewer(),depth:Math.min(20,prior.depth+1)},prior.origin==='foro'?{origin:'foro'}:{}):null;
+        state.icademProfessional=DIRECTORY_VIEWS.includes(previous)?Object.assign({viewer:viewer(),depth:1},previous!=='directorio'?{origin:previous}:{}):previous==='foro'?{viewer:viewer(),depth:1,origin:'foro'}:
+          previous===SECTION&&prior?.viewer===viewer()?Object.assign({viewer:viewer(),depth:Math.min(20,prior.depth+1)},prior.origin?{origin:prior.origin}:{}):null;
       }
     }else{url.searchParams.delete('profesional');url.searchParams.delete('editar');delete state.icademProfessional;}
-    restore=section==='directorio'&&previous===SECTION&&Boolean(saved());
+    if(DIRECTORY_VIEWS.includes(section)&&section!=='directorio'&&previous==='directorio'&&!options.fromHistory)state.icademDirectoryReturn={viewer:viewer(),index:history.state?.icademProfessionalIndex};
+    else if(!DIRECTORY_VIEWS.includes(section)&&section!==SECTION)delete state.icademDirectoryReturn;
+    restore=DIRECTORY_VIEWS.includes(section)&&(previous===SECTION||DIRECTORY_VIEWS.includes(previous)&&previous!==section||options.fromHistory)&&Boolean(saved(section));
     restoreForum=section==='foro'&&previous===SECTION&&Boolean(savedForum());
     activeSection=section;url.hash=section;
     historyIndex=options.fromHistory&&Number.isInteger(state.icademProfessionalIndex)?state.icademProfessionalIndex:options.reemplazar||url.pathname+url.search+url.hash===routeLocation()?historyIndex:historyIndex+1;
@@ -93,11 +99,11 @@
     committed={url:url.pathname+url.search+url.hash,state:state};
     return {url:committed.url,historyState:state,restoreDirectory:restore||restoreForum};
   }
-  function directoryState(){return restore?saved():null;}
+  function directoryState(){return restore?saved(activeSection):null;}
   function directoryReady(root,readyTab){
-    if(!restore||activeSection!=='directorio'||!root?.isConnected)return;
-    var state=saved();if(!state)return;
-    var tab=root.querySelector('[data-community-tab][aria-pressed="true"]')?.dataset.communityTab||'directory';
+    if(!restore||!DIRECTORY_VIEWS.includes(activeSection)||!root?.isConnected)return;
+    var state=saved(activeSection);if(!state)return;
+    var tab=activeSection==='directorio'?root.querySelector('[data-community-tab][aria-pressed="true"]')?.dataset.communityTab||'directory':directoryTab(activeSection);
     if(tab!==state.tab||(readyTab&&readyTab!==state.tab))return;
     var position=state.scroll,run=revision;
     requestAnimationFrame(function(){
@@ -132,15 +138,21 @@
       window.scrollTo({top:Math.max(0,Number(position.window)||0),left:0,behavior:'instant'});
     });
   }
-  function backLabel(){return history.state?.icademProfessional?.viewer===viewer()&&history.state.icademProfessional.origin==='foro'?'Volver al Foro VIP':'Volver al directorio';}
+  function backLabel(){var source=history.state?.icademProfessional;return source?.viewer===viewer()&&source.origin==='foro'?'Volver al Foro VIP':source?.viewer===viewer()&&source.origin==='directorio-vip'?'Volver a Profesionales VIP':source?.viewer===viewer()&&source.origin==='directorio-solicitudes'?'Volver a Solicitudes':source?.viewer===viewer()&&source.origin==='directorio-conexiones'?'Volver a Mis conexiones':'Volver al directorio';}
   function backToDirectory(){
+    if(DIRECTORY_VIEWS.includes(activeSection)&&activeSection!=='directorio'){
+      var parent=history.state?.icademDirectoryReturn,index=history.state?.icademProfessionalIndex;
+      if(parent?.viewer===viewer()&&Number.isInteger(parent.index)&&Number.isInteger(index)&&index>parent.index&&index-parent.index<=20)history.go(parent.index-index);
+      else window.navigateToSection?.('directorio',{reemplazar:true});
+      return;
+    }
     var source=history.state?.icademProfessional;
     if(source?.viewer===viewer()&&Number.isInteger(source.depth)&&source.depth>=1&&source.depth<=20&&history.length>source.depth)history.go(-source.depth);
-    else window.navigateToSection?.(source?.viewer===viewer()&&source.origin==='foro'?'foro':'directorio',{reemplazar:true});
+    else window.navigateToSection?.(source?.viewer===viewer()&&(source.origin==='foro'||DIRECTORY_VIEWS.includes(source.origin))?source.origin:'directorio',{reemplazar:true});
   }
   function reset(){
-    revision++;restore=false;restoreForum=false;activeSection='';memory=null;forumMemory=null;committed=null;restoring=null;acceptedHistory=null;
-    try{if(viewer()){sessionStorage.removeItem(KEY+viewer());sessionStorage.removeItem(FORUM_KEY+viewer());}}catch(_){}
+    revision++;restore=false;restoreForum=false;activeSection='';memory=null;directoryMemory={};forumMemory=null;committed=null;restoring=null;acceptedHistory=null;
+    try{if(viewer()){DIRECTORY_VIEWS.forEach(function(s){sessionStorage.removeItem(KEY+viewer()+(s==='directorio'?'':':'+s));});sessionStorage.removeItem(FORUM_KEY+viewer());}}catch(_){}
   }
   document.addEventListener('icadem:session-ending',reset);
   document.addEventListener('icadem:user-ready',function(){if(memory&&memory.uid!==viewer()||forumMemory&&forumMemory.uid!==viewer())reset();});

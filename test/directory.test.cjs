@@ -13,7 +13,7 @@ test('crop geometry stays within portrait/landscape bounds and exports a consist
   const ui=helper();for(const [w,h] of [[800,1200],[1400,350],[2000,300],[300,300]])for(const zoom of [1,2,3])for(const x of [0,50,100])for(const y of [0,50,100]){const r=ui.cropRect(w,h,zoom,x,y);assert.equal(r.width/r.height,4);assert.ok(r.x>=0&&r.y>=0&&r.x+r.width<=w+.001&&r.y+r.height<=h+.001);}
 });
 function render(cards,{tier='todos',sector='todos',search='',uid='free-owner'}={}){
-  const grid={innerHTML:'',querySelectorAll:()=>[]},counter={},ctx={window:{UserState:{uid},ICADEMDirectory:helper()},document:{getElementById:id=>id==='dir-results'?grid:counter,querySelectorAll:()=>[]},_dirCards:cards,_dirFiltroTier:tier,_dirFiltroSector:sector,_dirBusqueda:search,escapeHtml:s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),dirFotoSrc:c=>c.foto,dirInstagramPerfil:()=>'',dirNormalizarBusqueda:s=>s.toLowerCase()};
+  const grid={innerHTML:'',querySelectorAll:()=>[]},counter={},ctx={window:{UserState:{uid},ICADEMDirectory:helper()},document:{querySelector:()=>null,getElementById:id=>id==='dir-results'?grid:counter,querySelectorAll:()=>[]},_dirCards:cards,_dirFiltroTier:tier,_dirFiltroSector:sector,_dirBusqueda:search,escapeHtml:s=>String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),dirFotoSrc:c=>c.foto,dirInstagramPerfil:()=>'',dirNormalizarBusqueda:s=>s.toLowerCase()};
   const start=html.indexOf('  function dirPintar(){'),end=html.indexOf('  function dirVerDetalle(',start);vm.runInNewContext(html.slice(start,end)+';dirPintar();',ctx);return grid.innerHTML;
 }
 const rows=[{id:'free-owner',nombre:'Ana',isVip:false,perfilCompleto:true,sector:'Legal'},{id:'vip-z',nombre:'Zoe',isVip:true,perfilCompleto:false,sector:'Legal'},{id:'vip-a',nombre:'Alma',isVip:true,perfilCompleto:true,sector:'Fiscal'}];
@@ -27,7 +27,7 @@ test('long names and bios remain available in the existing full-profile action; 
   assert.ok(markup.includes(input[0].nombre));assert.ok(markup.includes(input[0].bio));assert.match(markup,/network-view-profile/);assert.match(markup,/dir-card__cover-image/);assert.equal(JSON.stringify(input),before);
 });
 test('directory assets are loaded once in the real head and cover edits still use the authenticated profile service',()=>{
-  const head=html.slice(0,html.indexOf('</head>'));assert.match(head,/icadem-directory\.css\?v=2/);assert.match(head,/js\/icadem-directory\.js\?v=\d+/);assert.equal((html.match(/href="css\/icadem-directory\.css/g)||[]).length,1);
+  const head=html.slice(0,html.indexOf('</head>'));assert.match(head,/icadem-directory\.css\?v=3/);assert.match(head,/js\/icadem-directory\.js\?v=\d+/);assert.equal((html.match(/href="css\/icadem-directory\.css/g)||[]).length,1);
   const community=fs.readFileSync(__dirname+'/../js/icadem-community.js','utf8'),editor=fs.readFileSync(__dirname+'/../js/icadem-resume-editor.js','utf8');
   assert.match(community,/ICADEMPlatform\.saveProfile\(payload\)/);assert.match(editor,/ICADEMDirectory\?\.bindEditor/);assert.match(editor,/coverController\.payload\(\)/);
 });

@@ -1,7 +1,7 @@
 'use strict';
 // Full panel with isolated API responses. No production requests or student writes.
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),assert=require('node:assert/strict'),cp=require('node:child_process');
-const {chromium}=require(process.argv[2]||'playwright');
+const {chromium,webkit}=require(process.argv[2]||'playwright');
 const ROOT=path.resolve(__dirname,'..'),SHOTS=process.argv[3],BASELINE=process.env.ICADEM_PRIORITY_BASELINE==='1';
 const widths=(process.env.ICADEM_PRIORITY_WIDTHS||'320,360,375,390,414,768,1024,1440').split(',').map(Number),shotWidths=[320,390,768,1440];
 const originals=new Map();
@@ -14,7 +14,7 @@ const initial=()=>({ok:true,enabled:true,active:true,isAdmin:false,available:0,v
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'GET,POST,PUT,PATCH,OPTIONS'};
 const fallbackImage=fs.readFileSync(path.join(ROOT,'assets/juegos/foto-fiscal.webp'));let browser,base;
 async function fixture(width,shared={data:initial()}){
-  const context=await browser.newContext({viewport:{width,height:width<768?844:1000},serviceWorkers:'block',hasTouch:width<1024}),page=await context.newPage();
+  const context=await browser.newContext({viewport:{width,height:width<768?844:1000},serviceWorkers:'block',hasTouch:width<1024,...(process.env.ICADEM_TEST_ENGINE==='webkit'&&width<768?{isMobile:true,userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'}:{})}),page=await context.newPage();
   const state={shared,reads:0,puts:[],selects:[],errors:[],failPut:false,conflictPut:false,holdPut:false,heldPut:false,releasePut:null,holdRead:false,heldRead:false,releaseRead:null};
   page.on('pageerror',error=>{if(/learning-route|course-unlocks/.test(error.stack||''))state.errors.push(error.message);});
   await context.route('**/*',async route=>{
@@ -35,8 +35,10 @@ async function fixture(width,shared={data:initial()}){
       shared.data={...shared.data,priorities:[...body.courseIds],revision:shared.data.revision+1};return route.fulfill({json:shared.data,headers:cors});
     }
     if(api==='/api/courses/unlocks/select'){state.selects.push(req.postDataJSON());return route.fulfill({status:500,json:{ok:false,error:'Organizar no debe seleccionar cursos.'},headers:cors});}
-    if(api==='/api/courses/catalog')return route.fulfill({json:{ok:true,courses:catalog,viewer:{defaultPreviewCourseId:'course-0'}},headers:cors});
-    if(url.hostname.includes('railway'))return route.fulfill({json:{ok:true,items:[],courses:{'course-6':{clasesVistas:[1],completado:false}},credits:{balance:0},profile:{}},headers:cors});
+    if(api==='/api/identity/sync')return route.fulfill({json:{ok:true,profile:{uid:'fixture-a',freeCourseId:shared.freeCourseId||''},membership:{active:true}},headers:cors});
+    if(shared.handle && await shared.handle(route,url))return;
+    if(api==='/api/courses/catalog')return route.fulfill({json:{ok:true,courses:shared.catalog||catalog,viewer:{defaultPreviewCourseId:'course-0'}},headers:cors});
+    if(url.hostname.includes('railway'))return route.fulfill({json:{ok:true,items:[],courses:shared.progress||{'course-6':{completedLessons:[1],courseCompleted:false}},credits:{balance:0},profile:{}},headers:cors});
     return route.abort();
   });
   await page.addInitScript(()=>{for(const uid of ['demo','fixture-a','fixture-b'])for(const key of ['tour','credit-gift','free-course-offer-seen'])localStorage.setItem(`icadem:experience:v3:${uid}:${key}`,'complete');});
@@ -46,14 +48,14 @@ async function fixture(width,shared={data:initial()}){
     await page.goto(base+'/vip-panel.html?modo=demo'+(previousOrder?'&ordenCursos='+encodeURIComponent(previousOrder):'')+'#cursos',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.ICADEMPlatform&&window.ICADEMCourseUnlocks&&typeof navigateToSection==='function');
     await page.evaluate(()=>{if(window.ICADEMPush)window.ICADEMPush.revisar=async()=>'seen';window.__isDemoMode=false;window.__currentUser={uid:'fixture-a',getIdToken:()=>Promise.resolve('browser-fixture-only')};window.__auth={currentUser:window.__currentUser};Object.assign(window.UserState,{uid:'fixture-a',modo:'vip',identityReady:true,isAdmin:false,profileComplete:true,profileIntakeSeen:true,displayName:'Estudiante de prueba',freeCourseId:''});window.__serverProgressOwner='fixture-a';window.__serverCourseProgress={'course-6':{clasesVistas:[1],completado:false}};window.navigateToSection('cursos');});
-    await page.waitForSelector('.course-unlocks__status');await page.waitForFunction(()=>document.querySelectorAll('.curso-card').length===8);
+    await page.waitForSelector('.course-unlocks__status');await page.waitForFunction(()=>document.querySelectorAll('.curso-card').length===8);await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])'));
     await page.evaluate(()=>{document.querySelectorAll('.ica-tour-root,.ica-experience,#name-modal').forEach(el=>el.hidden=true);document.body.style.overflow='';window.scrollTo(0,0);});
   }
   await boot();return{context,page,state,boot};
 }
 const cards=page=>page.locator('.curso-card').evaluateAll(nodes=>nodes.map(node=>node.dataset.cid));
 const pendingCards=async page=>(await cards(page)).filter(id=>!['course-1','course-6'].includes(id));
-const badges=page=>page.locator('[data-course-priority]').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.closest('[data-cid]').dataset.cid,Number(node.dataset.coursePriority)])));
+const badges=page=>page.locator('[data-course-priority]').evaluateAll(nodes=>Object.fromEntries(nodes.filter(node=>node.closest('[data-cid]')).map(node=>[node.closest('[data-cid]').dataset.cid,Number(node.dataset.coursePriority)])));
 const routeOrder=page=>page.locator('[data-route-item]').evaluateAll(nodes=>nodes.map(node=>node.dataset.routeItem));
 async function setSummary(f,change){f.state.shared.data={...f.state.shared.data,...change,revision:f.state.shared.data.revision+1};await f.page.evaluate(()=>ICADEMCourseUnlocks.refresh());await f.page.waitForTimeout(100);}
 async function noOverflow(page,label){const g=await page.evaluate(()=>({width:innerWidth,doc:document.documentElement.scrollWidth,body:document.body.scrollWidth}));assert.ok(g.doc<=g.width+1&&g.body<=g.width+1,label+': '+JSON.stringify(g));}
@@ -83,7 +85,9 @@ async function scenario(width){
   assert.equal(await action.evaluate(el=>getComputedStyle(el).backgroundColor),normalColor,'hovering the card does not imply another button state');
   await action.focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>location.hash==='#curso-detalle');
   await page.evaluate(()=>navigateToSection('cursos'));await page.waitForSelector('#cur-sort');
-  await page.evaluate(async()=>{const list=await __getCourseUnlockCatalog();list.find(c=>c.id==='course-1').status='completado';list.find(c=>c.id==='course-7').catalogPending=true;navigateToSection('cursos');});
+  // Component-only states; the server refresh is verified separately.
+  await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])'));
+  await page.evaluate(async()=>{const list=await __getCourseUnlockCatalog();list.find(c=>c.id==='course-1').status='completado';list.find(c=>c.id==='course-7').catalogPending=true;Sections.renderers.cursos(document.getElementById('dynamic-section'));});
   assert.match(await page.locator('.curso-card[data-cid="course-1"] [data-course-details]').innerText(),/Revisar curso/);
   assert.equal(await page.locator('.curso-card[data-cid="course-1"] [data-course-details]').isEnabled(),true);
   assert.equal(await page.locator('.curso-card[data-cid="course-7"] [data-course-details]').isDisabled(),true);

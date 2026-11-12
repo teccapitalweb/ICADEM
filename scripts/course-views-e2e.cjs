@@ -3,12 +3,12 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const source=fs.readFileSync(path.join(__dirname,'course-priorities-e2e.cjs'),'utf8');
 const h=new Function('require','__dirname','process',source.slice(0,source.indexOf('async function scenario(width)'))+`
-return {fixture,setSummary,cards,badges,noOverflow,shot,
+return {fixture,setSummary,cards,badges,noOverflow,shot,catalog,
 async start(){await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));base='http://127.0.0.1:'+server.address().port;browser=await chromium.launch({headless:true,channel:'chrome'});},
 async stop(){await browser?.close();server.close();}};`)(require,__dirname,process);
 const views=[['disponibles','Cursos disponibles',['course-1']],['progreso','Cursos en progreso',['course-6']],['completados','Cursos completados',[]],['bloqueados','Cursos bloqueados',['course-0','course-2','course-3','course-4','course-5']],['proximamente','Próximos cursos',['course-7']],['regalo','Curso de regalo',[]]];
 const widths=(process.env.ICADEM_PRIORITY_WIDTHS||'320,360,375,390,414,768,1024,1440').split(',').map(Number);
-async function ready(page,state){await page.waitForSelector(`[data-course-view="${state}"]`);await page.waitForFunction(()=>!document.querySelector('.courses-skeleton'));}
+async function ready(page,state){await page.waitForSelector(`[data-course-view="${state}"]`);await page.waitForFunction(()=>!document.querySelector('.courses-skeleton'));await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])'));}
 async function go(page,state){await page.evaluate(state=>navigateToSection(state==='todos'?'cursos':'cursos-'+state),state);await ready(page,state);}
 async function main(){
   await h.start();
@@ -21,7 +21,7 @@ async function main(){
     assert.equal(await page.locator('.courses-library-head__eyebrow').count(),0);
     const covers=await page.locator('.curso-card').evaluateAll(nodes=>Object.fromEntries(nodes.map(n=>[n.dataset.cid,n.querySelector('img').getAttribute('src')])));
     // A selected free course controls the existing gift tab, independently of VIP access.
-    await page.evaluate(()=>{UserState.freeCourseId='course-0';navigateToSection('cursos');});
+    f.state.shared.freeCourseId='course-0';await page.evaluate(()=>{UserState.freeCourseId='course-0';navigateToSection('cursos');});
     for(const [view,title,expected] of views){
       await page.locator(`[data-course-filter="${view}"]`).click();await ready(page,view);
       assert.equal(new URL(page.url()).hash,'#cursos-'+view);
@@ -51,9 +51,10 @@ async function main(){
     assert.equal(await page.locator('#cur-search').inputValue(),'Derecho');assert.equal(await page.locator('#cur-area').inputValue(),'Fiscal');assert.equal(await page.locator('#cur-level').inputValue(),'Avanzado');assert.deepEqual(await h.cards(page),parent);
     await page.locator('#cur-search-clear').click();await page.locator('#cur-area').selectOption('todas');await page.locator('#cur-level').selectOption('todos');
     // Live catalog state updates use the same access/progress classifier in every view.
+    state.shared.catalog=structuredClone(h.catalog);const serverCourse=state.shared.catalog.find(c=>c.id==='course-4');serverCourse.access.unlocked=true;serverCourse.access.daysRemaining=0;serverCourse.sesiones.forEach(s=>s.accessible=true);state.shared.progress={'course-6':{completedLessons:[1],courseCompleted:false},'course-1':{completedLessons:[1,2,3,4,5,6],courseCompleted:true}};
     await page.evaluate(async()=>{const courses=await __getCourseUnlockCatalog();const c=courses.find(c=>c.id==='course-4');c.access.unlocked=true;c.access.daysRemaining=0;c.sesiones.forEach(s=>s.accessible=true);courses.find(c=>c.id==='course-1').status='completado';navigateToSection('cursos');});
     assert.deepEqual((await h.cards(page)).slice(0,3),['course-6','course-1','course-4']);assert.equal((await h.badges(page))['course-4'],1);
-    await go(page,'completados');assert.deepEqual(await h.cards(page),['course-1']);assert.match(await page.locator('[data-course-details]').innerText(),/Revisar curso/);
+    await go(page,'completados');await page.waitForFunction(()=>document.querySelector('.curso-card[data-cid="course-1"]'));assert.deepEqual(await h.cards(page),['course-1']);assert.match(await page.locator('[data-course-details]').innerText(),/Revisar curso/);
     await go(page,'progreso');assert.match(await page.locator('[data-course-details]').innerText(),/Continuar/);assert.match(await page.locator('.curso-card__progress').innerText(),/17|1 de 6/);
     await go(page,'disponibles');assert.deepEqual(await h.cards(page),['course-4']);
     // Gift uses the existing non-VIP classification; the view itself grants no access.

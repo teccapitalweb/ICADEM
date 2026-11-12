@@ -145,3 +145,56 @@
 @media(max-width:760px){.directory-page.directory-premium[data-directory-refined] .dir-card__edit{width:44px;height:44px;min-height:44px}.directory-page.directory-premium[data-directory-refined] .dir-card--mia .dir-card__membership{right:57px}}
 .dir-cover-editor{margin-top:5px}.dir-cover-editor [hidden]{display:none!important}.dir-cover-preview{position:relative;width:100%;aspect-ratio:4/1;min-height:64px;margin:10px 0 16px;border-radius:13px;overflow:hidden;border:1px solid var(--border);background:#e9bc43}.dir-cover-preview img{display:block;width:100%;height:100%;object-fit:cover}.dir-cover-color-row{display:grid;grid-template-columns:65px minmax(0,1fr);gap:10px;align-items:center;margin-bottom:12px}.dir-cover-color-row input{height:44px;min-height:44px;padding:4px}.dir-cover-color-row button{min-height:44px;font-size:10px}.dir-cover-actions{display:flex;flex-wrap:wrap;gap:8px}.dir-cover-actions .btn{min-height:44px;font-size:11px}.dir-cover-help{font-size:10px;line-height:1.6;color:var(--text-2);margin:10px 0}.dir-cover-crop{padding:13px;border:1px solid var(--border-2);border-radius:13px;background:var(--surface-2);margin-top:13px}.dir-cover-crop>strong{font-size:12px;color:var(--text)}.dir-cover-crop canvas{display:block;width:100%;height:auto;aspect-ratio:4/1;border-radius:9px;margin:12px 0;border:1px solid var(--border)}.dir-cover-crop label{display:block;font-size:11px;color:var(--text-2);margin:11px 0}.dir-cover-crop input[type=range]{display:block;width:100%;min-height:32px;accent-color:var(--primary);margin-top:4px}.dir-cover-status{font-size:11px;line-height:1.6;color:var(--text-2);margin:10px 0 0}.dir-cover-status.is-error{color:var(--danger,#b83d4b)}.dir-cover-editor progress{display:block;width:100%;height:7px;margin-top:13px;accent-color:var(--primary)}.dir-cover-editor :is(button,input):focus-visible{outline:3px solid var(--accent,#b18c3a);outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.directory-page.directory-premium[data-directory-refined] *,.dir-cover-editor *{transition:none!important;animation:none!important}}
+
+/* Dedicated community views: the existing cards and permissions are shared. */
+.directory-premium[data-directory-refined] .network-heading { padding:2px 0 18px; }
+.directory-premium[data-directory-refined] .network-heading__icon { width:44px; height:44px; border-radius:12px; }
+#dynamic-section > .directory-premium[data-directory-refined] > .network-summary { width:100%; max-width:1040px; padding:19px 22px; gap:18px; margin:0 0 18px!important; border-radius:16px; }
+.directory-premium[data-directory-refined] .network-summary__intro { flex:1 1 260px; gap:12px; }
+.directory-premium[data-directory-refined] .network-summary__intro strong { font-size:19px; max-width:310px; line-height:1.35; }
+.directory-premium[data-directory-refined] .network-summary__symbol { width:40px; height:44px; border-radius:11px; }
+.directory-premium[data-directory-refined] .network-summary__numbers { gap:17px; }
+.directory-premium[data-directory-refined] .network-summary__numbers strong { font-size:24px; }
+.directory-premium[data-directory-refined] .network-summary__numbers > div+div { padding-left:17px; }
+.directory-premium[data-directory-refined] .network-self-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.directory-premium[data-directory-refined] .network-edit { min-height:44px; padding:10px 12px; font-size:12px; }
+.directory-premium[data-directory-refined] .network-self-edit { color:#eef5f8; border-color:#ffffff42; background:transparent; }
+.directory-premium[data-directory-refined] .network-self-edit:hover { background:#ffffff0e; }
+.directory-premium[data-directory-refined] .network-filters { padding:11px 12px 0; }
+.directory-premium[data-directory-refined] .network-filters__fields { gap:9px; }
+.directory-premium[data-directory-refined] .network-search input { height:46px!important; min-height:46px; font-size:14px!important; padding-top:10px; padding-bottom:10px; }
+.directory-premium[data-directory-refined] .network-sector > span { top:5px; font-size:11px!important; line-height:13px; }
+.directory-premium[data-directory-refined] .network-sector select { appearance:none; -webkit-appearance:none; height:46px!important; min-height:46px; padding:19px 28px 4px 12px!important; font-size:14px!important; font-weight:500!important; line-height:20px; background-image:linear-gradient(45deg,transparent 50%,#657881 50%),linear-gradient(135deg,#657881 50%,transparent 50%); background-position:calc(100% - 16px) 24px,calc(100% - 12px) 24px; background-size:4px 4px; background-repeat:no-repeat; }
+.directory-premium[data-directory-refined] .network-filters__bottom { margin-top:8px; gap:10px; min-height:44px; }
+.directory-premium[data-directory-refined] .network-tiers { gap:16px; }
+.directory-premium[data-directory-refined] .network-tiers button { min-height:44px; padding:10px 2px; font-size:12px; }
+.directory-premium[data-directory-refined] .network-tiers [data-tier="vip"] { border-bottom:0; }
+.directory-premium[data-directory-refined] #dir-result-count { font-size:11px; }
+.directory-premium[data-directory-refined] .community-nav { flex-wrap:nowrap; gap:4px; margin-bottom:16px; padding-bottom:8px; }
+.directory-premium[data-directory-refined] .community-nav button { flex:1; padding:9px 7px; min-height:44px; font-size:12px; }
+.directory-premium[data-directory-refined] .network-back { display:inline-flex; align-items:center; gap:8px; min-height:44px; margin:0 0 12px; padding:8px 2px; font:inherit; font-size:13px; font-weight:600; border:0; border-radius:7px; color:var(--primary); background:transparent; cursor:pointer; }
+.directory-premium[data-directory-refined] .network-back:hover { background:var(--surface-2); }
+.directory-premium[data-directory-refined] .network-view-heading { display:flex; align-items:flex-start; gap:13px; margin-bottom:20px; }
+.directory-premium[data-directory-refined] .network-view-heading h1 { margin:0; font-size:clamp(24px,3vw,32px); letter-spacing:-.025em; line-height:1.2; }
+.directory-premium[data-directory-refined] .network-view-heading > div { min-width:0; }
+.directory-premium[data-directory-refined] .network-view-icon { display:grid; place-items:center; width:40px; height:40px; flex:0 0 40px; border:1px solid var(--border); border-radius:12px; background:var(--surface-2); color:var(--primary); }
+.directory-premium[data-directory-view="vip"] .network-view-icon { color:#8a682d; border-color:#e7dcc3; background:#faf7f0; }
+.directory-premium[data-directory-refined] .network-view-count { display:block; margin-top:8px; font-size:12px; color:var(--text-2); }
+.directory-premium[data-directory-refined] :is(.network-back,.network-tiers button,.community-nav button):focus-visible { outline:2px solid var(--primary); outline-offset:3px; }
+.directory-premium.directory-view .community-activity-section h2 { font-size:15px; margin-bottom:13px; }
+.directory-premium.directory-view .community-request { padding:14px; gap:12px; border-radius:13px; }
+.directory-premium.directory-view .community-request__actions { gap:7px; }
+.directory-premium.directory-view .community-request__actions button { padding:9px 12px; font-size:12px; }
+@container(max-width:600px) {
+ .directory-premium[data-directory-refined] .network-heading h1 { font-size:27px; }
+ #dynamic-section > .directory-premium[data-directory-refined] > .network-summary { padding:17px 18px; gap:15px; }
+ .directory-premium[data-directory-refined] .network-summary__intro { flex-basis:100%; }
+ .directory-premium[data-directory-refined] .network-summary__intro strong { font-size:19px; max-width:320px; }
+ .directory-premium[data-directory-refined] .network-summary__symbol { display:none; }
+ .directory-premium[data-directory-refined] .network-summary__numbers { flex:1; }
+ .directory-premium[data-directory-refined] .network-self-actions { flex:1 1 100%; display:grid; grid-template-columns:1fr 1fr; }
+ .directory-premium[data-directory-refined] .network-edit { width:100%; padding:9px 8px; font-size:11px; gap:6px; }
+ .directory-premium[data-directory-refined] .network-search input { font-size:16px!important; }
+ .directory-premium[data-directory-refined] .network-filters__fields { grid-template-columns:minmax(0,1fr); gap:8px; }
+ .directory-premium[data-directory-refined] .network-view-heading { gap:10px; margin-bottom:16px; }
+}

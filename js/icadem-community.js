@@ -5,6 +5,8 @@
     records = { received: [], sent: [], connected: [] },
     generation = 0,
     refreshTimer = null;
+  var connectionRead=0, pendingRequestUid='',pendingActions=new Set();
+  var routes={directory:'directorio',requests:'directorio-solicitudes',connections:'directorio-conexiones'};
   var names = {
     whatsapp: "WhatsApp",
     email: "Correo profesional",
@@ -79,7 +81,9 @@
       return;
     }
     var ticket = generation;
-    if (button.disabled) return;
+    var actionKey=ticket+':'+target;
+    if (button.disabled || pendingActions.has(actionKey)) return;
+    pendingActions.add(actionKey);
     button.disabled = true;
     var original = button.innerHTML;
     button.textContent =
@@ -124,6 +128,8 @@
       notify("No se pudo completar", error.message, true);
       button.innerHTML = original;
       button.disabled = false;
+    } finally {
+      pendingActions.delete(actionKey);
     }
   }
   function wire(root) {
@@ -251,22 +257,28 @@
   }
   async function loadConnections() {
     if(context?.kind === "profile")return;
-    var current = generation;
+    var current = generation,read=++connectionRead;
     if (!context?.root.isConnected || context.viewer !== window.UserState?.uid)
       return;
     try {
       var response = await api("/connections");
-      if (current !== generation || context?.viewer !== window.UserState?.uid)
+      if (current !== generation || read!==connectionRead || context?.viewer !== window.UserState?.uid)
         return;
       records = {
         received: response.received || [],
         sent: response.sent || [],
         connected: response.connected || [],
       };
-      context.root.querySelector("[data-request-count]").textContent = records
+      var counter=context.root.querySelector("[data-request-count]");
+      if(counter)counter.textContent = records
         .received.length
         ? String(records.received.length)
         : "";
+      var viewCount=context.root.querySelector('[data-network-view-count]');
+      if(viewCount&&context.tab!=="directory"){
+        var total=context.tab==='requests'?records.received.length+records.sent.length:records.connected.length;
+        viewCount.textContent=total+(context.tab==='requests'?(total===1?' solicitud':' solicitudes'):(total===1?' conexión':' conexiones'));
+      }
       var states = new Map(
         []
           .concat(records.received, records.sent, records.connected)
@@ -311,7 +323,9 @@
         context.notificationUid=null;
       }
     } catch (error) {
-      if (current !== generation) return;
+      if (current !== generation || read!==connectionRead) return;
+      var count=context.root.querySelector('[data-network-view-count]');if(count)count.textContent='Sin actualizar';
+      var badge=context.root.querySelector('[data-request-count]');if(badge)badge.textContent='';
       var target = context.root.querySelector("#community-activity");
       if (target && !target.hidden) {
         target.innerHTML =
@@ -330,10 +344,12 @@
       root,
       ...options,
       viewer: window.UserState?.uid,
-      tab: "directory",
+      tab: options.view==='requests'?'requests':options.view==='connections'?'connections':'directory',
+      notificationUid:pendingRequestUid||null,
     };
     generation++;
     records = { received: [], sent: [], connected: [] };
+    pendingRequestUid='';
     var nav = document.createElement("nav");
     nav.className = "community-nav";
     nav.setAttribute("aria-label", "Tu red profesional");
@@ -341,36 +357,23 @@
       '<button type="button" data-community-tab="directory" aria-pressed="true">' +
       icon("users") +
       'Directorio</button><button type="button" data-community-tab="requests" aria-pressed="false">Solicitudes <span data-request-count></span></button><button type="button" data-community-tab="connections" aria-pressed="false">Mis conexiones</button>';
-    root.querySelector(".network-filters").before(nav);
+    if(!options.view||options.view==='directory')root.querySelector(".network-filters").before(nav);
     var activity = document.createElement("div");
     activity.id = "community-activity";
-    activity.hidden = true;
+    activity.hidden = context.tab==='directory';
     activity.setAttribute("aria-live", "polite");
     root.append(activity);
     nav.querySelectorAll("button").forEach(function (button) {
       button.addEventListener("click", function () {
-        context.tab = button.dataset.communityTab;
-        nav.querySelectorAll("button").forEach(function (b) {
-          b.setAttribute("aria-pressed", String(b === button));
-        });
-        var directory = context.tab === "directory";
-        root.querySelector(".network-filters").hidden = !directory;
-        root.querySelector(".directory-results").hidden = !directory;
-        activity.hidden = directory;
-        if (!directory) {
-          activity.innerHTML =
-            '<p class="community-empty" role="status">Cargando tu red…</p>';
-          loadConnections();
-        }
+        window.navigateToSection?.(routes[button.dataset.communityTab]||'directorio');
       });
     });
     openNotificationTarget();
     if(context?.root!==root)return;
-    var restoreTab=options.directoryState?.tab;
-    if(restoreTab&&restoreTab!=="directory")nav.querySelector('[data-community-tab="'+restoreTab+'"]')?.click();
-    else loadConnections();
+    if(context.tab!=='directory')activity.innerHTML='<p class="community-empty" role="status">Cargando tu red…</p>';
+    loadConnections();
     refreshTimer = setInterval(function () {
-      if (document.visibilityState === "visible") loadConnections();
+      if (document.visibilityState === "visible") refreshDirectory();
     }, 45000);
   }
   function openNotificationTarget() {
@@ -378,7 +381,7 @@
     var target=window.ICADEMNotifications?.consume("directorio");
     if(!target)return;
     if(target.view==="profile")openProfile(target.profileUid);
-    else {context.notificationUid=target.profileUid;context.root.querySelector('[data-community-tab="requests"]')?.click();}
+    else {pendingRequestUid=target.profileUid;window.navigateToSection?.('directorio-solicitudes');}
   }
   function cleanup() {
     if(context?.kind==="profile")document.title="ICADEM · Panel VIP";
@@ -388,6 +391,13 @@
     refreshTimer = null;
     context = null;
   }
+  function refreshDirectory(){
+    if(!context?.root.isConnected||context.kind==='profile'||context.viewer!==window.UserState?.uid||window.__sessionEnding)return;
+    return Promise.allSettled([loadConnections(),context.tab==='directory'?context.refresh?.():null]);
+  }
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')refreshDirectory();});
+  window.addEventListener?.('focus',refreshDirectory);
+  window.addEventListener?.('online',refreshDirectory);
   function contactMarkup(contacts) {
     return Object.entries(contacts || {})
       .map(function (entry) {

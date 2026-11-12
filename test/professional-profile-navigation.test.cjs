@@ -18,6 +18,15 @@ function fixture(options={}){
     route:(section,config)=>window.navigateToSection(section,config),emit(name){for(const fn of events[name]||[])fn();},flush(){while(frames.length)frames.shift()();}};
 }
 const plain=x=>JSON.parse(JSON.stringify(x));
+
+for(const view of ['directorio-vip','directorio-solicitudes','directorio-conexiones'])test(view+' retains separate parent/profile contexts and returns to the originating view',()=>{
+  const f=fixture();f.tier.dataset.tier='todos';f.route('directorio');f.search.value='Búsqueda principal';f.window.scrollY=420;
+  f.route(view);f.search.value='Búsqueda específica';f.window.scrollY=910;f.api.openProfile('bob');
+  assert.equal(f.history.state.icademProfessional.origin,view);assert.match(f.api.backLabel(),/Volver/);
+  f.api.backToDirectory();assert.deepEqual(f.jumps,[-1]);
+  f.route(view,{fromHistory:true});assert.equal(f.api.directoryState().search,'Búsqueda específica');
+  f.route('directorio');assert.equal(f.api.directoryState().search,'Búsqueda principal');
+});
 test('shared profile links identify only one valid professional and discard unrelated payment/course parameters',()=>{
   const f=fixture();assert.equal(f.api.profileHref('professional_b-1'),'https://www.icademx.com/vip-panel.html?profesional=professional_b-1#directorio-perfil');
   for(const id of ['',null,'../private','x&email=hidden','https://evil.test',' bob','x'.repeat(129)]){assert.equal(f.api.validUid(id),false);assert.equal(f.api.profileHref(id),'');assert.equal(f.api.openProfile(id),false);}
@@ -105,7 +114,7 @@ function integrated(url='https://www.icademx.com/vip-panel.html#directorio'){
   let pendingLoad=false,modalOpens=0;
   const window={history,location,UserState:{uid:'viewer-a',modo:'gratis'},scrollY:0,scrollTo(value){this.scrollY=typeof value==='object'?value.top:value;},addEventListener(type,fn){(listeners[type]||=[]).push(fn);},dispatchEvent(){},ICADEMCommunity:{attach(node,options){selectedTab.dataset.communityTab=options.directoryState?.tab||'directory';},paintCards(){},openProfile(uid){return window.ICADEMProfessionalNavigation.openProfile(uid);},renderProfilePage(container){renders.push(window.ICADEMProfessionalNavigation.currentProfileId());container.innerHTML='<div data-dedicated-profile></div>';}}};
   const ctx={window,document,history,location,URL,URLSearchParams,Date,CustomEvent:class{constructor(type,options){this.type=type;this.detail=options?.detail;}},sessionStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)},requestAnimationFrame:fn=>frames.push(fn),setTimeout:fn=>timers.push(fn),clearInterval(){},SECCION_DEFAULT_VIP:'inicio',__seccionActualVIP:null,
-    _dirFiltroSector:'todos',_dirFiltroTier:'todos',_dirBusqueda:'',_dirCards:[],SECTORES:['Fiscal y Contable','Legal'],
+    _dirGeneration:0,_dirCanViewContacts:false,_dirFiltroSector:'todos',_dirFiltroTier:'todos',_dirBusqueda:'',_dirCards:[],SECTORES:['Fiscal y Contable','Legal'],
     Modal:{open(){modalOpens++;}},Toast:{error(){}},dirEditarMiTarjeta(){},dirSuscribir(){pendingLoad=true;},
     escapeHtml:value=>String(value||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),dirFotoSrc:()=>'',dirInstagramPerfil:()=>''};
   vm.runInNewContext(fs.readFileSync(__dirname+'/../js/icadem-directory.js','utf8'),ctx);
@@ -124,13 +133,13 @@ test('real panel history rerenders a changed professional UID without adding dup
 });
 test('real directory renderer restores normalized matching and original form values only after cards load, then defeats old scroll resets',()=>{
   const f=integrated();f.ctx.navigateToSection('directorio',{reemplazar:true});f.flush();f.completeLoad();
-  f.search.value='Jósé FISCAL';f.search.handlers.input();f.sector.value='Fiscal y Contable';f.sector.handlers.change({target:f.sector});f.tierVip.handlers.click();
+  f.search.value='Jósé FISCAL';f.search.handlers.input();f.sector.value='Fiscal y Contable';f.sector.handlers.change({target:f.sector});
   f.window.scrollY=1320;f.document.documentElement.scrollTop=120;f.document.body.scrollTop=720;f.document.scrollingElement.scrollTop=900;f.main.scrollTop=1050;f.dynamic.scrollTop=1180;
   const before=f.grid.innerHTML;f.ctx.dirVerDetalle('bob'); // Actual card action -> real route, never the old modal.
   f.window.ICADEMProfessionalNavigation.backToDirectory(); // Browser event route executes synchronously in the harness.
-  assert.equal(f.location.hash,'#directorio');assert.equal(f.location.search,'');assert.equal(f.search.value,'Jósé FISCAL');assert.equal(f.ctx._dirBusqueda,'jose fiscal');assert.equal(f.ctx._dirFiltroSector,'Fiscal y Contable');assert.equal(f.ctx._dirFiltroTier,'vip');assert.equal(f.tierVip.attributes['aria-pressed'],'true');assert.equal(f.clear.hidden,false);
+  assert.equal(f.location.hash,'#directorio');assert.equal(f.location.search,'');assert.equal(f.search.value,'Jósé FISCAL');assert.equal(f.ctx._dirBusqueda,'jose fiscal');assert.equal(f.ctx._dirFiltroSector,'Fiscal y Contable');assert.equal(f.ctx._dirFiltroTier,'todos');assert.equal(f.tierAll.attributes['aria-pressed'],'true');assert.equal(f.clear.hidden,false);
   f.flush();assert.notEqual(f.window.scrollY,1320); // No restore while the result list is still loading.
-  f.completeLoad();f.flush();assert.equal(f.grid.innerHTML,before);assert.match(f.grid.innerHTML,/data-dircard="bob"/);assert.doesNotMatch(f.grid.innerHTML,/data-dircard="free"/);
+  f.completeLoad();f.flush();assert.equal(f.grid.innerHTML,before);assert.match(f.grid.innerHTML,/data-dircard="bob"/);assert.match(f.grid.innerHTML,/data-dircard="free"/);
   assert.deepEqual([f.window.scrollY,f.document.documentElement.scrollTop,f.document.body.scrollTop,f.document.scrollingElement.scrollTop,f.main.scrollTop,f.dynamic.scrollTop],[1320,120,720,900,1050,1180]);assert.equal(f.modalOpens,0);
 });
 test('actual panel URL reader handles direct/reloaded profile links and clears the target after leaving without changing checkout behavior',()=>{
@@ -143,10 +152,10 @@ test('the actual login return destination can enter the real panel profile rende
 });
 test('the real own-profile button opens the authenticated owner UID and preserves the raw directory selection for return',()=>{
   const f=integrated();f.ctx.navigateToSection('directorio',{reemplazar:true});f.flush();f.completeLoad();
-  f.search.value='Jósé FISCAL';f.search.handlers.input();f.sector.value='Fiscal y Contable';f.sector.handlers.change({target:f.sector});f.tierVip.handlers.click();f.window.scrollY=1500;
+  f.search.value='Jósé FISCAL';f.search.handlers.input();f.sector.value='Fiscal y Contable';f.sector.handlers.change({target:f.sector});f.window.scrollY=1500;
   f.ownProfile.handlers.click();assert.deepEqual(f.renders,['viewer-a']);assert.equal(f.location.search,'?profesional=viewer-a');assert.equal(f.location.hash,'#directorio-perfil');assert.equal(f.modalOpens,0);
-  const saved=JSON.parse([...f.storage.values()][0]);assert.equal(saved.search,'Jósé FISCAL');assert.equal(saved.sector,'Fiscal y Contable');assert.equal(saved.tier,'vip');assert.equal(saved.scroll.window,1500);
-  f.window.ICADEMProfessionalNavigation.backToDirectory();f.completeLoad();f.flush();assert.equal(f.search.value,'Jósé FISCAL');assert.equal(f.ctx._dirFiltroSector,'Fiscal y Contable');assert.equal(f.ctx._dirFiltroTier,'vip');assert.equal(f.window.scrollY,1500);
+  const saved=JSON.parse([...f.storage.values()][0]);assert.equal(saved.search,'Jósé FISCAL');assert.equal(saved.sector,'Fiscal y Contable');assert.equal(saved.tier,'todos');assert.equal(saved.scroll.window,1500);
+  f.window.ICADEMProfessionalNavigation.backToDirectory();f.completeLoad();f.flush();assert.equal(f.search.value,'Jósé FISCAL');assert.equal(f.ctx._dirFiltroSector,'Fiscal y Contable');assert.equal(f.ctx._dirFiltroTier,'todos');assert.equal(f.window.scrollY,1500);
 });
 
  test('forum author navigation preserves its filter and all scroll surfaces while keeping the existing profile route',()=>{
