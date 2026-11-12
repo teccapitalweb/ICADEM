@@ -35,7 +35,13 @@ const GAMES = [
         ...L.PATIENTS.map(p => ['assess', { id: p.id, flags: p.findings.filter(f => f.alarm).map(f => f.id), triage: p.triage }]),
         ['prioritize', { order: ['aurelio', 'celia', 'joaquin', 'mariana'] }],
         ...L.PATIENTS.map(p => ['decide', { id: p.id, action: p.actions.find(a => a.correct).id, support: p.support }]),
-        ['record'], ['handover', { reasons: ['gravedad', 'apoyo'] }]];` }
+        ['record'], ['handover', { reasons: ['gravedad', 'apoyo'] }]];` },
+  { key: 'vet', door: 'veterinaria', spawn: 'vet', scene: 'vet', opener: 'xime', mission: 'vet-guardianes-bienestar', credits: 20, talkAction: 'brief',
+    perfect: `const L = await import('./js/missions/vet-welfare-logic.js');
+      return [...L.ANIMALS.flatMap(x => L.REVIEWS.map(what => ['review', { id: x.id, what }])),
+        ...L.ANIMALS.map(x => ['assess', { id: x.id, flags: x.findings.filter(f => f.alert).map(f => f.id), priority: x.priority, domain: x.domain }]),
+        ...L.ANIMALS.map(x => ['decide', { id: x.id, action: x.actions.find(y => y.correct).id }]),
+        ...['arenero', 'repisa', 'escondite', 'rascador'].map(id => ['place', { id }]), ['counsel', { reasons: ['dominios', 'senales'] }]];` }
 ];
 
 module.exports = { GAMES };

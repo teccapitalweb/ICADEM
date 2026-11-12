@@ -17,7 +17,7 @@ export const BUILDINGS = [
     wall: '#fbfdfd', trim: '#2bb5a0', roof: 0x2bb5a0, signBg: '#178f7e', signFg: '#ffffff', glass: '#bff1ea' },
   { id: 'torre', name: 'Torre ICADEM', mission: 'Desafío de equipos', x: 31, z: -28, w: 10, d: 10, h: 21, side: 'S', style: 'tower', status: 'soon',
     wall: '#7f8cf5', trim: '#4b55c7', roof: 0x3a43a8, signBg: '#3a43a8', signFg: '#ffffff', glass: '#d8e2ff', rows: 7, cols: 3 },
-  { id: 'veterinaria', name: 'Clínica Veterinaria', mission: 'Guardianes del bienestar', x: -31, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'vet', status: 'soon',
+  { id: 'veterinaria', name: 'Clínica Veterinaria', mission: 'Guardianes del bienestar', x: -31, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'vet', status: 'open',
     wall: '#bfe8f7', trim: '#3c9fc9', roof: 0xf08aa8, signBg: '#3c9fc9', signFg: '#ffffff' },
   { id: 'casa', name: 'Tu casa', mission: 'Habitación y misiones', x: -13, z: 28, w: 9, d: 8, h: 6, side: 'N', style: 'home', status: 'open',
     wall: '#ffe2c2', trim: '#e86a5c', roof: 0xe86a5c, signBg: '#2f9e8f', signFg: '#ffffff', cols: 3, rows: 2 },
