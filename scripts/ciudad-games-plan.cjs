@@ -50,7 +50,11 @@ const GAMES = [
   { key: 'greenhouse', door: 'invernadero', spawn: 'greenhouse', scene: 'greenhouse', opener: 'tomas', mission: 'invernadero-cultivo-inteligente', credits: 20, talkAction: 'brief',
     perfect: `const L = await import('./js/missions/greenhouse-logic.js');
       return [['readChart'], ...L.SENSORS.flatMap(s => [['readSensor', { id: s.id }], ['diagnose', { id: s.id, level: s.level }]]), ['climate', { vent: 60, shade: 40 }], ['solution', { nutrient: 12, acid: 0 }],
-        ...L.BEDS.map(b => ['irrigate', { id: b.id, action: b.correct }]), ...L.TRAPS.map(t => ['inspectTrap', { id: t.id }]), ['pest', { zone: 'B', action: 'biologico' }], ['debrief', { reasons: ['medir', 'umbral'] }]];` }
+        ...L.BEDS.map(b => ['irrigate', { id: b.id, action: b.correct }]), ...L.TRAPS.map(t => ['inspectTrap', { id: t.id }]), ['pest', { zone: 'B', action: 'biologico' }], ['debrief', { reasons: ['medir', 'umbral'] }]];` },
+  { key: 'office', door: 'oficina', spawn: 'office', scene: 'office', opener: 'paola', mission: 'oficina-expediente-perdido', credits: 20, talkAction: 'brief',
+    perfect: `const L = await import('./js/missions/lost-file-logic.js');
+      return [['index'], ...L.NEEDED_SPOTS.map(id => ['search', { id }]), ...L.CHRONO.map(id => ['take', { id }]), ['order', { ids: [...L.CHRONO] }],
+        ['flag', { ids: ['monto', 'cantidad'] }], ['resolve', { id: 'retener' }], ['file', { cabinet: 'C' }], ['debrief', { reasons: ['trazabilidad', 'no-alterar'] }]];` }
 ];
 
 module.exports = { GAMES };

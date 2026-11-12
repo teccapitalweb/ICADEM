@@ -21,11 +21,12 @@ import { COURT_JUDGE_MISSION } from '../ciudad/js/missions/court-judge-logic.js'
 import { MARKET_INVENTORY_MISSION } from '../ciudad/js/missions/market-inventory-logic.js';
 import { SITE_INSPECTOR_MISSION } from '../ciudad/js/missions/site-inspector-logic.js';
 import { HOSPITAL_SHIFT_MISSION } from '../ciudad/js/missions/hospital-shift-logic.js';
+import { LOST_FILE_MISSION } from '../ciudad/js/missions/lost-file-logic.js';
 import { GREENHOUSE_MISSION } from '../ciudad/js/missions/greenhouse-logic.js';
 import { KITCHEN_RUSH_MISSION } from '../ciudad/js/missions/kitchen-rush-logic.js';
 import { VET_WELFARE_MISSION } from '../ciudad/js/missions/vet-welfare-logic.js';
 
-const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION), defineMission(MARKET_INVENTORY_MISSION), defineMission(SITE_INSPECTOR_MISSION), defineMission(HOSPITAL_SHIFT_MISSION), defineMission(VET_WELFARE_MISSION), defineMission(KITCHEN_RUSH_MISSION), defineMission(GREENHOUSE_MISSION)].map(d => [d.id, d]));
+const MISSIONS = new Map([defineMission(BANK_CREDIT_MISSION), defineMission(COURT_JUDGE_MISSION), defineMission(MARKET_INVENTORY_MISSION), defineMission(SITE_INSPECTOR_MISSION), defineMission(HOSPITAL_SHIFT_MISSION), defineMission(VET_WELFARE_MISSION), defineMission(KITCHEN_RUSH_MISSION), defineMission(GREENHOUSE_MISSION), defineMission(LOST_FILE_MISSION)].map(d => [d.id, d]));
 const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 /**
