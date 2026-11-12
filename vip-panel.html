@@ -4258,6 +4258,11 @@ window.BUNNY_VIDEO_LIBRARY_ID = '726119';
 
 const ADMIN_EMAILS = ['teccapitalweb@gmail.com','icademconsultoria2024@gmail.com','sinergiaagricola789@gmail.com','ipcilinstituto@gmail.com','juarezhernandez093@gmail.com','sofia.linares.tec@gmail.com','grupeliptica@gmail.com'];
 
+// Cuentas que solo usan el panel de administración (p. ej. la que organiza y graba las clases en Meet):
+// no tienen panel de miembros, van directo al administrador. Es una separación de uso, no de seguridad:
+// los permisos reales los decide el servidor y las reglas de Firestore.
+const ADMIN_SOLO = ['grupeliptica@gmail.com'];
+
 function calcIniciales(nameOrEmail){
   const s = (nameOrEmail||'').trim();
   if (!s) return 'IN';
@@ -4277,6 +4282,11 @@ if (window.__isDemoMode) {
   // ─── Auth normal · puede ser sin-membresia o vip ───
   onAuthStateChanged(auth, async (user) => {
     if (!user) { session.signedOut(); return; }
+    if (ADMIN_SOLO.includes(String(user.email || '').toLowerCase())) {
+      document.documentElement.style.visibility = 'hidden';
+      window.location.replace('vip-admin.html');
+      return;
+    }
     const ticket = session.begin(user);
 
     try {
@@ -7175,8 +7185,19 @@ const Sections = (function(){
   let _webinarsPromise = null;
   let _webinarsError = '';
 
+  // Al recargar directamente en Clases en vivo, la sección se dibuja antes de que Firebase restaure la sesión:
+  // se espera a que esté lista en lugar de fallar al instante.
+  async function esperarSesionWebinars() {
+    if (window.__isDemoMode) return null;
+    if (window.__auth?.currentUser) return window.__auth.currentUser;
+    const limite = Date.now() + 15000;
+    try { if (window.__auth?.authStateReady) await Promise.race([window.__auth.authStateReady(), new Promise(r => setTimeout(r, 15000))]); } catch (_) {}
+    while (!window.__auth?.currentUser && Date.now() < limite) await new Promise(r => setTimeout(r, 150));
+    return window.__auth?.currentUser || null;
+  }
+
   async function webinarRequest(path, options = {}) {
-    const user = window.__isDemoMode ? null : window.__auth?.currentUser;
+    const user = await esperarSesionWebinars();
     if (!user) throw new Error('Inicia sesión para abrir tus clases en vivo.');
     const token = await user.getIdToken();
     const response = await fetch((window.WEBHOOK_URL || 'https://icadem-webhook-production.up.railway.app') + path, {
@@ -10994,7 +11015,7 @@ const Sections = (function(){
             <button class="btn btn--ghost" id="wh-cal" data-bypass-paywall="true"><svg class="ic"><use href="#i-calendar"/></svg>Agregar al calendario</button>
           </div>
         </div>
-        <div class="live-schedule"><div class="live-schedule__date"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span>${f.getDate()} ${monthShort(f.getMonth())}<small>${pad(f.getHours())}:${pad(f.getMinutes())} hrs</small></span></div><p>${enVivo?'La sesión está en vivo':'Nos encontramos en'}</p><div class="webinar-hero__countdown">
+        <div class="live-schedule"><div class="live-schedule__date"><svg class="ic" aria-hidden="true"><use href="#i-calendar"/></svg><span>${f.getDate()} ${monthShort(f.getMonth())}<small>${pad(f.getHours())}:${pad(f.getMinutes())} hrs</small></span></div><p id="wh-cd-caption">${enVivo?'La sesión está en vivo':'Nos encontramos en'}</p><div class="webinar-hero__countdown">
           <div class="webinar-hero__cd-box"><span class="webinar-hero__cd-num" id="wh-d">00</span><span class="webinar-hero__cd-lbl">Días</span></div>
           <div class="webinar-hero__cd-box"><span class="webinar-hero__cd-num" id="wh-h">00</span><span class="webinar-hero__cd-lbl">Hrs</span></div>
           <div class="webinar-hero__cd-box"><span class="webinar-hero__cd-num" id="wh-m">00</span><span class="webinar-hero__cd-lbl">Min</span></div>
@@ -11008,11 +11029,18 @@ const Sections = (function(){
     if(!w)return;
     if(countdownTimer){clearInterval(countdownTimer);countdownTimer=null;}
     const target=new Date(w.fecha);
+    const finMs=vipWebinarEndMs(w);
     function tick(){
-      const diff=target-new Date();
+      const ahora=Date.now();
+      let diff=target-ahora;
       const els={d:document.getElementById('wh-d'),h:document.getElementById('wh-h'),m:document.getElementById('wh-m'),s:document.getElementById('wh-s')};
       if(!els.d){clearInterval(countdownTimer);countdownTimer=null;return;}
-      if(diff<=0){Object.values(els).forEach(e=>{if(e)e.textContent='00';});clearInterval(countdownTimer);countdownTimer=null;return;}
+      const cap=document.getElementById('wh-cd-caption');
+      if(diff<=0){
+        // Ya empezó: mientras dure la clase se cuenta lo que falta para que termine; al terminar se detiene en cero
+        if(finMs&&ahora<finMs){diff=finMs-ahora;if(cap)cap.textContent='La sesión está en vivo · termina en';}
+        else{Object.values(els).forEach(e=>{if(e)e.textContent='00';});if(cap)cap.textContent='La sesión terminó';clearInterval(countdownTimer);countdownTimer=null;return;}
+      }else if(cap){cap.textContent='Nos encontramos en';}
       if(els.d)els.d.textContent=pad(Math.floor(diff/86400000));
       if(els.h)els.h.textContent=pad(Math.floor((diff%86400000)/3600000));
       if(els.m)els.m.textContent=pad(Math.floor((diff%3600000)/60000));
