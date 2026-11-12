@@ -44,7 +44,7 @@ function campus(){
   const window={__auth:{currentUser:{uid:'test-user'}},UserState:{modo:'vip'},dispatchEvent:event=>events.push(event),scrollTo(){}};
   const context={window,location,URL,URLSearchParams,cursos:courses,_cursosLoaded:true,FREE_CLASS_COUNT:4,cursosState:{estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'},
     document:{addEventListener(){},getElementById:id=>ids.get(id)||null,querySelectorAll:selector=>selector==='[data-course-filter]'?ids.get('dynamic-section').querySelectorAll(selector):[]},
-    history:{pushState(_,__,hash){location.hash=hash;},replaceState(_,__,hash){location.hash=hash;}},
+    history:{pushState(_,__,url){location.href=new URL(url,location.href).href;},replaceState(_,__,url){location.href=new URL(url,location.href).href;}},
     getProgresoCurso:id=>progress[id]||{clasesVistas:[],completado:false},getPortadaCurso:c=>c.portada,primerCursoGratisId:()=>'',toolEsVIP:()=>true,
     cursoDesbloqueado:(_,c)=>c.access?.unlocked===true,diasParaDesbloquear:(_,c)=>c.access?.unlocked?0:6,
     coverSVG:()=>'/fallback.svg',escapeHtml:value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])),

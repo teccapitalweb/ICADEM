@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-11-11 — Guardar prioridades activa su orden al regresar al catálogo
+
+- Una confirmación correcta del PUT de prioridades activa «Mi orden de prioridad» para Mis cursos. Al volver se conserva el resto de los filtros y el catálogo grande utiliza el orden confirmado, en lugar del criterio previo al organizador. Un guardado fallido no activa esta preferencia.
+- La elección manual de otro criterio se conserva al navegar por el menú y recargar. Se guarda solo el nombre del criterio por cuenta; las prioridades permanecen exclusivamente en el backend. Sin cambios al algoritmo de «Próximos a desbloquear», accesos, diseño o portadas.
+- Diagnóstico de sesión: Firebase está configurado con persistencia local; el panel redirige al acceso si Firebase devuelve un usuario nulo. La pérdida de la sesión de Britney en la prueba anterior no pudo atribuirse a una causa concreta: la sesión actualmente conectada es administrativa. No se modificó autenticación ni se considera verificada la recarga de esa cuenta real.
+- Pruebas aisladas en Chrome a 390/1440 px: guardar desde otro criterio, volver, tarjetas grandes, recarga, menú, elección manual, error y aislamiento de cuenta. Caché v157.
+
 ## 2026-11-11 — Conservar el orden elegido del catálogo principal al recargar
 
 - Se confirmó en la sesión abierta que seleccionar «Mi orden de prioridad» y recargar devolvía el selector a «Próximos a desbloquear». El catálogo principal conserva ahora el criterio elegido en el parámetro de interfaz `ordenCursos`; las prioridades siguen obteniéndose exclusivamente del backend.
