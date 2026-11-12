@@ -14,7 +14,7 @@ export class WsAdapter extends NetworkAdapter {
   /** @param {{url:string, getTicket:() => Promise<string>, avatar?:string, WebSocketImpl?:any}} o */
   constructor(o) {
     super();
-    this.url = o.url; this.getTicket = o.getTicket; this.avatar = o.avatar || 'explorador'; this.resumeToken = null; this.roomState = null; this.friendList = []; this.presence = null; this.codes = []; this.invites = [];
+    this.url = o.url; this.getTicket = o.getTicket; this.kid = o.kid || null; this.family = null; this.avatar = o.avatar || 'explorador'; this.resumeToken = null; this.roomState = null; this.friendList = []; this.presence = null; this.codes = []; this.invites = [];
     this.WS = o.WebSocketImpl || globalThis.WebSocket;
     this.ws = null; this.pid = null; this.instance = null; this.roster = new Map();
     this.status = 'offline';     // offline → connecting → online → reconnecting → closed
@@ -41,7 +41,7 @@ export class WsAdapter extends NetworkAdapter {
   async #connect() {
     // Credencial de un solo uso: primero el pase de reanudación; si no hay, un boleto nuevo.
     const hello = { t: 'hello' };
-    if (this.resumeToken) { hello.resume = this.resumeToken; this.resumeToken = null; } else hello.ticket = await this.getTicket();
+    if (this.resumeToken) { hello.resume = this.resumeToken; this.resumeToken = null; } else { hello.ticket = await this.getTicket(); if (this.kid) hello.kid = this.kid; }
     if (this.closedByUs) return;
     const ws = new this.WS(this.url);
     this.ws = ws;
@@ -62,7 +62,7 @@ export class WsAdapter extends NetworkAdapter {
       case 'welcome':
         this.pid = m.pid; this.instance = m.instance; this.attempt = 0; this.roster.clear(); this.resumeToken = m.resume || null; this.name = m.name;
         this.roomState = m.room || null; this.emit('room', { room: this.roomState });
-        this.friendList = m.friends || []; this.presence = m.presence || null; this.codes = m.codes || []; if (m.presence) this.emit('presence', this.presence); if (m.profile) this.emit('profile', { op: 'get', ok: true, profile: m.profile });
+        this.friendList = m.friends || []; this.presence = m.presence || null; this.codes = m.codes || []; this.family = m.family || null; if (m.presence) this.emit('presence', this.presence); if (m.profile) this.emit('profile', { op: 'get', ok: true, profile: m.profile });
         (m.roster || []).forEach(p => this.roster.set(p.pid, p));
         this.#set('online', { resumed: m.resumed });
         (m.roster || []).forEach(p => this.emit('join', p));

@@ -67,7 +67,14 @@ export class Hub {
    * Entrada de un usuario ya autenticado. Una sola sesión por usuario: si vuelve a entrar
    * (otra pestaña o reconexión) recupera su lugar y la conexión anterior queda sustituida.
    */
-  join({ uid, name, avatar = 'explorador' }) {
+  /* ---------- perfiles infantiles supervisados (modo familiar; apagado salvo CIUDAD_FAMILY=on) ---------- */
+
+  /** ¿Son de la misma familia? (el perfil infantil y su adulto responsable, o perfiles infantiles del mismo adulto) */
+  family(a, b) { return (a.minor ? a.guardian : a.uid) === (b.minor ? b.guardian : b.uid); }
+  /** Un perfil infantil solo existe para su familia: nadie más lo ve, lo lista ni le habla. */
+  sees(viewer, other) { return !(viewer.minor || other.minor) || this.family(viewer, other); }
+
+  join({ uid, name, avatar = 'explorador', minor = false, guardian = null }) {
     const existing = this.byUid.get(uid);
     if (existing) {
       const replaced = existing.online;
@@ -76,6 +83,7 @@ export class Hub {
     }
     const instance = this.#pick();
     const player = {
+      minor: Boolean(minor), guardian: minor ? guardian : null,
       uid, pid: this.publicId(uid), name: cleanName(name), avatar: String(avatar).slice(0, 24), instance,
       online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null, listed: true,
       allowSay: createRateLimiter(SAY_LIMIT),
@@ -140,6 +148,8 @@ export class Hub {
   visible(viewer, other) {
     if (viewer === other || !other.online || !other.state || !viewer.state) return false;
     if (viewer.instance !== other.instance || viewer.state.scene !== other.state.scene) return false;
+    // Perfiles infantiles: solo los ve su familia, y únicamente dentro de su propio equipo familiar.
+    if ((viewer.minor || other.minor) && !(this.family(viewer, other) && viewer.room && viewer.room === other.room)) return false;
     const privacy = SCENE_RULES[other.state.scene].privacy;
     if (privacy === 'private') return false;
     if (privacy === 'party') return Boolean(viewer.room) && viewer.room === other.room;
@@ -186,6 +196,7 @@ export class Hub {
   }
 
   createRoom(player, { mission } = {}) {
+    if (player.minor) return { ok: false, reason: 'no-permitido' };
     if (mission !== null && mission !== undefined && !COOP_MISSIONS[mission]) return { ok: false, reason: 'mision-sin-cooperativo' };
     mission = mission ?? null;
     // Un equipo ya formado puede elegir misión sin deshacerse: lo decide su anfitrión.
@@ -202,6 +213,7 @@ export class Hub {
     const room = this.codes.get(String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, ''));
     if (!room) return { ok: false, reason: 'codigo-invalido' };
     if (room.members.has(player.pid)) return { ok: true, room };
+    if ([...room.members.values()].some(m => !this.sees(player, m.player))) return { ok: false, reason: 'no-permitido' };
     if (room.members.size >= specOf(room).max) return { ok: false, reason: 'sala-llena' };
     if (room.status !== 'espera') return { ok: false, reason: 'sala-cerrada' };
     this.leaveRoom(player);
@@ -301,6 +313,7 @@ export class Hub {
 
   /** Conexiones mutuas que están ahora mismo en Ciudad ICADEM. De los demás jugadores no se revela nada. */
   friendsView(player) {
+    if (player.minor) return [];   // un perfil infantil no tiene conexiones profesionales
     const list = [];
     for (const uid of player.friends) {
       const o = this.byUid.get(uid); if (!o || !o.online || !o.friends.has(player.uid)) continue;
@@ -311,6 +324,7 @@ export class Hub {
   }
 
   invite(from, toPid) {
+    if (from.minor) return { ok: false, reason: 'no-permitido' };
     const to = this.#friend(from, String(toPid)); if (!to) return { ok: false, reason: 'no-es-conexion' };
     if (!to.online) return { ok: false, reason: 'no-disponible' };
     if (from.room && to.room === from.room) return { ok: false, reason: 'ya-en-tu-equipo' };
@@ -361,7 +375,7 @@ export class Hub {
   }
 
   /** Jugadores reales conectados en la instancia (sin NPC), con el nombre que le corresponde ver a `viewer`. */
-  roster(instance, viewer = null) { return [...instance.players.values()].filter(p => p.online && p !== viewer).map(p => ({ pid: p.pid, name: this.nameFor(viewer, p), avatar: p.avatar, custom: p.custom })); }
+  roster(instance, viewer = null) { return [...instance.players.values()].filter(p => p.online && p !== viewer && (!viewer ? !p.minor : this.sees(viewer, p))).map(p => ({ pid: p.pid, name: this.nameFor(viewer, p), avatar: p.avatar, custom: p.custom })); }
 
   /** Presencia controlada por el servidor: solo cuenta sesiones conectadas (las desconectadas expiran en `resumeMs`). */
   presence(player) {
@@ -382,6 +396,7 @@ export class Hub {
    */
   createCode(player, { uses, minutes } = {}) {
     this.#sweepCodes();
+    if (player.minor) return { ok: false, reason: 'no-permitido' };
     if ([...this.joinCodes.values()].filter(c => c.owner === player).length >= LIMITS.codesPerPlayer) return { ok: false, reason: 'demasiados-codigos' };
     if (!player.room) this.createRoom(player, { mission: null });
     const room = player.room;
@@ -408,6 +423,7 @@ export class Hub {
     if (!c) return { ok: false, reason: 'codigo-invalido' };
     const owner = c.owner, room = c.room;
     if (owner === player) return { ok: false, reason: 'es-tu-codigo' };
+    if (!this.sees(player, owner) || [...room.members.values()].some(m => !this.sees(player, m.player))) return { ok: false, reason: 'no-permitido' };
     if (room.members.has(player.pid)) return { ok: true, room, owner, already: true };
     if (!owner.online) return { ok: false, reason: 'no-disponible' };
     if (room.status === 'en-curso') return { ok: false, reason: 'sala-cerrada' };
@@ -450,7 +466,7 @@ export class Hub {
       const st = this.#where(player, RACE.scene), i = payload.i, cp = RACE.checkpoints[run.next];
       if (!st) return { ok: false, reason: 'fuera-del-parque' };
       if (i !== run.next || !cp) return { ok: false, reason: 'fuera-de-orden' };
-      if (Math.hypot(st.x - cp[0], st.z - cp[1]) > RACE.radius + 0.6) return { ok: false, reason: 'lejos' };
+      if (Math.hypot(st.x - cp[0], st.z - cp[1]) > RACE.radius + 0.6 || st.y < (cp[2] || 0) - 0.35) return { ok: false, reason: 'lejos' };
       run.next++;
       if (run.next < RACE.checkpoints.length) return { ok: true, next: run.next };
       const seconds = (this.now() - run.at) / 1000; player.play = null;

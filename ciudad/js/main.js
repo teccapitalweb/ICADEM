@@ -82,7 +82,10 @@ async function boot() {
   const params = new URLSearchParams(location.search);
   const embedded = window.parent !== window;
 
-  const store = new Store();
+  // Perfil infantil supervisado (?perfil=kXXXXXXXX): solo funciona si el servidor tiene activo el modo familiar.
+  const kidProfile = /^k[0-9a-f]{8}$/.test(params.get('perfil') || '') ? params.get('perfil') : null;
+  const store = new Store(undefined, { profile: kidProfile });
+  store.state.profileKind = kidProfile ? 'infantil' : 'adulto';
   const engine = new Engine($('stage'));
   const input = new Input($('stage'), { stick: $('stick'), knob: $('stick-knob') });
   const camera = new ThirdPersonCamera(engine.camera);
@@ -94,8 +97,8 @@ async function boot() {
   // En el panel: solo hay red si el panel declara un servidor; la identidad la certifica ese servidor.
   const panelWs = !mpUrl && embedded ? await askPanelForServer() : null;
   const net = mpUrl && /^wss?:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(mpUrl)
-    ? new WsAdapter({ url: mpUrl, avatar: store.state.avatarId, getTicket: devTicketProvider(mpUrl, (params.get('uid') || 'local').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'local', (params.get('name') || 'Jugador de prueba').slice(0, 28)) })
-    : (panelWs ? new WsAdapter({ url: panelWs, getTicket: panelTicketProvider() }) : new OfflineAdapter());
+    ? new WsAdapter({ url: mpUrl, avatar: store.state.avatarId, kid: kidProfile, getTicket: devTicketProvider(mpUrl, (params.get('uid') || 'local').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 40) || 'local', (params.get('name') || 'Jugador de prueba').slice(0, 28)) })
+    : (panelWs ? new WsAdapter({ url: panelWs, getTicket: panelTicketProvider(), kid: kidProfile }) : new OfflineAdapter());
   const sync = new StateSync(net);
 
   /* jugador */
@@ -196,6 +199,8 @@ async function boot() {
     });
     net.on('fix', m => { const f = decodeFix(m.s); if (f && f.scene === api.sceneName) { player.position.set(f.x, f.y, f.z); player.vx = player.vz = 0; } });
   }
+  /* perfil infantil sin modo familiar activo en el servidor: se vuelve al perfil del adulto */
+  if (kidProfile) net.on('status', st => { if (st.status === 'closed' && (st.detail === 'familia-desactivada' || st.detail === 'perfil-infantil-invalido')) { api.ui.toast('Los perfiles infantiles todavía no están activos. Entrarás con tu perfil.', 3600); setTimeout(() => { const u = new URL(location.href); u.searchParams.delete('perfil'); location.replace(u.toString()); }, 2500); } });
   /* invitación por enlace (?unirme=CÓDIGO): se pregunta antes y se canjea con la sesión propia */
   const inviteCode = String(params.get('unirme') || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (/^[A-HJ-NP-Z2-9]{8}$/.test(inviteCode)) {

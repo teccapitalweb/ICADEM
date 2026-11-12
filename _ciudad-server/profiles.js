@@ -15,6 +15,7 @@ import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { replay } from '../ciudad/js/missions/engine.js';
 import { questionById } from '../ciudad/js/edu/questions.js';
+import { FAMILY_MAX, AGE_BANDS, KID_MISSIONS, cleanAlias } from '../ciudad/js/edu/family.js';
 import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
 import { cleanPlay, rewardQuiz, rewardActivity } from '../ciudad/js/edu/play-rules.js';
 import { emptyProfile, cleanCustom, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
@@ -56,9 +57,10 @@ export class Profiles {
 
   get(uid) { return this.#serial(uid, async () => this.view(await this.#read(uid))); }
 
-  completeMission(uid, missionId, log) {
+  completeMission(uid, missionId, log, { minor = false } = {}) {
     return this.#serial(uid, async () => {
       const def = this.missions.get(String(missionId)); if (!def) return { ok: false, reason: 'mision-desconocida' };
+      if (minor && !KID_MISSIONS.includes(def.id)) return { ok: false, reason: 'mision-no-disponible' };
       if (!Array.isArray(log) || log.length > 400) return { ok: false, reason: 'bitacora-invalida' };
       const check = replay(def, log);
       if (!check.ok || !check.result.valid) return { ok: false, reason: 'bitacora-invalida' };
@@ -69,7 +71,7 @@ export class Profiles {
       if (result.passed) {
         xp = first ? reward.xp : reward.repeatXp; p.xp += xp;
         const key = 'mission:' + def.id;
-        if (!p.testLedger.some(e => e.key === key)) { credits = reward.amount; p.testCredits += credits; p.testLedger.push({ key, amount: credits, at: Date.now() }); }
+        if (!minor && !p.testLedger.some(e => e.key === key)) { credits = reward.amount; p.testCredits += credits; p.testLedger.push({ key, amount: credits, at: Date.now() }); }
       }
       return { ok: true, score: result.score, passed: result.passed, credits, xp, profile: this.view(await this.#write(uid, p)) };
     });
@@ -134,6 +136,36 @@ export class Profiles {
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }
+
+  /* ---------- familia (solo cuando el modo familiar está activo) ---------- */
+  familyList(uid) { return this.#serial(uid, async () => ({ ok: true, family: ((await this.#read(uid)).family || []).map(k => ({ id: k.id, alias: k.alias, avatarId: k.avatarId, band: k.band })) })); }
+
+  /** Alta de un perfil infantil: exige el consentimiento explícito del adulto responsable. */
+  familyAdd(uid, { alias, avatarId, band, consent } = {}, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      if (consent !== true) return { ok: false, reason: 'falta-consentimiento' };
+      const name = cleanAlias(alias); if (!name) return { ok: false, reason: 'alias-invalido' };
+      if (!AGE_BANDS.some(([b]) => b === band)) return { ok: false, reason: 'edad-invalida' };
+      const p = await this.#read(uid), list = p.family || [];
+      if (list.length >= FAMILY_MAX) return { ok: false, reason: 'familia-llena' };
+      if (list.some(k => k.alias.toLowerCase() === name.toLowerCase())) return { ok: false, reason: 'alias-repetido' };
+      const id = 'k' + createHash('sha256').update(uid + ':' + name + ':' + now).digest('hex').slice(0, 8);
+      p.family = [...list, { id, alias: name, avatarId: isAvatarUnlocked(String(avatarId), emptyProfile()) ? String(avatarId) : 'explorador', band, consentAt: now }];
+      await this.#write(uid, p);
+      return { ok: true, family: p.family.map(k => ({ id: k.id, alias: k.alias, avatarId: k.avatarId, band: k.band })) };
+    });
+  }
+
+  familyRemove(uid, id) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid); p.family = (p.family || []).filter(k => k.id !== id);
+      await this.#write(uid, p);
+      return { ok: true, family: p.family.map(k => ({ id: k.id, alias: k.alias, avatarId: k.avatarId, band: k.band })) };
+    });
+  }
+
+  /** Perfil infantil de un adulto (para entrar con él). */
+  async kidOf(uid, id) { const p = await this.#serial(uid, () => this.#read(uid)); return (p.family || []).find(k => k.id === id) || null; }
 
   setAvatar(uid, avatarId, custom) {
     return this.#serial(uid, async () => {

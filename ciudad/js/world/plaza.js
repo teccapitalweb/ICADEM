@@ -3,6 +3,7 @@ import * as THREE from '../three.js';
 import { CollisionWorld } from '../core/collision.js';
 import { Npc } from '../characters/npc.js';
 import { NPC_LOOKS } from '../characters/catalog.js';
+import { KID_SCENES } from '../edu/family.js';
 import { mat, box, cyl, sph, plane, slab, sign, grassTexture, pavingTexture, roadTexture, tree, bush, flowers, lamp, bench, cloud, skyDome, sunLight, mergeStatic } from './kit.js';
 import { BUILDINGS, buildBuilding, doorPoint, footprint } from './buildings.js';
 import { PLACES, placeByBuilding } from './places.js';
@@ -206,6 +207,7 @@ export function buildPlaza(api) {
       action: () => {
         if (b.id === 'casa') return api.travel('room', 'door');
         const place = placeByBuilding(b.id);
+        if (open && place && api.store.state.profileKind === 'infantil' && !KID_SCENES.includes(place.scene)) return api.ui.toast('Este edificio es para personas adultas. Prueba el Parque de retos, el Supermercado, la Veterinaria, el Invernadero o el Restaurante.', 4200);
         if (open && place) return api.travel(place.scene, 'default');
         api.ui.toast(`${b.name}: la misión «${b.mission}» llega en una fase posterior.`);
       }

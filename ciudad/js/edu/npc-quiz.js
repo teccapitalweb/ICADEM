@@ -58,7 +58,9 @@ export class NpcQuiz {
     const w = this.walker, a = w.npc.approach, np = w.npc.group.position;
     w.t += dt; a.x = me.x; a.z = me.z;
     const d = Math.hypot(np.x - me.x, np.z - me.z);
-    if (this.#playerBusy() || d > NPC_RULES.leave || w.t > NPC_RULES.giveUp || (a.moved === 0 && !a.arrived && w.t > 2)) {
+    const why = this.#playerBusy() ? 'ocupado' : d > NPC_RULES.leave ? 'lejos' : w.t > NPC_RULES.giveUp ? 'tiempo' : (a.moved === 0 && !a.arrived && w.t > 2) ? 'sin-camino' : null;
+    if (why) {
+      this.lastAbort = why;
       // Desiste sin insistir: el jugador se fue, se ocupó o no hay camino.
       this.last.set(w.npc, performance.now() / 1000); this.#abort(); this.cool = 30; return;
     }

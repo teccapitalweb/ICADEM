@@ -12,6 +12,7 @@ import { WebSocketServer } from 'ws';
 import { Hub, LIMITS } from './hub.js';
 import { TicketAuthority, createFirebaseVerifier, googleKeys } from './auth.js';
 import { Profiles, MemoryStorage, JsonFileStorage } from './profiles.js';
+import { kidKey } from '../ciudad/js/edu/family.js';
 import { connectFirebase, createIcademServices } from './icadem.js';
 import { REWARDS } from '../ciudad/js/economy/economy.js';
 import { NET_TICK_HZ } from '../ciudad/js/net/network.js';
@@ -38,7 +39,7 @@ const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
  *   devLogin   habilita el emisor de desarrollo, solo desde la misma máquina
  *   origins    orígenes web permitidos (obligatorio si no es devLogin)
  */
-export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null, onReport = null, maxPlayers = 64, maxConnsPerIp = 8, trustProxy = false } = {}) {
+export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null, onReport = null, maxPlayers = 64, maxConnsPerIp = 8, trustProxy = false, family = false } = {}) {
   if (!devLogin && (!origins || !origins.length)) throw new Error('[ciudad] fuera del modo de prueba hay que declarar los orígenes permitidos');
   if (!devLogin && !identity) throw new Error('[ciudad] fuera del modo de prueba hace falta un verificador de identidad');
   // Conexiones: en producción las entrega el backend de ICADEM; en pruebas, el emisor de desarrollo.
@@ -105,7 +106,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
   async function finishCoop(room, session) {
     const log = session.run.log.map(e => ({ type: e.type, payload: e.payload }));
     for (const m of [...room.members.values()]) {
-      const r = await profiles.completeMission(m.player.uid, session.mission, log);
+      const r = await profiles.completeMission(m.player.uid, session.mission, log, { minor: m.player.minor });
       const ws = sockets.get(m.player);
       send(ws, { t: 'profile', op: 'mission', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: session.mission, coop: session.id });
       send(ws, { t: 'coop', op: 'done', session: session.id, mission: session.mission, ok: r.ok, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp });
@@ -113,15 +114,15 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
     toRoom(room, { op: 'done' });
   }
   /** Aviso de llegada personalizado: cada quien recibe el nombre que le corresponde ver. */
-  const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom }); };
+  const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom }); };
   const moveInstance = (player, moved) => { toInstance(moved.from, { t: 'leave', pid: player.pid }); send(sockets.get(player), { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance, player) }); announce(player); };
-  const renameAll = player => { for (const p of player.instance.players.values()) if (p !== player && p.online) send(sockets.get(p), { t: 'name', pid: player.pid, name: hub.nameFor(p, player) }); };
+  const renameAll = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'name', pid: player.pid, name: hub.nameFor(p, player) }); };
   const toInstance = (instance, msg, except) => { for (const p of instance.players.values()) if (p !== except && p.online) send(sockets.get(p), msg); };
 
   wss.on('connection', (ws, req) => {
     const ip = clientIp(req); perIp.set(ip, (perIp.get(ip) || 0) + 1);
     let helloing = false;
-    let player = null, epoch = 0, alive = true, budget = 0, budgetAt = now(), identityOf = null;
+    let player = null, epoch = 0, alive = true, budget = 0, budgetAt = now(), identityOf = null, sessionUid = null;
     ws.renew = () => { if (player && identityOf && sockets.get(player) === ws) send(ws, { t: 'resume', token: authority.issue({ ...identityOf, kind: 'resume' }) }); };
     const helloTimer = setTimeout(() => { if (!player) ws.close(4001, 'sin-identificar'); }, 5000);
     ws.on('pong', () => { alive = true; });
@@ -144,19 +145,28 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         if (msg.t !== 'hello' || helloing) return;
         helloing = true;
         // Identidad: boleto de entrada o pase de reanudación, ambos firmados y de un solo uso.
-        const who = typeof msg.resume === 'string' ? authority.redeem(msg.resume, 'resume') : authority.redeem(msg.ticket, 'entry');
+        let who = typeof msg.resume === 'string' ? authority.redeem(msg.resume, 'resume') : authority.redeem(msg.ticket, 'entry');
         if (!who) { send(ws, { t: 'bye', reason: 'no-autorizado' }); return ws.close(4003, 'no-autorizado'); }
-        if (full(who.uid)) { send(ws, { t: 'bye', reason: 'ciudad-llena' }); return ws.close(4013, 'ciudad-llena'); }
+        // Perfil infantil supervisado: el boleto es del adulto; el perfil debe existir en SU familia.
+        if (typeof msg.kid === 'string' && !who.kid && typeof msg.resume !== 'string') who = { ...who, kid: msg.kid.slice(0, 12) };
+        let session = { uid: who.uid, name: who.name, minor: false, guardian: null };
+        if (who.kid) {
+          if (!family) { send(ws, { t: 'bye', reason: 'familia-desactivada' }); return ws.close(4014, 'familia-desactivada'); }
+          const kid = await profiles.kidOf(who.uid, who.kid);
+          if (!kid) { send(ws, { t: 'bye', reason: 'perfil-infantil-invalido' }); return ws.close(4015, 'perfil-infantil-invalido'); }
+          session = { uid: kidKey(who.uid, kid.id), name: kid.alias, minor: true, guardian: who.uid };
+        }
+        if (full(session.uid)) { send(ws, { t: 'bye', reason: 'ciudad-llena' }); return ws.close(4013, 'ciudad-llena'); }
         // La apariencia sale del perfil guardado en el servidor, no de lo que anuncie el cliente.
-        const profile = await profiles.get(who.uid);
-        const joined = hub.join({ uid: who.uid, name: who.name, avatar: profile.avatarId });
-        player = joined.player; epoch = player.epoch; identityOf = who; player.avatar = profile.avatarId; player.custom = profile.custom; player.listed = !(profile.privacy && profile.privacy.listed === false);
-        await hub.loadFriends(player);
+        const profile = await profiles.get(session.uid);
+        const joined = hub.join({ uid: session.uid, name: session.name, avatar: profile.avatarId, minor: session.minor, guardian: session.guardian });
+        player = joined.player; epoch = player.epoch; identityOf = who; sessionUid = session.uid; player.avatar = profile.avatarId; player.custom = profile.custom; player.listed = !session.minor && !(profile.privacy && profile.privacy.listed === false);
+        if (!player.minor) await hub.loadFriends(player);
         const old = sockets.get(player);
         if (old && old !== ws) { send(old, { t: 'bye', reason: 'sesion-en-otro-lugar' }); old.close(4009, 'sustituida'); }
         sockets.set(player, ws); clearTimeout(helloTimer);
         send(ws, { t: 'welcome', pid: player.pid, name: player.name, instance: player.instance.id, resumed: joined.resumed, capacity: hub.capacity, tick: NET_TICK_HZ,
-          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance, player), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player), presence: hub.presence(player), codes: hub.codesOf(player) });
+          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance, player), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player), presence: hub.presence(player), codes: hub.codesOf(player), family: { enabled: Boolean(family), kind: player.minor ? 'infantil' : 'adulto' } });
         if (!joined.resumed || !joined.replaced) announce(player);
         if (player.room) { toRoom(player.room); if (player.room.session && !player.room.session.done) toCoop(player.room, { op: 'sync' }); }
         log('join', player.pid, player.instance.id, joined.resumed ? 'resumed' : 'new');
@@ -182,7 +192,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         // Carrera y búsqueda del tesoro: el servidor valida con las posiciones que ya comprobó.
         const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id }) : hub.playQuit(player);
         send(ws, { t: 'play', op: msg.op, game: msg.game, ...r });
-        if (r.done) { const g = await profiles.grantPositional(identityOf.uid, String(msg.game), r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: msg.game, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
+        if (r.done) { const g = await profiles.grantPositional(sessionUid, String(msg.game), r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: msg.game, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
       }
       else if (msg.t === 'code') {
         // Códigos temporales para unirse a un equipo: vencen, tienen usos limitados y se revocan.
@@ -209,8 +219,16 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
       }
       else if (msg.t === 'profile') {
         // Progreso: el cliente manda acciones; el resultado lo calcula y guarda el servidor.
-        const uid = identityOf.uid;
-        const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log) : msg.op === 'visit' ? await profiles.visit(uid, msg.id)
+        const uid = sessionUid;
+        if (msg.op === 'family') {
+          // Perfiles infantiles: solo un adulto, y solo con el modo familiar activo.
+          if (!family) return send(ws, { t: 'profile', op: 'family', ok: false, reason: 'familia-desactivada' });
+          if (player.minor) return send(ws, { t: 'profile', op: 'family', ok: false, reason: 'no-permitido' });
+          const f = msg.action === 'add' ? await profiles.familyAdd(uid, { alias: msg.alias, avatarId: msg.avatarId, band: msg.band, consent: msg.consent === true })
+            : msg.action === 'remove' ? await profiles.familyRemove(uid, String(msg.id || '')) : await profiles.familyList(uid);
+          return send(ws, { t: 'profile', op: 'family', ok: f.ok, reason: f.reason, family: f.family });
+        }
+        const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log, { minor: player.minor }) : msg.op === 'visit' ? await profiles.visit(uid, msg.id)
           : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom)
           : msg.op === 'quiz' ? (hub.allow(player, 'quiz') ? await profiles.answerQuiz(uid, msg.id, msg.choice) : { ok: false, reason: 'demasiado-rapido' })
           : msg.op === 'activity' ? (hub.allow(player, 'activity') ? await profiles.playActivity(uid, String(msg.id), msg.seed, String(msg.level), msg.log) : { ok: false, reason: 'demasiado-rapido' })
@@ -218,7 +236,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         send(ws, { t: 'profile', op: msg.op || 'get', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: msg.mission,
           ...(msg.op === 'quiz' ? { id: msg.id, correct: r.correct, answer: r.answer, explain: r.explain, why: r.why } : {}), ...(msg.op === 'activity' ? { id: msg.id, bonus: r.bonus, capped: r.capped } : {}), n: msg.n });
         if (msg.op === 'privacy' && r.ok) { player.listed = r.profile.privacy.listed; renameAll(player); }
-        if (msg.op === 'avatar' && r.ok) { player.avatar = r.profile.avatarId; player.custom = r.profile.custom; toInstance(player.instance, { t: 'look', pid: player.pid, avatar: player.avatar, custom: player.custom }, player); }
+        if (msg.op === 'avatar' && r.ok) { player.avatar = r.profile.avatarId; player.custom = r.profile.custom; for (const o of player.instance.players.values()) if (o !== player && o.online && hub.sees(o, player)) send(sockets.get(o), { t: 'look', pid: player.pid, avatar: player.avatar, custom: player.custom }); }
       }
       else if (msg.t === 'friends') {
         if (msg.op === 'invite') {
@@ -283,12 +301,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     let options;
     if (mode === 'test') {
       if (process.env.NODE_ENV === 'production') die('El modo de prueba no se ejecuta en producción.');
-      options = { host: '127.0.0.1', devLogin: true, origins, storage: process.env.CIUDAD_DATA_DIR ? new JsonFileStorage(process.env.CIUDAD_DATA_DIR) : new MemoryStorage() };
+      options = { host: '127.0.0.1', devLogin: true, family: process.env.CIUDAD_FAMILY === 'on', origins, storage: process.env.CIUDAD_DATA_DIR ? new JsonFileStorage(process.env.CIUDAD_DATA_DIR) : new MemoryStorage() };
     } else if (mode === 'firebase') {
       const secret = process.env.CIUDAD_TICKET_SECRET || '', sa = process.env.FIREBASE_SERVICE_ACCOUNT || '';
       if (secret.length < 32 || !origins) die('Faltan CIUDAD_TICKET_SECRET (32+ caracteres) o CIUDAD_ORIGINS.');
       const admins = (process.env.CIUDAD_ADMINS || '').split(',').map(s => s.trim()).filter(Boolean);
-      options = { host: process.env.HOST || '0.0.0.0', devLogin: false, origins, authority: new TicketAuthority({ secret }) };
+      options = { host: process.env.HOST || '0.0.0.0', devLogin: false, origins, authority: new TicketAuthority({ secret }), family: process.env.CIUDAD_FAMILY === 'on' };
       if (sa) {
         // Misma cuenta de servicio que el backend: identidad, membresía y conexiones vienen de ICADEM.
         const { db, auth, projectId } = await connectFirebase(sa);
