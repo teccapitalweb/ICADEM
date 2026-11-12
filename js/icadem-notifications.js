@@ -29,10 +29,10 @@
   function checkedResponse(response) {
     if (!Array.isArray(response?.items) || !Number.isFinite(response.serverNowMs) || response.serverNowMs <= 0) throw new Error('Invalid inbox');
     return response.items.map(function (item) {
-      if (!['general','personal'].includes(item.source) || !/^[A-Za-z0-9_-]{1,240}$/.test(item.serverId || '') || item.id !== item.source + '-' + item.serverId ||
+      if (!['general','personal','forum'].includes(item.source) || !/^[A-Za-z0-9_-]{1,240}$/.test(item.serverId || '') || item.id !== item.source + '-' + item.serverId ||
           !Number.isFinite(item.createdAtMs) || item.createdAtMs <= 0 || item.createdAtMs > response.serverNowMs ||
           item.expiresAtMs !== item.createdAtMs + retention || item.expiresAtMs <= response.serverNowMs) throw new Error('Invalid notification');
-      return Object.assign({}, item, {read:item.read === true});
+      return Object.assign({}, item, {read:item.read === true,seen:item.seen === true || item.read === true});
     });
   }
   async function migrateLegacy(run, owner) {
@@ -62,12 +62,14 @@
       if (run !== generation || owner !== window.__currentUser?.uid) return;
       if (before !== version) { syncAgain = true; return; }
       serverClock = {server:response.serverNowMs, received:elapsedClock()};
-      state().generalItems = items.filter(function (item) { return item.source === 'general'; });
+      state().generalItems = items.filter(function (item) { return item.source !== 'personal'; });
       state().personalItems = items.filter(function (item) { return item.source === 'personal'; });
       state().loaded = true; state().error = false; state().source = 'server';
+      state().preferences = response.preferences || {forumActivity:true,forumNews:false}; state().forumAvailable = response.forumAvailable === true;
       merge();
       await migrateLegacy(run, owner);
       window.refreshNotifDropdown?.();
+      present();
     } catch (_) {
       if (run === generation && owner === uid) { state().error = true; merge(); window.refreshNotifDropdown?.(); }
     } finally {
@@ -92,21 +94,21 @@
   function applyMarked(ids, dismiss) {
     var current = state();
     for (var key of ['generalItems','personalItems']) {
-      if (dismiss) current[key] = (current[key] || []).filter(function (item) { return !ids.includes(item.id); });
-      else (current[key] || []).forEach(function (item) { if (ids.includes(item.id)) item.read = true; });
+      if (dismiss === true) current[key] = (current[key] || []).filter(function (item) { return !ids.includes(item.id); });
+      else (current[key] || []).forEach(function (item) { if (ids.includes(item.id)) {item.seen=true;if(dismiss !== 'seen')item.read=true;} });
     }
     version++; if (busy) syncAgain = true; merge();
   }
   async function mark(ids, dismiss) {
     var run = generation, owner = uid;
-    var selected = visibleItems().filter(function (item) { return ids.includes(item.id) && (dismiss || !item.read); });
+    var selected = visibleItems().filter(function (item) { return ids.includes(item.id) && (dismiss === 'seen' ? !item.seen : dismiss || !item.read); });
     if (!selected.length) return true;
     if (window.__isDemoMode) { applyMarked(ids, dismiss); return true; }
     if (!owner || owner !== window.__currentUser?.uid) return false;
     try {
       for (var offset = 0; offset < selected.length; offset += 100) {
         var chunk = selected.slice(offset, offset + 100);
-        var response = await window.ICADEMPlatform.request('/api/notifications/' + (dismiss ? 'dismiss' : 'read'),
+        var response = await window.ICADEMPlatform.request('/api/notifications/' + (dismiss === 'seen' ? 'seen' : dismiss ? 'dismiss' : 'read'),
           {method:'POST',body:{items:chunk.map(function (item) { return {source:item.source,id:item.serverId}; })}});
         if (run !== generation || owner !== window.__currentUser?.uid) return false;
         if (!response?.ok) throw new Error('Not persisted');
@@ -118,7 +120,8 @@
   function open(item) {
     if (!['directorio','embajadores','webinars','cursos','certificados','logros','foro','materiales','perfil'].includes(item?.target?.section)) return;
     mark([item.id], false); window.cerrarNotifDropdown?.(); pendingTarget = item.target;
-    if (window.navigateToSection) window.navigateToSection(item.target.section);
+    if (window.navigateToSection) window.navigateToSection(item.target.section === 'directorio' && item.target.view === 'requests' ? 'directorio-solicitudes' : item.target.section,
+      item.target.section === 'foro' ? {notificationPost:item.target.postId,notificationComment:item.target.commentId} : undefined);
     else if (item.target.section === 'directorio') window.ICADEMCommunity?.openNotificationTarget?.();
     else if (item.target.section === 'embajadores') window.ICADEMAmbassadors?.openNotificationTarget?.();
   }
@@ -126,7 +129,23 @@
     if (pendingTarget?.section !== section) return null;
     var value = pendingTarget; pendingTarget = null; return value;
   }
-  window.ICADEMNotifications = {setGeneral:setGeneral,sync:sync,start:start,mark:mark,open:open,consume:consume,visibleItems:visibleItems};
+  function present() {
+    var dropdown = document.getElementById('notif-dropdown');
+    if (!dropdown || !dropdown.__awaitPresentation || !state()?.loaded || state().error || dropdown.__owner !== uid) return;
+    // Only this successfully rendered batch. Later arrivals require a new opening.
+    dropdown.__awaitPresentation=false;
+    var ids=Array.from(dropdown.querySelectorAll('[data-notif-id]'),function(row){return row.dataset.notifId;});
+    mark(ids,'seen').then(function(saved){if(saved)window.refreshNotifDropdown?.();});
+  }
+  async function preferences(patch) {
+    var run=generation,owner=uid;
+    try {
+      var response=await window.ICADEMPlatform.request('/api/notifications/preferences',{method:'POST',body:patch});
+      if(run!==generation||owner!==window.__currentUser?.uid||!response?.ok)return false;
+      state().preferences=response.preferences;version++;await sync();return true;
+    } catch(_){window.Toast?.error?.('No se pudo guardar','Reintenta cuando tengas conexión.');return false;}
+  }
+  window.ICADEMNotifications = {setGeneral:setGeneral,sync:sync,start:start,mark:mark,open:open,consume:consume,visibleItems:visibleItems,present:present,preferences:preferences};
   document.addEventListener('icadem:user-ready', start);
   document.addEventListener('icadem:session-ending', function () {
     generation++; uid = ''; busy = false; syncAgain = false; pendingTarget = null; serverClock = null;
@@ -136,5 +155,7 @@
   });
   document.addEventListener('icadem:session-exit-failed', start);
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') sync(); });
+  window.addEventListener?.('focus',sync);
+  window.addEventListener?.('online',sync);
   setTimeout(start, 0);
 })();

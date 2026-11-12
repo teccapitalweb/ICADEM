@@ -1082,6 +1082,8 @@ onAuthStateChanged(auth, (user) => {
   const nameEl = document.querySelector('.avatar__name');
   const picEl = document.querySelector('.avatar__pic');
   if (nameEl && user.displayName) nameEl.textContent = user.displayName.split(' ').slice(0,2).join(' ');
+  const rolEl = document.querySelector('.avatar__role');
+  if (rolEl) rolEl.textContent = (email === window.__superAdminEmail) ? 'SUPERADMIN' : 'ADMINISTRADOR';
   if (picEl) picEl.textContent = (user.displayName||email).split(' ').slice(0,2).map(s=>s[0]).join('').toUpperCase().slice(0,2);
 
   // Disparar evento para que el resto del JS sepa que Firebase está listo
@@ -1216,7 +1218,7 @@ window.__signOut = async () => {
           <div class="avatar__pic">TC</div>
           <div>
             <div class="avatar__name">TEC Capital</div>
-            <div class="avatar__role">SUPERADMIN</div>
+            <div class="avatar__role">ADMINISTRADOR</div>
           </div>
         </div>
       </div>
@@ -3202,8 +3204,7 @@ const Pages={
           + '<div style="font-size:12px;color:var(--text-3);">Google Meet · ' + esc(f.replace(',', '')) + (c.instructor ? ' · ' + esc(c.instructor) : '') + ' · ' + (e.esPrueba ? 'clase de prueba' : 'clase real') + '</div>'
           + '<div style="font-size:12px;color:var(--text-3);margin:6px 0 12px;line-height:1.45;">' + esc(nota) + '</div>'
           + '<button class="btn btn--ghost" data-auto-edit="' + esc(e.id) + '">Editar</button> '
-          + '<button class="btn btn--ghost" data-auto-del="' + esc(e.id) + '" style="color:#DC2626;">Eliminar</button> '
-          + '<button class="btn btn--ghost" data-auto-quitar="' + esc(e.id) + '" style="color:var(--text-3);">Quitar de la lista</button></div></div>';
+          + '<button class="btn btn--ghost" data-auto-del="' + esc(e.id) + '" style="color:#DC2626;">Eliminar</button></div></div>';
       }
       const pasos = Pages._autoPasos(e).map(p => {
         const marca = p.estado === 'ok' ? '✓' : (p.estado === 'error' ? '!' : '');
@@ -3212,8 +3213,7 @@ const Pages={
       }).join('');
       const aviso = (e.estado !== 'lista' && e.aviso) ? '<div style="margin:6px 0 10px;padding:9px 12px;border-radius:10px;background:rgba(245,158,11,.12);color:#B45309;font-size:12px;">' + esc(e.aviso) + ' Se vuelve a intentar solo.</div>' : '';
       const error = e.estado === 'error' ? '<div style="margin:6px 0 10px;padding:9px 12px;border-radius:10px;background:rgba(220,38,38,.1);color:#B91C1C;font-size:12px;">' + esc(e.error) + '</div>' : '';
-      const acciones = (e.estado !== 'lista' ? '<button class="btn btn--ghost" data-auto-retry="' + esc(e.id) + '">' + (e.estado === 'error' ? 'Reintentar' : 'Buscar ahora') + '</button> ' : '')
-        + '<button class="btn btn--ghost" data-auto-quitar="' + esc(e.id) + '" style="color:var(--text-3);">Quitar de la lista</button>';
+      const acciones = '<button class="btn btn--ghost" data-auto-retry="' + esc(e.id) + '">' + (e.estado === 'error' ? 'Reintentar' : 'Buscar ahora') + '</button>';
       return '<div style="border:1px solid var(--border,rgba(0,0,0,.12));border-radius:14px;padding:16px;margin-top:12px;">'
         + '<div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline;margin-bottom:12px;"><strong style="font-size:15px;">' + esc(e.titulo || 'Clase en vivo') + '</strong>'
         + '<span style="font-size:11px;color:var(--text-3);white-space:nowrap;">Google Meet · ' + (e.esPrueba ? 'clase de prueba' : 'clase real') + '</span></div>'
@@ -3254,12 +3254,6 @@ const Pages={
         await Promise.all([Pages._pruebasCargar(), Pages._autoCargar(), Pages._webCargarPrivados()]);
         Pages._pruebasRender(); Pages._autoRender(); Pages._renderListaWebs(); Pages._renderKpisWebs();
       } catch (err) { Toast.error('No se pudo eliminar', err.message || 'Intenta de nuevo'); }
-    }));
-    wrap.querySelectorAll('[data-auto-quitar]').forEach(b => b.addEventListener('click', async () => {
-      if (!confirm('¿Quitar esta clase de la lista de grabaciones automáticas? No se borra la clase ni ningún video.')) return;
-      try { await Pages._webLlamar('/admin/clases-auto/' + encodeURIComponent(b.dataset.autoQuitar), { method: 'DELETE' }); }
-      catch (e) { Toast.error('No se pudo quitar', e.message || 'Intenta de nuevo'); }
-      await Pages._autoCargar(); Pages._autoRender();
     }));
   },
 

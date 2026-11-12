@@ -377,11 +377,11 @@
     }, 45000);
   }
   function openNotificationTarget() {
-    if(!context?.root.isConnected || location.hash!=="#directorio")return;
+    if(!context?.root.isConnected || !['#directorio','#directorio-solicitudes'].includes(location.hash))return;
     var target=window.ICADEMNotifications?.consume("directorio");
     if(!target)return;
     if(target.view==="profile")openProfile(target.profileUid);
-    else {pendingRequestUid=target.profileUid;window.navigateToSection?.('directorio-solicitudes');}
+    else {pendingRequestUid=target.profileUid;if(location.hash!=='#directorio-solicitudes')window.navigateToSection?.('directorio-solicitudes');}
   }
   function cleanup() {
     if(context?.kind==="profile")document.title="ICADEM · Panel VIP";

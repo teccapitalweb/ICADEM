@@ -907,22 +907,6 @@ async function claimAmbassadorAttribution(user) {
   }
 }
 
-// «Ver como usuario» (admin) deja el destino en sessionStorage: si hubo que iniciar sesión, un administrador
-// vuelve al panel de miembros que estaba viendo en lugar de caer siempre en el administrador.
-function destinoVistaAdmin() {
-  try {
-    const crudo = sessionStorage.getItem('icadem:vista-admin');
-    if (!crudo) return '';
-    sessionStorage.removeItem('icadem:vista-admin'); // de un solo uso
-    const dato = JSON.parse(crudo);
-    if (!dato || typeof dato.url !== 'string' || !Number.isFinite(dato.t) || Date.now() - dato.t > 10 * 60 * 1000) return '';
-    const destino = new URL(dato.url, window.location.origin);
-    if (destino.origin !== window.location.origin || destino.pathname !== '/vip-panel.html' || destino.hash) return '';
-    if (![...destino.searchParams.keys()].every(k => ['como', 'dias', 'desde'].includes(k))) return '';
-    return 'vip-panel.html' + destino.search;
-  } catch (_) { return ''; }
-}
-
 function destinoSeguro(isAdmin) {
   if (isAdmin) { const vista = destinoVistaAdmin(); if (vista) return vista; }
   const params = new URLSearchParams(window.location.search);
@@ -944,6 +928,23 @@ function destinoSeguro(isAdmin) {
   const carry = new URLSearchParams();
   ['curso','clase','origin','plan'].forEach(key=>{ if(params.get(key)) carry.set(key,params.get(key)); });
   return `vip-panel.html${carry.toString()?`?${carry}`:''}`;
+}
+
+// «Ver como usuario» (admin) deja el destino en sessionStorage: si hubo que iniciar sesión, un administrador
+// vuelve al panel de miembros que estaba viendo en lugar de caer siempre en el administrador.
+// Va junto a destinoSeguro (que la usa) para que las pruebas que extraen ese bloque la incluyan.
+function destinoVistaAdmin() {
+  try {
+    const crudo = sessionStorage.getItem('icadem:vista-admin');
+    if (!crudo) return '';
+    sessionStorage.removeItem('icadem:vista-admin'); // de un solo uso
+    const dato = JSON.parse(crudo);
+    if (!dato || typeof dato.url !== 'string' || !Number.isFinite(dato.t) || Date.now() - dato.t > 10 * 60 * 1000) return '';
+    const destino = new URL(dato.url, window.location.origin);
+    if (destino.origin !== window.location.origin || destino.pathname !== '/vip-panel.html' || destino.hash) return '';
+    if (![...destino.searchParams.keys()].every(k => ['como', 'dias', 'desde'].includes(k))) return '';
+    return 'vip-panel.html' + destino.search;
+  } catch (_) { return ''; }
 }
 
 async function syncCentralIdentity(user) {

@@ -1,5 +1,16 @@
 # CAMBIOS
 
+## 2026-11-12 — Clases en vivo: ajustes finales y cuenta solo-administrador
+
+**Archivos:** `vip-admin.html`, `vip-auth.html`, `vip-panel.html`
+
+- Admin · Grabaciones automáticas: se quita el botón «Quitar de la lista» (quedan Buscar ahora / Reintentar, Editar y Eliminar).
+- Admin: la etiqueta de rol dice «SUPERADMIN» solo con la cuenta de superadministración; las demás cuentas de administración dicen «ADMINISTRADOR».
+- Panel de miembros · Clases en vivo: la agenda espera a que Firebase restaure la sesión antes de pedirla al servidor (antes, al recargar directamente en la sección salía «No pudimos cargar la agenda» hasta pulsar Reintentar).
+- Panel de miembros · tarjeta de la próxima clase: durante la clase la cuenta regresiva muestra cuánto falta para que termine («La sesión está en vivo · termina en») en lugar de quedarse en cero; al terminar dice «La sesión terminó».
+- Cuenta solo-administrador: `grupeliptica@gmail.com` (la que organiza y graba las clases en Meet) ya no tiene panel de miembros; al abrirlo va directo al administrador. Es una separación de uso, no de seguridad (lista `ADMIN_SOLO` en vip-panel.html).
+- Corrección: la función auxiliar de «Ver como usuario» en vip-auth.html quedó dentro del bloque que extraen las pruebas del equipo (profesional-profile-auth); antes esas 3 pruebas fallaban.
+
 ## 2026-11-11 — Vistas del Directorio y actualización de datos académicos
 
 - Solicitudes, Mis conexiones y Profesionales VIP abren vistas internas dedicadas del Directorio. Reutilizan las tarjetas, servicios, filtros y reglas de contacto actuales; los perfiles regresan a la vista de origen y se conserva su contexto de navegación.
