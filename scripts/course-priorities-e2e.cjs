@@ -119,11 +119,18 @@ async function scenario(width){
   geometry.forEach(g=>{assert.ok(g.left>=g.cardLeft&&g.right<=g.cardRight);assert.ok(g.font>=10&&g.font<=14);assert.ok(g.height<=38);});
   await setSummary(f,{available:2,vipSlots:2});assert.ok(await page.locator('[data-unlock-select-course="course-0"]').count());assert.ok(await page.locator('[data-unlock-organize-course="course-0"]').count());assert.equal((await badges(page))['course-0'],1);
   await setSummary(f,{available:0,vipSlots:0});
+  await page.locator('#cur-sort').selectOption('nombre');
   await open(page);await act(page,'course-4','up');await act(page,'course-0','remove');await page.locator('[data-route-add="course-3"]').click();const draft=await routeOrder(page);assert.deepEqual(draft,['course-4','course-2','course-3']);
   state.failPut=true;await page.locator('[data-route-save]').click();await page.waitForSelector('[data-route-error]:not([hidden])');assert.deepEqual(state.shared.data.priorities,['course-0','course-2','course-4']);assert.deepEqual(await routeOrder(page),draft);
+  assert.equal(await page.evaluate(()=>localStorage.getItem('icadem:catalog-sort:v1:fixture-a')),'nombre','failed save must not change the catalog preference');
   await save(page);await back(page);assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades');assert.deepEqual((await cards(page)).slice(0,3),draft);assert.deepEqual(await badges(page),{'course-4':1,'course-2':2,'course-3':3});assert.equal(await page.locator('[data-unlock-priority]').getAttribute('data-priority-course'),'course-4');
   assert.deepEqual(await page.locator('.curso-card').evaluateAll(nodes=>Object.fromEntries(nodes.map(node=>[node.dataset.cid,node.querySelector('.curso-card__cover img').getAttribute('src')]))),covers,'covers are unchanged by priority updates');
   await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'prioridades','reload retains the main catalog criterion without selecting it again');assert.deepEqual((await cards(page)).slice(0,3),draft,'reload reads server order');
+  await page.locator('#cur-sort').selectOption('nombre');
+  await page.evaluate(()=>{navigateToSection('inicio');navigateToSection('cursos');});
+  assert.equal(await page.locator('#cur-sort').inputValue(),'nombre','menu respects the manually selected preference');
+  await f.boot();assert.equal(await page.locator('#cur-sort').inputValue(),'nombre','manual preference survives reload');
+  await page.locator('#cur-sort').selectOption('prioridades');
   if(width===390){
     const other=await fixture(768,state.shared);await other.page.locator('#cur-sort').selectOption('prioridades');assert.deepEqual((await cards(other.page)).slice(0,3),draft,'fresh browser/device context reads same server order');
     await open(page);await act(page,'course-3','up');const localDraft=await routeOrder(page);

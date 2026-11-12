@@ -27,7 +27,7 @@
 <script src="js/icadem-platform-v2.js?v=50" defer></script>
 <script src="js/icadem-course-unlocks.js?v=4" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
-<script src="js/icadem-learning-route.js?v=2" defer></script>
+<script src="js/icadem-learning-route.js?v=3" defer></script>
 <script src="js/icadem-learning-navigation.js?v=2" defer></script>
 <link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
@@ -7315,15 +7315,30 @@ const Sections = (function(){
 
   /* ============================ CURSOS ============================ */
   let cursosState={estado:'todos',area:'todas',nivel:'todos',search:'',orden:'proximos'};
-  function leerOrdenCatalogo(){
-    const orden=new URLSearchParams(location.search).get('ordenCursos');
-    return ['proximos','prioridades','nombre','progreso','recientes'].includes(orden)?orden:null;
+  const ordenesCatalogo=['proximos','prioridades','nombre','progreso','recientes'];
+  function claveOrdenCatalogo(){
+    const uid=window.__auth?.currentUser?.uid;
+    return uid&&!window.__isDemoMode?'icadem:catalog-sort:v1:'+uid:'';
   }
-  function guardarOrdenCatalogo(orden){
+  function leerOrdenCatalogo(){
+    let preferido=null;
+    try{const clave=claveOrdenCatalogo();if(clave)preferido=localStorage.getItem(clave);}catch(_){}
+    const orden=ordenesCatalogo.includes(preferido)?preferido:new URLSearchParams(location.search).get('ordenCursos');
+    return ordenesCatalogo.includes(orden)?orden:null;
+  }
+  function guardarOrdenCatalogo(orden,actualizarURL=true){
+    if(!ordenesCatalogo.includes(orden))return;
+    try{const clave=claveOrdenCatalogo();if(clave)localStorage.setItem(clave,orden);}catch(_){}
+    if(!actualizarURL)return;
     const url=new URL(location.href);
     url.searchParams.set('ordenCursos',orden);
     history.replaceState(history.state,'',url.pathname+url.search+url.hash);
   }
+  document.addEventListener('icadem:priorities-saved',event=>{
+    if(!event.detail?.uid||event.detail.uid!==window.__auth?.currentUser?.uid||window.__sessionEnding)return;
+    cursosState.orden='prioridades';
+    guardarOrdenCatalogo('prioridades',false);
+  });
   document.addEventListener('icadem:unlocks-updated',event=>{
     if(event.detail?.prioritiesChanged&&location.hash==='#cursos'&&cursosState.orden==='prioridades')renderCursosList();
   });
@@ -7407,10 +7422,11 @@ const Sections = (function(){
   }
 
   function renderCursos(container){
-    const ordenURL=leerOrdenCatalogo();
-    if(ordenURL)cursosState.orden=ordenURL;
     const returnedState=window.ICADEMLearningNavigation?.coursesState?.();
     if(returnedState)cursosState={...cursosState,estado:returnedState.estado,area:returnedState.area,nivel:returnedState.nivel,search:returnedState.search,orden:returnedState.orden};
+    const ordenElegido=leerOrdenCatalogo();
+    if(ordenElegido)cursosState.orden=ordenElegido;
+    guardarOrdenCatalogo(cursosState.orden);
     window.ICADEMCourseRatings?.refreshCatalog();
     const esc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const areas=[...new Set(cursos.map(c=>c.area).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'));
