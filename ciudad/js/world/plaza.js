@@ -5,10 +5,13 @@ import { Npc } from '../characters/npc.js';
 import { NPC_LOOKS } from '../characters/catalog.js';
 import { mat, box, cyl, sph, plane, slab, sign, grassTexture, pavingTexture, roadTexture, tree, bush, flowers, lamp, bench, cloud, skyDome, sunLight, mergeStatic } from './kit.js';
 import { BUILDINGS, buildBuilding, doorPoint, footprint } from './buildings.js';
+import { PLACES, placeByBuilding } from './places.js';
 
 /** Puntos de llegada a la plaza al salir de un edificio, cuando el de la puerta no deja ver bien
  *  (toldo del supermercado) o cae sobre vegetación (obra). Deben coincidir con SCENE_RULES.plaza.entries. */
-export const ARRIVALS = Object.freeze({ market: { x: 31, z: 13.6 }, obra: { x: 22.1, z: -3.6 } });
+export const ARRIVALS = Object.freeze(Object.fromEntries(PLACES.filter(p => p.arrival).map(p => [p.spawn, p.arrival])));
+/** Punto de llegada de cada lugar al salir de su edificio. */
+export function arrivalOf(place) { const b = BUILDINGS.find(x => x.id === place.building), d = doorPoint(b, 7.4); const at = place.arrival || d; return { x: at.x, z: at.z, yaw: place.yaw ?? d.yaw + Math.PI }; }
 /** Ambulancia estacionada frente al hospital (sin árboles alrededor). */
 const AMBULANCE = (() => { const p = doorPoint(BUILDINGS.find(b => b.id === 'hospital'), 4.2); return { x: p.x + 4.6, z: p.z + 0.6 }; })();
 
@@ -189,11 +192,8 @@ export function buildPlaza(api) {
       label: b.id === 'casa' ? 'Entrar a tu casa' : open ? 'Entrar al ' + b.name : b.name + ' · próximamente',
       action: () => {
         if (b.id === 'casa') return api.travel('room', 'door');
-        if (b.id === 'banco') return api.travel('bank', 'default');
-        if (b.id === 'tribunal') return api.travel('court', 'default');
-        if (b.id === 'supermercado') return api.travel('market', 'default');
-        if (b.id === 'obra') return api.travel('site', 'default');
-        if (b.id === 'hospital') return api.travel('hospital', 'default');
+        const place = placeByBuilding(b.id);
+        if (open && place) return api.travel(place.scene, 'default');
         api.ui.toast(`${b.name}: la misión «${b.mission}» llega en una fase posterior.`);
       }
     };
@@ -203,11 +203,11 @@ export function buildPlaza(api) {
 
   const landmarks = BUILDINGS.map(b => { const p = doorPoint(b, 2.2), f = footprint(b); return { id: b.id, name: b.name, mission: b.mission, status: b.status, x: b.x, z: b.z, w: f.w, d: f.d, doorX: p.x, doorZ: p.z, color: b.wall }; });
 
-  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 6.2), bank = doorPoint(BUILDINGS.find(b => b.id === 'banco'), 7.4), court = doorPoint(BUILDINGS.find(b => b.id === 'tribunal'), 7.4), market = ARRIVALS.market, obra = ARRIVALS.obra, hospital = doorPoint(BUILDINGS.find(b => b.id === 'hospital'), 7.4);
+  const home = doorPoint(BUILDINGS.find(b => b.id === 'casa'), 6.2);
   return {
     name: 'plaza', title: 'Ciudad ICADEM', group: g, collision: col, interactables, npcs, landmarks, half: HALF,
     background: 0xcdeeff, fog: { color: 0xcfeeff, near: 70, far: 190 },
-    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, home: { x: home.x, z: home.z, yaw: Math.PI }, bank: { x: bank.x, z: bank.z, yaw: 0 }, court: { x: court.x, z: court.z, yaw: 0 }, market: { x: market.x, z: market.z, yaw: Math.PI }, obra: { x: obra.x, z: obra.z, yaw: Math.PI / 2 }, hospital: { x: hospital.x, z: hospital.z, yaw: 0 } },
+    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, home: { x: home.x, z: home.z, yaw: Math.PI }, ...Object.fromEntries(PLACES.map(p => [p.spawn, arrivalOf(p)])) },
     camera: { distance: 7.5, minDistance: 2.6, maxDistance: 13, pitch: 0.4, box: null },
     sun, mergedCount,
     update(dt, t, playerPos) {

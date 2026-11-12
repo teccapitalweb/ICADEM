@@ -616,3 +616,57 @@ La comprobación «la animación de caminar se sincroniza» esperaba un tiempo f
 el estado «quieto» de forma determinista (10 Hz, interpolación de 0.15 s); la demora venía del dibujo por
 software del entorno de pruebas. Ahora la prueba separa red y dibujo con espera acotada: 3 corridas
 seguidas 39/39.
+
+## 16. Versión 1.0 · diez juegos y misiones en equipo (evaluación privada, piloto)
+
+Rama de trabajo `feature/ciudad-v1` (desde `main`). Sigue el mismo motor de misiones: cada juego es un
+módulo de reglas puro (`*-logic.js`) que también ejecuta el servidor, un controlador (`MissionController`)
+y una escena 3D. El navegador nunca decide resultados ni recompensas: el servidor reproduce la bitácora.
+
+### 16.1 Juegos 6 a 10 (intermedios, 20 créditos de prueba una sola vez cada uno)
+| Edificio | Misión | Mecánica propia |
+|---|---|---|
+| Clínica Veterinaria | Guardianes del bienestar | Triage de 4 pacientes (observar, pesar en la báscula, expediente), cinco dominios del bienestar, decisiones por paciente, enriquecimiento del área de la gata (lo colocado aparece en la escena). Sin indicaciones de medicamentos. |
+| Restaurante | Cocina contra reloj | Comandas en el riel, lavado de manos, termómetros de refrigeradores (B falla), tablas de colores, protocolo de alérgenos, termómetro de cocción con deslizador, estaciones y pase. El reloj marca el ritmo; no cuenta en la calificación (el tiempo del navegador no se puede validar). |
+| Invernadero | Cultivo inteligente | Ficha del cultivo, 4 sensores con diagnóstico, tablero de clima (ventilas y malla) y dosificador de solución nutritiva con proyección en vivo, riego por cama, trampas amarillas y control biológico. El servidor recalcula los ajustes con el mismo modelo. |
+| Oficina ICADEM | El expediente perdido | Registro de control, archiveros con cajones que se abren, bandeja del escáner, folios parecidos como distractores, ordenar el expediente, detectar inconsistencias (monto y cantidad), decidir el pago sin alterar documentos y archivar. |
+| Torre ICADEM | Desafío de equipos | Cuatro estaciones (Finanzas, Legal, Operaciones, Comunicación), tablero del plan integrado con revisión cruzada («pedir que se rehaga»), aprobación y presentación. Se juega solo o en equipo. |
+
+`ciudad/js/world/places.js` es la única tabla de lugares jugables (escena, edificio, punto de llegada);
+de ahí salen las llegadas de la plaza, los títulos y el regreso con el equipo.
+
+### 16.2 Misiones en equipo (Torre y Tribunal) — activas en el piloto
+- `ciudad/js/net/coop.js` (compartido): permisos por rol de cada acción (`COOP_MISSIONS` en `net/scenes.js`).
+  Si nadie conectado tiene el rol al que le toca un paso, cualquiera del equipo lo cubre.
+- Servidor (`hub.js`): al iniciar la sala, el servidor crea y **guarda** el intento (`MissionRun`). Cada
+  acción llega como propuesta (`{t:'coop', op:'act'}`) y se valida: pertenencia a la sala, rol, datos
+  (tamaño y forma), consenso antes del paso final (todos los conectados aprueban; el rol de quien aprueba
+  lo pone el servidor), reglas del motor y tope de 400 acciones. Lo aceptado se reparte a todo el equipo.
+- Al cerrar, el servidor guarda el resultado de **cada integrante** con `completeMission` (misma llave
+  `mission:<id>` que la versión individual → no hay doble recompensa) y le envía su resultado.
+- Reconexión: al volver (pase de reanudación o recarga), el servidor reenvía la bitácora; el cliente la
+  reconstruye sin perder lo que hay en pantalla. Los roles quedan fijos mientras dura el intento y la sala
+  no admite nuevos integrantes.
+- Tribunal en equipo: Juez (expediente, abrir audiencia, objeciones, valoración y sentencia), Abogado de
+  la actora / del demandado (presentar a su parte, interrogar, confrontar), Testigo (subir al estrado).
+  Cada rol participa desde su lugar; lo que le toca a otro aparece desactivado con el nombre del rol.
+- Sin chat libre: la comunicación sigue siendo con frases rápidas.
+
+### 16.3 Pruebas de la versión 1.0
+- `node --test test/*.test.cjs`: todo en verde salvo las 3 pruebas de Codex en
+  `test/professional-profile-auth.test.cjs` (fallan en `main` desde el PR #39; no se tocaron).
+  Nuevas: `ciudad-veterinaria`, `ciudad-restaurante`, `ciudad-invernadero`, `ciudad-oficina`,
+  `ciudad-torre`, `ciudad-equipos` (roles, consenso, datos inválidos, reconexión y recompensa sin duplicar
+  por socket real), `ciudad-places`.
+- Navegador (render por software, emulación de escritorio, tableta y teléfono; **no** teléfonos físicos):
+  `scripts/ciudad-juegos-e2e.cjs` (10 juegos), `scripts/ciudad-servidor-e2e.cjs` (10 juegos acreditados
+  por el servidor), `scripts/ciudad-mp-e2e.cjs`, `scripts/ciudad-equipo-e2e.cjs` (dos navegadores: Torre y
+  Tribunal en equipo).
+
+### 16.4 Publicación (mismo orden que en 15.2)
+1. Servidor primero: fast-forward de `feature/ciudad-icadem-social` al commit de la versión 1.0.
+2. Cliente: PR a `main` con `js/icadem-ciudad.js?v=5`, `ciudad/index.html?v=5`, `main.js?v=5`,
+   `css/ciudad.css?v=5` y caché `icadem-vip-v159`.
+3. Acceso de evaluación: agregar el correo de la cuenta ICADEM de quien evalúa a `CIUDAD_PILOT_EMAILS`
+   (Railway → `ciudad-icadem` → Variables). No se comparten contraseñas; el resto de las cuentas sigue en
+   modo individual.

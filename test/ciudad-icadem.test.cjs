@@ -138,7 +138,7 @@ test('contenido: 10 avatares (solo el Explorador disponible) y 11 edificios con 
   assert.equal(avatarById('no-existe').id, 'explorador');
   const { BUILDINGS, doorPoint, footprint } = await load('world/buildings.js');
   assert.equal(BUILDINGS.length, 11);
-  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa', 'hospital', 'obra', 'supermercado', 'tribunal']);
+  assert.deepEqual(BUILDINGS.filter(b => b.status === 'open').map(b => b.id).sort(), ['banco', 'casa', 'hospital', 'invernadero', 'obra', 'oficina', 'restaurante', 'supermercado', 'torre', 'tribunal', 'veterinaria']);
   for (const b of BUILDINGS) {
     const p = doorPoint(b, 2), f = footprint(b);
     assert.ok(Math.abs(p.x - b.x) > f.w / 2 || Math.abs(p.z - b.z) > f.d / 2, b.id + ': la puerta queda fuera del edificio');
@@ -165,7 +165,7 @@ test('aislamiento: el juego no llama servicios de ICADEM ni toca créditos reale
   assert.match(main, /const mpUrl = LOCAL \? params\.get\('mp'\) : null;/, 'el multijugador solo se activa en pruebas locales');
   assert.match(main, /127\\\.0\\\.0\\\.1\|localhost/, 'y solo contra un servidor en la misma máquina');
   const html = read('ciudad/index.html');
-  assert.match(html, /créditos de prueba/); assert.match(html, /Prototipo · Fase 1/);
+  assert.match(html, /créditos de prueba/); assert.match(html, /Versión 1.0 · Evaluación/);
   assert.doesNotMatch(html, /firebase|railway|stripe/i);
 });
 

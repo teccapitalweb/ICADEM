@@ -4,10 +4,11 @@
 import * as THREE from '../three.js';
 import { PHRASES, phraseById, createRateLimiter, SAY_RADIUS, BUBBLE_SECONDS } from '../social/phrases.js';
 import { COOP_MISSIONS } from '../net/scenes.js';
+import { SCENE_TITLES } from '../world/places.js';
 
 const FRIEND_ERRORS = { 'no-es-conexion': 'Solo puedes invitar a tus conexiones de ICADEM.', 'no-disponible': 'Esa persona ya no está en la ciudad.', 'ya-en-tu-equipo': 'Ya está en tu equipo.', 'equipo-lleno': 'El equipo ya tiene 4 personas.', 'ya-invitado': 'Ya le enviaste una invitación; espera su respuesta.', 'invitacion-vencida': 'La invitación ya venció.', 'instancia-llena': 'Su ciudad está llena por ahora.', 'demasiadas-invitaciones': 'Espera un momento antes de invitar otra vez.' };
-const PLACES = { plaza: 'En la plaza', bank: 'En el Banco', court: 'En el Tribunal' };
-const ROOM_ERRORS = { 'sin-mision': 'Elige primero una misión en equipo (por ahora, en el Tribunal).', 'codigo-invalido': 'Ese código no corresponde a ninguna sala.', 'sala-llena': 'La sala ya está completa.', 'sala-cerrada': 'Esa sala ya no admite jugadores.', 'rol-ocupado': 'Ese rol ya lo tomó otro jugador.', 'elige-un-rol': 'Primero elige un rol.', 'solo-anfitrion': 'Solo quien creó la sala puede iniciar.', 'faltan-jugadores': 'Se necesitan al menos dos jugadores.', 'falta-juez': 'Alguien debe tomar el rol de juez.', 'no-todos-listos': 'Todos deben elegir rol y marcarse listos.', 'cooperativo-en-desarrollo': 'La sala está completa. La audiencia en equipo todavía está en desarrollo: por ahora se juega en modo individual.' };
+const placeText = scene => scene && SCENE_TITLES[scene] ? (scene === 'plaza' ? 'En la plaza' : `En ${SCENE_TITLES[scene]}`) : null;
+const ROOM_ERRORS = { 'sin-mision': 'Elige primero una misión en equipo (Tribunal o Torre ICADEM).', 'en-curso': 'El equipo ya está jugando una misión.', 'codigo-invalido': 'Ese código no corresponde a ninguna sala.', 'sala-llena': 'La sala ya está completa.', 'sala-cerrada': 'Esa sala ya no admite jugadores.', 'rol-ocupado': 'Ese rol ya lo tomó otro jugador.', 'elige-un-rol': 'Primero elige un rol.', 'solo-anfitrion': 'Solo quien creó la sala puede iniciar.', 'faltan-jugadores': 'Se necesitan al menos dos jugadores.', 'falta-juez': 'Alguien debe tomar el rol de juez.', 'no-todos-listos': 'Todos deben elegir rol y marcarse listos.', 'cooperativo-en-desarrollo': 'Esta misión todavía no se puede jugar en equipo; por ahora se juega en modo individual.' };
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const v = new THREE.Vector3();
@@ -121,7 +122,7 @@ export class Social {
       const rows = h('div', 'players');
       list.forEach(f => {
         const row = h('div', 'players__row'), who = h('div', 'players__who'); row.dataset.pid = f.pid;
-        who.append(h('strong', null, f.name), h('small', null, f.inMyTeam ? 'En tu equipo' : f.busy ? 'En otro equipo' : PLACES[f.place] || 'En su habitación')); row.append(who);
+        who.append(h('strong', null, f.name), h('small', null, f.inMyTeam ? 'En tu equipo' : f.busy ? 'En otro equipo' : placeText(f.place) || 'En su habitación')); row.append(who);
         if (f.inMyTeam) row.append(h('span', 'pill pill--ok', 'Equipo'));
         else { const b = h('button', 'btn btn--primary', 'Invitar'); b.type = 'button'; b.addEventListener('click', () => { b.disabled = true; net.friends('invite', { pid: f.pid }); }); row.append(b); }
         rows.append(row);
@@ -148,11 +149,14 @@ export class Social {
    * quién es anfitrión); esta pantalla solo muestra el estado y envía solicitudes.
    */
   openLobby(missionId = 'tribunal-tu-eres-el-juez') {
+    if (!COOP_MISSIONS[missionId]) missionId = 'tribunal-tu-eres-el-juez';
     const api = this.api, net = api.net, spec = COOP_MISSIONS[missionId], wrap = h('div', 'lobby');
     const roleName = id => (spec.roles.find(r => r.id === id) || {}).name || 'Sin rol';
     const render = () => {
       wrap.replaceChildren();
-      wrap.append(h('p', 'lobby__status', 'En desarrollo: aquí se arma el equipo y se reparten los roles. La audiencia en equipo aún no se puede jugar; la misión individual sí.'));
+      wrap.append(h('p', 'lobby__status', spec.playable
+        ? `Equipos de ${spec.min} a ${spec.max} personas. Cada quien elige un rol y se marca listo; el anfitrión inicia. El servidor guarda el intento del equipo y revisa que cada paso lo haga el rol que corresponde.`
+        : 'En desarrollo: aquí se arma el equipo y se reparten los roles. Esta misión aún no se juega en equipo; la versión individual sí.'));
       if (!net.isOnline) { wrap.append(h('p', 'players__empty', 'La sala de espera necesita conexión con el servidor multijugador, que por ahora solo existe en el entorno de pruebas.')); return; }
       const room = net.roomState;
       if (!room) {
@@ -163,6 +167,15 @@ export class Social {
         wrap.append(create, h('p', 'players__note', 'O entra a la sala de un compañero con su código de invitación:'), row);
         return;
       }
+      if (room.mission !== missionId) {
+        const other = COOP_MISSIONS[room.mission];
+        wrap.append(h('p', 'players__note', other ? `Tu equipo está preparado para «${other.title}».` : 'Tu equipo todavía no tiene misión.'));
+        if (room.host === net.pid && room.status !== 'en-curso') { const sw = h('button', 'btn btn--primary', `Cambiar a «${spec.title}»`); sw.type = 'button'; sw.id = 'lobby-switch'; sw.addEventListener('click', () => net.room('create', { mission: missionId })); wrap.append(sw); }
+        else if (room.host !== net.pid) wrap.append(h('p', 'players__note', 'Solo el anfitrión puede cambiar la misión del equipo.'));
+        const leave0 = h('button', 'btn', 'Salir del equipo'); leave0.type = 'button'; leave0.addEventListener('click', () => net.room('leave')); wrap.append(leave0);
+        return;
+      }
+      if (room.status === 'en-curso') wrap.append(h('p', 'lobby__status', '🟢 Misión en curso. Ve a tu estación o a tu lugar en la sala.'));
       const me = room.members.find(m => m.pid === net.pid) || {}, head = h('div', 'lobby__head');
       head.append(h('span', null, 'Código de invitación'), h('strong', 'lobby__codeview', room.code)); wrap.append(head);
       const roles = h('div', 'lobby__roles');
@@ -179,11 +192,11 @@ export class Social {
       const ready = h('button', 'btn', me.ready ? 'Ya no estoy listo' : 'Estoy listo'); ready.type = 'button'; ready.id = 'lobby-ready'; ready.addEventListener('click', () => net.room('ready', { ready: !me.ready }));
       const leave = h('button', 'btn', 'Salir de la sala'); leave.type = 'button'; leave.id = 'lobby-leave'; leave.addEventListener('click', () => net.room('leave'));
       acts.append(ready, leave);
-      if (room.host === net.pid) { const start = h('button', 'btn btn--primary', 'Iniciar audiencia'); start.type = 'button'; start.id = 'lobby-start'; start.addEventListener('click', () => net.room('start')); acts.append(start); }
+      if (room.host === net.pid && room.status !== 'en-curso') { const start = h('button', 'btn btn--primary', `Iniciar ${spec.action || 'misión'}`); start.type = 'button'; start.id = 'lobby-start'; start.addEventListener('click', () => net.room('start')); acts.append(start); }
       wrap.append(acts);
     };
     this.lobbyRender = render; render();
-    return api.ui.modal({ eyebrow: 'Audiencia en equipo', title: 'Sala de espera · ' + spec.title, content: wrap, onClose: () => { this.lobbyRender = null; } });
+    return api.ui.modal({ eyebrow: 'Misión en equipo', title: 'Sala de espera · ' + spec.title, content: wrap, onClose: () => { this.lobbyRender = null; } });
   }
 
   #project(x, y, z, el) {
