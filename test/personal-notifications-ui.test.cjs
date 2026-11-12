@@ -172,7 +172,7 @@ test('explicit bell opening refreshes cross-device changes once, while internal 
   context.toggleNotifDropdown(true);assert.equal(syncs,1);
   existing={};context.toggleNotifDropdown();assert.equal(syncs,1);assert.equal(closes,1);
   const refreshStart=html.indexOf('window.refreshNotifDropdown = function(){'),refreshEnd=html.indexOf('// Helper global para que admins',refreshStart),repaints=[];
-  const refreshContext={document:{getElementById:()=>({scrollTop:42,querySelector:()=>null})},window:{},cerrarNotifDropdown(){},toggleNotifDropdown:skip=>repaints.push(skip)};
+  const refreshContext={document:{addEventListener(){},getElementById:()=>({scrollTop:42,querySelector:()=>null,contains:()=>false})},window:{},cerrarNotifDropdown(){},toggleNotifDropdown:skip=>repaints.push(skip)};
   vm.runInNewContext(html.slice(refreshStart,refreshEnd),refreshContext);refreshContext.window.refreshNotifDropdown();assert.deepEqual(repaints,[true]);
   assert.match(html,/const repintarNotifDropdown = \(\) => window.refreshNotifDropdown\(\)/);
 });

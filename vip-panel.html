@@ -13860,6 +13860,7 @@ function toggleNotifDropdown(skipSync=false,presentation=false){
   dd.__owner=notifUid;
   dd.__awaitPresentation=!skipSync||presentation;
   dd.setAttribute('role','region');dd.setAttribute('aria-label','Centro de notificaciones');
+  dd.tabIndex=-1;
   // ⚠️ Forzar text-align:left en TODO el dropdown · evita que herede el center del topbar/avatar
   dd.style.textAlign = 'left';
   // Responsive: en móvil (<=768) fixed con left+right (sin transform · evita bug Safari iOS)
@@ -13938,7 +13939,6 @@ function toggleNotifDropdown(skipSync=false,presentation=false){
     if(await marcarNotifsLeidas(notifs.map(n=>n.id)))window.refreshNotifDropdown();
     else if(dd.isConnected)dd.querySelector('#notif-read-all').disabled=false;
   });
-  dd.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();cerrarNotifDropdown();document.getElementById('btn-notif')?.focus();}});
 
   // Esperar la confirmación del servidor antes de retirar una notificación.
   dd.querySelectorAll('.notif-del-btn').forEach(btn=>{
@@ -14019,11 +14019,18 @@ window.refreshNotifDropdown = function(){
   const presentation=dd.__awaitPresentation;
   const preferencesOpen=dd.querySelector('details')?.open;
   const focusKey=dd.querySelector(':focus')?.dataset.notifPref;
+  const hadFocus=dd.contains(document.activeElement);
   cerrarNotifDropdown();toggleNotifDropdown(true,presentation);
   const next=document.getElementById('notif-dropdown');
   if(next){next.scrollTop=scroll;if(preferencesOpen&&next.querySelector('details'))next.querySelector('details').open=true;
-    if(focusKey)next.querySelector(`[data-notif-pref="${focusKey}"]`)?.focus({preventScroll:true});}
+    if(focusKey)next.querySelector(`[data-notif-pref="${focusKey}"]`)?.focus({preventScroll:true});
+    else if(hadFocus)next.focus({preventScroll:true});}
 };
+document.addEventListener('keydown',event=>{
+  if(event.key==='Escape'&&document.getElementById('notif-dropdown')){
+    event.preventDefault();cerrarNotifDropdown();document.getElementById('btn-notif')?.focus();
+  }
+});
 
 // Helper global para que admins puedan crear notificaciones desde la consola
 // Uso: crearNotificacion({titulo:'X', descripcion:'Y', tipo:'clase'})

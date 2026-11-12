@@ -59,6 +59,9 @@ async function scenario(width){
  await p.locator('#btn-notif').click();s.items=[];for(let i=0;i<105;i++)s.add('many-'+i);await sync(f);assert.equal(await count(p).innerText(),'99+');await h.shot(p,'notifications-99plus-'+width);
  await p.emulateMedia({reducedMotion:'reduce'});assert.equal(await count(p).evaluate(n=>getComputedStyle(n).animationName),'none');
  s.fail=true;await p.locator('#btn-notif').click();await p.waitForTimeout(120);assert.equal(await count(p).innerText(),'99+');assert.equal(s.items.some(n=>n.seen),false,'failed load never acknowledges unseen rows');s.fail=false;
+ await p.locator('#btn-notif').click();await sync(f);await p.locator('#btn-notif').focus();await p.keyboard.press('Enter');await count(p).waitFor({state:'hidden'});assert.equal(s.items.length,105);
+ await p.locator('#notif-read-all').click();await p.waitForFunction(()=>ICADEMNotifications.visibleItems().every(n=>n.read));assert.equal(s.items.length,105,'read all preserves history');await p.keyboard.press('Escape');assert.equal(await p.locator('#notif-dropdown').count(),0);assert.equal(await p.locator('#btn-notif').evaluate(n=>n===document.activeElement),true);
+ s.add('dark');await sync(f);await p.evaluate(()=>document.documentElement.dataset.theme='night');await h.shot(p,'notifications-dark-'+width);await p.locator('#btn-notif').click();await count(p).waitFor({state:'hidden'});await h.noOverflow(p,'dark notifications '+width);await h.shot(p,'notifications-dark-open-'+width);
  await f.context.close();await other.context.close();console.log('PASS notifications '+width+' '+(process.env.ICADEM_TEST_ENGINE||'chrome'));
 }
 (async()=>{try{await h.start();for(const width of (process.env.ICADEM_PRIORITY_WIDTHS||'390,768,1440').split(',').map(Number))await scenario(width);}finally{await h.stop();}})().catch(error=>{console.error(error);process.exitCode=1;});
