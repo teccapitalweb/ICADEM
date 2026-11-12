@@ -142,8 +142,13 @@
       });
     });
     root.querySelectorAll("[data-network-action]").forEach(function (button) {
-      button.addEventListener("click", function (event) {
+      button.addEventListener("click", async function (event) {
         event.stopPropagation();
+        if(button.dataset.networkAction==='remove'&&context?.kind==='profile'){
+          var ticket=generation,viewer=context?.viewer;
+          if(!context?.confirmDisconnect || !await context.confirmDisconnect())return;
+          if(ticket!==generation||viewer!==window.UserState?.uid||!button.isConnected)return;
+        }
         act(button, button.dataset.uid, button.dataset.networkAction);
       });
     });
@@ -451,6 +456,7 @@
   }
   function paintProfile(node,profile){
     node.innerHTML=profileMarkup(profile);wire(node);
+    node.querySelector('[data-profile-activity]')?.addEventListener('click',function(){window.ICADEMProfessionalNavigation?.openActivity(profile.uid);});
     node.querySelector('[data-edit-cv]')?.addEventListener('click',function(){window.ICADEMProfessionalNavigation?.openEditor('basicos');});
     node.querySelector('[data-edit-card]')?.addEventListener('click',openCardEditor);
   }

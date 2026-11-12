@@ -1,0 +1,34 @@
+/* Activity inherits the CV's scale; accents never encode private information. */
+.professional-activity [hidden]{display:none!important}
+.professional-activity{max-width:980px;margin:0 auto;min-width:0;padding-bottom:22px;--activity-blue:#1b4258;--activity-line:#dce5e5;--activity-muted:#526775;--activity-teal:#62a89c;--activity-gold:#be9e58}
+.activity-heading{padding:8px 0 22px;border-bottom:1px solid var(--activity-line);margin-bottom:22px}
+.activity-eyebrow{font:700 10px/1.5 Inter,system-ui,sans-serif;letter-spacing:.12em;color:var(--activity-muted)}
+.activity-heading h1{font:750 clamp(25px,3vw,34px)/1.25 'Plus Jakarta Sans',Inter,system-ui,sans-serif;color:var(--text);letter-spacing:-.8px;margin:7px 0 8px}
+.activity-heading>p{font-size:13px;line-height:1.6;color:var(--text-2)}
+.activity-identity{display:flex;align-items:center;gap:12px;margin-top:22px;min-width:0}
+.activity-identity:empty{display:none}.activity-identity>div{min-width:0}.activity-identity strong{font-size:14px;overflow-wrap:anywhere}.activity-identity p{font-size:12px;color:var(--text-2);margin-top:4px;overflow-wrap:anywhere}
+.activity-avatar{width:40px;height:40px;flex:0 0 40px;border:1px solid var(--activity-line);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;background:#edf5f4;color:#235550;font:700 13px/1 Inter,system-ui,sans-serif;overflow:hidden}
+.activity-avatar img{width:100%;height:100%;object-fit:cover}.activity-identity>.activity-avatar{width:50px;height:50px;flex-basis:50px;border-radius:15px}
+.activity-vip{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:7px;background:#f7f2e6;color:#785d26;font:700 10px/1.2 Inter,system-ui,sans-serif;white-space:nowrap;margin-left:auto}.activity-vip .ic{width:13px;height:13px}
+.activity-list{display:grid;gap:18px}.activity-card{min-width:0;border:1px solid var(--activity-line);border-top:3px solid var(--activity-teal);border-radius:15px;background:var(--surface,#fff);padding:22px 24px;transition:border-color .16s ease;animation:activity-enter .2s ease-out}
+.activity-card--vip{border-top-color:var(--activity-gold)}.activity-card:hover{border-left-color:#adbfca;border-right-color:#adbfca}
+.activity-card header{display:flex;align-items:center;gap:11px;min-width:0}.activity-card header>div{min-width:0}.activity-card header strong{display:block;font-size:13px;line-height:1.45;overflow-wrap:anywhere}.activity-card time{display:block;font-size:11px;color:var(--text-2);margin-top:4px}
+.activity-text{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;line-height:1.8;color:var(--text);margin:19px 0}
+.activity-image{margin:18px 0;border-radius:10px;overflow:hidden;background:var(--surface-2,#f3f7f6);border:1px solid var(--activity-line);aspect-ratio:4/3;max-height:480px}.activity-image img{width:100%;height:100%;object-fit:contain;display:block}
+.activity-card footer{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:15px;margin-top:18px;border-top:1px solid var(--activity-line)}
+.activity-counts{display:flex;gap:16px;flex-wrap:wrap;color:var(--text-2);font-size:11px}.activity-counts>span{display:inline-flex;align-items:center;gap:5px}.activity-counts .ic{width:15px;height:15px;flex-shrink:0}
+.activity-card [data-activity-open],.activity-more{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 13px;border:1px solid var(--activity-line);border-radius:9px;background:var(--surface,#fff);color:var(--activity-blue);font:650 12px/1.4 Inter,system-ui,sans-serif;cursor:pointer;transition:background .16s,border-color .16s}
+.activity-card [data-activity-open]:hover,.activity-more:hover{background:#edf5f4;border-color:#afc9c6}.activity-card [data-activity-open] .ic{width:14px;height:14px}
+.professional-activity button:focus-visible,.professional-activity h1:focus-visible{outline:3px solid #6ba8b4;outline-offset:3px}.professional-activity button:disabled{opacity:.6;cursor:wait}
+.activity-more{margin:22px auto 0;display:flex}.activity-more[hidden]{display:none}
+.activity-empty{padding:30px 20px;border:1px solid var(--activity-line);border-top:3px solid var(--activity-teal);border-radius:15px;background:var(--surface,#fff);text-align:center}.activity-empty>.ic{width:25px;height:25px;color:#548f8b;margin-bottom:12px}.activity-empty h2{font-size:16px;line-height:1.5}.activity-empty p{font-size:13px;line-height:1.65;color:var(--text-2);margin:8px 0 15px}
+.professional-activity [data-activity-status]{font-size:13px;line-height:1.6;color:var(--text-2);margin:16px 0}.professional-activity [data-activity-retry]{margin-bottom:20px}
+.professional-profile-page .pp-actions .pp-connected{background:#e9f5ee;color:#28674d;border:1px solid #cee5d8}
+.professional-profile-page .pp-actions .pp-activity{background:var(--pp-navy);color:white;border-color:var(--pp-navy)}
+.professional-profile-page .pp-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(100%,590px)}
+.professional-profile-page .pp-actions :is(button,.community-state){min-height:44px;height:100%;min-width:0}
+@keyframes activity-enter{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(max-width:600px){.activity-card{padding:17px 16px}.activity-text{font-size:13px;line-height:1.75}.activity-heading{padding-top:4px;margin-bottom:18px}.activity-identity{gap:10px}.activity-card footer{gap:10px}.activity-counts{gap:10px;font-size:10px}.professional-profile-page .pp-actions{width:100%}.professional-profile-page .pp-actions .pp-activity{grid-column:1/-1;grid-row:1}.professional-profile-page .pp-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-card [data-activity-open]{font-size:11px}.activity-identity .activity-vip{margin-left:0}}
+@media(prefers-reduced-motion:reduce){.activity-card{animation:none}.activity-card,.professional-activity button{transition:none}}
+[data-theme="night"] .professional-activity{--activity-blue:#c4e1ef;--activity-line:#344457;--activity-muted:#a6bdca;--activity-teal:#6faeaa;--activity-gold:#c8af77}
+[data-theme="night"] .activity-avatar{background:#203c43;color:#c4ebe2}[data-theme="night"] .activity-vip{background:#423d2c;color:#eed49b}[data-theme="night"] .activity-card [data-activity-open]:hover,[data-theme="night"] .activity-more:hover{background:#243747}
