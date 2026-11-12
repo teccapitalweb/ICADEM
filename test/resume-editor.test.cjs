@@ -143,7 +143,7 @@ test('the actual community refresh and an earlier in-flight profile read cannot 
   for(const rejected of[false,true]){
     const a=app();a.root.dataset.profileUid='owner';let resolve,reject,reads=0,paints=0;
     const community=fs.readFileSync(__dirname+'/../js/icadem-community.js','utf8'),loadStart=community.indexOf('  async function loadProfile('),loadEnd=community.indexOf('  function openCardEditor(',loadStart),refreshStart=community.indexOf('  function refreshCurrentProfile(){'),refreshEnd=community.indexOf('  async function copyProfileLink(',refreshStart);
-    const context={window:a.window,document:a.document,generation:1,context:{kind:'profile',viewer:'owner',root:{isConnected:true,querySelector:()=>a.root}},api:()=>{reads++;return new Promise((yes,no)=>{resolve=yes;reject=no;});},paintProfile(){paints++;},esc:value=>value};
+    const context={window:a.window,document:a.document,generation:1,profileRead:0,pendingActions:new Set(),context:{kind:'profile',viewer:'owner',root:{isConnected:true,querySelector:()=>a.root}},api:()=>{reads++;return new Promise((yes,no)=>{resolve=yes;reject=no;});},paintProfile(){paints++;},esc:value=>value};
     vm.createContext(context);vm.runInContext(community.slice(loadStart,loadEnd)+community.slice(refreshStart,refreshEnd),context);
     const earlier=context.loadProfile(a.root,'owner');await a.open();await input(a,'sobreMi','resumen','Borrador que debe sobrevivir');context.refreshCurrentProfile();assert.equal(reads,1);
     rejected?reject(new Error('Error de lectura tardío')):resolve({profile:profile()});await earlier;

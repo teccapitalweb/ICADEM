@@ -4,7 +4,7 @@ const read=name=>fs.readFileSync(__dirname+'/../js/'+name,'utf8');
 const settle=async()=>{for(let i=0;i<4;i++)await new Promise(resolve=>setImmediate(resolve));};
 const plain=value=>JSON.parse(JSON.stringify(value));
 function fixture(respond,initial='professional'){
-  const profiles=[],calls=[],opened=[],closed=[],notices=[],copied=[],navigations=[],timers=[],listeners={};
+  const profiles=[],calls=[],opened=[],closed=[],notices=[],copied=[],navigations=[],timers=[],intervals=[],listeners={};
   let document;
   class Element{
     constructor(tag='div'){this.tagName=tag;this.dataset={};this.attrs={};this.handlers={};this.children=[];this.buttons=[];this.isConnected=true;this.disabled=false;this.style={};this._html='';this.focused=0;}
@@ -52,20 +52,66 @@ function fixture(respond,initial='professional'){
     addEventListener(name,fn){(listeners[name]||=[]).push(fn);},createElement:tag=>new Element(tag),getElementById(){return null;},querySelector(){return null;},
     querySelectorAll(selector){return selector.startsWith('.community-profile')?profiles.filter(node=>node.isConnected&&(!selector.includes('[data-profile-uid]')||node.dataset.profileUid)):[];}};
   const location=new URL('https://www.icademx.com/vip-panel.html?curso=private-course&profesional='+encodeURIComponent(initial)+'&ref=private-code#directorio-perfil');
-  const window={UserState:{uid:'viewer'},__currentUser:{uid:'viewer'},ICADEMDirectory:{appearance:(p,vip)=>({color:vip?'#e9bc43':'#244b61',image:vip?p.portadaUrl||'':''})},
+  const window={UserState:{uid:'viewer'},__currentUser:{uid:'viewer'},addEventListener(name,fn){(listeners[name]||=[]).push(fn);},ICADEMDirectory:{appearance:(p,vip)=>({color:vip?'#e9bc43':'#244b61',image:vip?p.portadaUrl||'':''})},
     ICADEMPlatform:{request:(path,options)=>{calls.push({path,options});return respond(path,options);}},navigateToSection:(section,options)=>navigations.push({section,options}),scrollTo(){}};
   const context={window,document,location,history:{state:null,length:1,go(){}},sessionStorage:{getItem(){return null;},setItem(){},removeItem(){}},
     navigator:{clipboard:{writeText:async value=>copied.push(value)}},URL,URLSearchParams,console,
-    setTimeout:fn=>timers.push(fn),clearInterval(){},setInterval(){},requestAnimationFrame:fn=>fn()};
+    setTimeout:fn=>timers.push(fn),clearInterval(){},setInterval:fn=>intervals.push(fn),requestAnimationFrame:fn=>fn()};
   vm.runInNewContext(read('icadem-professional-navigation.js'),context);
   vm.runInNewContext(read('icadem-professional-profile.js'),context);
   vm.runInNewContext(read('icadem-community.js'),context);
   const options={modal:{close:id=>closed.push(id),open:value=>{opened.push(value);return{close:()=>closed.push(value.id)};}},toast:{success:(...args)=>notices.push(['success',...args]),error:(...args)=>notices.push(['error',...args])},editCard:()=>notices.push(['edit-card'])};
   return{api:window.ICADEMCommunity,window,document,container,calls,opened,closed,notices,copied,navigations,timers,
     render(uid=initial){location.search='?curso=private-course&profesional='+encodeURIComponent(uid)+'&ref=private-code';location.hash='#directorio-perfil';window.ICADEMCommunity.renderProfilePage(container,options);return container.profile;},
-    flushTimers(){while(timers.length)timers.shift()();},emit(name){for(const fn of listeners[name]||[])fn();}};
+    flushTimers(){while(timers.length)timers.shift()();},tick(){for(const fn of intervals)fn();},emit(name){for(const fn of listeners[name]||[])fn();}};
 }
 function professional(extra={}){return{uid:'professional',nombre:'Profesional de prueba',connection:'none',isVip:true,contacts:{},cv:{},...extra};}
+
+test('visible profiles refresh relationship and authorized contacts from the server on focus, online and periodic refresh, without repainting unchanged CVs',async()=>{
+  let connection='none';
+  const f=fixture(async()=>({profile:professional({connection,contacts:connection==='connected'?{email:'visible@example.test'}:{}})}));
+  const node=f.render();await settle();const first=node.querySelector('[data-connect]');
+  f.emit('focus');await settle();assert.equal(f.calls.length,2);assert.equal(node.querySelector('[data-connect]'),first,'unchanged response keeps live profile controls');
+  connection='connected';f.emit('online');await settle();assert.match(node.innerHTML,/Conectados/);assert.match(node.innerHTML,/visible@example.test/);
+  connection='none';f.tick();await settle();assert.doesNotMatch(node.innerHTML,/visible@example.test/);assert.ok(node.querySelector('[data-connect]'));
+  const before=f.calls.length;f.document.visibilityState='hidden';f.emit('visibilitychange');f.tick();await settle();assert.equal(f.calls.length,before);
+  connection='connected';f.document.visibilityState='visible';f.emit('visibilitychange');await settle();assert.match(node.innerHTML,/Conectados/);
+  f.window.ICADEMResumeEditor={isOpen:()=>true};f.emit('focus');f.tick();await settle();assert.equal(f.calls.length,before+1,'an open CV editor is never rebuilt by relation refresh');
+});
+
+test('a stale background relation read cannot overwrite a newer profile response or a pending connection action',async()=>{
+  let mode='initial',resolveOld,resolveNew,complete;
+  const f=fixture((path,options)=>{
+    if(options?.method==='POST')return new Promise(resolve=>{complete=()=>{mode='sent';resolve({ok:true});};});
+    if(mode==='old')return new Promise(resolve=>resolveOld=resolve);
+    if(mode==='new')return new Promise(resolve=>resolveNew=resolve);
+    return Promise.resolve({profile:professional({connection:mode==='sent'?'sent':'none'})});
+  });
+  const node=f.render();await settle();mode='old';f.emit('focus');mode='new';f.emit('online');
+  resolveNew({profile:professional({connection:'connected'})});await settle();resolveOld({profile:professional({connection:'none'})});await settle();assert.match(node.innerHTML,/Conectados/);
+  mode='initial';f.emit('focus');await settle();mode='old';f.emit('focus');node.querySelector('[data-connect]').click();const count=f.calls.length;f.emit('online');f.tick();assert.equal(f.calls.length,count,'pending mutation suppresses refresh');
+  resolveOld({profile:professional({connection:'connected'})});await settle();assert.equal(node.querySelector('[data-connect]').disabled,true,'old read does not repaint the pending control');
+  complete();await settle();assert.match(node.innerHTML,/Solicitud pendiente/);
+});
+
+test('a revoked profile discards its rendered snapshot and can be restored by the same server projection',async()=>{
+ for(const status of [401,404]){
+  let unavailable=false;
+  const f=fixture(async()=>{if(unavailable)throw Object.assign(Error('Perfil no disponible'),{status});return{profile:professional({connection:'connected',contacts:{email:'authorized@example.test'}})};});
+  const node=f.render();await settle();assert.match(node.innerHTML,/authorized@example.test/);
+  unavailable=true;f.emit('focus');await settle();assert.match(node.innerHTML,/Perfil no disponible/);assert.doesNotMatch(node.innerHTML,/authorized@example.test/);
+  unavailable=false;f.emit('focus');await settle();assert.match(node.innerHTML,/Conectados/);assert.match(node.innerHTML,/authorized@example.test/);
+ }
+});
+
+test('a background response arriving after opening the CV editor cannot replace its draft',async()=>{
+  let held=false,finish;
+  const f=fixture(()=>held?new Promise(resolve=>finish=resolve):Promise.resolve({profile:professional()}));
+  const node=f.render();await settle();const initial=node.innerHTML;
+  held=true;f.emit('focus');f.window.ICADEMResumeEditor={isOpen:()=>true};
+  node.innerHTML='<form>Unsaved CV draft</form>';finish({profile:professional({connection:'connected'})});await settle();
+  assert.equal(node.innerHTML,'<form>Unsaved CV draft</form>');assert.notEqual(node.innerHTML,initial);
+});
 
 test('the actual community page renders a dedicated profile through the existing API with no profile modal',async()=>{
   const f=fixture(async()=>({profile:professional()}));const node=f.render();

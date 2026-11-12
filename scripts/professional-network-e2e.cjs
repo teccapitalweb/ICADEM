@@ -65,8 +65,9 @@ async function scenario(width){
    if(total===0){if(await strip.isVisible().catch(()=>false)){assert.equal(await strip.locator('img').count(),0,'private/empty strip never reveals real peers');assert.match(await strip.innerText(),/0|Sin conexiones|Red profesional|Mi red/i);}}
    else{
      await strip.waitFor();assert.match(await strip.innerText(),new RegExp(String(total)));
-     const geometry=await strip.evaluate(n=>{const identity=document.querySelector('.pp-identity'),avatar=document.querySelector('.pp-avatar'),a=n.getBoundingClientRect(),b=identity.getBoundingClientRect(),c=avatar.getBoundingClientRect();const imgs=[...n.querySelectorAll('img')].map(i=>{const r=i.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height};});return{a:{top:a.top,bottom:a.bottom,left:a.left,right:a.right},identityBottom:b.bottom,avatarBottom:c.bottom,imgs};});
-     assert(geometry.a.top>=geometry.identityBottom-1,'strip sits after identity and never over logo/name');assert(geometry.a.top>=geometry.avatarBottom-1);assert(geometry.a.left>=-1&&geometry.a.right<=width+1);assert(geometry.imgs.length<=5&&geometry.imgs.length===total);
+     const geometry=await strip.evaluate(n=>{const rect=x=>{const r=x.getBoundingClientRect();return{top:r.top,bottom:r.bottom,left:r.left,right:r.right};},imgs=[...n.querySelectorAll('img')].map(i=>{const r=i.getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height};});return{a:rect(n),identity:rect(document.querySelector('.pp-identity-copy')),avatar:rect(document.querySelector('.pp-avatar')),imgs};});
+     const overlaps=(a,b)=>a.left<b.right-1&&a.right>b.left+1&&a.top<b.bottom-1&&a.bottom>b.top+1;
+     assert(!overlaps(geometry.a,geometry.identity)&&!overlaps(geometry.a,geometry.avatar),'strip never overlaps main identity/avatar');assert(geometry.a.left>=-1&&geometry.a.right<=width+1);assert.equal(geometry.imgs.length,Math.min(total,3));
      geometry.imgs.forEach((g,i)=>{assert(g.width>=20&&g.width<=44&&Math.abs(g.width-g.height)<=1);if(i)assert(g.x<geometry.imgs[i-1].x+geometry.imgs[i-1].width,'thumbnails overlap one another only');});
    }
  }

@@ -14,7 +14,7 @@ const initial=()=>({ok:true,enabled:true,active:true,isAdmin:false,available:0,v
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'GET,POST,PUT,PATCH,OPTIONS'};
 const fallbackImage=fs.readFileSync(path.join(ROOT,'assets/juegos/foto-fiscal.webp'));let browser,base;
 async function fixture(width,shared={data:initial()}){
-  const context=await browser.newContext({viewport:{width,height:width<768?844:1000},serviceWorkers:'block',hasTouch:width<1024,...(process.env.ICADEM_TEST_ENGINE==='webkit'&&width<768?{isMobile:true,userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'}:{})}),page=await context.newPage();
+  const context=await browser.newContext({viewport:{width,height:width<768?844:1000},serviceWorkers:'block',hasTouch:width<1024,...(process.env.ICADEM_TEST_ANDROID==='1'&&process.env.ICADEM_TEST_ENGINE!=='webkit'&&width<768?{isMobile:true,userAgent:'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Mobile Safari/537.36'}:{}),...(process.env.ICADEM_TEST_ENGINE==='webkit'&&width<768?{isMobile:true,userAgent:'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1'}:{})}),page=await context.newPage();
   const state={shared,reads:0,puts:[],selects:[],errors:[],failPut:false,conflictPut:false,holdPut:false,heldPut:false,releasePut:null,holdRead:false,heldRead:false,releaseRead:null};
   page.on('pageerror',error=>{if(/learning-route|course-unlocks/.test(error.stack||''))state.errors.push(error.message);});
   await context.route('**/*',async route=>{

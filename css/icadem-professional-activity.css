@@ -25,10 +25,8 @@
 .professional-activity [data-activity-status]{font-size:13px;line-height:1.6;color:var(--text-2);margin:16px 0}.professional-activity [data-activity-retry]{margin-bottom:20px}
 .professional-profile-page .pp-actions .pp-connected{background:#e9f5ee;color:#28674d;border:1px solid #cee5d8}
 .professional-profile-page .pp-actions .pp-activity{background:var(--pp-navy);color:white;border-color:var(--pp-navy)}
-.professional-profile-page .pp-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:min(100%,590px)}
-.professional-profile-page .pp-actions :is(button,.community-state){min-height:44px;height:100%;min-width:0}
 @keyframes activity-enter{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
-@media(max-width:600px){.activity-card{padding:17px 16px}.activity-text{font-size:13px;line-height:1.75}.activity-heading{padding-top:4px;margin-bottom:18px}.activity-identity{gap:10px}.activity-card footer{gap:10px}.activity-counts{gap:10px;font-size:10px}.professional-profile-page .pp-actions{width:100%}.professional-profile-page .pp-actions .pp-activity{grid-column:1/-1;grid-row:1}.professional-profile-page .pp-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.activity-card [data-activity-open]{font-size:11px}.activity-identity .activity-vip{margin-left:0}}
+@media(max-width:600px){.activity-card{padding:17px 16px}.activity-text{font-size:13px;line-height:1.75}.activity-heading{padding-top:4px;margin-bottom:18px}.activity-identity{gap:10px}.activity-card footer{gap:10px}.activity-counts{gap:10px;font-size:10px}.activity-card [data-activity-open]{font-size:11px}.activity-identity .activity-vip{margin-left:0}}
 @media(prefers-reduced-motion:reduce){.activity-card{animation:none}.activity-card,.professional-activity button{transition:none}}
 [data-theme="night"] .professional-activity{--activity-blue:#c4e1ef;--activity-line:#344457;--activity-muted:#a6bdca;--activity-teal:#6faeaa;--activity-gold:#c8af77}
 [data-theme="night"] .activity-avatar{background:#203c43;color:#c4ebe2}[data-theme="night"] .activity-vip{background:#423d2c;color:#eed49b}[data-theme="night"] .activity-card [data-activity-open]:hover,[data-theme="night"] .activity-more:hover{background:#243747}

@@ -5,20 +5,30 @@
  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const icon=n=>'<svg class="ic" aria-hidden="true"><use href="#i-'+n+'"/></svg>';
  function photo(p){let src='';try{const u=new URL(p.foto,location.href);if(p.foto&&['https:','http:'].includes(u.protocol))src=window.__avatarSrc?.(u.href,p.photoVersion)||u.href;}catch(_){}
-  return '<span class="network-photo">'+(src?'<img src="'+esc(src)+'" alt="" decoding="async" referrerpolicy="no-referrer">':esc(p.iniciales||'MI'))+'</span>';}
+  return '<span class="network-photo">'+(src?'<img src="'+esc(src)+'" alt="" data-initials="'+esc(p.iniciales||'MI')+'" decoding="async" referrerpolicy="no-referrer">':esc(p.iniciales||'MI'))+'</span>';}
  const api=(p,options)=>window.ICADEMPlatform.request('/api/community'+p,options);
  const alive=c=>current===c&&c.viewer===viewer()&&c.root.isConnected&&!window.__sessionEnding;
  function checked(data,owner){if(!data?.ok||data.profile?.uid!==owner||!Array.isArray(data.items)||!Array.isArray(data.preview)||!Number.isSafeInteger(data.visibleCount)||!Number.isSafeInteger(data.mutualCount))throw Error('No pudimos confirmar la red de este perfil.');return data;}
+ function wirePhotos(root){root.querySelectorAll('.network-photo img').forEach(img=>img.addEventListener('error',()=>{const node=img.parentElement;if(node)node.textContent=img.dataset.initials||'MI';},{once:true}));}
+ function summaryAlive(c){return summary===c&&c.slot.isConnected&&viewer()===c.viewer&&!window.__sessionEnding;}
+ function paintSummary(c,data){
+  const peers=data?[...new Map(data.preview.map(p=>[p.uid,p])).values()].slice(0,3):[];
+  c.slot.innerHTML='<button type="button" class="profile-network-strip" data-profile-network><span class="network-stack" aria-hidden="true">'+(peers.length?peers.map(photo).join(''):'<span class="network-empty-icon">'+icon('users')+'</span>')+'</span><span class="network-strip-copy"><strong>Red profesional</strong><small>'+(data?data.visibleCount+' '+(data.visibleCount===1?'conexión visible':'conexiones visibles'):'No pudimos cargar las conexiones')+'</small>'+(data?.profile.own&&data.privacy?.shareNetwork!==true?'<small class="network-strip-private">Tu red es privada</small>':'')+'</span>'+icon('arrow-right')+'</button>';
+  c.slot.hidden=false;wirePhotos(c.slot);c.slot.querySelector('button').addEventListener('click',()=>nav().openNetwork(c.owner));
+ }
+ async function loadSummary(c){
+  if(!summaryAlive(c))return;if(c.busy){c.queued=true;return;}c.busy=true;
+  try{const data=checked(await api('/profiles/'+encodeURIComponent(c.owner)+'/network?preview=1'),c.owner);
+   if(!summaryAlive(c))return;paintSummary(c,data);
+  }catch(_){if(summaryAlive(c))paintSummary(c,null);}
+  finally{c.busy=false;if(summaryAlive(c)&&c.queued){c.queued=false;loadSummary(c);}}
+ }
  async function mountSummary(slot,profile){
   if(!slot||!nav()?.validUid(profile.uid))return;
-  const c={slot,owner:profile.uid,viewer:viewer()};summary=c;
+  const same=summary?.slot===slot&&summary.owner===profile.uid&&summary.viewer===viewer();
+  const c=same?summary:{slot,owner:profile.uid,viewer:viewer(),busy:false,queued:false};summary=c;
   if(!current){clearInterval(timer);timer=setInterval(refresh,30000);}
-  try{const data=checked(await api('/profiles/'+encodeURIComponent(c.owner)+'/network?preview=1'),c.owner);
-   if(summary!==c||!slot.isConnected||viewer()!==c.viewer)return;
-   if(!data.visibleCount&&!data.profile.own){slot.hidden=true;slot.replaceChildren();return;}
-   slot.innerHTML='<button type="button" class="profile-network-strip" data-profile-network><span class="network-stack" aria-hidden="true">'+data.preview.slice(0,5).map(photo).join('')+'</span><span><strong>'+data.visibleCount+' '+(data.visibleCount===1?'conexión visible':'conexiones visibles')+'</strong>'+(data.profile.own&&data.privacy?.shareNetwork!==true?'<small>Tu red es privada</small>':'')+'</span>'+icon('arrow-right')+'</button>';
-   slot.hidden=false;slot.querySelector('button').addEventListener('click',()=>nav().openNetwork(c.owner));
-  }catch(_){if(slot.isConnected){slot.hidden=true;slot.replaceChildren();}}
+  return loadSummary(c);
  }
  function actions(row,c){const id=esc(row.uid);if(row.uid===c.viewer||row.connection==='self')return '<span class="network-row-state">Tú</span>';
   if(row.connection==='connected')return '<span class="network-row-state network-row-state--connected">'+icon('check')+'Conectados</span>';
@@ -34,6 +44,7 @@
   const privacy=c.root.querySelector('[data-network-privacy-box]');privacy.hidden=!data.profile.own;
   if(data.profile.own){const input=privacy.querySelector('input');input.checked=data.privacy?.shareNetwork===true;input.disabled=c.privacyBusy;}
   list.innerHTML=c.items.length?c.items.map(p=>'<article class="network-person" data-network-row="'+esc(p.uid)+'"><button class="network-person-profile" data-network-profile="'+esc(p.uid)+'">'+photo(p)+'<span><strong>'+esc(p.nombre)+'</strong>'+(p.profesion||p.puesto?'<small>'+esc(p.profesion||p.puesto)+'</small>':'')+'</span></button><div class="network-person-actions">'+actions(p,c)+'</div></article>').join(''):'<p class="network-empty" role="status">'+(c.tab==='mutual'?'Todavía no tienen conexiones en común':'Este profesional todavía no tiene conexiones visibles')+'</p>';
+  wirePhotos(list);
   list.querySelectorAll('[data-network-profile]').forEach(b=>b.addEventListener('click',()=>nav().openNetworkProfile(b.dataset.networkProfile)));
   list.querySelectorAll('[data-connect],[data-network-action]').forEach(b=>b.addEventListener('click',()=>act(c,b,b.dataset.networkAction||'request')));
   c.root.querySelector('[data-network-more]').hidden=!c.cursor;
@@ -73,7 +84,7 @@
   const tabs=[...root.querySelectorAll('[data-network-tab]')];tabs.forEach((b,i)=>{b.addEventListener('click',()=>window.navigateToSection('directorio-red',{profileUid:owner,networkTab:b.dataset.networkTab,reemplazar:true}));b.addEventListener('keydown',event=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(event.key)){event.preventDefault();tabs[event.key==='Home'?0:event.key==='End'?1:(i+1)%2].focus();}});});
   root.querySelector('h1').focus({preventScroll:true});load(false);timer=setInterval(refresh,30000);
  }
- function refresh(){if(document.visibilityState==='hidden')return;if(current)load(false);else if(summary?.slot.isConnected&&summary.viewer===viewer())mountSummary(summary.slot,{uid:summary.owner});}
+ function refresh(){if(document.visibilityState==='hidden')return;if(current)load(false);else if(summary?.slot.isConnected&&summary.viewer===viewer())loadSummary(summary);}
  window.addEventListener('focus',refresh);window.addEventListener('online',refresh);document.addEventListener('visibilitychange',refresh);document.addEventListener('icadem:identity-ready',refresh);
  window.addEventListener('icadem:navigation',event=>{if(event.detail?.section!=='directorio-red')cleanup();});
  document.addEventListener('icadem:session-ending',()=>{if(current)current.root.replaceChildren();if(summary)summary.slot.replaceChildren();cleanup();});
