@@ -61,9 +61,11 @@ test('only server-authorized contacts enter the renderer; private progress and u
   assert.match(html,/privacidad del profesional/);
 });
 test('existing connection and owner editor actions remain available for every state',()=>{
-  for(const [state,labels] of [['none',['Conectar']],['sent',['Solicitud enviada','Cancelar solicitud']],['received',['Solicitud recibida','Aceptar','Rechazar']],['connected',['Conectados','Desconectar']]]){
+  for(const [state,labels] of [['none',['Conectar']],['sent',['Solicitud pendiente','Cancelar solicitud']],['received',['Solicitud recibida','Aceptar','Rechazar']],['connected',['Conectados','Desconectar']]]){
     const html=fixture().markup({...full,connection:state});
     for(const label of labels)assert.ok(html.includes(label));
+    assert.match(html,/data-profile-activity/);
+    if(state==='connected'){assert.match(html,/<span class="community-state pp-connected">/);assert.ok(!html.includes('data-connect='));}
     if(state==='received'){assert.match(html,/data-network-action="accept" data-uid="member"/);assert.match(html,/data-network-action="reject"/);}
   }
   const own=fixture().markup({...full,own:true,connection:'self'});

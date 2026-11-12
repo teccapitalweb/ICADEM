@@ -28,6 +28,6 @@ test('an incompatible earlier scale is preserved as declared information and the
 });
 test('the language helper loads before both CV consumers and changed assets use matching cache keys',()=>{
  const html=fs.readFileSync(__dirname+'/../vip-panel.html','utf8'),sw=fs.readFileSync(__dirname+'/../sw.js','utf8');
- const helper=html.indexOf('js/icadem-cv-languages.js?v=1');assert.ok(helper>0);assert.ok(helper<html.indexOf('js/icadem-professional-profile.js?v=4'));assert.ok(helper<html.indexOf('js/icadem-resume-editor.js?v=4'));
- for(const asset of ['js/icadem-cv-languages.js?v=1','js/icadem-professional-profile.js?v=4','js/icadem-resume-editor.js?v=4','css/icadem-professional-profile.css?v=3','css/icadem-resume-editor.css?v=3']){assert.ok(html.includes(asset));assert.ok(sw.includes(asset));}
+ const helper=html.indexOf('js/icadem-cv-languages.js?v=1');assert.ok(helper>0);assert.ok(helper<html.indexOf('js/icadem-professional-profile.js?v=5'));assert.ok(helper<html.indexOf('js/icadem-resume-editor.js?v=4'));
+ for(const asset of ['js/icadem-cv-languages.js?v=1','js/icadem-professional-profile.js?v=5','js/icadem-resume-editor.js?v=4','css/icadem-professional-profile.css?v=3','css/icadem-resume-editor.css?v=3']){assert.ok(html.includes(asset));assert.ok(sw.includes(asset));}
 });

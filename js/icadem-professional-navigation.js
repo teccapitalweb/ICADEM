@@ -1,7 +1,7 @@
 /* Navigation state only. No profiles, contacts or membership data are cached. */
 (function () {
   'use strict';
-  var SECTION='directorio-perfil', memory=null, forumMemory=null, activeSection='', restore=false, restoreForum=false, revision=0;
+  var SECTION='directorio-perfil', ACTIVITY='directorio-actividad', memory=null, forumMemory=null, activeSection='', restore=false, restoreForum=false, restoreActivity=false, revision=0;
   var KEY='icadem:directory-return:v1:', MAX_AGE=4*60*60*1000;
   var FORUM_KEY='icadem:forum-return:v1:';
   var DIRECTORY_VIEWS=['directorio','directorio-solicitudes','directorio-conexiones','directorio-vip'],directoryMemory={};
@@ -40,6 +40,13 @@
     if(!validUid(uid))return '';
     var url=new URL('vip-panel.html',location.href);url.search='';url.searchParams.set('profesional',uid);url.hash=SECTION;return url.href;
   }
+  function activityHref(uid){if(!validUid(uid))return '';var url=new URL(profileHref(uid));url.hash=ACTIVITY;return url.href;}
+  function activityContext(state){
+    var value=state?.icademActivity,at=Number(value?.at);
+    if(!value||value.viewer!==viewer()||!validUid(value.owner)||!Number.isFinite(at)||at>Date.now()||Date.now()-at>MAX_AGE)return null;
+    var index=function(value){return Number.isInteger(value)&&value>=0?value:null;};
+    return {viewer:viewer(),owner:value.owner,at:at,profileIndex:index(value.profileIndex),activityIndex:index(value.activityIndex),scroll:value.scroll||null,pages:Number.isInteger(value.pages)?Math.max(1,Math.min(20,value.pages)):1};
+  }
   function scrollPosition(){
     return {window:window.scrollY||0,document:document.documentElement?.scrollTop||0,body:document.body?.scrollTop||0,
       scrolling:document.scrollingElement?.scrollTop||0,main:document.querySelector('main.main')?.scrollTop||0,dynamic:document.getElementById('dynamic-section')?.scrollTop||0};
@@ -77,6 +84,18 @@
     if(DIRECTORY_VIEWS.includes(activeSection)&&(section===SECTION||DIRECTORY_VIEWS.includes(section)&&section!==activeSection))capture();
     if(activeSection==='foro'&&section===SECTION)captureForum();
     var url=new URL(location.href),state=Object.assign({},history.state||{}),previous=activeSection;
+    var activity=activityContext(state),activityUid=section===ACTIVITY?(options.profileUid===undefined?currentProfileId():options.profileUid):null;
+    if(section===ACTIVITY){
+      if(!activity||activity.owner!==activityUid){
+        var fromProfile=previous===SECTION&&currentProfileId()===activityUid;
+        if(!fromProfile)delete state.icademProfessional;
+        activity={viewer:viewer(),owner:activityUid,at:Date.now(),profileIndex:fromProfile?historyIndex:null,activityIndex:null,scroll:null};
+      }
+      state.icademActivity=validUid(activityUid)?activity:null;
+    }else if(section==='foro'&&options.activityPost===true&&previous===ACTIVITY&&validUid(currentProfileId())){
+      activity=activity&&activity.owner===currentProfileId()?activity:{viewer:viewer(),owner:currentProfileId(),at:Date.now(),profileIndex:null};
+      state.icademActivity=Object.assign({},activity,{activityIndex:historyIndex,scroll:scrollPosition(),at:Date.now()});
+    }else if(!(section==='foro'&&activity&&(options.fromHistory||options.reemplazar))){delete state.icademActivity;}
     if(section==='foro'){
       if(options.notificationPost&&/^[A-Za-z0-9_-]{1,180}$/.test(options.notificationPost)){
         url.searchParams.set('publicacion',options.notificationPost);
@@ -84,25 +103,27 @@
         else url.searchParams.delete('comentario');
       }
     }else{url.searchParams.delete('publicacion');url.searchParams.delete('comentario');}
-    if(section===SECTION){
+    if(section===SECTION||section===ACTIVITY){
       var uid=options.profileUid===undefined?currentProfileId():options.profileUid;
       // Invalid identifiers remain an explicit error view; never guess a user.
       if(validUid(uid))url.searchParams.set('profesional',uid);else url.searchParams.delete('profesional');
       var edit=options.editSection===undefined?(options.reemplazar?currentEditorSection():''):options.editSection;
-      if(uid===viewer()&&EDIT_SECTIONS.includes(edit))url.searchParams.set('editar',edit);else url.searchParams.delete('editar');
-      if(!options.reemplazar){
+      if(section===SECTION&&uid===viewer()&&EDIT_SECTIONS.includes(edit))url.searchParams.set('editar',edit);else url.searchParams.delete('editar');
+      if(section===SECTION&&!options.reemplazar){
         var prior=state.icademProfessional;
         state.icademProfessional=DIRECTORY_VIEWS.includes(previous)?Object.assign({viewer:viewer(),depth:1},previous!=='directorio'?{origin:previous}:{}):previous==='foro'?{viewer:viewer(),depth:1,origin:'foro'}:
           previous===SECTION&&prior?.viewer===viewer()?Object.assign({viewer:viewer(),depth:Math.min(20,prior.depth+1)},prior.origin?{origin:prior.origin}:{}):null;
       }
-    }else{url.searchParams.delete('profesional');url.searchParams.delete('editar');delete state.icademProfessional;}
+    }else{url.searchParams.delete('profesional');url.searchParams.delete('editar');if(!state.icademActivity)delete state.icademProfessional;}
     if(DIRECTORY_VIEWS.includes(section)&&section!=='directorio'&&previous==='directorio'&&!options.fromHistory)state.icademDirectoryReturn={viewer:viewer(),index:history.state?.icademProfessionalIndex};
-    else if(!DIRECTORY_VIEWS.includes(section)&&section!==SECTION)delete state.icademDirectoryReturn;
+    else if(!DIRECTORY_VIEWS.includes(section)&&section!==SECTION&&section!==ACTIVITY&&!state.icademActivity)delete state.icademDirectoryReturn;
     restore=DIRECTORY_VIEWS.includes(section)&&(previous===SECTION||DIRECTORY_VIEWS.includes(previous)&&previous!==section||options.fromHistory)&&Boolean(saved(section));
     restoreForum=section==='foro'&&previous===SECTION&&Boolean(savedForum());
+    restoreActivity=section===ACTIVITY&&Boolean(activityContext(state)?.scroll)&&(previous==='foro'||options.fromHistory||!previous);
     activeSection=section;url.hash=section;
     historyIndex=options.fromHistory&&Number.isInteger(state.icademProfessionalIndex)?state.icademProfessionalIndex:options.reemplazar||url.pathname+url.search+url.hash===routeLocation()?historyIndex:historyIndex+1;
     state.icademProfessionalIndex=historyIndex;
+    if(section===ACTIVITY&&state.icademActivity)state.icademActivity.activityIndex=historyIndex;
     committed={url:url.pathname+url.search+url.hash,state:state};
     return {url:committed.url,historyState:state,restoreDirectory:restore||restoreForum};
   }
@@ -122,6 +143,42 @@
     });
   }
   function openProfile(uid){if(!validUid(uid))return false;window.navigateToSection?.(SECTION,{profileUid:uid});return true;}
+  function openActivity(uid){if(!validUid(uid))return false;window.navigateToSection?.(ACTIVITY,{profileUid:uid});return true;}
+  function backToProfile(){
+    var value=activityContext(history.state),owner=currentProfileId(),index=history.state?.icademProfessionalIndex;
+    if(!validUid(owner))return false;
+    if(value?.owner===owner&&Number.isInteger(value.profileIndex)&&Number.isInteger(index)&&index>value.profileIndex&&index-value.profileIndex<=20&&history.length>index-value.profileIndex)history.go(value.profileIndex-index);
+    else window.navigateToSection?.(SECTION,{profileUid:owner,reemplazar:true});
+    return true;
+  }
+  function openActivityPost(postId){
+    if(activeSection!==ACTIVITY||!validUid(currentProfileId())||typeof postId!=='string'||!/^[A-Za-z0-9_-]{1,180}$/.test(postId))return false;
+    var state=Object.assign({},history.state||{}),value=activityContext(state);
+    state.icademActivity=Object.assign({},value||{viewer:viewer(),owner:currentProfileId(),profileIndex:null},{activityIndex:historyIndex,scroll:scrollPosition(),at:Date.now()});
+    // Preserve scroll on the activity entry itself so browser Back and reload
+    // restore it without caching any author, publication or permission data.
+    history.replaceState(state,'',routeLocation());if(committed)committed.state=state;
+    window.navigateToSection?.('foro',{notificationPost:postId,activityPost:true});return true;
+  }
+  function activityReturn(){var value=activityContext(history.state);return activeSection==='foro'&&value?{owner:value.owner}:null;}
+  function backToActivity(){
+    var value=activityContext(history.state),index=history.state?.icademProfessionalIndex;
+    if(!value)return false;
+    if(Number.isInteger(value.activityIndex)&&Number.isInteger(index)&&index>value.activityIndex&&index-value.activityIndex<=20&&history.length>index-value.activityIndex)history.go(value.activityIndex-index);
+    else window.navigateToSection?.(ACTIVITY,{profileUid:value.owner,reemplazar:true});
+    return true;
+  }
+  function activityReady(root){
+    if(!restoreActivity||activeSection!==ACTIVITY||!root?.isConnected)return;
+    var value=activityContext(history.state),run=revision;
+    if(!value?.scroll||value.owner!==currentProfileId())return;
+    requestAnimationFrame(function(){
+      if(!restoreActivity||run!==revision||!root.isConnected)return;restoreActivity=false;
+      var position=value.scroll,elements={document:document.documentElement,body:document.body,scrolling:document.scrollingElement,main:document.querySelector('main.main'),dynamic:document.getElementById('dynamic-section')};
+      var offset=function(value){return Number.isFinite(Number(value))?Math.max(0,Math.min(10000000,Number(value))):0;};
+      Object.entries(elements).forEach(function(entry){if(entry[1])entry[1].scrollTop=offset(position[entry[0]]);});window.scrollTo({top:offset(position.window),left:0,behavior:'instant'});
+    });
+  }
   function openEditor(section){
     if(!validUid(viewer()))return false;
     section=EDIT_SECTIONS.includes(section)?section:'basicos';
@@ -158,11 +215,12 @@
     else window.navigateToSection?.(source?.viewer===viewer()&&(source.origin==='foro'||DIRECTORY_VIEWS.includes(source.origin))?source.origin:'directorio',{reemplazar:true});
   }
   function reset(){
-    revision++;restore=false;restoreForum=false;activeSection='';memory=null;directoryMemory={};forumMemory=null;committed=null;restoring=null;acceptedHistory=null;
+    revision++;restore=false;restoreForum=false;restoreActivity=false;activeSection='';memory=null;directoryMemory={};forumMemory=null;committed=null;restoring=null;acceptedHistory=null;
     try{if(viewer()){DIRECTORY_VIEWS.forEach(function(s){sessionStorage.removeItem(KEY+viewer()+(s==='directorio'?'':':'+s));});sessionStorage.removeItem(FORUM_KEY+viewer());}}catch(_){}
   }
   document.addEventListener('icadem:session-ending',reset);
   document.addEventListener('icadem:user-ready',function(){if(memory&&memory.uid!==viewer()||forumMemory&&forumMemory.uid!==viewer())reset();});
   window.ICADEMProfessionalNavigation={validUid:validUid,currentProfileId:currentProfileId,currentEditorSection:currentEditorSection,profileHref:profileHref,prepare:prepare,allowNavigation:allowNavigation,handleHistory:handleHistory,openEditor:openEditor,
-    directoryState:directoryState,directoryReady:directoryReady,forumState:forumState,forumReady:forumReady,backLabel:backLabel,openProfile:openProfile,backToDirectory:backToDirectory};
+    directoryState:directoryState,directoryReady:directoryReady,forumState:forumState,forumReady:forumReady,backLabel:backLabel,openProfile:openProfile,backToDirectory:backToDirectory,
+    activityHref:activityHref,openActivity:openActivity,backToProfile:backToProfile,openActivityPost:openActivityPost,activityReturn:activityReturn,backToActivity:backToActivity,activityReady:activityReady};
 })();

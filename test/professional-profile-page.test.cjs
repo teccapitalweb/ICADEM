@@ -131,7 +131,7 @@ test('Connect reuses the existing endpoint, sends once while pending and refresh
   assert.equal(f.calls.filter(item=>item.options?.method==='POST').length,1);
   assert.deepEqual(plain(f.calls[1]),{path:'/api/community/connections',options:{method:'POST',body:{targetUid:'professional'}}});
   assert.equal(button.disabled,true);complete();await settle();
-  assert.match(node.innerHTML,/Solicitud enviada/);assert.equal(f.calls.length,3);assert.equal(f.opened.length,0);
+  assert.match(node.innerHTML,/Solicitud pendiente/);assert.equal(f.calls.length,3);assert.equal(f.opened.length,0);
 });
 
 test('accepting or rejecting on the page reuses the connection APIs and renders only freshly authorized contacts',async()=>{

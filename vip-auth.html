@@ -915,9 +915,9 @@ function destinoSeguro(isAdmin) {
     try {
       const parsed = new URL(requested, window.location.origin);
       const profileId = parsed.searchParams.get('profesional');
-      const profileIntent = parsed.hash === '#directorio-perfil' || parsed.searchParams.has('profesional');
-      if (profileIntent && parsed.origin === window.location.origin && !parsed.username && !parsed.password && parsed.pathname === '/vip-panel.html' && parsed.hash === '#directorio-perfil' && /^[A-Za-z0-9_-]{1,128}$/.test(profileId || '')) {
-        return 'vip-panel.html?profesional=' + encodeURIComponent(profileId) + '#directorio-perfil';
+      const profileIntent = ['#directorio-perfil','#directorio-actividad'].includes(parsed.hash) || parsed.searchParams.has('profesional');
+      if (profileIntent && parsed.origin === window.location.origin && !parsed.username && !parsed.password && parsed.pathname === '/vip-panel.html' && ['#directorio-perfil','#directorio-actividad'].includes(parsed.hash) && /^[A-Za-z0-9_-]{1,128}$/.test(profileId || '')) {
+        return 'vip-panel.html?profesional=' + encodeURIComponent(profileId) + parsed.hash;
       }
       if (!isAdmin && !profileIntent && parsed.origin === window.location.origin && /\/(vip-panel|curso|clase)[^/]*\.html$/i.test(parsed.pathname)) {
         return parsed.pathname.replace(/^\//,'') + parsed.search + parsed.hash;
