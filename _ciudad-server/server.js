@@ -213,6 +213,12 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
       }
       else if (msg.t === 'play') {
         // Carrera y búsqueda del tesoro: el servidor valida con las posiciones que ya comprobó.
+        if (msg.op === 'discover') {   // Ruta del explorador: posición validada por el hub, XP una vez por sitio
+          const d = hub.discover(player, msg.id);
+          if (!d.ok) return send(ws, { t: 'play', op: 'discover', id: String(msg.id || ''), ok: false, reason: d.reason });
+          const g = await profiles.discover(sessionUid, d.id);
+          return send(ws, { t: 'play', op: 'discover', id: d.id, ok: g.ok, reason: g.reason, xp: g.xp, profile: g.profile });
+        }
         const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id }) : hub.playQuit(player);
         send(ws, { t: 'play', op: msg.op, game: msg.game, ...r });
         // La XP va al juego de la partida que el servidor abrió, no al nombre que mande el navegador.

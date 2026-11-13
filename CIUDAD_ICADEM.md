@@ -809,3 +809,22 @@ Logros nuevos: Mente curiosa, Políglota, Memoria de oro, Calculadora humana, Gr
 - Plaza: halo cálido en los faroles. Panel social: inicial de color por jugador y botón Bloquear.
 - Celular: el indicador de jugadores ya no se encima con la tarjeta del jugador; el panel de chat queda
   arriba, lejos del joystick y de los botones.
+
+## 20. Versión 1.3 · Distrito del Saber (13 nov 2026)
+
+- **Escenario `distrito`** (`ciudad/js/world/distrito.js`), 60 × 60 m, público en la instancia. Se entra por el
+  portal de la calle sur de la plaza (0, −38.5) y se llega en (0, 24). Reglas de red en `scenes.js`; el
+  índice de escena 13 se agregó al final de `NET_SCENES` (los anteriores no cambian).
+- **Laberinto del conocimiento:** plano fijo en `edu/district-rules.js` (comprobado: sin abrir las tres
+  puertas en orden no se llega a la salida). Las puertas se abren respondiendo bien una pregunta (error =
+  otra pregunta y 3 s de espera). El servidor valida puertas y salida con su propia posición (mínimo 25 s).
+- **Laboratorio de experimentos** (5 u 8 experimentos: densidad, circuitos, pH, estados, colores e imanes) y
+  **Sala de escape** (3 candados con acertijos numéricos; −10 por error y −8 por pista): se generan con
+  semilla y el servidor los vuelve a generar para calificar (`checkActivity`).
+- **Ruta del explorador:** 8 sitios (`LANDMARKS`). Al llegar, el cliente pide `play/discover` y el servidor
+  comprueba la posición; 15 XP una vez por sitio (`ciudadProfiles.discovered`).
+- **Rendimiento:** setos y edificios fusionados (`mergeStatic`); lo dinámico es poco (12 mariposas, 3 puertas,
+  telescopio, nubes). Sin texturas nuevas pesadas (se reutilizan las de césped y adoquín).
+- **No incluido (honesto):** búsqueda del tesoro cooperativa, desafío de construcción y carrera de obstáculos
+  nuevos (duplicarían la Búsqueda del tesoro, la Torre/Obra y la Carrera del conocimiento existentes). Los
+  juegos del distrito son individuales; el distrito sí es compartido (presencia, chat y burbujas).

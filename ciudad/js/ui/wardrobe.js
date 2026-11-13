@@ -167,9 +167,12 @@ export function openWardrobe(ui, { first = false } = {}) {
 
   const stop = () => { thumbnailRun++; preview && preview.stop(); thumbs && thumbs.stop(); };
   if (first) {
+    // Si el perfil de la cuenta llega tarde (conexión lenta) y ya tiene personaje, esta selección no
+    // aplica: se cierra sola y NO se guarda encima del personaje y la ropa que la persona ya tenía.
+    const known = setInterval(() => { if (!wrap.isConnected) return clearInterval(known); if (st.avatarChosen) { clearInterval(known); document.getElementById('modal-x')?.click(); ui.toast?.('Recuperamos tu personaje de tu cuenta.', 2600); } }, 300);
     return ui.modal({ eyebrow: 'Bienvenida a Ciudad ICADEM', title: 'Elige tu personaje', content: wrap, wide: true, onClose: stop,
       actions: [{ id: 'ok', label: 'Comenzar con este personaje', primary: true }] })
-      .then(id => { api.setAvatar(viewing, st.custom); return id; });
+      .then(id => { clearInterval(known); if (!st.avatarChosen) api.setAvatar(viewing, st.custom); return id; });
   }
   return ui.modal({ eyebrow: 'Ciudad ICADEM · Avatar Studio', title: 'Mi avatar', content: wrap, wide: true, onClose: stop });
 }

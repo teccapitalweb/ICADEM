@@ -25,4 +25,4 @@ export const placeByScene = scene => PLACES.find(p => p.scene === scene) || null
 export const placeByBuilding = id => PLACES.find(p => p.building === id) || null;
 
 /** Títulos de todos los escenarios (incluye los que no son edificios). */
-export const SCENE_TITLES = Object.freeze({ room: 'Tu habitación', plaza: 'Ciudad ICADEM', park: 'Parque de retos', ...Object.fromEntries(PLACES.map(p => [p.scene, p.title])) });
+export const SCENE_TITLES = Object.freeze({ room: 'Tu habitación', plaza: 'Ciudad ICADEM', park: 'Parque de retos', distrito: 'Distrito del Saber', ...Object.fromEntries(PLACES.map(p => [p.scene, p.title])) });

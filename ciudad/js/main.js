@@ -43,6 +43,8 @@ import { EduService } from './edu/service.js';
 import { NpcQuiz } from './edu/npc-quiz.js';
 import { Games } from './edu/games.js';
 import { buildPark } from './world/park.js';
+import { buildDistrito } from './world/distrito.js';
+import { District } from './edu/district.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
 import { BankCreditMission } from './missions/bank-credit.js';
@@ -62,7 +64,7 @@ import { Tutorial } from './ui/tutorial.js';
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
-const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant , greenhouse: buildGreenhouse , office: buildOffice , tower: buildTower, park: buildPark };
+const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant , greenhouse: buildGreenhouse , office: buildOffice , tower: buildTower, park: buildPark, distrito: buildDistrito };
 const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
 const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
 
@@ -151,7 +153,7 @@ async function boot() {
   function applyProfile(profile) {
     if (!profile || typeof profile !== 'object') return;
     const st = store.state, look = st.avatarId + JSON.stringify(st.custom);
-    st.xp = profile.xp; st.missions = { ...profile.missions }; st.visited = [...profile.visited]; st.achievements = [...profile.achievements];
+    st.xp = profile.xp; st.missions = { ...profile.missions }; st.visited = [...profile.visited]; st.discovered = Array.isArray(profile.discovered) ? [...profile.discovered] : (st.discovered || []); st.achievements = [...profile.achievements];
     confirmedAvatar = { id: profile.avatarId, custom: cleanCustom(profile.custom) };
     const appearance = avatarSaves.pending || confirmedAvatar;
     st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = appearance.id; st.custom = { ...appearance.custom }; st.avatarChosen = Boolean(st.avatarChosen || profile.avatarChosen);
@@ -186,7 +188,7 @@ async function boot() {
   api.missions.greenhouse = new GreenhouseMission(api, registry.register(defineMission(GREENHOUSE_MISSION)));
   api.missions.office = new LostFileMission(api, registry.register(defineMission(LOST_FILE_MISSION)));
   api.missions.tower = new TowerChallengeMission(api, registry.register(defineMission(TOWER_CHALLENGE_MISSION)));
-  api.edu = new EduService(api); api.npcQuiz = new NpcQuiz(api); api.games = new Games(api);
+  api.edu = new EduService(api); api.npcQuiz = new NpcQuiz(api); api.games = new Games(api); api.district = new District(api);
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social;
@@ -368,7 +370,7 @@ async function boot() {
     avatar.update(dt, { speed: player.speed, grounded: player.grounded, sitting: Boolean(player.seat) });
 
     for (const n of scene.npcs) n.update(dt, p);
-    api.npcQuiz.update(dt); api.games.update(dt, t);
+    api.npcQuiz.update(dt); api.games.update(dt, t); api.district.update(dt, t);
     remotes.update(dt);
     scene.update(dt, t, p);
 

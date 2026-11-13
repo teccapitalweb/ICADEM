@@ -13,7 +13,10 @@ export const GAME_LIST = Object.freeze([
   { id: 'matematicas', icon: '➗', title: 'Matemáticas contra reloj', text: '10 operaciones en 90 segundos.', levels: [['infantil', 'Sumas y restas'], ['juvenil', 'Tablas y divisiones'], ['general', 'Porcentajes y combinadas']] },
   { id: 'idiomas', icon: '🌎', title: 'Aventura de idiomas', text: 'Palabras e imágenes en inglés y saludos de otros idiomas.', levels: [['infantil', 'Primeras palabras'], ['general', 'Viajero']] },
   { id: 'tesoro', icon: '🗝️', title: 'Búsqueda del tesoro', text: 'Sigue las pistas y encuentra objetos de cada profesión en la plaza.', place: 'plaza' },
-  { id: 'clasificacion', icon: '🗂️', title: 'Clasificación inteligente', text: 'Ordena cada objeto en su categoría.', levels: Object.entries(SORT_THEMES).map(([id, t]) => [id, t.title]) }
+  { id: 'clasificacion', icon: '🗂️', title: 'Clasificación inteligente', text: 'Ordena cada objeto en su categoría.', levels: Object.entries(SORT_THEMES).map(([id, t]) => [id, t.title]) },
+  { id: 'laberinto', icon: '🌿', title: 'Laberinto del conocimiento', text: 'Cruza el laberinto del Distrito del Saber abriendo tres puertas con tus respuestas.', place: 'distrito' },
+  { id: 'laboratorio', icon: '🧪', title: 'Laboratorio de experimentos', text: 'Predice qué pasa con densidad, circuitos, pH, imanes y más.', levels: [['basico', 'Básico · 5 experimentos'], ['avanzado', 'Avanzado · 8 experimentos']] },
+  { id: 'escape', icon: '🔐', title: 'Sala de escape', text: 'Resuelve tres acertijos de lógica y cálculo para abrir los candados.', levels: [['normal', '3 candados']] }
 ]);
 
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
@@ -25,7 +28,7 @@ export class Games {
   }
 
   /** Un minijuego de exploración está en curso (los NPC no interrumpen). */
-  get active() { return Boolean(this.race || this.hunt); }
+  get active() { return Boolean(this.race || this.hunt || (this.api.district && this.api.district.active)); }
   get raceNext() { return this.race ? this.race.next : -1; }
 
   #stats(id) { const a = (this.api.store.state.play && this.api.store.state.play.act && this.api.store.state.play.act[id]) || null; return a || { best: 0, dayXp: 0, plays: 0, done: false }; }
@@ -47,15 +50,20 @@ export class Games {
   /** Récord antes de jugar (para celebrar uno nuevo; el récord real lo guarda el servidor). */
   #mark(id) { (this.prevBest ||= {})[id] = this.#stats(id).best || 0; }
 
+  /** Para otros controladores (Distrito del Saber): récord previo y ventana de resultado. */
+  mark(id) { this.#mark(id); }
+  result(id, r) { return this.#result(GAME_LIST.find(g => g.id === id), r); }
+
   async launch(id) {
     const api = this.api, gm = GAME_LIST.find(g => g.id === id);
     this.#mark(id);
+    if (id === 'laberinto') { if (api.sceneName !== 'distrito') { api.ui.toast('Te llevamos al Distrito del Saber. El laberinto empieza en el letrero verde.', 3200); api.travel('distrito', 'default'); } else api.district.mazeStart(); return; }
     if (id === 'carrera') { if (api.sceneName !== 'park') { api.ui.toast('Te llevamos al Parque de retos. Habla con el letrero de salida para empezar.', 3200); api.travel('park', 'default'); } else this.raceStartUI(); return; }
     if (id === 'tesoro') { if (api.sceneName !== 'plaza') { await api.travel('plaza', 'home'); } return this.huntStart(); }
     const level = await api.ui.choice({ speaker: gm.title, text: 'Elige la dificultad', options: [...gm.levels.map(([lid, label], i) => ({ id: lid, label, primary: i === 0 })), { id: 'x', label: 'Cancelar' }] });
     if (!level || level === 'x') return;
     const seed = api.edu.seed(), content = ACTIVITIES[id].build(seed, level);
-    const log = await ({ memoria: () => this.#memory(content), matematicas: () => this.#math(content, seed, level), idiomas: () => this.#languages(content), clasificacion: () => this.#sorting(content, level) })[id]();
+    const log = await ({ memoria: () => this.#memory(content), matematicas: () => this.#math(content, seed, level), idiomas: () => this.#languages(content), clasificacion: () => this.#sorting(content, level), laboratorio: () => api.district.lab(content), escape: () => api.district.escape(content) })[id]();
     if (!log) return;
     const r = await api.edu.activity(id, seed, level, log);
     await this.#result(gm, r);
@@ -243,7 +251,7 @@ export class Games {
     const api = this.api; this.pending = false;
     if (m.ok === false) {
       this.waitUntil = performance.now() + 900;   // no se reintenta en cada cuadro
-      const why = { lejos: 'El servidor aún no te ve en ese punto: acércate un poco más.', 'fuera-de-orden': 'Ese no es el siguiente arco.', imposible: 'Demasiado rápido para ser real: la carrera no cuenta.', 'fuera-del-parque': 'La carrera se juega dentro del Parque de retos.', 'fuera-de-la-plaza': 'La búsqueda se juega en la plaza.', 'sin-partida': 'La partida ya terminó.' }[m.reason];
+      const why = { lejos: 'El servidor aún no te ve en ese punto: acércate un poco más.', 'fuera-de-orden': 'Ese no es el siguiente arco.', imposible: 'Demasiado rápido para ser real: la carrera no cuenta.', 'fuera-del-parque': 'La carrera se juega dentro del Parque de retos.', 'fuera-del-distrito': 'El laberinto se juega en el Distrito del Saber.', 'fuera-de-la-plaza': 'La búsqueda se juega en la plaza.', 'sin-partida': 'La partida ya terminó.' }[m.reason];
       if (m.reason === 'imposible' || m.reason === 'sin-partida' || m.op === 'start') { this.raceQuit(true); this.huntQuit(); }
       if (why) api.ui.toast(why, 2600); return;
     }

@@ -12,7 +12,7 @@ export const FAMILY_MAX = 4;
 export const AGE_BANDS = Object.freeze([['6-8', '6 a 8 años'], ['9-12', '9 a 12 años'], ['13-17', '13 a 17 años']]);
 /** Misiones profesionales adecuadas para perfiles infantiles (además de minijuegos y retos). */
 export const KID_MISSIONS = Object.freeze(['super-rescate-inventario', 'vet-guardianes-bienestar', 'invernadero-cultivo-inteligente', 'restaurante-cocina-contra-reloj']);
-export const KID_SCENES = Object.freeze(['room', 'plaza', 'park', 'market', 'vet', 'greenhouse', 'restaurant']);
+export const KID_SCENES = Object.freeze(['room', 'plaza', 'park', 'market', 'vet', 'greenhouse', 'restaurant', 'distrito']);
 
 /** Alias visible: 2–16 letras, números o espacios; sin correos, teléfonos ni enlaces. */
 export function cleanAlias(alias) {

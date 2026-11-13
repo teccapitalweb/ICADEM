@@ -62,7 +62,7 @@ export class NpcQuiz {
 
   update(dt) {
     const api = this.api;
-    if (api.sceneName !== 'plaza' || !this.enabled) { this.#abort(); return; }
+    if ((api.sceneName !== 'plaza' && api.sceneName !== 'distrito') || !this.enabled) { this.#abort(); return; }
     const scene = api.scene, me = api.player.position, speed = Math.hypot(api.player.vx || 0, api.player.vz || 0);
     this.calm = speed < 3 ? this.calm + dt : 0;
     if (this.walker) return this.#approaching(dt, scene, me);

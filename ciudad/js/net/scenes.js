@@ -5,7 +5,7 @@
 //   privacy: 'private' nadie más te ve · 'party' solo tu sala de espera · 'public' tu instancia
 export const SCENE_RULES = Object.freeze({
   room: { bounds: { minX: -5, maxX: 5, minZ: -4.6, maxZ: 4.6 }, entries: null, links: ['plaza'], privacy: 'private' },
-  plaza: { bounds: { minX: -47, maxX: 47, minZ: -47, maxZ: 47 }, entries: [[0, 9.5], [-13, 17.8], [-13, -15.6], [13, -15.6], [31, 13.6], [22.1, -3.6], [-31, -15.6], [-31, 16.1], [13, 16.1], [-22.1, -9], [-22.1, 9], [31, -15.6], [0, 34.5]], links: ['park', 'room', 'bank', 'court', 'market', 'site', 'hospital', 'vet', 'restaurant', 'greenhouse', 'office', 'tower'], privacy: 'public' },
+  plaza: { bounds: { minX: -47, maxX: 47, minZ: -47, maxZ: 47 }, entries: [[0, 9.5], [-13, 17.8], [-13, -15.6], [13, -15.6], [31, 13.6], [22.1, -3.6], [-31, -15.6], [-31, 16.1], [13, 16.1], [-22.1, -9], [-22.1, 9], [31, -15.6], [0, 34.5], [0, -34.5]], links: ['park', 'room', 'bank', 'court', 'market', 'site', 'hospital', 'vet', 'restaurant', 'greenhouse', 'office', 'tower', 'distrito'], privacy: 'public' },
   bank: { bounds: { minX: -9.6, maxX: 9.6, minZ: -7.6, maxZ: 7.6 }, entries: [[0, 3.9]], links: ['plaza'], privacy: 'public' },
   court: { bounds: { minX: -10.6, maxX: 10.6, minZ: -8.6, maxZ: 8.6 }, entries: [[0, 5.6]], links: ['plaza'], privacy: 'party' },
   market: { bounds: { minX: -9.6, maxX: 9.6, minZ: -7.6, maxZ: 7.6 }, entries: [[0, 3.9]], links: ['plaza'], privacy: 'public' },
@@ -16,7 +16,9 @@ export const SCENE_RULES = Object.freeze({
   greenhouse: { bounds: { minX: -8.6, maxX: 8.6, minZ: -6.6, maxZ: 6.6 }, entries: [[0, 5.4]], links: ['plaza'], privacy: 'public' },
   office: { bounds: { minX: -8.6, maxX: 8.6, minZ: -6.6, maxZ: 6.6 }, entries: [[0, 5.4]], links: ['plaza'], privacy: 'public' },
   park: { bounds: { minX: -11.8, maxX: 11.8, minZ: -11.8, maxZ: 11.8 }, entries: [[0, 10.2]], links: ['plaza'], privacy: 'public' },
-  tower: { bounds: { minX: -8.6, maxX: 8.6, minZ: -6.6, maxZ: 6.6 }, entries: [[0, 5.4]], links: ['plaza'], privacy: 'party' }
+  tower: { bounds: { minX: -8.6, maxX: 8.6, minZ: -6.6, maxZ: 6.6 }, entries: [[0, 5.4]], links: ['plaza'], privacy: 'party' },
+  // Distrito del Saber (1.3): al sur de la plaza. Laberinto, laboratorio, sala de escape, anfiteatro y jardines.
+  distrito: { bounds: { minX: -29.6, maxX: 29.6, minZ: -29.6, maxZ: 29.6 }, entries: [[0, 24]], links: ['plaza'], privacy: 'public' }
 });
 export const ENTRY_RADIUS = 4;
 

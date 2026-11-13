@@ -27,8 +27,8 @@ export function missionXp(reward, firstPass, record, now = Date.now()) {
   return { xp: Number(reward && reward.repeatXp) || 0, repeatDay: today };
 }
 
-/** Los seis minijuegos que dan XP. Cualquier otro nombre se descarta al leer el progreso. */
-export const PLAY_GAMES = Object.freeze(['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro']);
+/** Los minijuegos que dan XP (seis originales y tres del Distrito del Saber). Cualquier otro nombre se descarta al leer el progreso. */
+export const PLAY_GAMES = Object.freeze(['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro', 'laboratorio', 'escape', 'laberinto']);
 
 export function cleanPlay(play) {
   const p = play && typeof play === 'object' ? play : {};
@@ -78,5 +78,8 @@ export function playAchievements(play) {
   if (a('clasificacion').best >= 80) list.push('gran-clasificador');
   if (a('carrera').done) list.push('atleta-icadem');
   if (a('tesoro').done) list.push('cazatesoros');
+  if (a('laboratorio').best >= 80) list.push('cientifico');
+  if (a('escape').done) list.push('escapista');
+  if (a('laberinto').done) list.push('laberintista');
   return list;
 }
