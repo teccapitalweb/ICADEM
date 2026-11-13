@@ -56,8 +56,22 @@ test('modo presentación protege nombres y códigos de la red y conserva indicad
   assert.doesNotMatch(html,/Nombre Privado|PER-XXXXX|9821/);assert.match(html,/Saldo disponible/);assert.match(html,/REA-ABCDE/);
 });
 
-test('la misma respuesta gratuita genera exactamente la vista anterior',()=>{
-  const input=data({category:'free'});assert.equal(app(true).markup(input),app(false).markup(input));
+test('gratuito reutiliza el mismo panel premium y sus acciones sin alterar los beneficios confirmados',()=>{
+  const input=data({category:'free',benefits:{directCommissionCents:10000,monthlyDiscountCents:20000,annualDiscountCents:25000}}),before=JSON.stringify(input),html=app(true).markup(input);
+  assert.match(html,/data-amb-category="free"/);assert.match(html,/Centro de Embajadores gratuito/);assert.match(html,/EMBAJADOR GRATUITO/);
+  for(const section of ['hero','summary','share','analysis','network','referrals','commissions','withdrawals'])assert.ok(html.includes('data-vip-section="'+section+'"'),section);
+  for(const action of ['data-amb-copy="REA-ABCDE"','data-amb-social="whatsapp"','data-amb-view="withdrawals"','data-amb-upgrade'])assert.ok(html.includes(action),action);
+  for(const value of ['$100','$200','$250'])assert.ok(html.includes(value),value);
+  assert.doesNotMatch(html,/Membresía VIP vigente|Categoría VIP confirmada/);assert.equal(JSON.stringify(input),before);
+  assert.ok(!app(false).markup(input).includes('data-vip-dashboard'),'la vista de respaldo sigue disponible si no carga el componente compartido');
+});
+
+test('ambas categorías conservan la selección original de importes configurados cuando faltan benefits',()=>{
+  const config={...data().config,directCommissionFreeCents:11000,monthlyDiscountFreeCents:21000,annualDiscountFreeCents:26000,directCommissionVipCents:16000,monthlyDiscountVipCents:26000,annualDiscountVipCents:31000};
+  for(const [category,values] of [['free',['$110','$210','$260']],['vip',['$160','$260','$310']]]){
+    const input=data({category,config,benefits:undefined}),before=JSON.stringify(input),html=app(true).markup(input);
+    for(const value of values)assert.ok(html.includes(value),category+' '+value);assert.equal(JSON.stringify(input),before);
+  }
 });
 
 test('cambiar periodo y tipo de gráfica modifica solo la presentación de los registros recibidos',()=>{
