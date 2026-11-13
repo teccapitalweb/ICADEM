@@ -4,7 +4,7 @@ import { CollisionWorld } from '../core/collision.js';
 import { Npc } from '../characters/npc.js';
 import { NPC_LOOKS } from '../characters/catalog.js';
 import { KID_SCENES } from '../edu/family.js';
-import { mat, box, cyl, sph, plane, slab, sign, grassTexture, pavingTexture, roadTexture, tree, bush, flowers, lamp, bench, cloud, skyDome, sunLight, mergeStatic } from './kit.js';
+import { mat, box, cyl, sph, plane, slab, sign, grassTexture, pavingTexture, roadTexture, tree, bush, flowers, lamp, bench, cloud, skyDome, sunLight, mergeStatic, dotTexture } from './kit.js';
 import { BUILDINGS, buildBuilding, doorPoint, footprint } from './buildings.js';
 import { PLACES, placeByBuilding } from './places.js';
 
@@ -58,7 +58,7 @@ export function buildPlaza(api) {
   const dropGeo = new THREE.BufferGeometry(), N = 140, pos = new Float32Array(N * 3), seed = new Float32Array(N * 3);
   for (let i = 0; i < N; i++) { seed[i * 3] = Math.random() * 6.28; seed[i * 3 + 1] = Math.random(); seed[i * 3 + 2] = 0.6 + Math.random() * 0.9; }
   dropGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-  const drops = new THREE.Points(dropGeo, new THREE.PointsMaterial({ color: 0xdff6ff, size: 0.16, transparent: true, opacity: 0.9, depthWrite: false }));
+  const drops = new THREE.Points(dropGeo, new THREE.PointsMaterial({ color: 0xdff6ff, size: 0.16, map: dotTexture(), alphaTest: 0.05, transparent: true, opacity: 0.9, depthWrite: false }));
   drops.frustumCulled = false; g.add(drops); animated.drops = { mesh: drops, seed, N };
   // bancas, faroles y jardineras alrededor de la plaza
   for (let i = 0; i < 8; i++) {
@@ -150,7 +150,7 @@ export function buildPlaza(api) {
   animated.birds = Array.from({ length: 7 }, (_, i) => { const b = new THREE.Group(); b.userData.dynamic = true; const l = new THREE.Mesh(birdGeo, birdM), r = new THREE.Mesh(birdGeo, birdM); r.scale.x = -1; b.add(l, r); g.add(b); return { b, l, r, radius: 16 + (i % 3) * 7, h: 15 + (i % 4) * 2.2, speed: 0.16 + (i % 3) * 0.035, phase: i * 0.9 }; });
   const leafN = 60, leafPos = new Float32Array(leafN * 3), leafSeed = Array.from({ length: leafN }, () => [(Math.random() - 0.5) * 70, Math.random() * 9 + 1, (Math.random() - 0.5) * 70, Math.random() * 6.28]);
   const leafGeo = new THREE.BufferGeometry(); leafGeo.setAttribute('position', new THREE.BufferAttribute(leafPos, 3));
-  const leaves = new THREE.Points(leafGeo, new THREE.PointsMaterial({ color: 0xfff1b8, size: 0.13, transparent: true, opacity: 0.75, depthWrite: false })); leaves.frustumCulled = false; g.add(leaves); animated.leaves = { leaves, leafSeed, leafN };
+  const leaves = new THREE.Points(leafGeo, new THREE.PointsMaterial({ color: 0xfff1b8, size: 0.13, map: dotTexture(), alphaTest: 0.05, transparent: true, opacity: 0.75, depthWrite: false })); leaves.frustumCulled = false; g.add(leaves); animated.leaves = { leaves, leafSeed, leafN };
 
   /* fondo: colinas y cielo */
   const hillM = [mat(0x8fd08a, { flat: true, r: 1 }), mat(0x79c2a0, { flat: true, r: 1 }), mat(0x9bd6b0, { flat: true, r: 1 })];

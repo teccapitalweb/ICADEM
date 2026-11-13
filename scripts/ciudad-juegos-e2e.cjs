@@ -33,7 +33,7 @@ async function play(browser, G) {
 
   await page.goto(`${BASE}/ciudad/index.html?debug=1`);
   await page.evaluate(() => localStorage.clear());
-  await page.goto(`${BASE}/ciudad/index.html?debug=1`);
+  await page.goto(`${BASE}/ciudad/index.html?debug=1&avatar=0`);   // sin la selección inicial de personaje (se prueba en ciudad-e2e)
   await page.waitForSelector('#splash-go:not([hidden])', { timeout: 30000 });
   await page.click('#splash-go'); await page.waitForTimeout(1500);
   await api(() => { const a = window.__ciudad.api; a.store.state.tutorialDone = true; a.store.save(); document.getElementById('coach').hidden = true; });

@@ -143,7 +143,7 @@ export function buildRoom(api) {
   const interactables = [
     { id: 'door', x: px, y: 1.2, z: -D / 2 + 0.6, radius: 1.5, label: 'Salir a la ciudad', color: 0x2f9e8f, action: () => api.travel('plaza', 'home') },
     { id: 'desk', x: dx, y: 1.3, z: dz + 0.9, radius: 1.6, label: 'Ver misiones', color: 0xffc93c, action: () => api.ui.openMissions() },
-    { id: 'wardrobe', x: wx - 0.9, y: 1.4, z: wz, radius: 1.5, label: 'Abrir armario', action: () => api.ui.openWardrobe() },
+    { id: 'wardrobe', x: wx - 0.9, y: 1.4, z: wz, radius: 1.5, label: 'Abrir vestidor', action: () => api.ui.openWardrobe() },
     { id: 'mirror', x: W / 2 - 0.9, y: 1.4, z: mz, radius: 1.4, label: 'Mirarte al espejo', action: () => api.mirror(new THREE.Vector3(W / 2 - 0.25, 1.35, mz), { x: W / 2 - 2.6, z: mz }) },
     { id: 'achievements', x: -W / 2 + 1.3, y: 1.5, z: az, radius: 1.5, label: 'Ver logros', action: () => api.ui.openPassport('logros') },
     { id: 'bed', x: -1.9, y: 0.9, z: 2.0, radius: 1.3, label: 'Descansar', action: () => api.sit({ x: -2.35, z: 2.3, yaw: Math.PI / 2, seatY: 0.34 }) }

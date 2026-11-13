@@ -38,8 +38,17 @@ async function juego(browser) {
   await page.goto(`${BASE}/ciudad/index.html?debug=1`);
   await page.waitForSelector('#splash-go:not([hidden])', { timeout: 30000 });
   await shot(page, 'f0-splash.png');
-  await page.click('#splash-go'); await page.waitForTimeout(1200);
+  await page.click('#splash-go'); await page.waitForTimeout(1500);
+  // primera vez: elegir personaje gratuito (vista 3D, tarjetas con miniatura) antes del tutorial
+  const pick = await page.evaluate(() => ({ title: document.getElementById('modal-title').textContent, cards: [...document.querySelectorAll('.vcard')].map(c => c.dataset.id), locked: document.querySelectorAll('.vcard.is-locked').length, preview: Boolean(document.querySelector('.vest .preview3d')) }));
+  ok('primera vez: aparece «Elige tu personaje» con los siete iniciales gratuitos y vista 3D', pick.title === 'Elige tu personaje' && pick.cards.length === 7 && pick.locked === 0 && pick.preview, JSON.stringify(pick));
+  await page.click('.vcard[data-id="universitaria"]'); await page.waitForTimeout(300);
+  await page.click('.vest__tabs button[data-id="estilo"]'); await page.click('.chips--swatch button[data-tone="t4"]'); await page.waitForTimeout(200);
+  await page.click('#modal-actions .btn--primary'); await page.waitForTimeout(1200);
+  const chosen = await page.evaluate(() => { const s = window.__ciudad.api.store.state; return { id: s.avatarId, tone: s.custom.tone, chosen: s.avatarChosen }; });
+  ok('el personaje elegido queda guardado (avatar, tono y «ya eligió»)', chosen.id === 'universitaria' && chosen.tone === 't4' && chosen.chosen === true, JSON.stringify(chosen));
   ok('tutorial arranca la primera vez', (await coach()) === 'Camina por tu habitación');
+  await page.evaluate(() => { window.__ciudad.api.store.state.settings.npcQuiz = false; });   // los retos de los NPC tienen su propia prueba
   await shot(page, 'f1-tutorial.png');
 
   // 1. caminar con teclado real
@@ -71,8 +80,8 @@ async function juego(browser) {
   // 5. interactuar (armario)
   await tp(2.8, -1.4); await page.waitForTimeout(300);
   const label = await page.evaluate(() => document.getElementById('interact').hidden ? null : document.getElementById('interact-label').textContent);
-  ok('aparece el aviso de interacción', label === 'Abrir armario', String(label));
-  await E(); ok('E abre el armario', await modalOpen());
+  ok('aparece el aviso de interacción', label === 'Abrir vestidor', String(label));
+  await E(); ok('E abre el vestidor', await modalOpen() && (await page.evaluate(() => document.getElementById('modal-title').textContent)) === 'Mi avatar');
   await shot(page, 'f2-armario.png');
   await page.keyboard.press('Escape'); await page.waitForTimeout(1200);
   ok('tutorial avanza al paso del mapa', (await coach()) === 'Abre el mapa', String(await coach()));
@@ -126,10 +135,11 @@ async function juego(browser) {
   ok('el botón Frases abre las seis frases', (await page.evaluate(() => !document.getElementById('say-menu').hidden && document.querySelectorAll('#say-menu button').length)) === 6);
   await page.keyboard.press('KeyT'); await page.waitForTimeout(150);
   ok('sin servidor no aparece nadie más (ni indicador de conexión)', await page.evaluate(() => document.getElementById('net-chip').hidden && window.__ciudad.remotes.count === 0 && !document.querySelector('.nametag')));
-  // edificio próximamente
-  await tp(-31, -21); await page.waitForTimeout(400); await E(); await page.waitForTimeout(300);
-  ok('edificio sin interior avisa que es próximo y no cambia de escena', (await S()).scene === 'plaza');
-  await shot(page, 'f7-proximamente.png');
+  // Desde la 1.0 los once edificios tienen interior: la puerta del Hospital lleva al suyo y se vuelve a la plaza.
+  await tp(-31, -21); await page.waitForTimeout(400); await E();
+  ok('la puerta del Hospital lleva a su interior', await waitScene('hospital'));
+  await shot(page, 'f7-hospital.png');
+  await page.evaluate(() => window.__ciudad.api.travel('plaza', 'hospital')); await waitScene('plaza'); await page.waitForTimeout(600);
   // 8. banco
   await tp(-13, -20.2); await page.waitForTimeout(500); await shot(page, 'f8-banco-fuera.png'); await E();
   ok('se entra al Banco ICADEM', await waitScene('bank'));
@@ -402,13 +412,18 @@ async function dispositivos(browser) {
     const { width: W, height: H } = opciones.viewport;
     const layout = await page.evaluate(() => {
       const box = id => { const e = document.getElementById(id); if (!e || e.hidden) return null; const r = e.getBoundingClientRect(); return r.width ? { l: r.left, t: r.top, r: r.right, b: r.bottom } : null; };
-      return { touch: document.documentElement.classList.contains('is-touch'), jump: box('pad-jump'), run: box('pad-run'), say: box('btn-say'), map: box('btn-map'), settings: box('btn-settings'), player: box('btn-player') };
+      return { touch: document.documentElement.classList.contains('is-touch'), jump: box('pad-jump'), run: box('pad-run'), say: box('btn-say'), map: box('btn-map'), more: box('btn-more'), player: box('btn-player') };
     });
     const dentro = b => b && b.l >= 0 && b.t >= 0 && b.r <= W && b.b <= H;
     const choca = (a, b) => a && b && a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
-    const ids = ['jump', 'run', 'say', 'map', 'settings', 'player'];
+    const ids = ['jump', 'run', 'say', 'map', 'more', 'player'];
     const fuera = ids.filter(k => !dentro(layout[k])), encimados = ids.flatMap((a, i) => ids.slice(i + 1).filter(b => choca(layout[a], layout[b])).map(b => a + '/' + b));
     ok(`[${nombre}] controles táctiles visibles, dentro de pantalla y sin encimarse`, layout.touch && !fuera.length && !encimados.length, JSON.stringify({ fuera, encimados, touch: layout.touch }));
+    // Ajustes y Vestidor viven en el menú «Más»: al tocarlo aparecen dentro de la pantalla
+    await page.tap('#btn-more'); await page.waitForTimeout(250);
+    const mas = await page.evaluate(() => ['btn-wardrobe', 'btn-settings'].map(id => { const r = document.getElementById(id).getBoundingClientRect(); return r.width > 0 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; }));
+    await page.tap('#btn-more'); await page.waitForTimeout(150);
+    ok(`[${nombre}] el menú «Más» muestra Vestidor y Ajustes dentro de la pantalla`, mas.every(Boolean), JSON.stringify(mas));
     const cdp = await ctx.newCDPSession(page), antes = await page.evaluate(() => ({ w: window.__ciudad.api.stats.walked, t: window.__ciudad.api.camera.turned }));
     const sx = Math.round(W * 0.16), sy = Math.round(H * 0.78);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: sx, y: sy, id: 1 }] });

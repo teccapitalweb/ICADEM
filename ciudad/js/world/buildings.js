@@ -9,27 +9,27 @@ import { mat, box, cyl, sph, plane, slab, sign, facadeTexture, shade } from './k
  * status: 'open' (se puede entrar), 'soon' (planeado, aún sin interior).
  */
 export const BUILDINGS = [
-  { id: 'banco', name: 'Banco ICADEM', mission: 'El crédito correcto', x: -13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'bank', status: 'open',
+  { id: 'banco', icon: '🏦', name: 'Banco ICADEM', mission: 'El crédito correcto', x: -13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'bank', status: 'open',
     wall: '#f6d77a', trim: '#c9952a', roof: 0xb9822a, signBg: '#7a5410', signFg: '#ffe9a8' },
-  { id: 'tribunal', name: 'Tribunal ICADEM', mission: 'Tú eres el juez', x: 13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'court', status: 'open',
+  { id: 'tribunal', icon: '⚖️', name: 'Tribunal ICADEM', mission: 'Tú eres el juez', x: 13, z: -28, w: 14, d: 10, h: 8.5, side: 'S', style: 'court', status: 'open',
     wall: '#c79463', trim: '#7d5330', roof: 0x1f3a6e, signBg: '#1f3a6e', signFg: '#ffffff' },
-  { id: 'hospital', name: 'Hospital ICADEM', mission: 'Turno de decisiones', x: -31, z: -28, w: 13, d: 10, h: 10, side: 'S', style: 'hospital', status: 'open',
+  { id: 'hospital', icon: '🏥', name: 'Hospital ICADEM', mission: 'Turno de decisiones', x: -31, z: -28, w: 13, d: 10, h: 10, side: 'S', style: 'hospital', status: 'open',
     wall: '#fbfdfd', trim: '#2bb5a0', roof: 0x2bb5a0, signBg: '#178f7e', signFg: '#ffffff', glass: '#bff1ea' },
-  { id: 'torre', name: 'Torre ICADEM', mission: 'Desafío de equipos', x: 31, z: -28, w: 10, d: 10, h: 21, side: 'S', style: 'tower', status: 'open',
+  { id: 'torre', icon: '🏙️', name: 'Torre ICADEM', mission: 'Desafío de equipos', x: 31, z: -28, w: 10, d: 10, h: 21, side: 'S', style: 'tower', status: 'open',
     wall: '#7f8cf5', trim: '#4b55c7', roof: 0x3a43a8, signBg: '#3a43a8', signFg: '#ffffff', glass: '#d8e2ff', rows: 7, cols: 3 },
-  { id: 'veterinaria', name: 'Clínica Veterinaria', mission: 'Guardianes del bienestar', x: -31, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'vet', status: 'open',
+  { id: 'veterinaria', icon: '🐾', name: 'Clínica Veterinaria', mission: 'Guardianes del bienestar', x: -31, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'vet', status: 'open',
     wall: '#bfe8f7', trim: '#3c9fc9', roof: 0xf08aa8, signBg: '#3c9fc9', signFg: '#ffffff' },
-  { id: 'casa', name: 'Tu casa', mission: 'Habitación y misiones', x: -13, z: 28, w: 9, d: 8, h: 6, side: 'N', style: 'home', status: 'open',
+  { id: 'casa', icon: '🏠', name: 'Tu casa', mission: 'Habitación y misiones', x: -13, z: 28, w: 9, d: 8, h: 6, side: 'N', style: 'home', status: 'open',
     wall: '#ffe2c2', trim: '#e86a5c', roof: 0xe86a5c, signBg: '#2f9e8f', signFg: '#ffffff', cols: 3, rows: 2 },
-  { id: 'restaurante', name: 'Restaurante', mission: 'Cocina contra reloj', x: 13, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'restaurant', status: 'open',
+  { id: 'restaurante', icon: '🍽️', name: 'Restaurante', mission: 'Cocina contra reloj', x: 13, z: 28, w: 12, d: 9, h: 6.5, side: 'N', style: 'restaurant', status: 'open',
     wall: '#fff0d6', trim: '#f08a24', roof: 0xd9452f, signBg: '#d9452f', signFg: '#fff0d6' },
-  { id: 'supermercado', name: 'Supermercado', mission: 'Rescate de inventario', x: 31, z: 28, w: 13, d: 10, h: 6.5, side: 'N', style: 'market', status: 'open',
+  { id: 'supermercado', icon: '🛒', name: 'Supermercado', mission: 'Rescate de inventario', x: 31, z: 28, w: 13, d: 10, h: 6.5, side: 'N', style: 'market', status: 'open',
     wall: '#ff8f6b', trim: '#b8452a', roof: 0x7a2d1a, signBg: '#ffffff', signFg: '#d9452f', cols: 5, rows: 1 },
-  { id: 'invernadero', name: 'Invernadero', mission: 'Cultivo inteligente', x: -35, z: -9, w: 10, d: 11, h: 5, side: 'E', style: 'greenhouse', status: 'open',
+  { id: 'invernadero', icon: '🌱', name: 'Invernadero', mission: 'Cultivo inteligente', x: -35, z: -9, w: 10, d: 11, h: 5, side: 'E', style: 'greenhouse', status: 'open',
     wall: '#bfe9c8', trim: '#3f9a4d', roof: 0x3f9a4d, signBg: '#2f7d3c', signFg: '#ffffff' },
-  { id: 'oficina', name: 'Oficina ICADEM', mission: 'El expediente perdido', x: -35, z: 9, w: 10, d: 11, h: 11, side: 'E', style: 'office', status: 'open',
+  { id: 'oficina', icon: '📁', name: 'Oficina ICADEM', mission: 'El expediente perdido', x: -35, z: 9, w: 10, d: 11, h: 11, side: 'E', style: 'office', status: 'open',
     wall: '#5ec8e6', trim: '#1d7fa3', roof: 0x12617f, signBg: '#12617f', signFg: '#ffffff', glass: '#e2f8ff', rows: 4, cols: 4 },
-  { id: 'obra', name: 'Obra en construcción', mission: 'Inspector de seguridad', x: 35, z: -9, w: 10, d: 11, h: 8, side: 'W', style: 'site', status: 'open',
+  { id: 'obra', icon: '🦺', name: 'Obra en construcción', mission: 'Inspector de seguridad', x: 35, z: -9, w: 10, d: 11, h: 8, side: 'W', style: 'site', status: 'open',
     wall: '#c9cdd6', trim: '#f2b93b', roof: 0x8d93a1, signBg: '#f2b93b', signFg: '#1d2433' }
 ];
 
@@ -200,6 +200,23 @@ export function buildBuilding(b, parent) {
     const open = sign('ABIERTO · ' + b.mission.toUpperCase(), Math.min(4.6, 1.6 + b.mission.length * 0.13), 0.42, { bg: '#1f7a55', fg: '#ffffff', border: '#ffd166' });
     open.position.set(0, b.style === 'site' ? 1.5 : 2.5, front + (b.style === 'site' ? 1.56 : b.style === 'greenhouse' ? 0.2 : 0.3));
     open.userData.dynamic = true; open.userData.openSign = true; g.add(open);
+  }
+
+  /* emblema de la profesión junto a la puerta: cada edificio se reconoce de un vistazo */
+  if (b.icon) {
+    const ring = b.trim, medal = () => sign(b.icon, 0.95, 0.95, { bg: '#ffffff', fg: '#1d2433', border: ring, radius: 100, size: 0.62, weight: 400 });
+    const post = b.style === 'site' || b.style === 'greenhouse';
+    const em = new THREE.Group();
+    if (post) {   // sin muro donde colgarlo: poste propio frente a la entrada
+      em.position.set(-(Math.min(w, 9) / 2) + 0.6, 0, front + (b.style === 'site' ? 2.3 : 1.2));
+      cyl(0.06, 0.06, 2.9, dark, 0, 0, 0, em, { seg: 8 });
+      const a = medal(); a.position.set(0, 3.35, 0.02); em.add(a); const back = medal(); back.rotation.y = Math.PI; back.position.set(0, 3.35, -0.02); em.add(back);
+    } else {      // medallón de frente sobre el muro, a un lado de la puerta, con un aro de su color
+      em.position.set(-(doorW / 2 + 0.95), Math.min(doorH * 0.62 + 0.3, h - 0.8), front + 0.06);
+      cyl(0.6, 0.6, 0.08, trim, 0, -0.04, 0, em, { seg: 24, rx: Math.PI / 2, cast: false });
+      const a = medal(); a.position.set(0, 0, 0.06); em.add(a);
+    }
+    em.userData.dynamic = true; g.add(em);
   }
 
   g.userData.building = b;

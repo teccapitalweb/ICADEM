@@ -20,7 +20,7 @@ export class Tutorial {
         done: s => s.walked > 1.8 },
       { title: 'Gira la cámara', text: touch ? 'Arrastra en la parte derecha de la pantalla para mirar alrededor.' : 'Mantén presionado el mouse y arrástralo para mirar alrededor. La rueda acerca y aleja.',
         done: s => s.turned > 1.1 },
-      { title: 'Interactúa con algo', text: touch ? 'Acércate a un rombo dorado y toca el botón amarillo. Prueba con el espejo o el armario.' : 'Acércate a un rombo dorado y presiona E. Prueba con el espejo o el armario.',
+      { title: 'Interactúa con algo', text: touch ? 'Acércate a un rombo dorado y toca el botón amarillo. Prueba con el espejo o el vestidor.' : 'Acércate a un rombo dorado y presiona E. Prueba con el espejo o el vestidor.',
         done: s => s.interactions > 0 },
       { title: 'Abre el mapa', text: touch ? 'Toca el botón de mapa, arriba a la derecha. Ahí eliges a dónde ir.' : 'Presiona M o el botón de mapa, arriba a la derecha. Ahí eliges a dónde ir.',
         done: s => s.maps > 0 }

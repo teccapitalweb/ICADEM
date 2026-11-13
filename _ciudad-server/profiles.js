@@ -175,7 +175,7 @@ export class Profiles {
     return this.#serial(uid, async () => {
       const p = await this.#read(uid);
       if (!isAvatarUnlocked(String(avatarId), p)) return { ok: false, reason: 'avatar-bloqueado', profile: this.view(p) };
-      p.avatarId = String(avatarId); p.custom = cleanCustom(custom);
+      p.avatarId = String(avatarId); p.custom = cleanCustom(custom); p.avatarChosen = true;   // ya eligió personaje: no se le vuelve a preguntar en ningún dispositivo
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }

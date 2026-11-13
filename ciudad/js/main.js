@@ -130,7 +130,7 @@ async function boot() {
   function setAvatar(id, custom) {
     const c = cleanCustom(custom ?? store.state.custom);
     if (!isAvatarUnlocked(id, store.state)) { api.ui.toast('Ese avatar todavía está bloqueado.'); return false; }
-    store.state.avatarId = id; store.state.custom = c; store.save(); rebuildAvatar(); api.ui.refreshHud();
+    store.state.avatarId = id; store.state.custom = c; store.state.avatarChosen = true; store.save(); rebuildAvatar(); api.ui.refreshHud();
     if (net.isOnline) net.profile('avatar', { id, custom: c });
     return true;
   }
@@ -139,7 +139,7 @@ async function boot() {
     if (!profile || typeof profile !== 'object') return;
     const st = store.state, look = st.avatarId + JSON.stringify(st.custom);
     st.xp = profile.xp; st.missions = { ...profile.missions }; st.visited = [...profile.visited]; st.achievements = [...profile.achievements];
-    st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = profile.avatarId; st.custom = cleanCustom(profile.custom);
+    st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = profile.avatarId; st.custom = cleanCustom(profile.custom); st.avatarChosen = Boolean(st.avatarChosen || profile.avatarChosen);
     st.economy.balance = profile.testCredits; st.synced = true; if (profile.play) st.play = profile.play; if (profile.privacy) st.privacyListed = profile.privacy.listed !== false; store.save();
     if (look !== st.avatarId + JSON.stringify(st.custom)) rebuildAvatar();
     api.ui.refreshHud(); Object.values(api.missions).forEach(m => m.refreshTracker && m.refreshTracker());
@@ -432,9 +432,18 @@ async function boot() {
   api.ui.showHud();
   if (params.get('debug') === '1') window.__ciudad = { api, tutorial, get avatar() { return avatar; }, mountScene, remotes, social };
 
-  const enter = () => {
+  // Primera vez: elegir personaje (gratuito) antes del tutorial. Con conexión se espera un momento al
+  // perfil del servidor: si ya eligió en otro dispositivo, no se le vuelve a preguntar.
+  const waitProfile = () => new Promise(resolve => {
+    if (!(net instanceof WsAdapter) || store.state.synced) return resolve();
+    const t0 = performance.now(), poll = () => (store.state.synced || net.status === 'closed' || performance.now() - t0 > 3500) ? resolve() : setTimeout(poll, 120); poll();
+  });
+  const needsPick = () => !store.state.avatarChosen && !store.state.tutorialDone && params.get('tutorial') !== '0' && params.get('avatar') !== '0';
+  const enter = async () => {
     $('splash').classList.add('is-out'); setTimeout(() => { $('splash').hidden = true; }, 520);
     $('stage').focus({ preventScroll: true });
+    await waitProfile();
+    if (needsPick()) await api.ui.openWardrobe({ first: true });
     if (!store.state.tutorialDone && startScene === 'room' && params.get('tutorial') !== '0') tutorial.start();
   };
   if (params.get('autostart') === '1') enter();

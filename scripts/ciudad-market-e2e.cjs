@@ -27,7 +27,7 @@ const GL = ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-
   await page.goto(`${BASE}/ciudad/index.html?debug=1`);
   console.log('paso: clear');
   await page.evaluate(() => localStorage.clear());
-  await page.goto(`${BASE}/ciudad/index.html?debug=1`);
+  await page.goto(`${BASE}/ciudad/index.html?debug=1&avatar=0`);   // sin la selección inicial de personaje (se prueba en ciudad-e2e)
   console.log('paso: goto 2 listo');
   await page.waitForSelector('#splash-go:not([hidden])', { timeout: 30000 });
   console.log('paso: splash visible');

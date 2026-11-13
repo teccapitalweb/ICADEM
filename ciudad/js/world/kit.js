@@ -12,7 +12,7 @@ const MAT_CACHE = new Map();
  * Se resuelve en el sombreador, sin lanzar rayos, y funciona también con mallas fusionadas.
  * `CUTOUT.player` es la posición del pecho del jugador en espacio de cámara.
  */
-export const CUTOUT = { player: { value: new THREE.Vector3(0, 0, -6) }, radius: { value: 0.7 } };
+export const CUTOUT = { player: { value: new THREE.Vector3(0, 0, -6) }, radius: { value: 1.25 } };
 export function withCutout(material) {
   material.onBeforeCompile = shader => {
     shader.uniforms.uCutPlayer = CUTOUT.player;
@@ -23,11 +23,19 @@ export function withCutout(material) {
   if (uCutRadius > 0.0) {
     vec3 cutF = -vViewPosition;
     float cutT = dot(cutF, uCutPlayer) / dot(uCutPlayer, uCutPlayer);
+    float cutN = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
     if (cutT > 0.015 && cutT < 0.86) {
       float cutD = length(cutF - uCutPlayer * cutT);
-      float cutR = uCutRadius * mix(0.5, 1.0, cutT);
-      float cutN = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
-      if (cutD < cutR * (0.5 + 0.5 * cutN)) discard;
+      float cutR = uCutRadius * mix(0.45, 1.0, cutT);
+      // centro despejado y borde tramado suave: se ve al avatar y lo que tiene delante
+      if (cutD < cutR * (0.55 + 0.45 * cutN)) discard;
+    }
+    // Lo que queda pegado al lente (postes, faroles, ramas) se desvanece; el piso nunca.
+    float camD = length(cutF);
+    if (camD < 3.2) {
+      vec3 cutFn = normalize(cross(dFdx(vViewPosition), dFdy(vViewPosition)));
+      vec3 cutUp = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);
+      if (abs(dot(cutFn, cutUp)) < 0.7 && cutN > (camD - 0.7) / 2.5) discard;
     }
   }`);
   };
@@ -252,6 +260,16 @@ export function sign(text, wM, hM, o = {}) {
   const m = new THREE.Mesh(new THREE.PlaneGeometry(wM, hM), new THREE.MeshBasicMaterial({ map: t, transparent: true, toneMapped: false }));
   m.userData.isSign = true;
   return m;
+}
+
+/** Punto redondo y suave para partículas (gotas, hojas): sin él se ven como cuadros al acercarse. */
+let DOT = null;
+export function dotTexture() {
+  if (DOT) return DOT;
+  const [c, g] = canvas(64, 64), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.55, 'rgba(255,255,255,0.9)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = r; g.beginPath(); g.arc(32, 32, 32, 0, Math.PI * 2); g.fill();
+  DOT = new THREE.CanvasTexture(c); DOT.colorSpace = THREE.SRGBColorSpace; return DOT;
 }
 
 /* ---------- piezas de escenario ---------- */
