@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v176';
+const CACHE = 'icadem-vip-v177';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=3',
@@ -82,7 +82,7 @@ const SHELL = [
   './assets/logo/icadem-wordmark.png?v=1',
   './js/icadem-onboarding.js?v=23',
   './css/icadem-ciudad.css?v=1',
-  './js/icadem-ciudad.js?v=9'
+  './js/icadem-ciudad.js?v=10'
 ];
 
 self.addEventListener('install', (e) => {
@@ -120,7 +120,11 @@ self.addEventListener('fetch', (e) => {
   // Ciudad ICADEM: sus módulos no llevan versión en el nombre; se piden a la red validando con el
   // servidor (no-cache) para no mezclar archivos de dos versiones del juego. Sin red, la caché.
   if (url.origin === location.origin && url.pathname.includes('/ciudad/')) {
-    e.respondWith(fetch(req, { cache: 'no-cache' }).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return r; }).catch(() => caches.match(req)));
+    // Un error momentáneo del servidor (5xx) no debe dejar el juego a medio cargar: se reintenta sin caché
+    // y, si sigue fallando, se usa la copia guardada (si la hay).
+    const keep = (r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(req, copy)); } return r; };
+    const retry = (r) => !(r.status >= 500) ? r : fetch(req, { cache: 'reload' }).then((r2) => !(r2.status >= 500) ? r2 : caches.match(req).then((m) => m || r2));
+    e.respondWith(fetch(req, { cache: 'no-cache' }).then(retry).then(keep).catch(() => caches.match(req)));
     return;
   }
   // Resto (imágenes, css, etc.): cache-first

@@ -48,3 +48,19 @@ test('sw: fuera de /ciudad/ todo sigue igual (cache-first) y se subió la versi�
   const inSw = sw.match(/js\/icadem-ciudad\.js\?v=(\d+)/), inPanel = fs.readFileSync(path.join(__dirname, '..', 'vip-panel.html'), 'utf8').match(/js\/icadem-ciudad\.js\?v=(\d+)/);
   assert.ok(inSw && inPanel && inSw[1] === inPanel[1], 'el panel y el service worker piden la misma versión del puente');
 });
+
+test('sw: un error momentáneo del servidor (5xx) en un módulo del juego se reintenta y no deja el juego a medio cargar', async () => {
+  const handlers = {}, calls = [];
+  let n = 0;
+  const ctx = { self: { addEventListener: (t, fn) => { handlers[t] = fn; }, skipWaiting() {}, clients: { claim: async () => {} }, registration: {} },
+    caches: { open: async () => ({ put: async () => {} }), match: async () => ({ ok: true, status: 200, body: 'COPIA' }), keys: async () => [], delete: async () => true },
+    fetch: async (req, opts) => { calls.push(opts && opts.cache); n++; return n === 1 ? { ok: false, status: 503, clone() { return this; } } : { ok: true, status: 200, clone() { return this; }, body: 'red' }; },
+    location: { origin: 'https://www.icademx.com' }, URL, Promise, console };
+  ctx.self.location = ctx.location; vm.createContext(ctx);
+  vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'sw.js'), 'utf8'), ctx);
+  let out; handlers.fetch({ request: { url: 'https://www.icademx.com/ciudad/js/world/buildings.js', method: 'GET', mode: 'cors', destination: 'script', headers: { has: () => false } }, respondWith: p => { out = p; } });
+  const res = await out;
+  assert.deepEqual([res.body, calls], ['red', ['no-cache', 'reload']], 'un 503 se reintenta sin caché');
+  const html = fs.readFileSync(path.join(__dirname, '..', 'ciudad/index.html'), 'utf8');
+  assert.match(html, /<script type="module" src="js\/main\.js\?v=\d+" onerror="ciudadLoadFailed\(\)"><\/script>/, 'si un módulo no llega, el juego lo dice en lugar de quedarse en la pantalla de carga');
+});
