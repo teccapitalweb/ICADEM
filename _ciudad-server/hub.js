@@ -471,7 +471,7 @@ export class Hub {
       if (run.next < RACE.checkpoints.length) return { ok: true, next: run.next };
       const seconds = (this.now() - run.at) / 1000; player.play = null;
       if (seconds < RACE.minSeconds) return { ok: false, reason: 'imposible' };
-      return { ok: true, done: true, seconds: Math.round(seconds), score: Math.max(50, Math.min(100, Math.round(100 - Math.max(0, seconds - 30) * 1.5))) };
+      return { ok: true, done: true, game: 'carrera', seconds: Math.round(seconds), score: Math.max(50, Math.min(100, Math.round(100 - Math.max(0, seconds - 30) * 1.5))) };
     }
     const st = this.#where(player, 'plaza'), t = TREASURES.find(x => x.id === payload.id), round = run.rounds[run.round];
     if (!st) return { ok: false, reason: 'fuera-de-la-plaza' };
@@ -480,7 +480,7 @@ export class Hub {
     run.found.push(t.id);
     if (round.every(id => run.found.includes(id))) {
       run.round++;
-      if (run.round >= run.rounds.length) { const seconds = (this.now() - run.at) / 1000; player.play = null; return { ok: true, done: true, seconds: Math.round(seconds), score: Math.max(60, Math.min(100, Math.round(100 - Math.max(0, seconds - 240) / 6))) }; }
+      if (run.round >= run.rounds.length) { const seconds = (this.now() - run.at) / 1000; player.play = null; return { ok: true, done: true, game: 'tesoro', seconds: Math.round(seconds), score: Math.max(60, Math.min(100, Math.round(100 - Math.max(0, seconds - 240) / 6))) }; }
       return { ok: true, found: t.id, round: run.round, items: run.rounds[run.round] };
     }
     return { ok: true, found: t.id, round: run.round };

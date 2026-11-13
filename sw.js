@@ -82,7 +82,7 @@ const SHELL = [
   './assets/logo/icadem-wordmark.png?v=1',
   './js/icadem-onboarding.js?v=23',
   './css/icadem-ciudad.css?v=1',
-  './js/icadem-ciudad.js?v=6'
+  './js/icadem-ciudad.js?v=7'
 ];
 
 self.addEventListener('install', (e) => {

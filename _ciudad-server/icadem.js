@@ -42,9 +42,13 @@ const cleanName = name => String(name || '').replace(/[\u0000-\u001f<>]/g, '').t
  * Servicios de ICADEM para el servidor del juego. `db` es un Firestore (real o de prueba) y
  * `auth` un Auth de firebase-admin (o cualquier objeto con `verifyIdToken`).
  */
-export function createIcademServices({ db, auth, admins = [], pilot = [], blocked = [], now = Date.now }) {
+export const ACCESS_MODES = Object.freeze(['open', 'pilot', 'closed']);
+
+export function createIcademServices({ db, auth, admins = [], pilot = [], blocked = [], access = 'pilot', now = Date.now }) {
+  if (!ACCESS_MODES.includes(access)) throw new Error('modo de acceso desconocido: ' + access);
   const adminSet = new Set(admins.map(e => String(e).toLowerCase()));
-  const pilotSet = new Set(pilot.map(e => String(e).toLowerCase()));   // vacío = abierto a todos
+  // open: todas las cuentas registradas · pilot: solo la lista (vacía = abierto) · closed: solo administradores.
+  const pilotSet = new Set(access === 'pilot' ? pilot.map(e => String(e).toLowerCase()) : []);
   const blockedSet = new Set(blocked.map(String));
 
   async function identity(token) {
@@ -74,11 +78,14 @@ export function createIcademServices({ db, auth, admins = [], pilot = [], blocke
 
   /**
    * ¿Puede entrar? Cuentas registradas gratuitas y VIP. No: bloqueadas por moderación del juego,
-   * en proceso de borrado o, durante el piloto, fuera de la lista autorizada.
+   * en proceso de borrado, fuera de la lista en modo piloto o, con el multijugador cerrado
+   * (CIUDAD_ACCESS=closed), cualquiera que no sea administrador. Las deshabilitadas o con la sesión
+   * revocada ya no pasan de `identity` (checkRevoked).
    */
   async function authorize(who) {
     const admin = Boolean(who.email) && adminSet.has(who.email);
     if (blockedSet.has(who.uid)) return false;
+    if (access === 'closed' && !admin) return false;
     if (pilotSet.size && !admin && !pilotSet.has(who.email)) return false;
     if (await beingDeleted(who.uid)) return false;
     who.vip = admin || await isVip(who);
