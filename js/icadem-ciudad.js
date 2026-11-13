@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=10';
+  var GAME_URL = 'ciudad/index.html?v=12';
 
   // Enlace de invitación (?ciudad=CÓDIGO). Solo se lleva el código al juego: no da acceso a ninguna
   // cuenta ni salta el piloto. El juego lo canjea con la sesión de quien lo abre, y pregunta antes.
@@ -161,8 +161,8 @@
     img.alt = 'Vista de la plaza de Ciudad ICADEM con el avatar Explorador frente a la fuente y el Banco ICADEM';
     img.width = 1280; img.height = 720; img.decoding = 'async';
     var veil = el('div', 'ciudad-cover__veil');
-    veil.appendChild(el('span', 'ciudad-cover__badge', 'Versión 1.2'));
-    veil.appendChild(el('strong', null, 'Elige tu personaje, desbloquea skins y juega diez misiones profesionales'));
+    veil.appendChild(el('span', 'ciudad-cover__badge', 'Versión 1.3'));
+    veil.appendChild(el('strong', null, 'Explora el nuevo Distrito del Saber: laberinto, laboratorio y sala de escape'));
     var play = el('button', 'btn btn--primary ciudad-cover__play', 'Entrar a Ciudad ICADEM');
     play.type = 'button';
     play.id = 'ciudad-play';

@@ -1,5 +1,14 @@
 # CAMBIOS
 
+## 2026-11-13 — Ciudad ICADEM: Avatar Studio y mapa premium
+
+- Vestidor con escenario 3D amplio, giro y zoom de la cámara de vista previa, catálogo de miniaturas reales, búsqueda y filtros de disponibilidad. Cuatro columnas en escritorio amplio y dos en teléfono; colores, sombreros y tonos conservan las opciones existentes. Equipado, disponible y requisitos bloqueados se distinguen sin añadir inventario ni desbloqueos.
+- Mapa ilustrado con profundidad, calles, plaza, edificios del catálogo real, destino seleccionado, ubicación y misiones completadas reales. Zoom y desplazamiento visuales, lista de los mismos trece destinos y acción existente Marcar como destino; no hay teletransporte nuevo ni lugares ficticios.
+- Nuevas hojas de estilo limitadas a ambas ventanas. Campos móviles de 16 px, controles de al menos 44 px, cierre accesible y movimiento reducido. Las miniaturas se cancelan al cambiar de filtro y liberan geometrías propias conservando los materiales compartidos del juego. La memoria vuelve al nivel inicial tras cambios repetidos.
+- Pruebas: 535/535 unitarias; Chrome en 320×740, 390×844, 640×420, 768×1024 y 1440×1000, y WebKit en 390×844. Modelos y miniaturas reales, selección inicial, cambios, bloqueos, estilo, recarga, mapa, zoom/pan, destinos, estados y cierre. Emulación local, no teléfonos físicos.
+- Servidor local real: 11/11 comprobaciones de selección/estilo desde UI, rechazo de skin manipulada, observador por WebSocket y recuperación tras reiniciar el servidor en una nueva sesión sin datos del navegador. Sin escrituras en cuentas de producción ni afirmación de pruebas contra Firestore/Railway.
+- Motor, personajes, reglas, XP, créditos, misiones, persistencia, multijugador, chat y servidor intactos. Se conserva la carga resistente a fallos 5xx de main. Entrada/puente v11, estilos nuevos v1 y caché v178; detalles de integración en `ciudad/UI_PREMIUM.md`.
+
 ## 2026-11-13 — Contador de cursos dentro del recuadro móvil y actualización precisa
 
 - En móvil, el contador utiliza su propia línea compacta debajo de las pestañas. Se elimina la reserva fija de 65 px junto a Ordenar, que dejaba salir el texto; el selector recupera todo su ancho. El contador admite texto ampliado sin recortarlo.

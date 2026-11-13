@@ -1,0 +1,127 @@
+/* Avatar Studio · visual layer only. Catalog and unlock rules remain in their existing modules. */
+.vest.vest--studio{--studio-navy:#12264f;--studio-violet:#7860c4;--studio-line:#dde3f1;--studio-muted:#596982;display:grid;grid-template-columns:minmax(260px,32%) minmax(0,1fr);gap:22px;align-items:start;color:var(--ink);min-width:0}
+.vest--studio .vest__icon{display:block;width:21px;height:21px;flex:none;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.vest--studio .vest__stage{position:sticky;top:0;min-width:0;gap:12px;padding:16px;border:1px solid #d9dcf5;border-radius:23px;background:radial-gradient(ellipse at 50% 35%,#faf9ff 0,#eaeafa 42%,#d9ddf5 100%);box-shadow:inset 0 1px 0 #fff,0 10px 25px #2539660a}
+.vest--studio .vest__stage::after{content:"";position:absolute;left:15%;right:15%;top:56%;height:14%;border-radius:50%;background:#b1a0e72b;filter:blur(20px);pointer-events:none;z-index:0}
+.vest--studio .vest__stage-top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;position:relative;z-index:1}
+.vest--studio .vest__3d{display:inline-flex;align-items:center;gap:5px;min-height:28px;padding:4px 10px;border:1px solid #ffffffa1;border-radius:20px;color:#454b79;background:#ffffff90;font-size:12px;font-weight:800;letter-spacing:.03em}
+.vest--studio .vest__tip{position:static;display:block;white-space:nowrap;font-size:10px;color:#526080;background:#ffffff8a;border:1px solid #ffffff85;padding:5px 8px}
+.vest--studio .vest__preview-frame{width:100%;position:relative;z-index:1;display:flex;justify-content:center;min-width:0}
+.vest--studio .preview3d{display:block;width:100%;max-width:320px;height:auto;aspect-ratio:320/390;object-fit:contain;border-radius:18px;background:#eaeafa;mix-blend-mode:multiply;touch-action:none}
+.vest--studio .vest__zoom{position:absolute;right:0;bottom:18px;display:flex;flex-direction:column;gap:6px}
+.vest--studio .vest__zoom button{display:grid;place-items:center;width:44px;height:44px;border:1px solid #ffffffda;border-radius:12px;background:#ffffffe6;box-shadow:0 3px 8px #33357214;color:#34456b;font-size:23px;line-height:1;transition:background .15s,transform .15s}
+.vest--studio .vest__zoom button:hover{background:#fff;transform:translateY(-1px)}
+.vest--studio .vest__info{gap:9px;position:relative;z-index:1;min-width:0}
+.vest--studio .vest__tag{font-size:10px;font-weight:800;letter-spacing:.09em;padding:5px 11px;background:#def7ee;color:#206e5a}
+.vest--studio .vest__tag[data-cat="profesion"]{background:#e9e4fc;color:#604292}
+.vest--studio .vest__tag[data-cat="especial"]{background:#fff0c8;color:#80591c}
+.vest--studio .vest__name{font-size:clamp(23px,2.5vw,32px);line-height:1.1;font-weight:800;letter-spacing:-.035em;color:var(--studio-navy);overflow-wrap:anywhere}
+.vest--studio .vest__status{gap:9px;color:#465675;min-width:0}
+.vest--studio .vest__status .pill--ok{background:#d4f5e8;color:#16664a;border:1px solid #b0e5cf;padding:6px 11px;font-size:12px;box-shadow:0 3px 10px #5d9d7d0c}
+.vest--studio .vest__status .btn{width:100%;max-width:270px;min-height:44px;border-radius:12px;font-size:13px}
+.vest--studio .vest__lock{font-size:12px;line-height:1.45;color:#4a5577}
+.vest--studio .vest__hint,.vest--studio .vest__status small{font-size:11px;line-height:1.5;color:#53607c}
+.vest--studio .vest__status .meter{height:6px;background:#cbd0e8;overflow:hidden;border-radius:6px;width:88%}
+.vest--studio .vest__status .meter i{display:block;height:100%;background:linear-gradient(90deg,#7860c4,#2f9e8f);border-radius:6px}
+.vest--studio .vest__customize{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:44px;border:1px solid #fff;border-radius:13px;background:#ffffffd9;color:#25355d;font-size:13px;font-weight:750;box-shadow:0 4px 8px #35467c0e;transition:background .15s,box-shadow .15s}
+.vest--studio .vest__customize:hover,.vest--studio .vest__customize.is-on{background:#fff;box-shadow:0 3px 12px #7f74bd26}
+.vest--studio .vest__fallback{font-size:13px;line-height:1.5;padding:25px 12px;color:#53607c}
+.vest--studio .vest__panel{gap:14px;min-width:0}
+.vest--studio .vest__tabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;padding:5px;border:1px solid var(--studio-line);border-radius:15px;background:#edf0f9;min-width:0}
+.vest--studio .vest__tabs button{min-height:46px;display:flex;align-items:center;justify-content:center;border-radius:10px;color:#354568;background:transparent;font-size:14px;font-weight:750;padding:8px 10px}
+.vest--studio .vest__tabs button .vest__icon{margin-right:8px}
+.vest--studio .vest__tabs button.is-on{background:linear-gradient(145deg,#253c70,#13264f);color:#fff;box-shadow:0 3px 6px #1b2f5f21}
+.vest--studio .vest__body{gap:12px;min-width:0}
+.vest--studio .vest__cats{display:flex;flex-wrap:nowrap;gap:7px;overflow:auto;min-width:0;padding:2px 2px 4px;scrollbar-width:thin}
+.vest--studio .vest__cats button{flex:1 0 auto;display:flex;justify-content:center;gap:7px;align-items:center;min-height:44px;padding:7px 11px;border:1px solid #e6e9f4;border-radius:24px;color:#405176;background:#f0f2fa;font-size:12px;font-weight:750;white-space:nowrap}
+.vest--studio .vest__cats button small{font-size:11px;font-weight:750;color:#697795;font-variant-numeric:tabular-nums}
+.vest--studio .vest__cats button.is-on{color:#fff;background:var(--studio-navy);border-color:var(--studio-navy);box-shadow:0 2px 5px #11254e1a}
+.vest--studio .vest__cats button.is-on small{color:#ffdb8b}
+.vest--studio .vest__tools{display:grid;grid-template-columns:minmax(0,1fr) minmax(110px,140px);gap:8px;min-width:0}
+.vest--studio .vest__search{display:flex;align-items:center;position:relative;min-width:0}
+.vest--studio .vest__search::before{content:"";position:absolute;left:13px;width:11px;height:11px;border:1.5px solid #667799;border-radius:50%;pointer-events:none}
+.vest--studio .vest__search::after{content:"";position:absolute;left:24px;top:27px;width:6px;height:1.5px;background:#667799;transform:rotate(45deg);pointer-events:none}
+.vest--studio .vest__search input,.vest--studio .vest__availability{width:100%;min-width:0;min-height:44px;border:1px solid #d7deee;border-radius:11px;background:#f8f9fe;color:#2c3c5f;font-family:inherit;font-size:12px;padding:9px 11px;color-scheme:light}
+.vest--studio .vest__search input{padding-left:36px;outline-offset:1px}
+.vest--studio .vest__search input::placeholder{color:#687795}
+.vest--studio .vest__result-count{display:block;font-size:10px;line-height:1.3;color:#697795;font-weight:600;margin-top:-4px}
+.vest--studio .vest__cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-height:min(56dvh,560px);padding:3px 4px 5px 3px;scrollbar-width:thin;scrollbar-color:#b9bfd7 transparent;min-width:0;align-items:stretch}
+.vest--studio .vcard{position:relative;min-width:0;gap:5px;padding:7px 7px 10px;border:1px solid #dce2f1;border-radius:17px;background:linear-gradient(150deg,#fff,#f7f8fe);box-shadow:0 2px 3px #1f37660a;transition:transform .15s,box-shadow .15s,border-color .15s}
+.vest--studio .vcard:hover{border-color:#aab7db;box-shadow:0 7px 18px #31477614;transform:translateY(-2px)}
+.vest--studio .vcard.is-view{border-color:#37ae95;box-shadow:0 0 0 1.5px #37ae95,0 5px 14px #37ae9514;background:linear-gradient(150deg,#fff,#effaf6)}
+.vest--studio .vcard:active{transform:translateY(0)}
+.vest--studio .vcard__pic{aspect-ratio:1.1;border-radius:11px;background:radial-gradient(ellipse at 50% 40%,#fff,#e9eafa);min-width:0}
+.vest--studio .vcard__pic img{object-fit:contain;mix-blend-mode:multiply}
+.vest--studio .vcard__pic img:not([src]){opacity:0}
+.vest--studio .vcard.is-locked .vcard__pic img{filter:grayscale(.45);opacity:.8}
+.vest--studio .vcard__lock{top:6px;right:6px;display:grid;place-items:center;min-width:24px;height:24px;padding:2px;border-radius:8px;font-size:12px;background:#eef0fae6;box-shadow:0 1px 3px #33466914}
+.vest--studio .vcard__worn{top:6px;left:6px;display:grid;place-items:center;width:24px;height:24px;padding:0;border:2px solid #fff;border-radius:50%;background:#22a887;font-size:13px}
+.vest--studio .vcard__category{width:fit-content;max-width:100%;border-radius:6px;background:#e0f5eb;color:#27664e;font-size:9px;line-height:1.3;font-weight:750;padding:3px 6px;margin-top:-15px;margin-left:5px;z-index:1}
+.vest--studio .vcard__category[data-cat="profesion"]{background:#eee6fd;color:#6745a0}
+.vest--studio .vcard__category[data-cat="especial"]{background:#fff0ce;color:#825b20}
+.vest--studio .vcard strong{font-size:13px;line-height:1.2;color:#1c2e54;font-weight:750;padding-inline:2px;overflow-wrap:anywhere}
+.vest--studio .vcard small{font-size:10px;line-height:1.4;display:block;overflow:visible;-webkit-line-clamp:unset;color:#63718f;padding-inline:2px}
+.vest--studio .vcard__state{width:fit-content;margin-top:auto;padding:4px 6px 0 2px;font-size:9px;line-height:1.3;font-weight:700;color:#62718e}
+.vest--studio .vcard__state[data-state="worn"]{color:#17805e}
+.vest--studio .vcard__state[data-state="open"]{color:#287560}
+.vest--studio .vest__empty{grid-column:1/-1;font-size:13px;line-height:1.5;color:#63718f;text-align:center;border:1px dashed #d9dfef;border-radius:15px;margin:4px 0;padding:28px 18px}
+.vest--studio .vest__collection{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid #e4e5f0;border-radius:12px;padding:10px 12px;background:linear-gradient(120deg,#faf8f0,#f5f6ff);font-size:11px;color:#53617c}
+.vest--studio .vest__collection>span{font-size:9px;letter-spacing:.08em;font-weight:750;color:#8b7345}
+.vest--studio .vest__collection strong{font-size:12px;font-weight:700;color:#344469;text-align:right}
+.vest--studio .vest__collection-note{font-size:10px;line-height:1.5;color:#697795;margin:-7px 2px 0}
+.vest--studio .vest__style{gap:17px;max-height:min(59dvh,600px);overflow:auto;scrollbar-width:thin;padding:2px 4px 4px 2px}
+.vest--studio .vest__style-group{min-width:0;margin:0}
+.vest--studio .vest__style-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 9px}
+.vest--studio .vest__style-head h3{margin:0;font-size:14px;letter-spacing:-.01em;color:#263a60}
+.vest--studio .vest__style-head>small{background:#e6f5ee;border-radius:5px;padding:3px 6px;font-size:9px;font-weight:700;color:#28725a}
+.vest--studio :is(.vest__outfit-options,.vest__hat-options){display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;min-width:0}
+.vest--studio :is(.vest__outfit-options,.vest__hat-options) button{position:relative;display:flex;flex-direction:column;align-items:stretch;width:100%;height:auto;min-width:0;padding:5px;border:1px solid #dde2ef;border-radius:12px;background:#f9faff;color:#314769;box-shadow:none;text-align:left;overflow:visible;transition:border-color .15s,box-shadow .15s}
+.vest--studio :is(.vest__outfit-options,.vest__hat-options) button:hover{border-color:#aab8dc}
+.vest--studio :is(.vest__outfit-options,.vest__hat-options) button.is-on{border-color:#2f9e8f;box-shadow:0 0 0 1px #2f9e8f;background:#f3fcf8}
+.vest--studio .voption__pic{position:relative;display:block;aspect-ratio:1.15;border-radius:8px;overflow:hidden;background:linear-gradient(140deg,#f5f5ff,#e7eafa)}
+.vest--studio .voption__pic img{display:block;width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply}
+.vest--studio .voption__pic img:not([src]){opacity:0}
+.vest--studio .voption__check{position:absolute;top:4px;left:4px;display:grid;place-items:center;width:19px;height:19px;border-radius:50%;font-size:11px;font-weight:800;background:#249b78;color:#fff;border:1px solid #fff}
+.vest--studio .voption__copy{display:flex;flex-direction:column;gap:3px;padding:7px 3px 4px;min-width:0}
+.vest--studio .voption__copy strong{font-size:11px;line-height:1.25;font-weight:700;overflow-wrap:anywhere}
+.vest--studio .voption__copy small{font-size:9px;line-height:1.3;color:#657490}
+.vest--studio .vest__tone-options{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.vest--studio .vest__tone-options button{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;height:auto;min-height:68px;min-width:0;padding:7px 3px 5px;border:1px solid transparent;border-radius:10px;background:transparent;box-shadow:none;color:#566783}
+.vest--studio .vest__tone-options button.is-on{border-color:#b9c8dd;background:#f0f5fa;box-shadow:none}
+.vest--studio .vest__tone-dot{display:block;width:30px;height:30px;border-radius:50%;background:var(--dot,#ddd);box-shadow:inset 0 0 0 1px #172b4a26,0 1px 3px #172b4a1a}
+.vest--studio .vest__tone-options button[data-tone="base"] .vest__tone-dot{background:conic-gradient(#f6d3b5,#c98e63,#6b4129,#f6d3b5)}
+.vest--studio .vest__tone-name{display:block;white-space:normal;font-size:9px;line-height:1.3;text-align:center}
+.vest--studio .vest__style .note{font-size:10px;line-height:1.6;color:#697795;margin:0}
+.vest--studio :is(button,input,select):focus-visible{outline:2px solid #6554ad;outline-offset:3px}
+@media(min-width:1200px){.vest--studio .vest__cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:899px){.vest.vest--studio{grid-template-columns:minmax(220px,32%) minmax(0,1fr);gap:15px}.vest--studio .vest__stage{padding:12px}.vest--studio .vest__tip{display:none}.vest--studio .vest__cards{gap:9px;grid-template-columns:repeat(2,minmax(0,1fr))}.vest--studio :is(.vest__outfit-options,.vest__hat-options){grid-template-columns:repeat(3,minmax(0,1fr))}.vest--studio .vest__cats{gap:5px}.vest--studio .vest__cats button{font-size:11px;padding-inline:8px}.vest--studio .vest__tools{grid-template-columns:minmax(0,1fr) 117px}.vest--studio .vest__tone-options{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:599px){
+ .vest.vest--studio{grid-template-columns:1fr;gap:13px}
+ .vest--studio .vest__stage{position:relative;display:grid;grid-template-columns:136px minmax(0,1fr);gap:8px 13px;padding:11px;border-radius:17px;align-items:center}
+ .vest--studio .vest__stage-top{grid-column:1/-1;min-height:25px}.vest--studio .vest__tip{display:block;font-size:9px;padding:4px 7px}.vest--studio .vest__3d{font-size:10px;min-height:24px;padding:3px 8px}
+ .vest--studio .vest__preview-frame{grid-column:1;grid-row:2/span 2;flex-direction:column;align-items:center;gap:5px}
+ .vest--studio .preview3d{width:136px;height:auto;max-width:100%;aspect-ratio:320/390;border-radius:10px}
+ .vest--studio .vest__zoom{position:static;flex-direction:row;gap:2px;width:100%;justify-content:center}
+ .vest--studio .vest__zoom button{width:44px;height:44px;flex:0 0 44px;max-width:44px;font-size:21px;border-radius:9px}
+ .vest--studio .vest__info{grid-column:2;grid-row:2;align-items:flex-start;text-align:left;gap:7px;width:100%}
+ .vest--studio .vest__name{font-size:22px;line-height:1.12}
+ .vest--studio .vest__tag{font-size:8.5px;padding:4px 7px}
+ .vest--studio .vest__status{align-items:flex-start;gap:7px}
+ .vest--studio .vest__status .pill--ok{padding:5px 7px;font-size:10px;line-height:1.3;white-space:normal}
+ .vest--studio .vest__status .btn{font-size:11px;padding:8px 9px;min-height:44px}
+ .vest--studio .vest__lock{font-size:10px;line-height:1.4}.vest--studio .vest__status small,.vest--studio .vest__hint{font-size:10px;line-height:1.4}.vest--studio .vest__status .meter{width:100%}
+ .vest--studio .vest__customize{grid-column:2;grid-row:3;align-self:start;min-height:44px;border-radius:10px;font-size:11px;padding:7px 6px;line-height:1.2}
+ .vest--studio .vest__customize .vest__icon{width:18px;height:18px}
+ .vest--studio .vest__panel{gap:11px}.vest--studio .vest__body{gap:9px}
+ .vest--studio .vest__tabs{border-radius:12px;padding:4px}.vest--studio .vest__tabs button{font-size:12px;min-height:44px;padding:7px 5px;border-radius:8px}.vest--studio .vest__tabs button .vest__icon{width:19px;height:19px;margin-right:5px}
+ .vest--studio .vest__cats{gap:5px;margin-bottom:0;flex-wrap:nowrap}.vest--studio .vest__cats button{min-height:44px;font-size:10.5px;padding:6px 9px;gap:5px}.vest--studio .vest__cats button small{font-size:9px}
+ .vest--studio .vest__tools{grid-template-columns:minmax(0,1fr) 150px;gap:7px}.vest--studio .vest__search input,.vest--studio .vest__availability{font-size:16px}
+ .vest--studio .vest__result-count{font-size:9px}
+ .vest--studio .vest__cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;max-height:none;overflow:visible;padding:3px 2px}
+ .vest--studio .vcard{padding:6px 6px 9px;border-radius:14px;gap:5px}.vest--studio .vcard__pic{aspect-ratio:1.15;border-radius:9px}.vest--studio .vcard strong{font-size:12px}.vest--studio .vcard small{font-size:10px}.vest--studio .vcard__state{font-size:9px}.vest--studio .vcard__category{font-size:8.5px}
+ .vest--studio .vest__collection{padding:9px 10px;border-radius:11px}.vest--studio .vest__collection strong{font-size:11px}.vest--studio .vest__collection-note{font-size:9px;margin-top:-4px}
+ .vest--studio .vest__style{max-height:none;overflow:visible;gap:15px;padding:2px}.vest--studio :is(.vest__outfit-options,.vest__hat-options){grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.vest--studio .vest__style-head h3{font-size:13px}.vest--studio .voption__copy strong{font-size:10px}.vest--studio .voption__copy small{font-size:8.5px}.vest--studio .vest__tone-options{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:359px){.vest--studio .vest__stage{grid-template-columns:136px minmax(0,1fr);gap:7px 9px;padding:9px}.vest--studio .vest__name{font-size:20px}.vest--studio .vest__tools{grid-template-columns:1fr}.vest--studio .vest__tip{display:none}.vest--studio .vest__cats button{font-size:10px;padding-inline:8px}}
+@media(max-height:560px) and (min-width:600px){.vest.vest--studio{grid-template-columns:200px minmax(0,1fr);gap:14px}.vest--studio .vest__stage{gap:7px;padding:10px}.vest--studio .preview3d{width:148px;height:180px}.vest--studio .vest__preview-frame{justify-content:flex-start}.vest--studio .vest__zoom{right:0;bottom:8px;gap:4px}.vest--studio .vest__name{font-size:20px}.vest--studio .vest__info{align-items:center;text-align:center}.vest--studio .vest__cards{grid-template-columns:repeat(3,minmax(0,1fr));max-height:none}.vest--studio .vest__style{max-height:none}.vest--studio .vest__tabs button{min-height:44px;font-size:12px}.vest--studio .vest__cats button{min-height:44px}.vest--studio .vcard__pic{aspect-ratio:1.25}}
+@media(prefers-reduced-motion:reduce){.vest--studio *{transition:none!important;animation:none!important;scroll-behavior:auto!important}.vest--studio .vcard:hover{transform:none}}

@@ -9,7 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/ciudad.css?v=10">
+<link rel="stylesheet" href="css/ciudad.css?v=11">
+<link rel="stylesheet" href="css/avatar-studio.css?v=1">
+<link rel="stylesheet" href="css/city-map.css?v=1">
+<link rel="stylesheet" href="css/premium-panels.css?v=1">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -64,7 +67,7 @@
         <button class="more__item" id="btn-wardrobe" type="button" role="menuitem" aria-label="Mi avatar"><svg class="ic"><use href="#ci-hand"/></svg><span>Mi avatar · Vestidor</span></button>
         <button class="more__item" id="btn-settings" type="button" role="menuitem" aria-label="Ajustes"><svg class="ic"><use href="#ci-gear"/></svg><span>Ajustes</span></button>
         <button class="more__item" id="btn-exit" type="button" role="menuitem" aria-label="Salir del juego" hidden><svg class="ic"><use href="#ci-exit"/></svg><span>Salir al panel</span></button>
-        <span class="proto">Versión 1.2</span>
+        <span class="proto">Versión 1.3</span>
       </div>
     </div>
     <div class="hud__top">
@@ -108,7 +111,7 @@
   <!-- pantalla de carga e inicio -->
   <div class="splash" id="splash">
     <div class="splash__card">
-      <span class="splash__badge">Versión 1.2</span>
+      <span class="splash__badge">Versión 1.3</span>
       <h1>Ciudad <b>ICADEM</b></h1>
       <p id="splash-text">Preparando tu habitación…</p>
       <div class="splash__bar"><i id="splash-bar"></i></div>
@@ -137,6 +140,6 @@
       b.onclick = function () { try { sessionStorage.removeItem(k); } catch (_) {} location.reload(); }; t.after(b); }
   }
 </script>
-<script type="module" src="js/main.js?v=10" onerror="ciudadLoadFailed()"></script>
+<script type="module" src="js/main.js?v=12" onerror="ciudadLoadFailed()"></script>
 </body>
 </html>
