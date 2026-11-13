@@ -1,5 +1,14 @@
 # CAMBIOS
 
+## 2026-11-12 — Mis cursos, Actividad y Contactos más compactos
+
+- Mis desbloqueos conserva fecha, primera prioridad y Organizar lista; cuando no hay cupos, la fecha sustituye al botón deshabilitado. Con cupos, Elegir cursos mantiene su acción. Sin cambios de derechos, prioridades ni consumo de cupos.
+- Buscador y filtros conservan sus criterios y vistas independientes, con Ordenar más ligero y contador integrado cuando cabe. Controles táctiles de 44 px.
+- Toda tarjeta de Actividad abre la publicación original por su ID, con enlace nativo, teclado, foco y retorno existente. Se elimina el botón Ver publicación; los controles internos y la selección de texto no disparan una segunda navegación. Estilos VIP, contenido, permisos y caducidad permanecen iguales.
+- Contactos ICADEM conserva la ruta #canal y todos los destinos oficiales. Se quita únicamente el acceso duplicado de soporte del menú móvil; soporte sigue disponible dentro de la sección y Soporte privado mantiene sus accesos. Canal en verde suave, redes y beneficios compactos.
+- Pruebas de navegador con APIs aisladas: Chrome Android emulado, tablet y escritorio; WebKit iPhone y tablet emulados. Comparación de alturas y capturas, estados de cupos, búsqueda/filtros, menú móvil, enlaces oficiales, navegación e historial. La emulación no se presenta como prueba en teléfonos físicos ni como mutaciones reales del backend.
+- Caché v170 y versiones de los recursos actualizados. Sin cambios de backend, autenticación, membresías, pagos, certificados, progreso, conexiones ni Ciudad ICADEM.
+
 ## 2026-11-12 — Clases en vivo: ajustes finales y cuenta solo-administrador
 
 **Archivos:** `vip-admin.html`, `vip-auth.html`, `vip-panel.html`

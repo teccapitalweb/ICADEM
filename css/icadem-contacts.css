@@ -1,0 +1,68 @@
+/* Contactos ICADEM: the existing #canal route and contact actions, with less height. */
+.contacts-page { min-width:0; }
+/* The generic section stack adds gaps and margins for large dashboard panels. */
+#dynamic-section > .contacts-page.fade-up { display:block; }
+#dynamic-section > .contacts-page.fade-up > .wa-hero { margin-top:0; }
+#dynamic-section > .contacts-page > .sec-hero { padding:0 0 16px!important; }
+.contacts-page .sec-hero { padding:0 0 18px; margin-bottom:0; }
+.contacts-page .sec-hero__title { font-size:clamp(26px,3.5vw,34px); line-height:1.2; letter-spacing:-.8px; margin:6px 0; }
+.contacts-page .sec-hero__sub { font-size:13px; line-height:1.55; margin-top:6px; }
+.contacts-page .wa-hero { display:grid; grid-template-columns:40px minmax(0,1fr) auto; align-items:center; gap:12px; padding:16px; margin-bottom:12px; border:1px solid #d2e7de; border-radius:14px; background:#edf7f1; color:#1c5144; text-align:left; }
+.contacts-page .wa-hero::before { display:none; }
+.contacts-page .wa-hero__icon { width:40px; height:40px; margin:0; border-radius:11px; background:#d9eee2; color:#24644c; box-shadow:none; }
+.contacts-page .wa-hero__icon svg { width:22px; height:22px; }
+.contacts-page .wa-hero__copy { min-width:0; }
+.contacts-page .wa-hero__title { margin:0; font-size:16px; line-height:1.3; letter-spacing:-.25px; background:none; color:#204e3e; -webkit-text-fill-color:currentColor; }
+.contacts-page .wa-hero__sub { max-width:420px; margin:4px 0 0; font-size:12px; line-height:1.45; color:#45675b; }
+.contacts-page .wa-hero__actions { display:flex; flex-wrap:wrap; gap:6px; align-items:center; justify-content:flex-end; }
+.contacts-page .wa-hero__actions .btn { min-height:44px; padding:8px 12px; border-radius:9px; font-size:12px; letter-spacing:0; }
+.contacts-page .wa-hero__actions .btn--wa { background:#287653; color:#fff; }
+.contacts-page .wa-hero__actions .btn--ghost { border:1px solid #bad8c8; color:#295e48; background:transparent; }
+.contacts-page .wa-hero__actions .btn:hover { transform:none; filter:none; background:#e0eee6; color:#214e3b; }
+.contacts-page .wa-hero__actions .btn--wa:hover { background:#215f43; color:#fff; }
+.contacts-page :is(.btn,.social-card):focus-visible { outline:3px solid #549b89; outline-offset:3px; }
+.contacts-page :is(.btn,.social-card):active { transform:translateY(1px); }
+.contacts-page .social-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:0 0 14px; }
+.contacts-page .social-card { min-width:0; min-height:78px; gap:10px; padding:12px; border:1px solid var(--border-2); border-radius:12px; margin:0; transition:background .16s,border-color .16s; }
+.contacts-page .social-card::before { opacity:.035; }
+.contacts-page .social-card:hover { transform:none; box-shadow:none; background:var(--surface-2); }
+.contacts-page .social-card__ic { width:34px; height:34px; border-radius:9px; }
+.contacts-page .social-card__ic .ic { width:18px; height:18px; }
+.contacts-page .social-card__title { font-size:13px; font-weight:650; line-height:1.4; letter-spacing:-.1px; overflow-wrap:anywhere; }
+.contacts-page .social-card__sub { margin-top:2px; font-size:11.5px; line-height:1.45; overflow-wrap:anywhere; }
+.contacts-page .social-card__arrow { width:15px; height:15px; }
+.contacts-page .wa-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin:0 0 14px; padding:12px 2px; border-block:1px solid var(--border); }
+.contacts-page .wa-stat { display:flex; align-items:flex-start; gap:8px; min-width:0; padding:0; border:0; border-radius:0; background:transparent; backdrop-filter:none; text-align:left; }
+.contacts-page .wa-stat > .ic { width:16px; height:16px; margin-top:2px; color:var(--primary); }
+.contacts-page .wa-stat__num { font:600 12px/1.4 Inter,system-ui,sans-serif; color:var(--text); letter-spacing:0; }
+.contacts-page .wa-stat__lbl { margin-top:3px; font:400 11px/1.45 Inter,system-ui,sans-serif; color:var(--text-2); letter-spacing:0; text-transform:none; }
+.contacts-page .wa-rules { padding:14px 16px; border-radius:12px; margin-top:0; }
+.contacts-page .wa-rules__title { color:var(--text-2); margin-bottom:8px; letter-spacing:1px; }
+.contacts-page .wa-rule { gap:9px; padding:7px 0; }
+.contacts-page .wa-rule__text { font-size:12px; }
+@media(max-width:1100px) {
+  .contacts-page .wa-hero { grid-template-columns:36px minmax(0,1fr); }
+  .contacts-page .wa-hero__icon { width:36px; height:36px; }
+  .contacts-page .wa-hero__actions { grid-column:1/-1; justify-content:flex-start; }
+  .contacts-page .social-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .contacts-page .social-card--wa { grid-column:1/-1; }
+}
+@media(max-width:600px) {
+  .contacts-page .sec-hero { padding-bottom:14px; }
+  .contacts-page .sec-hero__sub { font-size:12px; }
+  .contacts-page .wa-hero { padding:13px; gap:10px; }
+  .contacts-page .wa-hero__actions { display:grid; grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr); width:100%; }
+  .contacts-page .wa-hero__actions .btn { padding:8px 6px; font-size:11.5px; gap:5px; white-space:normal; }
+  .contacts-page .social-grid { grid-template-columns:1fr; gap:8px; }
+  .contacts-page .social-card { min-height:68px; padding:10px 12px; gap:11px; }
+  .contacts-page .wa-stats { gap:10px; padding-block:10px; }
+  .contacts-page .wa-stat { flex-direction:column; gap:5px; }
+  .contacts-page .wa-stat__num { font-size:11.5px; }
+  .contacts-page .wa-stat__lbl { font-size:10.5px; line-height:1.4; }
+  .contacts-page .wa-rules { padding:12px; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .contacts-page.fade-up { animation:none; }
+  .contacts-page :is(.btn,.social-card,.social-card__arrow) { transition:none; }
+  .contacts-page :is(.btn,.social-card):active { transform:none; }
+}

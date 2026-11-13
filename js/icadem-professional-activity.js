@@ -9,6 +9,20 @@
     if(image&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value||''))return value;
     try{var u=new URL(value,location.href);return value&&['https:','http:'].includes(u.protocol)?u.href:'';}catch(_){return '';}
   }
+  function postHref(id){
+    var link=new URL('vip-panel.html',location.href);link.search='';link.searchParams.set('publicacion',id);link.hash='foro';return link.href;
+  }
+  function openCard(event){
+    var link=event.currentTarget,control=event.target.closest?.('a,button,input,select,textarea,summary,[role="button"],[contenteditable="true"]');
+    // An embedded link keeps its own native destination. Other controls must
+    // not activate the surrounding publication link as a second action.
+    if(control&&control!==link){if(!control.matches('a[href]'))event.preventDefault();return;}
+    var selected=window.getSelection?.();
+    if(event.detail>0&&selected&&!selected.isCollapsed&&(link.contains(selected.anchorNode)||link.contains(selected.focusNode))){event.preventDefault();return;}
+    // Keep native open-in-new-tab/window and keyboard link behavior.
+    if(event.defaultPrevented||event.button!==0||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;
+    event.preventDefault();window.ICADEMProfessionalNavigation.openActivityPost(link.dataset.activityOpen);
+  }
   function viewer(){return window.__currentUser?.uid||window.UserState?.uid||'';}
   function active(c){return context===c&&c.viewer===viewer()&&c.root.isConnected&&!window.__sessionEnding;}
   function now(c){return c.clock?c.clock.server+Math.max(0,performance.now()-c.clock.received):Infinity;}
@@ -24,11 +38,11 @@
     var list=c.root.querySelector('[data-activity-list]');
     list.innerHTML=c.items.length?c.items.map(item=>{
       var image=url(item.imagen,true);
-      return '<article class="activity-card '+(p.isVip?'activity-card--vip':'')+'" data-activity-post="'+esc(item.id)+'" data-post-accent="'+(window.ICADEMPostStyle?.accent(item.style)||'default')+'"><header>'+photo(p)+'<div><strong>'+esc(p.nombre)+'</strong><time datetime="'+new Date(item.createdAtMs).toISOString()+'">'+esc(date(item.createdAtMs))+'</time></div>'+(p.isVip?'<span class="activity-vip">'+icon('crown')+'VIP</span>':'')+'</header>'+
+      return '<article class="activity-card '+(p.isVip?'activity-card--vip':'')+'" data-activity-post="'+esc(item.id)+'" data-post-accent="'+(window.ICADEMPostStyle?.accent(item.style)||'default')+'"><a class="activity-card__link" data-activity-open="'+esc(item.id)+'" href="'+esc(postHref(item.id))+'" aria-label="Abrir publicación de '+esc(p.nombre)+' del '+esc(date(item.createdAtMs))+'"><header>'+photo(p)+'<div><strong>'+esc(p.nombre)+'</strong><time datetime="'+new Date(item.createdAtMs).toISOString()+'">'+esc(date(item.createdAtMs))+'</time></div>'+(p.isVip?'<span class="activity-vip">'+icon('crown')+'VIP</span>':'')+'</header>'+
         (item.texto?'<p class="activity-text">'+esc(item.texto)+'</p>':'')+(image?'<div class="activity-image"><img src="'+esc(image)+'" alt="Imagen compartida por '+esc(p.nombre)+'" loading="lazy" decoding="async"></div>':'')+
-        '<footer><div class="activity-counts" aria-label="Interacciones de la publicación"><span>'+icon('heart')+item.likes+' <span>reacciones</span></span><span>'+icon('messages')+item.comentariosCount+' <span>comentarios</span></span></div><button type="button" data-activity-open="'+esc(item.id)+'">Ver publicación'+icon('arrow-right')+'</button></footer></article>';
+        '<footer><div class="activity-counts" aria-label="Interacciones de la publicación"><span>'+icon('heart')+item.likes+' <span>reacciones</span></span><span>'+icon('messages')+item.comentariosCount+' <span>comentarios</span></span></div></footer></a></article>';
     }).join(''):'<div class="activity-empty" role="status">'+icon('messages')+'<h2>Sin publicaciones recientes</h2><p>Este profesional todavía no tiene publicaciones visibles en la comunidad.</p>'+(p.own&&c.canPublish?'<button class="community-primary" data-activity-compose>Crear una publicación</button>':'')+'</div>';
-    list.querySelectorAll('[data-activity-open]').forEach(button=>button.addEventListener('click',()=>window.ICADEMProfessionalNavigation.openActivityPost(button.dataset.activityOpen)));
+    list.querySelectorAll('[data-activity-open]').forEach(link=>link.addEventListener('click',openCard));
     list.querySelector('[data-activity-compose]')?.addEventListener('click',()=>window.navigateToSection('foro',{activityPost:true}));
     var more=c.root.querySelector('[data-activity-more]');more.hidden=!c.cursor;more.disabled=c.busy;
     clearTimeout(expiryTimer);
