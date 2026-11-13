@@ -272,7 +272,7 @@ async function panel(browser) {
       const coach2 = await frame.evaluate(() => document.getElementById('coach-title').textContent);
       ok(`[${mode}] arrastrar gira la cámara (tutorial avanza)`, coach2 === 'Interactúa con algo', coach2);
     }
-    await frame.click('#btn-exit'); await page.waitForTimeout(600);
+    await frame.click('#btn-more'); await frame.click('#btn-exit'); await page.waitForTimeout(600);   // «Salir al panel» vive en el menú Más
     ok(`[${mode}] Salir regresa al panel y libera el juego`, await page.evaluate(o => !document.querySelector('.ciudad-stage') && !window.ICADEMCiudad.isOpen() && document.body.style.overflow === o, overflowBefore));
     // cambiar de sección con el juego abierto lo cierra
     await page.evaluate(() => window.ICADEMCiudad.open()); await page.waitForTimeout(500);
