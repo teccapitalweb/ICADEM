@@ -56,9 +56,9 @@ test('profile sharing entry opens the existing dashboard and free promotion tool
   assert.deepEqual(a.navigations, ['embajadores']); assert.equal(a.scrolls.length, 0);
   assert.equal(a.requests.length, 1); assert.equal(a.requests[0].path, '/api/ambassadors/me'); assert.equal(a.requests[0].options.method, undefined);
   await complete(a, member()); assert.equal(await opening, true);
-  assert.match(a.section.markup, /TES-ABCDE/); assert.equal(a.section.message.open, true);
+  assert.match(a.section.markup, /TES-ABCDE/); assert.equal(a.section.message.open, false);
   assert.equal(a.scrolls[0].node, a.section); assert.equal(a.scrolls[0].options.block, 'start'); assert.equal(a.scrolls[0].options.behavior, 'auto');
-  assert.equal(a.document.activeElement, a.section.social[0]); assert.equal(a.sent.length, 0); assert.equal(a.clipboard.length, 0);
+  assert.equal(a.document.activeElement, a.section.copy[0]); assert.equal(a.sent.length, 0); assert.equal(a.clipboard.length, 0);
 });
 
 test('VIP entry reuses its actual code and sharing section without opening a native share or copying', async () => {
@@ -132,7 +132,7 @@ test('a reused panel root showing Mi perfil cannot be treated as a stable ambass
   assert.match(a.root.innerHTML, /No pudimos cargar Embajadores/);
   const retry = a.root.querySelector('[data-amb-retry]'); assert.ok(retry); retry.handlers.click(); await flush();
   a.requests.at(-1).resolve(member()); await flush();
-  assert.match(a.root.innerHTML, /Mi panel de Embajador/); assert.match(a.section.markup, /TES-ABCDE/);
+  assert.match(a.root.innerHTML, /Centro de Embajadores gratuito/); assert.match(a.section.markup, /TES-ABCDE/);
   assert.equal(a.sent.length, 0); assert.equal(a.clipboard.length, 0);
 });
 

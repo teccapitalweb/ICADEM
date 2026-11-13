@@ -25,8 +25,8 @@
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
 <script src="js/icadem-platform-v2.js?v=54" defer></script>
-<script src="js/icadem-course-unlocks.js?v=5" defer></script>
-<link rel="stylesheet" href="css/icadem-course-unlocks.css?v=3">
+<script src="js/icadem-course-unlocks.js?v=6" defer></script>
+<link rel="stylesheet" href="css/icadem-course-unlocks.css?v=4">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
 <script src="js/icadem-learning-navigation.js?v=3" defer></script>
 <script src="js/icadem-course-sync.js?v=1" defer></script>
@@ -35,14 +35,14 @@
 <script src="js/icadem-push.js?v=4" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
 <script src="js/icadem-vip-banner.js?v=2"></script>
-<script src="js/icadem-ambassadors-vip.js?v=3" defer></script>
-<script src="js/icadem-ambassadors.js?v=16" defer></script>
+<script src="js/icadem-ambassadors-vip.js?v=4" defer></script>
+<script src="js/icadem-ambassadors.js?v=17" defer></script>
 <script src="js/icadem-commission-conversion.js?v=1" defer></script>
 <script src="js/icadem-lesson-notes.js?v=1" defer></script>
 <link rel="stylesheet" href="css/icadem-commission-conversion.css?v=1">
 <link rel="stylesheet" href="css/icadem-credit-rewards.css?v=1">
-<link rel="stylesheet" href="css/ambassadors.css?v=7">
-<link rel="stylesheet" href="css/ambassadors-vip.css?v=2">
+<link rel="stylesheet" href="css/ambassadors.css?v=8">
+<link rel="stylesheet" href="css/ambassadors-vip.css?v=3">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
      Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
      privadas y nunca concede acceso a una clase. -->
@@ -4086,21 +4086,22 @@ body.has-fomo .main{padding-top:18px}
 <link rel="stylesheet" href="css/icadem-directory.css?v=3">
 <script src="js/icadem-directory.js?v=2"></script>
 <link rel="stylesheet" href="css/icadem-community.css?v=1">
-<link rel="stylesheet" href="css/icadem-post-style.css?v=2">
+<link rel="stylesheet" href="css/icadem-post-style.css?v=3">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=4">
-<link rel="stylesheet" href="css/icadem-professional-activity.css?v=2">
+<link rel="stylesheet" href="css/icadem-professional-activity.css?v=3">
 <link rel="stylesheet" href="css/icadem-professional-network.css?v=3">
 <link rel="stylesheet" href="css/icadem-resume-editor.css?v=3">
 <script src="js/icadem-professional-navigation.js?v=9"></script>
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
 <script src="js/icadem-professional-profile.js?v=7"></script>
-<script src="js/icadem-professional-activity.js?v=2" defer></script>
+<script src="js/icadem-professional-activity.js?v=3" defer></script>
 <script src="js/icadem-professional-network.js?v=3" defer></script>
 <script src="js/icadem-post-style.js?v=2" defer></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
 <script src="js/icadem-community.js?v=12"></script>
 <script src="js/icadem-notifications.js?v=3" defer></script>
+<link rel="stylesheet" href="css/icadem-contacts.css?v=1">
 </head>
 <body style="visibility:hidden">
 
@@ -4776,7 +4777,7 @@ window.__setDisplayName = async (nombre) => {
       <div class="nav-label">Comunidad</div>
       <a href="#foro" class="nav-item" data-section="foro"><svg class="ic"><use href="#i-messages"/></svg>Comunidad ICADEM</a>
       <a href="#directorio" class="nav-item" data-section="directorio"><svg class="ic"><use href="#i-users"/></svg>Directorio VIP</a>
-      <a href="#canal" class="nav-item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
+      <a href="#canal" class="nav-item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Contactos ICADEM</a>
     </div>
 
     <div class="nav-section nav-section--account">
@@ -4987,8 +4988,7 @@ window.__setDisplayName = async (nombre) => {
         <div class="mobile-drawer__label">Comunidad</div>
         <a href="#foro" class="mobile-drawer__item" data-section="foro"><svg class="ic"><use href="#i-messages"/></svg>Comunidad ICADEM</a>
         <a href="#directorio" class="mobile-drawer__item" data-section="directorio"><svg class="ic"><use href="#i-users"/></svg>Directorio VIP</a>
-        <a href="#canal" class="mobile-drawer__item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Canal WhatsApp</a>
-        <a class="mobile-drawer__item" id="drawer-whatsapp-support"><svg class="ic"><use href="#i-whatsapp"/></svg>Soporte por WhatsApp</a>
+        <a href="#canal" class="mobile-drawer__item" data-section="canal"><svg class="ic"><use href="#i-whatsapp"/></svg>Contactos ICADEM</a>
       </div>
 
       <div class="mobile-drawer__section mobile-drawer__section--account">
@@ -6042,7 +6042,7 @@ function __subirAlInicioVIP(){
 }
 
 function sectionPlaceholder(section){
-  const names={'mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Comunidad ICADEM',canal:'Canal WhatsApp',perfil:'Mi perfil',suscripcion:'Suscripción'};
+  const names={'mes-mayo':'Biblioteca · Mayo 2026','mes-abril':'Biblioteca · Abril 2026','mes-marzo':'Biblioteca · Marzo 2026',foro:'Comunidad ICADEM',canal:'Contactos ICADEM',perfil:'Mi perfil',suscripcion:'Suscripción'};
   const name=names[section]||section;
   return `<div class="fade-up" style="padding:80px 20px;text-align:center;"><div style="width:80px;height:80px;margin:0 auto 18px;border-radius:20px;background:var(--surface);border:0.5px solid var(--border-2);display:flex;align-items:center;justify-content:center;color:var(--primary);"><svg class="ic ic--xl"><use href="#i-tools"/></svg></div><h2 style="font-size:22px;font-weight:600;letter-spacing:-.4px;margin-bottom:6px;">${name}</h2><p style="color:var(--text-2);max-width:380px;margin:0 auto;line-height:1.55;font-size:13.5px;">Sección en construcción. La entrego en el siguiente sprint.</p><button class="btn btn--ghost" style="margin-top:20px;" onclick="navigateToSection('inicio')">Volver al inicio</button></div>`;
 }
@@ -12312,56 +12312,58 @@ const Sections = (function(){
   /* ============================ CANAL WHATSAPP ============================ */
   function renderCanal(container){
     container.innerHTML = `
-      <div class="fade-up">
+      <div class="contacts-page fade-up">
         <div class="sec-hero">
-          <span class="sec-hero__eyebrow">Comunidad WhatsApp</span>
-          <h1 class="sec-hero__title">Canal WhatsApp ICADEM</h1>
-          <p class="sec-hero__sub">Únete a nuestra comunidad de profesionales. Recibe alertas de nuevos cursos, novedades fiscales y de negocios, casos reales y networking.</p>
+          <span class="sec-hero__eyebrow">Medios oficiales</span>
+          <h1 class="sec-hero__title">Contactos ICADEM</h1>
+          <p class="sec-hero__sub">Encuentra ayuda, sigue nuestras novedades y mantente cerca de la comunidad.</p>
         </div>
 
-        <section class="wa-hero">
+        <section class="wa-hero" aria-labelledby="contacts-channel-title">
           <div class="wa-hero__icon"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.05 4.91A9.816 9.816 0 0 0 12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01zm-7.01 15.24c-1.48 0-2.93-.4-4.2-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.264 8.264 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.24-8.24 2.2 0 4.27.86 5.82 2.42a8.183 8.183 0 0 1 2.41 5.83c.02 4.54-3.68 8.23-8.22 8.23zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.12-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43s.17-.25.25-.41c.08-.17.04-.31-.02-.43s-.56-1.34-.76-1.84c-.2-.48-.41-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.67-1.18.21-.58.21-1.07.14-1.18s-.22-.16-.47-.28z"/></svg></div>
-          <h2 class="wa-hero__title">Únete al canal oficial</h2>
-          <p class="wa-hero__sub">Profesionales de negocios, fiscal y legal compartiendo casos reales, dudas y avances del área.</p>
-
-          <div class="wa-stats">
-            <div class="wa-stat"><div class="wa-stat__num">Comunidad</div><div class="wa-stat__lbl">Profesionales de distintas áreas</div></div>
-            <div class="wa-stat"><div class="wa-stat__num">Cercana</div><div class="wa-stat__lbl">Conversación entre miembros</div></div>
-            <div class="wa-stat"><div class="wa-stat__num">Activa</div><div class="wa-stat__lbl">Aprendizaje y networking</div></div>
+          <div class="wa-hero__copy">
+            <h2 class="wa-hero__title" id="contacts-channel-title">Únete al canal oficial</h2>
+            <p class="wa-hero__sub">Cursos, novedades y casos reales de negocios, fiscal y legal.</p>
           </div>
 
-          <div style="position:relative;z-index:1;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
-            <button class="btn btn--wa" id="btn-wa-canal-open"><svg class="ic"><use href="#i-whatsapp"/></svg>Abrir grupo</button>
-            <button class="btn btn--ghost" id="btn-wa-canal-share"><svg class="ic"><use href="#i-arrow-right"/></svg>Compartir invitación</button>
+          <div class="wa-hero__actions">
+            <button class="btn btn--wa" id="btn-wa-canal-open" type="button"><svg class="ic" aria-hidden="true"><use href="#i-whatsapp"/></svg>Abrir canal</button>
+            <button class="btn btn--ghost" id="btn-wa-canal-share" type="button"><svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg>Compartir invitación</button>
           </div>
         </section>
 
-        <a class="social-card social-card--wa" id="btn-wa-support" href="#">
+        <div class="social-grid" aria-label="Soporte y redes sociales oficiales">
+        <a class="social-card social-card--wa" id="btn-wa-support" href="${ICADEM_CONTACT.waLink(ICADEM_CONTACT.msgSoporte())}" target="_blank" rel="noopener">
           <div class="social-card__ic"><svg class="ic"><use href="#i-whatsapp"/></svg></div>
           <div class="social-card__body">
             <div class="social-card__title">Soporte por WhatsApp</div>
-            <div class="social-card__sub">Ayuda con tu acceso, membresía, pagos o contenido de la plataforma</div>
+            <div class="social-card__sub">Ayuda con tu acceso, membresía y contenido</div>
           </div>
           <svg class="ic social-card__arrow"><use href="#i-arrow-right"/></svg>
         </a>
 
-        <div class="social-grid">
           <a class="social-card social-card--ig" href="${ICADEM_CONTACT.instagram}" target="_blank" rel="noopener">
             <div class="social-card__ic"><svg class="ic"><use href="#i-instagram"/></svg></div>
             <div class="social-card__body">
-              <div class="social-card__title">Síguenos en Instagram</div>
-              <div class="social-card__sub">@icadem3 · tips fiscales, novedades de cursos y comunidad</div>
+              <div class="social-card__title">Instagram</div>
+              <div class="social-card__sub">@icadem3 · cursos y comunidad</div>
             </div>
             <svg class="ic social-card__arrow"><use href="#i-arrow-right"/></svg>
           </a>
           <a class="social-card social-card--fb" href="${ICADEM_CONTACT.facebook}" target="_blank" rel="noopener">
             <div class="social-card__ic"><svg class="ic"><use href="#i-facebook"/></svg></div>
             <div class="social-card__body">
-              <div class="social-card__title">Síguenos en Facebook</div>
-              <div class="social-card__sub">ICADEM · noticias, lanzamientos y clases en vivo</div>
+              <div class="social-card__title">Facebook</div>
+              <div class="social-card__sub">Noticias y clases en vivo</div>
             </div>
             <svg class="ic social-card__arrow"><use href="#i-arrow-right"/></svg>
           </a>
+        </div>
+
+        <div class="wa-stats" aria-label="Nuestra comunidad">
+          <div class="wa-stat"><svg class="ic" aria-hidden="true"><use href="#i-users"/></svg><div><div class="wa-stat__num">Comunidad</div><div class="wa-stat__lbl">Profesionales de distintas áreas</div></div></div>
+          <div class="wa-stat"><svg class="ic" aria-hidden="true"><use href="#i-messages"/></svg><div><div class="wa-stat__num">Cercana</div><div class="wa-stat__lbl">Conversación entre miembros</div></div></div>
+          <div class="wa-stat"><svg class="ic" aria-hidden="true"><use href="#i-book"/></svg><div><div class="wa-stat__num">Activa</div><div class="wa-stat__lbl">Aprendizaje y networking</div></div></div>
         </div>
 
         <div class="wa-rules">
@@ -22417,7 +22419,7 @@ h1, h2, h3, h4{ color: var(--text); }
 }
 </style>
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
-  <link rel="stylesheet" href="css/vip-banner.css?v=2">
+  <link rel="stylesheet" href="css/vip-banner.css?v=3">
   <link rel="stylesheet" href="css/icadem-games-v4.css?v=12">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
@@ -22578,12 +22580,12 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-onboarding.js?v=23"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
-<link rel="stylesheet" href="css/icadem-courses.css?v=10">
+<link rel="stylesheet" href="css/icadem-courses.css?v=11">
 <link rel="stylesheet" href="css/icadem-live.css?v=2">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <link rel="stylesheet" href="css/icadem-course-detail.css?v=4">
-<link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=9">
+<link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=10">
 <link rel="stylesheet" href="css/icadem-session.css?v=2">
 <link rel="stylesheet" href="css/icadem-ciudad.css?v=1">
 <script src="js/icadem-ciudad.js?v=7" defer></script>
