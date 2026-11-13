@@ -3,6 +3,8 @@
 import { LANDMARKS } from '../edu/district-rules.js';
 import { levelFromXp } from '../core/store.js';
 import { emptyPlay, playAchievements } from '../edu/play-rules.js';
+import { HAT_OPTIONS, HAT_ACCESSORIES, COSMETIC_OPTIONS, HAIR_COLORS } from './appearance-catalog.js';
+export * from './appearance-catalog.js';
 
 export const PROFILE_VERSION = 1;
 export const VISIT_XP = 10, TUTORIAL_XP = 40, TUTORIAL_CREDITS = 10;
@@ -19,7 +21,6 @@ export const SKIN_TONES = Object.freeze([
   { id: 'base', name: 'Del personaje', color: null }, { id: 't1', name: 'Clara', color: 0xf6d3b5 }, { id: 't2', name: 'Media clara', color: 0xe9b58c },
   { id: 't3', name: 'Media', color: 0xc98e63 }, { id: 't4', name: 'Morena', color: 0x9a6440 }, { id: 't5', name: 'Oscura', color: 0x6b4129 }
 ]);
-export const HAT_OPTIONS = Object.freeze([{ id: 'base', name: 'El del avatar' }, { id: 'none', name: 'Sin sombrero' }, { id: 'cap', name: 'Gorra' }, { id: 'explorerHat', name: 'Sombrero' }]);
 
 /** Las diez misiones profesionales (para requisitos como «completa las diez»). */
 export const MISSION_IDS = Object.freeze(['banco-credito-correcto', 'tribunal-tu-eres-el-juez', 'super-rescate-inventario', 'obra-inspector-seguridad', 'hospital-turno-decisiones',
@@ -59,16 +60,31 @@ export const isAvatarUnlocked = (id, profile) => Boolean(AVATAR_UNLOCKS[id]?.tes
 
 export function cleanCustom(custom) {
   const c = custom && typeof custom === 'object' ? custom : {};
-  return { outfit: OUTFIT_COLORS.some(o => o.id === c.outfit) ? c.outfit : 'base', hat: HAT_OPTIONS.some(o => o.id === c.hat) ? c.hat : 'base', tone: SKIN_TONES.some(o => o.id === c.tone) ? c.tone : 'base' };
+  const clean = { outfit: OUTFIT_COLORS.some(o => o.id === c.outfit) ? c.outfit : 'base', hat: HAT_OPTIONS.some(o => o.id === c.hat) ? c.hat : 'base', tone: SKIN_TONES.some(o => o.id === c.tone) ? c.tone : 'base' };
+  for (const [key, options] of Object.entries(COSMETIC_OPTIONS)) {
+    if (c[key] !== 'base' && options.some(o => o.id === c[key])) clean[key] = c[key];
+  }
+  return clean;
 }
 
 /** Apariencia final = avatar base + equipamiento elegido. */
 export function applyCustom(look, custom) {
-  const c = cleanCustom(custom), out = { ...look, accessories: [...look.accessories] };
+  const c = cleanCustom(custom), out = { ...look, accessories: [...(look.accessories || [])] };
   const outfit = OUTFIT_COLORS.find(o => o.id === c.outfit);
   if (outfit.color !== null) out.top = outfit.color;
   const tone = SKIN_TONES.find(o => o.id === c.tone); if (tone && tone.color !== null) out.skin = tone.color;
-  if (c.hat !== 'base') { out.accessories = out.accessories.filter(a => !['cap', 'explorerHat', 'toque', 'hardhat', 'spaceHelmet', 'gradCap', 'laurel', 'headband'].includes(a)); if (c.hat !== 'none') out.accessories.push(c.hat); }
+  if (c.hat !== 'base') { out.accessories = out.accessories.filter(a => !HAT_ACCESSORIES.includes(a)); if (c.hat !== 'none') out.accessories.push(c.hat); }
+  if (c.top) {
+    out.topStyle = c.top;
+    if (c.outfit === 'base') out.top = COSMETIC_OPTIONS.top.find(o => o.id === c.top).color;
+    out.accessories = out.accessories.filter(a => !['scarf', 'tie', 'lapels', 'robe', 'apron', 'badge', 'stethoscope'].includes(a));
+  }
+  if (c.bottom) { out.bottomStyle = c.bottom; out.bottom = COSMETIC_OPTIONS.bottom.find(o => o.id === c.bottom).color; }
+  if (c.shoes) { out.shoeStyle = c.shoes; out.shoes = COSMETIC_OPTIONS.shoes.find(o => o.id === c.shoes).color; }
+  if (c.bag) { out.bagStyle = c.bag; out.accessories = out.accessories.filter(a => a !== 'backpack'); }
+  if (c.hairStyle) out.hairStyle = c.hairStyle;
+  if (c.hairColor) out.hair = HAIR_COLORS.find(o => o.id === c.hairColor).color;
+  if (c.necklace) { out.necklaceStyle = c.necklace; out.accessories = out.accessories.filter(a => !['scarf', 'medal'].includes(a)); }
   return out;
 }
 

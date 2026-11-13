@@ -3,6 +3,7 @@
 // sentarse e interactuar). Mira hacia +Z.
 import * as THREE from '../three.js';
 import { mat as kitMat, mergeStatic } from '../world/kit.js';
+import { fashionLeg, fashionShoes, fashionTop, fashionSleeve, fashionSkirt, fashionHair, fashionAccessories } from './fashion-parts.js';
 
 // Los personajes nunca se recortan con el efecto de obstáculos translúcidos.
 const mat = (color, o = {}) => kitMat(color, { ...o, solid: true });
@@ -31,23 +32,28 @@ export function createAvatar(look = {}) {
   /* piernas */
   const legs = [-1, 1].map(side => {
     const pivot = new THREE.Group(); pivot.position.set(side * 0.115, 0.52, 0); body.add(pivot);
-    part(new THREE.CapsuleGeometry(0.1, 0.26, 4, 10), M.bottom, 0, -0.23, 0, pivot);
-    const shoe = part(new THREE.CapsuleGeometry(0.095, 0.13, 4, 8), M.shoes, 0, -0.455, 0.06, pivot);
-    shoe.rotation.x = Math.PI / 2; shoe.scale.set(1.05, 1, 0.82);
+    if (!fashionLeg(pivot, side, L, M)) part(new THREE.CapsuleGeometry(0.1, 0.26, 4, 10), M.bottom, 0, -0.23, 0, pivot);
+    if (!fashionShoes(pivot, L, M)) {
+      const shoe = part(new THREE.CapsuleGeometry(0.095, 0.13, 4, 8), M.shoes, 0, -0.455, 0.06, pivot);
+      shoe.rotation.x = Math.PI / 2; shoe.scale.set(1.05, 1, 0.82);
+    }
     return pivot;
   });
 
   /* torso */
   const torso = new THREE.Group(); torso.position.set(0, 0.52, 0); body.add(torso);
-  const chest = part(new THREE.CapsuleGeometry(0.2, 0.26, 6, 14), M.top, 0, 0.3, 0, torso);
-  chest.scale.set(1.12, 1, 0.86);
+  if (!fashionTop(torso, L, M)) {
+    const chest = part(new THREE.CapsuleGeometry(0.2, 0.26, 6, 14), M.top, 0, 0.3, 0, torso);
+    chest.scale.set(1.12, 1, 0.86);
+  }
   const belt = part(new THREE.CylinderGeometry(0.212, 0.205, 0.07, 16), M.bottom, 0, 0.06, 0, torso);
   belt.scale.set(1.1, 1, 0.86);
+  fashionSkirt(torso, L, M);
 
   /* brazos: el pivote está en el hombro */
   const arms = [-1, 1].map(side => {
     const pivot = new THREE.Group(); pivot.position.set(side * 0.285, 0.5, 0); torso.add(pivot);
-    part(new THREE.CapsuleGeometry(0.068, 0.25, 4, 8), M.top, 0, -0.17, 0, pivot);
+    if (!fashionSleeve(pivot, L, M)) part(new THREE.CapsuleGeometry(0.068, 0.25, 4, 8), M.top, 0, -0.17, 0, pivot);
     part(new THREE.SphereGeometry(0.078, 12, 10), M.skin, 0, -0.39, 0, pivot);
     return pivot;
   });
@@ -73,13 +79,15 @@ export function createAvatar(look = {}) {
 
   /* cabello */
   if (L.hairStyle !== 'none') {
+    const tucked = (L.accessories || []).some(a => ['beanie', 'bucketHat', 'beret', 'fedora', 'cowboyHat'].includes(a));
     const cap = part(new THREE.SphereGeometry(0.278, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.52), M.hair, 0, 0.285, -0.012, head);
     cap.rotation.x = -0.32;
-    if (L.hairStyle === 'bun') part(new THREE.SphereGeometry(0.11, 12, 10), M.hair, 0, 0.52, -0.14, head);
+    if (L.hairStyle === 'bun') part(new THREE.SphereGeometry(tucked ? .085 : 0.11, 12, 10), M.hair, 0, tucked ? .39 : 0.52, tucked ? -.24 : -0.14, head);
     if (L.hairStyle === 'long') { const back = part(new THREE.CapsuleGeometry(0.2, 0.2, 4, 12), M.hair, 0, 0.14, -0.13, head); back.scale.set(1.12, 1, 0.62); }
-    if (L.hairStyle === 'short') { const fr = part(new THREE.SphereGeometry(0.12, 12, 8), M.hair, 0.09, 0.47, 0.16, head); fr.scale.set(1.5, 0.6, 0.9); }
-    if (L.hairStyle === 'side') { const fr = part(new THREE.SphereGeometry(0.13, 12, 8), M.hair, -0.1, 0.46, 0.15, head); fr.scale.set(1.6, 0.62, 0.9); }
+    if (L.hairStyle === 'short') { const fr = part(new THREE.SphereGeometry(0.12, 12, 8), M.hair, 0.09, tucked ? .32 : 0.47, tucked ? .20 : 0.16, head); fr.scale.set(1.5, tucked ? .3 : 0.6, 0.9); }
+    if (L.hairStyle === 'side') { const fr = part(new THREE.SphereGeometry(0.13, 12, 8), M.hair, -0.1, tucked ? .32 : 0.46, tucked ? .19 : 0.15, head); fr.scale.set(1.6, tucked ? .3 : 0.62, 0.9); }
   }
+  fashionHair(head, L, M);
 
   /* accesorios */
   const acc = new Set(L.accessories);
@@ -150,6 +158,7 @@ export function createAvatar(look = {}) {
     part(new THREE.SphereGeometry(0.283, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.45), M.accent, 0, 0.3, 0, head);
     const visor = part(new THREE.CylinderGeometry(0.17, 0.17, 0.02, 16, 1, false, -Math.PI / 2, Math.PI), M.accent, 0, 0.36, 0.2, head); visor.rotation.y = Math.PI / 2;
   }
+  fashionAccessories({ head, torso, arms, look: L, materials: M, accessories: acc });
 
   // Menos mallas por personaje: cada articulación fusiona sus piezas del mismo material.
   for (const joint of [head, torso, ...arms, ...legs]) mergeStatic(joint, { deep: false });

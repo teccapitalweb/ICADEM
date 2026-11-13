@@ -5,7 +5,16 @@
 - Escenario nuevo al sur de la plaza (portal en la calle sur): Laberinto del conocimiento, Laboratorio de ciencias, Sala de escape, Anfiteatro del Encuentro con gradas, Jardín de mariposas, Observatorio con telescopio, cartelera de retos y NPC (la Dra. Elena propone retos).
 - Minijuegos nuevos: Laberinto (validado por el servidor con posiciones, como la carrera), Laboratorio de experimentos y Sala de escape (regenerados con semilla y calificados por el servidor). Solo XP con los topes de siempre; nada de créditos.
 - Ruta del explorador: 8 sitios en plaza, parque y distrito marcados con un destello; el servidor confirma la posición y da 15 XP una vez por sitio. Logros nuevos: Mente científica, Escapista, Guardián del saber y Trotamundos.
-- Integra el Avatar Studio y el mapa premium de Codex (#68) sin cambiar su diseño: el distrito aparece como destino del mapa. Versiones v12 y caché v179.
+- Integra el Avatar Studio y el mapa premium de Codex (#68) sin cambiar su diseño: el distrito aparece como destino del mapa. Integra también la ropa, el cabello y los accesorios equipables de Codex (#70). Versiones v13 y caché v180.
+
+## 2026-11-13 — Ciudad ICADEM: ropa, cabello y accesorios equipables
+
+- Vestidor con pestañas Personajes, Ropa, Accesorios, Cabello y Estilo. Se incorporan 40 variantes nuevas: playeras/chaquetas, pantalones rectos y cargo, acampanados Y2K, dos faldas, tenis y botas/mocasines, bolsos de mano/tote/cruzado, sombreros, peinados/pelucas, colores de cabello y collares. Son piezas reales del mismo modelo 3D, con miniaturas de detalle, combinación libre y vuelta al aspecto original; no compras ni ventajas de juego.
+- Catálogo finito compartido y campos cosméticos opcionales en el perfil existente. El servidor valida las opciones, conserva los campos nuevos frente a guardados de clientes antiguos y transmite el aspecto confirmado a otros jugadores. Los mensajes nuevos identifican su formato para permitir restablecer piezas explícitamente. Se mantiene la validación de personajes bloqueados y los perfiles infantiles separados.
+- Corregida una carrera preexistente al combinar piezas rápidamente: una sola solicitud de apariencia en vuelo conserva la última elección y evita que una confirmación intermedia la borre. El progreso sigue siendo autoritativo; rechazo, desconexión y falta de confirmación liberan la cola y permiten recuperar el perfil del servidor.
+- Los 22 personajes sin personalización conservan sus geometrías, colores y articulaciones. Las prendas se unen al rig existente; no se cambian animaciones, controles, colisiones, XP, créditos, misiones ni reglas de Firebase. `icadem-webhook` permanece intacto.
+- Pruebas: 551/551 sin omisiones. Juego y servidor WebSocket locales reales con almacenamiento JSON temporal, observador independiente, reinicio y contexto nuevo; Chrome en 320×740, 390×844, 768×1024 y 1440×1000, y WebKit en 390×844. Apariencia aplicada al modelo del mundo, 50 opciones no-base renderizadas, 22 modelos originales iguales, memoria estable y confirmaciones intercaladas. Sin escrituras en cuentas de producción en estas pruebas; tamaños emulados, no teléfonos físicos.
+- Entrada/puente v12, hoja de vestidor v1 y caché v179. La publicación requiere primero desplegar el servidor de Ciudad compatible y después la interfaz. Contratos, comprobaciones y coordinación en `ciudad/UI_PREMIUM.md`.
 
 ## 2026-11-13 — Ciudad ICADEM: Avatar Studio y mapa premium
 

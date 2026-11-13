@@ -13,6 +13,7 @@ import { ChatPanel } from './ui/chat.js';
 import { createAvatar } from './characters/avatar.js';
 import { avatarById } from './characters/catalog.js';
 import { applyCustom, cleanCustom, isAvatarUnlocked } from './progress/rules.js';
+import { AppearanceSaves } from './progress/appearance-saves.js';
 import { buildRoom } from './world/room.js';
 import { buildPlaza } from './world/plaza.js';
 import { buildBank } from './world/bank.js';
@@ -129,23 +130,41 @@ async function boot() {
     engine.scene.remove(old.group); old.group.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
     engine.scene.add(next.group); avatar = next; player.position = next.group.position;
   }
+  let confirmedAvatar = null;
+  const avatarSaves = new AppearanceSaves({
+    send: payload => net.profile('avatar', payload),
+    onFailure: () => {
+      if (confirmedAvatar) {
+        store.state.avatarId = confirmedAvatar.id; store.state.custom = { ...confirmedAvatar.custom }; store.save(); rebuildAvatar(); api.ui.refreshHud();
+      }
+      if (net.isOnline) try { net.profile('get'); } catch (_) { /* reconnect will reload the authoritative profile */ }
+      api.ui.toast('No se pudo confirmar el cambio de apariencia. Inténtalo de nuevo.');
+    }
+  });
   /** Cambia avatar o equipamiento. Con conexión lo autoriza el servidor; sin ella, las reglas locales. */
   function setAvatar(id, custom) {
     const c = cleanCustom(custom ?? store.state.custom);
     if (!isAvatarUnlocked(id, store.state)) { api.ui.toast('Ese avatar todavía está bloqueado.'); return false; }
     store.state.avatarId = id; store.state.custom = c; store.state.avatarChosen = true; store.save(); rebuildAvatar(); api.ui.refreshHud();
-    if (net.isOnline) net.profile('avatar', { id, custom: c });
+    if (net.isOnline) avatarSaves.save(id, c);
     return true;
   }
-  /** El servidor es la fuente del progreso cuando hay conexión: lo recibido sustituye a lo local. */
+  /** El progreso siempre viene del servidor; la apariencia pendiente espera su propia confirmación. */
   function applyProfile(profile) {
     if (!profile || typeof profile !== 'object') return;
     const st = store.state, look = st.avatarId + JSON.stringify(st.custom);
     st.xp = profile.xp; st.missions = { ...profile.missions }; st.visited = [...profile.visited]; st.discovered = Array.isArray(profile.discovered) ? [...profile.discovered] : (st.discovered || []); st.achievements = [...profile.achievements];
-    st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = profile.avatarId; st.custom = cleanCustom(profile.custom); st.avatarChosen = Boolean(st.avatarChosen || profile.avatarChosen);
+    confirmedAvatar = { id: profile.avatarId, custom: cleanCustom(profile.custom) };
+    const appearance = avatarSaves.pending || confirmedAvatar;
+    st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = appearance.id; st.custom = { ...appearance.custom }; st.avatarChosen = Boolean(st.avatarChosen || profile.avatarChosen);
     st.economy.balance = profile.testCredits; st.synced = true; if (profile.play) st.play = profile.play; if (profile.privacy) st.privacyListed = profile.privacy.listed !== false; store.save();
     if (look !== st.avatarId + JSON.stringify(st.custom)) rebuildAvatar();
     api.ui.refreshHud(); Object.values(api.missions).forEach(m => m.refreshTracker && m.refreshTracker());
+  }
+  function receiveProfile(message) {
+    if (!avatarSaves.receive(message)) return;
+    if (message.profile) applyProfile(message.profile);
+    if (message.op === 'avatar' && message.ok === false) api.ui.toast('El servidor no autorizó ese avatar.');
   }
   /* misiones: un solo motor para todos los juegos; cada edificio registra la suya */
   const registry = new MissionRegistry();
@@ -175,8 +194,8 @@ async function boot() {
   api.remotes = remotes; api.social = social;
   const chat = new ChatPanel(api, social); api.chat = chat;
   if (net instanceof WsAdapter) {
-    net.on('status', st => { if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
-    net.on('profile', m => { if (m.profile) applyProfile(m.profile); if (m.op === 'avatar' && m.ok === false) api.ui.toast('El servidor no autorizó ese avatar.'); });
+    net.on('status', st => { if (st.status !== 'online') avatarSaves.clear(); if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
+    net.on('profile', receiveProfile);
     net.on('party', m => { if (m.op === 'rally') { api.ui.toast(`${m.by} reúne al equipo en la plaza.`, 3600); if (api.sceneName !== 'plaza' && !api.ui.isBlocking) travel('plaza', (placeByScene(api.sceneName) || { spawn: 'home' }).spawn); } });
     /* misiones en equipo: el servidor guarda el intento; aquí solo se refleja y se muestra */
     const COOP_ERRORS = { 'no-es-tu-rol': 'Ese paso le toca a otro rol del equipo.', 'faltan-aprobaciones': 'Falta que todo el equipo apruebe.', 'no-procede': 'Ese paso todavía no procede.', 'sin-intento': 'No hay una misión en equipo en curso.', 'bitacora-llena': 'El intento llegó a su límite de acciones.' };
