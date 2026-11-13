@@ -50,10 +50,10 @@ export const LANDMARKS = Object.freeze([
   { id: 'fuente', scene: 'plaza', at: [0, 0], r: 6.2, icon: '⛲', name: 'Fuente de la plaza', hint: 'El corazón de la ciudad.' },
   { id: 'kiosco', scene: 'plaza', at: [35, 9], r: 5.5, icon: '🎪', name: 'Kiosco del Parque del Saber', hint: 'Junto a la Obra, bajo un techo rojo.' },
   { id: 'podio', scene: 'park', at: [0, 0], r: 3.2, icon: '🏁', name: 'Meta del Parque de retos', hint: 'En medio del circuito de obstáculos.' },
-  { id: 'anfiteatro', scene: 'distrito', at: [0, 8], r: 6, icon: '🎭', name: 'Anfiteatro del Encuentro', hint: 'Donde la comunidad se reúne en el Distrito del Saber.' },
-  { id: 'jardin', scene: 'distrito', at: [-17, 17], r: 5.5, icon: '🦋', name: 'Jardín de mariposas', hint: 'Entre flores, en la esquina verde del distrito.' },
-  { id: 'observatorio', scene: 'distrito', at: [17, 17], r: 5.5, icon: '🔭', name: 'Observatorio', hint: 'Una cúpula blanca que mira al cielo.' },
-  { id: 'laboratorio', scene: 'distrito', at: [11.5, -4], r: 4, icon: '🧪', name: 'Laboratorio de ciencias', hint: 'Edificio de los experimentos.' },
+  { id: 'anfiteatro', scene: 'distrito', at: [14, 10], r: 6, icon: '🎭', name: 'Anfiteatro del Encuentro', hint: 'Donde la comunidad se reúne en el Distrito del Saber.' },
+  { id: 'jardin', scene: 'distrito', at: [-16, 16], r: 5.5, icon: '🦋', name: 'Jardín de mariposas', hint: 'Entre flores, en la esquina verde del distrito.' },
+  { id: 'observatorio', scene: 'distrito', at: [22, 22], r: 5.5, icon: '🔭', name: 'Observatorio', hint: 'Una cúpula blanca que mira al cielo.' },
+  { id: 'laboratorio', scene: 'distrito', at: [12, -4], r: 4, icon: '🧪', name: 'Laboratorio de ciencias', hint: 'Edificio de los experimentos.' },
   { id: 'meta-laberinto', scene: 'distrito', at: MAZE.checkpoints[3].slice(0, 2), r: 2.4, icon: '🌿', name: 'Salida del laberinto', hint: 'Al otro lado de las tres puertas del saber.' }
 ]);
 export const landmarkById = id => LANDMARKS.find(l => l.id === id) || null;

@@ -18,7 +18,7 @@ export const SCENE_RULES = Object.freeze({
   park: { bounds: { minX: -11.8, maxX: 11.8, minZ: -11.8, maxZ: 11.8 }, entries: [[0, 10.2]], links: ['plaza'], privacy: 'public' },
   tower: { bounds: { minX: -8.6, maxX: 8.6, minZ: -6.6, maxZ: 6.6 }, entries: [[0, 5.4]], links: ['plaza'], privacy: 'party' },
   // Distrito del Saber (1.3): al sur de la plaza. Laberinto, laboratorio, sala de escape, anfiteatro y jardines.
-  distrito: { bounds: { minX: -29.6, maxX: 29.6, minZ: -29.6, maxZ: 29.6 }, entries: [[0, 25.5]], links: ['plaza'], privacy: 'public' }
+  distrito: { bounds: { minX: -29.6, maxX: 29.6, minZ: -29.6, maxZ: 29.6 }, entries: [[0, 24]], links: ['plaza'], privacy: 'public' }
 });
 export const ENTRY_RADIUS = 4;
 

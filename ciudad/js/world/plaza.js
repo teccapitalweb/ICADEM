@@ -12,6 +12,8 @@ import { PLACES, placeByBuilding } from './places.js';
  *  (toldo del supermercado) o cae sobre vegetación (obra). Deben coincidir con SCENE_RULES.plaza.entries. */
 /** Entrada al Parque de retos (minijuegos), al final de la avenida sur. */
 export const PARK_GATE = Object.freeze({ x: 0, z: 38.5, arrival: { x: 0, z: 34.5, yaw: Math.PI } });
+/** Portal del Distrito del Saber, al final de la calle sur (versión 1.3). */
+export const DISTRICT_GATE = Object.freeze({ x: 0, z: -38.5, arrival: { x: 0, z: -34.5, yaw: 0 } });
 export const ARRIVALS = Object.freeze(Object.fromEntries(PLACES.filter(p => p.arrival).map(p => [p.spawn, p.arrival])));
 /** Punto de llegada de cada lugar al salir de su edificio. */
 export function arrivalOf(place) { const b = BUILDINGS.find(x => x.id === place.building), d = doorPoint(b, 7.4); const at = place.arrival || d; return { x: at.x, z: at.z, yaw: place.yaw ?? d.yaw + Math.PI }; }
@@ -103,7 +105,7 @@ export function buildPlaza(api) {
   for (let i = 0; i < 26; i++) { const a = i / 26 * 6.283, r = HALF - 2.5 + rnd() * 3; spots.push([Math.cos(a) * r * 1.02, Math.sin(a) * r * 1.02]); }
   for (const [x, z] of [[-22, -21.5], [-4.5, -22], [4.5, -22], [22, -22], [-22, 22], [-4.5, 22], [4.5, 22], [22, 22], [-27, -17], [-27, 17], [27, -17], [27, 17]]) spots.push([x, z]);
   // Nada de árboles sobre los puntos de llegada frente a cada puerta (ahí aparecen los jugadores).
-  const arrivals = [...BUILDINGS.map(b => doorPoint(b, 7.4)), ...Object.values(ARRIVALS), PARK_GATE.arrival, { x: PARK_GATE.x, z: PARK_GATE.z }];
+  const arrivals = [...BUILDINGS.map(b => doorPoint(b, 7.4)), ...Object.values(ARRIVALS), PARK_GATE.arrival, { x: PARK_GATE.x, z: PARK_GATE.z }, DISTRICT_GATE.arrival, { x: DISTRICT_GATE.x, z: DISTRICT_GATE.z }];
   for (const [x, z] of spots) {
     if (Math.hypot(x, z) < 16.5 || (Math.abs(x) < 4.5 || Math.abs(z) < 4.5)) continue;
     if (arrivals.some(p => Math.hypot(x - p.x, z - p.z) < 3.2)) continue;
@@ -169,6 +171,13 @@ export function buildPlaza(api) {
     box(5.4, 0.6, 0.45, teal, gx, 3.3, gz, g);
     const ps = sign('PARQUE DE RETOS', 3.6, 0.55, { bg: '#ffd166', fg: '#0f1f3d', sub: 'Minijuegos' }); ps.position.set(gx, 3.6, gz - 0.26); ps.rotation.y = Math.PI; g.add(ps);
   }
+  /* portal del Distrito del Saber (calle sur) */
+  {
+    const gx = DISTRICT_GATE.x, gz = DISTRICT_GATE.z, violet = mat(0x7c5cc4, { r: 0.5 }), sunM = mat(0xffd166, { r: 0.5 });
+    for (const s2 of [-1, 1]) { box(0.5, 3.8, 0.5, violet, gx + s2 * 2.6, 0, gz, g); sph(0.38, sunM, gx + s2 * 2.6, 4.0, gz, g, { seg: 12, rings: 8 }); col.addCircle(gx + s2 * 2.6, gz, 0.4); }
+    box(5.8, 0.6, 0.45, violet, gx, 3.5, gz, g);
+    const ds = sign('DISTRITO DEL SABER', 3.8, 0.55, { bg: '#ffd166', fg: '#2a1c55', sub: 'Laberinto · Laboratorio · Escape' }); ds.position.set(gx, 3.8, gz + 0.26); g.add(ds);
+  }
   const mergedCount = mergeStatic(g);
 
   /* personajes del escenario (NPC, sin nombre de jugador) */
@@ -214,6 +223,7 @@ export function buildPlaza(api) {
     };
   });
   interactables.push({ id: 'park', x: PARK_GATE.x, y: 1.8, z: PARK_GATE.z - 1.2, radius: 2.6, color: 0xffd166, label: 'Entrar al Parque de retos', action: () => api.travel('park', 'default') });
+  interactables.push({ id: 'distrito', x: DISTRICT_GATE.x, y: 1.8, z: DISTRICT_GATE.z + 1.2, radius: 2.6, color: 0xb388ff, label: 'Entrar al Distrito del Saber', action: () => api.travel('distrito', 'default') });
   interactables.push({ id: 'guard', x: -9.6, y: 1.8, z: -20.6, radius: 2.2, color: 0x9fd3ff, label: 'Hablar con el guardia',
     action: () => api.ui.dialog({ speaker: 'Guardia del banco', lines: ['¡Buen día! El Banco ICADEM está abierto.', 'Adentro hay una clienta que necesita ayuda para elegir su crédito. Pasa por la puerta principal.'] }) });
 
@@ -223,7 +233,7 @@ export function buildPlaza(api) {
   return {
     name: 'plaza', title: 'Ciudad ICADEM', group: g, collision: col, interactables, npcs, landmarks, half: HALF,
     background: 0xcdeeff, fog: { color: 0xcfeeff, near: 70, far: 190 },
-    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, park: PARK_GATE.arrival, home: { x: home.x, z: home.z, yaw: Math.PI }, ...Object.fromEntries(PLACES.map(p => [p.spawn, arrivalOf(p)])) },
+    spawns: { default: { x: 0, z: 9.5, yaw: Math.PI }, park: PARK_GATE.arrival, distrito: DISTRICT_GATE.arrival, home: { x: home.x, z: home.z, yaw: Math.PI }, ...Object.fromEntries(PLACES.map(p => [p.spawn, arrivalOf(p)])) },
     camera: { distance: 7.5, minDistance: 2.6, maxDistance: 13, pitch: 0.4, box: null },
     sun, mergedCount,
     update(dt, t, playerPos) {

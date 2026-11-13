@@ -221,7 +221,8 @@ export class UI {
     const items = [
       ...BUILDINGS.map(b => ({ kind: 'building', id: b.id, icon: b.icon, name: b.name, text: b.status === 'open' ? 'Misión: ' + b.mission : 'Próximamente', x: b.x, z: b.z, b, done: missionDone(b), open: b.status === 'open', way: doorPoint(b, 2.2) })),
       { kind: 'activity', id: 'parque', icon: '🏃', name: 'Parque de retos', text: 'Carrera del conocimiento: arcos, plataformas y meta. Entrada al norte de la plaza.', x: 0, z: 38.5, open: true, way: { x: 0, z: 34.5 } },
-      { kind: 'activity', id: 'fuente', icon: '⛲', name: 'Punto de encuentro', text: 'La fuente de la plaza: aquí se reúne tu equipo y empieza la Búsqueda del tesoro.', x: 0, z: 0, open: true, way: { x: 0, z: 6 } }
+      { kind: 'activity', id: 'fuente', icon: '⛲', name: 'Punto de encuentro', text: 'La fuente de la plaza: aquí se reúne tu equipo y empieza la Búsqueda del tesoro.', x: 0, z: 0, open: true, way: { x: 0, z: 6 } },
+      { kind: 'activity', id: 'distrito', icon: '🧪', name: 'Distrito del Saber', text: 'Laberinto del conocimiento, Laboratorio de experimentos, Sala de escape, anfiteatro y jardines. Entrada al sur de la plaza.', x: 0, z: -38.5, open: true, way: { x: 0, z: -34.5 } }
     ];
     let selected = null;
     const here = api.sceneName === 'plaza' ? api.player.position : null;

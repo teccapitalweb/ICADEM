@@ -24,6 +24,7 @@ export function defaultState() {
     custom: { outfit: 'base', hat: 'base', tone: 'base' },   // equipamiento del avatar
     missions: {},        // { [missionId]: { completed, bestScore, attempts } }
     visited: [],         // ids de edificios explorados
+    discovered: [],      // sitios de la Ruta del explorador (Distrito del Saber, 1.3)
     achievements: [],    // ids de logros
     economy: { balance: 0, ledger: [] }, // SOLO créditos de prueba
     settings: { quality: 'auto', sensitivity: 1, invertY: false, muted: [] }
