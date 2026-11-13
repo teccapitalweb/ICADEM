@@ -254,6 +254,9 @@ async function panel(browser) {
     await shot(page, `p-${mode}-juego.png`);
     const inGame = await frame.evaluate(() => ({ hud: !document.getElementById('hud').hidden, exit: !document.getElementById('btn-exit').hidden, name: document.getElementById('player-name').textContent, touch: document.documentElement.classList.contains('is-touch') }));
     ok(`[${mode}] HUD visible con botón Salir`, inGame.hud && inGame.exit, JSON.stringify(inGame));
+    // primera visita: el juego pide elegir personaje (Entrega 1); se elige el inicial como haría un usuario
+    const picker = await frame.evaluate(() => !document.getElementById('modal').hidden && document.getElementById('modal-title').textContent === 'Elige tu personaje');
+    if (picker) { await frame.click('#modal-actions .btn--primary'); await page.waitForTimeout(800); }
     if (mode === 'mobile') {
       // joystick táctil real
       const before = await frame.evaluate(() => 1);
