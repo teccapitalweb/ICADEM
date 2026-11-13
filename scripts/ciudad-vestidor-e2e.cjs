@@ -48,7 +48,7 @@ function startServer() {
     ok('el otro jugador ve a Ana con su personaje', await until(async () => (await remoteLook(beto, 'Ana'))?.avatar === 'creativa'), JSON.stringify(await remoteLook(beto, 'Ana')));
 
     // manipular el navegador para ponerse una skin especial bloqueada: el servidor la rechaza
-    await ana.evaluate(() => { const a = window.__ciudad.api; a.store.state.xp = 99999; a.net.profile('avatar', { id: 'leyenda', custom: a.store.state.custom }); });
+    await ana.evaluate(() => { const a = window.__ciudad.api; a.store.state.xp = 99999; a.setAvatar('leyenda', a.store.state.custom); });   // camino real del cliente (desde #70 las respuestas sin número de solicitud se ignoran)
     ok('una skin especial bloqueada no se desbloquea manipulando el navegador', await until(() => ana.evaluate(() => window.__ciudad.api.store.state.avatarId === 'creativa' && window.__ciudad.api.store.state.xp < 99999)), await ana.evaluate(() => JSON.stringify([window.__ciudad.api.store.state.avatarId, window.__ciudad.api.store.state.xp])));
     ok('Beto sigue viendo a Ana con su personaje permitido', (await remoteLook(beto, 'Ana'))?.avatar === 'creativa');
 
