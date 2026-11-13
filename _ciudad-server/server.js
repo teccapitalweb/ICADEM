@@ -39,7 +39,7 @@ const LOOPBACK = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
  *   devLogin   habilita el emisor de desarrollo, solo desde la misma máquina
  *   origins    orígenes web permitidos (obligatorio si no es devLogin)
  */
-export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null, onReport = null, maxPlayers = 64, maxConnsPerIp = 8, trustProxy = false, family = false } = {}) {
+export function createServer({ port = 0, host = '127.0.0.1', authority = new TicketAuthority(), identity = null, authorize = async () => true, devLogin = false, origins = null, capacity, now = Date.now, log = () => {}, storage = new MemoryStorage(), connections = null, onReport = null, maxPlayers = 64, maxConnsPerIp = 8, trustProxy = false, family = false, chat = true } = {}) {
   if (!devLogin && (!origins || !origins.length)) throw new Error('[ciudad] fuera del modo de prueba hay que declarar los orígenes permitidos');
   if (!devLogin && !identity) throw new Error('[ciudad] fuera del modo de prueba hace falta un verificador de identidad');
   // Conexiones: en producción las entrega el backend de ICADEM; en pruebas, el emisor de desarrollo.
@@ -164,11 +164,12 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         const joined = hub.join({ uid: session.uid, name: session.name, avatar: profile.avatarId, minor: session.minor, guardian: session.guardian });
         player = joined.player; epoch = player.epoch; identityOf = who; sessionUid = session.uid; player.avatar = profile.avatarId; player.custom = profile.custom; player.listed = !session.minor && !(profile.privacy && profile.privacy.listed === false);
         if (!player.minor) await hub.loadFriends(player);
+        hub.setChat(player, player.minor ? null : await profiles.chatState(session.uid), chat);   // chat libre: solo cuentas adultas que aceptaron las normas
         const old = sockets.get(player);
         if (old && old !== ws) { send(old, { t: 'bye', reason: 'sesion-en-otro-lugar' }); old.close(4009, 'sustituida'); }
         sockets.set(player, ws); clearTimeout(helloTimer);
         send(ws, { t: 'welcome', pid: player.pid, name: player.name, instance: player.instance.id, resumed: joined.resumed, capacity: hub.capacity, tick: NET_TICK_HZ,
-          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance, player), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player), presence: hub.presence(player), codes: hub.codesOf(player), family: { enabled: Boolean(family), kind: player.minor ? 'infantil' : 'adulto' } });
+          resume: authority.issue({ ...who, kind: 'resume' }), roster: hub.roster(player.instance, player), room: player.room ? hub.roomView(player.room) : null, profile, friends: hub.friendsView(player), presence: hub.presence(player), codes: hub.codesOf(player), family: { enabled: Boolean(family), kind: player.minor ? 'infantil' : 'adulto' }, chat: { enabled: Boolean(chat) && !player.minor } });
         if (!joined.resumed || !joined.replaced) announce(player);
         ws.presenceKey = ''; pushPresence();
         if (player.room) { toRoom(player.room); if (player.room.session && !player.room.session.done) toCoop(player.room, { op: 'sync' }); }
@@ -181,7 +182,26 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
       if (msg.t === 's') { const r = hub.state(player, msg.s); if (!r.ok && r.fix) send(ws, { t: 'fix', s: r.fix, reason: r.reason }); }
       else if (msg.t === 'say') { const r = hub.say(player, msg.id); if (r.ok) { r.to.forEach(p => send(sockets.get(p), { t: 'say', pid: player.pid, id: msg.id })); send(ws, { t: 'said', id: msg.id }); } else send(ws, { t: 'nosay', reason: r.reason }); }
       else if (msg.t === 'ping') send(ws, { t: 'pong', n: msg.n });
-      else if (msg.t === 'report') { const r = hub.report(player, msg.pid, msg.reason); send(ws, { t: 'reported', ok: r.ok }); if (r.ok) log('report', player.pid, '→', msg.pid); }
+      else if (msg.t === 'chat') {
+        // Chat libre: el servidor decide quién puede escribir, qué texto pasa y quién lo recibe.
+        if (!chat || player.minor) return send(ws, { t: 'chat', op: msg.op, ok: false, reason: chat ? 'no-permitido' : 'chat-desactivado' });
+        if (msg.op === 'send') {
+          const r = hub.chat(player, msg.text);
+          if (!r.ok) { if (r.restrictedMs) log('chat-pausa', player.pid, Math.round(r.restrictedMs / 60000) + 'min'); return send(ws, { t: 'chat', op: 'send', ok: false, reason: r.reason, wait: r.wait, n: msg.n }); }
+          r.to.forEach(({ player: o, near }) => send(sockets.get(o), { t: 'chat', op: 'msg', id: r.msg.id, pid: player.pid, name: hub.nameFor(o, player), text: r.msg.text, at: r.msg.at, near }));
+          return send(ws, { t: 'chat', op: 'send', ok: true, id: r.msg.id, text: r.msg.text, at: r.msg.at, heard: r.to.length, n: msg.n });
+        }
+        const uid = player.uid;
+        const r = msg.op === 'accept' ? (msg.adult === true && msg.rules === true ? await profiles.chatSettings(uid, { accept: true }) : { ok: false, reason: 'activa-chat' })
+          : msg.op === 'pause' ? await profiles.chatSettings(uid, { off: msg.off === true })
+          : msg.op === 'block' ? (() => { const t = hub.chatTarget(player, msg.pid); return t ? profiles.chatBlock(uid, t.uid, t.name) : { ok: false, reason: 'no-disponible' }; })()
+          : msg.op === 'unblock' ? await profiles.chatUnblock(uid, String(msg.key || '')) : { ok: false, reason: 'operacion' };
+        const done = await r;
+        if (done.chat) hub.setChat(player, done.chat, chat);
+        if (msg.op === 'block' && done.ok) log('chat-bloqueo', player.pid, '→', String(msg.pid));
+        return send(ws, { t: 'chat', op: msg.op, ok: done.ok, reason: done.reason, pid: msg.op === 'block' ? String(msg.pid) : undefined, profile: done.profile });
+      }
+      else if (msg.t === 'report') { const r = hub.report(player, msg.pid, msg.reason, msg.mid); send(ws, { t: 'reported', ok: r.ok }); if (r.ok) log('report', player.pid, '→', msg.pid, String(msg.reason || '').slice(0, 20), msg.mid ? 'mensaje' : ''); }
       else if (msg.t === 'room') {
         const before = player.room;
         const r = msg.op === 'create' ? hub.createRoom(player, { mission: msg.mission }) : msg.op === 'join' ? hub.joinRoom(player, msg.code)
@@ -305,12 +325,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     let options;
     if (mode === 'test') {
       if (process.env.NODE_ENV === 'production') die('El modo de prueba no se ejecuta en producción.');
-      options = { host: '127.0.0.1', devLogin: true, family: process.env.CIUDAD_FAMILY === 'on', origins, storage: process.env.CIUDAD_DATA_DIR ? new JsonFileStorage(process.env.CIUDAD_DATA_DIR) : new MemoryStorage() };
+      options = { host: '127.0.0.1', devLogin: true, family: process.env.CIUDAD_FAMILY === 'on', chat: process.env.CIUDAD_CHAT !== 'off', origins, storage: process.env.CIUDAD_DATA_DIR ? new JsonFileStorage(process.env.CIUDAD_DATA_DIR) : new MemoryStorage() };
     } else if (mode === 'firebase') {
       const secret = process.env.CIUDAD_TICKET_SECRET || '', sa = process.env.FIREBASE_SERVICE_ACCOUNT || '';
       if (secret.length < 32 || !origins) die('Faltan CIUDAD_TICKET_SECRET (32+ caracteres) o CIUDAD_ORIGINS.');
       const admins = (process.env.CIUDAD_ADMINS || '').split(',').map(s => s.trim()).filter(Boolean);
-      options = { host: process.env.HOST || '0.0.0.0', devLogin: false, origins, authority: new TicketAuthority({ secret }), family: process.env.CIUDAD_FAMILY === 'on' };
+      options = { host: process.env.HOST || '0.0.0.0', devLogin: false, origins, authority: new TicketAuthority({ secret }), family: process.env.CIUDAD_FAMILY === 'on', chat: process.env.CIUDAD_CHAT !== 'off' };
       if (sa) {
         // Misma cuenta de servicio que el backend: identidad, membresía y conexiones vienen de ICADEM.
         const { db, auth, projectId } = await connectFirebase(sa);
@@ -337,6 +357,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const app = createServer({ port: Number(process.env.PORT || 8787), log: print, ...options, ...limits });
     process.on('unhandledRejection', error => print('error-no-controlado', error && (error.code || error.message)));
     const port = await app.listen();
+    print(`chat libre: ${options.chat ? 'activo (cuentas adultas que aceptan las normas; perfiles infantiles nunca)' : 'desactivado (CIUDAD_CHAT=off; solo frases rápidas)'}`);
     print(`servidor de ${mode === 'test' ? 'PRUEBA' : 'sesiones'} en el puerto ${port} · ${LIMITS.capacity} por instancia · máximo ${limits.maxPlayers} conectados · identidad: ${mode}`);
     for (const sig of ['SIGTERM', 'SIGINT']) process.on(sig, () => { print('apagando…'); app.close().then(() => process.exit(0)); });
   };

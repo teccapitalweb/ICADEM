@@ -62,7 +62,7 @@ export class WsAdapter extends NetworkAdapter {
       case 'welcome':
         this.pid = m.pid; this.instance = m.instance; this.attempt = 0; this.roster.clear(); this.resumeToken = m.resume || null; this.name = m.name;
         this.roomState = m.room || null; this.emit('room', { room: this.roomState });
-        this.friendList = m.friends || []; this.presence = m.presence || null; this.codes = m.codes || []; this.family = m.family || null; if (m.presence) this.emit('presence', this.presence); if (m.profile) this.emit('profile', { op: 'get', ok: true, profile: m.profile });
+        this.friendList = m.friends || []; this.presence = m.presence || null; this.codes = m.codes || []; this.family = m.family || null; this.chatAvailable = Boolean(m.chat && m.chat.enabled); if (m.presence) this.emit('presence', this.presence); if (m.profile) this.emit('profile', { op: 'get', ok: true, profile: m.profile });
         (m.roster || []).forEach(p => this.roster.set(p.pid, p));
         this.#set('online', { resumed: m.resumed });
         (m.roster || []).forEach(p => this.emit('join', p));
@@ -74,6 +74,7 @@ export class WsAdapter extends NetworkAdapter {
       case 'leave': if (!m.soft) this.roster.delete(m.pid); this.emit('leave', { pid: m.pid, soft: Boolean(m.soft) }); this.#set('online'); break;
       case 'snap': this.emit('snap', m.list || []); break;
       case 'say': this.emit('say', { pid: m.pid, id: m.id }); break;
+      case 'chat': if (m.profile) this.emit('profile', { op: 'chat', ok: true, profile: m.profile }); this.emit('chat', m); break;
       case 'fix': this.emit('fix', m); break;
       case 'pong': { const at = this.pingAt.get(m.n); if (at) { this.pingAt.delete(m.n); this.latency = Math.round(performance.now() - at); this.#set('online'); } break; }
       case 'resume': this.resumeToken = m.token; break;
@@ -104,7 +105,9 @@ export class WsAdapter extends NetworkAdapter {
 
   sendState(encoded) { this.lastSent = encoded; this.#send({ t: 's', s: encoded }); }
   say(phraseId) { return this.#send({ t: 'say', id: phraseId }); }
-  report(pid, reason) { return this.#send({ t: 'report', pid, reason }); }
+  report(pid, reason, mid) { return this.#send({ t: 'report', pid, reason, ...(mid ? { mid } : {}) }); }
+  /** Chat libre: op = send | accept | pause | block | unblock. El servidor valida todo. */
+  chat(op, payload = {}) { return this.#send({ t: 'chat', op, ...payload }); }
   /** Sala de espera: op = create | join | leave | role | ready | start. El servidor decide. */
   room(op, payload = {}) { return this.#send({ t: 'room', op, ...payload }); }
   /** Progreso en servidor: op = get | mission | visit | tutorial | avatar. */

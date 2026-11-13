@@ -20,6 +20,16 @@ import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
 import { cleanPlay, rewardQuiz, rewardActivity, missionXp } from '../ciudad/js/edu/play-rules.js';
 import { emptyProfile, cleanCustom, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
+export const CHAT_BLOCK_MAX = 100;
+/** Clave pública de un bloqueo: permite desbloquear sin enviar el uid de nadie al navegador. */
+export const blockKey = uid => createHash('sha256').update('ciudad-bloqueo:' + uid).digest('hex').slice(0, 12);
+export function cleanChat(c) {
+  const src = c && typeof c === 'object' ? c : {};
+  const blocked = Array.isArray(src.blocked) ? src.blocked.filter(b => b && typeof b.uid === 'string' && b.uid).map(b => ({ uid: b.uid.slice(0, 128), name: String(b.name || 'Jugador').slice(0, 28) })).slice(0, CHAT_BLOCK_MAX) : [];
+  return { adultAt: Number(src.adultAt) > 0 ? Number(src.adultAt) : 0, off: src.off === true, blocked };
+}
+const chatView = c => { const x = cleanChat(c); return { enabled: Boolean(x.adultAt) && !x.off, accepted: Boolean(x.adultAt), off: x.off, blocked: x.blocked.map(b => ({ key: blockKey(b.uid), name: b.name })) }; };
+
 export class MemoryStorage {
   constructor() { this.map = new Map(); }
   async load(uid) { const raw = this.map.get(uid); return raw ? JSON.parse(raw) : null; }
@@ -48,12 +58,47 @@ export class Profiles {
   async #read(uid) {
     const saved = await this.storage.load(uid);
     if (!saved || saved.v !== PROFILE_VERSION) return emptyProfile();
-    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom), play: cleanPlay(saved.play), privacy: { listed: !(saved.privacy && saved.privacy.listed === false) } };
+    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom), play: cleanPlay(saved.play), privacy: { listed: !(saved.privacy && saved.privacy.listed === false) }, chat: cleanChat(saved.chat) };
   }
   async #write(uid, p) { p.achievements = deriveAchievements(p); p.rev++; p.updatedAt = Date.now(); await this.storage.save(uid, p); return p; }
 
   /** Lo que se le entrega al cliente (sin historial interno). */
-  view(p) { const { testLedger, ...rest } = p; return { ...rest, testMoves: testLedger.length }; }
+  view(p) { const { testLedger, chat, ...rest } = p; return { ...rest, testMoves: testLedger.length, chat: chatView(chat) }; }
+
+  /* ---------- chat libre: aceptación de normas, pausa y bloqueos (por cuenta, en todos los dispositivos) ---------- */
+
+  /** Estado del chat para el servidor (con uids de bloqueados; nunca se envía así al cliente). */
+  chatState(uid) { return this.#serial(uid, async () => cleanChat((await this.#read(uid)).chat)); }
+
+  /** Activa el chat: la persona confirma que es mayor de edad y acepta las normas. Pausar/reanudar con `off`. */
+  chatSettings(uid, { accept = false, off } = {}, now = Date.now()) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid), c = cleanChat(p.chat);
+      if (accept) { c.adultAt = c.adultAt || now; c.off = false; }
+      if (typeof off === 'boolean') { if (!c.adultAt && !off) return { ok: false, reason: 'activa-chat', profile: this.view(p) }; c.off = off; }
+      p.chat = c;
+      return { ok: true, chat: c, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  chatBlock(uid, targetUid, name) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid), c = cleanChat(p.chat);
+      if (!targetUid || targetUid === uid) return { ok: false, reason: 'no-disponible', profile: this.view(p) };
+      c.blocked = [{ uid: targetUid, name: String(name || 'Jugador').slice(0, 28) }, ...c.blocked.filter(b => b.uid !== targetUid)].slice(0, CHAT_BLOCK_MAX);
+      p.chat = c;
+      return { ok: true, chat: c, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  chatUnblock(uid, key) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid), c = cleanChat(p.chat);
+      c.blocked = c.blocked.filter(b => blockKey(b.uid) !== String(key));
+      p.chat = c;
+      return { ok: true, chat: c, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
 
   get(uid) { return this.#serial(uid, async () => this.view(await this.#read(uid))); }
 

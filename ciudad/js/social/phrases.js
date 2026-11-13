@@ -1,7 +1,6 @@
-// Frases rápidas: en esta versión son la ÚNICA forma de comunicarse entre jugadores.
-// Al ser una lista cerrada no existe texto libre que filtrar ni moderar, y por eso se puede
-// activar sin riesgo. El chat de texto abierto queda pendiente hasta tener filtro, reportes
-// y moderación funcionando en el servidor. Módulo puro: lo usan el cliente y el servidor.
+// Frases rápidas: lista cerrada, sin texto libre. Desde la versión 1.2 son un complemento del
+// chat libre (social/chat-rules.js + _ciudad-server/chat.js) y la ÚNICA forma de comunicarse para
+// los perfiles infantiles y para quien no activó o pausó el chat. Módulo puro: cliente y servidor.
 
 export const PHRASES = Object.freeze([
   { id: 'hola', text: '¡Hola!', emote: 'wave' },

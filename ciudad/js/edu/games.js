@@ -44,8 +44,12 @@ export class Games {
     return api.ui.modal({ eyebrow: 'Ciudad ICADEM', title: 'Minijuegos', content: grid, wide: true, hint: 'Solo dan XP del juego (con tope diario). No dan créditos.' });
   }
 
+  /** Récord antes de jugar (para celebrar uno nuevo; el récord real lo guarda el servidor). */
+  #mark(id) { (this.prevBest ||= {})[id] = this.#stats(id).best || 0; }
+
   async launch(id) {
     const api = this.api, gm = GAME_LIST.find(g => g.id === id);
+    this.#mark(id);
     if (id === 'carrera') { if (api.sceneName !== 'park') { api.ui.toast('Te llevamos al Parque de retos. Habla con el letrero de salida para empezar.', 3200); api.travel('park', 'default'); } else this.raceStartUI(); return; }
     if (id === 'tesoro') { if (api.sceneName !== 'plaza') { await api.travel('plaza', 'home'); } return this.huntStart(); }
     const level = await api.ui.choice({ speaker: gm.title, text: 'Elige la dificultad', options: [...gm.levels.map(([lid, label], i) => ({ id: lid, label, primary: i === 0 })), { id: 'x', label: 'Cancelar' }] });
@@ -60,8 +64,15 @@ export class Games {
   async #result(gm, r) {
     const api = this.api;
     if (r.error) { api.ui.toast('No se pudo validar la partida con el servidor. Intenta de nuevo.', 3000); return; }
-    const box = h('div', 'mg-result'), score = h('div', 'result__score'); score.append(h('b', null, String(r.score)), h('span', null, 'de 100'));
-    const stars = h('div', 'mg-result__stars', '★'.repeat(r.score >= 90 ? 3 : r.score >= 60 ? 2 : 1) + '☆'.repeat(r.score >= 90 ? 0 : r.score >= 60 ? 1 : 2));
+    const box = h('div', 'mg-result'), score = h('div', 'result__score'), num = h('b', null, '0'); score.append(num, h('span', null, 'de 100'));
+    const earned = r.score >= 90 ? 3 : r.score >= 60 ? 2 : 1, stars = h('div', 'mg-result__stars');
+    for (let i = 0; i < 3; i++) { const st = h('i', i < earned ? 'is-on' : '', i < earned ? '★' : '☆'); st.style.animationDelay = `${0.25 + i * 0.18}s`; stars.append(st); }
+    // marcador que sube hasta el resultado (solo presentación: el puntaje ya lo validó el servidor)
+    const t0 = performance.now(), tick = () => { const k = Math.min(1, (performance.now() - t0) / 800), v = Math.round(r.score * (1 - Math.pow(1 - k, 3))); num.textContent = String(v); score.style.setProperty('--p', String(v)); if (k < 1 && num.isConnected !== false) requestAnimationFrame(tick); };
+    requestAnimationFrame(tick);
+    const prev = this.prevBest && this.prevBest[gm.id];
+    if (prev !== undefined && r.score > prev && prev > 0) box.append(h('div', 'mg-result__record', `¡Nuevo récord personal! Antes: ${prev}`));
+    if (this.prevBest) this.prevBest[gm.id] = Math.max(prev || 0, r.score);
     const xp = h('div', 'result__rewards'); xp.append(h('span', 'pill pill--blue', r.xp ? `+${r.xp} XP` : 'Sin XP esta vez'));
     if (r.bonus) xp.append(h('span', 'pill pill--gold', '¡Primera vez completado! +20 XP'));
     box.append(stars, score, xp);
@@ -106,12 +117,12 @@ export class Games {
     const wrap = h('div', 'mg'), bar = h('div', 'timebar'), fill = h('i'); bar.append(fill);
     const count = h('small', 'mg-bar'), q = h('p', 'math__q'), opts = h('div', 'math__opts'), fb = h('div', 'math__fb');
     wrap.append(bar, count, q, opts, fb);
-    const t0 = performance.now(); let done = false, timer;
+    const t0 = performance.now(); let done = false, timer, streak = 0;
     const show = () => {
       const i = answers.length; if (i >= 10) { finish(); return; }
       const p = content.problems[i]; count.textContent = `Operación ${i + 1} de 10 · correctas ${answers.filter((v, k) => v === right[k]).length}`;
       q.textContent = `${p.text} = ?`; opts.replaceChildren();
-      p.options.forEach(v => { const b = h('button', 'math__opt', String(v)); b.type = 'button'; b.addEventListener('click', () => { if (done) return; answers.push(v); const ok = v === right[i]; fb.textContent = ok ? '✔ ¡Bien!' : `✘ Era ${right[i]}`; fb.className = 'math__fb ' + (ok ? 'is-good' : 'is-bad'); show(); }); opts.append(b); });
+      p.options.forEach(v => { const b = h('button', 'math__opt', String(v)); b.type = 'button'; b.addEventListener('click', () => { if (done) return; answers.push(v); const ok = v === right[i]; streak = ok ? streak + 1 : 0; fb.textContent = ok ? (streak >= 3 ? `🔥 ¡Racha de ${streak}!` : '✔ ¡Bien!') : `✘ Era ${right[i]}`; fb.className = 'math__fb ' + (ok ? 'is-good' : 'is-bad') + (streak >= 3 ? ' is-streak' : ''); show(); }); opts.append(b); });
     };
     const finish = () => { if (done) return; done = true; clearInterval(timer); document.querySelector('#modal-actions .btn--primary')?.click(); };
     timer = setInterval(() => {
@@ -171,7 +182,7 @@ export class Games {
   raceLabel() { return this.race ? `Carrera en curso · punto ${this.race.next + 1} de ${RACE.checkpoints.length}` : 'Carrera del conocimiento · empezar'; }
 
   async raceStartUI() {
-    const api = this.api;
+    const api = this.api; if (!this.race) this.#mark('carrera');
     if (this.race) { const q = await api.ui.choice({ speaker: 'Carrera del conocimiento', text: '¿Abandonar la carrera?', options: [{ id: 'si', label: 'Abandonar' }, { id: 'no', label: 'Seguir corriendo', primary: true }] }); if (q === 'si') this.raceQuit(); return; }
     await api.ui.dialog({ speaker: 'Carrera del conocimiento', lines: ['Pasa por los 7 arcos en orden. Los que están sobre plataformas se alcanzan saltando (Espacio o el botón de salto).', 'Cuidado con las barras rojas: si te alcanzan, te empujan. ¡La meta está en el centro!'] });
     this.race = { next: 0, t0: performance.now(), bumps: 0, server: this.api.net.isOnline };
@@ -201,7 +212,7 @@ export class Games {
 
   /* ---------------- E · Búsqueda del tesoro ---------------- */
   async huntStart() {
-    const api = this.api; if (this.hunt) return;
+    const api = this.api; if (this.hunt) return; this.#mark('tesoro');
     await api.ui.dialog({ speaker: 'Búsqueda del tesoro', lines: ['Hay objetos de distintas profesiones escondidos por la plaza. Sigue las pistas del panel.', 'Son tres rondas: 2, 3 y 5 tesoros. Acércate a cada uno para recogerlo.'] });
     const seed = api.edu.seed();
     this.hunt = { seed, rounds: treasureRounds(seed), round: 0, found: [], t0: performance.now(), server: api.net.isOnline };
