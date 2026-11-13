@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-11-13 — Contador de cursos dentro del recuadro móvil y actualización precisa
+
+- En móvil, el contador utiliza su propia línea compacta debajo de las pestañas. Se elimina la reserva fija de 65 px junto a Ordenar, que dejaba salir el texto; el selector recupera todo su ancho. El contador admite texto ampliado sin recortarlo.
+- El estado de actualización de cursos finaliza al confirmar identidad, progreso, catálogo y prioridades. Ya no espera la consulta independiente de cartera. La cartera conserva su consulta, deduplicación y resultado; los fallos académicos siguen marcándose como información sin actualizar.
+- Comprobación de los límites reales del texto, 32 cursos, búsqueda, filtros, ordenamientos, vistas, recarga, áreas táctiles de 44 px y texto del contador al 200 %. Chrome en 320/360/375/390/414/430/768/1440 px; WebKit en 320/390/430/768 px. APIs aisladas y tamaños emulados, sin escrituras en cuentas reales. El aviso no desplaza el catálogo en carga lenta.
+- Sin cambios en permisos, cupos, lista guardada, desbloqueos, portadas ni backend. Ciudad ICADEM 1.2 conserva sus archivos y referencia v8. Recursos versionados y caché v175.
+
 ## 2026-11-12 — Mis cursos: bloqueados según prioridades también en el orden predeterminado
 
 - «Próximos a desbloquear» conserva primero los cursos abiertos y su orden relativo anterior. Después muestra los bloqueados incluidos en la lista personal, en el orden guardado; finalmente, el resto con el criterio secundario existente. «Mi orden de prioridad» mantiene ese mismo comportamiento.
