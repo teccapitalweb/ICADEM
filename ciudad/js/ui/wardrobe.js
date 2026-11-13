@@ -16,7 +16,7 @@ export function openWardrobe(ui, { first = false } = {}) {
   const api = ui.api, st = api.store.state, hex = n => '#' + n.toString(16).padStart(6, '0');
   const wrap = h('div', 'vest' + (first ? ' is-first' : '')), stage = h('div', 'vest__stage'), panel = h('div', 'vest__panel');
   let preview = null, thumbs = null;
-  try { preview = new AvatarPreview(api.engine.renderer, { width: 260, height: 330 }); thumbs = new AvatarPreview(api.engine.renderer, { width: 150, height: 190 }); } catch (_) { preview = thumbs = null; }
+  try { preview = new AvatarPreview(api.engine.renderer, { width: 260, height: 330 }); thumbs = new AvatarPreview(api.engine.renderer, { width: 150, height: 190 }); thumbs.camera.position.set(0, 1.15, 3.4); thumbs.camera.lookAt(0, 0.95, 0); } catch (_) { preview = thumbs = null; }
   let viewing = first ? (AVATARS.find(a => a.id === st.avatarId && a.category === 'inicial') || AVATARS[0]).id : st.avatarId;
   let cat = first ? 'inicial' : (avatarById(viewing).category || 'inicial'), tab = 'personajes';
   const lookOf = id => applyCustom(avatarById(id).look, st.custom);
@@ -86,7 +86,7 @@ export function openWardrobe(ui, { first = false } = {}) {
   };
 
   const tabs = h('div', 'tabs vest__tabs'), body = h('div', 'vest__body');
-  const show = id => { tab = id; tabs.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.id === id)); body.replaceChildren(); if (id === 'personajes') { body.append(cats, cards); paintCards(); } else { body.append(style); paintStyle(); } };
+  const show = id => { tab = id; tabs.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.id === id)); body.replaceChildren(); if (id === 'personajes') { body.append(cats, cards); paintCards(); } else { if (!first) { viewing = st.avatarId; paintStage(); } body.append(style); paintStyle(); } };
   [['personajes', first ? 'Personajes' : 'Personajes y skins'], ['estilo', 'Estilo']].forEach(([id, t]) => { const b = h('button', null, t); b.type = 'button'; b.dataset.id = id; b.addEventListener('click', () => show(id)); tabs.append(b); });
   const owned = AVATARS.filter(a => isAvatarUnlocked(a.id, st)).length;
   panel.append(tabs, body);
