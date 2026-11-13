@@ -71,7 +71,7 @@
  .av-dashboard .av-hero__copy>:is(h2,p:not(.av-hello),.av-hero-benefits){grid-column:1/-1}
  .av-dashboard .av-code-card{align-self:stretch;padding:16px}
 }
-@container ambvip (min-width:650px) and (max-width:800px){
+@container ambvip (min-width:620px) and (max-width:800px){
  .av-dashboard .av-hero{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start;gap:20px}
  .av-dashboard .av-hero__copy{display:block}
  .av-dashboard .av-hero .av-hello{margin:9px 0 0;text-align:left}

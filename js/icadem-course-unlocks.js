@@ -1,7 +1,7 @@
 /* Mis desbloqueos: el servidor conserva y consume todos los derechos. */
 (function () {
   'use strict';
-  let generation = 0, summary = null, summaryUid = '', pending = null, dialog = null;
+  let generation = 0, summary = null, summaryUid = '', summaryFreeCourseId = '', pending = null, dialog = null;
   const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
   const owner = () => window.__isDemoMode ? '' : (window.__auth ? window.__auth.currentUser?.uid : window.__currentUser?.uid) || '';
   const scope = () => ({ uid: owner(), generation });
@@ -24,8 +24,9 @@
     if (!current(ticket)) return;
     if (summaryUid === ticket.uid && Number.isFinite(Number(data.revision)) && Number.isFinite(Number(summary?.revision)) && Number(data.revision) < Number(summary.revision)) return;
     const previous = getPriorities();
-    const changed = summaryUid !== ticket.uid || JSON.stringify(summary) !== JSON.stringify(data);
-    summary = data; summaryUid = ticket.uid;
+    const freeCourseId=String(window.UserState?.freeCourseId||'');
+    const changed = summaryUid !== ticket.uid || summaryFreeCourseId !== freeCourseId || JSON.stringify(summary) !== JSON.stringify(data);
+    summary = data; summaryUid = ticket.uid; summaryFreeCourseId = freeCourseId;
     const priorities = getPriorities(), prioritiesChanged = previous.length !== priorities.length || previous.some((id,index) => id !== priorities[index]);
     if (changed) {
       document.querySelectorAll('[data-course-unlocks]').forEach(paint);
@@ -65,12 +66,11 @@
     host.querySelector('[data-unlock-organize]')?.addEventListener('click', () => open('priorities'));
     host.querySelector('[data-unlock-vip]')?.addEventListener('click', () => window.navigateToSection?.('suscripcion'));
     host.querySelector('[data-unlock-explore]')?.addEventListener('click', () => { document.getElementById('cur-list')?.scrollIntoView({behavior:'smooth',block:'start'}); });
-    const ticket = scope();
-    Promise.resolve(window.__getCourseUnlockCatalog?.()).then(courses => {
-      if (!current(ticket) || state() !== data || !host.isConnected || !Array.isArray(courses)) return;
+    const ticket = scope(), hint = host.querySelector('[data-unlock-priority]');
+    Promise.resolve(window.__getCourseUnlockCatalog?.({snapshot:true})).then(courses => {
+      if (!current(ticket) || JSON.stringify(state()) !== JSON.stringify(data) || !host.isConnected || host.querySelector('[data-unlock-priority]') !== hint || !Array.isArray(courses)) return;
       const eligible = new Set(data.eligibleCourseIds || []), selected = new Set(data.selectedCourseIds || []);
       const first = (data.priorities || []).map(id => courses.find(c => c.id === id)).find(course => course && eligible.has(course.id) && !selected.has(course.id) && course.access?.unlocked !== true && course.catalogPending !== true);
-      const hint = host.querySelector('[data-unlock-priority]');
       if (hint && first) {
         const label = `Primero en tu lista: ${first.titulo}`;
         hint.className = 'course-unlocks__priority'; hint.dataset.priorityCourse = first.id;
@@ -217,7 +217,7 @@
     setTimeout(() => { const card = document.querySelector('.course-unlocks'); card?.scrollIntoView({behavior:'smooth',block:'center'}); card?.focus({preventScroll:true}); }, 120);
   }
   function reset() {
-    generation++; summary = null; summaryUid = ''; pending = null;
+    generation++; summary = null; summaryUid = ''; summaryFreeCourseId = ''; pending = null;
     if (dialog) { const old = dialog; dialog = null; old.handle.close(); }
     document.querySelectorAll('[data-course-unlocks]').forEach(host => { host.hidden = true; host.replaceChildren(); });
     document.querySelectorAll('[data-unlock-context]').forEach(node => node.remove());

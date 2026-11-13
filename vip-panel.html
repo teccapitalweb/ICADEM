@@ -6089,10 +6089,10 @@ const Sections = (function(){
   let _cursosLoaded = false;
   let _cursosLoading = false;
   let _cursosLoadPromise = null;
-  let _cursosGeneration = 0, _cursosConfirmed = false;
+  let _cursosGeneration = 0, _cursosConfirmed = false, _cursosSnapshotUid = '';
   const cuentaCatalogo = () => window.__isDemoMode ? 'demo' : window.__auth?.currentUser?.uid || '';
   function resetCatalogoCuenta(){
-    _cursosGeneration++; _cursosConfirmed=false; _cursosLoaded=false; _cursosLoading=false; _cursosLoadPromise=null; cursos=[];
+    _cursosGeneration++; _cursosConfirmed=false; _cursosSnapshotUid=''; _cursosLoaded=false; _cursosLoading=false; _cursosLoadPromise=null; cursos=[];
   }
   document.addEventListener('icadem:session-ending',resetCatalogoCuenta);
   document.addEventListener('icadem:session-ended',resetCatalogoCuenta);
@@ -6908,7 +6908,7 @@ const Sections = (function(){
       // read again after any request that could have started before the write.
       return force === 'after-write' ? cargarCursosFirestore(force) : cursos;
     }
-    if (_cursosLoaded && !force) return cursos;
+    if (_cursosLoaded && _cursosSnapshotUid===ticket.uid && !force) return cursos;
     _cursosLoading = true;
     const flight = (async () => { try {
       const payload = await pedirCatalogoCursos();
@@ -6958,14 +6958,16 @@ const Sections = (function(){
         _ce('bn-stat-retos', 3);
       } catch(_e){}
       _cursosLoaded = true;
+      _cursosSnapshotUid = ticket.uid;
       _cursosConfirmed = true;
       actualizarInicioAprendizaje();
     } catch (e) {
       if(!vigente())return;
       _cursosConfirmed = false;
       console.warn('No se pudo cargar el catálogo seguro:', e.message);
-      if (!_cursosLoaded || !cursos.length) cursos = catalogoCursosPublicoDeRespaldo();
+      if (!_cursosLoaded || !cursos.length || _cursosSnapshotUid!==ticket.uid) cursos = catalogoCursosPublicoDeRespaldo();
       _cursosLoaded = true;
+      _cursosSnapshotUid = ticket.uid;
       actualizarInicioAprendizaje();
     } finally {
       if(vigente())_cursosLoading = false;
@@ -6992,14 +6994,24 @@ const Sections = (function(){
       const active=document.activeElement,card=active?.closest?.('.curso-card'),id=card?.dataset.cid;
       const action=['data-course-details','data-unlock-organize-course','data-unlock-select-course','data-unlock-add-course'].find(attr=>active?.hasAttribute?.(attr));
       renderCursosList();
+      // The first-priority hint also depends on current catalog titles/access.
+      // Mount reuses this UID's summary; the shared cycle owns revalidation.
+      const summaryHost=document.querySelector('[data-course-unlocks]');
+      if(summaryHost)await window.ICADEMCourseUnlocks?.mount(summaryHost);
+      if(generation!==_cursosGeneration||uid!==cuentaCatalogo()||window.__sessionEnding)return null;
       const count=document.querySelector('.courses-library-head__count strong');if(count)count.textContent=String(cursos.length);
       if(id&&action){const next=Array.from(document.querySelectorAll('.curso-card')).find(node=>node.dataset.cid===id);next?.querySelector('['+action+']')?.focus({preventScroll:true});}
     }
     return true;
   };
-  window.__getCourseUnlockCatalog = async function(){
+  window.__getCourseUnlockCatalog = async function(options){
+    const generation=_cursosGeneration,uid=cuentaCatalogo();
+    const owned=()=>generation===_cursosGeneration&&uid===cuentaCatalogo()&&_cursosSnapshotUid===uid&&!window.__sessionEnding;
+    // Only the informational priority hint may reuse the current account's
+    // presentation snapshot while the shared cycle revalidates academic data.
+    if(options?.snapshot===true&&_cursosLoaded&&owned())return cursos;
     await cargarCursosFirestore();
-    return cursos;
+    return owned()?cursos:[];
   };
   window.__courseCoverICADEM = (course, fallbackOnly) => String((!fallbackOnly && course.portada) || coverSVG(course.area, course.titulo)).replace(/'/g,'%27');
   document.addEventListener('icadem:course-unlocks-changed', () => {
@@ -7632,7 +7644,7 @@ const Sections = (function(){
       </section>` : '';
     // Ratings have their own DOM updater. Their asynchronous loading label must
     // not invalidate unchanged academic cards after an identity-only refresh.
-    const projection=JSON.stringify([avisoRespaldo,bannerGratis,items.map(c=>[c,resumenEstadoCurso(c)])]);
+    const projection=JSON.stringify([avisoRespaldo,bannerGratis,Boolean(toolEsVIP()),String(primerCursoGratisId()||''),items.map(c=>[c,resumenEstadoCurso(c)])]);
     if(list.__courseProjection===projection)return;
     const htmlEsc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     const markup=`${avisoRespaldo}${bannerGratis}<div class="cursos-grid cursos-grid--premium">${items.map((c, idx)=>{

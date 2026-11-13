@@ -5,6 +5,8 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const ROOT=path.resolve(__dirname,'..'),OUT=process.argv[3],BASELINE=process.env.ICADEM_NAV_BASELINE==='1';
 let source=fs.readFileSync(path.join(__dirname,'course-priorities-e2e.cjs'),'utf8');
 source=source.replace("if(api==='/api/courses/unlocks'){","if(shared.control && await shared.control(route,url,state))return;\n    if(api==='/api/courses/unlocks'){");
+const bootWait="await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])')&&document.getElementById('cur-list')?.getAttribute('aria-busy')!=='true');";
+source=source.replace(bootWait,`try{${bootWait}}catch(error){console.error('BOOT DIAGNOSTIC',JSON.stringify({counts:shared.counts,dom:await page.evaluate(()=>({url:location.href,visibility:document.visibilityState,online:navigator.onLine,uid:window.__auth?.currentUser?.uid,ending:window.__sessionEnding,cards:document.querySelectorAll('.curso-card').length,status:Array.from(document.querySelectorAll('[data-course-sync]')).map(n=>({text:n.textContent,hidden:n.hidden,phase:n.dataset.courseSyncPhase,title:n.title})),busy:document.getElementById('cur-list')?.getAttribute('aria-busy')}))}));if(SHOTS){fs.mkdirSync(SHOTS,{recursive:true});await page.screenshot({path:path.join(SHOTS,'boot-error-'+width+'.png')});}throw error;}`);
 if(BASELINE)source=source.replace('const types=',`for(const file of ['vip-panel.html','js/icadem-platform-v2.js','js/icadem-course-sync.js','js/icadem-course-unlocks.js','css/icadem-courses.css'])originals.set('/'+file,cp.execFileSync('git',['-c','safe.directory='+ROOT.replace(/\\\\/g,'/'),'show','38482b4:'+file],{cwd:ROOT,maxBuffer:8*1024*1024}));\nconst types=`);
 const h=new Function('require','__dirname','process',source.slice(0,source.indexOf('async function scenario(width)'))+`
 return {fixture,initial,catalog,cards,badges,noOverflow,shot,async start(){await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));base='http://127.0.0.1:'+server.address().port;browser=process.env.ICADEM_TEST_ENGINE==='webkit'?await webkit.launch({headless:true}):await chromium.launch({headless:true,channel:'chrome'});},async stop(){await browser?.close();server.close();}};`)(require,__dirname,process);
@@ -55,9 +57,20 @@ async function scenario(width){
  await p.evaluate(()=>ICADEMPlatform.refreshCriticalData());await settled(p);
  await p.locator('#cur-sort').selectOption('prioridades');await p.locator('#cur-area').selectOption('Fiscal');await p.locator('#cur-search').fill('profesionales');await p.waitForTimeout(120);
  const cycles=[];for(const slow of [false,true,false,true])cycles.push(await cycle(f,s,slow));
+ let rapidReturn=null;
  if(BASELINE){assert(cycles.some(c=>c.listShift>1.1||c.removedCards>0||c.replacedShell),'baseline must reproduce the reported layout/redraw regression');}
  else{
    await h.noOverflow(p,'stable course navigation '+width);
+   if(width===390){
+     // Return while the previous refresh is still in flight. This exercises
+     // cached summary paint whose priority hint awaits that same catalog read.
+     const countsBefore={...s.counts};s.hold=true;const flight=p.evaluate(()=>ICADEMPlatform.refreshCriticalData());await p.waitForFunction(()=>document.querySelector('#cur-list')?.getAttribute('aria-busy')==='true');
+     for(let n=0;n<100&&!s.held.some(x=>x.path==='/api/courses/catalog');n++)await p.waitForTimeout(10);assert(s.held.some(x=>x.path==='/api/courses/catalog'));
+     await p.evaluate(()=>navigateToSection('inicio'));await p.evaluate(()=>navigateToSection('cursos'));await p.waitForSelector('#cur-list .curso-card');await startProbe(p);
+     const before=await p.locator('.course-unlocks').boundingBox(),hintHidden=await p.locator('[data-unlock-priority]').getAttribute('hidden');await p.waitForTimeout(240);if(OUT)await h.shot(p,'after-rapid-return-pending-'+width);s.release();await flight;await settled(p);
+     const probe=await stopProbe(p),after=await p.locator('.course-unlocks').boundingBox();rapidReturn={listShift:span(probe.frames,x=>x.y),cardShift:span(probe.frames,x=>x.first?.y),headerHeightBefore:before.height,headerHeightAfter:after.height,initialHintHidden:hintHidden!==null,removedCards:probe.removedCards,catalogRequests:(s.counts['/api/courses/catalog']||0)-(countsBefore['/api/courses/catalog']||0),unlockRequests:(s.counts['/api/courses/unlocks']||0)-(countsBefore['/api/courses/unlocks']||0)};
+     console.log('RAPID RETURN '+JSON.stringify(rapidReturn));assert(rapidReturn.listShift<=1.1&&rapidReturn.cardShift<=1.1,'a rapid return during an in-flight read does not shift cards');assert.equal(rapidReturn.catalogRequests,1);assert.equal(rapidReturn.unlockRequests,1);assert.equal(probe.sameNodes,true);assert.equal(probe.removedCards,0);
+   }
    if(width===390){
      // A same-account identity update can overlap the catalog refresh. It may
      // refresh personal text, but must join that catalog request and keep cards.
@@ -86,6 +99,6 @@ async function scenario(width){
      s.release();await old;await p.waitForFunction(()=>document.querySelectorAll('.curso-card').length===1&&document.querySelector('.curso-card[data-cid="course-3"]'));await settled(p);assert.deepEqual(await h.cards(p),['course-3']);assert.deepEqual(await h.badges(p),{});assert.equal(await p.locator('[data-unlock-priority]:visible').count(),0,'late old-account priorities are never restored');
    }
  }
- records.push({width,engine:process.env.ICADEM_TEST_ENGINE||'chrome',baseline:BASELINE,cycles});console.log('PASS stable navigation '+width+' '+(process.env.ICADEM_TEST_ENGINE||'chrome')+' '+JSON.stringify(cycles));await f.context.close();
+ records.push({width,engine:process.env.ICADEM_TEST_ENGINE||'chrome',baseline:BASELINE,cycles,rapidReturn});console.log('PASS stable navigation '+width+' '+(process.env.ICADEM_TEST_ENGINE||'chrome')+' '+JSON.stringify(cycles));await f.context.close();
 }
 (async()=>{try{await h.start();for(const width of widths)await scenario(width);if(OUT){fs.mkdirSync(OUT,{recursive:true});fs.writeFileSync(path.join(OUT,'navigation-metrics.json'),JSON.stringify(records,null,2));}}finally{await h.stop();}})().catch(e=>{console.error(e);process.exitCode=1;});
