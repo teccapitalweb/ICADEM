@@ -48,7 +48,7 @@ async function fixture(width,shared={data:initial()}){
     await page.goto(base+'/vip-panel.html?modo=demo'+(previousOrder?'&ordenCursos='+encodeURIComponent(previousOrder):'')+'#cursos',{waitUntil:'domcontentloaded'});
     await page.waitForFunction(()=>window.ICADEMPlatform&&window.ICADEMCourseUnlocks&&typeof navigateToSection==='function');
     await page.evaluate(()=>{if(window.ICADEMPush)window.ICADEMPush.revisar=async()=>'seen';window.__isDemoMode=false;window.__currentUser={uid:'fixture-a',getIdToken:()=>Promise.resolve('browser-fixture-only')};window.__auth={currentUser:window.__currentUser};Object.assign(window.UserState,{uid:'fixture-a',modo:'vip',identityReady:true,isAdmin:false,profileComplete:true,profileIntakeSeen:true,displayName:'Estudiante de prueba',freeCourseId:''});window.__serverProgressOwner='fixture-a';window.__serverCourseProgress={'course-6':{clasesVistas:[1],completado:false}};window.navigateToSection('cursos');});
-    await page.waitForSelector('.course-unlocks__status');await page.waitForFunction(()=>document.querySelectorAll('.curso-card').length===8);await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])'));
+    await page.waitForSelector('.course-unlocks__status');await page.waitForFunction(()=>document.querySelectorAll('.curso-card').length===8);await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])')&&document.getElementById('cur-list')?.getAttribute('aria-busy')!=='true');
     await page.evaluate(()=>{document.querySelectorAll('.ica-tour-root,.ica-experience,#name-modal').forEach(el=>el.hidden=true);document.body.style.overflow='';window.scrollTo(0,0);});
   }
   await boot();return{context,page,state,boot};
