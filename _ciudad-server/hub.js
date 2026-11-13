@@ -10,6 +10,10 @@ import { coopCan, pendingApprovals } from '../ciudad/js/net/coop.js';
 import { ChatGuard } from './chat.js';
 import { MissionRun } from '../ciudad/js/missions/engine.js';
 import { RACE, TREASURES, TREASURE_RADIUS, treasureRounds, validSeed } from '../ciudad/js/edu/activities.js';
+import { MAZE, landmarkById } from '../ciudad/js/edu/district-rules.js';
+
+/** Recorridos validados por posición: puntos en orden y puntuación por tiempo. */
+const ROUTES = Object.freeze({ carrera: { ...RACE, par: 30, per: 1.5, away: 'fuera-del-parque' }, laberinto: { ...MAZE, away: 'fuera-del-distrito' } });
 
 /** Equipo libre (sin misión): de 2 a 4 personas, sin roles. */
 const TEAM = Object.freeze({ title: 'Equipo', min: 2, max: 4, roles: [], playable: false });
@@ -487,7 +491,8 @@ export class Hub {
   #where(player, scene) { const st = player.state; return st && st.scene === scene && this.now() - player.stateAt < 2500 ? st : null; }
 
   playStart(player, game, seed) {
-    if (game === 'carrera') { if (!this.#where(player, RACE.scene)) return { ok: false, reason: 'fuera-del-parque' }; player.play = { game, next: 0, at: this.now() }; return { ok: true, next: 0 }; }
+    const route = ROUTES[game];
+    if (route) { if (!this.#where(player, route.scene)) return { ok: false, reason: route.away }; player.play = { game, next: 0, at: this.now() }; return { ok: true, next: 0 }; }
     if (game === 'tesoro') {
       if (!validSeed(seed)) return { ok: false, reason: 'datos' };
       if (!this.#where(player, 'plaza')) return { ok: false, reason: 'fuera-de-la-plaza' };
@@ -502,16 +507,17 @@ export class Hub {
    */
   playCheck(player, payload = {}) {
     const run = player.play; if (!run) return { ok: false, reason: 'sin-partida' };
-    if (run.game === 'carrera') {
-      const st = this.#where(player, RACE.scene), i = payload.i, cp = RACE.checkpoints[run.next];
-      if (!st) return { ok: false, reason: 'fuera-del-parque' };
+    const route = ROUTES[run.game];
+    if (route) {
+      const st = this.#where(player, route.scene), i = payload.i, cp = route.checkpoints[run.next];
+      if (!st) return { ok: false, reason: route.away };
       if (i !== run.next || !cp) return { ok: false, reason: 'fuera-de-orden' };
-      if (Math.hypot(st.x - cp[0], st.z - cp[1]) > RACE.radius + 0.6 || st.y < (cp[2] || 0) - 0.35) return { ok: false, reason: 'lejos' };
+      if (Math.hypot(st.x - cp[0], st.z - cp[1]) > route.radius + 0.6 || st.y < (cp[2] || 0) - 0.35) return { ok: false, reason: 'lejos' };
       run.next++;
-      if (run.next < RACE.checkpoints.length) return { ok: true, next: run.next };
+      if (run.next < route.checkpoints.length) return { ok: true, next: run.next };
       const seconds = (this.now() - run.at) / 1000; player.play = null;
-      if (seconds < RACE.minSeconds) return { ok: false, reason: 'imposible' };
-      return { ok: true, done: true, game: 'carrera', seconds: Math.round(seconds), score: Math.max(50, Math.min(100, Math.round(100 - Math.max(0, seconds - 30) * 1.5))) };
+      if (seconds < route.minSeconds) return { ok: false, reason: 'imposible' };
+      return { ok: true, done: true, game: run.game, seconds: Math.round(seconds), score: Math.max(50, Math.min(100, Math.round(100 - Math.max(0, seconds - route.par) * route.per))) };
     }
     const st = this.#where(player, 'plaza'), t = TREASURES.find(x => x.id === payload.id), round = run.rounds[run.round];
     if (!st) return { ok: false, reason: 'fuera-de-la-plaza' };
@@ -527,6 +533,14 @@ export class Hub {
   }
 
   playQuit(player) { player.play = null; return { ok: true }; }
+
+  /** Ruta del explorador: el sitio cuenta solo si la última posición aceptada está ahí. */
+  discover(player, id) {
+    const l = landmarkById(String(id)); if (!l) return { ok: false, reason: 'sitio-desconocido' };
+    const st = this.#where(player, l.scene);
+    if (!st || Math.hypot(st.x - l.at[0], st.z - l.at[1]) > l.r + 0.6) return { ok: false, reason: 'lejos' };
+    return { ok: true, id: l.id };
+  }
 
   stats() { return { instances: this.instances.size, players: [...this.byUid.values()].filter(p => p.online).length, rooms: this.rooms.size, reports: this.reports.length }; }
 }

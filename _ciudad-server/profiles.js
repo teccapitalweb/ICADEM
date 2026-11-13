@@ -17,9 +17,12 @@ import { replay } from '../ciudad/js/missions/engine.js';
 import { questionById } from '../ciudad/js/edu/questions.js';
 import { FAMILY_MAX, AGE_BANDS, KID_MISSIONS, cleanAlias } from '../ciudad/js/edu/family.js';
 import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
+import { landmarkById, DISCOVER_XP } from '../ciudad/js/edu/district-rules.js';
 import { cleanPlay, rewardQuiz, rewardActivity, missionXp } from '../ciudad/js/edu/play-rules.js';
 import { emptyProfile, cleanCustom, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
+/** Minijuegos cuya XP solo llega por el servidor de sesiones (validados con posiciones). */
+export const POSITIONAL_GAMES = Object.freeze(['carrera', 'tesoro', 'laberinto']);
 export const CHAT_BLOCK_MAX = 100;
 /** Clave pública de un bloqueo: permite desbloquear sin enviar el uid de nadie al navegador. */
 export const blockKey = uid => createHash('sha256').update('ciudad-bloqueo:' + uid).digest('hex').slice(0, 12);
@@ -171,10 +174,21 @@ export class Profiles {
   /** Minijuegos validados por posición (carrera, tesoro): el hub ya comprobó el recorrido. */
   grantPositional(uid, id, score, now = Date.now()) {
     return this.#serial(uid, async () => {
-      if (id !== 'carrera' && id !== 'tesoro') return { ok: false, reason: 'actividad-invalida' };
+      if (!POSITIONAL_GAMES.includes(id)) return { ok: false, reason: 'actividad-invalida' };
       const p = await this.#read(uid), g = rewardActivity(p.play, id, Math.max(0, Math.min(100, Math.round(score))), now);
       p.xp += g.xp;
       return { ok: true, score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Ruta del explorador: XP una sola vez por sitio (la posición ya la comprobó el hub). */
+  discover(uid, id) {
+    return this.#serial(uid, async () => {
+      if (!landmarkById(String(id))) return { ok: false, reason: 'sitio-desconocido' };
+      const p = await this.#read(uid); p.discovered = Array.isArray(p.discovered) ? p.discovered.filter(x => landmarkById(x)) : [];
+      if (p.discovered.includes(id)) return { ok: true, xp: 0, profile: this.view(p) };
+      p.discovered.push(id); p.xp += DISCOVER_XP;
+      return { ok: true, xp: DISCOVER_XP, profile: this.view(await this.#write(uid, p)) };
     });
   }
 

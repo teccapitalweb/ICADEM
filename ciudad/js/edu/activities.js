@@ -4,6 +4,8 @@
 // navegador no puede «decir» que ganó. Carrera y Búsqueda del tesoro se validan además con las
 // posiciones que el servidor ya comprueba (ver POSITIONAL).
 
+import { DISTRICT_ACTIVITIES } from './district-rules.js';
+
 /** Generador pseudoaleatorio con semilla (mulberry32). */
 export function rng(seed) {
   let a = seed >>> 0;
@@ -146,7 +148,7 @@ const sorting = {
   }
 };
 
-export const ACTIVITIES = Object.freeze({ memoria: memory, matematicas: math, idiomas: languages, clasificacion: sorting });
+export const ACTIVITIES = Object.freeze({ memoria: memory, matematicas: math, idiomas: languages, clasificacion: sorting, ...DISTRICT_ACTIVITIES });
 
 /** Validación completa de una partida (la usa el servidor): semilla, nivel y bitácora. */
 export function checkActivity(id, seed, level, log) {

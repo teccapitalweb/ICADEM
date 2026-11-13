@@ -172,7 +172,7 @@ test('apertura: Carrera y Tesoro solo acreditan a su propio juego y el progreso 
   assert.equal((await profiles.grantPositional('u1', 'inventado', 100)).ok, false);
   assert.equal((await profiles.grantPositional('u1', 'undefined', 100)).ok, false);
   const r = await profiles.grantPositional('u1', 'carrera', 100); assert.deepEqual([r.ok, r.xp], [true, 50]);
-  assert.deepEqual(PLAY_GAMES, ['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro']);
+  assert.deepEqual(PLAY_GAMES, ['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro', 'laboratorio', 'escape', 'laberinto']);
   assert.deepEqual(Object.keys(cleanPlay({ act: { carrera: { best: 1 }, x1: { best: 1 }, undefined: { best: 1 } } }).act), ['carrera']);
 });
 

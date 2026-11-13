@@ -1,5 +1,6 @@
 // Reglas del progreso del jugador, compartidas por el cliente y el servidor (módulo puro).
 // El servidor es quien las aplica de verdad; el cliente solo las usa para mostrar qué falta.
+import { LANDMARKS } from '../edu/district-rules.js';
 import { levelFromXp } from '../core/store.js';
 import { emptyPlay, playAchievements } from '../edu/play-rules.js';
 
@@ -79,10 +80,11 @@ export function deriveAchievements(p) {
   if (Object.values(p.missions).some(m => m.bestScore === 100)) list.push('decision-impecable');
   if (p.missions[MISSION_COURT]?.completed) list.push('toga-y-mazo');
   if (BUILDING_IDS.every(id => p.visited.includes(id))) list.push('explorador-urbano');
+  if (LANDMARKS.every(l => (p.discovered || []).includes(l.id))) list.push('trotamundos');
   list.push(...playAchievements(p.play));
   return list;
 }
 
 export function emptyProfile() {
-  return { v: PROFILE_VERSION, rev: 0, xp: 0, missions: {}, visited: [], tutorialDone: false, achievements: [], avatarId: 'explorador', avatarChosen: false, custom: cleanCustom(null), testCredits: 0, testLedger: [], play: emptyPlay(), privacy: { listed: true } };
+  return { v: PROFILE_VERSION, rev: 0, xp: 0, missions: {}, visited: [], discovered: [], tutorialDone: false, achievements: [], avatarId: 'explorador', avatarChosen: false, custom: cleanCustom(null), testCredits: 0, testLedger: [], play: emptyPlay(), privacy: { listed: true } };
 }
