@@ -253,7 +253,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
           return send(ws, { t: 'profile', op: 'family', ok: f.ok, reason: f.reason, family: f.family });
         }
         const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log, { minor: player.minor }) : msg.op === 'visit' ? await profiles.visit(uid, msg.id)
-          : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom)
+          : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom, { customVersion: msg.customVersion })
           : msg.op === 'quiz' ? (hub.allow(player, 'quiz') ? await profiles.answerQuiz(uid, msg.id, msg.choice) : { ok: false, reason: 'demasiado-rapido' })
           : msg.op === 'activity' ? (hub.allow(player, 'activity') ? await profiles.playActivity(uid, String(msg.id), msg.seed, String(msg.level), msg.log) : { ok: false, reason: 'demasiado-rapido' })
           : msg.op === 'privacy' ? await profiles.setPrivacy(uid, msg.listed !== false) : { ok: true, profile: await profiles.get(uid) };

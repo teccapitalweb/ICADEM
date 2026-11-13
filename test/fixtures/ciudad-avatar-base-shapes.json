@@ -1,0 +1,94 @@
+{
+  "sourceCommit": "3485f05",
+  "precision": 100000,
+  "records": {
+    "explorador": {
+      "hash": "c64655ba885ab2bce42bdb6a17ae6477430009115a5e4e39817912a4a018b9d8",
+      "meshes": 23
+    },
+    "ejecutivo": {
+      "hash": "338d20add28853817fd7e24af3326579f8eb7ae2c58cf08a7dc687b18a112c6c",
+      "meshes": 20
+    },
+    "cientifica": {
+      "hash": "08531506f8cefae1dc7ed421ab06495b0526bcb99b0f1fa73bbdd6531c924fcc",
+      "meshes": 19
+    },
+    "ingeniero": {
+      "hash": "8a7737006a9f1f2ffc1f5bec8301e8395834f121250d078062a89ed61fe7fa91",
+      "meshes": 20
+    },
+    "medico": {
+      "hash": "fb3397f1893028fdba24229ebb78756f0b5a7ee5e2f28c3ce1ddf47114197e46",
+      "meshes": 21
+    },
+    "agronomo": {
+      "hash": "722cde468f68bbfe70556268c225501303124ef07b58564aec0939bb9c164f40",
+      "meshes": 20
+    },
+    "chef": {
+      "hash": "74dc771bcbbe47c92b00a737199f8afdd2ea2e4303fefb3a0e15c5465cf4c303",
+      "meshes": 20
+    },
+    "veterinario": {
+      "hash": "c016db6916268eb7b84963e384b6df46fd4682ee1bfac34bc59e6e25f4ab678d",
+      "meshes": 21
+    },
+    "juez": {
+      "hash": "7720e1e2b832c237186761d627850dbef841b9b6cfc7800cf0e54469dae009ea",
+      "meshes": 20
+    },
+    "embajador": {
+      "hash": "a6bb9c3117fa86d7873cf6f8aa764ea27f53425176751f0e506c6e4c9b971158",
+      "meshes": 20
+    },
+    "exploradora": {
+      "hash": "22a53142161922630fc42dd6000d6d7174ec195bd26ca763904793980dc5f7da",
+      "meshes": 23
+    },
+    "estudiante": {
+      "hash": "c070e6be240b2313d225c8085302a78640483daf102d6c8ec32eb61077804aa6",
+      "meshes": 21
+    },
+    "universitaria": {
+      "hash": "a3d26fec0deef413187482a52764e19c12660a1d2c6af3566c15d9b204fdb636",
+      "meshes": 20
+    },
+    "deportista": {
+      "hash": "6aab8895bfc7c3c1b96e4e343a57233188b60253d8de76328469198d500969b6",
+      "meshes": 19
+    },
+    "atleta": {
+      "hash": "b468ddb01e03e02fe1c0a8b4a9a22758e74fa0a5a403722c4bafa22e1785eb29",
+      "meshes": 19
+    },
+    "creativa": {
+      "hash": "317a9facb827b6cb18cbe10ea2d79f147cfd82c459c624598e96cbae4eb3a94a",
+      "meshes": 19
+    },
+    "astronauta": {
+      "hash": "4dcbde0855bafee01483c1ae94741521b286fa8006f97fce2f7c5c33bbf335ff",
+      "meshes": 22
+    },
+    "capitana": {
+      "hash": "7dc80da84ef80cb2e578670b8736f740503a54db64938cd403025ed14af1f75c",
+      "meshes": 21
+    },
+    "guardian": {
+      "hash": "2cd65e8d28e1812fb9d736e0fa54ef6e923bee877a92b6ebf0f0759f82f5f810",
+      "meshes": 21
+    },
+    "mente-brillante": {
+      "hash": "b7554de17fecea86a11faf12f43a9e423df5d368860eeea199fdf728c3bb938b",
+      "meshes": 20
+    },
+    "campeon": {
+      "hash": "117f60263e3485546e57ec2588ac72299bf6af20461e2e90c38e333eeeb82752",
+      "meshes": 20
+    },
+    "leyenda": {
+      "hash": "584397ebdff8233ae1d7193b6e61bc9d6869661c2536f8591ad8886073f1373d",
+      "meshes": 22
+    }
+  }
+}
