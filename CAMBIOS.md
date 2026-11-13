@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-11-13 — Ciudad ICADEM 1.3: Distrito del Saber
+
+- Escenario nuevo al sur de la plaza (portal en la calle sur): Laberinto del conocimiento, Laboratorio de ciencias, Sala de escape, Anfiteatro del Encuentro con gradas, Jardín de mariposas, Observatorio con telescopio, cartelera de retos y NPC (la Dra. Elena propone retos).
+- Minijuegos nuevos: Laberinto (validado por el servidor con posiciones, como la carrera), Laboratorio de experimentos y Sala de escape (regenerados con semilla y calificados por el servidor). Solo XP con los topes de siempre; nada de créditos.
+- Ruta del explorador: 8 sitios en plaza, parque y distrito marcados con un destello; el servidor confirma la posición y da 15 XP una vez por sitio. Logros nuevos: Mente científica, Escapista, Guardián del saber y Trotamundos.
+- Integra el Avatar Studio y el mapa premium de Codex (#68) sin cambiar su diseño: el distrito aparece como destino del mapa. Versiones v12 y caché v179.
+
 ## 2026-11-13 — Ciudad ICADEM: Avatar Studio y mapa premium
 
 - Vestidor con escenario 3D amplio, giro y zoom de la cámara de vista previa, catálogo de miniaturas reales, búsqueda y filtros de disponibilidad. Cuatro columnas en escritorio amplio y dos en teléfono; colores, sombreros y tonos conservan las opciones existentes. Equipado, disponible y requisitos bloqueados se distinguen sin añadir inventario ni desbloqueos.
