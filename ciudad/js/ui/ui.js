@@ -4,8 +4,9 @@ import { QUALITY } from '../core/engine.js';
 import { AVATARS, AVATAR_CATEGORIES, avatarById } from '../characters/catalog.js';
 import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, SKIN_TONES, isAvatarUnlocked, applyCustom, unlockProgress } from '../progress/rules.js';
 import { openWardrobe } from './wardrobe.js';
+import { createCityMap } from './city-map.js';
 import { GAME_LIST } from '../edu/games.js';
-import { BUILDINGS, doorPoint, footprint } from '../world/buildings.js';
+import { BUILDINGS, doorPoint } from '../world/buildings.js';
 import { placeByBuilding } from '../world/places.js';
 import { REWARDS } from '../economy/economy.js';
 import { isTouchDevice } from '../core/input.js';
@@ -209,73 +210,8 @@ export class UI {
   /* ---------- mapa interactivo ---------- */
   openMap() {
     if (this.isBlocking) return;
-    const api = this.api, st = api.store.state, wrap = h('div', 'map'), side = h('div', 'map__side'), cv = h('canvas'), info = h('div', 'map__info'), list = h('div', 'map__list');
-    const HALF = 48, S = 520; cv.width = cv.height = S;
-    const g = cv.getContext('2d'), k = S / (HALF * 2), mx = x => (x + HALF) * k, mz = z => (z + HALF) * k;
-    // Lugares del mapa: los edificios (su misión y si ya la completaste) y las actividades al aire libre.
-    const missionDone = b => { const pl = placeByBuilding(b.id), m = pl && api.missions && api.missions[pl.scene]; const id = m && m.def && m.def.id; return Boolean(id && st.missions[id] && st.missions[id].completed); };
-    const items = [
-      ...BUILDINGS.map(b => ({ kind: 'building', id: b.id, icon: b.icon, name: b.name, text: b.status === 'open' ? 'Misión: ' + b.mission : 'Próximamente', x: b.x, z: b.z, b, done: missionDone(b), open: b.status === 'open', way: doorPoint(b, 2.2) })),
-      { kind: 'activity', id: 'parque', icon: '🏃', name: 'Parque de retos', text: 'Carrera del conocimiento: arcos, plataformas y meta. Entrada al norte de la plaza.', x: 0, z: 38.5, open: true, way: { x: 0, z: 34.5 } },
-      { kind: 'activity', id: 'fuente', icon: '⛲', name: 'Punto de encuentro', text: 'La fuente de la plaza: aquí se reúne tu equipo y empieza la Búsqueda del tesoro.', x: 0, z: 0, open: true, way: { x: 0, z: 6 } }
-    ];
-    let selected = null;
-    const here = api.sceneName === 'plaza' ? api.player.position : null;
-    const disc = (x, y, r, fill, stroke, lw = 2) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); } };
-    const draw = () => {
-      g.fillStyle = '#c7e9b2'; g.fillRect(0, 0, S, S);
-      g.fillStyle = '#eadcc0'; g.fillRect(mx(-44), mz(-23), 88 * k, 5 * k); g.fillRect(mx(-44), mz(18), 88 * k, 5 * k); g.fillRect(mx(-29), mz(-18), 5 * k, 36 * k); g.fillRect(mx(24), mz(-18), 5 * k, 36 * k);
-      g.fillStyle = '#7b8496'; g.fillRect(mx(-3.5), 0, 7 * k, S); g.fillRect(0, mz(-3.5), S, 7 * k);
-      g.fillStyle = '#f4e3c3'; g.beginPath(); g.arc(mx(0), mz(0), 15 * k, 0, 7); g.fill();
-      g.fillStyle = '#7fd8f4'; g.beginPath(); g.arc(mx(0), mz(0), 4.2 * k, 0, 7); g.fill();
-      g.fillStyle = '#a8dc8f'; g.fillRect(mx(-9), mz(36), 18 * k, 11 * k);   // parque
-      for (const b of BUILDINGS) {
-        const f = footprint(b), on = selected && selected.id === b.id;
-        g.fillStyle = b.wall; g.strokeStyle = on ? '#0f1f3d' : 'rgba(15,31,61,.35)'; g.lineWidth = on ? 4 : 1.5;
-        g.beginPath(); if (g.roundRect) g.roundRect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k, 7); else g.rect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k); g.fill(); g.stroke();
-      }
-      if (api.waypoint) { g.strokeStyle = '#2f9e8f'; g.lineWidth = 3; g.setLineDash([6, 5]); if (here) { g.beginPath(); g.moveTo(mx(here.x), mz(here.z)); g.lineTo(mx(api.waypoint.x), mz(api.waypoint.z)); g.stroke(); } g.setLineDash([]); disc(mx(api.waypoint.x), mz(api.waypoint.z), 6, '#2f9e8f', '#fff'); }
-      g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '21px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
-      for (const it of items) {
-        const x = mx(it.x), y = mz(it.z), on = selected && selected.id === it.id;
-        disc(x, y, on ? 19 : 17, '#ffffff', on ? '#0f1f3d' : it.kind === 'activity' ? '#2f9e8f' : 'rgba(15,31,61,.55)', on ? 3 : 2);
-        g.fillStyle = '#000'; g.fillText(it.icon, x, y + 1);
-        if (it.done) { disc(x + 13, y - 13, 7.5, '#1f7a55', '#fff', 1.5); g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 9.5, y - 13); g.lineTo(x + 12.5, y - 10); g.lineTo(x + 16.5, y - 15.5); g.stroke(); }
-      }
-      if (here) { g.save(); g.translate(mx(here.x), mz(here.z)); g.rotate(-api.player.yaw + Math.PI); g.fillStyle = '#e8483f'; g.strokeStyle = '#fff'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, -12); g.lineTo(8, 9); g.lineTo(0, 4.5); g.lineTo(-8, 9); g.closePath(); g.fill(); g.stroke(); g.restore(); }
-    };
-    const renderInfo = () => {
-      info.replaceChildren();
-      if (!selected) info.append(h('h4', null, here ? 'Tú estás en la plaza' : 'Estás en un interior'), h('p', null, here ? 'La flecha roja eres tú. Toca un lugar del mapa o de la lista para ver qué hay y marcarlo como destino.' : 'Sal a la ciudad para ver tu posición; desde aquí ya puedes marcar un destino.'));
-      else {
-        const head = h('div', 'map__head'); head.append(h('span', 'map__icon', selected.icon), h('h4', null, selected.name)); info.append(head, h('p', null, selected.text));
-        const pills = h('div', 'map__pills');
-        pills.append(h('span', 'pill ' + (selected.open ? 'pill--ok' : 'pill--soon'), selected.kind === 'activity' ? 'Actividad' : selected.open ? 'Disponible' : 'Próximamente'));
-        if (selected.done) pills.append(h('span', 'pill pill--done', 'Completada'));
-        info.append(pills);
-        const go = h('button', 'btn btn--primary', 'Marcar como destino'); go.type = 'button';
-        go.addEventListener('click', () => { api.setWaypoint({ x: selected.way.x, z: selected.way.z, name: selected.name }); this.toast('Destino marcado: ' + selected.name); draw(); });
-        info.append(go);
-      }
-      list.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', Boolean(selected) && b.dataset.id === selected.id));
-    };
-    for (const it of items) {
-      const btn = h('button'); btn.type = 'button'; btn.dataset.id = it.id;
-      const name = h('span', null, it.name); name.style.flex = '1';
-      btn.append(h('i', 'map__emoji', it.icon), name, h('small', it.done ? 'is-done' : null, it.done ? 'Completada' : it.kind === 'activity' ? 'Actividad' : it.open ? 'Abierto' : 'Pronto'));
-      btn.addEventListener('click', () => { selected = it; draw(); renderInfo(); });
-      list.append(btn);
-    }
-    cv.addEventListener('click', e => {
-      const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * HALF * 2 - HALF, z = (e.clientY - r.top) / r.height * HALF * 2 - HALF;
-      selected = items.find(it => Math.hypot(x - it.x, z - it.z) < 3.4) || BUILDINGS.map(b => items.find(it => it.id === b.id)).find(it => { const f = footprint(it.b); return Math.abs(x - it.x) <= f.w / 2 + 1 && Math.abs(z - it.z) <= f.d / 2 + 1; }) || null;
-      draw(); renderInfo();
-    });
-    const legend = h('div', 'map__legend');
-    legend.append(h('span', null, '➤ Tú'), h('span', 'is-done', '✓ Completada'), h('span', 'is-act', '● Actividad'));
-    const left = h('div', 'map__canvas'); left.append(cv, legend);
-    side.append(info, list); wrap.append(left, side); draw(); renderInfo();
-    api.events.emit('map-opened');
+    const wrap = createCityMap(this);
+    this.api.events.emit('map-opened');
     return this.modal({ eyebrow: 'Mapa', title: 'Ciudad ICADEM', content: wrap, wide: true });
   }
 

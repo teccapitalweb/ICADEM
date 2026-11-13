@@ -1,0 +1,78 @@
+/* Only Avatar Studio and the city map. Other game windows retain their layout. */
+#modal:has(:is(.vest--studio,.map--premium)) {
+  background:rgba(8,16,38,.64);
+  backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card {
+  width:min(1240px,100%);border:1px solid rgba(215,227,255,.65);border-radius:26px;
+  background:#f8faff;box-shadow:0 30px 90px #070e3099,0 0 0 5px #ffffff08;
+  color-scheme:light;animation:city-premium-enter .18s ease;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card header {
+  position:relative;isolation:isolate;align-items:center;min-height:94px;padding:20px 24px;
+  background:radial-gradient(ellipse at 80% -90%,#476baf88,transparent 65%),linear-gradient(115deg,#0e1d40,#183665);
+  border-bottom:1px solid #ffffff30;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card header>div {
+  position:relative;min-width:0;padding-left:68px;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card header>div::before {
+  content:"";position:absolute;inset:0 auto 0 0;width:48px;
+  background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 56 56'%3E%3Cpath fill='%23ffd166' d='M8 43V26l9-5v22h4V14l11-6v35h4V23l10 5v15h-6V29l-1-1v19H4v-4zm17 0h3V15l-3 2zm-13 0h1V28l-1 1z'/%3E%3Cpath d='M3 51Q28 42 53 51' fill='none' stroke='%23ffd166' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card header small {
+  display:block;margin-bottom:5px;color:#e6cf94;font-size:10px;letter-spacing:.15em;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card h2 {
+  margin:0;font-size:clamp(22px,2.2vw,30px);letter-spacing:-.025em;line-height:1.12;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__x {
+  width:44px;height:44px;border:1px solid #ffffff30;border-radius:14px;
+  background:linear-gradient(140deg,#ffffff20,#ffffff0b);transition:background .15s,transform .15s;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__x:hover {background:#ffffff30;transform:translateY(-1px)}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__body {
+  padding:18px 20px 8px;min-height:0;scrollbar-width:thin;scrollbar-color:#bcc7df transparent;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__hint:empty {display:none}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card footer {
+  padding:10px 20px 16px;background:#f8faff;border-top:1px solid #e6eaf3;flex-shrink:0;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card footer .btn {
+  min-height:44px;padding:10px 24px;border:1px solid #d5ddef;border-radius:13px;
+  background:#fff;box-shadow:0 2px 4px #172b5208;
+}
+#modal:has(:is(.vest--studio,.map--premium)) .modal__card footer .btn--primary {
+  background:linear-gradient(130deg,#213f73,#0f2147);border-color:#314f85;color:#fff;
+}
+#modal:has(:is(.vest--studio,.map--premium)) :focus-visible {outline:3px solid #5e77cd;outline-offset:3px}
+#modal:has(:is(.vest--studio,.map--premium)) header :focus-visible {outline-color:#ffd166}
+@keyframes city-premium-enter {from{opacity:0}to{opacity:1}}
+@media(max-width:600px) {
+  #modal:has(:is(.vest--studio,.map--premium)) {
+    padding:var(--safe-t) var(--safe-r) var(--safe-b) var(--safe-l);align-items:stretch;
+  }
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card {
+    border:0;border-radius:0;width:100%;max-height:100%;height:100%;
+  }
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card header {min-height:76px;padding:13px 14px;gap:10px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card header>div {padding-left:46px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card header>div::before {width:34px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card header small {font-size:9px;letter-spacing:.1em;margin-bottom:4px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card h2 {font-size:23px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__body {padding:10px 12px;flex:1;min-height:0}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card footer {padding:8px 12px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card footer .btn--primary {flex:1}
+}
+@media(max-height:540px) and (min-width:601px) {
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card {border-radius:18px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card header {min-height:64px;padding:10px 18px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card h2 {font-size:22px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__body {padding:10px 14px}
+  #modal:has(:is(.vest--studio,.map--premium)) .modal__card footer {padding:6px 14px}
+}
+@media(prefers-reduced-motion:reduce) {
+  #modal:has(:is(.vest--studio,.map--premium)) *,#modal:has(:is(.vest--studio,.map--premium)) *::before,#modal:has(:is(.vest--studio,.map--premium)) *::after {
+    animation:none!important;transition:none!important;scroll-behavior:auto!important;
+  }
+}

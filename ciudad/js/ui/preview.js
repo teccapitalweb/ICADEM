@@ -3,6 +3,7 @@
 // de pantalla y copia el resultado a un lienzo 2D. Solo trabaja mientras la ventana está abierta.
 import * as THREE from '../three.js';
 import { createAvatar } from '../characters/avatar.js';
+import { disposeTree } from '../core/engine.js';
 
 export class AvatarPreview {
   constructor(renderer, { width = 220, height = 280 } = {}) {
@@ -21,7 +22,7 @@ export class AvatarPreview {
     this.target = new THREE.WebGLRenderTarget(width, height);   // sin multimuestreo: más ligero y seguro en celulares
     this.target.texture.colorSpace = THREE.SRGBColorSpace;
     this.pixels = new Uint8Array(width * height * 4); this.image = this.ctx.createImageData(width, height);
-    this.avatar = null; this.spin = 0.55; this.yaw = 0.4; this.raf = 0; this.last = 0; this.drag = null;
+    this.avatar = null; this.spin = 0.55; this.yaw = 0.4; this.raf = 0; this.last = 0; this.drag = null; this.disposed = false;
     this.canvas.addEventListener('pointerdown', e => { this.drag = e.clientX; this.canvas.setPointerCapture(e.pointerId); });
     this.canvas.addEventListener('pointermove', e => { if (this.drag === null) return; this.yaw += (e.clientX - this.drag) * 0.012; this.drag = e.clientX; this.spin = 0; });
     const up = () => { this.drag = null; }; this.canvas.addEventListener('pointerup', up); this.canvas.addEventListener('pointercancel', up);
@@ -29,7 +30,7 @@ export class AvatarPreview {
 
   /** Cambia el personaje mostrado (misma apariencia que en el juego). */
   show(look) {
-    if (this.avatar) { this.scene.remove(this.avatar.group); }
+    if (this.avatar) { this.scene.remove(this.avatar.group); disposeTree(this.avatar.group); }
     this.avatar = createAvatar(look); this.scene.add(this.avatar.group);
     this.avatar.playEmote && this.avatar.playEmote('wave', 1.4);
   }
@@ -47,7 +48,8 @@ export class AvatarPreview {
 
   draw() {
     const r = this.renderer, prev = r.getRenderTarget();   // sin luces que proyecten sombra: no cambia sombreadores
-    r.setRenderTarget(this.target); r.render(this.scene, this.camera); r.setRenderTarget(prev);
+    try { r.setRenderTarget(this.target); r.render(this.scene, this.camera); }
+    finally { r.setRenderTarget(prev); }
     r.readRenderTargetPixels(this.target, 0, 0, this.w, this.h, this.pixels);
     this.image.data.set(this.pixels); this.fctx.putImageData(this.image, 0, 0);
     this.ctx.save(); this.ctx.setTransform(1, 0, 0, -1, 0, this.h); this.ctx.drawImage(this.flip, 0, 0); this.ctx.restore();   // WebGL entrega las filas de abajo hacia arriba
@@ -57,10 +59,13 @@ export class AvatarPreview {
   still(look, yaw = 0.45) {
     const keep = this.avatar; if (keep) this.scene.remove(keep.group);
     const a = createAvatar(look); a.group.rotation.y = yaw; a.update(0.016, { speed: 0, grounded: true }); this.scene.add(a.group);
-    this.draw(); const url = this.canvas.toDataURL('image/png');
-    this.scene.remove(a.group); if (keep) this.scene.add(keep.group);
-    return url;
+    try { this.draw(); return this.canvas.toDataURL('image/png'); }
+    finally { this.scene.remove(a.group); disposeTree(a.group); if (keep) this.scene.add(keep.group); }
   }
 
-  stop() { cancelAnimationFrame(this.raf); this.raf = 0; this.target.dispose(); }
+  stop() {
+    cancelAnimationFrame(this.raf); this.raf = 0;
+    if (this.disposed) return;
+    this.disposed = true; disposeTree(this.scene); this.scene.clear(); this.avatar = null; this.target.dispose();
+  }
 }
