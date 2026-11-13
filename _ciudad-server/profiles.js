@@ -18,7 +18,7 @@ import { questionById } from '../ciudad/js/edu/questions.js';
 import { FAMILY_MAX, AGE_BANDS, KID_MISSIONS, cleanAlias } from '../ciudad/js/edu/family.js';
 import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
 import { cleanPlay, rewardQuiz, rewardActivity, missionXp } from '../ciudad/js/edu/play-rules.js';
-import { emptyProfile, cleanCustom, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
+import { emptyProfile, cleanCustom, COSMETIC_OPTIONS, LEGACY_HAT_IDS, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
 export const CHAT_BLOCK_MAX = 100;
 /** Clave pública de un bloqueo: permite desbloquear sin enviar el uid de nadie al navegador. */
@@ -216,11 +216,22 @@ export class Profiles {
   /** Perfil infantil de un adulto (para entrar con él). */
   async kidOf(uid, id) { const p = await this.#serial(uid, () => this.#read(uid)); return (p.family || []).find(k => k.id === id) || null; }
 
-  setAvatar(uid, avatarId, custom) {
+  setAvatar(uid, avatarId, custom, { customVersion } = {}) {
     return this.#serial(uid, async () => {
       const p = await this.#read(uid);
       if (!isAvatarUnlocked(String(avatarId), p)) return { ok: false, reason: 'avatar-bloqueado', profile: this.view(p) };
-      p.avatarId = String(avatarId); p.custom = cleanCustom(custom); p.avatarChosen = true;   // ya eligió personaje: no se le vuelve a preguntar en ningún dispositivo
+      // Older clients know only outfit/hat/tone. Their full old-format save must
+      // not erase fashion chosen on another device. V2 sends the full snapshot,
+      // so an absent new field can intentionally return to the original look.
+      const incoming = custom && typeof custom === 'object' ? custom : {}, inherited = {};
+      if (customVersion !== 2) for (const key of Object.keys(COSMETIC_OPTIONS)) {
+        if (!Object.hasOwn(incoming, key) && Object.hasOwn(p.custom, key)) inherited[key] = p.custom[key];
+      }
+      const next = { ...inherited, ...incoming };
+      // V1 normalizes hats it does not know to "base". Keep that newer hat unless
+      // the old client chooses a supported hat/none; V2 can explicitly reset it.
+      if (customVersion !== 2 && !LEGACY_HAT_IDS.includes(p.custom.hat) && (!Object.hasOwn(incoming, 'hat') || incoming.hat === 'base')) next.hat = p.custom.hat;
+      p.avatarId = String(avatarId); p.custom = cleanCustom(next); p.avatarChosen = true;   // ya eligió personaje: no se le vuelve a preguntar en ningún dispositivo
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }

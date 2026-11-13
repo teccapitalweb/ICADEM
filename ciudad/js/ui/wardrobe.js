@@ -1,13 +1,13 @@
 // Ciudad ICADEM · Vestidor: personajes iniciales, profesiones y skins especiales, con vista previa 3D,
-// requisitos reales de desbloqueo (los mismos que comprueba el servidor) y estilo (atuendo, sombrero
-// y tono de piel). También es la selección de personaje de la primera vez (`first: true`).
+// requisitos reales de desbloqueo (los mismos que comprueba el servidor), ropa, cabello y accesorios.
+// También es la selección de personaje de la primera vez (`first: true`).
 import { AVATARS, AVATAR_CATEGORIES, avatarById } from '../characters/catalog.js';
-import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, SKIN_TONES, isAvatarUnlocked, applyCustom, unlockProgress } from '../progress/rules.js';
+import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, SKIN_TONES, TOP_OPTIONS, BOTTOM_OPTIONS, SHOE_OPTIONS, BAG_OPTIONS, HAIR_STYLE_OPTIONS, HAIR_COLORS, NECKLACE_OPTIONS, isAvatarUnlocked, applyCustom, unlockProgress } from '../progress/rules.js';
 import { AvatarPreview } from './preview.js';
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; };
 const icon = kind => {
-  const paths = { person: ['M12 3a4 4 0 1 0 0 8a4 4 0 0 0 0-8', 'M5 21v-2a7 7 0 0 1 14 0v2z'], palette: ['M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4a1.2 1.2 0 0 1 .8-2.1H17A4 4 0 0 0 21 11a8.5 8.5 0 0 0-9-8', 'M7 10h.01M10 6h.01M15 6h.01M18 10h.01'], cube: ['M12 2l9 5v10l-9 5l-9-5V7z', 'M3 7l9 5l9-5M12 12v10'] };
+  const paths = { person: ['M12 3a4 4 0 1 0 0 8a4 4 0 0 0 0-8', 'M5 21v-2a7 7 0 0 1 14 0v2z'], palette: ['M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 1.4-3.4a1.2 1.2 0 0 1 .8-2.1H17A4 4 0 0 0 21 11a8.5 8.5 0 0 0-9-8', 'M7 10h.01M10 6h.01M15 6h.01M18 10h.01'], cube: ['M12 2l9 5v10l-9 5l-9-5V7z', 'M3 7l9 5l9-5M12 12v10'], shirt: ['M8 3L3 6l2 5 3-1v11h8V10l3 1 2-5-5-3', 'M8 3a4 4 0 0 0 8 0'], bag: ['M5 8h14l1 13H4z', 'M8 8V6a4 4 0 0 1 8 0v2'], hair: ['M5 17V10a7 7 0 0 1 14 0v7', 'M5 11c4 0 5-5 5-5s3 5 9 5M8 14v4M12 14v5M16 14v4'] };
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('class', 'vest__icon'); svg.setAttribute('aria-hidden', 'true');
   for (const d of paths[kind] || []) { const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); svg.append(path); } return svg;
 };
@@ -19,7 +19,7 @@ const icon = kind => {
 export function openWardrobe(ui, { first = false } = {}) {
   if (ui.isBlocking) return Promise.resolve('blocked');
   const api = ui.api, st = api.store.state, hex = n => '#' + n.toString(16).padStart(6, '0');
-  const wrap = h('div', 'vest vest--studio' + (first ? ' is-first' : '')), stage = h('div', 'vest__stage'), panel = h('div', 'vest__panel');
+  const wrap = h('div', 'vest vest--studio vest--fashion' + (first ? ' is-first' : '')), stage = h('div', 'vest__stage'), panel = h('div', 'vest__panel');
   let preview = null, thumbs = null, thumbnailRun = 0;
   try { preview = new AvatarPreview(api.engine.renderer, { width: 320, height: 390 }); thumbs = new AvatarPreview(api.engine.renderer, { width: 150, height: 190 }); thumbs.camera.position.set(0, 1.15, 3.4); thumbs.camera.lookAt(0, 0.95, 0); preview.scene.background.setHex(0xeaeafa); thumbs.scene.background.setHex(0xf1f2fc); } catch (_) { preview = thumbs = null; }
   let viewing = first ? (AVATARS.find(a => a.id === st.avatarId && a.category === 'inicial') || AVATARS[0]).id : st.avatarId;
@@ -28,7 +28,7 @@ export function openWardrobe(ui, { first = false } = {}) {
   const shots = new Map();
   const thumbnails = queue => {
     const run = ++thumbnailRun;
-    const next = () => { const job = queue.shift(); if (!job || !wrap.isConnected || run !== thumbnailRun) return; if (job.img.isConnected) { const url = shot(job.id, job.custom); if (url) job.img.src = url; } requestAnimationFrame(next); };
+    const next = () => { const job = queue.shift(); if (!job || !wrap.isConnected || run !== thumbnailRun) return; if (job.img.isConnected) { const url = shot(job.id, job.custom, job.detail); if (url) job.img.src = url; } requestAnimationFrame(next); };
     requestAnimationFrame(next);
   };
 
@@ -57,7 +57,7 @@ export function openWardrobe(ui, { first = false } = {}) {
     }
   } else { stage.classList.add('is-off'); stage.append(h('p', 'vest__fallback', 'La vista 3D no está disponible. Puedes elegir tu personaje en el catálogo.')); }
   const info = h('div', 'vest__info'); info.append(tag, name, status); stage.append(info);
-  const customize = h('button', 'vest__customize', 'Personalizar estilo'); customize.type = 'button'; customize.prepend(icon('palette')); customize.addEventListener('click', () => show('estilo')); stage.append(customize);
+  const customize = h('button', 'vest__customize', 'Vestir a mi avatar'); customize.type = 'button'; customize.prepend(icon('shirt')); customize.addEventListener('click', () => show('ropa')); stage.append(customize);
 
   /* tarjetas */
   const cards = h('div', 'vest__cards'), cats = h('div', 'vest__cats'), tools = h('div', 'vest__tools'), search = h('label', 'vest__search'), searchInput = h('input'), filter = h('select', 'vest__availability'), resultCount = h('small', 'vest__result-count');
@@ -65,7 +65,18 @@ export function openWardrobe(ui, { first = false } = {}) {
   filter.setAttribute('aria-label', 'Disponibilidad de personajes');
   for (const [value, label] of [['all', 'Todos'], ['available', 'Disponibles'], ['locked', 'Por desbloquear'], ['equipped', 'Equipado']]) { if (first && ['locked', 'equipped'].includes(value)) continue; const o = h('option', '', label); o.value = value; filter.append(o); }
   searchInput.addEventListener('input', () => { query = searchInput.value; paintCards(); }); filter.addEventListener('change', () => { availability = filter.value; paintCards(); }); tools.append(search, filter); resultCount.setAttribute('role', 'status');
-  const shot = (id, custom = st.custom) => { if (!thumbs) return null; const key = id + JSON.stringify(custom); if (!shots.has(key)) shots.set(key, thumbs.still(lookOf(id, custom))); return shots.get(key); };
+  const shot = (id, custom = st.custom, detail = 'full') => {
+    if (!thumbs) return null;
+    const key = id + ':' + detail + JSON.stringify(custom);
+    if (!shots.has(key)) {
+      // Show small accessories at a useful size, with the same real equipped model.
+      const [y, distance] = detail === 'necklace' ? [1.0, 1.55] : detail === 'shoes' ? [.24, 1.8] : ['hairStyle', 'hairColor', 'hat'].includes(detail) ? [1.4, 2.25] : [0.95, 3.4];
+      thumbs.camera.position.set(0, y + .2, distance); thumbs.camera.lookAt(0, y, 0);
+      if (shots.size >= 128) shots.delete(shots.keys().next().value);
+      shots.set(key, thumbs.still(lookOf(id, custom)));
+    }
+    return shots.get(key);
+  };
   const paintCards = () => {
     cats.replaceChildren(); cards.replaceChildren();
     for (const c of AVATAR_CATEGORIES) {
@@ -94,33 +105,61 @@ export function openWardrobe(ui, { first = false } = {}) {
     thumbnails(queue);
   };
 
-  /* estilo: atuendo, sombrero y tono (todo gratuito) */
+  /* Opciones cosméticas reales: el mismo catálogo validado por el servidor. */
+  const fashionSections = {
+    ropa: [
+      { key: 'top', label: 'Playeras y chaquetas', options: TOP_OPTIONS },
+      { key: 'bottom', label: 'Pantalones y faldas', options: BOTTOM_OPTIONS },
+      { key: 'shoes', label: 'Calzado', options: SHOE_OPTIONS }
+    ],
+    accesorios: [
+      { key: 'hat', label: 'Gorras y sombreros', options: HAT_OPTIONS },
+      { key: 'bag', label: 'Bolsos', options: BAG_OPTIONS },
+      { key: 'necklace', label: 'Collares', options: NECKLACE_OPTIONS }
+    ],
+    cabello: [
+      { key: 'hairStyle', label: 'Peinados y pelucas', options: HAIR_STYLE_OPTIONS },
+      { key: 'hairColor', label: 'Color del cabello', options: HAIR_COLORS }
+    ]
+  };
+  const activeGroup = { ropa: 'top', accesorios: 'hat', cabello: 'hairStyle' };
   const style = h('div', 'vest__style');
   const paintStyle = () => {
-    style.replaceChildren(); const queue = [];
+    style.replaceChildren(); style.classList.toggle('vest__fashion', Boolean(fashionSections[tab])); const queue = [];
     const group = (label, key, options, swatch) => {
-      const f = h('section', 'field vest__style-group'), head = h('div', 'vest__style-head'), row = h('div', 'chips' + (swatch ? ' chips--swatch' : '') + ' vest__' + key + '-options'); head.append(h('h3', null, label), h('small', null, 'Gratuito')); f.append(head, row);
+      const f = h('section', 'field vest__style-group'), head = h('div', 'vest__style-head'), row = h('div', 'chips' + (swatch ? ' chips--swatch' : '') + (key === 'tone' ? '' : ' vest__item-options') + ' vest__' + key + '-options'); f.dataset.cosmeticGroup = key; head.append(h('h3', null, label), h('small', null, 'Gratuito')); f.append(head, row);
       options.forEach(o => {
-        const on = st.custom[key] === o.id, b = h('button', (on ? 'is-on ' : '') + (key === 'tone' ? 'vest__tone' : 'voption')); b.type = 'button'; b.dataset[key] = o.id; b.title = o.name; b.setAttribute('aria-label', `${label}: ${o.name}`); b.setAttribute('aria-pressed', String(on));
+        const on = (st.custom[key] || 'base') === o.id, b = h('button', (on ? 'is-on ' : '') + (key === 'tone' ? 'vest__tone' : 'voption')); b.type = 'button'; b.dataset[key] = o.id; b.title = o.name; b.setAttribute('aria-label', `${label}: ${o.name}`); b.setAttribute('aria-pressed', String(on));
         if (o.color !== null && o.color !== undefined) b.style.setProperty('--dot', hex(o.color)); else if (swatch) b.classList.add('is-base');
         if (key !== 'tone') {
-          const pic = h('span', 'voption__pic'), img = h('img'), copy = h('span', 'voption__copy'); img.alt = ''; img.decoding = 'async'; pic.append(img); copy.append(h('strong', null, o.name), h('small', null, on ? 'Aplicado' : key === 'hat' ? 'Sombrero' : 'Color de atuendo')); b.append(pic, copy);
+          const pic = h('span', 'voption__pic'), img = h('img'), copy = h('span', 'voption__copy'); img.alt = ''; img.decoding = 'async'; pic.append(img); copy.append(h('strong', null, o.name), h('small', null, on ? 'Aplicado' : 'Vista en tu avatar')); b.append(pic, copy);
+          if (key === 'hairColor' && o.color !== null) pic.append(h('span', 'vest__hair-swatch'));
           if (on) pic.append(h('span', 'voption__check', '✓'));
-          queue.push({ id: first ? viewing : st.avatarId, custom: { ...st.custom, [key]: o.id }, img });
+          queue.push({ id: first ? viewing : st.avatarId, custom: { ...st.custom, [key]: o.id }, img, detail: key });
         } else b.append(h('span', 'vest__tone-dot'), h('span', 'vest__tone-name', o.name));
         b.addEventListener('click', () => { const c = { ...st.custom, [key]: o.id }; if (first) { st.custom = c; paintStyle(); paintStage(); } else if (api.setAvatar(st.avatarId, c)) { viewing = st.avatarId; paintStyle(); paintStage(); } });
         row.append(b);
       });
       return f;
     };
-    style.append(group('Color del atuendo', 'outfit', OUTFIT_COLORS, true), group('Sombrero', 'hat', HAT_OPTIONS), group('Tono de piel', 'tone', SKIN_TONES, true),
-      h('p', 'note', first ? 'Todo es gratuito y lo puedes cambiar después.' : 'Se aplica a tu personaje actual y se guarda en tu cuenta.'));
+    const sections = fashionSections[tab];
+    if (sections) {
+      const nav = h('div', 'vest__fashion-cats'); nav.setAttribute('aria-label', 'Categorías de ' + tab);
+      for (const section of sections) {
+        const b = h('button', activeGroup[tab] === section.key ? 'is-on' : '', section.label); b.type = 'button'; b.dataset.fashionGroup = section.key; b.setAttribute('aria-pressed', String(activeGroup[tab] === section.key));
+        b.addEventListener('click', () => { activeGroup[tab] = section.key; paintStyle(); style.querySelector('[data-fashion-group="' + section.key + '"]')?.focus({ preventScroll: true }); }); nav.append(b);
+      }
+      const selected = sections.find(s => s.key === activeGroup[tab]) || sections[0];
+      style.append(nav, group(selected.label, selected.key, selected.options, false));
+      if (tab === 'cabello') style.append(h('p', 'note', 'Si llevas sombrero, puede cubrir parte del peinado. Puedes cambiarlo en Accesorios.'));
+    } else style.append(group('Color del atuendo', 'outfit', OUTFIT_COLORS, true), group('Sombrero', 'hat', HAT_OPTIONS), group('Tono de piel', 'tone', SKIN_TONES, true));
+    style.append(h('p', 'note', first ? 'Todo es gratuito y lo puedes cambiar después.' : 'Ropa y accesorios cosméticos, sin ventajas en el juego.'));
     thumbnails(queue);
   };
 
   const tabs = h('div', 'tabs vest__tabs'), body = h('div', 'vest__body');
-  const show = id => { tab = id; tabs.querySelectorAll('button').forEach(b => { const on = b.dataset.id === id; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); }); body.replaceChildren(); customize.classList.toggle('is-on', id === 'estilo'); if (id === 'personajes') { body.append(cats, tools, resultCount, cards); paintCards(); } else { if (!first) { viewing = st.avatarId; paintStage(); } body.append(style); paintStyle(); } };
-  [['personajes', first ? 'Personajes' : 'Personajes y skins'], ['estilo', 'Estilo']].forEach(([id, t]) => { const b = h('button', null, t); b.type = 'button'; b.dataset.id = id; b.prepend(icon(id === 'estilo' ? 'palette' : 'person')); b.addEventListener('click', () => show(id)); tabs.append(b); });
+  const show = id => { tab = id; tabs.querySelectorAll('button').forEach(b => { const on = b.dataset.id === id; b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); }); body.replaceChildren(); customize.classList.toggle('is-on', id !== 'personajes'); if (id === 'personajes') { body.append(cats, tools, resultCount, cards); paintCards(); } else { if (!first) { viewing = st.avatarId; paintStage(); } body.append(style); paintStyle(); } };
+  [['personajes', 'Personajes', 'person'], ['ropa', 'Ropa', 'shirt'], ['accesorios', 'Accesorios', 'bag'], ['cabello', 'Cabello', 'hair'], ['estilo', 'Estilo', 'palette']].forEach(([id, t, symbol]) => { const b = h('button', null, t); b.type = 'button'; b.dataset.id = id; b.prepend(icon(symbol)); b.addEventListener('click', () => show(id)); tabs.append(b); });
   const owned = AVATARS.filter(a => isAvatarUnlocked(a.id, st)).length;
   panel.append(tabs, body);
   const collection = h('div', 'vest__collection'); collection.append(h('span', null, first ? 'TU PRIMER PERSONAJE' : 'TU COLECCIÓN'), h('strong', null, first ? 'El comienzo de tu aventura' : `${owned} de ${AVATARS.length} personajes`)); panel.append(collection, h('p', 'vest__collection-note', 'Se consiguen jugando. Todos son cosméticos: no dan ventaja ni se compran.'));
