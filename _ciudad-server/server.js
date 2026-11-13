@@ -13,7 +13,7 @@ import { Hub, LIMITS } from './hub.js';
 import { TicketAuthority, createFirebaseVerifier, googleKeys } from './auth.js';
 import { Profiles, MemoryStorage, JsonFileStorage } from './profiles.js';
 import { kidKey } from '../ciudad/js/edu/family.js';
-import { connectFirebase, createIcademServices } from './icadem.js';
+import { connectFirebase, createIcademServices, ACCESS_MODES } from './icadem.js';
 import { REWARDS } from '../ciudad/js/economy/economy.js';
 import { NET_TICK_HZ } from '../ciudad/js/net/network.js';
 import { defineMission, replay } from '../ciudad/js/missions/engine.js';
@@ -195,7 +195,8 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         // Carrera y búsqueda del tesoro: el servidor valida con las posiciones que ya comprobó.
         const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id }) : hub.playQuit(player);
         send(ws, { t: 'play', op: msg.op, game: msg.game, ...r });
-        if (r.done) { const g = await profiles.grantPositional(sessionUid, String(msg.game), r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: msg.game, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
+        // La XP va al juego de la partida que el servidor abrió, no al nombre que mande el navegador.
+        if (r.done) { const g = await profiles.grantPositional(sessionUid, r.game, r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: r.game, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
       }
       else if (msg.t === 'code') {
         // Códigos temporales para unirse a un equipo: vencen, tienen usos limitados y se revocan.
@@ -314,8 +315,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         // Misma cuenta de servicio que el backend: identidad, membresía y conexiones vienen de ICADEM.
         const { db, auth, projectId } = await connectFirebase(sa);
         const list = name => (process.env[name] || '').split(',').map(s => s.trim()).filter(Boolean);
-        const icadem = createIcademServices({ db, auth, admins, pilot: list('CIUDAD_PILOT_EMAILS'), blocked: list('CIUDAD_BLOCKED_UIDS') });
-        if (list('CIUDAD_PILOT_EMAILS').length) print(`modo piloto: solo ${list('CIUDAD_PILOT_EMAILS').length} cuentas autorizadas (más administradores)`);
+        // Acceso: open (todas las cuentas registradas, gratuitas y VIP; valor por defecto), pilot (solo
+        // CIUDAD_PILOT_EMAILS, que se conserva para poder volver) o closed (solo administradores: reversión
+        // rápida; los demás juegan en modo individual sin servidor).
+        const access = (process.env.CIUDAD_ACCESS || 'open').trim().toLowerCase();
+        if (!ACCESS_MODES.includes(access)) die('CIUDAD_ACCESS debe ser open, pilot o closed.');
+        const icadem = createIcademServices({ db, auth, admins, access, pilot: list('CIUDAD_PILOT_EMAILS'), blocked: list('CIUDAD_BLOCKED_UIDS') });
+        print(access === 'open' ? 'acceso: todas las cuentas registradas (gratuitas y VIP)' : access === 'closed' ? 'acceso: CERRADO (solo administradores)' : `acceso: piloto (${list('CIUDAD_PILOT_EMAILS').length} cuentas, más administradores; lista vacía = abierto)`);
         options.identity = icadem.identity; options.authorize = icadem.authorize; options.connections = icadem.connections;
         options.storage = process.env.CIUDAD_PROFILES === 'firestore' ? icadem.storage : new MemoryStorage();
         if (process.env.CIUDAD_REPORTS === 'firestore') options.onReport = icadem.saveReport;
@@ -327,7 +333,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         print(`identidad: llaves públicas (${projectId}) · sin membresía ni conexiones · progreso en memoria`);
       }
     } else die('CIUDAD_AUTH desconocido: ' + mode + '.');
-    const limits = { maxPlayers: Math.max(2, Math.min(500, Number(process.env.CIUDAD_MAX_PLAYERS) || 64)), trustProxy: process.env.CIUDAD_TRUST_PROXY === '1' };
+    const limits = { maxPlayers: Math.max(2, Math.min(500, Number(process.env.CIUDAD_MAX_PLAYERS) || 64)), maxConnsPerIp: Math.max(2, Math.min(50, Number(process.env.CIUDAD_MAX_CONNS_PER_IP) || 12)), trustProxy: process.env.CIUDAD_TRUST_PROXY === '1' };
     const app = createServer({ port: Number(process.env.PORT || 8787), log: print, ...options, ...limits });
     process.on('unhandledRejection', error => print('error-no-controlado', error && (error.code || error.message)));
     const port = await app.listen();

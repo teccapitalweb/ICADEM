@@ -15,10 +15,27 @@ const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400
 export function emptyPlay() { return { day: '', quizToday: 0, quizCorrect: 0, quizSeen: {}, act: {} }; }
 
 /** Normaliza lo guardado (perfiles anteriores no tienen `play`). */
+/**
+ * XP de una misión profesional aprobada: la primera vez, la XP completa; después, la XP de práctica
+ * (repeatXp) una sola vez al día por misión. `repeatDay` se guarda en el registro de la misión.
+ * Así repetir sigue valiendo la pena, pero la XP no crece sin límite. Nunca toca créditos.
+ */
+export function missionXp(reward, firstPass, record, now = Date.now()) {
+  if (firstPass) return { xp: Number(reward && reward.xp) || 0, repeatDay: null };
+  const today = dayKey(now);
+  if (record && record.repeatDay === today) return { xp: 0, repeatDay: today };
+  return { xp: Number(reward && reward.repeatXp) || 0, repeatDay: today };
+}
+
+/** Los seis minijuegos que dan XP. Cualquier otro nombre se descarta al leer el progreso. */
+export const PLAY_GAMES = Object.freeze(['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro']);
+
 export function cleanPlay(play) {
   const p = play && typeof play === 'object' ? play : {};
+  const act = p.act && typeof p.act === 'object' ? JSON.parse(JSON.stringify(p.act)) : {};
+  for (const id of Object.keys(act)) if (!PLAY_GAMES.includes(id)) delete act[id];
   return { day: typeof p.day === 'string' ? p.day : '', quizToday: Number(p.quizToday) || 0, quizCorrect: Number(p.quizCorrect) || 0,
-    quizSeen: p.quizSeen && typeof p.quizSeen === 'object' ? { ...p.quizSeen } : {}, act: p.act && typeof p.act === 'object' ? JSON.parse(JSON.stringify(p.act)) : {} };
+    quizSeen: p.quizSeen && typeof p.quizSeen === 'object' ? { ...p.quizSeen } : {}, act };
 }
 
 function rollDay(play, today) {

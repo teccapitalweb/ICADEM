@@ -17,7 +17,7 @@ import { replay } from '../ciudad/js/missions/engine.js';
 import { questionById } from '../ciudad/js/edu/questions.js';
 import { FAMILY_MAX, AGE_BANDS, KID_MISSIONS, cleanAlias } from '../ciudad/js/edu/family.js';
 import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
-import { cleanPlay, rewardQuiz, rewardActivity } from '../ciudad/js/edu/play-rules.js';
+import { cleanPlay, rewardQuiz, rewardActivity, missionXp } from '../ciudad/js/edu/play-rules.js';
 import { emptyProfile, cleanCustom, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
 export class MemoryStorage {
@@ -57,7 +57,7 @@ export class Profiles {
 
   get(uid) { return this.#serial(uid, async () => this.view(await this.#read(uid))); }
 
-  completeMission(uid, missionId, log, { minor = false } = {}) {
+  completeMission(uid, missionId, log, { minor = false, now = Date.now() } = {}) {
     return this.#serial(uid, async () => {
       const def = this.missions.get(String(missionId)); if (!def) return { ok: false, reason: 'mision-desconocida' };
       if (minor && !KID_MISSIONS.includes(def.id)) return { ok: false, reason: 'mision-no-disponible' };
@@ -66,10 +66,13 @@ export class Profiles {
       if (!check.ok || !check.result.valid) return { ok: false, reason: 'bitacora-invalida' };
       const p = await this.#read(uid), before = p.missions[def.id] || { completed: false, bestScore: 0, attempts: 0 }, result = check.result;
       const reward = this.rewards[def.id] || def.reward, first = result.passed && !before.completed;
-      p.missions[def.id] = { completed: before.completed || result.passed, bestScore: Math.max(before.bestScore, result.score), attempts: before.attempts + 1, lastScore: result.score };
+      const record = { completed: before.completed || result.passed, bestScore: Math.max(before.bestScore, result.score), attempts: before.attempts + 1, lastScore: result.score };
+      if (typeof before.repeatDay === 'string') record.repeatDay = before.repeatDay;
+      p.missions[def.id] = record;
       let credits = 0, xp = 0;
       if (result.passed) {
-        xp = first ? reward.xp : reward.repeatXp; p.xp += xp;
+        // Primera vez: XP completa. Repetición: XP de práctica una vez al día por misión.
+        const g = missionXp(reward, first, before, now); xp = g.xp; p.xp += xp; if (g.repeatDay) record.repeatDay = g.repeatDay;
         const key = 'mission:' + def.id;
         if (!minor && !p.testLedger.some(e => e.key === key)) { credits = reward.amount; p.testCredits += credits; p.testLedger.push({ key, amount: credits, at: Date.now() }); }
       }
@@ -123,6 +126,7 @@ export class Profiles {
   /** Minijuegos validados por posición (carrera, tesoro): el hub ya comprobó el recorrido. */
   grantPositional(uid, id, score, now = Date.now()) {
     return this.#serial(uid, async () => {
+      if (id !== 'carrera' && id !== 'tesoro') return { ok: false, reason: 'actividad-invalida' };
       const p = await this.#read(uid), g = rewardActivity(p.play, id, Math.max(0, Math.min(100, Math.round(score))), now);
       p.xp += g.xp;
       return { ok: true, score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };

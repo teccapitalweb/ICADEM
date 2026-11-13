@@ -437,7 +437,9 @@ Nunca lee ni escribe `credits`, Stripe, notificaciones, foro ni `professionalPro
 | `CIUDAD_TICKET_SECRET` | 32+ caracteres nuevos (`openssl rand -hex 32`), sellada; no reutilizar otros secretos |
 | `CIUDAD_ORIGINS` | `https://www.icademx.com,https://icademx.com` |
 | `FIREBASE_SERVICE_ACCOUNT` | referencia `${{icadem-webhook.FIREBASE_SERVICE_ACCOUNT}}` |
-| `CIUDAD_PILOT_EMAILS` | correos del piloto (vacío = abierto a todas las cuentas válidas) |
+| `CIUDAD_ACCESS` | `open` (por defecto: todas las cuentas registradas, gratuitas y VIP) · `pilot` (solo `CIUDAD_PILOT_EMAILS`) · `closed` (solo administradores; reversión rápida) |
+| `CIUDAD_PILOT_EMAILS` | correos del piloto; solo se usa con `CIUDAD_ACCESS=pilot` (se conserva para poder volver) |
+| `CIUDAD_MAX_CONNS_PER_IP` | `12` por defecto (2–50): conexiones simultáneas desde una misma red |
 | `CIUDAD_ADMINS` | correos de administradores del juego |
 | `CIUDAD_MAX_PLAYERS` | `64` (2–500) |
 | `CIUDAD_PROFILES` | vacío hasta autorizar `ciudadProfiles`; entonces `firestore` |
@@ -457,7 +459,7 @@ Pendiente:
 - Boleto con sesión real (paso 7 de 11.2): 200 con cuenta piloto, 403 fuera del piloto.
 - Fase 2: regla de `ciudadProfiles` en Firestore y `CIUDAD_PROFILES=firestore` (hasta entonces el progreso en servidor se pierde al reiniciar).
 - Juego real entre dos cuentas piloto (amigos/conexiones, salas) y teléfonos físicos.
-- Fase 5: quitar `CIUDAD_PILOT_EMAILS` para abrir a todas las cuentas gratuitas y VIP.
+- Fase 5 (12 nov 2026): apertura general con `CIUDAD_ACCESS` (sin borrar `CIUDAD_PILOT_EMAILS`). Ver sección 18.
 
 ## 12. Etapa 5 · Supermercado y reportes persistentes (rama `feature/ciudad-mejoras-piloto`, sin publicar)
 
@@ -740,3 +742,24 @@ Logros nuevos: Mente curiosa, Políglota, Memoria de oro, Calculadora humana, Gr
   antes de arrancar o de cada punto de control (quieto no enviaba estado y el servidor la daba por vieja) y
   cada mensaje dice su juego (antes el cliente ignoraba la confirmación del servidor y se quedaba en el
   primer arco o tesoro). Solo cliente; el servidor no cambia.
+
+## 18. Apertura general de la versión 1.1 (12 nov 2026)
+
+- **Acceso:** `CIUDAD_ACCESS` (sin definir = `open`). Entran todas las cuentas registradas de ICADEM,
+  gratuitas y VIP, sin restricciones VIP nuevas dentro del juego. Siguen fuera: cuentas deshabilitadas o
+  con la sesión revocada (Firebase `checkRevoked`), cuentas en proceso de borrado (`_accountDeletions`) y
+  `CIUDAD_BLOCKED_UIDS`. `CIUDAD_PILOT_EMAILS` no se borró: solo se usa con `CIUDAD_ACCESS=pilot`.
+- **Reversión** (sin redesplegar código): en Railway → `ciudad-icadem` → Variables, poner
+  `CIUDAD_ACCESS=closed` (solo administradores; los demás juegan en modo individual, sin perder progreso)
+  o `CIUDAD_ACCESS=pilot` (vuelve a la lista piloto). Railway reinicia el servicio solo.
+- **Recompensas antes de abrir:**
+  - Misiones: la XP de práctica (`repeatXp`) se da una vez al día por misión (`repeatDay` en el registro de
+    la misión); la XP de primera vez y los créditos de prueba (una sola vez) no cambian. Regla compartida
+    `missionXp` (cliente y servidor).
+  - Carrera y Tesoro: la XP va al juego de la partida que abrió el servidor (no al nombre que mande el
+    navegador); `grantPositional` solo acepta `carrera` y `tesoro`; `cleanPlay` descarta juegos desconocidos.
+  - Topes que ya existían: retos de NPC 10 al día y una vez por pregunta cada 7 días; minijuegos 60 XP al
+    día por juego y bono de primera vez único; visitas una vez por edificio; tutorial una vez.
+- **Límites:** `CIUDAD_MAX_PLAYERS` (64), `CIUDAD_MAX_CONNS_PER_IP` (12), una sesión por cuenta, boletos de
+  un uso (60 s), 20 boletos por minuto por dirección y topes por tipo de acción.
+
