@@ -20,14 +20,27 @@ async function makeProfiles(storage) {
   return new Profiles({ storage, rewards: REWARDS, missions: new Map([BANK_CREDIT_MISSION, COURT_JUDGE_MISSION].map(d => [d.id, defineMission(d)])) });
 }
 
-test('avatares: diez con un mismo esqueleto, desbloqueo por juego y equipamiento solo estético', async () => {
+test('avatares: mismo esqueleto, iniciales gratuitos, desbloqueo por juego y equipamiento solo estético', async () => {
   const { AVATARS } = await load('ciudad/js/characters/catalog.js');
   const r = await load('ciudad/js/progress/rules.js');
-  assert.deepEqual(AVATARS.map(a => a.name), ['Explorador', 'Ejecutivo', 'Científica', 'Ingeniero', 'Médico', 'Agrónomo', 'Chef', 'Veterinario', 'Juez', 'Embajador ICADEM']);
-  assert.deepEqual(Object.keys(r.AVATAR_UNLOCKS).sort(), AVATARS.map(a => a.id).sort());
-  assert.equal(new Set(AVATARS.map(a => JSON.stringify([a.look.top, a.look.accessories]))).size, 10, 'cada avatar se distingue');
+  assert.deepEqual(AVATARS.slice(0, 10).map(a => a.name), ['Explorador', 'Ejecutivo', 'Científica', 'Ingeniero', 'Médico', 'Agrónomo', 'Chef', 'Veterinario', 'Juez', 'Embajador ICADEM'], 'los diez originales se conservan');
+  assert.deepEqual(Object.keys(r.AVATAR_UNLOCKS).sort(), AVATARS.map(a => a.id).sort(), 'cada personaje tiene su regla');
+  assert.equal(new Set(AVATARS.map(a => JSON.stringify([a.look.top, a.look.accessories, a.look.hairStyle]))).size, AVATARS.length, 'cada avatar se distingue');
   const fresh = r.emptyProfile();
-  assert.deepEqual(AVATARS.filter(a => r.isAvatarUnlocked(a.id, fresh)).map(a => a.id), ['explorador'], 'al empezar solo el gratuito');
+  assert.deepEqual(AVATARS.filter(a => r.isAvatarUnlocked(a.id, fresh)).map(a => a.id), ['explorador', 'exploradora', 'estudiante', 'universitaria', 'deportista', 'atleta', 'creativa'], 'al empezar: los siete iniciales gratuitos');
+  assert.equal(fresh.avatarChosen, false, 'al empezar se le pide elegir personaje');
+  // skins especiales: requisitos reales del progreso
+  const done = id => ({ completed: true, bestScore: 80 });
+  assert.equal(r.isAvatarUnlocked('astronauta', { ...fresh, xp: 1759 }), false); assert.equal(r.isAvatarUnlocked('astronauta', { ...fresh, xp: 1760 }), true);
+  assert.equal(r.isAvatarUnlocked('leyenda', { ...fresh, xp: 2919 }), false); assert.equal(r.isAvatarUnlocked('leyenda', { ...fresh, xp: 2920 }), true);
+  assert.equal(r.isAvatarUnlocked('capitana', { ...fresh, missions: { 'torre-desafio-equipos': done() } }), true);
+  const nine = Object.fromEntries(r.MISSION_IDS.slice(0, 9).map(id => [id, done()]));
+  assert.equal(r.isAvatarUnlocked('guardian', { ...fresh, missions: nine }), false); assert.deepEqual(r.unlockProgress('guardian', { ...fresh, missions: nine }), [9, 10]);
+  assert.equal(r.isAvatarUnlocked('guardian', { ...fresh, missions: { ...nine, [r.MISSION_IDS[9]]: done() } }), true);
+  assert.equal(r.isAvatarUnlocked('mente-brillante', { ...fresh, play: { ...fresh.play, quizCorrect: 19 } }), false); assert.equal(r.isAvatarUnlocked('mente-brillante', { ...fresh, play: { ...fresh.play, quizCorrect: 20 } }), true);
+  const champ = { ...fresh.play, act: { carrera: { best: 80, done: true }, tesoro: { best: 70, done: true } } };
+  assert.equal(r.isAvatarUnlocked('campeon', { ...fresh, play: { ...fresh.play, act: { carrera: champ.act.carrera } } }), false); assert.equal(r.isAvatarUnlocked('campeon', { ...fresh, play: champ }), true);
+  for (const a of AVATARS) { const [now, goal] = r.unlockProgress(a.id, fresh); assert.ok(goal >= 1 && now >= 0 && now <= goal, a.id + ': progreso válido'); assert.ok(r.AVATAR_UNLOCKS[a.id].text.length > 4, a.id + ': requisito claro'); }
   assert.equal(r.isAvatarUnlocked('ejecutivo', { ...fresh, missions: { [r.MISSION_BANK]: { completed: true, bestScore: 85 } } }), true);
   assert.equal(r.isAvatarUnlocked('juez', { ...fresh, missions: { [r.MISSION_BANK]: { completed: true } } }), false);
   assert.equal(r.isAvatarUnlocked('cientifica', { ...fresh, xp: 80 }), true); assert.equal(r.isAvatarUnlocked('veterinario', { ...fresh, xp: 919 }), false);
@@ -37,13 +50,14 @@ test('avatares: diez con un mismo esqueleto, desbloqueo por juego y equipamiento
   const chef = AVATARS.find(a => a.id === 'chef').look, styled = r.applyCustom(chef, { outfit: 'uva', hat: 'cap' });
   assert.equal(styled.top, 0x8a5fd0); assert.ok(styled.accessories.includes('cap') && !styled.accessories.includes('toque') && styled.accessories.includes('apron'));
   assert.deepEqual(chef.accessories, ['apron', 'toque'], 'el catálogo no se modifica');
-  assert.deepEqual(r.cleanCustom({ outfit: '<script>', hat: 'corona', extra: 1 }), { outfit: 'base', hat: 'base' });
+  assert.deepEqual(r.cleanCustom({ outfit: '<script>', hat: 'corona', tone: 'azul', extra: 1 }), { outfit: 'base', hat: 'base', tone: 'base' });
+  const toned = r.applyCustom(chef, { tone: 't5' }); assert.equal(toned.skin, 0x6b4129, 'el tono de piel es libre y solo estético');
 });
 
 test('progreso en servidor: el cliente manda acciones y el servidor calcula XP, logros y recompensas de prueba', async () => {
   const profiles = await makeProfiles();
   const r = await load('ciudad/js/progress/rules.js');
-  assert.deepEqual(await profiles.get('ana'), { ...r.emptyProfile(), testLedger: undefined, testMoves: 0 }.testLedger === undefined && { v: 1, rev: 0, xp: 0, missions: {}, visited: [], tutorialDone: false, achievements: [], avatarId: 'explorador', custom: { outfit: 'base', hat: 'base' }, testCredits: 0, testMoves: 0, play: { day: '', quizToday: 0, quizCorrect: 0, quizSeen: {}, act: {} }, privacy: { listed: true } });
+  assert.deepEqual(await profiles.get('ana'), { ...r.emptyProfile(), testLedger: undefined, testMoves: 0 }.testLedger === undefined && { v: 1, rev: 0, xp: 0, missions: {}, visited: [], tutorialDone: false, achievements: [], avatarId: 'explorador', avatarChosen: false, custom: { outfit: 'base', hat: 'base', tone: 'base' }, testCredits: 0, testMoves: 0, play: { day: '', quizToday: 0, quizCorrect: 0, quizSeen: {}, act: {} }, privacy: { listed: true } });
   assert.equal((await profiles.completeMission('ana', r.MISSION_BANK, [{ type: 'talk' }, { type: 'justify', payload: { reasons: ['costo'] } }])).reason, 'bitacora-invalida', 'una bitácora que se salta pasos no cuenta');
   assert.equal((await profiles.completeMission('ana', 'inventada', [])).reason, 'mision-desconocida');
   assert.equal((await profiles.completeMission('ana', r.MISSION_BANK, 'x')).ok, false);
@@ -143,10 +157,17 @@ test('socket real: el progreso sigue al usuario entre conexiones y la apariencia
   ana.tell({ t: 'profile', op: 'mission', mission: 'banco-credito-correcto', log: [{ type: 'talk' }] }); assert.equal((await ana.wait('profile')).ok, false);
   const beto = await connect('beto', 'Beto'); await ana.wait('join');
   ana.tell({ t: 'profile', op: 'avatar', id: 'ejecutivo', custom: { outfit: 'coral', hat: 'cap' } }); assert.equal((await ana.wait('profile')).profile.avatarId, 'ejecutivo');
-  assert.deepEqual(await beto.wait('look'), { t: 'look', pid: ana.welcome.pid, avatar: 'ejecutivo', custom: { outfit: 'coral', hat: 'cap' } }, 'los demás ven el cambio de apariencia');
+  assert.deepEqual(await beto.wait('look'), { t: 'look', pid: ana.welcome.pid, avatar: 'ejecutivo', custom: { outfit: 'coral', hat: 'cap', tone: 'base' } }, 'los demás ven el cambio de apariencia');
+  // skins: una especial bloqueada no se puede poner desde el navegador; una inicial sí, con tono de piel
+  ana.tell({ t: 'profile', op: 'avatar', id: 'leyenda' }); assert.equal((await ana.wait('profile')).reason, 'avatar-bloqueado', 'una skin especial no se desbloquea manipulando el cliente');
+  ana.tell({ t: 'profile', op: 'avatar', id: 'atleta', custom: { tone: 't4' } }); const picked = (await ana.wait('profile')).profile;
+  assert.deepEqual([picked.avatarId, picked.custom.tone, picked.avatarChosen], ['atleta', 't4', true], 'la elección queda en la cuenta');
+  assert.deepEqual(await beto.wait('look'), { t: 'look', pid: ana.welcome.pid, avatar: 'atleta', custom: { outfit: 'base', hat: 'base', tone: 't4' } });
+  ana.tell({ t: 'profile', op: 'avatar', id: 'ejecutivo', custom: { outfit: 'coral', hat: 'cap' } }); await ana.wait('profile'); await beto.wait('look');
   // otro dispositivo de la misma cuenta: mismo progreso; la sesión anterior se cierra
   const ana2 = await connect('ana', 'Ana'); assert.equal((await ana.wait('bye')).reason, 'sesion-en-otro-lugar');
   assert.deepEqual([ana2.welcome.profile.xp, ana2.welcome.profile.avatarId, ana2.welcome.profile.missions['banco-credito-correcto'].completed, ana2.welcome.profile.testCredits], [120, 'ejecutivo', true, 15]);
+  assert.deepEqual([ana2.welcome.profile.avatarChosen, ana2.welcome.profile.custom], [true, { outfit: 'coral', hat: 'cap', tone: 'base' }], 'otro dispositivo recibe el mismo personaje y no vuelve a preguntar');
   // amigos e invitación por red
   assert.deepEqual(ana2.welcome.friends.map(f => f.name), ['Beto']);
   const carla = await connect('carla', 'Carla'); assert.deepEqual(carla.welcome.friends, []);

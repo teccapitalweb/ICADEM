@@ -122,6 +122,30 @@ export function createAvatar(look = {}) {
   if (acc.has('robe')) {
     part(new THREE.BoxGeometry(0.38, 0.5, 0.03), M.dark, 0, 0.2, 0.172, torso).castShadow = false; part(new THREE.BoxGeometry(0.1, 0.16, 0.02), M.white, 0, 0.5, 0.19, torso).castShadow = false;
   }
+  // Piezas de las skins especiales (solo apariencia: ninguna cambia el tamaño de colisión ni la velocidad).
+  const gold = mat(0xffd166, { m: 0.6, r: 0.3 });
+  if (acc.has('headband')) { const hb = part(new THREE.TorusGeometry(0.262, 0.03, 8, 24), M.accent, 0, 0.4, 0, head); hb.rotation.x = Math.PI / 2; hb.castShadow = false; }
+  if (acc.has('spaceHelmet')) {
+    const glass = kitMat(0xcfe8ff, { r: 0.05, m: 0.3, opacity: 0.32, solid: true, own: true }); glass.depthWrite = false;
+    const dome = part(new THREE.SphereGeometry(0.4, 22, 16), glass, 0, 0.3, 0.02, head); dome.castShadow = false; dome.renderOrder = 2;
+    const ring = part(new THREE.TorusGeometry(0.21, 0.05, 8, 22), mat(0xdfe4ee, { m: 0.5, r: 0.35 }), 0, 0.64, 0, torso); ring.rotation.x = Math.PI / 2;
+    part(new THREE.BoxGeometry(0.14, 0.1, 0.03), mat(0x1e63c4, { r: 0.5 }), -0.1, 0.42, 0.172, torso);
+  }
+  if (acc.has('cape')) {
+    const cape = part(new THREE.BoxGeometry(0.44, 0.66, 0.03), M.accent, 0, 0.27, -0.19, torso); cape.rotation.x = 0.12;
+    part(new THREE.BoxGeometry(0.46, 0.06, 0.06), gold, 0, 0.6, -0.15, torso);
+  }
+  if (acc.has('gradCap')) {
+    part(new THREE.CylinderGeometry(0.24, 0.25, 0.12, 18), M.dark, 0, 0.46, 0, head);
+    const board = part(new THREE.BoxGeometry(0.56, 0.035, 0.56), M.dark, 0, 0.55, 0, head); board.rotation.y = Math.PI / 4;
+    part(new THREE.BoxGeometry(0.02, 0.18, 0.02), gold, 0.22, 0.46, 0.0, head);
+  }
+  if (acc.has('medal')) {
+    for (const sx of [-1, 1]) { const rb = part(new THREE.BoxGeometry(0.04, 0.2, 0.012), mat(0x1e63c4, { r: 0.6 }), sx * 0.045, 0.47, 0.178, torso); rb.rotation.z = sx * 0.35; rb.castShadow = false; }
+    const md = part(new THREE.CylinderGeometry(0.06, 0.06, 0.02, 18), gold, 0, 0.35, 0.186, torso); md.rotation.x = Math.PI / 2;
+  }
+  if (acc.has('laurel')) { const lr = part(new THREE.TorusGeometry(0.255, 0.028, 6, 22, Math.PI * 1.6), mat(0xd9b44a, { m: 0.55, r: 0.35 }), 0, 0.46, 0, head); lr.rotation.set(Math.PI / 2, 0, Math.PI * 0.7); lr.castShadow = false; }
+
   if (acc.has('cap')) {
     part(new THREE.SphereGeometry(0.283, 20, 12, 0, Math.PI * 2, 0, Math.PI * 0.45), M.accent, 0, 0.3, 0, head);
     const visor = part(new THREE.CylinderGeometry(0.17, 0.17, 0.02, 16, 1, false, -Math.PI / 2, Math.PI), M.accent, 0, 0.36, 0.2, head); visor.rotation.y = Math.PI / 2;

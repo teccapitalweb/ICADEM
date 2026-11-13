@@ -1,9 +1,12 @@
 // Interfaz del juego: HUD, diálogos, ventanas, avisos, mapa, pasaporte, misiones, armario y ajustes.
 import { levelFromXp } from '../core/store.js';
 import { QUALITY } from '../core/engine.js';
-import { AVATARS, avatarById } from '../characters/catalog.js';
-import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, isAvatarUnlocked } from '../progress/rules.js';
+import { AVATARS, AVATAR_CATEGORIES, avatarById } from '../characters/catalog.js';
+import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, SKIN_TONES, isAvatarUnlocked, applyCustom, unlockProgress } from '../progress/rules.js';
+import { openWardrobe } from './wardrobe.js';
+import { GAME_LIST } from '../edu/games.js';
 import { BUILDINGS, doorPoint, footprint } from '../world/buildings.js';
+import { placeByBuilding } from '../world/places.js';
 import { REWARDS } from '../economy/economy.js';
 import { isTouchDevice } from '../core/input.js';
 
@@ -39,6 +42,8 @@ export const GAMES = [
   { id: 'torre', n: 10, name: 'Torre ICADEM', mission: 'Desafío de equipos' }
 ];
 
+const PLACES_ORDER = ['banco', 'tribunal', 'hospital', 'supermercado', 'obra', 'veterinaria', 'restaurante', 'invernadero', 'oficina', 'torre'];
+
 export class UI {
   constructor(api) {
     this.api = api;
@@ -49,7 +54,15 @@ export class UI {
     $('btn-games')?.addEventListener('click', () => this.api.games?.open());
     $('btn-pass').addEventListener('click', () => this.openPassport());
     $('btn-player').addEventListener('click', () => this.openPassport());
+    // Menú «Más»: Ajustes y Salir quedan a un toque, sin ocupar la pantalla.
+    const more = $('more-menu'), moreBtn = $('btn-more');
+    const setMore = open => { more.hidden = !open; moreBtn.setAttribute('aria-expanded', String(open)); if (open) more.querySelector('button:not([hidden])')?.focus(); };
+    moreBtn.addEventListener('click', e => { e.stopPropagation(); setMore(more.hidden); });
+    more.addEventListener('click', () => setMore(false));
+    document.addEventListener('pointerdown', e => { if (!more.hidden && !more.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)) setMore(false); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && !more.hidden) { setMore(false); moreBtn.focus(); } });
     $('btn-settings').addEventListener('click', () => this.openSettings());
+    $('btn-wardrobe').addEventListener('click', () => this.openWardrobe());
     $('btn-exit').addEventListener('click', () => api.exit());
     $('interact').addEventListener('click', () => api.input.press('interact'));
     $('pad-jump').addEventListener('pointerdown', e => { e.preventDefault(); api.input.press('jump'); });
@@ -195,88 +208,135 @@ export class UI {
   /* ---------- mapa interactivo ---------- */
   openMap() {
     if (this.isBlocking) return;
-    const api = this.api, wrap = h('div', 'map'), cv = h('canvas'), info = h('div', 'map__info'), list = h('div', 'map__list');
-    const HALF = 48, S = 480; cv.width = cv.height = S;
+    const api = this.api, st = api.store.state, wrap = h('div', 'map'), side = h('div', 'map__side'), cv = h('canvas'), info = h('div', 'map__info'), list = h('div', 'map__list');
+    const HALF = 48, S = 520; cv.width = cv.height = S;
     const g = cv.getContext('2d'), k = S / (HALF * 2), mx = x => (x + HALF) * k, mz = z => (z + HALF) * k;
+    // Lugares del mapa: los edificios (su misión y si ya la completaste) y las actividades al aire libre.
+    const missionDone = b => { const pl = placeByBuilding(b.id), m = pl && api.missions && api.missions[pl.scene]; const id = m && m.def && m.def.id; return Boolean(id && st.missions[id] && st.missions[id].completed); };
+    const items = [
+      ...BUILDINGS.map(b => ({ kind: 'building', id: b.id, icon: b.icon, name: b.name, text: b.status === 'open' ? 'Misión: ' + b.mission : 'Próximamente', x: b.x, z: b.z, b, done: missionDone(b), open: b.status === 'open', way: doorPoint(b, 2.2) })),
+      { kind: 'activity', id: 'parque', icon: '🏃', name: 'Parque de retos', text: 'Carrera del conocimiento: arcos, plataformas y meta. Entrada al norte de la plaza.', x: 0, z: 38.5, open: true, way: { x: 0, z: 34.5 } },
+      { kind: 'activity', id: 'fuente', icon: '⛲', name: 'Punto de encuentro', text: 'La fuente de la plaza: aquí se reúne tu equipo y empieza la Búsqueda del tesoro.', x: 0, z: 0, open: true, way: { x: 0, z: 6 } }
+    ];
     let selected = null;
     const here = api.sceneName === 'plaza' ? api.player.position : null;
+    const disc = (x, y, r, fill, stroke, lw = 2) => { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fillStyle = fill; g.fill(); if (stroke) { g.strokeStyle = stroke; g.lineWidth = lw; g.stroke(); } };
     const draw = () => {
-      g.fillStyle = '#bfe6a8'; g.fillRect(0, 0, S, S);
+      g.fillStyle = '#c7e9b2'; g.fillRect(0, 0, S, S);
       g.fillStyle = '#eadcc0'; g.fillRect(mx(-44), mz(-23), 88 * k, 5 * k); g.fillRect(mx(-44), mz(18), 88 * k, 5 * k); g.fillRect(mx(-29), mz(-18), 5 * k, 36 * k); g.fillRect(mx(24), mz(-18), 5 * k, 36 * k);
-      g.fillStyle = '#6f7889'; g.fillRect(mx(-3.5), 0, 7 * k, S); g.fillRect(0, mz(-3.5), S, 7 * k);
+      g.fillStyle = '#7b8496'; g.fillRect(mx(-3.5), 0, 7 * k, S); g.fillRect(0, mz(-3.5), S, 7 * k);
       g.fillStyle = '#f4e3c3'; g.beginPath(); g.arc(mx(0), mz(0), 15 * k, 0, 7); g.fill();
-      g.fillStyle = '#6fd3f2'; g.beginPath(); g.arc(mx(0), mz(0), 4.2 * k, 0, 7); g.fill();
-      g.fillStyle = '#e86a5c'; g.beginPath(); g.arc(mx(35), mz(9), 4 * k, 0, 7); g.fill();
+      g.fillStyle = '#7fd8f4'; g.beginPath(); g.arc(mx(0), mz(0), 4.2 * k, 0, 7); g.fill();
+      g.fillStyle = '#a8dc8f'; g.fillRect(mx(-9), mz(36), 18 * k, 11 * k);   // parque
       for (const b of BUILDINGS) {
         const f = footprint(b), on = selected && selected.id === b.id;
-        g.fillStyle = b.wall; g.strokeStyle = on ? '#0f1f3d' : 'rgba(15,31,61,.45)'; g.lineWidth = on ? 4 : 1.5;
-        g.beginPath(); if (g.roundRect) g.roundRect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k, 6); else g.rect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k); g.fill(); g.stroke();
-        if (b.status === 'open') { g.fillStyle = '#0f1f3d'; g.beginPath(); g.arc(mx(b.x), mz(b.z), 5, 0, 7); g.fill(); g.fillStyle = '#ffd166'; g.beginPath(); g.arc(mx(b.x), mz(b.z), 2.5, 0, 7); g.fill(); }
+        g.fillStyle = b.wall; g.strokeStyle = on ? '#0f1f3d' : 'rgba(15,31,61,.35)'; g.lineWidth = on ? 4 : 1.5;
+        g.beginPath(); if (g.roundRect) g.roundRect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k, 7); else g.rect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k); g.fill(); g.stroke();
       }
-      if (api.waypoint) { g.strokeStyle = '#2f9e8f'; g.lineWidth = 3; g.setLineDash([6, 5]); if (here) { g.beginPath(); g.moveTo(mx(here.x), mz(here.z)); g.lineTo(mx(api.waypoint.x), mz(api.waypoint.z)); g.stroke(); } g.setLineDash([]); g.fillStyle = '#2f9e8f'; g.beginPath(); g.arc(mx(api.waypoint.x), mz(api.waypoint.z), 6, 0, 7); g.fill(); }
-      if (here) { g.save(); g.translate(mx(here.x), mz(here.z)); g.rotate(-api.player.yaw + Math.PI); g.fillStyle = '#e8483f'; g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, -10); g.lineTo(7, 8); g.lineTo(0, 4); g.lineTo(-7, 8); g.closePath(); g.fill(); g.stroke(); g.restore(); }
+      if (api.waypoint) { g.strokeStyle = '#2f9e8f'; g.lineWidth = 3; g.setLineDash([6, 5]); if (here) { g.beginPath(); g.moveTo(mx(here.x), mz(here.z)); g.lineTo(mx(api.waypoint.x), mz(api.waypoint.z)); g.stroke(); } g.setLineDash([]); disc(mx(api.waypoint.x), mz(api.waypoint.z), 6, '#2f9e8f', '#fff'); }
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '15px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+      for (const it of items) {
+        const x = mx(it.x), y = mz(it.z), on = selected && selected.id === it.id;
+        disc(x, y, on ? 15 : 13, '#ffffff', on ? '#0f1f3d' : it.kind === 'activity' ? '#2f9e8f' : 'rgba(15,31,61,.55)', on ? 3 : 2);
+        g.fillStyle = '#000'; g.fillText(it.icon, x, y + 1);
+        if (it.done) { disc(x + 10, y - 10, 6.5, '#1f7a55', '#fff', 1.5); g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 7, y - 10); g.lineTo(x + 9.5, y - 7.5); g.lineTo(x + 13.5, y - 12.5); g.stroke(); }
+      }
+      if (here) { g.save(); g.translate(mx(here.x), mz(here.z)); g.rotate(-api.player.yaw + Math.PI); g.fillStyle = '#e8483f'; g.strokeStyle = '#fff'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, -12); g.lineTo(8, 9); g.lineTo(0, 4.5); g.lineTo(-8, 9); g.closePath(); g.fill(); g.stroke(); g.restore(); }
     };
     const renderInfo = () => {
       info.replaceChildren();
-      if (!selected) { info.append(h('h4', null, 'Ciudad ICADEM'), h('p', null, here ? 'Toca un edificio para ver su misión y marcarlo como destino. La flecha roja eres tú.' : 'Estás en un interior. Sal a la ciudad para ver tu posición; desde aquí ya puedes marcar un destino.')); }
+      if (!selected) info.append(h('h4', null, here ? 'Tú estás en la plaza' : 'Estás en un interior'), h('p', null, here ? 'La flecha roja eres tú. Toca un lugar del mapa o de la lista para ver qué hay y marcarlo como destino.' : 'Sal a la ciudad para ver tu posición; desde aquí ya puedes marcar un destino.'));
       else {
-        const open = selected.status === 'open';
-        info.append(h('h4', null, selected.name), h('p', null, 'Misión: ' + selected.mission), h('span', 'pill ' + (open ? 'pill--ok' : 'pill--soon'), open ? 'Disponible' : 'Próximamente'));
-        const go = h('button', 'btn btn--primary', 'Marcar como destino'); go.type = 'button'; go.style.marginTop = '6px';
-        go.addEventListener('click', () => { const p = doorPoint(selected, 2.2); api.setWaypoint({ x: p.x, z: p.z, name: selected.name }); this.toast('Destino marcado: ' + selected.name); draw(); });
+        const head = h('div', 'map__head'); head.append(h('span', 'map__icon', selected.icon), h('h4', null, selected.name)); info.append(head, h('p', null, selected.text));
+        const pills = h('div', 'map__pills');
+        pills.append(h('span', 'pill ' + (selected.open ? 'pill--ok' : 'pill--soon'), selected.kind === 'activity' ? 'Actividad' : selected.open ? 'Disponible' : 'Próximamente'));
+        if (selected.done) pills.append(h('span', 'pill pill--done', 'Completada'));
+        info.append(pills);
+        const go = h('button', 'btn btn--primary', 'Marcar como destino'); go.type = 'button';
+        go.addEventListener('click', () => { api.setWaypoint({ x: selected.way.x, z: selected.way.z, name: selected.name }); this.toast('Destino marcado: ' + selected.name); draw(); });
         info.append(go);
       }
-      info.append(list);
-      list.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', selected && b.dataset.id === selected.id));
+      list.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', Boolean(selected) && b.dataset.id === selected.id));
     };
-    for (const b of BUILDINGS) {
-      const btn = h('button'); btn.type = 'button'; btn.dataset.id = b.id;
-      const sw = h('i'); sw.style.background = b.wall; const name = h('span', null, b.name); name.style.flex = '1';
-      btn.append(sw, name, h('small', null, b.status === 'open' ? 'Abierto' : 'Pronto'));
-      btn.addEventListener('click', () => { selected = b; draw(); renderInfo(); });
+    for (const it of items) {
+      const btn = h('button'); btn.type = 'button'; btn.dataset.id = it.id;
+      const name = h('span', null, it.name); name.style.flex = '1';
+      btn.append(h('i', 'map__emoji', it.icon), name, h('small', it.done ? 'is-done' : null, it.done ? 'Completada' : it.kind === 'activity' ? 'Actividad' : it.open ? 'Abierto' : 'Pronto'));
+      btn.addEventListener('click', () => { selected = it; draw(); renderInfo(); });
       list.append(btn);
     }
     cv.addEventListener('click', e => {
       const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * HALF * 2 - HALF, z = (e.clientY - r.top) / r.height * HALF * 2 - HALF;
-      selected = BUILDINGS.find(b => { const f = footprint(b); return Math.abs(x - b.x) <= f.w / 2 + 1 && Math.abs(z - b.z) <= f.d / 2 + 1; }) || null;
+      selected = items.find(it => Math.hypot(x - it.x, z - it.z) < 3.4) || BUILDINGS.map(b => items.find(it => it.id === b.id)).find(it => { const f = footprint(it.b); return Math.abs(x - it.x) <= f.w / 2 + 1 && Math.abs(z - it.z) <= f.d / 2 + 1; }) || null;
       draw(); renderInfo();
     });
-    wrap.append(cv, info); draw(); renderInfo();
+    const legend = h('div', 'map__legend');
+    legend.append(h('span', null, '➤ Tú'), h('span', 'is-done', '✓ Completada'), h('span', 'is-act', '● Actividad'));
+    const left = h('div', 'map__canvas'); left.append(cv, legend);
+    side.append(info, list); wrap.append(left, side); draw(); renderInfo();
     api.events.emit('map-opened');
     return this.modal({ eyebrow: 'Mapa', title: 'Ciudad ICADEM', content: wrap, wide: true });
   }
 
   /* ---------- pasaporte ---------- */
+  /** Identificador de la misión del edificio (sale de los juegos realmente cargados). */
+  missionIdOf(buildingId) { const pl = placeByBuilding(buildingId), m = pl && this.api.missions && this.api.missions[pl.scene]; return (m && m.def && m.def.id) || null; }
+
   openPassport(tab = 'resumen') {
     if (this.isBlocking) return;
-    const s = this.api.store.state, lv = levelFromXp(s.xp), wrap = h('div'), tabs = h('div', 'tabs'), body = h('div');
-    const done = Object.values(s.missions).filter(m => m.completed).length;
+    const api = this.api, s = api.store.state, lv = levelFromXp(s.xp), wrap = h('div', 'passport'), tabs = h('div', 'tabs'), body = h('div');
+    const missions = PLACES_ORDER.map(id => ({ b: BUILDINGS.find(x => x.id === id), mid: this.missionIdOf(id) })).filter(x => x.b && x.mid);
+    const doneM = missions.filter(x => s.missions[x.mid] && s.missions[x.mid].completed), act = (s.play && s.play.act) || {};
+    const doneG = GAME_LIST.filter(gm => act[gm.id] && act[gm.id].done);
+    const bar = (value, max) => { const t = h('i', 'meter'), f = h('i'); f.style.width = Math.round(100 * Math.min(1, max ? value / max : 0)) + '%'; t.append(f); return t; };
     const views = {
       resumen: () => {
-        const st = h('div', 'stats');
-        [[lv.level, 'Nivel'], [s.xp, 'XP'], [`${done}/10`, 'Misiones'], [`${s.visited.length}/${BUILDINGS.length}`, 'Edificios'], [`${s.achievements.length}/${ACHIEVEMENTS.length}`, 'Logros'], [s.economy.balance, 'Créditos de prueba']].forEach(([v, t]) => { const d = h('div'); d.append(h('b', null, String(v)), h('span', null, t)); st.append(d); });
-        body.append(st, h('p', 'note', lv.next ? `Te faltan ${lv.next - s.xp} XP para el nivel ${lv.level + 1}.` : 'Nivel máximo del prototipo.'),
-          h('p', 'note', 'El pasaporte registra tu avance dentro del juego. Los rangos y logros son parte del videojuego: no son títulos ni certificados académicos.'));
+        const hero = h('div', 'pass__hero'), ring = h('div', 'pass__ring'), copy = h('div', 'pass__copy');
+        ring.style.setProperty('--p', String(Math.round(lv.progress * 100)));
+        ring.append(h('b', null, String(lv.level)), h('small', null, 'nivel'));
+        const av = avatarById(s.avatarId);
+        copy.append(h('strong', null, api.playerName), h('span', null, `${av.name} · ${s.xp} XP`), bar(s.xp - lv.base, lv.next ? lv.next - lv.base : 1),
+          h('small', null, lv.next ? `${lv.next - s.xp} XP para el nivel ${lv.level + 1}` : 'Nivel máximo alcanzado'));
+        hero.append(ring, copy);
+        const grid = h('div', 'pass__grid');
+        [['Misiones', doneM.length, missions.length], ['Minijuegos', doneG.length, GAME_LIST.length], ['Logros', s.achievements.length, ACHIEVEMENTS.length], ['Edificios', s.visited.length, BUILDINGS.length]].forEach(([t, v, m]) => {
+          const c = h('div', 'pass__card'); c.append(h('span', null, t), h('b', null, `${v}/${m}`), bar(v, m)); grid.append(c);
+        });
+        const next = h('div', 'pass__next'); next.append(h('h4', null, 'Para seguir avanzando'));
+        const pend = [...missions.filter(x => !doneM.includes(x)).slice(0, 3).map(x => ({ icon: x.b.icon, text: `Misión: ${x.b.mission}`, sub: x.b.name, go: () => { const p = doorPoint(x.b, 2.2); api.setWaypoint({ x: p.x, z: p.z, name: x.b.name }); this.toast('Destino marcado: ' + x.b.name); document.getElementById('modal-x').click(); } })),
+          ...GAME_LIST.filter(gm => !doneG.includes(gm)).slice(0, 2).map(gm => ({ icon: gm.icon, text: gm.title, sub: 'Minijuego', go: () => { document.getElementById('modal-x').click(); setTimeout(() => api.games && api.games.open(), 80); } }))];
+        if (!pend.length) next.append(h('p', 'note', '¡Completaste todas las misiones y minijuegos! Puedes repetirlos para mejorar tu puntuación.'));
+        pend.forEach(p => { const r = h('button', 'pass__todo'); r.type = 'button'; r.append(h('span', 'pass__todo-ic', p.icon), h('span', null, p.text), h('small', null, p.sub)); r.addEventListener('click', p.go); next.append(r); });
+        const credits = h('div', 'pass__credits'); credits.append(h('span', null, 'Créditos de prueba'), h('b', null, String(s.economy.balance)));
+        body.append(hero, grid, next, credits,
+          h('p', 'note', 'Tu pasaporte registra el avance dentro del juego' + (api.net && api.net.isOnline ? ', guardado en tu cuenta.' : ' (sin conexión: guardado en este dispositivo).') + ' Los créditos de prueba no forman parte de tu cartera ICADEM; rangos y logros no son títulos académicos.'));
       },
       logros: () => { const rows = h('div', 'rows'); ACHIEVEMENTS.forEach(a => { const on = s.achievements.includes(a.id), r = h('div', 'rowi'), ic = h('span', 'rowi__icon' + (on ? '' : ' is-off')); ic.append(icon(on ? 'trophy' : 'lock')); const c = h('div', 'rowi__copy'); c.append(h('strong', null, a.name), h('span', null, a.text)); r.append(ic, c, h('span', 'pill ' + (on ? 'pill--ok' : 'pill--soon'), on ? 'Obtenido' : 'Pendiente')); rows.append(r); }); body.append(rows); },
+      avatar: () => {
+        const av = avatarById(s.avatarId), outfit = OUTFIT_COLORS.find(o => o.id === s.custom.outfit) || OUTFIT_COLORS[0], hat = HAT_OPTIONS.find(o => o.id === s.custom.hat) || HAT_OPTIONS[0];
+        const rows = h('div', 'rows');
+        [['Avatar', av.name], ['Atuendo', outfit.name], ['Sombrero', hat.name], ['Avatares desbloqueados', `${AVATARS.filter(a => isAvatarUnlocked(a.id, s)).length} de ${AVATARS.length}`]].forEach(([k, v]) => { const r = h('div', 'rowi'), c = h('div', 'rowi__copy'); c.append(h('strong', null, v), h('span', null, k)); r.append(c); rows.append(r); });
+        const go = h('button', 'btn btn--primary', 'Abrir el vestidor'); go.type = 'button'; go.addEventListener('click', () => { document.getElementById('modal-x').click(); setTimeout(() => this.openWardrobe(), 80); });
+        body.append(rows, go);
+      },
       movimientos: () => {
         const rows = h('div', 'rows'); const led = [...s.economy.ledger].reverse();
         if (!led.length) rows.append(h('p', 'note', 'Todavía no hay movimientos. Completa el tutorial o una misión.'));
         led.forEach(e => { const r = h('div', 'rowi'), ic = h('span', 'rowi__icon'); ic.append(icon('coin')); const c = h('div', 'rowi__copy'); c.append(h('strong', null, e.reason || e.key), h('span', null, new Date(e.at).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }))); r.append(ic, c, h('span', 'pill pill--gold', '+' + e.amount)); rows.append(r); });
-        body.append(rows, h('p', 'note', 'Estos son créditos de prueba del prototipo, guardados solo en este dispositivo. No forman parte de tu cartera ICADEM.'));
+        body.append(rows, h('p', 'note', 'Son créditos de prueba del juego: no forman parte de tu cartera ICADEM.'));
       }
     };
     const show = id => { tabs.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.id === id)); body.replaceChildren(); views[id](); };
-    [['resumen', 'Resumen'], ['logros', 'Logros'], ['movimientos', 'Movimientos']].forEach(([id, t]) => { const b = h('button', null, t); b.type = 'button'; b.dataset.id = id; b.addEventListener('click', () => show(id)); tabs.append(b); });
+    [['resumen', 'Resumen'], ['logros', 'Logros'], ['avatar', 'Avatar'], ['movimientos', 'Movimientos']].forEach(([id, t]) => { const b = h('button', null, t); b.type = 'button'; b.dataset.id = id; b.addEventListener('click', () => show(id)); tabs.append(b); });
     wrap.append(tabs, body); show(views[tab] ? tab : 'resumen');
-    return this.modal({ eyebrow: 'Pasaporte', title: this.api.playerName, content: wrap });
+    return this.modal({ eyebrow: 'Pasaporte ICADEM', title: api.playerName, content: wrap });
   }
 
   /* ---------- tablero de misiones ---------- */
   openMissions() {
     if (this.isBlocking) return;
     const s = this.api.store.state, rows = h('div', 'rows');
-    GAMES.forEach(gm => {
+    GAMES.map(gm => { const mid = this.missionIdOf(gm.id); return { ...gm, missionId: mid, ready: Boolean(mid) }; }).forEach(gm => {
       const rec = gm.missionId ? s.missions[gm.missionId] : null, r = h('div', 'rowi'), ic = h('span', 'rowi__icon' + (gm.ready ? '' : ' is-off'));
       ic.append(gm.ready ? icon(rec?.completed ? 'check' : 'pin') : icon('lock'));
       const c = h('div', 'rowi__copy'); c.append(h('strong', null, `${gm.n}. ${gm.mission}`), h('span', null, gm.name + (rec?.completed ? ` · mejor puntuación ${rec.bestScore}` : gm.ready ? ` · +${(this.api.missionService.rewardFor(gm.missionId) || REWARDS[gm.missionId]).amount} créditos de prueba` : '')));
@@ -285,39 +345,12 @@ export class UI {
       else r.append(h('span', 'pill pill--soon', 'Próximamente'));
       rows.append(r);
     });
-    const wrap = h('div'); wrap.append(rows, h('p', 'note', 'En esta fase está jugable la misión 1. Las otras nueve ya tienen su edificio en la ciudad y se irán activando una por una.'));
+    const wrap = h('div'); wrap.append(rows, h('p', 'note', 'Las diez misiones están abiertas. Los créditos de prueba se dan la primera vez; repetir sirve para mejorar tu puntuación y suma XP de práctica una vez al día.'));
     return this.modal({ eyebrow: 'Escritorio de misiones', title: 'Las diez misiones', content: wrap });
   }
 
-  /* ---------- armario ---------- */
-  openWardrobe() {
-    if (this.isBlocking) return;
-    const api = this.api, st = api.store.state, wrap = h('div', 'wardrobe');
-    const hex = n => '#' + n.toString(16).padStart(6, '0');
-    const render = () => {
-      wrap.replaceChildren();
-      const rows = h('div', 'rows');
-      AVATARS.forEach(a => {
-        const open = isAvatarUnlocked(a.id, st), on = a.id === st.avatarId, r = h('div', 'rowi' + (on ? ' is-on' : '')), sw = h('span', 'swatch'); r.dataset.id = a.id; sw.style.background = hex(a.look.top);
-        const c = h('div', 'rowi__copy'); c.append(h('strong', null, a.name), h('span', null, open ? 'Ruta: ' + a.route : AVATAR_UNLOCKS[a.id].text));
-        r.append(sw, c);
-        if (on) r.append(h('span', 'pill pill--ok', 'Puesto'));
-        else if (open) { const b = h('button', 'btn btn--primary', 'Usar'); b.type = 'button'; b.addEventListener('click', () => { if (api.setAvatar(a.id, st.custom)) render(); }); r.append(b); }
-        else r.append(h('span', 'pill pill--soon', 'Bloqueado'));
-        rows.append(r);
-      });
-      const pick = (label, key, options, paint) => {
-        const f = h('div', 'field'), row = h('div', 'chips'); f.append(h('span', null, label), row);
-        options.forEach(o => { const b = h('button', st.custom[key] === o.id ? 'is-on' : '', o.name); b.type = 'button'; b.dataset[key] = o.id; if (paint && o.color !== null) b.style.setProperty('--dot', hex(o.color)); b.addEventListener('click', () => { if (api.setAvatar(st.avatarId, { ...st.custom, [key]: o.id })) render(); }); row.append(b); });
-        return f;
-      };
-      const unlocked = AVATARS.filter(a => isAvatarUnlocked(a.id, st)).length;
-      wrap.append(h('p', 'note', `Tienes ${unlocked} de ${AVATARS.length} avatares. Se consiguen jugando; ninguno da ventaja ni se compra.`), rows,
-        pick('Color del atuendo', 'outfit', OUTFIT_COLORS, true), pick('Sombrero', 'hat', HAT_OPTIONS));
-    };
-    render();
-    return this.modal({ eyebrow: 'Armario', title: 'Tu avatar y equipamiento', content: wrap });
-  }
+  /* ---------- vestidor (ui/wardrobe.js) ---------- */
+  openWardrobe(o) { return openWardrobe(this, o); }
 
   /* ---------- ajustes ---------- */
   /** Modo familiar: perfiles infantiles supervisados. Solo funciona si el servidor lo tiene activo. */
@@ -371,7 +404,7 @@ export class UI {
     const reset = h('button', 'btn', 'Borrar datos de prueba'); reset.type = 'button'; reset.addEventListener('click', () => { if (reset.dataset.sure) { api.store.reset(); location.reload(); } else { reset.dataset.sure = '1'; reset.textContent = 'Toca otra vez para confirmar'; } });
     const acts = h('div', 'seg'); acts.append(tut, reset);
     wrap.append(field('Calidad gráfica', seg), field('Sensibilidad de la cámara', sens), field('Cámara vertical', inv), field('Retos de los personajes de la ciudad', npc), field('Modo familiar', fam), field('Controles', keys), acts,
-      h('p', 'note', `Calidad activa: ${QUALITY[api.engine.quality].label} · ${api.engine.fps || '—'} cuadros por segundo. El progreso del prototipo se guarda solo en este dispositivo.`));
+      h('p', 'note', `Calidad activa: ${QUALITY[api.engine.quality].label} · ${api.engine.fps || '—'} cuadros por segundo. ${api.net && api.net.isOnline ? 'Tu progreso se guarda en tu cuenta.' : 'Sin conexión: tu progreso se guarda en este dispositivo.'}`));
     return this.modal({ eyebrow: 'Ajustes', title: 'Juego y controles', content: wrap });
   }
 }

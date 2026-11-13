@@ -131,10 +131,15 @@ test('red: formato de estado listo para multijugador y sin jugadores simulados',
   assert.equal(joins, 0, 'sin conexión no aparecen jugadores');
 });
 
-test('contenido: 10 avatares (solo el Explorador disponible) y 11 edificios con puerta accesible', async () => {
-  const { AVATARS, avatarById } = await load('characters/catalog.js');
-  assert.equal(AVATARS.length, 10); assert.equal(new Set(AVATARS.map(a => a.id)).size, 10);
-  assert.equal(AVATARS.filter(a => a.available).length, 10, 'los diez comparten esqueleto y se pueden usar al desbloquearlos');
+test('contenido: los diez avatares originales, iniciales gratuitos, skins especiales y 11 edificios con puerta accesible', async () => {
+  const { AVATARS, AVATAR_CATEGORIES, avatarById } = await load('characters/catalog.js');
+  const ORIGINAL = ['explorador', 'ejecutivo', 'cientifica', 'ingeniero', 'medico', 'agronomo', 'chef', 'veterinario', 'juez', 'embajador'];
+  assert.deepEqual(AVATARS.slice(0, 10).map(a => a.id), ORIGINAL, 'los diez originales se conservan, con sus mismos identificadores');
+  assert.equal(new Set(AVATARS.map(a => a.id)).size, AVATARS.length);
+  assert.deepEqual(AVATAR_CATEGORIES.map(c => c.id), ['inicial', 'profesion', 'especial']);
+  assert.ok(AVATARS.every(a => AVATAR_CATEGORIES.some(c => c.id === a.category)), 'cada personaje tiene categoría');
+  assert.equal(AVATARS.filter(a => a.category === 'inicial').length, 7); assert.equal(AVATARS.filter(a => a.category === 'especial').length, 6);
+  assert.equal(AVATARS.filter(a => a.available).length, AVATARS.length, 'todos comparten esqueleto y se pueden usar al desbloquearlos');
   assert.equal(avatarById('no-existe').id, 'explorador');
   const { BUILDINGS, doorPoint, footprint } = await load('world/buildings.js');
   assert.equal(BUILDINGS.length, 11);
@@ -165,7 +170,7 @@ test('aislamiento: el juego no llama servicios de ICADEM ni toca créditos reale
   assert.match(main, /const mpUrl = LOCAL \? params\.get\('mp'\) : null;/, 'el multijugador solo se activa en pruebas locales');
   assert.match(main, /127\\\.0\\\.0\\\.1\|localhost/, 'y solo contra un servidor en la misma máquina');
   const html = read('ciudad/index.html');
-  assert.match(html, /créditos de prueba/); assert.match(html, /Versión 1\.1</); assert.doesNotMatch(html, /Piloto/);
+  assert.match(html, /créditos de prueba/); assert.match(html, /Versión 1\.2</); assert.doesNotMatch(html, /Piloto/);
   assert.doesNotMatch(html, /firebase|railway|stripe/i);
 });
 

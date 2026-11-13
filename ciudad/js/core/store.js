@@ -20,7 +20,8 @@ export function defaultState() {
     tutorialDone: false,
     xp: 0,
     avatarId: 'explorador',
-    custom: { outfit: 'base', hat: 'base' },   // equipamiento del avatar
+    avatarChosen: false,                       // ya eligió su personaje inicial
+    custom: { outfit: 'base', hat: 'base', tone: 'base' },   // equipamiento del avatar
     missions: {},        // { [missionId]: { completed, bestScore, attempts } }
     visited: [],         // ids de edificios explorados
     achievements: [],    // ids de logros
