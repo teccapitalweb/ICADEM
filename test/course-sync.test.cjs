@@ -84,6 +84,32 @@ test('same-UID logout/sign-in starts a new catalog generation and ignores prior 
   f.requests[1].resolve(f.response('new-session'));await fresh;f.requests[0].resolve(f.response('old-session'));await old;
   assert.equal(f.ctx.cursos[0].id,'new-session');
 });
+
+test('concurrent forced catalog readers join one authenticated request instead of queuing another',async()=>{
+  const f=catalogSession(),first=f.ctx.cargarCursosFirestore(true),second=f.ctx.cargarCursosFirestore(true);
+  assert.equal(f.requests.length,1);f.requests[0].resolve(f.response('same-snapshot'));await Promise.all([first,second]);
+  assert.equal(f.requests.length,1);assert.equal(f.ctx.cursos[0].id,'same-snapshot');
+});
+
+test('a confirmed-write reload waits for an old read and then requests the post-write catalog',async()=>{
+  const f=catalogSession();vm.runInContext(between(panel,'  window.__reloadCourseCatalog =','  window.__refreshAcademicCourseCatalog ='),f.ctx);
+  const old=f.ctx.cargarCursosFirestore(true),afterWrite=f.ctx.window.__reloadCourseCatalog();assert.equal(f.requests.length,1);
+  f.requests[0].resolve(f.response('before-write'));await old;await flush();assert.equal(f.requests.length,2);
+  f.requests[1].resolve(f.response('after-write'));await afterWrite;assert.equal(f.ctx.cursos[0].id,'after-write');
+});
+
+test('a post-write reload cannot start or repaint in a replacement session',async()=>{
+  const f=catalogSession();vm.runInContext(between(panel,'  window.__reloadCourseCatalog =','  window.__refreshAcademicCourseCatalog ='),f.ctx);
+  const old=f.ctx.cargarCursosFirestore(true),afterWrite=f.ctx.window.__reloadCourseCatalog();f.reset();f.ctx.window.__auth.currentUser.uid='b';
+  f.requests[0].resolve(f.response('private-a'));await old;assert.equal(await afterWrite,null);assert.equal(f.requests.length,1);assert.equal(f.ctx.cursos.length,0);
+});
+
+test('an identical confirmed summary does not replace its DOM; a real server change still repaints it',async()=>{
+  const f=session({revision:1,priorities:['a','b'],available:2,active:true}),host=new f.Element('div');host.dataset.courseUnlocks='';let paints=0,markup='';
+  Object.defineProperty(host,'innerHTML',{get:()=>markup,set:value=>{paints++;markup=String(value);}});f.document.body.append(host);
+  await f.ready();assert.ok(paints>0);paints=0;await f.refresh();assert.equal(paints,0);
+  f.shared.available=1;f.shared.revision++;await f.refresh();assert.equal(paints,1);assert.match(markup,/1 curso por elegir/);
+});
 test('the backend summary accessor returns defensive copies and never returns another owner data',async()=>{
   const f=session();await f.ready();const data=f.window.ICADEMCourseUnlocks.getSummary();data.priorities.reverse();data.available=999;
   assert.deepEqual(Array.from(f.window.ICADEMCourseUnlocks.getPriorities()),['a','b']);assert.equal(f.window.ICADEMCourseUnlocks.getSummary().available,2);

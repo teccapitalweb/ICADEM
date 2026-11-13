@@ -24,10 +24,13 @@
     if (!current(ticket)) return;
     if (summaryUid === ticket.uid && Number.isFinite(Number(data.revision)) && Number.isFinite(Number(summary?.revision)) && Number(data.revision) < Number(summary.revision)) return;
     const previous = getPriorities();
+    const changed = summaryUid !== ticket.uid || JSON.stringify(summary) !== JSON.stringify(data);
     summary = data; summaryUid = ticket.uid;
     const priorities = getPriorities(), prioritiesChanged = previous.length !== priorities.length || previous.some((id,index) => id !== priorities[index]);
-    document.querySelectorAll('[data-course-unlocks]').forEach(paint);
-    document.querySelectorAll('#cur-list').forEach(decorate);
+    if (changed) {
+      document.querySelectorAll('[data-course-unlocks]').forEach(paint);
+      document.querySelectorAll('#cur-list').forEach(decorate);
+    }
     document.dispatchEvent(new CustomEvent('icadem:unlocks-updated', { detail: { available:count(data.available), prioritiesChanged, revision:data.revision } }));
   }
   function adoptConfirmed(data, uid) {
@@ -81,7 +84,9 @@
     if (!host) return;
     const ticket = scope();
     paint(host);
-    try { await load(true); }
+    // The shared academic cycle revalidates on navigation; mounting only paints
+    // this account's confirmed snapshot instead of starting a second GET.
+    try { await load(!window.ICADEMCourseSync); }
     catch (error) {
       if (error.code === 'session-ended' || [404,503].includes(error.status)) return;
       if (!host.isConnected || !current(ticket)) return;
