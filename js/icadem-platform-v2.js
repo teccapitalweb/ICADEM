@@ -2579,15 +2579,18 @@
     }
     lastCriticalRefresh = Date.now();
     const entry = { scope, academic:window.ICADEMCourseSync?.active() === true };
-    entry.promise = Promise.allSettled([
+    const tasks = [
       syncIdentity(true, { progress: false }),
       loadLearningProgress(true),
       loadCreditWallet(true),
       window.ICADEMCourseSync?.refresh()
-    ]).then(results => {
-      if (currentPlatformSession(scope) && entry.academic) window.ICADEMCourseSync?.settled(results[0],results[1],results[3]);
-      return results;
-    }).finally(() => { if (criticalRefreshPromise === entry) criticalRefreshPromise = null; });
+    ];
+    // Academic status depends on academic reads, not the independent wallet read.
+    const academicReady = Promise.allSettled([tasks[0], tasks[1], tasks[3]]).then(results => {
+      if (currentPlatformSession(scope) && entry.academic) window.ICADEMCourseSync?.settled(results[0],results[1],results[2]);
+    });
+    entry.promise = Promise.all([Promise.allSettled(tasks), academicReady]).then(([results]) => results)
+      .finally(() => { if (criticalRefreshPromise === entry) criticalRefreshPromise = null; });
     criticalRefreshPromise = entry;
     return entry.promise;
   }

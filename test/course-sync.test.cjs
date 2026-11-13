@@ -44,6 +44,30 @@ test('catalog and summary failures are explicit; old confirmed data is never lab
   f.window.__refreshAcademicCourseCatalog=async()=>true;f.window.progress=async()=>{throw Error('progress offline');};await f.refresh();assert.equal(f.note.hidden,false);
   f.window.progress=async()=>({courses:{}});await f.refresh();assert.equal(f.note.hidden,true);
 });
+test('confirmed academic refresh clears its pending state while the unrelated wallet is still pending',async()=>{
+  const f=session();await f.ready();f.calls.length=0;let releaseCatalog,releaseWallet,finished=false;
+  f.window.__refreshAcademicCourseCatalog=()=>{f.calls.push('catalog');return new Promise(resolve=>{releaseCatalog=resolve;});};
+  f.window.wallet=()=>{f.calls.push('wallet');return new Promise(resolve=>{releaseWallet=resolve;});};
+  const first=f.window.ICADEMPlatform.refreshCriticalData(),joined=f.window.ICADEMPlatform.refreshCriticalData();
+  first.then(()=>{finished=true;});assert.equal(joined,first,'a repeated refresh joins the same complete cycle');
+  await flush();f.runTimers(180);assert.equal(f.note.hidden,false);assert.match(f.note.textContent,/Actualizando/);
+  releaseCatalog(true);await flush();await flush();
+  assert.equal(f.note.hidden,true,'confirmed courses do not wait for the wallet');assert.equal(finished,false,'the complete refresh still awaits its wallet request');
+  assert.deepEqual(f.calls.slice().sort(),['/api/courses/unlocks','catalog','identity','progress','wallet'].sort(),'all original reads occur once');
+  releaseWallet({balance:37});const results=await first;assert.equal(await joined,results);
+  assert.deepEqual(Array.from(results,r=>r.status),['fulfilled','fulfilled','fulfilled','fulfilled']);
+  assert.equal(results[0].value.profile.uid,'owner-a');assert.ok(results[1].value.courses);assert.equal(results[2].value.balance,37);assert.equal(results[3].value,true,'the public result order is unchanged');
+  assert.equal(f.note.hidden,true);assert.deepEqual(Array.from(f.window.ICADEMCourseUnlocks.getPriorities()),['a','b']);assert.equal(f.shared.available,2);
+});
+test('an academic failure is marked stale before the unrelated wallet finishes',async()=>{
+  const f=session();await f.ready();let releaseWallet,finished=false;
+  f.window.wallet=()=>new Promise(resolve=>{releaseWallet=resolve;});
+  f.window.__refreshAcademicCourseCatalog=async()=>{throw Error('catalog offline');};
+  const refresh=f.window.ICADEMPlatform.refreshCriticalData();refresh.then(()=>{finished=true;});await flush();await flush();
+  assert.equal(finished,false);assert.equal(f.note.hidden,false);assert.match(f.note.textContent,/última información/);assert.doesNotMatch(f.note.textContent,/Actualizando/,'a known academic error is never left in the pending state');
+  assert.deepEqual(Array.from(f.window.ICADEMCourseUnlocks.getPriorities()),['a','b'],'the last confirmed priorities remain available with the stale warning');
+  releaseWallet({});const results=await refresh;assert.equal(results.length,4);assert.equal(results[2].status,'fulfilled');assert.equal(results[3].status,'rejected');assert.equal(f.note.hidden,false);assert.match(f.note.textContent,/última información/);
+});
 test('focus events share an in-flight cycle and a route entered during a generic refresh is still hydrated',async()=>{
   const f=session();await f.ready();let release;f.window.identity=()=>new Promise(resolve=>{release=resolve;});f.location.hash='#inicio';
   const generic=f.window.ICADEMPlatform.refreshCriticalData();await flush();f.location.hash='#cursos-bloqueados';f.calls.length=0;
