@@ -188,8 +188,9 @@ body:has(.amb-promo-dialog[open]){overflow:hidden}
 @media(prefers-reduced-motion:reduce){.amb-promo-indicator{transition:none}}
 
 /* Profile invitation: one server-backed component for free and VIP ambassadors. */
-#ambassador-profile-promo{--amb-ink:#173d51;--amb-muted:#526b78;--amb-brown:#785c2c;container:amb-profile / inline-size;display:flex;align-items:center;min-height:270px;width:100%;margin:24px 0;padding:28px 34px;border:1px solid #dfcca0;border-radius:21px;background:#faf3e1;color:#173d51;box-shadow:0 5px 18px #173d5107;transition:box-shadow .2s}
-#ambassador-profile-promo[data-amb-category="vip"],#ambassador-profile-promo[data-amb-category="free"]{background:#faf3e1}
+#ambassador-profile-promo{--amb-ink:#173d51;--amb-muted:#3d5360;--amb-brown:#654a17;container:amb-profile / inline-size;display:flex;align-items:center;min-height:270px;width:100%;margin:24px 0;padding:28px 34px;border:1px solid #d2a22d;border-radius:21px;background:#f6c445;color:#173d51;box-shadow:0 5px 18px #173d5107;transition:box-shadow .2s}
+#ambassador-profile-promo[data-amb-category="vip"],#ambassador-profile-promo[data-amb-category="free"]{background:#f6c445}
+#ambassador-home-promo{--amb-muted:#3d5360;--amb-brown:#654a17;background:#f6c445;border-color:#d2a22d}
 #ambassador-profile-promo::before{content:none}
 #ambassador-profile-promo .amb-promo-profile-layout{display:grid;grid-template-columns:minmax(0,1fr) 250px;align-items:center;gap:24px;width:100%;min-width:0}
 #ambassador-profile-promo .amb-promo-copy{max-width:none;min-width:0}

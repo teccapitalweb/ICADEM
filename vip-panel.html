@@ -25,11 +25,11 @@
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
 <script src="js/icadem-platform-v2.js?v=54" defer></script>
-<script src="js/icadem-course-unlocks.js?v=6" defer></script>
+<script src="js/icadem-course-unlocks.js?v=7" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=4">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
 <script src="js/icadem-learning-navigation.js?v=3" defer></script>
-<script src="js/icadem-course-sync.js?v=1" defer></script>
+<script src="js/icadem-course-sync.js?v=2" defer></script>
 <link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
@@ -42,7 +42,7 @@
 <link rel="stylesheet" href="css/icadem-commission-conversion.css?v=1">
 <link rel="stylesheet" href="css/icadem-credit-rewards.css?v=1">
 <link rel="stylesheet" href="css/ambassadors.css?v=8">
-<link rel="stylesheet" href="css/ambassadors-vip.css?v=3">
+<link rel="stylesheet" href="css/ambassadors-vip.css?v=4">
 <!-- Respaldo editorial público: mantiene visibles las tarjetas de cursos si
      Firestore alcanza temporalmente su cuota. No contiene Video IDs ni URLs
      privadas y nunca concede acceso a una clase. -->
@@ -6089,10 +6089,10 @@ const Sections = (function(){
   let _cursosLoaded = false;
   let _cursosLoading = false;
   let _cursosLoadPromise = null;
-  let _cursosGeneration = 0, _cursosConfirmed = false;
+  let _cursosGeneration = 0, _cursosConfirmed = false, _cursosSnapshotUid = '';
   const cuentaCatalogo = () => window.__isDemoMode ? 'demo' : window.__auth?.currentUser?.uid || '';
   function resetCatalogoCuenta(){
-    _cursosGeneration++; _cursosConfirmed=false; _cursosLoaded=false; _cursosLoading=false; _cursosLoadPromise=null; cursos=[];
+    _cursosGeneration++; _cursosConfirmed=false; _cursosSnapshotUid=''; _cursosLoaded=false; _cursosLoading=false; _cursosLoadPromise=null; cursos=[];
   }
   document.addEventListener('icadem:session-ending',resetCatalogoCuenta);
   document.addEventListener('icadem:session-ended',resetCatalogoCuenta);
@@ -6904,9 +6904,11 @@ const Sections = (function(){
     if (_cursosLoadPromise) {
       await _cursosLoadPromise;
       if(!vigente())return cursos;
-      return force ? cargarCursosFirestore(true) : cursos;
+      // Passive revalidation joins the active read. A confirmed mutation must
+      // read again after any request that could have started before the write.
+      return force === 'after-write' ? cargarCursosFirestore(force) : cursos;
     }
-    if (_cursosLoaded && !force) return cursos;
+    if (_cursosLoaded && _cursosSnapshotUid===ticket.uid && !force) return cursos;
     _cursosLoading = true;
     const flight = (async () => { try {
       const payload = await pedirCatalogoCursos();
@@ -6956,14 +6958,16 @@ const Sections = (function(){
         _ce('bn-stat-retos', 3);
       } catch(_e){}
       _cursosLoaded = true;
+      _cursosSnapshotUid = ticket.uid;
       _cursosConfirmed = true;
       actualizarInicioAprendizaje();
     } catch (e) {
       if(!vigente())return;
       _cursosConfirmed = false;
       console.warn('No se pudo cargar el catálogo seguro:', e.message);
-      if (!_cursosLoaded || !cursos.length) cursos = catalogoCursosPublicoDeRespaldo();
+      if (!_cursosLoaded || !cursos.length || _cursosSnapshotUid!==ticket.uid) cursos = catalogoCursosPublicoDeRespaldo();
       _cursosLoaded = true;
+      _cursosSnapshotUid = ticket.uid;
       actualizarInicioAprendizaje();
     } finally {
       if(vigente())_cursosLoading = false;
@@ -6975,7 +6979,9 @@ const Sections = (function(){
   }
   window.__cargarCursosFirestore = cargarCursosFirestore;
   window.__reloadCourseCatalog = async function(){
-    await cargarCursosFirestore(true);
+    const generation=_cursosGeneration,uid=cuentaCatalogo();
+    await cargarCursosFirestore('after-write');
+    if(generation!==_cursosGeneration||uid!==cuentaCatalogo()||window.__sessionEnding)return null;
     actualizarInicioAprendizaje();
     return cursos;
   };
@@ -6988,14 +6994,24 @@ const Sections = (function(){
       const active=document.activeElement,card=active?.closest?.('.curso-card'),id=card?.dataset.cid;
       const action=['data-course-details','data-unlock-organize-course','data-unlock-select-course','data-unlock-add-course'].find(attr=>active?.hasAttribute?.(attr));
       renderCursosList();
+      // The first-priority hint also depends on current catalog titles/access.
+      // Mount reuses this UID's summary; the shared cycle owns revalidation.
+      const summaryHost=document.querySelector('[data-course-unlocks]');
+      if(summaryHost)await window.ICADEMCourseUnlocks?.mount(summaryHost);
+      if(generation!==_cursosGeneration||uid!==cuentaCatalogo()||window.__sessionEnding)return null;
       const count=document.querySelector('.courses-library-head__count strong');if(count)count.textContent=String(cursos.length);
       if(id&&action){const next=Array.from(document.querySelectorAll('.curso-card')).find(node=>node.dataset.cid===id);next?.querySelector('['+action+']')?.focus({preventScroll:true});}
     }
     return true;
   };
-  window.__getCourseUnlockCatalog = async function(){
+  window.__getCourseUnlockCatalog = async function(options){
+    const generation=_cursosGeneration,uid=cuentaCatalogo();
+    const owned=()=>generation===_cursosGeneration&&uid===cuentaCatalogo()&&_cursosSnapshotUid===uid&&!window.__sessionEnding;
+    // Only the informational priority hint may reuse the current account's
+    // presentation snapshot while the shared cycle revalidates academic data.
+    if(options?.snapshot===true&&_cursosLoaded&&owned())return cursos;
     await cargarCursosFirestore();
-    return cursos;
+    return owned()?cursos:[];
   };
   window.__courseCoverICADEM = (course, fallbackOnly) => String((!fallbackOnly && course.portada) || coverSVG(course.area, course.titulo)).replace(/'/g,'%27');
   document.addEventListener('icadem:course-unlocks-changed', () => {
@@ -7012,11 +7028,11 @@ const Sections = (function(){
     });
   });
   document.addEventListener('icadem:identity-ready', () => {
-    window.__reloadCourseCatalog().then(() => {
+    window.__refreshAcademicCourseCatalog().then(() => {
       const section = String(location.hash || '').replace(/^#/,'');
       const host = document.getElementById('dynamic-section');
       if(__entradaAprendizajeActiva(host))return;
-      if (host?.isConnected && esRutaCursos()) renderVistaCursosActual(host);
+      if (host?.isConnected && esRutaCursos()) renderCursosList();
       else if (host?.isConnected && section === 'curso-detalle') renderCursoDetalle(host);
       else if (host?.isConnected && section === 'clase-detalle') renderClaseDetalle(host);
     }).catch(() => {});
@@ -7430,7 +7446,7 @@ const Sections = (function(){
     guardarOrdenCatalogo('prioridades',false);
   });
   document.addEventListener('icadem:unlocks-updated',event=>{
-    if(event.detail?.prioritiesChanged&&esRutaCursos()&&cursosState.orden==='prioridades')renderCursosList();
+    if(event.detail?.prioritiesChanged&&esRutaCursos()&&['proximos','prioridades'].includes(cursosState.orden))renderCursosList();
   });
   let cursosSearchTimer=null;
   let countdownTimer=null;
@@ -7491,11 +7507,13 @@ const Sections = (function(){
   }
 
   function ordenarCursos(items){
+    // Open courses keep their existing order; saved priorities lead only the locked group.
+    const usarPrioridades=['proximos','prioridades'].includes(cursosState.orden);
     const prioridades=new Map();
-    if(cursosState.orden==='prioridades') (window.ICADEMCourseUnlocks?.getPriorities?.()||[]).forEach((id,index)=>{if(!prioridades.has(id))prioridades.set(id,index);});
+    if(usarPrioridades) (window.ICADEMCourseUnlocks?.getPriorities?.()||[]).forEach((id,index)=>{if(!prioridades.has(id))prioridades.set(id,index);});
     return items.sort((a,b)=>{
       const ia=resumenEstadoCurso(a), ib=resumenEstadoCurso(b);
-      if(cursosState.orden==='prioridades'){
+      if(usarPrioridades){
         if(ia.desbloqueado!==ib.desbloqueado)return ia.desbloqueado?-1:1;
         if(!ia.desbloqueado){
           const posicionA=prioridades.get(a.id)??Infinity,posicionB=prioridades.get(b.id)??Infinity;
@@ -7554,8 +7572,8 @@ const Sections = (function(){
             </div>
             <span class="courses-results-count" id="cur-result-count"></span>
           </div>`}
+          <p class="courses-sync-status" data-course-sync role="status" hidden></p>
         </section>
-        <p class="courses-sync-status" data-course-sync role="status" hidden></p>
         <div id="cur-list"></div>
       </div>
     `;
@@ -7600,6 +7618,7 @@ const Sections = (function(){
     const vista=vistasCursos[vistaCursosActual];
     // Empty state: si todavía no hay cursos publicados
     if (cursos.length === 0 && !vista) {
+      list.__courseProjection=null;
       list.innerHTML = `<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic"><use href="#i-book"/></svg></span><h3>Aún no hay cursos publicados</h3><p>Estamos preparando los primeros programas de ICADEM. En cuanto estén disponibles aparecerán en esta biblioteca.</p></div></div>`;
       document.getElementById('cur-result-count').textContent='0 cursos';
       return;
@@ -7608,6 +7627,7 @@ const Sections = (function(){
     const contador=document.getElementById('cur-result-count');
     if(contador)contador.textContent=vistaCursosActual==='todos'?`${items.length} de ${cursos.length} curso${cursos.length===1?'':'s'}`:`${items.length} curso${items.length===1?'':'s'}`;
     if(items.length===0){
+      list.__courseProjection=null;
       const filtrado=Boolean(cursosState.search||cursosState.area!=='todas'||cursosState.nivel!=='todos');
       list.innerHTML=`<div class="courses-empty"><div><span class="courses-empty__icon"><svg class="ic" aria-hidden="true"><use href="#${!filtrado&&vista?vista.icono:'i-search'}"/></svg></span><h3>${!filtrado&&vista?vista.vacio:'No encontramos cursos'}</h3><p>${filtrado?'Prueba con otro término o restablece los filtros.':vista?'Puedes consultar las demás categorías en Mis cursos.':'Prueba con otro término o restablece los filtros para volver a ver todo el catálogo.'}</p>${filtrado?'<button type="button" data-clear-course-filters>Restablecer filtros</button>':''}</div></div>`;
       list.querySelector('[data-clear-course-filters]')?.addEventListener('click',()=>{cursosState={...cursosState,area:'todas',nivel:'todos',search:''};renderCursos(document.getElementById('dynamic-section'),vistaCursosActual);});
@@ -7624,8 +7644,12 @@ const Sections = (function(){
         <div class="free-course-banner__copy"><span>Tu regalo de bienvenida</span><strong>Elige tu curso gratis</strong><p>Toca «Elegir gratis» en el curso que más te interese. Tendrás hasta ${FREE_CLASS_COUNT} clases iniciales; la clase final permanece reservada. Solo puedes elegir uno.</p></div>
         <span class="free-course-banner__hint" aria-hidden="true">Elige abajo <svg class="ic"><use href="#i-arrow-right"/></svg></span>
       </section>` : '';
+    // Ratings have their own DOM updater. Their asynchronous loading label must
+    // not invalidate unchanged academic cards after an identity-only refresh.
+    const projection=JSON.stringify([avisoRespaldo,bannerGratis,Boolean(toolEsVIP()),String(primerCursoGratisId()||''),items.map(c=>[c,resumenEstadoCurso(c)])]);
+    if(list.__courseProjection===projection)return;
     const htmlEsc=(valor)=>String(valor??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    list.innerHTML=`${avisoRespaldo}${bannerGratis}<div class="cursos-grid cursos-grid--premium">${items.map((c, idx)=>{
+    const markup=`${avisoRespaldo}${bannerGratis}<div class="cursos-grid cursos-grid--premium">${items.map((c, idx)=>{
       const info = resumenEstadoCurso(c);
       const portada = window.__courseCoverICADEM(c);
       const pct = info.progreso;
@@ -7658,6 +7682,8 @@ const Sections = (function(){
         </div>
       </article>
     `;}).join('')}</div>`;
+    // Same confirmed content keeps its nodes, loaded images, focus and geometry.
+    list.innerHTML=markup;list.__courseProjection=projection;
     list.querySelectorAll('[data-free-course-cta]').forEach(button=>button.addEventListener('click',event=>{
       event.stopPropagation();
       window.__elegirCursoGratis(button.dataset.freeCourseCta, button);
@@ -22580,12 +22606,12 @@ h1, h2, h3, h4{ color: var(--text); }
 <script src="js/icadem-onboarding.js?v=23"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
-<link rel="stylesheet" href="css/icadem-courses.css?v=11">
+<link rel="stylesheet" href="css/icadem-courses.css?v=12">
 <link rel="stylesheet" href="css/icadem-live.css?v=2">
 <link rel="stylesheet" href="css/icadem-tools.css?v=2">
 <link rel="stylesheet" href="css/icadem-credits.css?v=2">
 <link rel="stylesheet" href="css/icadem-course-detail.css?v=4">
-<link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=10">
+<link rel="stylesheet" href="css/icadem-ambassador-promo.css?v=11">
 <link rel="stylesheet" href="css/icadem-session.css?v=2">
 <link rel="stylesheet" href="css/icadem-ciudad.css?v=1">
 <script src="js/icadem-ciudad.js?v=7" defer></script>

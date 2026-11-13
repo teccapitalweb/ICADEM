@@ -7,7 +7,7 @@ function fixture(overrides={},freeCourseId=''){
   const window={__currentUser:{uid:'summary-user'},UserState:{freeCourseId},addEventListener(){},__getCourseUnlockCatalog:async()=>[{id:'first',titulo:'Inversiones y mercados financieros',access:{unlocked:false}}],__openLearningRoute:id=>routes.push(id),ICADEMPlatform:{request:async(path,options)=>{calls.push({path,options});return data;}}};
   const document={querySelectorAll:selector=>selector==='[data-course-unlocks]'?[host]:[],querySelector:()=>null,addEventListener(){},dispatchEvent(){}};
   vm.runInNewContext(source,{window,document,Map,Set,Date,setTimeout,clearTimeout,CustomEvent:function(){}});
-  return {host,data,nodes,calls,routes,api:window.ICADEMCourseUnlocks,async mount(){await window.ICADEMCourseUnlocks.mount(host);await Promise.resolve();}};
+  return {host,data,nodes,calls,routes,window,api:window.ICADEMCourseUnlocks,async mount(){await window.ICADEMCourseUnlocks.mount(host);await Promise.resolve();}};
 }
 test('waiting summary retains date, first priority and organizer without a dead choose button',async()=>{
   const f=fixture();await f.mount();assert.equal(f.host.hidden,false);assert.match(f.host.innerHTML,/course-unlocks--waiting/);assert.match(f.host.innerHTML,/Próximo cupo:/);assert.equal(f.nodes.has('[data-unlock-choose]'),false);
@@ -22,4 +22,39 @@ test('inactive, free and administrative summaries retain their own actions and r
   const free=fixture({active:false},'gift-course');await free.mount();assert.match(free.host.innerHTML,/Tu curso gratuito sigue disponible/);assert.ok(free.nodes.has('[data-unlock-organize]'));
   const admin=fixture({isAdmin:true});await admin.mount();assert.match(admin.host.innerHTML,/Acceso a todos los cursos/);assert.ok(admin.nodes.has('[data-unlock-explore]'));assert.ok(!admin.nodes.has('[data-unlock-organize]'));assert.ok(!admin.host.innerHTML.includes('course-unlocks--waiting'));
   for(const f of [expired,free,admin])assert.ok(f.calls.every(call=>!call.options),'summary presentation never writes academic data');
+});
+
+test('a free course identity change refreshes its headline even when the server summary is identical',async()=>{
+  const f=fixture({active:false,available:0});await f.mount();assert.match(f.host.innerHTML,/Elige tu curso gratuito/);
+  const summary=JSON.stringify(f.api.getSummary());
+  f.window.UserState.freeCourseId='gift-course';await f.api.refresh();assert.match(f.host.innerHTML,/Tu curso gratuito sigue disponible/);
+  assert.equal(JSON.stringify(f.api.getSummary()),summary,'presentation changes do not modify rights or the confirmed summary');
+  f.window.UserState.freeCourseId='';await f.api.refresh();assert.match(f.host.innerHTML,/Elige tu curso gratuito/);
+  assert.ok(f.calls.every(call=>!call.options),'changing the headline cannot select or unlock a course');
+});
+
+test('catalog changes update the first priority title and access using the confirmed summary without another GET',async()=>{
+  const f=fixture();f.window.ICADEMCourseSync={};let catalog=[{id:'first',titulo:'Título original',access:{unlocked:false}}];
+  f.window.__getCourseUnlockCatalog=async()=>catalog;await f.mount();assert.match(f.nodes.get('[data-unlock-priority]').attributes['title'],/Título original/);
+  const calls=f.calls.length,summary=JSON.stringify(f.api.getSummary());catalog=[{...catalog[0],titulo:'Título actualizado'}];
+  await f.mount();assert.match(f.nodes.get('[data-unlock-priority]').attributes['title'],/Título actualizado/);
+  catalog=[{...catalog[0],access:{unlocked:true}}];await f.mount();assert.equal(f.nodes.get('[data-unlock-priority]').hidden,true);
+  assert.equal(f.calls.length,calls,'catalog presentation refresh reuses the UID-scoped summary');assert.equal(JSON.stringify(f.api.getSummary()),summary);
+});
+
+test('an equivalent summary received while the first-priority catalog is pending does not discard its hint',async()=>{
+  const f=fixture();f.window.ICADEMCourseSync={};let release;
+  const request=f.window.ICADEMPlatform.request;f.window.ICADEMPlatform.request=async(...args)=>JSON.parse(JSON.stringify(await request(...args)));
+  f.window.__getCourseUnlockCatalog=()=>new Promise(resolve=>{release=resolve;});await f.mount();
+  const hint=f.nodes.get('[data-unlock-priority]');assert.equal(hint.hidden,true);await f.api.refresh();assert.equal(f.nodes.get('[data-unlock-priority]'),hint);
+  release([{id:'first',titulo:'Prioridad confirmada',access:{unlocked:false}}]);await Promise.resolve();await Promise.resolve();
+  assert.equal(hint.hidden,false);assert.match(hint.attributes['title'],/Prioridad confirmada/);
+});
+
+test('a late priority callback cannot overwrite the hint created by a newer paint',async()=>{
+  const f=fixture();f.window.ICADEMCourseSync={};const releases=[];
+  f.window.__getCourseUnlockCatalog=()=>new Promise(resolve=>releases.push(resolve));await f.mount();await f.mount();assert.equal(releases.length,2);
+  const hint=f.nodes.get('[data-unlock-priority]');releases[1]([{id:'first',titulo:'Catálogo actual',access:{unlocked:false}}]);await Promise.resolve();await Promise.resolve();
+  releases[0]([{id:'first',titulo:'Catálogo anterior',access:{unlocked:false}}]);await Promise.resolve();await Promise.resolve();
+  assert.match(hint.attributes['title'],/Catálogo actual/);assert.doesNotMatch(hint.attributes['title'],/Catálogo anterior/);
 });

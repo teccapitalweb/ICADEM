@@ -4,7 +4,7 @@ const source=fs.readFileSync(path.join(__dirname,'course-priorities-e2e.cjs'),'u
 const h=new Function('require','__dirname','process',source.slice(0,source.indexOf('async function scenario(width)'))+`
 return {fixture,initial,catalog,cards,badges,routeOrder,open,act,save,back,
 async start(){await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));base='http://127.0.0.1:'+server.address().port;browser=await chromium.launch({headless:true,channel:'chrome'});},async stop(){await browser?.close();server.close();}};`)(require,__dirname,process);
-async function sync(page){await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])'));}
+async function sync(page){await page.evaluate(()=>window.dispatchEvent(new Event('focus')));await page.waitForFunction(()=>!document.querySelector('[data-course-sync]:not([hidden])')&&document.getElementById('cur-list')?.getAttribute('aria-busy')!=='true');}
 (async()=>{
   await h.start();const shared={data:{...h.initial(),priorities:['course-0','course-2','course-4']}};
   const a=await h.fixture(1440,shared),b=await h.fixture(390,shared),initial=structuredClone(shared.data);

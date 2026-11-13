@@ -1,5 +1,21 @@
 # CAMBIOS
 
+## 2026-11-12 — Mis cursos: bloqueados según prioridades también en el orden predeterminado
+
+- «Próximos a desbloquear» conserva primero los cursos abiertos y su orden relativo anterior. Después muestra los bloqueados incluidos en la lista personal, en el orden guardado; finalmente, el resto con el criterio secundario existente. «Mi orden de prioridad» mantiene ese mismo comportamiento.
+- Una actualización confirmada de prioridades también reordena la vista predeterminada, sin necesidad de cambiar el selector o navegar de nuevo. Nombre, Progreso y Más recientes conservan sus criterios.
+- No se escriben prioridades al ordenar ni se modifican permisos, cupos, progreso, portadas, curso gratuito o calendario de desbloqueos. Sin cambios en el organizador, backend ni Ciudad ICADEM.
+- Pruebas del panel con tres abiertos y cinco prioridades bloqueadas: orden, actualización remota, filtros, distintivos, navegación, recarga y contexto independiente. Datos simulados, sin escrituras académicas. Caché v173.
+
+## 2026-11-12 — Navegación estable de Mis cursos y amarillo de Embajadores
+
+- El aviso de actualización del catálogo deja de desplazar las tarjetas. Usa el espacio existente del borde superior de filtros; las respuestas rápidas no muestran una etiqueta fugaz y los errores siguen indicando que la información no pudo actualizarse. Mi ruta conserva su distribución y mensajes.
+- Las consultas pasivas simultáneas comparten lectura; una recarga posterior a una escritura conserva su lectura nueva. Se mantienen UID, generación de sesión y validación del backend. No se incorporan datos académicos definitivos en almacenamiento del navegador.
+- Datos idénticos conservan los nodos de las tarjetas y del resumen. La comparación excluye el marcado de valoraciones, que tiene su propio actualizador; se elimina la carrera que reconstruía el catálogo tras un cambio de identidad sin cambios académicos.
+- Se recupera el amarillo anterior #F6C445 en los banners de Inicio, perfil y encabezado de Embajadores. Encabezado más compacto: beneficios y código mejor distribuidos, dos columnas cuando hay espacio y acciones táctiles de 44 px. Importes, vigencia, código, enlaces y cálculos financieros intactos.
+- Prueba reproducible sobre el panel completo: salto inicial de 33,19 px; después, 0 px en 24 transiciones rápidas/lentas en Chrome y WebKit con APIs aisladas. Comprobados filtros, prioridades, errores, concurrencia, revocaciones y cambios de cuenta. Responsive emulado; no equivale a teléfonos físicos ni a escrituras reales en cuentas de alumnos.
+- Recursos versionados y caché v172. Se integra la actualización reciente de Ciudad ICADEM manteniendo sus archivos y referencia v7.
+
 ## 2026-11-12 — Mis cursos, Actividad y Contactos más compactos
 
 - Mis desbloqueos conserva fecha, primera prioridad y Organizar lista; cuando no hay cupos, la fecha sustituye al botón deshabilitado. Con cupos, Elegir cursos mantiene su acción. Sin cambios de derechos, prioridades ni consumo de cupos.

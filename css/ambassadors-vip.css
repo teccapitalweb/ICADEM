@@ -37,7 +37,7 @@
 
 /* One luminous palette for free and VIP members; benefits remain server-owned. */
 .av-dashboard{--av-navy:#245b78;--av-blue:#316b9c;--av-green:#197450;--av-orange:#a76927;--av-yellow:#ead39f;--av-card:#fff;--surface:#fff;--surface-2:#f2f7fa;--text:#173d51;--text-2:#4c6574;--text-3:#526b78;--border:#dce5e8;--border-2:#d4e0e5;--primary:#245b78;gap:20px}
-.av-dashboard .av-hero{background:linear-gradient(115deg,#faf3e1,#f8f2e6);color:var(--text);border:1px solid #e6d5ad;border-top:3px solid #c6a66a;box-shadow:0 6px 20px #173d5108}
+.av-dashboard .av-hero{--text-2:#3d5360;background:#f6c445;color:var(--text);border:1px solid #d2a22d;border-top:3px solid #bd8c22;box-shadow:0 6px 20px #173d5108}
 .av-dashboard .av-badge{color:#775b29;border-color:#d9c597;background:#ffffff70}
 .av-dashboard .av-hero h2{color:var(--text)}
 .av-dashboard .av-hero .av-hello,.av-dashboard .av-hero__copy>p:not(.av-hello),.av-dashboard .av-hero-benefits>div>span,.av-dashboard .av-hero-benefits>div>small,.av-dashboard .av-hero-benefits strong small{color:var(--text-2)}
@@ -56,3 +56,52 @@
 .av-dashboard .av-price-period{display:inline-flex;align-items:baseline;gap:4px;white-space:nowrap}
 @container ambvip (max-width:560px){.av-dashboard .av-hero-benefits>div+div strong{display:flex;flex-direction:column;align-items:flex-start;gap:4px}.av-dashboard :is(.av-code-actions button,.av-social-secondary button,.amb-privacy-switch){min-height:44px}}
 [data-theme="night"] .av-dashboard>.av-page-title :is(h1,.av-eyebrow),[data-theme="night"] .av-dashboard>.av-analysis>.av-section-title :is(h2,p,.av-eyebrow),[data-theme="night"] .av-dashboard .av-data-note{color:#d3e4ed}
+
+/* Keep the same benefits and actions in a shorter hero, especially on phones. */
+.av-dashboard .av-hero{padding:24px;gap:24px}
+.av-dashboard .av-hero h2{font-size:clamp(28px,2.7vw,38px);margin:8px 0 10px}
+.av-dashboard .av-hero .av-hello{margin-top:12px}
+.av-dashboard .av-hero__copy>p:not(.av-hello){line-height:1.55}
+.av-dashboard .av-hero-benefits{gap:14px;margin-top:16px;padding-top:14px;border-color:#b18b31}
+@container ambvip (max-width:800px){
+ .av-dashboard .av-hero{gap:16px}
+ .av-dashboard .av-hero__copy{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:0 12px}
+ .av-dashboard .av-badge{justify-self:start}
+ .av-dashboard .av-hero .av-hello{margin:0;text-align:right;font-size:11px;line-height:1.4}
+ .av-dashboard .av-hero__copy>:is(h2,p:not(.av-hello),.av-hero-benefits){grid-column:1/-1}
+ .av-dashboard .av-code-card{align-self:stretch;padding:16px}
+}
+@container ambvip (min-width:620px) and (max-width:800px){
+ .av-dashboard .av-hero{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:start;gap:20px}
+ .av-dashboard .av-hero__copy{display:block}
+ .av-dashboard .av-hero .av-hello{margin:9px 0 0;text-align:left}
+ .av-dashboard .av-code-card{align-self:center}
+}
+@container ambvip (max-width:560px){
+ .av-dashboard .av-hero{padding:16px;gap:12px}
+ .av-dashboard .av-badge{padding:6px 8px;font-size:9px;letter-spacing:.5px}
+ .av-dashboard .av-hero h2{font-size:25px;line-height:1.15;margin:10px 0 7px;letter-spacing:-.7px}
+ .av-dashboard .av-hero__copy>p:not(.av-hello){font-size:12px;line-height:1.5}
+ .av-dashboard .av-hero-benefits{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:10px;margin-top:12px;padding-top:11px}
+ .av-dashboard .av-hero-benefits>div>span{font-size:9px;line-height:1.4;letter-spacing:.5px}
+ .av-dashboard .av-hero-benefits strong{margin:5px 0;font-size:19px;line-height:1.25}
+ .av-dashboard .av-hero-benefits>div>small{font-size:9px;line-height:1.4}
+ .av-dashboard .av-hero-benefits>div+div strong{gap:3px}
+ .av-dashboard .av-code-card{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-items:center;gap:8px 10px;padding:13px}
+ .av-dashboard .av-code-card>span{font-size:9px;line-height:1.4;letter-spacing:.8px}
+ .av-dashboard .av-code-card>strong{margin:0;font-size:22px;text-align:right;letter-spacing:.7px}
+ .av-dashboard .av-code-card>:is(.av-code-actions,.av-button,.av-member-state,.av-paused-note,small){grid-column:1/-1}
+ .av-dashboard .av-code-actions{margin:0;gap:8px}
+ .av-dashboard .av-code-card>.av-button{min-height:44px;padding:9px 12px}
+ .av-dashboard .av-member-state{margin:0;font-size:9px}
+ .av-dashboard .av-code-card>small{margin:0;font-size:9px;line-height:1.4}
+}
+@container ambvip (max-width:330px){
+ .av-dashboard .av-hero{padding:14px}
+ .av-dashboard .av-hero__copy{column-gap:8px}
+ .av-dashboard .av-hero h2{font-size:23px}
+ .av-dashboard .av-hero-benefits>div{display:block}
+ .av-dashboard .av-hero-benefits strong{font-size:18px}
+ .av-dashboard .av-code-card{padding:11px;column-gap:8px}
+ .av-dashboard .av-code-card>strong{font-size:20px}
+}

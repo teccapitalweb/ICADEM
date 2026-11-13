@@ -84,8 +84,81 @@ test('same-UID logout/sign-in starts a new catalog generation and ignores prior 
   f.requests[1].resolve(f.response('new-session'));await fresh;f.requests[0].resolve(f.response('old-session'));await old;
   assert.equal(f.ctx.cursos[0].id,'new-session');
 });
+
+test('concurrent forced catalog readers join one authenticated request instead of queuing another',async()=>{
+  const f=catalogSession(),first=f.ctx.cargarCursosFirestore(true),second=f.ctx.cargarCursosFirestore(true);
+  assert.equal(f.requests.length,1);f.requests[0].resolve(f.response('same-snapshot'));await Promise.all([first,second]);
+  assert.equal(f.requests.length,1);assert.equal(f.ctx.cursos[0].id,'same-snapshot');
+});
+
+test('a confirmed-write reload waits for an old read and then requests the post-write catalog',async()=>{
+  const f=catalogSession();vm.runInContext(between(panel,'  window.__reloadCourseCatalog =','  window.__refreshAcademicCourseCatalog ='),f.ctx);
+  const old=f.ctx.cargarCursosFirestore(true),afterWrite=f.ctx.window.__reloadCourseCatalog();assert.equal(f.requests.length,1);
+  f.requests[0].resolve(f.response('before-write'));await old;await flush();assert.equal(f.requests.length,2);
+  f.requests[1].resolve(f.response('after-write'));await afterWrite;assert.equal(f.ctx.cursos[0].id,'after-write');
+});
+
+test('a post-write reload cannot start or repaint in a replacement session',async()=>{
+  const f=catalogSession();vm.runInContext(between(panel,'  window.__reloadCourseCatalog =','  window.__refreshAcademicCourseCatalog ='),f.ctx);
+  const old=f.ctx.cargarCursosFirestore(true),afterWrite=f.ctx.window.__reloadCourseCatalog();f.reset();f.ctx.window.__auth.currentUser.uid='b';
+  f.requests[0].resolve(f.response('private-a'));await old;assert.equal(await afterWrite,null);assert.equal(f.requests.length,1);assert.equal(f.ctx.cursos.length,0);
+});
+
+test('the informational hint can reuse its owned snapshot while default catalog readers still await revalidation',async()=>{
+  const f=catalogSession();vm.runInContext(between(panel,'  window.__getCourseUnlockCatalog =','  window.__courseCoverICADEM ='),f.ctx);
+  const initial=f.ctx.cargarCursosFirestore();f.requests[0].resolve(f.response('confirmed-a'));await initial;
+  const refresh=f.ctx.cargarCursosFirestore(true),snapshot=await f.ctx.window.__getCourseUnlockCatalog({snapshot:true});
+  assert.equal(snapshot[0].id,'confirmed-a');assert.equal(f.requests.length,2);
+  let resolved=false;const canonical=f.ctx.window.__getCourseUnlockCatalog().then(rows=>{resolved=true;return rows;});await flush();assert.equal(resolved,false);
+  f.requests[1].resolve(f.response('revalidated-a'));await refresh;assert.equal((await canonical)[0].id,'revalidated-a');assert.equal(f.requests.length,2);
+});
+
+test('a hint snapshot never returns the preceding account catalog, including when the next read fails',async()=>{
+  const f=catalogSession();vm.runInContext(between(panel,'  window.__getCourseUnlockCatalog =','  window.__courseCoverICADEM ='),f.ctx);
+  const initial=f.ctx.cargarCursosFirestore();f.requests[0].resolve(f.response('private-a'));await initial;
+  f.ctx.window.__auth.currentUser.uid='b';let resolved=false;
+  const snapshot=f.ctx.window.__getCourseUnlockCatalog({snapshot:true}).then(rows=>{resolved=true;return rows;});await flush();assert.equal(resolved,false);assert.equal(f.requests.length,2);
+  f.requests[1].reject(Error('offline'));assert.equal((await snapshot).length,0);assert.equal(f.ctx.cursos.length,0);
+  f.ctx.window.__sessionEnding=true;assert.equal((await f.ctx.window.__getCourseUnlockCatalog({snapshot:true})).length,0);
+});
+
+test('an identical confirmed summary does not replace its DOM; a real server change still repaints it',async()=>{
+  const f=session({revision:1,priorities:['a','b'],available:2,active:true}),host=new f.Element('div');host.dataset.courseUnlocks='';let paints=0,markup='';
+  Object.defineProperty(host,'innerHTML',{get:()=>markup,set:value=>{paints++;markup=String(value);}});f.document.body.append(host);
+  await f.ready();assert.ok(paints>0);paints=0;await f.refresh();assert.equal(paints,0);
+  f.shared.available=1;f.shared.revision++;await f.refresh();assert.equal(paints,1);assert.match(markup,/1 curso por elegir/);
+});
 test('the backend summary accessor returns defensive copies and never returns another owner data',async()=>{
   const f=session();await f.ready();const data=f.window.ICADEMCourseUnlocks.getSummary();data.priorities.reverse();data.available=999;
   assert.deepEqual(Array.from(f.window.ICADEMCourseUnlocks.getPriorities()),['a','b']);assert.equal(f.window.ICADEMCourseUnlocks.getSummary().available,2);
   f.window.__auth.currentUser.uid='other';assert.equal(f.window.ICADEMCourseUnlocks.getSummary(),null);
+});
+
+function projectionSession(){
+  let markup='',writes=0;
+  const list={get innerHTML(){return markup;},set innerHTML(value){writes++;markup=String(value);},querySelectorAll(){return [];}};
+  const course={id:'always-visible',titulo:'Curso visible',desc:'Mismo catálogo confirmado',instructor:'ICADEM',area:'Fiscal',nivel:'Intermedio',horas:2,sesiones:[{accessible:true},{accessible:true}],materiales:[],access:{unlocked:true}};
+  const ctx={vip:true,freeCourseId:'',rating:'<div class="curso-card__rating">Cargando valoraciones…</div>',cursos:[course],cursosState:{estado:'disponibles'},vistasCursos:{disponibles:{titulo:'Disponibles'}},vistaCursosActual:'disponibles',FREE_CLASS_COUNT:4,
+    document:{getElementById:id=>id==='cur-list'?list:{textContent:''},querySelectorAll:()=>[]},
+    window:{__courseCoverICADEM:()=>'/cover.webp',ICADEMCourseUnlocks:{decorate(){}}},
+    ordenarCursos:items=>items,cursosFiltrados:()=>[course],cursoDesbloqueado:()=>true,diasParaDesbloquear:()=>0,progresoCursoPct:()=>0};
+  ctx.toolEsVIP=()=>ctx.vip;ctx.primerCursoGratisId=()=>ctx.freeCourseId;
+  ctx.window.ICADEMCourseRatings={cardMarkup:()=>ctx.rating};vm.createContext(ctx);
+  vm.runInContext(between(panel,'  function resumenEstadoCurso(c){','  function cursoCoincideEstado')+between(panel,'  function renderCursosList(){','  function openCursoDetalle(id){'),ctx);
+  return {ctx,course,render:()=>ctx.renderCursosList(),get markup(){return markup;},get writes(){return writes;}};
+}
+
+test('child views update free-course controls when membership or selected gift changes without changing canonical access',()=>{
+  const f=projectionSession(),before=JSON.stringify(f.course);f.render();assert.equal(f.writes,1);assert.doesNotMatch(f.markup,/data-free-course-cta/);
+  f.ctx.vip=false;f.render();assert.equal(f.writes,2);assert.match(f.markup,/data-free-course-cta/,'free member with no selection can choose the gift');
+  f.ctx.freeCourseId='another-course';f.render();assert.equal(f.writes,3);assert.doesNotMatch(f.markup,/data-free-course-cta/,'a confirmed gift elsewhere removes the choose action');
+  f.ctx.freeCourseId='';f.render();assert.equal(f.writes,4);assert.match(f.markup,/data-free-course-cta/);
+  f.ctx.vip=true;f.render();assert.equal(f.writes,5);assert.doesNotMatch(f.markup,/data-free-course-cta/);
+  assert.equal(JSON.stringify(f.course),before,'rendering never changes backend course rights');assert.match(f.markup,/Iniciar curso/);
+});
+
+test('rating-only updates keep their own updater while a changed academic course still rerenders',()=>{
+  const f=projectionSession();f.render();assert.equal(f.writes,1);
+  f.ctx.rating='<div class="curso-card__rating">Valoraciones no disponibles</div>';f.render();assert.equal(f.writes,1,'the asynchronous rating label does not rebuild a course card');
+  f.course.titulo='Título confirmado actualizado';f.render();assert.equal(f.writes,2);assert.match(f.markup,/Título confirmado actualizado/);
 });
