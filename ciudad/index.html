@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/ciudad.css?v=9">
+<link rel="stylesheet" href="css/ciudad.css?v=10">
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
@@ -120,6 +120,23 @@
   <div class="fatal" id="fatal" hidden><div><h2>No pudimos abrir Ciudad ICADEM</h2><p id="fatal-text"></p><button class="splash__go" type="button" data-exit hidden>Volver al panel</button></div></div>
 </div>
 
-<script type="module" src="js/main.js?v=9"></script>
+<script>
+  // Si algún archivo del juego no llega (por ejemplo, un error momentáneo del servidor de páginas), el
+  // módulo principal no arranca y la pantalla de carga se quedaría fija: se reintenta una vez sola y,
+  // si vuelve a fallar, se explica qué pasó y se ofrece recargar.
+  var ciudadFailed = false;
+  addEventListener('load', function () { if (!ciudadFailed) try { sessionStorage.removeItem('ciudad-carga-reintento'); } catch (_) {} });   // cargó bien
+  function ciudadLoadFailed() {
+    var k = 'ciudad-carga-reintento', again = false; ciudadFailed = true;
+    try { again = sessionStorage.getItem(k) === '1'; if (!again) sessionStorage.setItem(k, '1'); } catch (_) { again = true; }
+    if (!again) { setTimeout(function () { location.reload(); }, 600); return; }
+    var s = document.getElementById('splash'), f = document.getElementById('fatal'), t = document.getElementById('fatal-text');
+    if (s) s.hidden = true; if (f) f.hidden = false;
+    if (t) { t.textContent = 'No se pudieron descargar todos los archivos del juego. Revisa tu conexión y vuelve a intentarlo.';
+      var b = document.createElement('button'); b.className = 'splash__go'; b.type = 'button'; b.textContent = 'Reintentar';
+      b.onclick = function () { try { sessionStorage.removeItem(k); } catch (_) {} location.reload(); }; t.after(b); }
+  }
+</script>
+<script type="module" src="js/main.js?v=10" onerror="ciudadLoadFailed()"></script>
 </body>
 </html>
