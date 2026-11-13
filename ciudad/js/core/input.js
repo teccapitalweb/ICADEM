@@ -5,7 +5,7 @@ const KEY_MAP = {
   KeyA: 'left', ArrowLeft: 'left', KeyD: 'right', ArrowRight: 'right',
   ShiftLeft: 'run', ShiftRight: 'run'
 };
-const PRESS_MAP = { Space: 'jump', KeyE: 'interact', Enter: 'interact', KeyM: 'map', Escape: 'back', KeyP: 'passport', KeyT: 'say',
+const PRESS_MAP = { Space: 'jump', KeyE: 'interact', Enter: 'interact', KeyM: 'map', Escape: 'back', KeyP: 'passport', KeyT: 'say', KeyC: 'chat', Slash: 'chat',
   Digit1: 'say1', Digit2: 'say2', Digit3: 'say3', Digit4: 'say4', Digit5: 'say5', Digit6: 'say6' };
 
 /** Detección de pantalla táctil que no depende de una sola señal (algunos navegadores incrustados fallan en `pointer: coarse`). */
@@ -40,7 +40,7 @@ export class Input {
       if (e.target instanceof HTMLElement && e.target.closest('input,textarea,select')) return;
       if (PRESS_MAP[e.code]) {
         if (!e.repeat) this.presses.add(PRESS_MAP[e.code]);
-        if (e.code === 'Space' || e.code === 'Enter') e.preventDefault();
+        if (e.code === 'Space' || e.code === 'Enter' || PRESS_MAP[e.code] === 'chat') e.preventDefault();   // la C que abre el chat no se escribe en él
       }
       if (KEY_MAP[e.code]) { this.keys.add(KEY_MAP[e.code]); if (e.code.startsWith('Arrow')) e.preventDefault(); }
     });

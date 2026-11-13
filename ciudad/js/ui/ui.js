@@ -56,7 +56,8 @@ export class UI {
     $('btn-player').addEventListener('click', () => this.openPassport());
     // Menú «Más»: Ajustes y Salir quedan a un toque, sin ocupar la pantalla.
     const more = $('more-menu'), moreBtn = $('btn-more');
-    const setMore = open => { more.hidden = !open; moreBtn.setAttribute('aria-expanded', String(open)); if (open) more.querySelector('button:not([hidden])')?.focus(); };
+    const setMore = open => { more.hidden = !open; moreBtn.setAttribute('aria-expanded', String(open)); more.parentElement.classList.toggle('is-menu-open', open);   // el menú queda sobre la tarjeta del tutorial
+      if (open) more.querySelector('button:not([hidden])')?.focus(); };
     moreBtn.addEventListener('click', e => { e.stopPropagation(); setMore(more.hidden); });
     more.addEventListener('click', () => setMore(false));
     document.addEventListener('pointerdown', e => { if (!more.hidden && !more.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)) setMore(false); });

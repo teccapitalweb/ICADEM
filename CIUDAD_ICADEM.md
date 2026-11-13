@@ -763,3 +763,49 @@ Logros nuevos: Mente curiosa, Políglota, Memoria de oro, Calculadora humana, Gr
 - **Límites:** `CIUDAD_MAX_PLAYERS` (64), `CIUDAD_MAX_CONNS_PER_IP` (12), una sesión por cuenta, boletos de
   un uso (60 s), 20 boletos por minuto por dirección y topes por tipo de acción.
 
+
+## 19. Versión 1.2 · Entrega 2: chat libre, NPC con saludos y pulido (13 nov 2026)
+
+### Chat libre de la ciudad
+- **Quién lo usa:** solo cuentas adultas que lo activan una vez confirmando «tengo 18 años o más» y
+  aceptando las normas. La aceptación queda en la cuenta (`ciudadProfiles.chat.adultAt`), así que vale en
+  computadora, tablet y celular. Los perfiles infantiles (modo familiar, que sigue apagado) nunca envían
+  ni reciben texto libre aunque declaren ser adultos: el servidor lo decide por el tipo de sesión.
+- **Límite honesto de la distinción de edad:** ICADEM no verifica documentos de edad. La separación se basa
+  en (1) que los perfiles infantiles son un tipo de sesión distinto creado por el servidor y (2) la
+  declaración de mayoría de edad registrada por cuenta. No hay mensajes privados: todo el chat es por
+  instancia y escenario, visible para los presentes.
+- **Servidor (autoridad):** `_ciudad-server/chat.js` + `hub.chat()`. El autor sale de la sesión (no se
+  puede escribir en nombre de otro); el texto pasa por `ciudad/js/social/chat-rules.js` (máx. 140
+  caracteres; sin enlaces, correos, teléfonos ni invitaciones a otras apps; insultos, contenido sexual,
+  odio y amenazas rechazados aun escritos con trucos; groserías leves tapadas con •••).
+- **Anti-spam y sanciones:** 4 mensajes cada 10 s y 15 por minuto; el mismo texto no se repite antes de
+  45 s; 3 faltas en 10 min pausan el chat 5 min, luego 30 min y luego 2 h; 3 reportes de personas
+  distintas en 30 min pausan el chat del reportado 15 min. Las sanciones son por cuenta y en memoria del
+  servidor (un reinicio de Railway las borra).
+- **Quién recibe:** misma instancia y escenario, con las reglas de visibilidad de las posiciones, chat
+  activo y sin bloqueo entre ambos. La burbuja sobre el avatar solo aparece a ≤ 30 m.
+- **Controles:** silenciar (este dispositivo), bloquear (cuenta, ambos sentidos, también frases rápidas),
+  reportar un mensaje (el reporte guarda la evidencia que registró el servidor, no la que mande quien
+  reporta), pausar el chat (privacidad). Las frases rápidas siguen como opción y son lo único para quien
+  no activó el chat.
+- **Reportes:** van a los logs de Railway (`report … chat mensaje`) y, si `CIUDAD_REPORTS=firestore`, a la
+  colección `ciudadReports` con `status: 'pendiente'`, el mensaje y los 3 últimos del autor.
+  Hoy esa variable NO está activa: recomendable activarla para revisar reportes fuera de los logs.
+- **Reversión inmediata:** `CIUDAD_CHAT=off` en Railway apaga el chat libre (quedan las frases rápidas) sin
+  tocar nada más. `CIUDAD_ACCESS=closed` sigue siendo la reversión total del multijugador.
+
+### NPC educativos
+- Corrección de la prueba intermitente: el personaje podía elegirse a 11 m pero desistía a más de 9 m
+  (`reach` > `leave`). Ahora `reach` 9 m y `leave` 12 m; además rodean bancas, postes y paredes eligiendo un
+  lado y sosteniéndolo, y desisten si llevan 1.6 s sin avanzar o 9 s sin llegar (no persiguen).
+- Saludan al pasar (con pausa por personaje), se presentan, se despiden si el jugador declina o se aleja,
+  y reaccionan a la respuesta (aplauso si acierta, ánimo si no).
+
+### Pulido
+- Animación: inclinación al girar, cabeza hacia la curva, y en reposo cambio de peso y mirada alrededor.
+- Minijuegos: marcador animado, estrellas escalonadas, «¡Nuevo récord personal!» y racha en Matemáticas
+  (solo presentación: el puntaje y la XP los sigue validando el servidor).
+- Plaza: halo cálido en los faroles. Panel social: inicial de color por jugador y botón Bloquear.
+- Celular: el indicador de jugadores ya no se encima con la tarjeta del jugador; el panel de chat queda
+  arriba, lejos del joystick y de los botones.

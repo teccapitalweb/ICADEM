@@ -134,7 +134,11 @@ export function createIcademServices({ db, auth, admins = [], pilot = [], blocke
       fromUid: String(e.fromUid || ''), targetUid: String(e.targetUid || ''),
       fromPid: String(e.fromPid || ''), targetPid: String(e.targetPid || ''),
       reason: String(e.reason || '').slice(0, 80), instance: String(e.instance || ''),
-      savedAt: now()
+      // Evidencia del chat registrada por el servidor (no la que diga quien reporta).
+      ...(e.chat ? { chat: { message: e.chat.message ? { text: String(e.chat.message.text || '').slice(0, 160), at: Number(e.chat.message.at) || 0 } : null,
+        recent: (e.chat.recent || []).slice(-3).map(m => ({ text: String(m.text || '').slice(0, 160), at: Number(m.at) || 0 })) } } : {}),
+      ...(e.autoPause ? { autoPause: true } : {}),
+      status: 'pendiente', savedAt: now()
     });
   }
 

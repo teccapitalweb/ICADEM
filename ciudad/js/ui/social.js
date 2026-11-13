@@ -1,6 +1,6 @@
 // Capa social: frases rápidas con gesto, burbujas sobre los avatares, nombres de los jugadores
 // reales conectados, indicador de conexión y lista de jugadores con silenciar y reportar.
-// No hay texto libre: solo la lista cerrada de social/phrases.js.
+// Las frases rápidas son una lista cerrada (social/phrases.js); el texto libre va por ui/chat.js.
 import * as THREE from '../three.js';
 import { PHRASES, phraseById, createRateLimiter, SAY_RADIUS, BUBBLE_SECONDS } from '../social/phrases.js';
 import { COOP_MISSIONS } from '../net/scenes.js';
@@ -77,10 +77,15 @@ export class Social {
     return true;
   }
 
-  #bubble(key, text) {
+  /** Burbuja sobre un avatar (la usa también el chat libre, con más duración). */
+  bubble(key, text, seconds = BUBBLE_SECONDS, head = null, cls = '') { this.#bubble(key, text, seconds, head, cls); }
+
+  #bubble(key, text, seconds = BUBBLE_SECONDS, head = null, cls = '') {
     let b = this.bubbles.get(key);
-    if (!b) { b = { el: h('div', 'bubble' + (key === 'me' ? ' bubble--me' : '')), left: 0 }; this.layer.append(b.el); this.bubbles.set(key, b); }
-    b.el.textContent = text; b.left = BUBBLE_SECONDS; b.el.classList.remove('is-in'); void b.el.offsetWidth; b.el.classList.add('is-in');
+    if (!b) { b = { el: h('div', 'bubble' + (key === 'me' ? ' bubble--me' : '') + (cls ? ' ' + cls : '')), left: 0 }; this.layer.append(b.el); this.bubbles.set(key, b); }
+    b.head = head; b.scene = this.api.sceneName;
+    b.el.classList.toggle('bubble--long', text.length > 34);
+    b.el.textContent = text; b.left = seconds; b.el.classList.remove('is-in'); void b.el.offsetWidth; b.el.classList.add('is-in');
   }
 
   #clear(pid) { const b = this.bubbles.get(pid); if (b) { b.el.remove(); this.bubbles.delete(pid); } const t = this.tags.get(pid); if (t) { t.remove(); this.tags.delete(pid); } }
@@ -155,7 +160,16 @@ export class Social {
       });
       const rep = h('button', 'btn', 'Reportar'); rep.type = 'button';
       rep.addEventListener('click', () => { if (net.report && net.report(p.pid, 'conducta')) { rep.disabled = true; rep.textContent = 'Reportado'; api.ui.toast('Reporte enviado a moderación.'); } });
-      r.append(mute, rep); rows.append(r);
+      r.prepend(h('span', 'players__dot', (p.name || '?').trim().charAt(0).toUpperCase()));
+      r.querySelector('.players__dot').style.setProperty('--h', String([...String(p.pid)].reduce((n, c) => (n * 31 + c.charCodeAt(0)) >>> 0, 0) % 360));
+      r.append(mute);
+      // Bloquear (en la cuenta, todos los dispositivos): disponible para quien tiene el chat activo.
+      if (api.chat && api.chat.enabled) {
+        const blk = h('button', 'btn', 'Bloquear'); blk.type = 'button';
+        blk.addEventListener('click', () => { if (net.chat('block', { pid: p.pid })) { blk.disabled = true; blk.textContent = 'Bloqueado'; this.#clear(p.pid); } });
+        r.append(blk);
+      }
+      r.append(rep); rows.append(r);
     }
     body.append(rows);
     if (!list.length) body.append(h('p', 'players__empty', 'Por ahora no hay otros jugadores en tu instancia.'));
@@ -323,9 +337,9 @@ export class Social {
     }
     for (const [key, b] of this.bubbles) {
       b.left -= dt;
-      if (b.left <= 0) { b.el.remove(); this.bubbles.delete(key); continue; }
+      if (b.left <= 0 || (b.head && b.scene !== api.sceneName)) { b.el.remove(); this.bubbles.delete(key); continue; }
       b.el.classList.toggle('is-out', b.left < 0.4);
-      const head = key === 'me' ? { x: p.x, y: p.y + 2.2, z: p.z } : this.remotes.head(key);
+      const head = key === 'me' ? { x: p.x, y: p.y + 2.2, z: p.z } : b.head ? b.head() : this.remotes.head(key);
       if (!head) { b.el.style.display = 'none'; continue; }
       this.#project(head.x, head.y + (key === 'me' ? 0 : 0.34), head.z, b.el);
     }

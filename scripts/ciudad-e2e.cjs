@@ -254,6 +254,9 @@ async function panel(browser) {
     await shot(page, `p-${mode}-juego.png`);
     const inGame = await frame.evaluate(() => ({ hud: !document.getElementById('hud').hidden, exit: !document.getElementById('btn-exit').hidden, name: document.getElementById('player-name').textContent, touch: document.documentElement.classList.contains('is-touch') }));
     ok(`[${mode}] HUD visible con botón Salir`, inGame.hud && inGame.exit, JSON.stringify(inGame));
+    // primera visita: el juego pide elegir personaje (Entrega 1); se elige el inicial como haría un usuario
+    const picker = await frame.evaluate(() => !document.getElementById('modal').hidden && document.getElementById('modal-title').textContent === 'Elige tu personaje');
+    if (picker) { await frame.click('#modal-actions .btn--primary'); await page.waitForTimeout(800); }
     if (mode === 'mobile') {
       // joystick táctil real
       const before = await frame.evaluate(() => 1);
@@ -272,7 +275,7 @@ async function panel(browser) {
       const coach2 = await frame.evaluate(() => document.getElementById('coach-title').textContent);
       ok(`[${mode}] arrastrar gira la cámara (tutorial avanza)`, coach2 === 'Interactúa con algo', coach2);
     }
-    await frame.click('#btn-exit'); await page.waitForTimeout(600);
+    await frame.click('#btn-more'); await frame.click('#btn-exit'); await page.waitForTimeout(600);   // «Salir al panel» vive en el menú Más
     ok(`[${mode}] Salir regresa al panel y libera el juego`, await page.evaluate(o => !document.querySelector('.ciudad-stage') && !window.ICADEMCiudad.isOpen() && document.body.style.overflow === o, overflowBefore));
     // cambiar de sección con el juego abierto lo cierra
     await page.evaluate(() => window.ICADEMCiudad.open()); await page.waitForTimeout(500);

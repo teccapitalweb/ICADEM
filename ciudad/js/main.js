@@ -9,6 +9,7 @@ import { OfflineAdapter, StateSync } from './net/network.js';
 import { WsAdapter, devTicketProvider, askPanelForServer, panelTicketProvider } from './net/ws-adapter.js';
 import { RemotePlayers } from './characters/remote.js';
 import { Social } from './ui/social.js';
+import { ChatPanel } from './ui/chat.js';
 import { createAvatar } from './characters/avatar.js';
 import { avatarById } from './characters/catalog.js';
 import { applyCustom, cleanCustom, isAvatarUnlocked } from './progress/rules.js';
@@ -170,6 +171,7 @@ async function boot() {
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social;
+  const chat = new ChatPanel(api, social); api.chat = chat;
   if (net instanceof WsAdapter) {
     net.on('status', st => { if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
     net.on('profile', m => { if (m.profile) applyProfile(m.profile); if (m.op === 'avatar' && m.ok === false) api.ui.toast('El servidor no autorizó ese avatar.'); });
@@ -306,6 +308,7 @@ async function boot() {
     if (input.consume('map')) api.ui.openMap();
     if (input.consume('passport')) api.ui.openPassport();
     if (input.consume('say')) social.toggle();
+    if (input.consume('chat')) chat.focus();
     for (let i = 0; i < 6; i++) if (input.consume('say' + (i + 1))) { social.sayIndex(i); social.toggle(false); }
 
     /* movimiento relativo a la cámara */

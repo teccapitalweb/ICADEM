@@ -76,15 +76,20 @@ function startServer() {
     // siguen su ruta: si se aleja antes de llegar, desiste (así debe ser) y se intenta otra vez.
     const offered = () => ana.evaluate(() => !document.getElementById('choice')?.hidden && /pregunta/.test(document.querySelector('.choice__text')?.textContent || ''));
     let approached = false, why = '';
-    for (let attempt = 0; attempt < 4 && !approached; attempt++) {
+    for (let attempt = 0; attempt < 3 && !approached; attempt++) {
       // se espera en el siguiente punto de su ruta (lugar caminable): el personaje viene hacia ahí
       const memo = await ana.evaluate(() => { const n = window.__ciudad.api.scene.npcs.find(x => x.quizName === 'Don Memo'); return n.route[n.leg]; });
       await walk(ana, memo[0], memo[1]);
-      await ana.evaluate(() => { const a = window.__ciudad.api; a.store.state.settings.npcQuiz = true; a.npcQuiz.cool = 0; a.npcQuiz.calm = 5; a.npcQuiz.last = new Map(); });
-      approached = await until(offered, 25000);
-      why = await ana.evaluate(() => window.__ciudad.api.npcQuiz.lastAbort || '');
+      await ana.evaluate(() => { const a = window.__ciudad.api; a.store.state.settings.npcQuiz = true; a.npcQuiz.cool = 0; a.npcQuiz.calm = 5; a.npcQuiz.last = new Map(); a.npcQuiz.lastAbort = ''; });
+      // El render por software corre en cámara lenta (~1–2 cuadros/s): el personaje puede tardar más de 30 s
+      // reales en recorrer su tramo. Se espera mientras siga acercándose (sin desistir), hasta 75 s.
+      approached = await until(async () => (await offered()) || (await ana.evaluate(() => Boolean(window.__ciudad.api.npcQuiz.lastAbort))), 75000) && await offered();
+      why = await ana.evaluate(() => { const a = window.__ciudad.api, q = a.npcQuiz, me = a.player.position, m = document.getElementById('modal'), c = document.getElementById('choice');
+        return JSON.stringify({ abort: q.lastAbort || '', blocking: a.ui.isBlocking, modal: m.hidden ? null : document.getElementById('modal-title').textContent, choice: c && !c.hidden ? document.querySelector('.choice__text').textContent : null,
+          cool: +q.cool.toFixed(1), calm: +q.calm.toFixed(1), walker: Boolean(q.walker), busy: q.busy, scene: a.sceneName, games: Boolean(a.games && a.games.active), seat: Boolean(a.player.seat), tut: Boolean(a.tutorial && a.tutorial.active),
+          npcs: a.scene.npcs.filter(n => n.quizName).map(n => [n.quizName, +Math.hypot(n.group.position.x - me.x, n.group.position.z - me.z).toFixed(1), n.talking]) }); });
     }
-    ok('un NPC educativo se acerca y propone un reto', approached, why);
+    ok('un NPC educativo se acerca y propone un reto', approached, why + ' errores:' + JSON.stringify(ana.errs.slice(-3)));
     await tap(ana, '.choice__opt.is-primary'); await until(() => ana.evaluate(() => Boolean(document.querySelector('.quiz__q'))));
     const right = await ana.evaluate(async () => { const { QUESTIONS } = await import('./js/edu/questions.js'); const q = QUESTIONS.find(x => x.q === document.querySelector('.quiz__q').textContent); return q.answer; });
     await tap(ana, `.quiz__opt[data-i="${right}"]`);

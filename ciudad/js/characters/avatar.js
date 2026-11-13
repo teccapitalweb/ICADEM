@@ -157,8 +157,8 @@ export function createAvatar(look = {}) {
   root.scale.setScalar(L.scale);
 
   /* ---------- animación ---------- */
-  const pose = { legL: 0, legR: 0, armLx: 0, armRx: 0, armLz: 0.08, armRz: -0.08, lean: 0, bodyY: 0, headX: 0, headY: 0, squash: 1 };
-  const state = { phase: 0, time: Math.random() * 10, emote: null, emoteTime: 0, anim: 'idle', blink: 2 + Math.random() * 3, lookYaw: 0 };
+  const pose = { legL: 0, legR: 0, armLx: 0, armRx: 0, armLz: 0.08, armRz: -0.08, lean: 0, bodyY: 0, headX: 0, headY: 0, squash: 1, bank: 0 };
+  const state = { phase: 0, time: Math.random() * 10, emote: null, emoteTime: 0, anim: 'idle', blink: 2 + Math.random() * 3, lookYaw: 0, prevYaw: null, turn: 0, idle: 0 };
 
   function playEmote(name, seconds = 1.6) { state.emote = name; state.emoteTime = seconds; }
 
@@ -177,7 +177,12 @@ export function createAvatar(look = {}) {
     state.wasGrounded = grounded;
     if (state.land > 0) state.land -= dt;
 
-    const T = { legL: 0, legR: 0, armLx: 0, armRx: 0, armLz: 0.08, armRz: -0.08, lean: 0, bodyY: 0, headX: 0, headY: s.lookYaw || 0, squash: 1 };
+    // Giro del cuerpo (lo fija quien mueve al personaje): sirve para inclinarse en las curvas.
+    const yaw = root.rotation.y;
+    if (state.prevYaw !== null && dt > 0) { let dy = (yaw - state.prevYaw) % (Math.PI * 2); if (dy > Math.PI) dy -= Math.PI * 2; if (dy < -Math.PI) dy += Math.PI * 2; state.turn += (dy / dt - state.turn) * Math.min(1, dt * 8); }
+    state.prevYaw = yaw;
+    state.idle = moving || !grounded || s.sitting || state.emote ? 0 : state.idle + dt;
+    const T = { legL: 0, legR: 0, armLx: 0, armRx: 0, armLz: 0.08, armRz: -0.08, lean: 0, bodyY: 0, headX: 0, headY: s.lookYaw || 0, squash: 1, bank: 0 };
     let anim = 'idle';
     if (s.sitting) {
       anim = 'sit'; T.legL = T.legR = -1.48; T.bodyY = -0.3; T.armLx = T.armRx = -0.5; T.lean = -0.06;
@@ -191,9 +196,14 @@ export function createAvatar(look = {}) {
       T.armLz = 0.1 + 0.12 * runMix; T.armRz = -0.1 - 0.12 * runMix;
       T.lean = 0.07 + 0.19 * runMix;
       T.bodyY = Math.abs(Math.cos(state.phase)) * (0.035 + 0.035 * runMix) * start;
+      T.bank = Math.max(-0.2, Math.min(0.2, -state.turn * 0.055 * Math.min(1, speed / 3)));   // se inclina hacia la curva
+      T.headY += Math.max(-0.3, Math.min(0.3, state.turn * 0.09));                              // y mira hacia donde gira
     } else {
       const b = Math.sin(state.time * 2.1);
       T.bodyY = b * 0.012; T.armLz = 0.1 + b * 0.025; T.armRz = -0.1 - b * 0.025; T.headX = Math.sin(state.time * 0.7) * 0.04;
+      // quieto un rato: cambia el peso de pierna y mira alrededor con calma
+      const mix = Math.min(1, Math.max(0, (state.idle - 4) / 2));
+      if (mix && s.lookYaw === undefined) { T.headY += Math.sin(state.time * 0.42) * 0.42 * mix; T.bank = Math.sin(state.time * 0.33) * 0.03 * mix; T.legL += Math.max(0, Math.sin(state.time * 0.33)) * 0.08 * mix; }
     }
     if (state.emote === 'wave') {
       anim = 'wave'; T.armRz = -2.55 + Math.sin(state.time * 11) * 0.32; T.armRx = 0; T.headY += 0.12;
@@ -227,6 +237,7 @@ export function createAvatar(look = {}) {
     torso.rotation.x = pose.lean;
     body.position.y = pose.bodyY;
     body.scale.y = pose.squash;
+    body.rotation.z = pose.bank;
     head.rotation.x = pose.headX - pose.lean * 0.6;
     head.rotation.y = pose.headY;
     if (s.sitting) { torso.rotation.x = pose.lean; }

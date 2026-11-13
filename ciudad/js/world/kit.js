@@ -308,8 +308,12 @@ export function lamp(x, z, parent) {
   const bulb = sph(0.2, mat(0xfff1c2, { e: 0xffd98a, ei: 1.3, r: 0.4 }), 0, 3.72, 0, g, { cast: false });
   cyl(0.26, 0.05, 0.14, dark, 0, 3.86, 0, g, { seg: 12 });
   g.userData.bulb = bulb;
+  // halo suave alrededor del foco (un sprite aditivo compartido: casi sin costo)
+  HALO ||= new THREE.SpriteMaterial({ map: dotTexture(), color: 0xffcf7a, transparent: true, opacity: 0.32, depthWrite: false, blending: THREE.AdditiveBlending });
+  const halo = new THREE.Sprite(HALO); halo.scale.set(1.25, 1.25, 1); halo.position.y = 3.72; halo.renderOrder = 2; g.add(halo);
   g.position.set(x, 0, z); parent.add(g); return g;
 }
+let HALO = null;
 export function bench(x, z, ry, parent) {
   const g = new THREE.Group(), wood = mat(0xb9793f, { r: 0.8 }), iron = mat(0x2c3a52, { r: 0.5, m: 0.4 });
   for (let i = 0; i < 3; i++) box(1.7, 0.06, 0.15, wood, 0, 0.44, -0.17 + i * 0.17, g);

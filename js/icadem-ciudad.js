@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=8';
+  var GAME_URL = 'ciudad/index.html?v=9';
 
   // Enlace de invitación (?ciudad=CÓDIGO). Solo se lleva el código al juego: no da acceso a ninguna
   // cuenta ni salta el piloto. El juego lo canjea con la sesión de quien lo abre, y pregunta antes.
@@ -178,7 +178,7 @@
       'Invitar a tus conexiones o a tu familia con un código temporal.'
     ]));
     grid.appendChild(card('Controles', [
-      'Computadora: W A S D para moverte, mouse para la cámara, E para interactuar, Espacio para saltar y M para el mapa.',
+      'Computadora: W A S D para moverte, mouse para la cámara, E para interactuar, Espacio para saltar, M para el mapa y C para escribir en el chat.',
       'Celular: arrastra a la izquierda para moverte y a la derecha para mirar. Los botones aparecen en pantalla.',
       'En celular se juega mejor con el teléfono en horizontal.'
     ]));
@@ -186,7 +186,7 @@
       'Los créditos del juego son de prueba: no suman ni restan a tu cartera ICADEM. Retos y minijuegos solo dan XP del juego.',
       'Tu avance se guarda en tu cuenta de ICADEM: sigue donde lo dejaste desde cualquier dispositivo.',
       'Juega en línea con otros miembros: invítalos con un código o formen equipo en la Torre y el Tribunal.',
-      'No hay chat libre: entre jugadores solo se usan frases predefinidas.'
+      'Chat de la ciudad para personas adultas: se activa una vez aceptando las normas. Sin enlaces ni datos personales; puedes silenciar, bloquear y reportar.'
     ]));
 
     root.append(hero, cover, grid);

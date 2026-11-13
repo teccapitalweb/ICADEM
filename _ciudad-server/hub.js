@@ -7,6 +7,7 @@ import { decodeState, encodeState, NET_SCENES } from '../ciudad/js/net/network.j
 import { SCENE_RULES, ENTRY_RADIUS, COOP_MISSIONS } from '../ciudad/js/net/scenes.js';
 import { phraseById, createRateLimiter, SAY_LIMIT, SAY_RADIUS } from '../ciudad/js/social/phrases.js';
 import { coopCan, pendingApprovals } from '../ciudad/js/net/coop.js';
+import { ChatGuard } from './chat.js';
 import { MissionRun } from '../ciudad/js/missions/engine.js';
 import { RACE, TREASURES, TREASURE_RADIUS, treasureRounds, validSeed } from '../ciudad/js/edu/activities.js';
 
@@ -22,7 +23,7 @@ export const LIMITS = Object.freeze({
   resumeMs: 30000,       // tiempo que se guarda el lugar de alguien que perdió la conexión
   nameMax: 28,
   // Topes por tipo de acción (máximo, ventana en ms). Lo que los excede se descarta.
-  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], coop: [40, 10000], code: [10, 60000], quiz: [20, 60000], activity: [20, 60000], play: [40, 60000] },
+  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], chat: [40, 60000], coop: [40, 10000], code: [10, 60000], quiz: [20, 60000], activity: [20, 60000], play: [40, 60000] },
   inviteMs: 60000,       // una invitación sin responder caduca en un minuto
   coopLog: 400,          // acciones máximas de un intento en equipo
   coopPayload: 1500,     // bytes máximos de los datos de una acción en equipo
@@ -50,6 +51,7 @@ export class Hub {
     this.codes = new Map();       // código de invitación → sala
     this.seq = 0; this.roomSeq = 0;
     this.joinCodes = new Map();   // código temporal de invitación → { code, owner, room, uses, max, exp }
+    this.chatGuard = new ChatGuard({ now: this.now });
   }
 
   /** Identificador público y estable de un usuario (no revela su uid). */
@@ -86,6 +88,7 @@ export class Hub {
       minor: Boolean(minor), guardian: minor ? guardian : null,
       uid, pid: this.publicId(uid), name: cleanName(name), avatar: String(avatar).slice(0, 24), instance,
       online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null, listed: true,
+      chat: { ok: false, blocked: new Set() },
       allowSay: createRateLimiter(SAY_LIMIT),
       limits: Object.fromEntries(Object.entries(LIMITS.actions).map(([k, [max, windowMs]]) => [k, createRateLimiter({ max, windowMs })]))
     };
@@ -110,6 +113,7 @@ export class Hub {
     const gone = [], t = this.now();
     for (const p of this.byUid.values()) if (!p.online && t - p.detachedAt >= LIMITS.resumeMs) gone.push(p);
     gone.forEach(p => this.remove(p));
+    this.chatGuard.sweep();
     return gone;
   }
 
@@ -170,18 +174,54 @@ export class Hub {
     if (!player.allowSay(this.now())) return { ok: false, reason: 'demasiado-rapido' };
     const to = [];
     for (const other of player.instance.players.values()) {
-      if (!this.visible(other, player)) continue;
+      if (!this.visible(other, player) || this.blockedPair(player, other)) continue;
       if (Math.hypot(other.state.x - player.state.x, other.state.z - player.state.z) <= SAY_RADIUS) to.push(other);
     }
     return { ok: true, to };
   }
 
+  /* ---------- chat libre (solo cuentas adultas que aceptaron las normas) ---------- */
+
+  /** Estado del chat de un jugador, a partir de lo guardado en su cuenta (profiles.chatState). */
+  setChat(player, state, enabled = true) {
+    player.chat = { ok: Boolean(enabled && !player.minor && state && state.adultAt && !state.off), blocked: new Set(((state && state.blocked) || []).map(b => b.uid)) };
+  }
+
+  /** ¿Alguno de los dos bloqueó al otro? Un bloqueo corta los mensajes en ambos sentidos. */
+  blockedPair(a, b) { return Boolean((a.chat && a.chat.blocked.has(b.uid)) || (b.chat && b.chat.blocked.has(a.uid))); }
+
+  /**
+   * Mensaje libre. El autor es la sesión (no lo que diga el cliente). Lo reciben quienes comparten
+   * instancia y escenario y además pueden verse (mismas reglas que las posiciones), tienen el chat
+   * activo y no se bloquearon. `near` indica si está lo bastante cerca para ver la burbuja.
+   * Los perfiles infantiles nunca envían ni reciben texto libre.
+   */
+  chat(player, raw) {
+    if (player.minor) return { ok: false, reason: 'no-permitido' };
+    if (!player.chat || !player.chat.ok) return { ok: false, reason: 'activa-chat' };
+    if (!player.state || SCENE_RULES[player.state.scene].privacy === 'private') return { ok: false, reason: 'sin-audiencia' };
+    const r = this.chatGuard.check(player.uid, raw);
+    if (!r.ok) return r;
+    const to = [];
+    for (const other of player.instance.players.values()) {
+      if (other === player || other.minor || !other.chat || !other.chat.ok || !this.visible(other, player) || this.blockedPair(player, other)) continue;
+      to.push({ player: other, near: Math.hypot(other.state.x - player.state.x, other.state.z - player.state.z) <= SAY_RADIUS });
+    }
+    return { ok: true, msg: r.msg, to };
+  }
+
+  /** Bloqueo desde la ciudad: el destino se identifica por su pid público dentro de la misma instancia. */
+  chatTarget(player, pid) { const t = player.instance.players.get(String(pid)); return t && t !== player && !t.minor ? t : null; }
+
   /** Reporte de un jugador hacia otro. Se guarda para moderación (máx. 500 en memoria) y, si hay
    *  un destino externo (onReport), también ahí; un fallo al persistir nunca rompe el reporte. */
-  report(player, targetPid, reason) {
+  report(player, targetPid, reason, messageId = null) {
     const target = player.instance.players.get(String(targetPid));
     if (!target || target === player) return { ok: false };
-    const entry = { at: this.now(), from: player.pid, target: target.pid, reason: String(reason || '').slice(0, 80), instance: player.instance.id };
+    // Si el reporte es por el chat, se adjunta lo que el servidor registró de esa persona.
+    const evidence = this.chatGuard.report(target.uid, player.uid, messageId);
+    const entry = { at: this.now(), from: player.pid, target: target.pid, reason: String(reason || '').slice(0, 80), instance: player.instance.id,
+      ...(evidence.message || evidence.recent.length ? { chat: { message: evidence.message, recent: evidence.recent } } : {}), ...(evidence.restricted ? { autoPause: true } : {}) };
     this.reports.push(entry);
     if (this.reports.length > 500) this.reports.shift();
     if (this.onReport) { try { Promise.resolve(this.onReport({ ...entry, fromPid: player.pid, targetPid: target.pid, fromUid: player.uid, targetUid: target.uid })).catch(() => {}); } catch (_) {} }
