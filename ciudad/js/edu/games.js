@@ -6,6 +6,7 @@ import { ACTIVITIES, RACE, TREASURES, TREASURE_RADIUS, treasureRounds, SORT_THEM
 import { ACTIVITY_DAILY_XP } from './play-rules.js';
 import { h } from '../missions/controller.js';
 import { encodeState } from '../net/network.js';
+import { SCENE_RULES } from '../net/scenes.js';
 
 export const GAME_LIST = Object.freeze([
   { id: 'carrera', icon: '🏃', title: 'Carrera del conocimiento', text: 'Salta plataformas, esquiva barras y llega a la meta en el Parque de retos.', place: 'park' },
@@ -50,6 +51,19 @@ export class Games {
   /** Récord antes de jugar (para celebrar uno nuevo; el récord real lo guarda el servidor). */
   #mark(id) { (this.prevBest ||= {})[id] = this.#stats(id).best || 0; }
 
+  /**
+   * Lleva a un escenario respetando las conexiones que valida el servidor: desde la habitación o un
+   * edificio no se puede saltar directo al Parque o al Distrito; primero se pasa por la plaza, frente a
+   * la puerta correspondiente (así el servidor acepta el cambio y los demás te ven donde estás).
+   */
+  async goTo(scene) {
+    const api = this.api, here = api.sceneName;
+    if (here === scene) return;
+    const rules = SCENE_RULES[here];
+    if (here !== 'plaza' && !(rules && rules.links.includes(scene))) { await api.travel('plaza', scene); await new Promise(r => setTimeout(r, 450)); }
+    await api.travel(scene, 'default');
+  }
+
   /** Para otros controladores (Distrito del Saber): récord previo y ventana de resultado. */
   mark(id) { this.#mark(id); }
   result(id, r) { return this.#result(GAME_LIST.find(g => g.id === id), r); }
@@ -57,8 +71,8 @@ export class Games {
   async launch(id) {
     const api = this.api, gm = GAME_LIST.find(g => g.id === id);
     this.#mark(id);
-    if (id === 'laberinto') { if (api.sceneName !== 'distrito') { api.ui.toast('Te llevamos al Distrito del Saber. El laberinto empieza en el letrero verde.', 3200); api.travel('distrito', 'default'); } else api.district.mazeStart(); return; }
-    if (id === 'carrera') { if (api.sceneName !== 'park') { api.ui.toast('Te llevamos al Parque de retos. Habla con el letrero de salida para empezar.', 3200); api.travel('park', 'default'); } else this.raceStartUI(); return; }
+    if (id === 'laberinto') { if (api.sceneName !== 'distrito') { api.ui.toast('Te llevamos al Distrito del Saber. El laberinto empieza en el letrero verde.', 3200); this.goTo('distrito'); } else api.district.mazeStart(); return; }
+    if (id === 'carrera') { if (api.sceneName !== 'park') { api.ui.toast('Te llevamos al Parque de retos. Habla con el letrero de salida para empezar.', 3200); this.goTo('park'); } else this.raceStartUI(); return; }
     if (id === 'tesoro') { if (api.sceneName !== 'plaza') { await api.travel('plaza', 'home'); } return this.huntStart(); }
     const level = await api.ui.choice({ speaker: gm.title, text: 'Elige la dificultad', options: [...gm.levels.map(([lid, label], i) => ({ id: lid, label, primary: i === 0 })), { id: 'x', label: 'Cancelar' }] });
     if (!level || level === 'x') return;
