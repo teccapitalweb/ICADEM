@@ -72,6 +72,7 @@ function startServer() {
     const carlaErrs = carla.errs; await carla.context().close();   // libera el render por software para lo que sigue
     // NPC educativo: la respuesta la valida el servidor
     const xp0 = await ana.evaluate(() => window.__ciudad.api.store.state.xp);
+    const found0 = await ana.evaluate(() => (window.__ciudad.api.store.state.discovered || []).length);
     // Se camina hacia el personaje (teletransportarse lo corrige el antitrampas del servidor). Los NPC
     // siguen su ruta: si se aleja antes de llegar, desiste (así debe ser) y se intenta otra vez.
     const offered = () => ana.evaluate(() => !document.getElementById('choice')?.hidden && /pregunta/.test(document.querySelector('.choice__text')?.textContent || ''));
@@ -93,7 +94,7 @@ function startServer() {
     await tap(ana, '.choice__opt.is-primary'); await until(() => ana.evaluate(() => Boolean(document.querySelector('.quiz__q'))));
     const right = await ana.evaluate(async () => { const { QUESTIONS } = await import('./js/edu/questions.js'); const q = QUESTIONS.find(x => x.q === document.querySelector('.quiz__q').textContent); return q.answer; });
     await tap(ana, `.quiz__opt[data-i="${right}"]`);
-    ok('al acertar: «¡Felicidades! Has ganado 10 XP» (validado y guardado por el servidor)', await until(async () => /Has ganado 10 XP/.test(await ana.evaluate(() => document.querySelector('.quiz__feedback')?.textContent || '')) && (await ana.evaluate(() => window.__ciudad.api.store.state.xp)) === xp0 + 10));
+    ok('al acertar: «¡Felicidades! Has ganado 10 XP» (validado y guardado por el servidor)', await until(async () => /Has ganado 10 XP/.test(await ana.evaluate(() => document.querySelector('.quiz__feedback')?.textContent || '')) && (await ana.evaluate(() => window.__ciudad.api.store.state.xp - 15 * (window.__ciudad.api.store.state.discovered || []).length)) === xp0 - 15 * found0 + 10));   // sin contar la XP de la Ruta del explorador (1.3)
     await close(ana); await ana.evaluate(() => { window.__ciudad.api.store.state.settings.npcQuiz = false; });
     // un error: el navegador manda la elección, el servidor dice cuál era
     const wrong = await ana.evaluate(async () => { const { QUESTIONS } = await import('./js/edu/questions.js'); const q = QUESTIONS.find(x => x.id === 'mex-sat'); return window.__ciudad.api.edu.quiz(q.id, 0); });
