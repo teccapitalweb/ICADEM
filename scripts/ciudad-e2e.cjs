@@ -412,13 +412,18 @@ async function dispositivos(browser) {
     const { width: W, height: H } = opciones.viewport;
     const layout = await page.evaluate(() => {
       const box = id => { const e = document.getElementById(id); if (!e || e.hidden) return null; const r = e.getBoundingClientRect(); return r.width ? { l: r.left, t: r.top, r: r.right, b: r.bottom } : null; };
-      return { touch: document.documentElement.classList.contains('is-touch'), jump: box('pad-jump'), run: box('pad-run'), say: box('btn-say'), map: box('btn-map'), settings: box('btn-settings'), player: box('btn-player') };
+      return { touch: document.documentElement.classList.contains('is-touch'), jump: box('pad-jump'), run: box('pad-run'), say: box('btn-say'), map: box('btn-map'), more: box('btn-more'), player: box('btn-player') };
     });
     const dentro = b => b && b.l >= 0 && b.t >= 0 && b.r <= W && b.b <= H;
     const choca = (a, b) => a && b && a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
-    const ids = ['jump', 'run', 'say', 'map', 'settings', 'player'];
+    const ids = ['jump', 'run', 'say', 'map', 'more', 'player'];
     const fuera = ids.filter(k => !dentro(layout[k])), encimados = ids.flatMap((a, i) => ids.slice(i + 1).filter(b => choca(layout[a], layout[b])).map(b => a + '/' + b));
     ok(`[${nombre}] controles táctiles visibles, dentro de pantalla y sin encimarse`, layout.touch && !fuera.length && !encimados.length, JSON.stringify({ fuera, encimados, touch: layout.touch }));
+    // Ajustes y Vestidor viven en el menú «Más»: al tocarlo aparecen dentro de la pantalla
+    await page.tap('#btn-more'); await page.waitForTimeout(250);
+    const mas = await page.evaluate(() => ['btn-wardrobe', 'btn-settings'].map(id => { const r = document.getElementById(id).getBoundingClientRect(); return r.width > 0 && r.left >= 0 && r.top >= 0 && r.right <= innerWidth && r.bottom <= innerHeight; }));
+    await page.tap('#btn-more'); await page.waitForTimeout(150);
+    ok(`[${nombre}] el menú «Más» muestra Vestidor y Ajustes dentro de la pantalla`, mas.every(Boolean), JSON.stringify(mas));
     const cdp = await ctx.newCDPSession(page), antes = await page.evaluate(() => ({ w: window.__ciudad.api.stats.walked, t: window.__ciudad.api.camera.turned }));
     const sx = Math.round(W * 0.16), sy = Math.round(H * 0.78);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: sx, y: sy, id: 1 }] });

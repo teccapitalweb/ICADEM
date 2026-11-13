@@ -18,7 +18,7 @@ export class AvatarPreview {
     const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(2.5, 4, 3); this.scene.add(key);
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.95, 0.12, 40), new THREE.MeshStandardMaterial({ color: 0xd8e2f2, roughness: 0.8 }));
     base.position.y = -0.06; this.scene.add(base);
-    this.target = new THREE.WebGLRenderTarget(width, height, { samples: 4 });
+    this.target = new THREE.WebGLRenderTarget(width, height);   // sin multimuestreo: más ligero y seguro en celulares
     this.target.texture.colorSpace = THREE.SRGBColorSpace;
     this.pixels = new Uint8Array(width * height * 4); this.image = this.ctx.createImageData(width, height);
     this.avatar = null; this.spin = 0.55; this.yaw = 0.4; this.raf = 0; this.last = 0; this.drag = null;
