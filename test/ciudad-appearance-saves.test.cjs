@@ -71,14 +71,14 @@ test('main keeps the newest outfit through interleaved ACKs while applying autho
   c.ack(a);
   assert.equal(c.sent.length, 2); const b = c.sent[1];
   assert.equal(c.store.state.custom.bottom, 'flare', 'ACK A does not replace the later local choice');
-  c.emit({ op: 'mission', ok: true, profile: c.profile(a.custom, { xp: 40, testCredits: 25, visited: ['banco'] }) });
+  c.emit({ op: 'mission', ok: true, profile: c.profile(a.custom, { xp: 40, coins: 25, visited: ['banco'] }) });
   assert.equal(c.store.state.xp, 40); assert.equal(c.store.state.economy.balance, 25); assert.deepEqual(c.store.state.visited, ['banco']);
   assert.equal(c.store.state.custom.bottom, 'flare', 'unrelated profile responses preserve the pending outfit');
   c.choose({ hairColor: 'rosa' }); c.choose({ necklace: 'heart' });
   assert.equal(c.sent.length, 2, 'rapid subsequent changes coalesce into the latest snapshot');
   c.ack(b); const last = c.sent[2];
   assert.equal(last.custom.top, 'hoodie'); assert.equal(last.custom.bottom, 'flare'); assert.equal(last.custom.hairColor, 'rosa'); assert.equal(last.custom.necklace, 'heart');
-  c.ack(last, { profile: c.profile(last.custom, { xp: 40, testCredits: 25 }) });
+  c.ack(last, { profile: c.profile(last.custom, { xp: 40, coins: 25 }) });
   assert.deepEqual(c.store.state.custom, last.custom); assert.deepEqual(c.reload().custom, last.custom); assert.equal(c.timers.size, 0);
   for (const request of c.sent) { assert.equal(request.customVersion, 2); assert(Number.isInteger(request.n)); }
   assert(new Set(c.sent.map(request => request.n)).size === c.sent.length);
@@ -109,7 +109,7 @@ test('disconnect discards pending saves and reconnect accepts the server without
 
 test('a missing ACK or socket send failure releases the queue and restores the last confirmed appearance only', async () => {
   const c = await client();
-  c.emit({ op: 'get', ok: true, profile: c.profile({ hat: 'beret' }, { xp: 40, testCredits: 50 }) });
+  c.emit({ op: 'get', ok: true, profile: c.profile({ hat: 'beret' }, { xp: 40, coins: 50 }) });
   c.choose({ top: 'cropTop' }); const old = c.sent[0]; c.choose({ bottom: 'flare' });
   c.expire(); assert.equal(c.timers.size, 0); assert.deepEqual(c.store.state.custom, c.profile({ hat: 'beret' }).custom);
   assert.equal(c.store.state.xp, 40); assert.equal(c.store.state.economy.balance, 50); assert.equal(c.sent[1].op, 'get'); assert.equal(c.toasts.length, 1);

@@ -12,6 +12,8 @@ import { WebSocketServer } from 'ws';
 import { Hub, LIMITS } from './hub.js';
 import { TicketAuthority, createFirebaseVerifier, googleKeys } from './auth.js';
 import { Profiles, MemoryStorage, JsonFileStorage } from './profiles.js';
+import { breedById } from '../ciudad/js/pets/pet-catalog.js';
+import { VIVO_OPS } from '../ciudad/js/vivo/vivo-rules.js';
 import { kidKey } from '../ciudad/js/edu/family.js';
 import { connectFirebase, createIcademServices, ACCESS_MODES } from './icadem.js';
 import { REWARDS } from '../ciudad/js/economy/economy.js';
@@ -114,7 +116,10 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
     toRoom(room, { op: 'done' });
   }
   /** Aviso de llegada personalizado: cada quien recibe el nombre que le corresponde ver. */
-  const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom }); };
+  const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom, pet: player.pet }); };
+  /* Mascota que acompaña (solo apariencia: raza y accesorios; el nombre no se comparte). */
+  const petLook = (profile, leash = false) => { const x = profile && Array.isArray(profile.pets) ? profile.pets.find(q => q.id === profile.activePet) : null; if (!x) return null; const b = breedById(x.breed); return { breed: x.breed, acc: { ...x.acc }, leash: Boolean(leash && b && b.species === 'perro' && x.acc.leash) }; };
+  const showPet = player => { for (const o of player.instance.players.values()) if (o !== player && o.online && hub.sees(o, player)) send(sockets.get(o), { t: 'pet', pid: player.pid, pet: player.pet }); };
   const moveInstance = (player, moved) => { toInstance(moved.from, { t: 'leave', pid: player.pid }); send(sockets.get(player), { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance, player) }); announce(player); pushPresence(); };
   const renameAll = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'name', pid: player.pid, name: hub.nameFor(p, player) }); };
   /** Presencia: a cada quien se le avisa en cuanto cambia el número de jugadores conectados. */
@@ -162,7 +167,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         // La apariencia sale del perfil guardado en el servidor, no de lo que anuncie el cliente.
         const profile = await profiles.get(session.uid);
         const joined = hub.join({ uid: session.uid, name: session.name, avatar: profile.avatarId, minor: session.minor, guardian: session.guardian });
-        player = joined.player; epoch = player.epoch; identityOf = who; sessionUid = session.uid; player.avatar = profile.avatarId; player.custom = profile.custom; player.listed = !session.minor && !(profile.privacy && profile.privacy.listed === false);
+        player = joined.player; epoch = player.epoch; identityOf = who; sessionUid = session.uid; player.avatar = profile.avatarId; player.custom = profile.custom; player.pet = player.minor ? null : petLook(profile); player.listed = !session.minor && !(profile.privacy && profile.privacy.listed === false);
         if (!player.minor) await hub.loadFriends(player);
         hub.setChat(player, player.minor ? null : await profiles.chatState(session.uid), chat);   // chat libre: solo cuentas adultas que aceptaron las normas
         const old = sockets.get(player);
@@ -246,6 +251,20 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         if (!r.ok) { const view = player.room && hub.coopView(player.room); return send(ws, { t: 'coop', op: 'rejected', reason: r.reason, type: msg.type, ...(view || {}) }); }
         toCoop(r.room, { op: 'state' });
         if (r.complete) { log('coop-done', r.room.id, r.session.mission, r.result.score); await finishCoop(r.room, r.session); }
+      }
+      else if (msg.t === 'vivo') {
+        // Mundo vivo: compras, mascotas, casa y aguas frescas. Las cuentas infantiles todavía no lo tienen.
+        if (player.minor) return send(ws, { t: 'vivo', op: msg.op, ok: false, reason: 'no-disponible', n: msg.n });
+        if (msg.op === 'walk') {   // paseo con correa: estado del momento, no se guarda
+          const prof = await profiles.get(sessionUid); player.pet = petLook(prof, msg.leash === true); showPet(player);
+          return send(ws, { t: 'vivo', op: 'walk', ok: true, leash: Boolean(player.pet && player.pet.leash), n: msg.n });
+        }
+        if (!VIVO_OPS.includes(msg.op)) return send(ws, { t: 'vivo', op: msg.op, ok: false, reason: 'operacion', n: msg.n });
+        const r = await profiles.vivo(sessionUid, msg.op, msg);
+        const { profile: prof, ...rest } = r;
+        send(ws, { t: 'vivo', ...rest, op: msg.op, n: msg.n, profile: prof });
+        if (r.ok && ['adopt', 'pet', 'rest'].includes(msg.op)) { player.pet = petLook(prof, Boolean(player.pet && player.pet.leash)); showPet(player); }
+        if (r.ok && msg.op === 'buy') log('compra', player.pid, String(msg.item || '').slice(0, 30), r.spent || 0);
       }
       else if (msg.t === 'profile') {
         // Progreso: el cliente manda acciones; el resultado lo calcula y guarda el servidor.

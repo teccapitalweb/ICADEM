@@ -35,7 +35,7 @@ export function decodeState(a) {
 
 /** Interfaz común de los adaptadores de red. */
 export class NetworkAdapter {
-  constructor() { this.handlers = { join: new Set(), leave: new Set(), state: new Set(), snap: new Set(), say: new Set(), status: new Set(), fix: new Set(), room: new Set(), profile: new Set(), friends: new Set(), invite: new Set(), invited: new Set(), party: new Set(), look: new Set(), coop: new Set(), presence: new Set(), name: new Set(), code: new Set(), play: new Set(), chat: new Set() }; this.connected = false; }
+  constructor() { this.handlers = { join: new Set(), leave: new Set(), state: new Set(), snap: new Set(), say: new Set(), status: new Set(), fix: new Set(), room: new Set(), profile: new Set(), friends: new Set(), invite: new Set(), invited: new Set(), party: new Set(), look: new Set(), coop: new Set(), presence: new Set(), name: new Set(), code: new Set(), play: new Set(), chat: new Set(), vivo: new Set(), pet: new Set() }; this.connected = false; }
   get isOnline() { return false; }
   async connect() { this.connected = true; }
   disconnect() { this.connected = false; }
@@ -49,6 +49,8 @@ export class NetworkAdapter {
   coop() { return false; }
   code() { return false; }
   play() { return false; }
+  /** Mundo vivo (compras, mascotas, casa): requiere conexión con el servidor. */
+  async vivo() { return { ok: false, reason: 'sin-conexion' }; }
   on(event, fn) { this.handlers[event]?.add(fn); return () => this.handlers[event]?.delete(fn); }
   emit(event, payload) { this.handlers[event]?.forEach(fn => fn(payload)); }
 }

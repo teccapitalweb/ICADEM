@@ -12,6 +12,10 @@ import { REWARDS } from '../economy/economy.js';
 import { isTouchDevice } from '../core/input.js';
 
 const $ = id => document.getElementById(id);
+/** Texto de un movimiento de monedas a partir de su clave. */
+const COIN_REASONS = [['bienvenida', 'Regalo de bienvenida'], ['creditos-de-prueba', 'Créditos de prueba anteriores'], ['tutorial', 'Tutorial'], ['mission:', 'Misión completada'], ['mision-repaso:', 'Práctica de misión'],
+  ['juego-primera:', 'Primer minijuego completado'], ['juego:', 'Minijuego'], ['reto', 'Reto de un personaje'], ['sitio:', 'Sitio descubierto'], ['logro:', 'Logro nuevo'], ['compra:', 'Compra'], ['adopcion:', 'Adopción'], ['agua', 'Aguas frescas'], ['cuidado-mascota', 'Cuidaste a tu mascota']];
+const coinReason = k => (COIN_REASONS.find(([p]) => k === p || k.startsWith(p)) || [null, k])[1];
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
 const icon = (name, cls = 'ic') => { const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); s.setAttribute('class', cls); const u = document.createElementNS('http://www.w3.org/2000/svg', 'use'); u.setAttribute('href', '#ci-' + name); s.append(u); return s; };
 
@@ -248,9 +252,9 @@ export class UI {
           ...GAME_LIST.filter(gm => !doneG.includes(gm)).slice(0, 2).map(gm => ({ icon: gm.icon, text: gm.title, sub: 'Minijuego', go: () => { document.getElementById('modal-x').click(); setTimeout(() => api.games && api.games.open(), 80); } }))];
         if (!pend.length) next.append(h('p', 'note', '¡Completaste todas las misiones y minijuegos! Puedes repetirlos para mejorar tu puntuación.'));
         pend.forEach(p => { const r = h('button', 'pass__todo'); r.type = 'button'; r.append(h('span', 'pass__todo-ic', p.icon), h('span', null, p.text), h('small', null, p.sub)); r.addEventListener('click', p.go); next.append(r); });
-        const credits = h('div', 'pass__credits'); credits.append(h('span', null, 'Créditos de prueba'), h('b', null, String(s.economy.balance)));
+        const credits = h('div', 'pass__credits'); credits.append(h('span', null, 'Monedas de Ciudad ICADEM'), h('b', null, String(s.economy.balance)));
         body.append(hero, grid, next, credits,
-          h('p', 'note', 'Tu pasaporte registra el avance dentro del juego' + (api.net && api.net.isOnline ? ', guardado en tu cuenta.' : ' (sin conexión: guardado en este dispositivo).') + ' Los créditos de prueba no forman parte de tu cartera ICADEM; rangos y logros no son títulos académicos.'));
+          h('p', 'note', 'Tu pasaporte registra el avance dentro del juego' + (api.net && api.net.isOnline ? ', guardado en tu cuenta.' : ' (sin conexión: guardado en este dispositivo).') + ' Las monedas son solo del juego: no forman parte de tu cartera ICADEM ni se cambian por dinero; rangos y logros no son títulos académicos.'));
       },
       logros: () => { const rows = h('div', 'rows'); ACHIEVEMENTS.forEach(a => { const on = s.achievements.includes(a.id), r = h('div', 'rowi'), ic = h('span', 'rowi__icon' + (on ? '' : ' is-off')); ic.append(icon(on ? 'trophy' : 'lock')); const c = h('div', 'rowi__copy'); c.append(h('strong', null, a.name), h('span', null, a.text)); r.append(ic, c, h('span', 'pill ' + (on ? 'pill--ok' : 'pill--soon'), on ? 'Obtenido' : 'Pendiente')); rows.append(r); }); body.append(rows); },
       avatar: () => {
@@ -261,10 +265,10 @@ export class UI {
         body.append(rows, go);
       },
       movimientos: () => {
-        const rows = h('div', 'rows'); const led = [...s.economy.ledger].reverse();
+        const rows = h('div', 'rows'); const led = s.vivo && s.vivo.coinbook ? s.vivo.coinbook.recent.map(e => ({ key: e.k, reason: coinReason(e.k), amount: e.a, at: e.at || Date.now() })) : [...s.economy.ledger].reverse();
         if (!led.length) rows.append(h('p', 'note', 'Todavía no hay movimientos. Completa el tutorial o una misión.'));
-        led.forEach(e => { const r = h('div', 'rowi'), ic = h('span', 'rowi__icon'); ic.append(icon('coin')); const c = h('div', 'rowi__copy'); c.append(h('strong', null, e.reason || e.key), h('span', null, new Date(e.at).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }))); r.append(ic, c, h('span', 'pill pill--gold', '+' + e.amount)); rows.append(r); });
-        body.append(rows, h('p', 'note', 'Son créditos de prueba del juego: no forman parte de tu cartera ICADEM.'));
+        led.forEach(e => { const r = h('div', 'rowi'), ic = h('span', 'rowi__icon'); ic.append(icon('coin')); const c = h('div', 'rowi__copy'); c.append(h('strong', null, e.reason || e.key), h('span', null, new Date(e.at).toLocaleString('es-MX', { dateStyle: 'medium', timeStyle: 'short' }))); r.append(ic, c, h('span', 'pill pill--gold', (e.amount > 0 ? '+' : '') + e.amount)); rows.append(r); });
+        body.append(rows, h('p', 'note', 'Son monedas del juego: no forman parte de tu cartera ICADEM y no se cambian por dinero.'));
       }
     };
     const show = id => { tabs.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.id === id)); body.replaceChildren(); views[id](); };

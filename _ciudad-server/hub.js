@@ -27,7 +27,7 @@ export const LIMITS = Object.freeze({
   resumeMs: 30000,       // tiempo que se guarda el lugar de alguien que perdió la conexión
   nameMax: 28,
   // Topes por tipo de acción (máximo, ventana en ms). Lo que los excede se descarta.
-  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], chat: [40, 60000], coop: [40, 10000], code: [10, 60000], quiz: [20, 60000], activity: [20, 60000], play: [40, 60000] },
+  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], chat: [40, 60000], coop: [40, 10000], code: [10, 60000], quiz: [20, 60000], activity: [20, 60000], play: [40, 60000], vivo: [40, 60000] },
   inviteMs: 60000,       // una invitación sin responder caduca en un minuto
   coopLog: 400,          // acciones máximas de un intento en equipo
   coopPayload: 1500,     // bytes máximos de los datos de una acción en equipo
@@ -91,7 +91,7 @@ export class Hub {
     const player = {
       minor: Boolean(minor), guardian: minor ? guardian : null,
       uid, pid: this.publicId(uid), name: cleanName(name), avatar: String(avatar).slice(0, 24), instance,
-      online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null, listed: true,
+      online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null, pet: null, listed: true,
       chat: { ok: false, blocked: new Set() },
       allowSay: createRateLimiter(SAY_LIMIT),
       limits: Object.fromEntries(Object.entries(LIMITS.actions).map(([k, [max, windowMs]]) => [k, createRateLimiter({ max, windowMs })]))
@@ -419,7 +419,7 @@ export class Hub {
   }
 
   /** Jugadores reales conectados en la instancia (sin NPC), con el nombre que le corresponde ver a `viewer`. */
-  roster(instance, viewer = null) { return [...instance.players.values()].filter(p => p.online && p !== viewer && (!viewer ? !p.minor : this.sees(viewer, p))).map(p => ({ pid: p.pid, name: this.nameFor(viewer, p), avatar: p.avatar, custom: p.custom })); }
+  roster(instance, viewer = null) { return [...instance.players.values()].filter(p => p.online && p !== viewer && (!viewer ? !p.minor : this.sees(viewer, p))).map(p => ({ pid: p.pid, name: this.nameFor(viewer, p), avatar: p.avatar, custom: p.custom, pet: p.pet })); }
 
   /** Presencia controlada por el servidor: solo cuenta sesiones conectadas (las desconectadas expiran en `resumeMs`). */
   presence(player) {

@@ -60,6 +60,7 @@ import { HOSPITAL_SHIFT_MISSION } from './missions/hospital-shift-logic.js';
 import { defineMission, MissionRegistry, MissionService } from './missions/engine.js';
 import { UI } from './ui/ui.js';
 import { Tutorial } from './ui/tutorial.js';
+import { VivoService } from './vivo/vivo-service.js';
 
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
@@ -157,9 +158,11 @@ async function boot() {
     confirmedAvatar = { id: profile.avatarId, custom: cleanCustom(profile.custom) };
     const appearance = avatarSaves.pending || confirmedAvatar;
     st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = appearance.id; st.custom = { ...appearance.custom }; st.avatarChosen = Boolean(st.avatarChosen || profile.avatarChosen);
-    st.economy.balance = profile.testCredits; st.synced = true; if (profile.play) st.play = profile.play; if (profile.privacy) st.privacyListed = profile.privacy.listed !== false; store.save();
+    st.economy.balance = Number.isFinite(profile.coins) ? profile.coins : profile.testCredits; st.synced = true;
+    if (profile.inv) st.vivo = { coins: profile.coins, inv: { ...profile.inv }, pets: profile.pets.map(x => ({ ...x, acc: { ...x.acc } })), activePet: profile.activePet, home: profile.home, coinbook: profile.coinbook }; if (profile.play) st.play = profile.play; if (profile.privacy) st.privacyListed = profile.privacy.listed !== false; store.save();
     if (look !== st.avatarId + JSON.stringify(st.custom)) rebuildAvatar();
     api.ui.refreshHud(); Object.values(api.missions).forEach(m => m.refreshTracker && m.refreshTracker());
+    api.vivo?.changed();
   }
   function receiveProfile(message) {
     if (!avatarSaves.receive(message)) return;
@@ -178,6 +181,7 @@ async function boot() {
     }
   });
   api.ui = new UI(api);
+  api.vivo = new VivoService(api);
   api.missions.bank = new BankCreditMission(api, bankDef);
   api.missions.court = new CourtJudgeMission(api, registry.register(defineMission(COURT_JUDGE_MISSION)));
   api.missions.market = new MarketInventoryMission(api, registry.register(defineMission(MARKET_INVENTORY_MISSION)));

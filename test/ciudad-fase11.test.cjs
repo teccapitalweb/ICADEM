@@ -158,7 +158,8 @@ test('apertura: XP de práctica una vez al día por misión, sin tocar la XP de 
   assert.deepEqual([b.xp, b.credits], [30, 0], 'repetir: XP de práctica, sin créditos');
   assert.deepEqual([c.xp, c.credits], [0, 0], 'el mismo día ya no suma');
   assert.deepEqual([d.xp, d.credits], [30, 0], 'al día siguiente vuelve la XP de práctica');
-  assert.equal(d.profile.xp, 180); assert.equal(d.profile.testCredits, 15); assert.equal(d.profile.missions[def.id].attempts, 4);
+  assert.equal(d.profile.xp, 180); assert.equal(d.profile.testCredits, 0, 'los créditos de prueba quedaron como historial');
+  assert.deepEqual([d.coins, c.coins, b.coins], [4, 0, 4], 'repetir da monedas de práctica solo junto con su XP diaria'); assert.equal(d.profile.missions[def.id].attempts, 4);
   // muchas repeticiones el mismo día no inflan la XP
   for (let i = 0; i < 20; i++) await run(day2 + 5000 + i);
   assert.equal((await profiles.get('u1')).xp, 180);
