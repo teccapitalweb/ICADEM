@@ -7446,7 +7446,7 @@ const Sections = (function(){
     guardarOrdenCatalogo('prioridades',false);
   });
   document.addEventListener('icadem:unlocks-updated',event=>{
-    if(event.detail?.prioritiesChanged&&esRutaCursos()&&cursosState.orden==='prioridades')renderCursosList();
+    if(event.detail?.prioritiesChanged&&esRutaCursos()&&['proximos','prioridades'].includes(cursosState.orden))renderCursosList();
   });
   let cursosSearchTimer=null;
   let countdownTimer=null;
@@ -7507,11 +7507,13 @@ const Sections = (function(){
   }
 
   function ordenarCursos(items){
+    // Open courses keep their existing order; saved priorities lead only the locked group.
+    const usarPrioridades=['proximos','prioridades'].includes(cursosState.orden);
     const prioridades=new Map();
-    if(cursosState.orden==='prioridades') (window.ICADEMCourseUnlocks?.getPriorities?.()||[]).forEach((id,index)=>{if(!prioridades.has(id))prioridades.set(id,index);});
+    if(usarPrioridades) (window.ICADEMCourseUnlocks?.getPriorities?.()||[]).forEach((id,index)=>{if(!prioridades.has(id))prioridades.set(id,index);});
     return items.sort((a,b)=>{
       const ia=resumenEstadoCurso(a), ib=resumenEstadoCurso(b);
-      if(cursosState.orden==='prioridades'){
+      if(usarPrioridades){
         if(ia.desbloqueado!==ib.desbloqueado)return ia.desbloqueado?-1:1;
         if(!ia.desbloqueado){
           const posicionA=prioridades.get(a.id)??Infinity,posicionB=prioridades.get(b.id)??Infinity;

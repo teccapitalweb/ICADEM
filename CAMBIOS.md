@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-11-12 — Mis cursos: bloqueados según prioridades también en el orden predeterminado
+
+- «Próximos a desbloquear» conserva primero los cursos abiertos y su orden relativo anterior. Después muestra los bloqueados incluidos en la lista personal, en el orden guardado; finalmente, el resto con el criterio secundario existente. «Mi orden de prioridad» mantiene ese mismo comportamiento.
+- Una actualización confirmada de prioridades también reordena la vista predeterminada, sin necesidad de cambiar el selector o navegar de nuevo. Nombre, Progreso y Más recientes conservan sus criterios.
+- No se escriben prioridades al ordenar ni se modifican permisos, cupos, progreso, portadas, curso gratuito o calendario de desbloqueos. Sin cambios en el organizador, backend ni Ciudad ICADEM.
+- Pruebas del panel con tres abiertos y cinco prioridades bloqueadas: orden, actualización remota, filtros, distintivos, navegación, recarga y contexto independiente. Datos simulados, sin escrituras académicas. Caché v173.
+
 ## 2026-11-12 — Navegación estable de Mis cursos y amarillo de Embajadores
 
 - El aviso de actualización del catálogo deja de desplazar las tarjetas. Usa el espacio existente del borde superior de filtros; las respuestas rápidas no muestran una etiqueta fugaz y los errores siguen indicando que la información no pudo actualizarse. Mi ruta conserva su distribución y mensajes.

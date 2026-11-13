@@ -51,10 +51,33 @@ test('completed courses retain their existing academic access and are not inferr
   const f=fixture();f.setPriorities(['e','b']);f.catalog.find(c=>c.id==='b').info.clave='completado';
   assert.deepEqual(f.run(),['c','b','e','d','a']);assert.equal(f.catalog[1].info.clave,'completado');
 });
-test('all four previous order criteria keep their existing behavior beside the new option',()=>{
+test('manual name, progress and recent criteria retain their existing behavior',()=>{
   const f=fixture();f.setPriorities(['e','a']);
   f.context.cursosState.orden='nombre';assert.deepEqual(f.run(),['a','b','c','d','e']);
   f.context.cursosState.orden='progreso';assert.deepEqual(f.run(),['c','b','a','d','e']);
   f.context.cursosState.orden='recientes';assert.deepEqual(f.run(),['e','d','a','c','b']);
-  f.context.cursosState.orden='proximos';assert.deepEqual(f.run(),['c','b','d','e','a']);
+});
+
+test('next-unlock view shows opened courses first, then every locked saved priority, then the remainder',()=>{
+  const f=fixture();f.context.cursosState.orden='proximos';f.setPriorities(['e','a']);
+  const catalog=JSON.stringify(f.catalog),saved=f.priorities();
+  assert.deepEqual(f.run(),['c','b','e','a','d']);
+  assert.equal(JSON.stringify(f.catalog),catalog);assert.deepEqual(f.priorities(),saved);
+  f.context.cursosState.orden='prioridades';assert.deepEqual(f.run(),['c','b','e','a','d']);
+});
+
+test('open, completed and gift courses keep their previous relative order regardless of their saved rank',()=>{
+  const f=fixture();f.context.cursosState.orden='proximos';
+  f.catalog.push({id:'gift',titulo:'Regalo',orden:9,info:{clave:'regalo',regalo:true,dias:0,desbloqueado:true,progreso:0}},
+    {id:'done',titulo:'Completado',orden:7,info:{clave:'completado',dias:0,desbloqueado:true,progreso:100}});
+  const opened=f.run().filter(id=>f.catalog.find(c=>c.id===id).info.desbloqueado);
+  f.setPriorities(['done','b','e','gift','c','a']);const original=JSON.stringify(f.catalog);
+  assert.deepEqual(f.run(),[...opened,'e','a','d']);assert.equal(JSON.stringify(f.catalog),original);
+});
+
+test('next-unlock priorities tolerate deleted, duplicated and already-open entries without altering saved data',()=>{
+  const f=fixture();f.context.cursosState.orden='proximos';f.setPriorities(['missing','b','e','e','c','a']);
+  assert.deepEqual(f.run(),['c','b','e','a','d']);assert.equal(new Set(f.run()).size,5);
+  assert.deepEqual(f.priorities(),['missing','b','e','e','c','a']);
+  f.context.cursosState.area='Legal';assert.deepEqual(f.run(),['c','e']);
 });
