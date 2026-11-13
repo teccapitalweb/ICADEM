@@ -234,12 +234,12 @@ export class UI {
         g.beginPath(); if (g.roundRect) g.roundRect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k, 7); else g.rect(mx(b.x - f.w / 2), mz(b.z - f.d / 2), f.w * k, f.d * k); g.fill(); g.stroke();
       }
       if (api.waypoint) { g.strokeStyle = '#2f9e8f'; g.lineWidth = 3; g.setLineDash([6, 5]); if (here) { g.beginPath(); g.moveTo(mx(here.x), mz(here.z)); g.lineTo(mx(api.waypoint.x), mz(api.waypoint.z)); g.stroke(); } g.setLineDash([]); disc(mx(api.waypoint.x), mz(api.waypoint.z), 6, '#2f9e8f', '#fff'); }
-      g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '15px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
+      g.textAlign = 'center'; g.textBaseline = 'middle'; g.font = '21px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif';
       for (const it of items) {
         const x = mx(it.x), y = mz(it.z), on = selected && selected.id === it.id;
-        disc(x, y, on ? 15 : 13, '#ffffff', on ? '#0f1f3d' : it.kind === 'activity' ? '#2f9e8f' : 'rgba(15,31,61,.55)', on ? 3 : 2);
+        disc(x, y, on ? 19 : 17, '#ffffff', on ? '#0f1f3d' : it.kind === 'activity' ? '#2f9e8f' : 'rgba(15,31,61,.55)', on ? 3 : 2);
         g.fillStyle = '#000'; g.fillText(it.icon, x, y + 1);
-        if (it.done) { disc(x + 10, y - 10, 6.5, '#1f7a55', '#fff', 1.5); g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 7, y - 10); g.lineTo(x + 9.5, y - 7.5); g.lineTo(x + 13.5, y - 12.5); g.stroke(); }
+        if (it.done) { disc(x + 13, y - 13, 7.5, '#1f7a55', '#fff', 1.5); g.strokeStyle = '#fff'; g.lineWidth = 2; g.beginPath(); g.moveTo(x + 9.5, y - 13); g.lineTo(x + 12.5, y - 10); g.lineTo(x + 16.5, y - 15.5); g.stroke(); }
       }
       if (here) { g.save(); g.translate(mx(here.x), mz(here.z)); g.rotate(-api.player.yaw + Math.PI); g.fillStyle = '#e8483f'; g.strokeStyle = '#fff'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, -12); g.lineTo(8, 9); g.lineTo(0, 4.5); g.lineTo(-8, 9); g.closePath(); g.fill(); g.stroke(); g.restore(); }
     };
