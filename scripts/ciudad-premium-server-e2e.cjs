@@ -58,7 +58,7 @@ async function shot(name){if(!OUT)return;fs.mkdirSync(OUT,{recursive:true});awai
   await until(async()=>{const p=await app.profiles.get(SERVER_UID);return p.avatarId==='creativa'&&p.avatarChosen;},'server persists the UI character choice');const saved=appearance(await app.profiles.get(SERVER_UID));pass('Character selected through UI is persisted by the real local server',saved);
   observer=await observe('avatar-ui-observer','Beto socket');await until(()=>[...observer.roster.values()].some(p=>p.name==='Ana UI'&&p.avatar==='creativa'),'observer sees the chosen character');pass('Independent Node WebSocket observer receives the real roster appearance');
   const repliesBefore=await page.evaluate(()=>window.__avatarServerReplies.length);
-  await page.evaluate(()=>{const a=window.__ciudad.api;a.store.state.xp=99999;a.net.profile('avatar',{id:'leyenda',custom:a.store.state.custom});});
+  await page.evaluate(()=>{const a=window.__ciudad.api;a.store.state.xp=99999;a.setAvatar('leyenda',a.store.state.custom);});   // manipulación por el camino real del cliente (desde #70 las respuestas sin número de solicitud se ignoran)
   await page.waitForFunction(before=>window.__avatarServerReplies.slice(before).some(m=>m.ok===false&&m.reason==='avatar-bloqueado'),repliesBefore);
   await page.waitForFunction(()=>window.__ciudad.api.store.state.avatarId==='creativa'&&window.__ciudad.api.store.state.xp<99999);
   const rejected=appearance(await app.profiles.get(SERVER_UID));assert.deepEqual(rejected,saved);assert([...observer.roster.values()].some(p=>p.name==='Ana UI'&&p.avatar==='creativa'));pass('Manipulated client XP cannot equip a locked skin; server and observer retain the allowed appearance');
