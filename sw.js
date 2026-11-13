@@ -1,5 +1,5 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v169';
+const CACHE = 'icadem-vip-v170';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=3',
@@ -30,8 +30,9 @@ const SHELL = [
   './assistant/assets/icadem-guide-blink.png',
   './privacidad.html',
   './js/icadem-platform-v2.js?v=54',
-  './js/icadem-course-unlocks.js?v=5',
-  './css/icadem-course-unlocks.css?v=3',
+  './js/icadem-course-unlocks.js?v=6',
+  './css/icadem-course-unlocks.css?v=4',
+  './css/icadem-contacts.css?v=1',
   './js/icadem-learning-route.js?v=4',
   './js/icadem-learning-navigation.js?v=3',
   './js/icadem-course-sync.js?v=1',
@@ -49,7 +50,7 @@ const SHELL = [
   './css/panel-minimal.css?v=31',
   './css/vip-banner.css?v=3',
   './css/icadem-home.css?v=8',
-  './css/icadem-courses.css?v=10',
+  './css/icadem-courses.css?v=11',
   './css/icadem-live.css?v=2',
   './css/icadem-tools.css?v=2',
   './css/icadem-support-premium.css?v=2',
@@ -64,12 +65,12 @@ const SHELL = [
   './js/icadem-cv-languages.js?v=1',
   './js/icadem-professional-profile.js?v=7',
   './css/icadem-professional-profile.css?v=4',
-  './css/icadem-professional-activity.css?v=2',
-  './js/icadem-professional-activity.js?v=2',
+  './css/icadem-professional-activity.css?v=3',
+  './js/icadem-professional-activity.js?v=3',
   './js/icadem-professional-network.js?v=3',
   './css/icadem-professional-network.css?v=3',
   './js/icadem-post-style.js?v=2',
-  './css/icadem-post-style.css?v=2',
+  './css/icadem-post-style.css?v=3',
   './js/icadem-resume-editor.js?v=4',
   './css/icadem-resume-editor.css?v=3',
   './js/icadem-notifications.js?v=3',

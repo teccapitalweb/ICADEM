@@ -2,7 +2,7 @@
 [data-course-unlocks][hidden], .course-unlock-picker [hidden], #splash-choose-courses[hidden] { display:none!important; }
 .splash-film__nav:has(#splash-choose-courses:not([hidden])) { flex-wrap:wrap; }
 #splash-choose-courses { flex:1 1 100%; text-align:center; }
-.course-unlocks { box-sizing:border-box; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:16px; padding:13px 16px; margin:0 0 16px; border:1px solid #dce4e9; border-radius:12px; background:#fff; color:#203b49; box-shadow:none; scroll-margin-top:90px; }
+.course-unlocks { box-sizing:border-box; min-width:0; display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; margin:0 0 12px; border:1px solid #dce4e9; border-radius:12px; background:#fff; color:#203b49; box-shadow:none; scroll-margin-top:90px; }
 .course-unlocks:focus-visible { outline:3px solid #77a5b6; outline-offset:3px; }
 .course-unlocks__copy { min-width:0; flex:1; display:flex; align-items:center; gap:10px; }
 .course-unlocks__icon { display:grid; place-items:center; flex:none; width:32px; height:32px; border-radius:9px; background:#f1f5f8; color:#315b73; }
@@ -15,7 +15,7 @@
 .course-unlocks__priority strong { flex:none; font-weight:550; color:#45647a; }
 .course-unlocks__priority>span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .course-unlocks__actions { flex:none; display:flex; align-items:center; gap:8px; }
-.course-unlocks .cu-btn { min-height:40px; padding:8px 12px; gap:6px; }
+.course-unlocks .cu-btn { min-height:44px; padding:6px 10px; gap:6px; }
 .course-unlocks .cu-btn--primary { color:#254e67; background:#eef4f8; border-color:#cadbe5; }
 .course-unlocks .cu-btn--primary:hover { background:#e4eef5; border-color:#a7c3d5; }
 .course-unlocks .cu-btn--quiet { padding-inline:6px; color:#496879; }
@@ -64,5 +64,5 @@
 .course-unlock-order li>div { flex:none; display:flex; gap:4px; }
 .course-unlock-order button { border:1px solid var(--border,#d8e2e6); background:var(--surface,#fff); color:var(--text,#294a59); width:30px; height:32px; border-radius:6px; cursor:pointer; }
 .course-unlock-order button:disabled { opacity:.4; cursor:default; }
-@media(max-width:680px) { .course-unlocks { padding:12px 14px; gap:10px; align-items:stretch; flex-direction:column; margin-bottom:14px; } .course-unlocks__icon { width:28px; height:28px; border-radius:8px; } .course-unlocks__copy { gap:9px; } .course-unlocks__actions { gap:8px; min-width:0; width:100%; } .course-unlocks__actions .cu-btn--primary { flex:1; } .course-unlocks__actions .cu-btn--quiet { flex:none; } .course-unlocks--retry { flex-direction:row; align-items:center; } .course-unlock-picker__results { grid-template-columns:1fr; max-height:38vh; } .course-unlock-picker__tools { grid-template-columns:1fr; gap:10px; } }
+@media(max-width:680px) { .course-unlocks { padding:10px 12px; gap:4px; align-items:stretch; flex-direction:column; } .course-unlocks__icon { width:28px; height:28px; border-radius:8px; } .course-unlocks__copy { gap:8px; } .course-unlocks__actions { gap:8px; min-width:0; width:100%; } .course-unlocks__actions .cu-btn--primary { flex:1; } .course-unlocks__actions .cu-btn--quiet { flex:none; } .course-unlocks--waiting { display:grid; grid-template-columns:minmax(0,1fr) auto; column-gap:8px; row-gap:0; } .course-unlocks--waiting :is(.course-unlocks__copy,.course-unlocks__content) { display:contents; } .course-unlocks--waiting .course-unlocks__icon { display:none; } .course-unlocks--waiting h2 { grid-column:1; grid-row:1; align-self:end; } .course-unlocks--waiting .course-unlocks__status { grid-column:1; grid-row:2; align-self:start; } .course-unlocks--waiting .course-unlocks__priority { grid-column:1/-1; grid-row:3; margin-top:1px; } .course-unlocks--waiting .course-unlocks__actions { grid-column:2; grid-row:1/3; align-self:center; width:auto; } .course-unlocks--retry { flex-direction:row; align-items:center; } .course-unlock-picker__results { grid-template-columns:1fr; max-height:38vh; } .course-unlock-picker__tools { grid-template-columns:1fr; gap:10px; } }
 @media(max-width:380px) { .course-unlocks { padding-inline:12px; } .course-unlock-picker__buttons .cu-btn { flex:1 1 100%; } .course-unlock-order li { flex-wrap:wrap; } .course-unlock-order li>span { flex-basis:100%; } .course-unlock-order li>div { margin-left:auto; } }
