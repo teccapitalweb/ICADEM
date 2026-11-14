@@ -31,7 +31,7 @@ export const ACHIEVEMENTS = [
   { id: 'memoria-de-oro', name: 'Memoria de oro', text: 'Obtén 90 o más en Memoria ICADEM.' },
   { id: 'calculadora-humana', name: 'Calculadora humana', text: 'Obtén 90 o más en Matemáticas contra reloj.' },
   { id: 'gran-clasificador', name: 'Gran clasificador', text: 'Obtén 80 o más en Clasificación inteligente.' },
-  { id: 'atleta-icadem', name: 'Atleta ICADEM', text: 'Termina la Carrera del conocimiento.' },
+  { id: 'atleta-icadem', name: 'Atleta ICADEM', text: 'Termina la Carrera del Saber.' },
   { id: 'cazatesoros', name: 'Cazatesoros', text: 'Encuentra todos los tesoros de la plaza.' },
   { id: 'cientifico', name: 'Mente científica', text: 'Obtén 80 o más en el Laboratorio de experimentos.' },
   { id: 'escapista', name: 'Escapista', text: 'Abre los tres candados de la Sala de escape.' },

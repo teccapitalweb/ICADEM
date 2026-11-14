@@ -74,7 +74,7 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     await B.evaluate(() => { window.__ciudad.api.player.position.set(-40, 0, -40); });
     ok('el servidor corrige un teletransporte (regresa al jugador a su lugar)', await until(B, ([x, z]) => { const p = window.__ciudad.api.player.position; return Math.hypot(p.x - x, p.z - z) < 1; }, [beforeTp.x, beforeTp.z], 20));
     await sleep(600);
-    await B.tap('#btn-say'); await sleep(250); await B.tap('#say-menu button[data-id="jugamos"]');
+    await B.tap('#btn-more'); await B.tap('[data-quick-action="emotes"]'); await sleep(250);   /* «Frases y gestos» vive en el menú rápido */ await B.tap('#say-menu button[data-id="jugamos"]');
     ok('la frase rápida aparece como burbuja sobre el avatar del otro jugador', await until(A, () => [...document.querySelectorAll('.bubble:not(.bubble--me)')].some(e => e.textContent === '¿Jugamos?'), null, 16));
     ok('y el gesto viaja con ella', await until(A, () => [...window.__ciudad.remotes.map.values()][0].avatar.anim === 'celebrate', null, 10));
     await A.evaluate(() => { const a = window.__ciudad.api, r = [...window.__ciudad.remotes.map.values()][0]; a.camera.yaw = Math.atan2(a.player.position.x - r.x, a.player.position.z - r.z) + 0.5; a.camera.pitch = 0.35; a.camera.distance = 5; a.camera.snap(a.player.position); });
@@ -84,7 +84,7 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     ok('límite de frases: avisa en vez de inundar', await until(A, () => [...document.querySelectorAll('#toasts > *')].some(e => /Espera un momento/.test(e.textContent)), null, 6));
     // silenciar
     await A.evaluate(() => { const a = window.__ciudad.api; a.store.state.settings.muted = [[...a.net.roster.keys()][0]]; document.querySelectorAll('.bubble:not(.bubble--me)').forEach(e => e.remove()); window.__ciudad.social.bubbles.forEach((v, k) => { if (k !== 'me') window.__ciudad.social.bubbles.delete(k); }); });
-    await sleep(8200); await B.tap('#btn-say'); await sleep(250); await B.tap('#say-menu button[data-id="hola"]'); await sleep(1500);
+    await sleep(8200); await B.tap('#btn-more'); await B.tap('[data-quick-action="emotes"]'); await sleep(250);   /* «Frases y gestos» vive en el menú rápido */ await B.tap('#say-menu button[data-id="hola"]'); await sleep(1500);
     ok('silenciar a un jugador oculta sus frases', await A.evaluate(() => document.querySelectorAll('.bubble:not(.bubble--me)').length === 0));
     await A.evaluate(() => { window.__ciudad.api.store.state.settings.muted = []; });
 
@@ -140,7 +140,7 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     // progreso y avatar: lo decide y lo guarda el servidor
     ok('un avatar bloqueado no se puede usar', await A.evaluate(() => window.__ciudad.api.setAvatar('ejecutivo') === false));
     await A.evaluate(log => window.__ciudad.api.net.profile('mission', { mission: 'banco-credito-correcto', log }), BANK_LOG);
-    ok('el servidor valida la misión y entrega XP y créditos de prueba', await until(A, () => { const s = window.__ciudad.api.store.state; return s.xp >= 120 && s.missions['banco-credito-correcto'] && s.missions['banco-credito-correcto'].completed && s.economy.balance === 15 && document.getElementById('credits-value').textContent === '15'; }, null, 20));
+    ok('el servidor valida la misión y entrega XP y monedas del juego (+15 de la misión)', await until(A, () => { const s = window.__ciudad.api.store.state; return s.xp >= 120 && s.missions['banco-credito-correcto'] && s.missions['banco-credito-correcto'].completed && s.vivo && s.economy.balance === s.vivo.coins && s.vivo.coins >= 115 && document.getElementById('credits-value').textContent === String(s.vivo.coins); }, null, 20));
     ok('al desbloquearlo, el nuevo avatar se equipa', await A.evaluate(() => window.__ciudad.api.setAvatar('ejecutivo', { outfit: 'coral', hat: 'cap' }) === true && window.__ciudad.avatar.look.top === 0xe86a5c));
     ok('el otro jugador ve el avatar y el equipamiento nuevos', await until(B, () => { const r = [...window.__ciudad.api.net.roster.values()][0], m = [...window.__ciudad.remotes.map.values()][0]; return r && r.avatar === 'ejecutivo' && r.custom.hat === 'cap' && m && m.avatar.look.top === 0xe86a5c && m.avatar.look.accessories.includes('tie'); }, null, 30));
     if (SHOTS) { await B.evaluate(() => { const a = window.__ciudad.api, r = [...window.__ciudad.remotes.map.values()][0]; a.camera.yaw = Math.atan2(a.player.position.x - r.x, a.player.position.z - r.z) + 0.4; a.camera.distance = 5; a.camera.snap(a.player.position); }); await sleep(500); await B.screenshot({ path: path.join(SHOTS, 'mp-avatar-nuevo.png') }); }
@@ -153,7 +153,7 @@ const stop = child => new Promise(r => { child.once('exit', r); child.kill('SIGK
     ok('al volver el servidor, ambos se reconectan solos y se vuelven a ver', (await until(A, seesOther, null, 60)) && (await until(B, seesOther, null, 60)));
     // otro dispositivo, misma cuenta: el progreso viene del servidor (que además se reinició)
     const C = await open('ana', 'Ana Torres', { viewport: { width: 820, height: 1180 }, deviceScaleFactor: 1, isMobile: true, hasTouch: true, userAgent: devices['iPhone 13'].userAgent });
-    ok('en otro dispositivo aparece el mismo progreso, avatar y equipamiento', await until(C, () => { const c = window.__ciudad; if (!c || c.api.net.status !== 'online') return false; const s = c.api.store.state; return s.xp >= 120 && s.avatarId === 'ejecutivo' && s.custom.outfit === 'coral' && s.missions['banco-credito-correcto'].completed && s.economy.balance === 15 && c.avatar.look.top === 0xe86a5c; }, null, 80));
+    ok('en otro dispositivo aparece el mismo progreso, avatar y equipamiento', await until(C, () => { const c = window.__ciudad; if (!c || c.api.net.status !== 'online') return false; const s = c.api.store.state; return s.xp >= 120 && s.avatarId === 'ejecutivo' && s.custom.outfit === 'coral' && s.missions['banco-credito-correcto'].completed && s.vivo && s.economy.balance === s.vivo.coins && s.vivo.coins >= 115 && c.avatar.look.top === 0xe86a5c; }, null, 80));
     ok('la sesión anterior de esa cuenta se cierra', await until(A, () => window.__ciudad.api.net.status === 'closed' && /otro dispositivo/.test(document.getElementById('net-chip').textContent), null, 30));
     ok('sin errores de JavaScript en ninguno de los dos', A.errs.length === 0 && B.errs.length === 0, [...A.errs, ...B.errs].slice(0, 4).join(' | '));
   } finally { await browser.close(); await stop(server).catch(() => {}); }

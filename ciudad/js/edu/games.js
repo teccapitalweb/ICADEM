@@ -224,7 +224,7 @@ export class Games {
   async raceStartUI() {
     const api = this.api; if (!this.race) this.#mark('carrera');
     if (this.race) { const q = await api.ui.choice({ speaker: 'Carrera del Saber', text: '¿Abandonar la carrera?', options: [{ id: 'si', label: 'Abandonar' }, { id: 'no', label: 'Seguir corriendo', primary: true }] }); if (q === 'si') this.raceQuit(); return; }
-    await api.ui.dialog({ speaker: 'Carrera del conocimiento', lines: ['Pasa por los 7 arcos en orden. Los que están sobre plataformas se alcanzan saltando (Espacio o el botón de salto).', 'Cuidado con las barras rojas: si te alcanzan, te empujan. ¡La meta está en el centro!'] });
+    await api.ui.dialog({ speaker: 'Carrera del Saber', lines: ['Pasa por los 7 arcos en orden. Los que están sobre plataformas se alcanzan saltando (Espacio o el botón de salto).', 'Los arcos 2 y 5 son barreras del saber: se abren respondiendo bien (puedes pedir una pista).', 'Cuidado con las barras rojas: si te alcanzan, te empujan. ¡La meta está en el centro!'] });
     this.race = { next: 0, t0: performance.now(), bumps: 0, server: this.api.net.isOnline };
     if (this.race.server) { this.pending = true; this.#play('start', { game: 'carrera' }); }
     this.#raceHud();

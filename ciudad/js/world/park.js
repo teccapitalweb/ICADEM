@@ -84,7 +84,7 @@ export function buildPark(api) {
   const games = () => api.games;
   const interactables = [
     { id: 'exit', x: 0, y: 2.1, z: S - 1.2, radius: 1.8, color: 0x2f9e8f, label: 'Volver a la plaza', action: () => { games()?.raceQuit(true); api.travel('plaza', 'park'); } },
-    { id: 'start', x: 2.4, y: 1.6, z: 9.2, radius: 1.6, color: 0xffd166, label: () => games()?.raceLabel() || 'Carrera del conocimiento', action: () => games()?.raceStartUI() }
+    { id: 'start', x: 2.4, y: 1.6, z: 9.2, radius: 1.6, color: 0xffd166, label: () => games()?.raceLabel() || 'Carrera del Saber', action: () => games()?.raceStartUI() }
   ];
 
   return {

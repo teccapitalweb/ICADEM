@@ -11,7 +11,7 @@ const DATA=fs.mkdtempSync(path.join(os.tmpdir(),'ciudad-fashion-'));
 const sizes=(process.env.ICADEM_FASHION_SIZES||'1440x1000,768x1024,390x844,320x740').split(',').map(s=>{const [width,height]=s.split('x').map(Number);return {width,height};});
 const chosen={outfit:'base',hat:'none',tone:'t4',top:'cropTop',bottom:'flare',shoes:'chunky',bag:'handbag',hairStyle:'waves',hairColor:'rosa',necklace:'heart'};
 const groups={top:'ropa',bottom:'ropa',shoes:'ropa',hat:'accesorios',bag:'accesorios',necklace:'accesorios',hairStyle:'cabello',hairColor:'cabello',outfit:'estilo',tone:'estilo'};
-const expectedCounts={top:6,bottom:6,shoes:5,bag:5,hat:9,hairStyle:11,hairColor:11,necklace:5};
+const expectedCounts={top:12,bottom:13,shoes:9,bag:7,hat:12,hairStyle:13,hairColor:11,necklace:5};   // incluye la colección Mundo vivo (fashion-extra.js)
 const dataAttribute=key=>'data-'+key.replace(/[A-Z]/g,c=>'-'+c.toLowerCase());
 const records=[],legacyAssets=new Map();
 for(const [name,file]of [['avatar','ciudad/js/characters/avatar.js'],['rules','ciudad/js/progress/rules.js']]){

@@ -44,13 +44,13 @@ function startServer() {
   };
   const waitScene = async (page, name) => { for (let i = 0; i < 60; i++) { if ((await page.evaluate(() => window.__ciudad.api.sceneName)) === name && !(await page.evaluate(() => document.getElementById('fade').classList.contains('is-on')))) return true; await sleep(250); } return false; };
   // Respuesta del servidor a la misión: se escucha el evento 'profile' del adaptador de red.
-  const listen = page => page.evaluate(() => { window.__srv = []; window.__fix = window.__fix || []; window.__ciudad.api.net.on('fix', m => window.__fix.push(m.reason)); window.__ciudad.api.net.on('profile', m => window.__srv.push({ op: m.op, ok: m.ok, mission: m.mission, credits: m.credits, score: m.score, reason: m.reason, testCredits: m.profile && m.profile.testCredits })); });
+  const listen = page => page.evaluate(() => { window.__srv = []; window.__fix = window.__fix || []; window.__ciudad.api.net.on('fix', m => window.__fix.push(m.reason)); window.__ciudad.api.net.on('profile', m => window.__srv.push({ op: m.op, ok: m.ok, mission: m.mission, credits: m.credits, score: m.score, reason: m.reason, coins: m.profile && m.profile.coins, testCredits: m.profile && m.profile.testCredits })); });
 
   try {
     let page = await open();
     ok('el juego se conecta al servidor de sesiones', await page.evaluate(() => window.__ciudad.api.net.status === 'online'));
     await listen(page);
-    let expected = 0;
+    let expected = 0, lastCoins = null;   // créditos de prueba (historial) y monedas del juego que confirma el servidor
     for (const G of GAMES) {
       const tag = `[${G.key}]`;
       // entrar como jugador: plaza frente a la puerta → puerta → escena (el servidor valida la transición)
@@ -77,8 +77,9 @@ function startServer() {
       ok(`${tag} el servidor reconoce la misión y la acredita (${G.credits} créditos de prueba)`, played === 'listo' && reply && reply.ok && reply.score === 100 && reply.credits === G.credits, JSON.stringify({ played, reply }));
       await page.evaluate(() => { const b = [...document.querySelectorAll('#modal-actions button')].find(x => x.textContent.includes('Continuar')); b && b.click(); });
       await sleep(500);
-      const shown = await page.evaluate(() => window.__ciudad.api.store.state.economy.balance);
-      ok(`${tag} el saldo que muestra el juego es el del servidor (${expected})`, shown === expected && reply && reply.testCredits === expected, JSON.stringify({ shown, server: reply && reply.testCredits }));
+      const shown = await page.evaluate(() => window.__ciudad.api.store.state.economy.balance); if (reply) lastCoins = reply.coins;
+      // Ciudad 2.0: el HUD muestra las MONEDAS del juego que guarda el servidor; los créditos de prueba quedan como historial.
+      ok(`${tag} el saldo que muestra el juego es el del servidor (monedas)`, reply && Number.isFinite(reply.coins) && shown === reply.coins, JSON.stringify({ shown, server: reply && reply.coins }));
       await page.evaluate(() => { window.__ciudad.api.scene.interactables.find(i => i.id === 'exit').action(); return true; });
       await waitScene(page, 'plaza'); await sleep(1200);
       const fixes = await page.evaluate(() => window.__fix.slice());
@@ -90,7 +91,7 @@ function startServer() {
     // persistencia: otra conexión de la misma cuenta recibe el perfil del servidor
     page = await open(); await listen(page);
     const st = await page.evaluate(ids => { const s = window.__ciudad.api.store.state; return { bal: s.economy.balance, done: ids.filter(id => s.missions[id] && s.missions[id].completed).length }; }, GAMES.map(g => g.mission));
-    ok(`al reconectar, el servidor devuelve los ${GAMES.length} juegos completados y ${expected} créditos de prueba`, st.bal === expected && st.done === GAMES.length, JSON.stringify(st));
+    ok(`al reconectar, el servidor devuelve los ${GAMES.length} juegos completados y las ${lastCoins} monedas`, st.bal === lastCoins && st.done === GAMES.length, JSON.stringify(st));
 
     // repetir un juego no duplica créditos en el servidor
     const H = GAMES[GAMES.length - 1];
@@ -103,7 +104,7 @@ function startServer() {
       m.finish(() => ({ rows: [['Prueba', 100, 100]], heading: 'ok', paragraphs: [] }));
     }, H);
     let again = null; for (let i = 0; i < 40 && !again; i++) { await sleep(250); again = await page.evaluate(() => window.__srv.find(r => r.op === 'mission')); }
-    ok(`repetir ${H.key}: el servidor da 0 créditos y el saldo no cambia`, again && again.ok && again.credits === 0 && again.testCredits === expected, JSON.stringify(again));
+    ok(`repetir ${H.key}: el servidor da 0 créditos y como mucho el premio pequeño de repetición (4 monedas)`, again && again.ok && again.credits === 0 && again.coins >= lastCoins && again.coins <= lastCoins + 4, JSON.stringify({ again, lastCoins }));
 
     // una bitácora falsificada desde la consola no acredita
     await page.evaluate(() => { window.__srv.length = 0; window.__ciudad.api.net.profile('mission', { mission: 'banco-credito-correcto', log: [{ type: 'talk' }, { type: 'choose', payload: { id: 'pyme' } }] }); });

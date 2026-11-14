@@ -39,8 +39,9 @@ export function installQuickMenu(ui) {
   // Mundo vivo: mascotas e inventario usan los botones reales (installVivoActions); casa y monturas llaman a api.actions.
   existing('btn-pets', 'pets', 'Mis mascotas', 'paw', 'Adoptar y cuidar');
   existing('btn-inventory', 'inventory', 'Mi inventario', 'bag', 'Tus objetos');
-  action('home', 'Mi casa', 'home', 'Ir y decorar', () => {
-    if (api.actions?.home) { api.actions.home(); return; }
+  action('home', 'Mi casa', 'home', 'Marcar la entrada', () => {
+    // Dentro de la habitación o de la casa, Mundo vivo lleva a «Mi casa» por su puerta; afuera solo se marca la entrada.
+    if (api.actions?.home && ['room', 'casa'].includes(api.sceneName)) { api.actions.home(); return; }
     if (api.sceneName === 'room') { ui.toast('Ya estás en tu casa.'); return; }
     const home = mapDestinations(api).find(item => item.id === 'casa'); if (!home) return;
     api.setWaypoint({ ...home.way, name: home.name }); ui.toast('Entrada de tu casa marcada en la plaza.');
