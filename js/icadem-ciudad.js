@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=14';
+  var GAME_URL = 'ciudad/index.html?v=15';
 
   // Enlace de invitación (?ciudad=CÓDIGO). Solo se lleva el código al juego: no da acceso a ninguna
   // cuenta ni salta el piloto. El juego lo canjea con la sesión de quien lo abre, y pregunta antes.

@@ -1,10 +1,12 @@
 # Avatar Studio y mapa · capa visual
 
+La entrega de Mundo Vivo sobre Ciudad 1.3 añade chat móvil, menú rápido, prueba de equipamiento y presentación educativa. Su alcance, compatibilidad y pruebas se documentan en [MUNDO_VIVO_UI.md](MUNDO_VIVO_UI.md). Mascotas, tiendas y viviendas se preparan en un PR de prototipos aislado; no están activadas en el juego.
+
 La interfaz utiliza los personajes, edificios y estados del juego. La ampliación del vestidor añade prendas y accesorios cosméticos reales al modelo existente; no incorpora destinos, monedas ni condiciones de desbloqueo nuevas.
 
 - `js/ui/wardrobe.js` mantiene `openWardrobe`, la selección inicial y `api.setAvatar`. Personajes, Ropa, Accesorios, Cabello y Estilo utilizan el mismo perfil. Búsqueda y disponibilidad filtran personajes. Las miniaturas usan `AvatarPreview`, acercando collares, cabello, sombreros y calzado para distinguir las piezas; su caché está limitada a 128 imágenes y cancela trabajos al cambiar de categoría.
 - `js/ui/preview.js` continúa compartiendo el renderizador del juego. Su cámara de vista previa permite acercar y girar; libera las geometrías propias al cambiar de modelo, generar una miniatura o cerrar. Usa `disposeTree` existente para conservar materiales compartidos. No modifica el motor ni el modelo del jugador.
-- `js/ui/city-map.js` exporta `createCityMap(ui)` y proyecta `BUILDINGS`, `doorPoint(..., 2.2)` y las dos actividades existentes. El estado completado proviene de la misión cargada. Zoom y desplazamiento sólo transforman el plano; la acción conserva `api.setWaypoint`, sin teletransporte.
+- `js/ui/city-map.js` exporta `createCityMap(ui)` y proyecta `BUILDINGS`, `doorPoint(..., 2.2)` y las actividades existentes, incluido el Distrito del Saber de 1.3. El estado completado proviene de la misión cargada. Zoom y desplazamiento sólo transforman el plano; la acción conserva `api.setWaypoint`, sin teletransporte.
 - `js/ui/ui.js` conserva la ventana modal, el bloqueo de controles, el cierre y el evento `map-opened`; delega únicamente el contenido del mapa al nuevo módulo.
 - `css/avatar-studio.css`, `css/city-map.css` y `css/premium-panels.css` están limitados a `.vest--studio` y `.map--premium`. Las demás ventanas del juego conservan su presentación.
 
@@ -38,4 +40,4 @@ No cambian Store, reglas de Firebase, XP, economía, misiones, colisiones, rig, 
 
 Trabajar desde `main` actualizado. Al ampliar el catálogo, mantener los datos en los módulos actuales: el mapa y el vestidor los leen de ahí. No copiar catálogos paralelos en la interfaz. Si hay conflictos, conservar los cambios funcionales de la expansión y esta delegación visual; no reemplazar `ui.js` completo.
 
-Entrada del juego y puente: `v=12`. Hojas nuevas: `v=1`. Caché del panel: `v179`. La carga resistente a fallos 5xx de Ciudad 1.2 permanece intacta.
+Entrada del juego y puente en la entrega de UI: `v=15`. Hojas nuevas: `v=1`. Caché del panel: `v182`. Se conservan la carga resistente a fallos 5xx y los viajes/selección inicial corregidos en Ciudad 1.3.

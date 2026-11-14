@@ -58,11 +58,12 @@ function startServer() {
     ok('Beto ve el nuevo estilo de Ana (y su personaje 3D usa el tono elegido)', await until(async () => { const r = await remoteLook(beto, 'Ana'); return r && r.custom && r.custom.tone === 't5' && r.custom.outfit === 'cielo' && r.drawn && r.skin === 0x6b4129; }), JSON.stringify(await remoteLook(beto, 'Ana')));
     const betoErrs = beto.errs; await beto.context().close();   // el render por software no aguanta dos mundos más el vestidor
     // vestidor: requisitos reales de las skins bloqueadas y cambio de atuendo desde la interfaz
-    await ana.evaluate(() => window.__ciudad.api.ui.openWardrobe()); await until(() => ana.evaluate(() => document.getElementById('modal-title').textContent === 'Mi avatar'));
+    await ana.evaluate(() => { window.__ciudad.api.ui.openWardrobe(); }); await until(() => ana.evaluate(() => document.getElementById('modal-title').textContent === 'Mi avatar'));
     const locked = await ana.evaluate(() => { [...document.querySelectorAll('.vest__cats button')][2].click(); return [...document.querySelectorAll('.vcard.is-locked small')].map(s => s.textContent); });
     ok('las skins especiales bloqueadas muestran requisitos reales', locked.length === 6 && locked.includes('Llega al nivel 10') && locked.includes('Completa las diez misiones profesionales'), JSON.stringify(locked));
     await ana.evaluate(() => document.querySelector('.vest__tabs button[data-id="estilo"]').click()); await sleep(300);
     await ana.evaluate(() => document.querySelector('.chips--swatch button[data-outfit="sol"]').click());
+    await ana.evaluate(() => document.querySelector('#modal-actions [data-action="equip"]').click());
     ok('desde el vestidor: el atuendo se guarda en la cuenta', await until(() => ana.evaluate(() => window.__ciudad.api.store.state.custom.outfit === 'sol')));
     await ana.evaluate(() => document.getElementById('modal-x').click());
     beto.errs = betoErrs;
