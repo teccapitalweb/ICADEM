@@ -139,7 +139,9 @@ async function juego(browser) {
   await tp(-31, -21); await page.waitForTimeout(400); await E();
   ok('la puerta del Hospital lleva a su interior', await waitScene('hospital'));
   await shot(page, 'f7-hospital.png');
-  await page.evaluate(() => window.__ciudad.api.travel('plaza', 'hospital')); await waitScene('plaza'); await page.waitForTimeout(600);
+  // volver a la plaza (si la entrada al hospital aún está en su fundido, el viaje se reintenta)
+  for (let i = 0; i < 4 && !(await page.evaluate(() => window.__ciudad.api.sceneName === 'plaza')); i++) { await page.waitForTimeout(800); await page.evaluate(() => window.__ciudad.api.travel('plaza', 'hospital')); await waitScene('plaza'); }
+  await page.waitForTimeout(600);
   // 8. banco
   await tp(-13, -20.2); await page.waitForTimeout(500); await shot(page, 'f8-banco-fuera.png'); await E();
   ok('se entra al Banco ICADEM', await waitScene('bank'), await page.evaluate(() => { const a = window.__ciudad.api; return JSON.stringify({ scene: a.sceneName, pos: a.player.position, modal: !document.getElementById('modal').hidden && document.getElementById('modal').textContent.slice(0, 160), near: a.scene.interactables.map(i => [i.id, Math.hypot(i.x - a.player.position.x, i.z - a.player.position.z).toFixed(1)]).filter(x => x[1] < 4) }); }));
