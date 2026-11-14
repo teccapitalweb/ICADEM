@@ -28,6 +28,10 @@ Reglas que no cambian:
 | `js/pets/pet-model.js`, `pet-companion.js`, `pet-controller.js`, `pet-preview.js` | Modelos 3D, comportamiento, mascota propia (`api.pets`), vista previa 3D | Claude |
 | `js/vivo/flight.js`, `mounts.js` | Ruta del vuelo en dragón y montura (`api.mounts`) | Claude |
 | `js/ui/vivo-panels.js` | Paneles **funcionales** (mascotas, inventario, tienda) y `api.actions` | Claude hoy; Codex puede reemplazar los paneles |
+| `js/edu/questions-vivo.js` | Banco de preguntas nuevo (`BANK_VERSION`), revisado a mano | Claude |
+| `js/edu/vivo-activities.js` | Seis actividades de elección (héroes, rescate, veterinarios, mercado, agua, emociones) | Claude |
+| `js/edu/field-games.js` | Juegos de campo (manzanas, guardianes, expedición): datos, `fieldStep`, puntaje | Claude |
+| `js/edu/vivo-games.js` | `api.vivoGames`: pantallas funcionales y objetos 3D de los juegos | Claude hoy; Codex puede reemplazar las pantallas |
 | `_ciudad-server/profiles.js`, `server.js` | Aplicación de las reglas sobre la cuenta | Claude |
 
 ## 2. Perfil (lo que llega del servidor)
@@ -219,3 +223,59 @@ El mapa (`mapDestinations`) incluye `comercio`, `aguas` y `dragones` con su punt
 `api.player.emote(nombre, segundos, color?)` con `petting`, `throw`, `drink`, `balero`, `yoyo`,
 `trompo`, `papalote`, `burbujas`. Los juguetes del inventario se usan con `api.actions.useToy(idArtículo)`.
 Todas viajan por la red como animaciones (al final de `ANIMS`), así que los demás las ven.
+
+## 17. Banco de preguntas
+
+- `js/edu/questions.js` exporta `QUESTIONS` = preguntas base + `VIVO_QUESTIONS` y `BANK_VERSION`
+  (hoy `2026-11 · v2`). Cada pregunta: `{ id, cat, level, q, options, answer, explain }`.
+- Categorías nuevas: geografía, historia, animales, lectura, valores, seguridad, convivencia y lógica.
+- Las preguntas se escriben y revisan a mano; **no** se generan con IA en tiempo real. Al cambiar el
+  banco se sube `BANK_VERSION` y se corre `test/ciudad-vivo.test.cjs` (ids únicos, respuesta válida,
+  sin datos personales).
+- Los primeros auxilios siguen fuentes confiables (KidsHealth/Nemours y manuales de Cruz Roja): llamar
+  al 911, quedarse si el lugar es seguro, avisar a un adulto, **no mover** a una persona inconsciente y
+  no darle de comer ni de beber.
+
+## 18. Los diez juegos
+
+| Juego | id | Tipo | Dónde |
+|---|---|---|---|
+| Carrera del Saber | `carrera` | recorrido con barreras de pregunta (arcos 2 y 5) | Parque |
+| Manzanas perdidas | `manzanas` | campo | Plaza (Doña Rosa) |
+| Héroes de la ciudad | `heroes` | elección | cualquier lugar |
+| Rescate responsable | `rescate` | elección | cualquier lugar |
+| Guardianes del parque | `guardianes` | campo | Parque |
+| Veterinarios por un día | `veterinarios` | elección | cualquier lugar |
+| Mercado justo | `mercado` | elección (`basico` / `avanzado`) | cualquier lugar |
+| Amigos del agua | `agua` | elección | cualquier lugar |
+| Aventura de las emociones | `emociones` | elección | cualquier lugar |
+| Expedición del conocimiento | `expedicion` | campo, varios escenarios | Plaza → Parque/Distrito/Comercio |
+
+**Para la interfaz** (Codex): `api.vivoGames.choice(id, nivel?)`, `api.vivoGames.field(id)`,
+`api.vivoGames.quit()`, `api.vivoGames.active` (hay partida). El menú de juegos (`GAME_LIST` en
+`games.js`) ya los incluye; el resultado sale en el modal de siempre con XP, monedas y fuente.
+
+**Actividades de elección**: el contenido se arma con una semilla (`build(seed, nivel)`) y el servidor
+la vuelve a armar y califica la bitácora (`play(contenido, bitácora)`). Respuesta mejor = 2, aceptable
+= 1, equivocada = 0; las tareas de «reintentar» restan 10 por intento fallido; mínimo 30.
+
+**Juegos de campo** (op de red `play`):
+
+| Op | Datos | Respuesta |
+|---|---|---|
+| `start` | `{ game }` | `{ ok, data, st }` (posiciones de manzanas, basura, plantas o sellos) |
+| `check` | `{ game, action }` | `{ ok, st }` · `{ ok:false, reason }` · `{ done, score, xp, coins }` |
+
+Acciones: manzanas `talk`, `pick{id}`, `slip` (charco: se cae una), `deliver`; guardianes `pick{id}`, `bin{id}`, `report{id}`,
+`water{id}`; expedición `stamp{id, choice}`, `finish`. El servidor revisa cada acción con la posición
+**validada** del jugador (no la que manda el cliente) y rechaza una partida demasiado rápida
+(`imposible`). Razones: `lejos`, `habla-primero`, `faltan`, `manos-llenas`, `sin-basura`,
+`ya-sellado`, `incorrecta`, `peligroso` (tocar lo que no se toca: −10), `no-esta`, `sin-partida`.
+
+**Barreras de la carrera**: al llegar al arco 2 o 5 el servidor responde `reason:'barrera'` con `q`
+(id de pregunta). `answer{ i, choice }` abre la barrera o da otra pregunta (−5); `hint{ i }` quita una
+opción equivocada (−3).
+
+Logros nuevos (los da el servidor): `buen-vecino`, `rescatista-responsable`, `guardian-del-planeta`,
+`amigo-de-los-animales`, `comerciante-justo`, `corazon-empatico`, `expedicionario`.
+

@@ -67,6 +67,7 @@ import { VivoService } from './vivo/vivo-service.js';
 import { PetController } from './pets/pet-controller.js';
 import { installVivoActions } from './ui/vivo-panels.js';
 import { Mounts } from './vivo/mounts.js';
+import { VivoGames } from './edu/vivo-games.js';
 
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
@@ -214,7 +215,7 @@ async function boot() {
   api.missions.greenhouse = new GreenhouseMission(api, registry.register(defineMission(GREENHOUSE_MISSION)));
   api.missions.office = new LostFileMission(api, registry.register(defineMission(LOST_FILE_MISSION)));
   api.missions.tower = new TowerChallengeMission(api, registry.register(defineMission(TOWER_CHALLENGE_MISSION)));
-  api.edu = new EduService(api); api.npcQuiz = new NpcQuiz(api); api.games = new Games(api); api.district = new District(api);
+  api.edu = new EduService(api); api.npcQuiz = new NpcQuiz(api); api.games = new Games(api); api.district = new District(api); api.vivoGames = new VivoGames(api);
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
   api.remotes = remotes; api.social = social; remotes.getScene = () => api.scene;
@@ -399,7 +400,7 @@ async function boot() {
     api.pets.update(dt); api.homeEditor.update(dt);
 
     for (const n of scene.npcs) n.update(dt, p);
-    api.npcQuiz.update(dt); api.games.update(dt, t); api.district.update(dt, t);
+    api.npcQuiz.update(dt); api.games.update(dt, t); api.district.update(dt, t); api.vivoGames.update(dt);
     remotes.update(dt);
     scene.update(dt, t, p);
 

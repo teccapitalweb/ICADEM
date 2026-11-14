@@ -5,6 +5,7 @@
 // posiciones que el servidor ya comprueba (ver POSITIONAL).
 
 import { DISTRICT_ACTIVITIES } from './district-rules.js';
+import { VIVO_ACTIVITIES } from './vivo-activities.js';
 
 /** Generador pseudoaleatorio con semilla (mulberry32). */
 export function rng(seed) {
@@ -148,7 +149,7 @@ const sorting = {
   }
 };
 
-export const ACTIVITIES = Object.freeze({ memoria: memory, matematicas: math, idiomas: languages, clasificacion: sorting, ...DISTRICT_ACTIVITIES });
+export const ACTIVITIES = Object.freeze({ memoria: memory, matematicas: math, idiomas: languages, clasificacion: sorting, ...DISTRICT_ACTIVITIES, ...VIVO_ACTIVITIES });
 
 /** Validación completa de una partida (la usa el servidor): semilla, nivel y bitácora. */
 export function checkActivity(id, seed, level, log) {

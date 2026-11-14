@@ -225,10 +225,11 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
           const g = await profiles.discover(sessionUid, d.id);
           return send(ws, { t: 'play', op: 'discover', id: d.id, ok: g.ok, reason: g.reason, xp: g.xp, profile: g.profile });
         }
-        const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id }) : hub.playQuit(player);
+        const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id, action: msg.action && typeof msg.action === 'object' ? { type: String(msg.action.type || ''), id: String(msg.action.id || ''), bin: String(msg.action.bin || ''), choice: msg.action.choice } : null })
+          : msg.op === 'answer' ? hub.playAnswer(player, { i: msg.i, choice: msg.choice }) : msg.op === 'hint' ? hub.playHint(player, { i: msg.i }) : hub.playQuit(player);
         send(ws, { t: 'play', op: msg.op, game: msg.game, ...r });
         // La XP va al juego de la partida que el servidor abrió, no al nombre que mande el navegador.
-        if (r.done) { const g = await profiles.grantPositional(sessionUid, r.game, r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: r.game, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
+        if (r.done) { const g = await profiles.grantPositional(sessionUid, r.game, r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: r.game, score: r.score, xp: g.xp, coins: g.coins, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
       }
       else if (msg.t === 'code') {
         // Códigos temporales para unirse a un equipo: vencen, tienen usos limitados y se revocan.
@@ -290,7 +291,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
           : msg.op === 'activity' ? (hub.allow(player, 'activity') ? await profiles.playActivity(uid, String(msg.id), msg.seed, String(msg.level), msg.log) : { ok: false, reason: 'demasiado-rapido' })
           : msg.op === 'privacy' ? await profiles.setPrivacy(uid, msg.listed !== false) : { ok: true, profile: await profiles.get(uid) };
         send(ws, { t: 'profile', op: msg.op || 'get', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: msg.mission,
-          ...(msg.op === 'quiz' ? { id: msg.id, correct: r.correct, answer: r.answer, explain: r.explain, why: r.why } : {}), ...(msg.op === 'activity' ? { id: msg.id, bonus: r.bonus, capped: r.capped } : {}), n: msg.n });
+          ...(msg.op === 'quiz' ? { id: msg.id, correct: r.correct, answer: r.answer, explain: r.explain, why: r.why } : {}), ...(msg.op === 'activity' ? { id: msg.id, bonus: r.bonus, capped: r.capped, coins: r.coins } : {}), ...(msg.op === 'quiz' ? { coins: r.coins } : {}), n: msg.n });
         if (msg.op === 'privacy' && r.ok) { player.listed = r.profile.privacy.listed; renameAll(player); }
         if (msg.op === 'avatar' && r.ok) { player.avatar = r.profile.avatarId; player.custom = r.profile.custom; for (const o of player.instance.players.values()) if (o !== player && o.online && hub.sees(o, player)) send(sockets.get(o), { t: 'look', pid: player.pid, avatar: player.avatar, custom: player.custom }); }
       }

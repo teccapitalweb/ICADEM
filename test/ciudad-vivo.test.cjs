@@ -247,3 +247,79 @@ test('escenarios nuevos: Paseo comercial y «Mi casa» en el grafo de viajes, co
   const { HOME } = await load('ciudad/js/home/home-rules.js'), b = SCENE_RULES.casa.bounds;
   assert.deepEqual([b.minX, b.maxX, b.minZ, b.maxZ], [HOME.minX, HOME.maxX, HOME.minZ, HOME.maxZ], 'el servidor y el editor usan el mismo espacio');
 });
+
+test('diez juegos (2.0): las seis actividades se regeneran con la semilla y el servidor califica la bitácora', async () => {
+  const { ACTIVITIES, checkActivity } = await load('ciudad/js/edu/activities.js');
+  const { VIVO_ACTIVITIES } = await load('ciudad/js/edu/vivo-activities.js');
+  assert.deepEqual(Object.keys(VIVO_ACTIVITIES), ['heroes', 'rescate', 'veterinarios', 'mercado', 'agua', 'emociones']);
+  for (const [id, a] of Object.entries(VIVO_ACTIVITIES)) for (const level of a.levels) for (const seed of [1, 99, 123456]) {
+    const c = a.build(seed, level), again = a.build(seed, level);
+    assert.deepEqual(c, again, id + ': misma semilla, misma partida');
+    for (const t of c.tasks) { assert.ok(t.options.length >= 3 && t.options.some(o => o.value === 2), id + ': hay una mejor opción'); for (const o of t.options) assert.ok(o.feedback && o.feedback.length > 10, id + ': cada opción se explica'); }
+    const best = c.tasks.map((t, i) => ({ t: i, c: t.options.findIndex(o => o.value === 2) }));
+    assert.equal(checkActivity(id, seed, level, best).score, 100, id + ': respuestas mejores = 100');
+    const worst = c.tasks.map((t, i) => ({ t: i, c: t.options.findIndex(o => o.value === 0) })).filter(e => e.c >= 0);
+    if (!c.tasks.some(t => t.retry) && worst.length === c.tasks.length) assert.ok(checkActivity(id, seed, level, worst).score < 50, id + ': responder mal da poco');
+    assert.equal(checkActivity(id, seed, level, best.slice(1)).valid, false, id + ': una bitácora incompleta o fuera de orden no cuenta');
+    assert.equal(checkActivity(id, seed, level, best.slice(0, -1)).valid, false);
+  }
+  // rescate: hay que llegar a la acción segura en cada paso; cada error cuesta y se explica
+  const r = VIVO_ACTIVITIES.rescate.build(7, 'normal');
+  assert.ok(r.tasks.every(t => t.retry)); assert.match(r.source, /Cruz Roja/);
+  assert.ok(r.tasks.some(t => t.options.some(o => o.value === 2 && /911/.test(o.text))), 'pedir ayuda al 911');
+  assert.ok(r.tasks.some(t => t.options.some(o => o.value === 2 && /No la muevo/.test(o.text))), 'no mover a una persona inconsciente');
+  assert.ok(r.tasks.some(t => t.options.some(o => o.value === 0 && /Lo levanto/.test(o.text))), 'levantarla de inmediato es incorrecto');
+  const withErrors = []; r.tasks.forEach((t, i) => { withErrors.push({ t: i, c: t.options.findIndex(o => o.value === 0) }); withErrors.push({ t: i, c: t.options.findIndex(o => o.value === 2) }); });
+  assert.equal(checkActivity('rescate', 7, 'normal', withErrors).score, 40);
+  // mercado: las cuentas de la opción correcta son exactas
+  const m = VIVO_ACTIVITIES.mercado.build(5, 'avanzado'); for (const t of m.tasks.filter(t => /cuánto/i.test(t.title))) { const good = t.options.find(o => o.value === 2); assert.match(t.text, /\$\d/); assert.ok(good); }
+  for (const id of Object.keys(VIVO_ACTIVITIES)) assert.ok(ACTIVITIES[id], id + ' está en el registro del servidor');
+});
+
+test('juegos de campo (2.0): manzanas, guardianes y expedición validados con posiciones en el servidor', async () => {
+  const { Hub } = await load('_ciudad-server/hub.js');
+  const { FIELD_GAMES, fieldStart, STAMPS, BINS, TRASH, stampQuestion } = await load('ciudad/js/edu/field-games.js');
+  const { questionById } = await load('ciudad/js/edu/questions.js');
+  let t = 0; const hub = new Hub({ now: () => t, salt: 's' }), p = hub.join({ uid: 'a', name: 'A' }).player;
+  const at = (scene, x, z) => { p.state = { scene, x, y: 0, z, yaw: 0, anim: 'run' }; p.stateAt = t; };
+  const act = action => hub.playCheck(p, { action });
+  // Manzanas perdidas
+  at('park', 0, 0); assert.equal(hub.playStart(p, 'manzanas', 4).reason, 'lejos', 'se juega en la plaza');
+  at('plaza', 14, 9); const s = hub.playStart(p, 'manzanas', 4); assert.deepEqual(s.data, fieldStart('manzanas', 4));
+  assert.equal(act({ type: 'pick', id: s.data.apples[0].id }).reason, 'habla-primero');
+  assert.equal(act({ type: 'talk' }).ok, true);
+  assert.equal(act({ type: 'pick', id: s.data.apples[0].id }).reason, 'lejos', 'hay que llegar a la manzana');
+  for (const a of s.data.apples) { t += 2500; at('plaza', a.x, a.z); assert.equal(act({ type: 'pick', id: a.id }).ok, true); }
+  assert.equal(act({ type: 'deliver' }).reason, 'lejos');
+  t += 3000; at('plaza', FIELD_GAMES.manzanas.npc.x, FIELD_GAMES.manzanas.npc.z); const d = act({ type: 'deliver' });
+  assert.deepEqual([d.done, d.game], [true, 'manzanas']); assert.ok(d.score >= 40 && d.score <= 100);
+  // Guardianes del parque
+  at('park', 0, 8); const g = hub.playStart(p, 'guardianes', 11), data = g.data;
+  const kind = it => TRASH.find(x => x.id === it.kind), safe = data.items.filter(it => kind(it).type !== 'peligroso'), bad = data.items.filter(it => kind(it).type === 'peligroso');
+  assert.equal(bad.length, 1);
+  t += 2000; at('park', bad[0].x, bad[0].z); const touch = act({ type: 'pick', id: bad[0].id }); assert.deepEqual([touch.ok, touch.reason], [false, 'peligroso'], 'lo peligroso no se toca'); assert.ok(touch.why.length > 10);
+  assert.equal(act({ type: 'report', id: bad[0].id }).ok, true, 'se avisa a un adulto');
+  for (const it of safe) {
+    t += 2000; at('park', it.x, it.z); assert.equal(act({ type: 'pick', id: it.id }).ok, true);
+    const wrong = BINS.find(b => b.id !== kind(it).type); t += 2000; at('park', wrong.x, wrong.z); assert.equal(act({ type: 'bin', bin: wrong.id }).reason, 'otro-bote');
+    const right = BINS.find(b => b.id === kind(it).type); t += 1500; at('park', right.x, right.z); assert.equal(act({ type: 'bin', bin: right.id }).ok, true);
+  }
+  let last; for (const pl of data.plants) { t += 2500; at('park', pl.x, pl.z); last = act({ type: 'water', id: pl.id }); }
+  assert.deepEqual([last.done, last.game], [true, 'guardianes']); assert.ok(last.score < 100, 'tocar lo peligroso y equivocarse de bote resta');
+  // Expedición del conocimiento (varios escenarios)
+  at('plaza', 0, 4); const e = hub.playStart(p, 'expedicion', 21), ed = e.data;
+  assert.equal(ed.stamps.length, 4); assert.ok(ed.stamps.every(id => STAMPS.some(x => x.id === id)));
+  const st = { tries: {} };
+  for (const id of ed.stamps) {
+    const sp = STAMPS.find(x => x.id === id), q1 = questionById(ed.questions[id][0]);
+    t += 20000; at(sp.scene, sp.x + 0.5, sp.z);
+    const wrong = act({ type: 'stamp', id, choice: (q1.answer + 1) % q1.options.length }); assert.equal(wrong.reason, 'incorrecta');
+    st.tries[id] = 1; const q2 = stampQuestion(ed, st, id);
+    assert.equal(act({ type: 'stamp', id, choice: q2.answer }).ok, true, 'con la respuesta correcta en el lugar, el sello es tuyo');
+  }
+  at('park', 0, 0); assert.equal(act({ type: 'finish' }).reason, 'lejos', 'se termina en la fuente');
+  t += 30000; at('plaza', 0, 3); const fin = act({ type: 'finish' }); assert.deepEqual([fin.done, fin.game], [true, 'expedicion']);
+  // demasiado rápido no cuenta
+  at('plaza', 14, 9); const q = hub.playStart(p, 'manzanas', 4); act({ type: 'talk' }); for (const a of q.data.apples) { t += 100; at('plaza', a.x, a.z); act({ type: 'pick', id: a.id }); }
+  t += 100; at('plaza', FIELD_GAMES.manzanas.npc.x, FIELD_GAMES.manzanas.npc.z); assert.equal(act({ type: 'deliver' }).reason, 'imposible');
+});

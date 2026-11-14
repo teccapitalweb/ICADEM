@@ -11,9 +11,13 @@ import { ChatGuard } from './chat.js';
 import { MissionRun } from '../ciudad/js/missions/engine.js';
 import { RACE, TREASURES, TREASURE_RADIUS, treasureRounds, validSeed } from '../ciudad/js/edu/activities.js';
 import { MAZE, landmarkById } from '../ciudad/js/edu/district-rules.js';
+import { FIELD_GAMES, fieldStart, fieldState, fieldStep, fieldScore } from '../ciudad/js/edu/field-games.js';
+import { QUESTIONS, questionById } from '../ciudad/js/edu/questions.js';
 
 /** Recorridos validados por posición: puntos en orden y puntuación por tiempo. */
-const ROUTES = Object.freeze({ carrera: { ...RACE, par: 30, per: 1.5, away: 'fuera-del-parque' }, laberinto: { ...MAZE, away: 'fuera-del-distrito' } });
+/** Carrera del Saber (2.0): la carrera del parque con dos barreras que solo abren con una respuesta correcta. */
+const QUIZ_LEVELS = ['juvenil', 'general'];
+const ROUTES = Object.freeze({ carrera: { ...RACE, par: 45, per: 1.2, quiz: [2, 5], away: 'fuera-del-parque' }, laberinto: { ...MAZE, away: 'fuera-del-distrito' } });
 
 /** Equipo libre (sin misión): de 2 a 4 personas, sin roles. */
 const TEAM = Object.freeze({ title: 'Equipo', min: 2, max: 4, roles: [], playable: false });
@@ -511,7 +515,23 @@ export class Hub {
   playStart(player, game, seed) {
     if (this.flying(player)) return { ok: false, reason: 'en-vuelo' };   // la montura no sirve de atajo
     const route = ROUTES[game];
-    if (route) { if (!this.#where(player, route.scene)) return { ok: false, reason: route.away }; player.play = { game, next: 0, at: this.now() }; return { ok: true, next: 0 }; }
+    if (route) {
+      if (!this.#where(player, route.scene)) return { ok: false, reason: route.away };
+      player.play = { game, next: 0, at: this.now(), pen: 0 };
+      if (route.quiz) {   // preguntas de cada barrera (varias por si hay que reintentar), elegidas por el servidor
+        const pool = QUESTIONS.filter(q => QUIZ_LEVELS.includes(q.level)).map(q => q.id).sort(() => Math.random() - 0.5);
+        player.play.q = Object.fromEntries(route.quiz.map((i, k) => [i, pool.slice(k * 4, k * 4 + 4)])); player.play.tries = {}; player.play.open = {};
+        return { ok: true, next: 0, quiz: Object.fromEntries(route.quiz.map(i => [i, player.play.q[i][0]])) };
+      }
+      return { ok: true, next: 0 };
+    }
+    const field = FIELD_GAMES[game];
+    if (field) {
+      if (!validSeed(seed)) return { ok: false, reason: 'datos' };
+      if (!this.#where(player, field.scene)) return { ok: false, reason: 'lejos' };
+      player.play = { game, field: true, data: fieldStart(game, seed), st: fieldState(game), at: this.now() };
+      return { ok: true, data: player.play.data };
+    }
     if (game === 'tesoro') {
       if (!validSeed(seed)) return { ok: false, reason: 'datos' };
       if (!this.#where(player, 'plaza')) return { ok: false, reason: 'fuera-de-la-plaza' };
@@ -532,12 +552,20 @@ export class Hub {
       const st = this.#where(player, route.scene), i = payload.i, cp = route.checkpoints[run.next];
       if (!st) return { ok: false, reason: route.away };
       if (i !== run.next || !cp) return { ok: false, reason: 'fuera-de-orden' };
+      if (route.quiz && route.quiz.includes(run.next) && !run.open[run.next]) return { ok: false, reason: 'barrera', i: run.next, q: this.#barrierQ(run, run.next) };
       if (Math.hypot(st.x - cp[0], st.z - cp[1]) > route.radius + 0.6 || st.y < (cp[2] || 0) - 0.35) return { ok: false, reason: 'lejos' };
       run.next++;
       if (run.next < route.checkpoints.length) return { ok: true, next: run.next };
       const seconds = (this.now() - run.at) / 1000; player.play = null;
       if (seconds < route.minSeconds) return { ok: false, reason: 'imposible' };
-      return { ok: true, done: true, game: run.game, seconds: Math.round(seconds), score: Math.max(50, Math.min(100, Math.round(100 - Math.max(0, seconds - route.par) * route.per))) };
+      return { ok: true, done: true, game: run.game, seconds: Math.round(seconds), score: Math.max(route.quiz ? 40 : 50, Math.min(100, Math.round(100 - (run.pen || 0) - Math.max(0, seconds - route.par) * route.per))) };
+    }
+    if (run.field) {
+      const r = fieldStep(run.game, run.data, run.st, payload.action, scene => this.#where(player, scene));
+      if (!r.done) return r;
+      const seconds = (this.now() - run.at) / 1000; player.play = null;
+      if (seconds < FIELD_GAMES[run.game].minSeconds) return { ok: false, reason: 'imposible' };
+      return { ok: true, done: true, game: run.game, seconds: Math.round(seconds), score: fieldScore(run.game, seconds, r.st) };
     }
     const st = this.#where(player, 'plaza'), t = TREASURES.find(x => x.id === payload.id), round = run.rounds[run.round];
     if (!st) return { ok: false, reason: 'fuera-de-la-plaza' };
@@ -553,6 +581,24 @@ export class Hub {
   }
 
   playQuit(player) { player.play = null; return { ok: true }; }
+
+  #barrierQ(run, i) { const list = run.q[i]; return list[Math.min(run.tries[i] || 0, list.length - 1)]; }
+  /** Barrera de la Carrera del Saber: se abre solo con la respuesta correcta (cada error resta 5 y trae otra pregunta). */
+  playAnswer(player, { i, choice } = {}) {
+    const run = player.play, route = run && ROUTES[run.game];
+    if (!route || !route.quiz || !route.quiz.includes(i) || run.open[i]) return { ok: false, reason: 'sin-barrera' };
+    const qn = questionById(this.#barrierQ(run, i));
+    if (Number.isInteger(choice) && choice === qn.answer) { run.open[i] = true; return { ok: true, i, open: true, explain: qn.explain }; }
+    run.tries[i] = (run.tries[i] || 0) + 1; run.pen += 5;
+    return { ok: false, reason: 'incorrecta', i, explain: qn.explain, q: this.#barrierQ(run, i) };
+  }
+  /** Pista: quita una opción equivocada (resta 3). */
+  playHint(player, { i } = {}) {
+    const run = player.play, route = run && ROUTES[run.game];
+    if (!route || !route.quiz || !route.quiz.includes(i) || run.open[i]) return { ok: false, reason: 'sin-barrera' };
+    const qn = questionById(this.#barrierQ(run, i)), wrong = qn.options.map((_, k) => k).filter(k => k !== qn.answer);
+    run.pen += 3; return { ok: true, i, q: qn.id, remove: wrong[Math.floor(Math.random() * wrong.length)] };
+  }
 
   /** Ruta del explorador: el sitio cuenta solo si la última posición aceptada está ahí. */
   discover(player, id) {

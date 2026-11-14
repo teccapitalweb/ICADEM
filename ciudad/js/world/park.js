@@ -59,7 +59,16 @@ export function buildPark(api) {
     ring.position.y = 1.35; grp.add(ring);
     const num = sign(i === RACE.checkpoints.length - 1 ? 'META' : i === 0 ? 'SALIDA' : String(i), i === 0 || i === RACE.checkpoints.length - 1 ? 1.2 : 0.6, 0.42, { bg: '#0f1f3d', fg: '#ffd166' });
     num.position.y = 2.75; grp.add(num);
-    return { grp, ring, num };
+    // Carrera del Saber: barrera con pregunta en los arcos 2 y 5 (se abre con una respuesta correcta)
+    let barrier = null;
+    if (i === 2 || i === 5) {
+      barrier = new THREE.Group(); barrier.position.y = 1.35; grp.add(barrier);
+      barrier.add(new THREE.Mesh(new THREE.CircleGeometry(1.08, 32), new THREE.MeshBasicMaterial({ color: 0x8a5fd0, transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false })));
+      const qs = sign('?', 0.6, 0.6, { bg: '#ffd166', fg: '#2a1c55', radius: 0.3 }); qs.position.z = 0.02; barrier.add(qs);
+      const qb = sign('?', 0.6, 0.6, { bg: '#ffd166', fg: '#2a1c55', radius: 0.3 }); qb.position.z = -0.02; qb.rotation.y = Math.PI; barrier.add(qb);
+      barrier.visible = false;
+    }
+    return { grp, ring, num, barrier };
   });
   // árboles, arbustos y flores alrededor
   for (const [x, z] of [[-10, -10], [10, -10], [-10, 9], [10, 9], [-10.4, 0], [10.4, -3]]) { tree(x, z, g); col.addCircle(x, z, 0.6); }
@@ -83,8 +92,11 @@ export function buildPark(api) {
     background: 0x9fd3ff, fog: null,
     spawns: { default: { x: 0, z: 10.2, yaw: Math.PI } },
     camera: { distance: 7.2, minDistance: 3, maxDistance: 10, pitch: 0.5, yaw: 0, box: { minX: -14, maxX: 14, minZ: -14, maxZ: 17, maxY: 12 } },
+    /** Barreras de la Carrera del Saber: cerradas mientras haya carrera y no se hayan respondido. */
+    barrierOpen(i) { const b = gates[i] && gates[i].barrier; return !b || !b.visible; },
     update(dt, t, p) {
-      const next = games()?.raceNext ?? -1;
+      const next = games()?.raceNext ?? -1, open = games()?.race?.open || {}, racing = next >= 0;
+      gates.forEach((gt, i) => { if (!gt.barrier) return; const closed = racing && !open[i]; if (closed) { gt.barrier.visible = true; gt.barrier.scale.setScalar(1); } else if (gt.barrier.visible) { gt.barrier.scale.multiplyScalar(0.85); gt.barrier.position.y += dt * 2; if (gt.barrier.scale.x < 0.05) { gt.barrier.visible = false; gt.barrier.position.y = 1.35; } } });
       gates.forEach((gt, i) => { const on = i === next; gt.ring.material.color.setHex(on ? 0xffd166 : i < next ? 0x7bd389 : 0xffffff); gt.ring.material.opacity = on ? 0.95 : 0.45; gt.ring.rotation.y = t * (on ? 1.8 : 0.4); gt.ring.scale.setScalar(on ? 1 + Math.sin(t * 5) * 0.05 : 1); });
       // barras: giran y empujan a quien las toca por el suelo
       for (const sw of sweepers) {

@@ -11,14 +11,19 @@
 
 export const CATEGORIES = Object.freeze({
   cultura: 'Cultura general', mexico: 'México y sus instituciones', matematicas: 'Matemáticas', finanzas: 'Finanzas personales',
-  idiomas: 'Idiomas', tecnologia: 'Tecnología', ambiente: 'Medio ambiente', ciencia: 'Ciencia', salud: 'Salud y bienestar', profesiones: 'Profesiones'
+  idiomas: 'Idiomas', tecnologia: 'Tecnología', ambiente: 'Medio ambiente', ciencia: 'Ciencia', salud: 'Salud y bienestar', profesiones: 'Profesiones',
+  // Mundo vivo (2.0)
+  geografia: 'Geografía', historia: 'Historia', animales: 'Animales', lectura: 'Lectura y comprensión', valores: 'Valores', seguridad: 'Seguridad personal', convivencia: 'Convivencia', logica: 'Pensamiento lógico'
 });
 export const LEVELS = Object.freeze({ infantil: 'Infantil', juvenil: 'Juvenil', general: 'General', profesional: 'Profesional' });
 
 const q = (id, cat, level, text, options, answer, explain, extra = {}) => Object.freeze({ id, cat, level, q: text, options: Object.freeze(options), answer, explain, ...extra });
 const REV = '2026-11';
 
-export const QUESTIONS = Object.freeze([
+import { VIVO_QUESTIONS } from './questions-vivo.js';
+export { BANK_VERSION } from './questions-vivo.js';
+
+const BASE_QUESTIONS = [
   /* Cultura general */
   q('cul-semana', 'cultura', 'infantil', '¿Cuántos días tiene una semana?', ['5', '7', '10'], 1, 'Una semana tiene 7 días, de lunes a domingo.'),
   q('cul-piano', 'cultura', 'infantil', '¿Qué instrumento musical tiene teclas blancas y negras?', ['Tambor', 'Piano', 'Trompeta'], 1, 'El piano tiene teclas blancas y negras.'),
@@ -113,7 +118,8 @@ export const QUESTIONS = Object.freeze([
   q('pro-contador', 'profesiones', 'general', '¿Qué profesional lleva la contabilidad y las declaraciones de impuestos?', ['El contador', 'El chef', 'El enfermero'], 0, 'La contaduría registra operaciones y prepara declaraciones.'),
   q('pro-juez', 'profesiones', 'general', 'En un juicio, ¿quién dicta la sentencia?', ['El testigo', 'El juez', 'El abogado de una parte'], 1, 'El juez resuelve con base en lo que quedó probado.'),
   q('pro-auditor', 'profesiones', 'profesional', '¿Qué hace un auditor?', ['Revisa que registros y procesos sean correctos y cumplan las normas', 'Vende productos', 'Diseña logotipos'], 0, 'La auditoría verifica registros, controles y cumplimiento.')
-]);
+];
+export const QUESTIONS = Object.freeze([...BASE_QUESTIONS, ...VIVO_QUESTIONS]);
 
 export const questionById = id => QUESTIONS.find(x => x.id === id) || null;
 

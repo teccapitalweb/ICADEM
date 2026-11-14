@@ -39,7 +39,7 @@ export class EduService {
   async activity(id, seed, level, log) {
     if (this.online) {
       const r = await this.#ask('activity', { id, seed, level, log });
-      if (r && r.ok) return { score: r.score, xp: r.xp || 0, bonus: r.bonus || 0, capped: r.capped, server: true };
+      if (r && r.ok) return { score: r.score, xp: r.xp || 0, coins: r.coins || 0, bonus: r.bonus || 0, capped: r.capped, server: true };
       return { error: (r && r.reason) || 'sin-respuesta' };
     }
     const c = checkActivity(id, seed, level, log);

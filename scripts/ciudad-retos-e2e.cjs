@@ -56,9 +56,18 @@ function startServer() {
     await ev(() => { window.__ciudad.api.games.raceStartUI(); }); await sleep(400); await dialogThrough();
     ok('la carrera arranca aunque el jugador haya estado quieto', await until(() => ev(() => window.__plays.some(m => m.op === 'start' && m.game === 'carrera' && m.ok) && window.__ciudad.api.games.race && !window.__ciudad.api.games.pending)), await ev(() => JSON.stringify(window.__plays)));
     const RACE = await ev(async () => JSON.parse(JSON.stringify((await import('./js/edu/activities.js')).RACE)));
-    for (const [k, [x, z, y]] of RACE.checkpoints.entries()) { await walk(x, z, y || null); await until(() => ev(i => !window.__ciudad.api.games.race || window.__ciudad.api.games.race.next > i, k), 6000); }
-    ok('el servidor confirmó los 7 arcos en orden y la meta', await until(() => ev(() => window.__plays.filter(m => m.op === 'check' && m.game === 'carrera' && m.ok).length === 7 && window.__plays.some(m => m.done && m.game === 'carrera')), 15000), await ev(async () => { let n = 0; const t0 = performance.now(); await new Promise(r => { const f = () => { n++; if (performance.now() - t0 < 2000) requestAnimationFrame(f); else r(); }; requestAnimationFrame(f); }); const a = window.__ciudad.api; return JSON.stringify({ plays: window.__plays.slice(-3), fixes: window.__fixes, fps: n / 2, pos: a.player.position, next: a.games.race && a.games.race.next }); }));
-    ok('la XP de la carrera la guarda el servidor bajo «carrera» y se muestra el resultado', await until(() => ev(() => { const c = window.__ciudad.api.store.state.play.act.carrera; return Boolean(c && c.best >= 50 && c.done) && /de 100\+\d+ XP/.test(document.querySelector('.mg-result')?.textContent || ''); }), 8000), await ev(() => JSON.stringify(window.__ciudad.api.store.state.play.act)));
+    // Carrera del Saber: los arcos 2 y 5 son barreras que se abren respondiendo bien (lo valida el servidor).
+    const answerBarrier = () => ev(async () => { const { QUESTIONS } = await import('./js/edu/questions.js'); const box = document.getElementById('choice'); if (!box || box.hidden) return false; const t = box.querySelector('.choice__text').textContent, q = QUESTIONS.find(x => t.includes(x.q)); const b = q && box.querySelector(`.choice__opt[data-id="${q.answer}"]`); if (b) b.click(); return Boolean(b); });
+    for (const [k, [x, z, y]] of RACE.checkpoints.entries()) {
+      await walk(x, z, y || null);
+      for (let t = 0; t < 30; t++) {
+        if (await ev(i => !window.__ciudad.api.games.race || window.__ciudad.api.games.race.next > i, k)) break;
+        if (await ev(() => !document.getElementById('choice').hidden)) { await answerBarrier(); await sleep(900); await walk(x, z, y || null); }
+        await sleep(200);
+      }
+    }
+    ok('el servidor confirmó los 7 arcos en orden y la meta', await until(() => ev(() => window.__plays.filter(m => m.op === 'check' && m.game === 'carrera' && m.ok).length >= 7 && window.__plays.some(m => m.done && m.game === 'carrera')), 15000), await ev(async () => { let n = 0; const t0 = performance.now(); await new Promise(r => { const f = () => { n++; if (performance.now() - t0 < 2000) requestAnimationFrame(f); else r(); }; requestAnimationFrame(f); }); const a = window.__ciudad.api; return JSON.stringify({ plays: window.__plays.slice(-3), fixes: window.__fixes, fps: n / 2, pos: a.player.position, next: a.games.race && a.games.race.next }); }));
+    ok('la XP de la carrera la guarda el servidor bajo «carrera» y se muestra el resultado', await until(() => ev(() => { const c = window.__ciudad.api.store.state.play.act.carrera; return Boolean(c && c.best >= 50 && c.done) && /de 100\+\d+ XP/.test(document.querySelector('.mg-result')?.textContent || ''); }), 20000), await ev(() => JSON.stringify(window.__ciudad.api.store.state.play.act)));
     await closeModal();
 
     /* ---------------- Búsqueda del tesoro ---------------- */

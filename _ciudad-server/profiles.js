@@ -21,11 +21,12 @@ import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
 import { landmarkById, DISCOVER_XP } from '../ciudad/js/edu/district-rules.js';
 import { cleanPlay, rewardQuiz, rewardActivity, missionXp } from '../ciudad/js/edu/play-rules.js';
 import { cleanVivo, vivoView, applyVivo } from '../ciudad/js/vivo/vivo-rules.js';
+import { lockedWear } from '../ciudad/js/economy/catalog.js';
 import { COINS, earn, activityCoins } from '../ciudad/js/economy/coins.js';
 import { emptyProfile, cleanCustom, COSMETIC_OPTIONS, LEGACY_HAT_IDS, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
 /** Minijuegos cuya XP solo llega por el servidor de sesiones (validados con posiciones). */
-export const POSITIONAL_GAMES = Object.freeze(['carrera', 'tesoro', 'laberinto']);
+export const POSITIONAL_GAMES = Object.freeze(['carrera', 'tesoro', 'laberinto', 'manzanas', 'guardianes', 'expedicion']);
 export const CHAT_BLOCK_MAX = 100;
 /** Clave pública de un bloqueo: permite desbloquear sin enviar el uid de nadie al navegador. */
 export const blockKey = uid => createHash('sha256').update('ciudad-bloqueo:' + uid).digest('hex').slice(0, 12);
@@ -277,7 +278,9 @@ export class Profiles {
       // V1 normalizes hats it does not know to "base". Keep that newer hat unless
       // the old client chooses a supported hat/none; V2 can explicitly reset it.
       if (customVersion !== 2 && !LEGACY_HAT_IDS.includes(p.custom.hat) && (!Object.hasOwn(incoming, 'hat') || incoming.hat === 'base')) next.hat = p.custom.hat;
-      p.avatarId = String(avatarId); p.custom = cleanCustom(next); p.avatarChosen = true;   // ya eligió personaje: no se le vuelve a preguntar en ningún dispositivo
+      const outfit = cleanCustom(next);
+      if (lockedWear(outfit, p.inv).length) return { ok: false, reason: 'prenda-bloqueada', profile: this.view(p) };   // ropa de la tienda: hay que tenerla
+      p.avatarId = String(avatarId); p.custom = outfit; p.avatarChosen = true;   // ya eligió personaje: no se le vuelve a preguntar en ningún dispositivo
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }

@@ -35,7 +35,15 @@ export const ACHIEVEMENTS = [
   { id: 'cientifico', name: 'Mente científica', text: 'Obtén 80 o más en el Laboratorio de experimentos.' },
   { id: 'escapista', name: 'Escapista', text: 'Abre los tres candados de la Sala de escape.' },
   { id: 'laberintista', name: 'Guardián del saber', text: 'Cruza el Laberinto del conocimiento.' },
-  { id: 'trotamundos', name: 'Trotamundos', text: 'Descubre todos los sitios de la Ruta del explorador.' }
+  { id: 'trotamundos', name: 'Trotamundos', text: 'Descubre todos los sitios de la Ruta del explorador.' },
+  // Mundo vivo (2.0)
+  { id: 'buen-vecino', name: 'Buen vecino', text: 'Devuelve las manzanas de Doña Rosa y obtén 80 o más en Héroes de la ciudad.' },
+  { id: 'rescatista-responsable', name: 'Rescatista responsable', text: 'Obtén 90 o más en Rescate responsable.' },
+  { id: 'guardian-del-planeta', name: 'Guardián del planeta', text: 'Completa Guardianes del parque y obtén 80 o más en Amigos del agua.' },
+  { id: 'amigo-de-los-animales', name: 'Amigo de los animales', text: 'Obtén 80 o más en Veterinarios por un día.' },
+  { id: 'comerciante-justo', name: 'Comerciante justo', text: 'Obtén 90 o más en Mercado justo.' },
+  { id: 'corazon-empatico', name: 'Corazón empático', text: 'Obtén 80 o más en Aventura de las emociones.' },
+  { id: 'expedicionario', name: 'Expedicionario', text: 'Reúne los cuatro sellos de la Expedición del conocimiento.' }
 ];
 
 export const GAMES = [
