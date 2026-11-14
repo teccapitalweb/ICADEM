@@ -170,7 +170,7 @@ test('aislamiento: el juego no llama servicios de ICADEM ni toca créditos reale
   assert.match(main, /const mpUrl = LOCAL \? params\.get\('mp'\) : null;/, 'el multijugador solo se activa en pruebas locales');
   assert.match(main, /127\\\.0\\\.0\\\.1\|localhost/, 'y solo contra un servidor en la misma máquina');
   const html = read('ciudad/index.html');
-  assert.match(html, /Monedas de Ciudad ICADEM: son solo del juego\. No son tu saldo ni tus créditos de ICADEM/); assert.match(html, /Versión 1\.3</); assert.doesNotMatch(html, /Piloto/);
+  assert.match(html, /Monedas de Ciudad ICADEM: son solo del juego\. No son tu saldo ni tus créditos de ICADEM/); assert.match(html, /Versión 2\.0</); assert.doesNotMatch(html, /Piloto/);
   assert.doesNotMatch(html, /firebase|railway|stripe/i);
 });
 
