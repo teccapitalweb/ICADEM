@@ -49,14 +49,14 @@ export function openPets(api, tab = 'mis') {
         const r = await api.vivo.walk(!api.vivo.leash); say(r, r.ok ? (r.leash ? '¡A pasear! La correa se ve para los demás jugadores.' : 'Le quitaste la correa.') : null); render();
       }));
       if (active && PET_SCENES.includes(here)) {
-        actions.append(btn('Acariciar', '', () => { closeModal(); setTimeout(() => api.pets.react('cariño'), 150); }));
-        if (b.species === 'perro' || b.form === 'fox' || b.form === 'wolf' || b.form === 'lion') actions.append(btn('Lanzar la pelota', '', () => { closeModal(); setTimeout(() => { if (!api.pets.throwBall()) api.ui.toast('Ahora no se puede lanzar la pelota.'); }, 200); }));
+        actions.append(btn('Acariciar', '', () => { closeModal(); setTimeout(() => { api.player.emote('petting', 2.2); api.pets.react('cariño'); }, 150); }));
+        if (b.species === 'perro' || b.form === 'fox' || b.form === 'wolf' || b.form === 'lion') actions.append(btn('Lanzar la pelota', '', () => { closeModal(); setTimeout(() => api.actions.ball(), 200); }));
       }
       body.append(actions);
       // comida
       const food = h('div', 'vp__block'); food.append(h('h4', null, 'Darle de comer'));
       const treats = ITEMS.filter(i => i.kind === 'treat' && i.species.includes(b.species));
-      const feed = async id => { const r = await api.vivo.feed(pet.id, id); if (r.ok) { if (active) { closeModal(); setTimeout(() => api.pets.react('food'), 150); } api.ui.toast(r.treat ? `¡A ${pet.name} le encantó!` : `${pet.name} comió sus croquetas.` + (r.coins ? ` +${r.coins} monedas por cuidarle hoy.` : ''), 3000); } else say(r); render(); };
+      const feed = async id => { const r = await api.vivo.feed(pet.id, id); if (r.ok) { if (active) { closeModal(); setTimeout(() => { api.player.emote('petting', 1.4); api.pets.react('food'); }, 150); } api.ui.toast(r.treat ? `¡A ${pet.name} le encantó!` : `${pet.name} comió sus croquetas.` + (r.coins ? ` +${r.coins} monedas por cuidarle hoy.` : ''), 3000); } else say(r); render(); };
       food.append(btn('Croquetas (gratis)', '', () => feed('croquetas')));
       for (const t of treats) food.append(btn(`${t.icon} ${t.name} · tienes ${s.inv[t.id] || 0}`, '', () => (s.inv[t.id] ? feed(t.id) : api.ui.toast('Cómpralo en la tienda de mascotas.'))));
       body.append(food);
@@ -124,7 +124,13 @@ export function openInventory(api) {
   for (const [kind, title] of Object.entries(groups)) {
     const items = ITEMS.filter(i => i.kind === kind && s.inv[i.id]); if (!items.length) continue;
     const box = h('div', 'vp__block'); box.append(h('h4', null, title));
-    const rows = h('div', 'rows'); for (const i of items) { const r = h('div', 'rowi'); r.append(h('span', 'rowi__icon', i.icon || '•'), (() => { const c = h('div', 'rowi__copy'); c.append(h('strong', null, i.name), h('span', null, SHOPS[i.shop].name)); return c; })(), h('span', 'pill', '× ' + s.inv[i.id])); rows.append(r); }
+    const rows = h('div', 'rows'); for (const i of items) {
+      const r = h('div', 'rowi'); r.append(h('span', 'rowi__icon', i.icon || '•'), (() => { const c = h('div', 'rowi__copy'); c.append(h('strong', null, i.name), h('span', null, SHOPS[i.shop].name)); return c; })());
+      if (i.kind === 'toy') r.append(btn('Usar', 'btn--primary', () => { closeModal(); setTimeout(() => api.actions.useToy(i.id), 150); }));
+      else if (i.kind === 'wear') { const st = api.store.state, on = st.custom[i.slot] === i.option; r.append(on ? h('span', 'pill pill--ok', 'Puesta') : btn('Ponérmela', 'btn--primary', () => { if (api.setAvatar(st.avatarId, { ...st.custom, [i.slot]: i.option })) { api.ui.toast(i.name + ': lista.'); closeModal(); } })); }
+      else r.append(h('span', 'pill', '× ' + s.inv[i.id]));
+      rows.append(r);
+    }
     box.append(rows); wrap.append(box);
   }
   wrap.append(h('p', 'note', 'Los artículos son del juego y no se pueden vender ni intercambiar con otros jugadores.'));
@@ -142,8 +148,9 @@ export function openShop(api, shopId, { greeting } = {}) {
     coins.textContent = String(api.vivo.coins); list.replaceChildren();
     for (const it of api.vivo.shop(shopId)) {
       const card = h('div', 'vp__card vp__product'); card.append(h('span', 'vp__icon', it.icon || '•'), h('b', null, it.name), h('small', null, it.price + ' monedas'));
-      const owned = it.unique && it.owned;
-      card.append(owned ? h('span', 'pill pill--ok', 'Ya lo tienes') : btn(it.affordable ? 'Comprar' : 'Faltan ' + (it.price - api.vivo.coins), it.affordable ? 'btn--primary' : '', async () => {
+      const owned = it.unique && it.owned, st = api.store.state;
+      if (owned && it.kind === 'wear') card.append(st.custom[it.slot] === it.option ? h('span', 'pill pill--ok', 'Puesta') : btn('Ponérmela', 'btn--primary', () => { if (api.setAvatar(st.avatarId, { ...st.custom, [it.slot]: it.option })) { api.ui.toast(it.name + ': lista.'); render(); } }));
+      else card.append(owned ? h('span', 'pill pill--ok', 'Ya lo tienes') : btn(it.affordable ? 'Comprar' : 'Faltan ' + (it.price - api.vivo.coins), it.affordable ? 'btn--primary' : '', async () => {
         if (!it.affordable) return;
         const r = await api.vivo.buy(it.id, 1);
         if (r.ok) api.ui.toast(r.duplicate ? 'Esa compra ya estaba registrada.' : `Compraste ${it.name}. Está en tu inventario.`, 2800); else if (r.message) api.ui.toast(r.message, 3200);
@@ -175,7 +182,9 @@ export function installVivoActions(api) {
     missions: () => api.ui.openMissions(),
     games: () => api.games?.open(),
     shop: id => openShop(api, id),
-    ball: () => api.pets.throwBall()
+    ball: () => { if (!api.pets.companion || api.pets.companion.ball) return api.ui.toast('Ahora no se puede lanzar la pelota.'); api.player.emote('throw', 0.8); setTimeout(() => { if (!api.pets.throwBall()) api.ui.toast('Ahora no se puede lanzar la pelota.'); }, 380); },
+    /** Usar un juguete del inventario (balero, trompo, yoyo, papalote o burbujas). */
+    useToy: id => { const it = itemById(id); if (!it || it.kind !== 'toy' || !api.vivo.owns(id)) return api.ui.toast('Ese juguete no está en tu inventario.'); api.player.emote(it.use, it.use === 'papalote' ? 8 : 5, it.color); }
   });
   document.getElementById('btn-pets')?.addEventListener('click', () => api.actions.pets());
   document.getElementById('btn-inventory')?.addEventListener('click', () => api.actions.inventory());

@@ -15,7 +15,7 @@ import { MOUNT_SCALE, RIDE_Y } from '../vivo/mounts.js';
 /** Mascotas de otros jugadores que se dibujan a la vez (las demás no se muestran, por rendimiento). */
 export const MAX_REMOTE_PETS = 6;
 
-const DELAY = 0.15, TAU = Math.PI * 2, EMOTES = new Set(['wave', 'celebrate', 'interact', 'beckon', 'clap', 'point', 'help']);
+const DELAY = 0.15, TAU = Math.PI * 2, EMOTES = new Set(['wave', 'celebrate', 'interact', 'beckon', 'clap', 'point', 'help', 'petting', 'throw', 'drink', 'balero', 'yoyo', 'trompo', 'papalote', 'burbujas']);
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
 
 export class RemotePlayers {
@@ -86,7 +86,7 @@ export class RemotePlayers {
       r.x = x; r.y = y; r.z = z; r.yaw += angleDelta(r.yaw, a.yaw + angleDelta(a.yaw, b.yaw) * k) * Math.min(1, real * 14);
       r.avatar.group.position.set(x, y, z); r.avatar.group.rotation.y = r.yaw;
       const anim = b.anim;
-      if (EMOTES.has(anim) && r.avatar.emote !== anim) r.avatar.playEmote(anim, 0.6);
+      if (EMOTES.has(anim)) r.avatar.playEmote(anim, r.avatar.emote === anim ? Math.max(0.3, r.avatar.emoteTime || 0.6) : 0.6);
       // montado en su dragón: se dibuja el dragón bajo el avatar (y su mascota-dragón no se duplica)
       const riding = anim === 'ride';
       if (riding && !r.mount) { r.mount = createPetModel(MOUNT_BREED, (this.net.roster.get(r.pid)?.pet?.breed === MOUNT_BREED && this.net.roster.get(r.pid).pet.acc) || {}); r.mount.group.scale.setScalar(MOUNT_SCALE); this.parent.add(r.mount.group); }

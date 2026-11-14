@@ -10,7 +10,7 @@
 //   await api.vivo.saveHome(layout)          await api.vivo.feed(petId, food)
 //   await api.vivo.drink(flavor, 'self' | 'buy', steps) await api.vivo.walk(true | false)
 // Todas devuelven { ok, reason?, message?, ... }: `message` es el texto listo para mostrar.
-import { itemById, ITEMS, SHOPS } from '../economy/catalog.js';
+import { itemById, ITEMS, SHOPS, lockedWear, wearItemFor } from '../economy/catalog.js';
 import { BREEDS, breedById, breedRequirement, breedAvailable, breedCost, slotFits, PET_SLOTS } from '../pets/pet-catalog.js';
 import { VIVO_REASONS } from './vivo-rules.js';
 import { HOME_REASONS } from '../home/home-rules.js';
@@ -83,4 +83,10 @@ export class VivoService {
   drink(flavor, mode, steps) { return this.#ask('drink', { flavor, mode, steps, rid: rid() }, 'drink'); }
 
   itemName(id) { return (itemById(id) || {}).name || id; }
+
+  /* ---------- ropa de la tienda ---------- */
+  /** Ranuras del equipamiento con una prenda de pago que la cuenta no tiene (vacío = se puede usar). */
+  locked(custom) { return this.state ? lockedWear(custom, this.state.inv) : []; }
+  /** Para el vestidor: { item, owned } de una prenda con precio, o null si es gratis. */
+  wearInfo(slot, option) { const it = wearItemFor(slot, option); return it ? { item: it, owned: Boolean(this.state && this.state.inv[it.id]) } : null; }
 }

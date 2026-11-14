@@ -150,6 +150,7 @@ async function boot() {
   function setAvatar(id, custom) {
     const c = cleanCustom(custom ?? store.state.custom);
     if (!isAvatarUnlocked(id, store.state)) { api.ui.toast('Ese avatar todavía está bloqueado.'); return false; }
+    if (api.vivo && api.vivo.locked(c).length) { api.ui.toast('Esa prenda se consigue en las tiendas de la ciudad con monedas del juego.', 3400); return false; }
     store.state.avatarId = id; store.state.custom = c; store.state.avatarChosen = true; store.save(); rebuildAvatar(); api.ui.refreshHud();
     if (net.isOnline) avatarSaves.save(id, c);
     return true;

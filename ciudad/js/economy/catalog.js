@@ -90,6 +90,15 @@ export const ITEMS = Object.freeze([
   I('premio-semillas', 'Mezcla de semillas', 'treat', 'mascotas', 5, { icon: '🌻', stack: true, species: ['ave'] }),
   I('premio-fruta', 'Fruta picada', 'treat', 'mascotas', 5, { icon: '🍓', stack: true, species: ['ave', 'fantastico'] }),
 
+  /* ---------- ropa del avatar (colección Mundo vivo). Las piezas sin artículo son gratis ---------- */
+  ...[['top', 'shirt', 'Camisa con cuello', 40, '👔'], ['top', 'blouse', 'Blusa con volantes', 40, '👚'], ['top', 'sweater', 'Suéter tejido', 45, '🧶'], ['top', 'sportJacket', 'Chamarra deportiva', 60, '🧥'], ['top', 'tank', 'Top de tirantes', 30, '🎽'],
+    ['bottom', 'bermuda', 'Bermuda', 30, '🩳'], ['bottom', 'capri', 'Pantalón capri', 30, '👖'], ['bottom', 'joggers', 'Pantalón deportivo', 35, '👖'], ['bottom', 'wideJeans', 'Mezclilla de corte ancho', 50, '👖'], ['bottom', 'longSkirt', 'Falda larga', 45, '👗'], ['bottom', 'denimSkirt', 'Falda de mezclilla', 40, '👗']
+  ].map(([slot, option, name, price, icon]) => I('ropa-' + option, name, 'wear', 'ropa', price, { slot, option, icon })),
+  ...[['shoes', 'ankleBoots', 'Botines', 55, '👢'], ['shoes', 'runners', 'Tenis para correr', 60, '👟'], ['shoes', 'oxfords', 'Zapatos casuales', 45, '👞']].map(([slot, option, name, price, icon]) => I('calzado-' + option, name, 'wear', 'zapateria', price, { slot, option, icon })),
+  ...[['hat', 'sunHat', 'Sombrero de ala ancha', 35, '👒'], ['hat', 'strawHat', 'Sombrero de palma', 40, '🤠'], ['bag', 'miniBackpack', 'Mochila pequeña', 45, '🎒'], ['bag', 'fannyPack', 'Cangurera', 30, '👝'],
+    ['glasses', 'sun', 'Lentes de sol', 35, '🕶️'], ['glasses', 'party', 'Lentes de fiesta', 40, '🥳'], ['bracelet', 'bangle', 'Brazalete dorado', 30, '📿'], ['headphones', 'over', 'Audífonos de diadema', 50, '🎧'], ['headphones', 'sport', 'Audífonos deportivos', 50, '🎧']
+  ].map(([slot, option, name, price, icon]) => I('accesorio-' + option, name, 'wear', 'accesorios', price, { slot, option, icon })),
+
   /* ---------- juguetes tradicionales para el avatar (animación al usarlos) ---------- */
   I('balero', 'Balero', 'toy', 'juguetes', 25, { icon: '🪀', color: 0xe2483d, use: 'balero' }),
   I('trompo', 'Trompo', 'toy', 'juguetes', 25, { icon: '🌀', color: 0x2f6fd8, use: 'trompo' }),
@@ -127,4 +136,13 @@ export function checkDrinkSteps(flavor, steps) {
   const mid = want.slice(2, -2), got = steps.slice(2, -2);
   return steps[0] === 'vaso' && steps[1] === 'agua' && steps[steps.length - 2] === 'hielo' && steps[steps.length - 1] === 'servir'
     && got.length === mid.length && [...got].sort().join() === [...mid].sort().join();
+}
+
+/* ---------- ropa con precio ---------- */
+/** Artículo que hay que tener para usar una prenda (null = la prenda es gratis). */
+export const wearItemFor = (slot, option) => ITEMS.find(i => i.kind === 'wear' && i.slot === slot && i.option === option) || null;
+/** Ranuras del equipamiento con una prenda de pago que la cuenta no tiene. */
+export function lockedWear(custom, inv = {}) {
+  const out = []; for (const [slot, option] of Object.entries(custom || {})) { const it = wearItemFor(slot, option); if (it && !(inv && inv[it.id])) out.push(slot); }
+  return out;
 }

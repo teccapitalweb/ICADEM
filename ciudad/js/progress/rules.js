@@ -86,6 +86,9 @@ export function applyCustom(look, custom) {
   if (c.hairStyle) out.hairStyle = c.hairStyle;
   if (c.hairColor) out.hair = HAIR_COLORS.find(o => o.id === c.hairColor).color;
   if (c.necklace) { out.necklaceStyle = c.necklace; out.accessories = out.accessories.filter(a => !['scarf', 'medal'].includes(a)); }
+  if (c.glasses) { out.glassesStyle = c.glasses; out.accessories = out.accessories.filter(a => a !== 'glasses'); }
+  if (c.bracelet) out.braceletStyle = c.bracelet;
+  if (c.headphones) out.headphonesStyle = c.headphones;
   return out;
 }
 

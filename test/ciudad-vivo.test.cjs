@@ -36,7 +36,7 @@ test('catálogos: razas, accesorios por especie, tiendas y casa inicial válida'
   assert.ok(BREEDS.filter(b => b.free).every(b => breedAvailable(b, {})));
   assert.equal(slotFits('leash', 'golden'), true); assert.equal(slotFits('leash', 'siames'), false, 'la correa es para perros');
   assert.equal(slotFits('scarf', 'dragon-pequeno'), false); assert.equal(slotFits('hat', 'perico'), true);
-  for (const i of ITEMS) { assert.ok(SHOPS[i.shop], i.id); if (i.slot) assert.ok(PET_SLOTS[i.slot], i.id); assert.ok(Number.isInteger(i.price) && i.price >= 0, i.id); }
+  for (const i of ITEMS) { assert.ok(SHOPS[i.shop], i.id); if (i.kind === 'petAcc') assert.ok(PET_SLOTS[i.slot], i.id); assert.ok(Number.isInteger(i.price) && i.price >= 0, i.id); }
   assert.equal(new Set(ITEMS.map(i => i.id)).size, ITEMS.length);
   const inv = emptyVivo().inv; assert.ok(STARTER_ITEMS.every(id => inv[id] >= 1));
   assert.equal(checkLayout(DEFAULT_HOME, inv).ok, true, 'la casa inicial es válida con el inventario inicial');
@@ -202,4 +202,34 @@ test('montura: vuelo panorámico solo desde el helipuerto, sobre la ruta fija y 
   assert.equal(go(end.x, 1.4, end.z).ok, true); assert.equal(ana.flight, null, 'al aterrizar termina el vuelo');
   clock += 200; assert.equal(go(end.x, 10, end.z).reason, 'fuera-del-mapa');
   assert.equal(hub.startFlight(ana, 'plaza', true).reason, 'espera', 'hay una pausa entre vuelos');
+});
+
+test('ropa 2.0: 31 piezas nuevas con forma propia; las de pago se compran antes de usarlas (lo aplica el servidor)', async () => {
+  const { COSMETIC_OPTIONS, HAT_OPTIONS, applyCustom, cleanCustom } = await load('ciudad/js/progress/rules.js');
+  const { createAvatar } = await load('ciudad/js/characters/avatar.js');
+  const { avatarById } = await load('ciudad/js/characters/catalog.js');
+  const { ITEMS, lockedWear } = await load('ciudad/js/economy/catalog.js');
+  const { Profiles, MemoryStorage } = await load('_ciudad-server/profiles.js');
+  const fresh = { top: ['printTee', 'shirt', 'blouse', 'sweater', 'sportJacket', 'tank'], bottom: ['shorts', 'bermuda', 'capri', 'joggers', 'wideJeans', 'longSkirt', 'denimSkirt'], shoes: ['sandals', 'ankleBoots', 'runners', 'oxfords'],
+    hat: ['sportCap', 'sunHat', 'strawHat'], bag: ['miniBackpack', 'fannyPack'], hairStyle: ['braid', 'afro'], glasses: ['round', 'sun', 'party'], bracelet: ['beads', 'bangle'], headphones: ['over', 'sport'] };
+  assert.equal(Object.values(fresh).flat().length, 31);
+  const base = createAvatar(applyCustom(avatarById('explorador').look, {})); let baseMeshes = 0; base.group.traverse(o => { if (o.isMesh) baseMeshes++; });
+  for (const [slot, ids] of Object.entries(fresh)) for (const id of ids) {
+    const list = slot === 'hat' ? HAT_OPTIONS : COSMETIC_OPTIONS[slot]; assert.ok(list.some(o => o.id === id), slot + ':' + id + ' está en el catálogo');
+    assert.equal(cleanCustom({ [slot]: id })[slot], id, 'el servidor lo acepta como valor válido');
+    const a = createAvatar(applyCustom(avatarById('explorador').look, { [slot]: id })); let verts = 0;
+    a.group.traverse(o => { if (o.isMesh) { const arr = o.geometry.attributes.position.array; verts += arr.length; assert.ok(Array.from(arr).every(Number.isFinite), slot + ':' + id); } });
+    assert.ok(verts > 0); assert.ok(a.hand && a.perch, 'el esqueleto no cambia');
+  }
+  const priced = ITEMS.filter(i => i.kind === 'wear'); assert.ok(priced.length >= 20 && priced.every(i => i.price > 0));
+  assert.deepEqual(lockedWear({ top: 'printTee', bottom: 'shorts' }, {}), [], 'hay prendas nuevas gratis');
+  assert.deepEqual(lockedWear({ top: 'shirt' }, {}), ['top']);
+  const profiles = new Profiles({ storage: new MemoryStorage(), missions: new Map() });
+  assert.equal((await profiles.setAvatar('lu', 'explorador', { top: 'shirt' }, { customVersion: 2 })).reason, 'prenda-bloqueada', 'sin comprarla no se puede usar');
+  assert.equal((await profiles.setAvatar('lu', 'explorador', { top: 'printTee', shoes: 'sandals' }, { customVersion: 2 })).ok, true);
+  const buy = await profiles.vivo('lu', 'buy', { item: 'ropa-shirt', rid: 'ropa-compra-1' }); assert.deepEqual([buy.ok, buy.spent], [true, 40]);
+  const worn = await profiles.setAvatar('lu', 'explorador', { top: 'shirt', glasses: 'round' }, { customVersion: 2 });
+  assert.deepEqual([worn.ok, worn.profile.custom.top, worn.profile.custom.glasses], [true, 'shirt', 'round']);
+  assert.equal((await profiles.vivo('lu', 'buy', { item: 'ropa-shirt', rid: 'ropa-compra-2' })).reason, 'ya-lo-tienes');
+  assert.equal(base.group.children.length > 0 && baseMeshes > 0, true);
 });
