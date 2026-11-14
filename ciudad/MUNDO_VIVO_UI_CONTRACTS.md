@@ -2,6 +2,8 @@
 
 Revisión del 13 de noviembre de 2026. Se distinguen dos fuentes: `main` **f43f608** (Ciudad ICADEM 1.3, PR #71, con vestidor #70) y la rama de Claude `feature/ciudad-mundo-vivo` en **ca84ff6**. Esta última ya contiene contratos y funciones 2.0 en desarrollo; no se integró, ejecutó ni desplegó al revisar sus objetos Git. Las propuestas locales del laboratorio no son esos contratos.
 
+Actualización de contexto: main publicado **b97c80d** incorpora PR73 de interfaces sobre f43f608. No incorpora la expansión 2.0 de ca84ff6. Las tablas tituladas «main f43f608» conservan ese inventario histórico; PR72 continúa aislado y no publicado. No se ha recibido un adaptador de integración aprobado.
+
 ## Lo disponible en main f43f608
 
 | Área | Contrato real y origen | Integración visual segura |

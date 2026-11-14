@@ -1,6 +1,6 @@
 # QA local y futuras conexiones con Mundo Vivo
 
-Este laboratorio continúa aislado. Su `dispatch`, los IDs `*-sample`, las acciones `equipSample`/`pauseWalk` y el resultado `{ok,model}` son **propuestas locales**, no APIs de Claude. No se deben conectar traduciendo sus nombres por semejanza. La fuente real revisada es `feature/ciudad-mundo-vivo` **ca84ff6**, especialmente `ciudad/MUNDO_VIVO.md`; main **f43f608** todavía no contiene esa expansión.
+Este laboratorio continúa aislado. Su `dispatch`, los IDs `*-sample`, las acciones `equipSample`/`pauseWalk` y el resultado `{ok,model}` son **propuestas locales**, no APIs de Claude. No se deben conectar traduciendo sus nombres por semejanza. La fuente real revisada es `feature/ciudad-mundo-vivo` **ca84ff6**, especialmente `ciudad/MUNDO_VIVO.md`. La base histórica es main **f43f608**; main publicado **b97c80d** añade las interfaces PR73, sin integrar la expansión 2.0 ni este PR72. Sigue pendiente un adaptador externo aprobado.
 
 ## Datos y aceptación por cada composición
 
@@ -35,6 +35,8 @@ El adaptador suministra:
 - `recoverInterrupted()` corta/demora una confirmación en la fixture local y devuelve evidencia `{interrupted:true,settled:true,automaticRetries:0,outcome:'committed'|'not-committed'}` tras recuperar el estado real. No ocultar lecturas explícitas ni usar mocks como evidencia de backend.
 
 Para **paseo**, el escenario usa `lifecycle()` y `cleanup()` en lugar del flujo de persistencia. Devuelve observaciones QA `before:{leash:false,protected}`, `active:{confirmed:true,leash:true,observerLeash:true,protected}` y `reset:{leash:false,trigger:'disconnect'|'reload',protected}`. Se comprueba reinicio de sesión y conservación de propiedad/saldo, no guardado de la correa ni una pausa inexistente.
+
+Cuando se declara política de revisión, confirmar un contenido nuevo debe cambiar su revisión real. No se presupone orden numérico: también se admiten tokens opacos distintos. Si una confirmación de A o B proporciona revisión, debe coincidir con su snapshot autoritativo. Estas comprobaciones no añaden campos al protocolo real ni se exigen a operaciones atómicas sin revisión.
 
 El informe omite snapshots, UID y respuestas originales; identifica qué políticas se verificaron. El adaptador controla el alcance: aprobar esas proyecciones **no demuestra automáticamente** todos los permisos, dispositivos o sistemas del juego. Si hay puertas pendientes, el informe y la salida siguen siendo PENDIENTE/código 2.
 
