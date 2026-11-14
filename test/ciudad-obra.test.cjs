@@ -155,8 +155,8 @@ test('servidor real: valida por socket las bitácoras de Supermercado y Obra y n
   const s0 = await tell({ t: 'profile', op: 'mission', mission: site.MISSION_ID, log: forged });
   assert.equal(s0.ok, false, 'sin EPP en la bitácora no hay recompensa');
   const s1 = await tell({ t: 'profile', op: 'mission', mission: site.MISSION_ID, log: sRun.log });
-  assert.deepEqual([s1.ok, s1.score, s1.credits, s1.profile.testCredits], [true, 100, 20, 40]);
+  assert.deepEqual([s1.ok, s1.score, s1.credits, s1.profile.testCredits, s1.profile.coins - m2.profile.coins], [true, 100, 20, 0, 20], 'las monedas del juego suben una vez (los créditos de prueba quedan como historial)');
   const s2 = await tell({ t: 'profile', op: 'mission', mission: site.MISSION_ID, log: sRun.log });
-  assert.deepEqual([s2.credits, s2.profile.testCredits], [0, 40]);
+  assert.deepEqual([s2.credits, s2.profile.coins - s1.profile.coins <= 4], [0, true], 'repetir solo da monedas de práctica');
   ws.close();
 });

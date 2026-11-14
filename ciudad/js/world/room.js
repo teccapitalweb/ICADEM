@@ -132,6 +132,13 @@ export function buildRoom(api) {
   const s3 = sign('CIUDAD', 0.9, 0.24, { bg: '#2f9e8f', fg: '#ffffff' }); s3.position.set(px, 2.52, -D / 2 + 0.07); g.add(s3);
   slab(1.3, 0.7, 0.03, 0.1, mat(0x2f9e8f, { r: 1 }), px, 0.002, -D / 2 + 0.75, g, { cast: false });
 
+  /* puerta interior a «Mi casa» (Mundo vivo) en la pared sur */
+  const hx = -0.35;
+  box(1.2, 2.3, 0.08, mat(0xffffff, { r: 0.5 }), hx, 0, D / 2 - 0.04, g, { cast: false });
+  const homeDoor = box(1.0, 2.14, 0.06, mat(0xf2b93b, { r: 0.55, own: true }), hx, 0, D / 2 - 0.08, g, { cast: false });
+  sph(0.055, mat(0x8a5a36), hx - 0.36, 1.05, D / 2 - 0.13, g, { seg: 10 });
+  const s4 = sign('MI CASA', 0.9, 0.24, { bg: '#f2b93b', fg: '#12325f' }); s4.position.set(hx, 2.48, D / 2 - 0.07); s4.rotation.y = Math.PI; g.add(s4);
+
   /* luces */
   g.add(new THREE.HemisphereLight(0xfff4de, 0xb98a5a, 1.25));
   const sun = sunLight(g, { x: -5, y: 9, z: 6, intensity: 1.7, color: 0xfff0d0, area: 9 });
@@ -146,18 +153,20 @@ export function buildRoom(api) {
     { id: 'wardrobe', x: wx - 0.9, y: 1.4, z: wz, radius: 1.5, label: 'Abrir vestidor', action: () => api.ui.openWardrobe() },
     { id: 'mirror', x: W / 2 - 0.9, y: 1.4, z: mz, radius: 1.4, label: 'Mirarte al espejo', action: () => api.mirror(new THREE.Vector3(W / 2 - 0.25, 1.35, mz), { x: W / 2 - 2.6, z: mz }) },
     { id: 'achievements', x: -W / 2 + 1.3, y: 1.5, z: az, radius: 1.5, label: 'Ver logros', action: () => api.ui.openPassport('logros') },
-    { id: 'bed', x: -1.9, y: 0.9, z: 2.0, radius: 1.3, label: 'Descansar', action: () => api.sit({ x: -2.35, z: 2.3, yaw: Math.PI / 2, seatY: 0.34 }) }
+    { id: 'bed', x: -1.9, y: 0.9, z: 2.0, radius: 1.3, label: 'Descansar', action: () => api.sit({ x: -2.35, z: 2.3, yaw: Math.PI / 2, seatY: 0.34 }) },
+    { id: 'casa', x: hx, y: 1.2, z: D / 2 - 0.7, radius: 1.3, label: 'Ir a Mi casa', color: 0xf2b93b, action: () => api.travel('casa', 'default') }
   ];
 
   return {
     name: 'room', title: 'Tu habitación', group: g, collision: col, interactables, npcs: [],
     background: 0x2a2233, fog: null,
-    spawns: { default: { x: 0.4, z: 1.4, yaw: Math.PI }, door: { x: px, z: -D / 2 + 1.3, yaw: 0 } },
+    spawns: { default: { x: 0.4, z: 1.4, yaw: Math.PI }, door: { x: px, z: -D / 2 + 1.3, yaw: 0 }, casa: { x: hx, z: D / 2 - 1.3, yaw: Math.PI } },
     camera: { distance: 5.2, minDistance: 2.2, maxDistance: 6.5, pitch: 0.5, yaw: 0, box: { minX: -6.3, maxX: 6.3, minZ: -5.6, maxZ: 6.6, maxY: 5.2 } },
     update(dt, t) {
       trophies.forEach((tr, i) => { tr.visible = api.store.state.achievements.length > i; });
       glass.material.emissiveIntensity = 0.26 + Math.sin(t * 1.4) * 0.04;
       door.material.emissive.setHex(0x331511); door.material.emissiveIntensity = 0.5 + Math.sin(t * 2.2) * 0.3;
+      homeDoor.material.emissive.setHex(0x332611); homeDoor.material.emissiveIntensity = 0.35 + Math.sin(t * 2.2 + 1) * 0.25;
       screen.material.emissiveIntensity = 1;
     }
   };

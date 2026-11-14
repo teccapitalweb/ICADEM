@@ -7,10 +7,11 @@ test('premium map projects only existing buildings and the existing outdoor dest
   const {mapDestinations}=await load('ui/city-map.js'),{BUILDINGS,doorPoint}=await load('world/buildings.js');
   const api={store:{state:{missions:{},xp:90,economy:{balance:25},avatarId:'explorador'}},missions:{}};
   const before=JSON.stringify(api),items=mapDestinations(api);
-  assert.deepEqual(items.map(it=>it.id),[...BUILDINGS.map(b=>b.id),'parque','fuente','distrito']);
+  assert.deepEqual(items.map(it=>it.id),[...BUILDINGS.map(b=>b.id),'parque','fuente','distrito','comercio','aguas','dragones']);
   for(const b of BUILDINGS){const item=items.find(it=>it.id===b.id);assert.equal(item.name,b.name);assert.equal(item.x,b.x);assert.equal(item.z,b.z);assert.equal(item.open,b.status==='open');assert.deepEqual(item.way,doorPoint(b,2.2));}
   assert.deepEqual(items.find(it=>it.id==='parque').way,{x:0,z:34.5});assert.deepEqual(items.find(it=>it.id==='fuente').way,{x:0,z:6});
   const {DISTRICT_GATE}=await load('world/plaza.js');assert.deepEqual(items.find(it=>it.id==='distrito').way,{x:DISTRICT_GATE.arrival.x,z:DISTRICT_GATE.arrival.z},'the district waypoint is the real arrival of its gate');
+  const {COMERCIO_GATE}=await load('world/comercio.js'),{FLIGHTS}=await load('vivo/flight.js');assert.deepEqual(items.find(it=>it.id==='comercio').way,{x:COMERCIO_GATE.arrival.x,z:COMERCIO_GATE.arrival.z},'the shopping street waypoint is the real arrival of its gate');assert.ok(Math.hypot(items.find(it=>it.id==='dragones').way.x-FLIGHTS.plaza.pad.x,items.find(it=>it.id==='dragones').way.z-FLIGHTS.plaza.pad.z)<FLIGHTS.plaza.pad.r+1,'the dragon pad waypoint lands on the pad');
   assert.equal(JSON.stringify(api),before,'render projection does not write inventory, missions, XP, appearance or economy');
 });
 

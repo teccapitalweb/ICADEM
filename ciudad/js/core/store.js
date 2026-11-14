@@ -26,7 +26,8 @@ export function defaultState() {
     visited: [],         // ids de edificios explorados
     discovered: [],      // sitios de la Ruta del explorador (Distrito del Saber, 1.3)
     achievements: [],    // ids de logros
-    economy: { balance: 0, ledger: [] }, // SOLO créditos de prueba
+    economy: { balance: 0, ledger: [] }, // monedas del juego (sin conexión: solo las del tutorial local)
+    vivo: null,          // Mundo vivo (monedas, inventario, mascotas, casa): siempre viene del servidor
     settings: { quality: 'auto', sensitivity: 1, invertY: false, muted: [] }
   };
 }

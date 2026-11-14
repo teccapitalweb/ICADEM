@@ -16,7 +16,7 @@ export class WsAdapter extends NetworkAdapter {
     super();
     this.url = o.url; this.getTicket = o.getTicket; this.kid = o.kid || null; this.family = null; this.avatar = o.avatar || 'explorador'; this.resumeToken = null; this.roomState = null; this.friendList = []; this.presence = null; this.codes = []; this.invites = [];
     this.WS = o.WebSocketImpl || globalThis.WebSocket;
-    this.ws = null; this.pid = null; this.instance = null; this.roster = new Map();
+    this.ws = null; this.pid = null; this.instance = null; this.roster = new Map(); this.vivoSeq = 0; this.vivoWait = new Map();
     this.status = 'offline';     // offline → connecting → online → reconnecting → closed
     this.latency = null; this.attempt = 0; this.closedByUs = false; this.timer = null; this.pingTimer = null; this.pingSeq = 0; this.pingAt = new Map();
     this.lastSent = null;
@@ -70,7 +70,7 @@ export class WsAdapter extends NetworkAdapter {
         clearInterval(this.pingTimer);
         this.pingTimer = setInterval(() => this.#ping(), 4000); this.#ping();
         break;
-      case 'join': this.roster.set(m.pid, { pid: m.pid, name: m.name, avatar: m.avatar, custom: m.custom }); this.emit('join', this.roster.get(m.pid)); this.#set('online'); break;
+      case 'join': this.roster.set(m.pid, { pid: m.pid, name: m.name, avatar: m.avatar, custom: m.custom, pet: m.pet || null }); this.emit('join', this.roster.get(m.pid)); this.#set('online'); break;
       case 'leave': if (!m.soft) this.roster.delete(m.pid); this.emit('leave', { pid: m.pid, soft: Boolean(m.soft) }); this.#set('online'); break;
       case 'snap': this.emit('snap', m.list || []); break;
       case 'say': this.emit('say', { pid: m.pid, id: m.id }); break;
@@ -92,6 +92,8 @@ export class WsAdapter extends NetworkAdapter {
       case 'name': { const r = this.roster.get(m.pid); if (r) r.name = m.name; this.emit('name', m); break; }
       case 'code': if (m.codes) this.codes = m.codes; this.emit('code', m); break;
       case 'play': this.emit('play', m); break;
+      case 'vivo': { if (m.profile) this.emit('profile', { op: 'vivo', ok: true, profile: m.profile }); const w = this.vivoWait.get(m.n); if (w) { this.vivoWait.delete(m.n); clearTimeout(w.timer); w.resolve(m); } this.emit('vivo', m); break; }
+      case 'pet': { const r = this.roster.get(m.pid); if (r) r.pet = m.pet || null; this.emit('pet', m); break; }
       // Un pase vencido no es definitivo: se reintenta con un boleto nuevo. Lo demás sí cierra.
       case 'bye':
         if (m.reason === 'no-autorizado' && this.attempt < 3) break;                                                       // pase vencido: se pide boleto nuevo
@@ -118,6 +120,17 @@ export class WsAdapter extends NetworkAdapter {
   coop(op, payload = {}) { return this.#send({ t: 'coop', op, ...payload }); }
   code(op, payload = {}) { return this.#send({ t: 'code', op, ...payload }); }
   play(op, payload = {}) { return this.#send({ t: 'play', op, ...payload }); }
+  /**
+   * Mundo vivo: op = buy | adopt | pet | rest | home | feed | drink | walk. Devuelve la respuesta del
+   * servidor (o { ok:false, reason:'sin-conexion' | 'sin-respuesta' }). El servidor decide todo.
+   */
+  vivo(op, payload = {}) {
+    const n = ++this.vivoSeq;
+    return new Promise(resolve => {
+      if (!this.#send({ t: 'vivo', op, ...payload, n })) return resolve({ ok: false, reason: 'sin-conexion', op });
+      this.vivoWait.set(n, { resolve, timer: setTimeout(() => { this.vivoWait.delete(n); resolve({ ok: false, reason: 'sin-respuesta', op }); }, 9000) });
+    });
+  }
   /** Respuesta a una invitación de una conexión: se quita de la lista de pendientes. */
   answerInvite(id, accept) { this.invites = this.invites.filter(i => i.id !== id); return this.friends('answer', { id, accept }); }
   nameOf(pid) { return this.roster.get(pid)?.name || 'Jugador'; }

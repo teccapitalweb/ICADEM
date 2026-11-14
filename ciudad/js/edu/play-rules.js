@@ -28,7 +28,8 @@ export function missionXp(reward, firstPass, record, now = Date.now()) {
 }
 
 /** Los minijuegos que dan XP (seis originales y tres del Distrito del Saber). Cualquier otro nombre se descarta al leer el progreso. */
-export const PLAY_GAMES = Object.freeze(['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro', 'laboratorio', 'escape', 'laberinto']);
+export const PLAY_GAMES = Object.freeze(['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro', 'laboratorio', 'escape', 'laberinto',
+  'manzanas', 'heroes', 'rescate', 'guardianes', 'veterinarios', 'mercado', 'agua', 'emociones', 'expedicion']);   // Mundo vivo (2.0)
 
 export function cleanPlay(play) {
   const p = play && typeof play === 'object' ? play : {};
@@ -81,5 +82,13 @@ export function playAchievements(play) {
   if (a('laboratorio').best >= 80) list.push('cientifico');
   if (a('escape').done) list.push('escapista');
   if (a('laberinto').done) list.push('laberintista');
+  // Mundo vivo (2.0)
+  if (a('manzanas').done && a('heroes').best >= 80) list.push('buen-vecino');
+  if (a('rescate').best >= 90) list.push('rescatista-responsable');
+  if (a('guardianes').done && a('agua').best >= 80) list.push('guardian-del-planeta');
+  if (a('veterinarios').best >= 80) list.push('amigo-de-los-animales');
+  if (a('mercado').best >= 90) list.push('comerciante-justo');
+  if (a('emociones').best >= 80) list.push('corazon-empatico');
+  if (a('expedicion').done) list.push('expedicionario');
   return list;
 }

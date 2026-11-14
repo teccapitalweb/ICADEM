@@ -4,12 +4,14 @@
 import * as THREE from '../three.js';
 import { ACTIVITIES, RACE, TREASURES, TREASURE_RADIUS, treasureRounds, SORT_THEMES } from './activities.js';
 import { ACTIVITY_DAILY_XP } from './play-rules.js';
+import { QUESTIONS, questionById } from './questions.js';
+import { CHOICE_GAMES, FIELD_IDS } from './vivo-games.js';
 import { h } from '../missions/controller.js';
 import { encodeState } from '../net/network.js';
 import { SCENE_RULES } from '../net/scenes.js';
 
 export const GAME_LIST = Object.freeze([
-  { id: 'carrera', icon: '🏃', title: 'Carrera del conocimiento', text: 'Salta plataformas, esquiva barras y llega a la meta en el Parque de retos.', place: 'park' },
+  { id: 'carrera', icon: '🏃', title: 'Carrera del Saber', text: 'Salta plataformas, esquiva barras y abre las barreras respondiendo bien. Hay pistas y puedes reintentar.', place: 'park' },
   { id: 'memoria', icon: '🧠', title: 'Memoria ICADEM', text: 'Relaciona cada herramienta con su profesión.', levels: [['facil', 'Fácil · 4 pares'], ['medio', 'Medio · 6 pares'], ['dificil', 'Difícil · 8 pares']] },
   { id: 'matematicas', icon: '➗', title: 'Matemáticas contra reloj', text: '10 operaciones en 90 segundos.', levels: [['infantil', 'Sumas y restas'], ['juvenil', 'Tablas y divisiones'], ['general', 'Porcentajes y combinadas']] },
   { id: 'idiomas', icon: '🌎', title: 'Aventura de idiomas', text: 'Palabras e imágenes en inglés y saludos de otros idiomas.', levels: [['infantil', 'Primeras palabras'], ['general', 'Viajero']] },
@@ -17,7 +19,17 @@ export const GAME_LIST = Object.freeze([
   { id: 'clasificacion', icon: '🗂️', title: 'Clasificación inteligente', text: 'Ordena cada objeto en su categoría.', levels: Object.entries(SORT_THEMES).map(([id, t]) => [id, t.title]) },
   { id: 'laberinto', icon: '🌿', title: 'Laberinto del conocimiento', text: 'Cruza el laberinto del Distrito del Saber abriendo tres puertas con tus respuestas.', place: 'distrito' },
   { id: 'laboratorio', icon: '🧪', title: 'Laboratorio de experimentos', text: 'Predice qué pasa con densidad, circuitos, pH, imanes y más.', levels: [['basico', 'Básico · 5 experimentos'], ['avanzado', 'Avanzado · 8 experimentos']] },
-  { id: 'escape', icon: '🔐', title: 'Sala de escape', text: 'Resuelve tres acertijos de lógica y cálculo para abrir los candados.', levels: [['normal', '3 candados']] }
+  { id: 'escape', icon: '🔐', title: 'Sala de escape', text: 'Resuelve tres acertijos de lógica y cálculo para abrir los candados.', levels: [['normal', '3 candados']] },
+  // Mundo vivo (2.0)
+  { id: 'manzanas', icon: '🍎', title: 'Manzanas perdidas', text: 'A Doña Rosa se le rompió la bolsa: recoge sus manzanas en la plaza sin pisar los charcos y devuélveselas.', place: 'plaza', vivo: true },
+  { id: 'heroes', icon: '🦸', title: 'Héroes de la ciudad', text: 'Situaciones reales para ayudar con respeto y con seguridad.', vivo: true },
+  { id: 'rescate', icon: '🚑', title: 'Rescate responsable', text: 'Qué hacer si alguien se desvanece: seguridad, pedir ayuda al 911 y esperar sin moverle.', vivo: true },
+  { id: 'guardianes', icon: '🌳', title: 'Guardianes del parque', text: 'Recoge y separa la basura del Parque de retos, reporta lo peligroso y riega las plantas.', place: 'park', vivo: true },
+  { id: 'veterinarios', icon: '🐶', title: 'Veterinarios por un día', text: 'Comida adecuada, agua, limpieza y saber cuándo hace falta el veterinario.', vivo: true },
+  { id: 'mercado', icon: '🧺', title: 'Mercado justo', text: 'Atiende un puesto: suma, da el cambio y resuelve con honestidad.', levels: [['basico', 'Básico · 2 productos'], ['avanzado', 'Avanzado · 3 productos']], vivo: true },
+  { id: 'agua', icon: '💧', title: 'Amigos del agua', text: 'Fugas, llaves abiertas, riego y acertijos para cuidar el agua.', vivo: true },
+  { id: 'emociones', icon: '💛', title: 'Aventura de las emociones', text: 'Historias de convivencia con varias respuestas posibles y por qué.', vivo: true },
+  { id: 'expedicion', icon: '🧭', title: 'Expedición del conocimiento', text: 'Sigue las pistas por la plaza, el parque, el Distrito y el Paseo: responde y reúne 4 sellos.', place: 'plaza', vivo: true }
 ]);
 
 const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
@@ -29,7 +41,7 @@ export class Games {
   }
 
   /** Un minijuego de exploración está en curso (los NPC no interrumpen). */
-  get active() { return Boolean(this.race || this.hunt || (this.api.district && this.api.district.active)); }
+  get active() { return Boolean(this.race || this.hunt || (this.api.district && this.api.district.active) || (this.api.vivoGames && this.api.vivoGames.active)); }
   get raceNext() { return this.race ? this.race.next : -1; }
 
   #stats(id) { const a = (this.api.store.state.play && this.api.store.state.play.act && this.api.store.state.play.act[id]) || null; return a || { best: 0, dayXp: 0, plays: 0, done: false }; }
@@ -74,9 +86,13 @@ export class Games {
     if (id === 'laberinto') { if (api.sceneName !== 'distrito') { api.ui.toast('Te llevamos al Distrito del Saber. El laberinto empieza en el letrero verde.', 3200); this.goTo('distrito'); } else api.district.mazeStart(); return; }
     if (id === 'carrera') { if (api.sceneName !== 'park') { api.ui.toast('Te llevamos al Parque de retos. Habla con el letrero de salida para empezar.', 3200); this.goTo('park'); } else this.raceStartUI(); return; }
     if (id === 'tesoro') { if (api.sceneName !== 'plaza') { await api.travel('plaza', 'home'); } return this.huntStart(); }
+    // Mundo vivo (2.0): juegos de campo y actividades de elección
+    if (FIELD_IDS.includes(id)) return api.vivoGames.field(id);
+    if (CHOICE_GAMES.includes(id) && !gm.levels) return api.vivoGames.choice(id, 'normal');
     const level = await api.ui.choice({ speaker: gm.title, text: 'Elige la dificultad', options: [...gm.levels.map(([lid, label], i) => ({ id: lid, label, primary: i === 0 })), { id: 'x', label: 'Cancelar' }] });
     if (!level || level === 'x') return;
     const seed = api.edu.seed(), content = ACTIVITIES[id].build(seed, level);
+    if (CHOICE_GAMES.includes(id)) return api.vivoGames.choice(id, level);
     const log = await ({ memoria: () => this.#memory(content), matematicas: () => this.#math(content, seed, level), idiomas: () => this.#languages(content), clasificacion: () => this.#sorting(content, level), laboratorio: () => api.district.lab(content), escape: () => api.district.escape(content) })[id]();
     if (!log) return;
     const r = await api.edu.activity(id, seed, level, log);
@@ -97,6 +113,8 @@ export class Games {
     if (this.prevBest) this.prevBest[gm.id] = Math.max(prev || 0, r.score);
     const xp = h('div', 'result__rewards'); xp.append(h('span', 'pill pill--blue', r.xp ? `+${r.xp} XP` : 'Sin XP esta vez'));
     if (r.bonus) xp.append(h('span', 'pill pill--gold', '¡Primera vez completado! +20 XP'));
+    if (r.coins) xp.append(h('span', 'pill pill--gold', `+${r.coins} monedas`));
+    if (r.source) box.append(h('p', 'note', r.source));
     box.append(stars, score, xp);
     if (!r.xp && r.capped !== undefined) box.append(h('p', 'players__note', 'Llegaste al tope de XP de este minijuego por hoy. ¡Puedes seguir jugando por diversión!'));
     if (!r.server) box.append(h('p', 'players__note', 'Sin conexión: la XP se guardó solo en este dispositivo.'));
@@ -201,12 +219,12 @@ export class Games {
   }
 
   /* ---------------- A · Carrera del conocimiento ---------------- */
-  raceLabel() { return this.race ? `Carrera en curso · punto ${this.race.next + 1} de ${RACE.checkpoints.length}` : 'Carrera del conocimiento · empezar'; }
+  raceLabel() { return this.race ? `Carrera en curso · punto ${this.race.next + 1} de ${RACE.checkpoints.length}` : 'Carrera del Saber · empezar'; }
 
   async raceStartUI() {
     const api = this.api; if (!this.race) this.#mark('carrera');
-    if (this.race) { const q = await api.ui.choice({ speaker: 'Carrera del conocimiento', text: '¿Abandonar la carrera?', options: [{ id: 'si', label: 'Abandonar' }, { id: 'no', label: 'Seguir corriendo', primary: true }] }); if (q === 'si') this.raceQuit(); return; }
-    await api.ui.dialog({ speaker: 'Carrera del conocimiento', lines: ['Pasa por los 7 arcos en orden. Los que están sobre plataformas se alcanzan saltando (Espacio o el botón de salto).', 'Cuidado con las barras rojas: si te alcanzan, te empujan. ¡La meta está en el centro!'] });
+    if (this.race) { const q = await api.ui.choice({ speaker: 'Carrera del Saber', text: '¿Abandonar la carrera?', options: [{ id: 'si', label: 'Abandonar' }, { id: 'no', label: 'Seguir corriendo', primary: true }] }); if (q === 'si') this.raceQuit(); return; }
+    await api.ui.dialog({ speaker: 'Carrera del Saber', lines: ['Pasa por los 7 arcos en orden. Los que están sobre plataformas se alcanzan saltando (Espacio o el botón de salto).', 'Los arcos 2 y 5 son barreras del saber: se abren respondiendo bien (puedes pedir una pista).', 'Cuidado con las barras rojas: si te alcanzan, te empujan. ¡La meta está en el centro!'] });
     this.race = { next: 0, t0: performance.now(), bumps: 0, server: this.api.net.isOnline };
     if (this.race.server) { this.pending = true; this.#play('start', { game: 'carrera' }); }
     this.#raceHud();
@@ -263,6 +281,9 @@ export class Games {
   /* ---------------- respuestas del servidor y cuadro a cuadro ---------------- */
   #onPlay(m) {
     const api = this.api; this.pending = false;
+    if ((m.op === 'answer' || m.op === 'hint') && this.waitBarrier) { const w = this.waitBarrier; this.waitBarrier = null; w(m); return; }
+    if (m.game === 'carrera' && m.op === 'start' && m.ok && this.race) { this.race.quiz = m.quiz || {}; this.race.open = {}; }
+    if (m.ok === false && m.reason === 'barrera' && this.race) { this.#barrier(m.i, m.q); return; }
     if (m.ok === false) {
       this.waitUntil = performance.now() + 900;   // no se reintenta en cada cuadro
       const why = { lejos: 'El servidor aún no te ve en ese punto: acércate un poco más.', 'fuera-de-orden': 'Ese no es el siguiente arco.', imposible: 'Demasiado rápido para ser real: la carrera no cuenta.', 'fuera-del-parque': 'La carrera se juega dentro del Parque de retos.', 'fuera-del-distrito': 'El laberinto se juega en el Distrito del Saber.', 'fuera-de-la-plaza': 'La búsqueda se juega en la plaza.', 'sin-partida': 'La partida ya terminó.' }[m.reason];
@@ -271,6 +292,26 @@ export class Games {
     }
     if (m.game === 'carrera' && this.race && m.op === 'check') { if (m.done) this.#raceDone(m.score, m.seconds, true); else { this.race.next = m.next; api.ui.toast(`Arco ${m.next - 1 || 'de salida'} ✔`, 1200); this.#raceHud(); } }
     if (m.game === 'tesoro' && this.hunt && m.op === 'check') { if (m.done) this.#huntDone(m.score, true); else { this.#found(m.found); if (m.round !== undefined && m.round !== this.hunt.round) { this.hunt.round = m.round; this.hunt.found = []; api.ui.toast(`¡Ronda completa! Ronda ${m.round + 1} de 3`, 2400); } this.#huntRender(); } }
+  }
+
+  /** Barrera de la Carrera del Saber: pregunta con pista y reintento; el servidor decide si abre. */
+  async #barrier(i, qid, removed = []) {
+    if (this.asking || !this.race) return; this.asking = true;
+    const api = this.api, qn = questionById(qid); if (!qn) { this.asking = false; return; }
+    const ask = (op, payload) => new Promise(res => { if (!this.race.server) return res(null); this.waitBarrier = res; api.net.play(op, payload); setTimeout(() => { if (this.waitBarrier === res) { this.waitBarrier = null; res({ ok: false, reason: 'sin-respuesta' }); } }, 8000); });
+    const opts = qn.options.map((t, k) => ({ id: String(k), label: t, disabled: removed.includes(k) }));
+    const pick = await api.ui.choice({ speaker: `Barrera del saber · arco ${i}`, text: qn.q, options: [...opts, { id: 'pista', label: 'Pedir una pista', hint: 'Quita una opción equivocada (−3 puntos)', disabled: removed.length > 0 }] });
+    this.asking = false; if (!this.race) return;
+    if (pick === 'pista') { const r = this.race.server ? await ask('hint', { i }) : { ok: true, remove: qn.options.findIndex((_, k) => k !== qn.answer) }; return this.#barrier(i, qid, r && r.ok ? [r.remove] : []); }
+    const choice = Number(pick), r = this.race.server ? await ask('answer', { i, choice }) : (choice === qn.answer ? { ok: true, open: true, explain: qn.explain } : { ok: false, reason: 'incorrecta', explain: qn.explain, q: QUESTIONS[Math.floor(Math.random() * QUESTIONS.length)].id });
+    if (!this.race) return;
+    if (r && r.ok && r.open) {
+      this.race.open[i] = true; api.player.emote('celebrate', 1); api.ui.toast('¡Barrera abierta! ' + (r.explain || ''), 2600);
+      this.waitUntil = 0; if (this.race.server) { this.pending = true; this.#play('check', { game: 'carrera', i }); }
+      return;
+    }
+    if (r && r.reason === 'incorrecta') { api.ui.toast('Esa no era. ' + (r.explain || '') + ' Aquí va otra pregunta (−5).', 3600); setTimeout(() => this.#barrier(i, r.q), 900); return; }
+    api.ui.toast('No se pudo revisar tu respuesta. Acércate al arco para intentarlo de nuevo.', 2800); this.waitUntil = performance.now() + 1500;
   }
 
   #found(id) { const t = TREASURES.find(x => x.id === id); if (!t || this.hunt.found.includes(id)) return; this.hunt.found.push(id); this.api.ui.toast(`¡Encontraste: ${t.icon} ${t.name}!`, 1800); this.api.player.emote('celebrate', 1.2); }
@@ -301,6 +342,7 @@ export class Games {
       const cp = RACE.checkpoints[this.race.next];
       if (cp && !this.pending && performance.now() > (this.waitUntil || 0) && Math.hypot(p.x - cp[0], p.z - cp[1]) <= RACE.radius - 0.2 && p.y >= (cp[2] || 0) - 0.3) {
         if (this.race.server) { this.pending = true; setTimeout(() => this.#play('check', { game: 'carrera', i: this.race?.next }), 150); }
+        else if ([2, 5].includes(this.race.next) && !(this.race.open || {})[this.race.next]) { this.race.open = this.race.open || {}; const pool = QUESTIONS.filter(q => q.level !== 'infantil'); this.waitUntil = performance.now() + 1500; this.#barrier(this.race.next, pool[Math.floor(Math.random() * pool.length)].id); }
         else { this.race.next++; if (this.race.next >= RACE.checkpoints.length) { const s = (performance.now() - this.race.t0) / 1000; this.#raceDone(Math.max(50, Math.min(100, Math.round(100 - Math.max(0, s - 30) * 1.5))), s, false); } else this.#raceHud(); }
       }
     }

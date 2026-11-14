@@ -4,8 +4,9 @@
 // (la bitácora de una misión, "descubrí este edificio", "quiero este avatar") y el servidor
 // decide el resultado con las mismas reglas del juego. XP, logros y recompensas se calculan aquí.
 //
-// Los créditos que aparecen son DE PRUEBA (testCredits): un contador propio del juego, separado
-// de la cartera real de ICADEM, que este servicio no conoce ni toca.
+// Las MONEDAS de Ciudad ICADEM (coins) son un recurso del juego, separado de la XP y de la cartera
+// real de ICADEM, que este servicio no conoce ni toca. Los antiguos «créditos de prueba» (testCredits)
+// se convirtieron una sola vez en monedas y quedan como historial.
 //
 // Almacenamiento: interfaz { load(uid), save(uid, perfil) }. Hay dos adaptadores para pruebas
 // (memoria y archivo JSON local). El adaptador de la base de datos real queda pendiente de
@@ -19,10 +20,13 @@ import { FAMILY_MAX, AGE_BANDS, KID_MISSIONS, cleanAlias } from '../ciudad/js/ed
 import { checkActivity, ACTIVITIES } from '../ciudad/js/edu/activities.js';
 import { landmarkById, DISCOVER_XP } from '../ciudad/js/edu/district-rules.js';
 import { cleanPlay, rewardQuiz, rewardActivity, missionXp } from '../ciudad/js/edu/play-rules.js';
+import { cleanVivo, vivoView, applyVivo } from '../ciudad/js/vivo/vivo-rules.js';
+import { lockedWear } from '../ciudad/js/economy/catalog.js';
+import { COINS, earn, activityCoins } from '../ciudad/js/economy/coins.js';
 import { emptyProfile, cleanCustom, COSMETIC_OPTIONS, LEGACY_HAT_IDS, isAvatarUnlocked, deriveAchievements, BUILDING_IDS, VISIT_XP, TUTORIAL_XP, TUTORIAL_CREDITS, PROFILE_VERSION } from '../ciudad/js/progress/rules.js';
 
 /** Minijuegos cuya XP solo llega por el servidor de sesiones (validados con posiciones). */
-export const POSITIONAL_GAMES = Object.freeze(['carrera', 'tesoro', 'laberinto']);
+export const POSITIONAL_GAMES = Object.freeze(['carrera', 'tesoro', 'laberinto', 'manzanas', 'guardianes', 'expedicion']);
 export const CHAT_BLOCK_MAX = 100;
 /** Clave pública de un bloqueo: permite desbloquear sin enviar el uid de nadie al navegador. */
 export const blockKey = uid => createHash('sha256').update('ciudad-bloqueo:' + uid).digest('hex').slice(0, 12);
@@ -61,12 +65,18 @@ export class Profiles {
   async #read(uid) {
     const saved = await this.storage.load(uid);
     if (!saved || saved.v !== PROFILE_VERSION) return emptyProfile();
-    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom), play: cleanPlay(saved.play), privacy: { listed: !(saved.privacy && saved.privacy.listed === false) }, chat: cleanChat(saved.chat) };
+    return { ...emptyProfile(), ...saved, custom: cleanCustom(saved.custom), play: cleanPlay(saved.play), privacy: { listed: !(saved.privacy && saved.privacy.listed === false) }, chat: cleanChat(saved.chat), ...cleanVivo(saved) };
   }
-  async #write(uid, p) { p.achievements = deriveAchievements(p); p.rev++; p.updatedAt = Date.now(); await this.storage.save(uid, p); return p; }
+  async #write(uid, p) {
+    const now = Date.now();
+    p.achievements = deriveAchievements(p);
+    // Cada logro nuevo paga monedas una sola vez (la clave lo recuerda aunque el logro se recalcule).
+    for (const a of p.achievements) earn(p, 'logro:' + a, COINS.achievement, { once: true }, now);
+    p.rev++; p.updatedAt = now; await this.storage.save(uid, p); return p;
+  }
 
   /** Lo que se le entrega al cliente (sin historial interno). */
-  view(p) { const { testLedger, chat, ...rest } = p; return { ...rest, testMoves: testLedger.length, chat: chatView(chat) }; }
+  view(p) { const { testLedger, chat, coinbook, rids, ...rest } = p; return { ...rest, ...vivoView(p), testMoves: testLedger.length, chat: chatView(chat) }; }
 
   /* ---------- chat libre: aceptación de normas, pausa y bloqueos (por cuenta, en todos los dispositivos) ---------- */
 
@@ -117,14 +127,14 @@ export class Profiles {
       const record = { completed: before.completed || result.passed, bestScore: Math.max(before.bestScore, result.score), attempts: before.attempts + 1, lastScore: result.score };
       if (typeof before.repeatDay === 'string') record.repeatDay = before.repeatDay;
       p.missions[def.id] = record;
-      let credits = 0, xp = 0;
+      let credits = 0, coins = 0, xp = 0;
       if (result.passed) {
         // Primera vez: XP completa. Repetición: XP de práctica una vez al día por misión.
         const g = missionXp(reward, first, before, now); xp = g.xp; p.xp += xp; if (g.repeatDay) record.repeatDay = g.repeatDay;
-        const key = 'mission:' + def.id;
-        if (!minor && !p.testLedger.some(e => e.key === key)) { credits = reward.amount; p.testCredits += credits; p.testLedger.push({ key, amount: credits, at: Date.now() }); }
+        // Monedas del juego: la primera aprobación paga la recompensa una sola vez; repetir paga poco y solo junto con su XP diaria.
+        if (!minor) { credits = earn(p, 'mission:' + def.id, reward.amount, { once: true }, now); coins = credits || (xp > 0 && !first ? earn(p, 'mision-repaso:' + def.id, COINS.missionRepeat, { capped: true }, now) : 0); }
       }
-      return { ok: true, score: result.score, passed: result.passed, credits, xp, profile: this.view(await this.#write(uid, p)) };
+      return { ok: true, score: result.score, passed: result.passed, credits, coins, xp, profile: this.view(await this.#write(uid, p)) };
     });
   }
 
@@ -140,7 +150,7 @@ export class Profiles {
   tutorial(uid) {
     return this.#serial(uid, async () => {
       const p = await this.#read(uid); if (p.tutorialDone) return { ok: true, profile: this.view(p) };
-      p.tutorialDone = true; p.xp += TUTORIAL_XP; p.testCredits += TUTORIAL_CREDITS; p.testLedger.push({ key: 'tutorial', amount: TUTORIAL_CREDITS, at: Date.now() });
+      p.tutorialDone = true; p.xp += TUTORIAL_XP; earn(p, 'tutorial', TUTORIAL_CREDITS, { once: true });
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }
@@ -155,7 +165,8 @@ export class Profiles {
       if (!qn || !Number.isInteger(choice) || choice < 0 || choice >= qn.options.length) return { ok: false, reason: 'pregunta-invalida' };
       const p = await this.#read(uid), correct = choice === qn.answer, r = rewardQuiz(p.play, qn.id, correct, now);
       p.xp += r.xp;
-      return { ok: true, correct, answer: qn.answer, explain: qn.explain, xp: r.xp, why: r.why, profile: this.view(await this.#write(uid, p)) };
+      const coins = r.xp > 0 ? earn(p, 'reto', COINS.quiz, { capped: true }, now) : 0;
+      return { ok: true, correct, answer: qn.answer, explain: qn.explain, xp: r.xp, coins, why: r.why, profile: this.view(await this.#write(uid, p)) };
     });
   }
 
@@ -167,7 +178,8 @@ export class Profiles {
       if (!r.valid) return { ok: false, reason: 'actividad-invalida' };
       const p = await this.#read(uid), g = rewardActivity(p.play, id, r.score, now);
       p.xp += g.xp;
-      return { ok: true, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
+      const coins = this.#gameCoins(p, id, r.score, g, now);
+      return { ok: true, score: r.score, xp: g.xp, coins, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
     });
   }
 
@@ -175,9 +187,10 @@ export class Profiles {
   grantPositional(uid, id, score, now = Date.now()) {
     return this.#serial(uid, async () => {
       if (!POSITIONAL_GAMES.includes(id)) return { ok: false, reason: 'actividad-invalida' };
-      const p = await this.#read(uid), g = rewardActivity(p.play, id, Math.max(0, Math.min(100, Math.round(score))), now);
+      const sc = Math.max(0, Math.min(100, Math.round(score))), p = await this.#read(uid), g = rewardActivity(p.play, id, sc, now);
       p.xp += g.xp;
-      return { ok: true, score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
+      const coins = this.#gameCoins(p, id, sc, g, now);
+      return { ok: true, score, xp: g.xp, coins, bonus: g.bonus, capped: g.capped, profile: this.view(await this.#write(uid, p)) };
     });
   }
 
@@ -188,7 +201,27 @@ export class Profiles {
       const p = await this.#read(uid); p.discovered = Array.isArray(p.discovered) ? p.discovered.filter(x => landmarkById(x)) : [];
       if (p.discovered.includes(id)) return { ok: true, xp: 0, profile: this.view(p) };
       p.discovered.push(id); p.xp += DISCOVER_XP;
-      return { ok: true, xp: DISCOVER_XP, profile: this.view(await this.#write(uid, p)) };
+      const coins = earn(p, 'sitio:' + id, COINS.discover, { once: true });
+      return { ok: true, xp: DISCOVER_XP, coins, profile: this.view(await this.#write(uid, p)) };
+    });
+  }
+
+  /** Monedas de un minijuego validado: proporcionales al puntaje (desde 30), con tope diario común, y un bono la primera vez. */
+  #gameCoins(p, id, score, g, now) {
+    let n = score >= 30 ? earn(p, 'juego:' + id, activityCoins(score), { capped: true }, now) : 0;
+    if (g.bonus > 0) n += earn(p, 'juego-primera:' + id, COINS.activityFirst, { once: true }, now);
+    return n;
+  }
+
+  /**
+   * Mundo vivo: compras, adopciones, mascotas, casa, comida y aguas frescas. Las reglas están en
+   * ciudad/js/vivo/vivo-rules.js; aquí solo se aplican sobre el perfil guardado y se responde.
+   */
+  vivo(uid, op, args, { now = Date.now() } = {}) {
+    return this.#serial(uid, async () => {
+      const p = await this.#read(uid), r = applyVivo(p, String(op || ''), args, { now });
+      const profile = r.ok && r.changed ? this.view(await this.#write(uid, p)) : this.view(p);
+      return { ...r, profile };
     });
   }
 
@@ -245,7 +278,9 @@ export class Profiles {
       // V1 normalizes hats it does not know to "base". Keep that newer hat unless
       // the old client chooses a supported hat/none; V2 can explicitly reset it.
       if (customVersion !== 2 && !LEGACY_HAT_IDS.includes(p.custom.hat) && (!Object.hasOwn(incoming, 'hat') || incoming.hat === 'base')) next.hat = p.custom.hat;
-      p.avatarId = String(avatarId); p.custom = cleanCustom(next); p.avatarChosen = true;   // ya eligió personaje: no se le vuelve a preguntar en ningún dispositivo
+      const outfit = cleanCustom(next);
+      if (lockedWear(outfit, p.inv).length) return { ok: false, reason: 'prenda-bloqueada', profile: this.view(p) };   // ropa de la tienda: hay que tenerla
+      p.avatarId = String(avatarId); p.custom = outfit; p.avatarChosen = true;   // ya eligió personaje: no se le vuelve a preguntar en ningún dispositivo
       return { ok: true, profile: this.view(await this.#write(uid, p)) };
     });
   }

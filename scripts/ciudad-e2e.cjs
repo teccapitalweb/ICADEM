@@ -131,7 +131,7 @@ async function juego(browser) {
   await tp(0, 9); await page.keyboard.press('Digit1'); await page.waitForTimeout(500);
   const hola = await page.evaluate(() => ({ bubble: document.querySelector('.bubble--me')?.textContent, anim: window.__ciudad.avatar.anim }));
   ok('tecla 1: frase rápida con gesto', hola.bubble === '¡Hola!' && hola.anim === 'wave', JSON.stringify(hola));
-  await page.click('#btn-say'); await page.waitForTimeout(200);
+  await page.click('#btn-more'); await page.click('[data-quick-action="emotes"]'); await page.waitForTimeout(200);   // «Frases y gestos» vive en el menú rápido
   ok('el botón Frases abre las seis frases', (await page.evaluate(() => !document.getElementById('say-menu').hidden && document.querySelectorAll('#say-menu button').length)) === 6);
   await page.keyboard.press('KeyT'); await page.waitForTimeout(150);
   ok('sin servidor no aparece nadie más (ni indicador de conexión)', await page.evaluate(() => document.getElementById('net-chip').hidden && window.__ciudad.remotes.count === 0 && !document.querySelector('.nametag')));
@@ -139,10 +139,12 @@ async function juego(browser) {
   await tp(-31, -21); await page.waitForTimeout(400); await E();
   ok('la puerta del Hospital lleva a su interior', await waitScene('hospital'));
   await shot(page, 'f7-hospital.png');
-  await page.evaluate(() => window.__ciudad.api.travel('plaza', 'hospital')); await waitScene('plaza'); await page.waitForTimeout(600);
+  // volver a la plaza (si la entrada al hospital aún está en su fundido, el viaje se reintenta)
+  for (let i = 0; i < 4 && !(await page.evaluate(() => window.__ciudad.api.sceneName === 'plaza')); i++) { await page.waitForTimeout(800); await page.evaluate(() => window.__ciudad.api.travel('plaza', 'hospital')); await waitScene('plaza'); }
+  await page.waitForTimeout(600);
   // 8. banco
   await tp(-13, -20.2); await page.waitForTimeout(500); await shot(page, 'f8-banco-fuera.png'); await E();
-  ok('se entra al Banco ICADEM', await waitScene('bank'));
+  ok('se entra al Banco ICADEM', await waitScene('bank'), await page.evaluate(() => { const a = window.__ciudad.api; return JSON.stringify({ scene: a.sceneName, pos: a.player.position, modal: !document.getElementById('modal').hidden && document.getElementById('modal').textContent.slice(0, 160), near: a.scene.interactables.map(i => [i.id, Math.hypot(i.x - a.player.position.x, i.z - a.player.position.z).toFixed(1)]).filter(x => x[1] < 4) }); }));
   ok('al llegar se borra el destino', (await page.evaluate(() => window.__ciudad.api.waypoint)) === null || true);
   await page.waitForTimeout(800);
   const camBank = await page.evaluate(() => {
@@ -215,7 +217,8 @@ async function juego(browser) {
   const after = await S();
   ok('el progreso persiste al recargar', after.bal === before.bal && after.xp === before.xp && after.tut === true && (await coach()) === null, JSON.stringify({ bal: after.bal, xp: after.xp }));
   // 14. ajustes: calidad
-  await page.click('#btn-settings'); await page.waitForTimeout(400); await shot(page, 'f16-ajustes.png');
+  await page.click('#btn-more'); await page.click('#btn-settings');   // Ajustes vive en el menú rápido
+  await page.waitForTimeout(400); await shot(page, 'f16-ajustes.png');
   await page.click('.seg button:nth-child(2)'); await page.waitForTimeout(300);
   ok('ajustes cambia la calidad gráfica', (await page.evaluate(() => window.__ciudad.api.engine.quality)) === 'low');
   await page.keyboard.press('Escape');
@@ -390,11 +393,11 @@ async function tribunal(browser) {
   // sala de espera sin conexión: se explica, no se simula
   await tp(8.2, 6.6); await page.waitForTimeout(350); await E(); await page.waitForTimeout(400);
   const lobby = await page.evaluate(() => document.querySelector('.lobby')?.textContent || '');
-  ok('[tribunal] la sala de espera en equipo no finge funcionar sin servidor', /En desarrollo/.test(lobby) && /entorno de pruebas/.test(lobby) && !/Crear sala/.test(lobby), lobby.slice(0, 120));
+  ok('[tribunal] la sala de espera en equipo no finge funcionar sin servidor', /entorno de pruebas/.test(lobby) && !/Crear sala/.test(lobby)   /* el Tribunal ya se juega en equipo (con servidor); sin él solo se explica */, lobby.slice(0, 120));
   await page.keyboard.press('Escape'); await page.waitForTimeout(300);
   await tp(0, 6.9); await page.waitForTimeout(350); await E();
   ok('[tribunal] se sale del Tribunal a la ciudad', await waitScene('plaza'));
-  ok('[tribunal] el Banco sigue registrado en el mismo motor', await page.evaluate(() => { const svc = window.__ciudad.api.missionService; return svc.registry.list().map(d => d.id).join() === 'banco-credito-correcto,tribunal-tu-eres-el-juez' && svc.rewardFor('banco-credito-correcto').amount === 15 && svc.rewardFor('tribunal-tu-eres-el-juez').amount === 20; }));
+  ok('[tribunal] el Banco sigue registrado en el mismo motor', await page.evaluate(() => { const svc = window.__ciudad.api.missionService; return ['banco-credito-correcto', 'tribunal-tu-eres-el-juez'].every(id => svc.registry.list().some(d => d.id === id)) && svc.rewardFor('banco-credito-correcto').amount === 15 && svc.rewardFor('tribunal-tu-eres-el-juez').amount === 20; }));
   ok('[tribunal] sin errores de JavaScript', errors.length === 0, errors.slice(0, 4).join(' | '));
   await page.close();
 }
@@ -419,7 +422,9 @@ async function dispositivos(browser) {
     });
     const dentro = b => b && b.l >= 0 && b.t >= 0 && b.r <= W && b.b <= H;
     const choca = (a, b) => a && b && a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b;
-    const ids = ['jump', 'run', 'say', 'map', 'more', 'player'];
+    // Frases y Mapa viven en el menú rápido (Codex) cuando existe: ya no son botones sueltos en pantalla.
+    const quick = await page.evaluate(() => document.getElementById('hud').classList.contains('has-quick-menu'));
+    const ids = quick ? ['jump', 'run', 'more', 'player'] : ['jump', 'run', 'say', 'map', 'more', 'player'];
     const fuera = ids.filter(k => !dentro(layout[k])), encimados = ids.flatMap((a, i) => ids.slice(i + 1).filter(b => choca(layout[a], layout[b])).map(b => a + '/' + b));
     ok(`[${nombre}] controles táctiles visibles, dentro de pantalla y sin encimarse`, layout.touch && !fuera.length && !encimados.length, JSON.stringify({ fuera, encimados, touch: layout.touch }));
     // Ajustes y Vestidor viven en el menú «Más»: al tocarlo aparecen dentro de la pantalla
@@ -440,7 +445,7 @@ async function dispositivos(browser) {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await page.waitForTimeout(700);
     const despues = await page.evaluate(() => ({ w: window.__ciudad.api.stats.walked, t: window.__ciudad.api.camera.turned }));
     ok(`[${nombre}] joystick mueve al avatar y el arrastre gira la cámara`, despues.w - antes.w > 1 && despues.t - antes.t > 0.5, JSON.stringify({ camino: +(despues.w - antes.w).toFixed(2), giro: +(despues.t - antes.t).toFixed(2) }));
-    await page.tap('#btn-say'); await page.waitForTimeout(250);
+    await page.tap('#btn-more'); await page.tap('[data-quick-action="emotes"]'); await page.waitForTimeout(250);
     const menu = await page.evaluate(() => { const r = document.getElementById('say-menu').getBoundingClientRect(); return { open: !document.getElementById('say-menu').hidden, l: r.left, t: r.top, r: r.right, b: r.bottom }; });
     await page.tap('#say-menu button[data-id="bien"]'); await page.waitForTimeout(400);
     const dijo = await page.evaluate(() => document.querySelector('.bubble--me')?.textContent);

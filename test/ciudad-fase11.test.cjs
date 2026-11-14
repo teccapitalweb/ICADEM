@@ -129,9 +129,12 @@ test('carrera y tesoro: el servidor solo acepta puntos donde de verdad estuvo el
   t += 500; at('park', 0, 8); assert.equal(hub.playCheck(p, { i: 0 }).next, 1);
   t += 500; at('park', 20, 20); assert.equal(hub.playCheck(p, { i: 1 }).reason, 'lejos', 'decir que llegó no basta');
   t += 500; at('park', -6, 3, 0); assert.equal(hub.playCheck(p, { i: 1 }).reason, 'lejos', 'el arco sobre la plataforma exige estar arriba');
-  let last; for (let i = 1; i < RACE.checkpoints.length; i++) { t += 3000; at('park', ...RACE.checkpoints[i]); last = hub.playCheck(p, { i }); assert.equal(last.ok, true, 'punto ' + i); }
+  const { questionById } = await load('ciudad/js/edu/questions.js');
+  // Carrera del Saber (2.0): en las barreras hay que responder bien para pasar
+  const pass = i => { let r = hub.playCheck(p, { i }); if (r.reason === 'barrera') { assert.equal(hub.playAnswer(p, { i, choice: (questionById(r.q).answer + 1) % questionById(r.q).options.length }).reason, 'incorrecta', 'responder mal no abre'); const again = hub.playCheck(p, { i }); assert.equal(again.reason, 'barrera'); assert.equal(hub.playAnswer(p, { i, choice: questionById(again.q).answer }).open, true); r = hub.playCheck(p, { i }); } return r; };
+  let last; for (let i = 1; i < RACE.checkpoints.length; i++) { t += 3000; at('park', ...RACE.checkpoints[i]); last = pass(i); assert.equal(last.ok, true, 'punto ' + i); }
   assert.equal(last.done, true); assert.ok(last.score >= 50 && last.score <= 100); assert.equal(last.game, 'carrera', 'el juego lo dice el servidor');
-  t += 1000; at('park', 0, 8); hub.playStart(p, 'carrera'); for (let i = 0; i < RACE.checkpoints.length; i++) { t += 100; at('park', ...RACE.checkpoints[i]); last = hub.playCheck(p, { i }); }
+  t += 1000; at('park', 0, 8); hub.playStart(p, 'carrera'); for (let i = 0; i < RACE.checkpoints.length; i++) { t += 100; at('park', ...RACE.checkpoints[i]); last = pass(i); }
   assert.equal(last.reason, 'imposible', 'demasiado rápido para ser real');
   at('plaza', 0, 9); const s = hub.playStart(p, 'tesoro', 42); assert.deepEqual(s.items, treasureRounds(42)[0]);
   const first = TREASURES.find(x => x.id === s.items[0]);
@@ -158,7 +161,8 @@ test('apertura: XP de práctica una vez al día por misión, sin tocar la XP de 
   assert.deepEqual([b.xp, b.credits], [30, 0], 'repetir: XP de práctica, sin créditos');
   assert.deepEqual([c.xp, c.credits], [0, 0], 'el mismo día ya no suma');
   assert.deepEqual([d.xp, d.credits], [30, 0], 'al día siguiente vuelve la XP de práctica');
-  assert.equal(d.profile.xp, 180); assert.equal(d.profile.testCredits, 15); assert.equal(d.profile.missions[def.id].attempts, 4);
+  assert.equal(d.profile.xp, 180); assert.equal(d.profile.testCredits, 0, 'los créditos de prueba quedaron como historial');
+  assert.deepEqual([d.coins, c.coins, b.coins], [4, 0, 4], 'repetir da monedas de práctica solo junto con su XP diaria'); assert.equal(d.profile.missions[def.id].attempts, 4);
   // muchas repeticiones el mismo día no inflan la XP
   for (let i = 0; i < 20; i++) await run(day2 + 5000 + i);
   assert.equal((await profiles.get('u1')).xp, 180);
@@ -172,7 +176,8 @@ test('apertura: Carrera y Tesoro solo acreditan a su propio juego y el progreso 
   assert.equal((await profiles.grantPositional('u1', 'inventado', 100)).ok, false);
   assert.equal((await profiles.grantPositional('u1', 'undefined', 100)).ok, false);
   const r = await profiles.grantPositional('u1', 'carrera', 100); assert.deepEqual([r.ok, r.xp], [true, 50]);
-  assert.deepEqual(PLAY_GAMES, ['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro', 'laboratorio', 'escape', 'laberinto']);
+  assert.deepEqual(PLAY_GAMES.slice(0, 9), ['memoria', 'matematicas', 'idiomas', 'clasificacion', 'carrera', 'tesoro', 'laboratorio', 'escape', 'laberinto']);
+  assert.deepEqual(PLAY_GAMES.slice(9), ['manzanas', 'heroes', 'rescate', 'guardianes', 'veterinarios', 'mercado', 'agua', 'emociones', 'expedicion'], 'los diez juegos de Mundo vivo (la Carrera del Saber es la carrera de siempre, evolucionada)');
   assert.deepEqual(Object.keys(cleanPlay({ act: { carrera: { best: 1 }, x1: { best: 1 }, undefined: { best: 1 } } }).act), ['carrera']);
 });
 

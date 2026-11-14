@@ -1,5 +1,5 @@
-// Presentation only: shortcuts call existing UI actions. No travel, inventory,
-// purchase, progression or new expansion endpoint is implemented here.
+// Presentation only: shortcuts call existing UI actions (Mundo vivo ones go through api.actions,
+// whose rules live in vivo-panels.js and the server). No purchase or progression logic here.
 import { mapDestinations } from './city-map.js';
 
 const h = (tag, cls, text) => { const node = document.createElement(tag); if (cls) node.className = cls; if (text !== undefined) node.textContent = text; return node; };
@@ -36,11 +36,17 @@ export function installQuickMenu(ui) {
   const action = (id, name, symbol, detail, run) => { const button = prepare(h('button'), id, name, symbol, detail); button.addEventListener('click', run); grid.append(button); };
   existing('btn-wardrobe', 'avatar', 'Mi avatar', 'person', 'Personajes');
   action('wardrobe', 'Vestidor', 'shirt', 'Ropa y accesorios', () => ui.openWardrobe({ tab: 'ropa' }));
+  // Mundo vivo: mascotas e inventario usan los botones reales (installVivoActions); casa y monturas llaman a api.actions.
+  existing('btn-pets', 'pets', 'Mis mascotas', 'paw', 'Adoptar y cuidar');
+  existing('btn-inventory', 'inventory', 'Mi inventario', 'bag', 'Tus objetos');
   action('home', 'Mi casa', 'home', 'Marcar la entrada', () => {
+    // Dentro de la habitación o de la casa, Mundo vivo lleva a «Mi casa» por su puerta; afuera solo se marca la entrada.
+    if (api.actions?.home && ['room', 'casa'].includes(api.sceneName)) { api.actions.home(); return; }
     if (api.sceneName === 'room') { ui.toast('Ya estás en tu casa.'); return; }
     const home = mapDestinations(api).find(item => item.id === 'casa'); if (!home) return;
     api.setWaypoint({ ...home.way, name: home.name }); ui.toast('Entrada de tu casa marcada en la plaza.');
   });
+  action('mounts', 'Monturas', 'wing', 'Vuelo en dragón', () => (api.actions?.mounts ? api.actions.mounts() : ui.toast('Las monturas están en el Helipuerto de la plaza.')));
   existing('btn-map', 'map', 'Mapa', 'map', 'Destinos de la ciudad');
   existing('btn-games', 'games', 'Juegos', 'games', 'Explora los retos');
   action('emotes', 'Frases y gestos', 'hand', 'Exprésate en la ciudad', () => api.social?.toggle(true));

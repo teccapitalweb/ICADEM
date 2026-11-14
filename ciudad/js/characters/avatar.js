@@ -4,6 +4,8 @@
 import * as THREE from '../three.js';
 import { mat as kitMat, mergeStatic } from '../world/kit.js';
 import { fashionLeg, fashionShoes, fashionTop, fashionSleeve, fashionSkirt, fashionHair, fashionAccessories } from './fashion-parts.js';
+import { makeProp, PROP_EMOTES } from './props.js';
+import { extraLeg, extraShoes, extraTop, extraSleeve, extraSkirt, extraHair, extraAccessories, EXTRA_HATS } from './fashion-extra.js';
 
 // Los personajes nunca se recortan con el efecto de obstáculos translúcidos.
 const mat = (color, o = {}) => kitMat(color, { ...o, solid: true });
@@ -32,8 +34,8 @@ export function createAvatar(look = {}) {
   /* piernas */
   const legs = [-1, 1].map(side => {
     const pivot = new THREE.Group(); pivot.position.set(side * 0.115, 0.52, 0); body.add(pivot);
-    if (!fashionLeg(pivot, side, L, M)) part(new THREE.CapsuleGeometry(0.1, 0.26, 4, 10), M.bottom, 0, -0.23, 0, pivot);
-    if (!fashionShoes(pivot, L, M)) {
+    if (!fashionLeg(pivot, side, L, M) && !extraLeg(pivot, side, L, M)) part(new THREE.CapsuleGeometry(0.1, 0.26, 4, 10), M.bottom, 0, -0.23, 0, pivot);
+    if (!fashionShoes(pivot, L, M) && !extraShoes(pivot, L, M)) {
       const shoe = part(new THREE.CapsuleGeometry(0.095, 0.13, 4, 8), M.shoes, 0, -0.455, 0.06, pivot);
       shoe.rotation.x = Math.PI / 2; shoe.scale.set(1.05, 1, 0.82);
     }
@@ -42,18 +44,18 @@ export function createAvatar(look = {}) {
 
   /* torso */
   const torso = new THREE.Group(); torso.position.set(0, 0.52, 0); body.add(torso);
-  if (!fashionTop(torso, L, M)) {
+  if (!fashionTop(torso, L, M) && !extraTop(torso, L, M)) {
     const chest = part(new THREE.CapsuleGeometry(0.2, 0.26, 6, 14), M.top, 0, 0.3, 0, torso);
     chest.scale.set(1.12, 1, 0.86);
   }
   const belt = part(new THREE.CylinderGeometry(0.212, 0.205, 0.07, 16), M.bottom, 0, 0.06, 0, torso);
   belt.scale.set(1.1, 1, 0.86);
-  fashionSkirt(torso, L, M);
+  fashionSkirt(torso, L, M); extraSkirt(torso, L, M);
 
   /* brazos: el pivote está en el hombro */
   const arms = [-1, 1].map(side => {
     const pivot = new THREE.Group(); pivot.position.set(side * 0.285, 0.5, 0); torso.add(pivot);
-    if (!fashionSleeve(pivot, L, M)) part(new THREE.CapsuleGeometry(0.068, 0.25, 4, 8), M.top, 0, -0.17, 0, pivot);
+    if (!fashionSleeve(pivot, L, M) && !extraSleeve(pivot, L, M)) part(new THREE.CapsuleGeometry(0.068, 0.25, 4, 8), M.top, 0, -0.17, 0, pivot);
     part(new THREE.SphereGeometry(0.078, 12, 10), M.skin, 0, -0.39, 0, pivot);
     return pivot;
   });
@@ -79,7 +81,7 @@ export function createAvatar(look = {}) {
 
   /* cabello */
   if (L.hairStyle !== 'none') {
-    const tucked = (L.accessories || []).some(a => ['beanie', 'bucketHat', 'beret', 'fedora', 'cowboyHat'].includes(a));
+    const tucked = (L.accessories || []).some(a => ['beanie', 'bucketHat', 'beret', 'fedora', 'cowboyHat', ...EXTRA_HATS].includes(a));
     const cap = part(new THREE.SphereGeometry(0.278, 24, 14, 0, Math.PI * 2, 0, Math.PI * 0.52), M.hair, 0, 0.285, -0.012, head);
     cap.rotation.x = -0.32;
     if (L.hairStyle === 'bun') part(new THREE.SphereGeometry(tucked ? .085 : 0.11, 12, 10), M.hair, 0, tucked ? .39 : 0.52, tucked ? -.24 : -0.14, head);
@@ -87,7 +89,7 @@ export function createAvatar(look = {}) {
     if (L.hairStyle === 'short') { const fr = part(new THREE.SphereGeometry(0.12, 12, 8), M.hair, 0.09, tucked ? .32 : 0.47, tucked ? .20 : 0.16, head); fr.scale.set(1.5, tucked ? .3 : 0.6, 0.9); }
     if (L.hairStyle === 'side') { const fr = part(new THREE.SphereGeometry(0.13, 12, 8), M.hair, -0.1, tucked ? .32 : 0.46, tucked ? .19 : 0.15, head); fr.scale.set(1.6, tucked ? .3 : 0.62, 0.9); }
   }
-  fashionHair(head, L, M);
+  fashionHair(head, L, M); extraHair(head, L, M);
 
   /* accesorios */
   const acc = new Set(L.accessories);
@@ -159,6 +161,7 @@ export function createAvatar(look = {}) {
     const visor = part(new THREE.CylinderGeometry(0.17, 0.17, 0.02, 16, 1, false, -Math.PI / 2, Math.PI), M.accent, 0, 0.36, 0.2, head); visor.rotation.y = Math.PI / 2;
   }
   fashionAccessories({ head, torso, arms, look: L, materials: M, accessories: acc });
+  extraAccessories({ head, torso, arms, look: L, materials: M, accessories: acc });
 
   // Menos mallas por personaje: cada articulación fusiona sus piezas del mismo material.
   for (const joint of [head, torso, ...arms, ...legs]) mergeStatic(joint, { deep: false });
@@ -168,8 +171,14 @@ export function createAvatar(look = {}) {
   /* ---------- animación ---------- */
   const pose = { legL: 0, legR: 0, armLx: 0, armRx: 0, armLz: 0.08, armRz: -0.08, lean: 0, bodyY: 0, headX: 0, headY: 0, squash: 1, bank: 0 };
   const state = { phase: 0, time: Math.random() * 10, emote: null, emoteTime: 0, anim: 'idle', blink: 2 + Math.random() * 3, lookYaw: 0, prevYaw: null, turn: 0, idle: 0 };
+  /* Mundo vivo: mano derecha (correa) y hombro izquierdo (donde se posan las aves). Solo puntos de referencia. */
+  const handR = new THREE.Object3D(); handR.position.set(0, -0.43, 0.03); arms[1].add(handR);
+  const perch = new THREE.Object3D(); perch.position.set(-0.2, 0.66, -0.02); torso.add(perch);
 
-  function playEmote(name, seconds = 1.6) { state.emote = name; state.emoteTime = seconds; }
+  let prop = null, propKind = null;
+  /** Objeto en la mano mientras dura la animación (vaso, balero, papalote…). */
+  function setProp(kind, color) { if (kind === propKind && prop) return; prop?.dispose(); prop = null; propKind = kind; if (kind) prop = makeProp(kind, handR, root, color); }
+  function playEmote(name, seconds = 1.6, color) { state.emote = name; state.emoteTime = seconds; setProp(PROP_EMOTES.includes(name) ? name : null, color); }
 
   /**
    * @param {number} dt
@@ -178,7 +187,7 @@ export function createAvatar(look = {}) {
   function update(dt, s = {}) {
     const speed = s.speed || 0, grounded = s.grounded !== false, moving = speed > 0.25;
     state.time += dt;
-    if (state.emoteTime > 0) { state.emoteTime -= dt; if (state.emoteTime <= 0) state.emote = null; }
+    if (state.emoteTime > 0) { state.emoteTime -= dt; if (state.emoteTime <= 0) { state.emote = null; setProp(null); } }
     // Mezcla continua caminar↔correr y paso ligado a la distancia recorrida (los pies no patinan).
     const runMix = Math.min(1, Math.max(0, (speed - 3.7) / 1.9)), running = runMix > 0.5;
     if (moving && grounded) state.phase += dt * speed * (3.15 - 0.8 * runMix);
@@ -214,6 +223,20 @@ export function createAvatar(look = {}) {
       const mix = Math.min(1, Math.max(0, (state.idle - 4) / 2));
       if (mix && s.lookYaw === undefined) { T.headY += Math.sin(state.time * 0.42) * 0.42 * mix; T.bank = Math.sin(state.time * 0.33) * 0.03 * mix; T.legL += Math.max(0, Math.sin(state.time * 0.33)) * 0.08 * mix; }
     }
+    // paseando con correa: el brazo derecho sostiene la correa un poco al frente
+    if (state.hold && !s.sitting && grounded && !state.emote) { T.armRx = -0.42 + Math.sin(state.time * 2.4) * 0.04 + (moving ? T.armRx * 0.15 : 0); T.armRz = -0.16; }
+    // Mundo vivo: cuidar a la mascota, lanzar, beber y jugar con juguetes tradicionales
+    const e = state.emote, tt = state.time;
+    if (e === 'petting') { T.bodyY = -0.3; T.legL = -1.2; T.legR = 0.3; T.lean += 0.36; T.armRx = -0.75 + Math.sin(tt * 7) * 0.18; T.armRz = -0.1; T.headX = 0.3; }
+    else if (e === 'throw') { const back = state.emoteTime > 0.42; T.armRx = back ? 1.1 : -1.7; T.armRz = -0.2; T.lean += back ? -0.06 : 0.14; T.legL = back ? 0.2 : -0.25; }
+    else if (e === 'drink') { T.armRx = -1.8; T.armRz = 0.5; T.headX = -0.18; }
+    else if (e === 'balero') { T.armRx = -1.15 + Math.max(0, Math.sin(tt * 6.4)) * 0.25; T.armRz = -0.12; T.headX = 0.12; }
+    else if (e === 'yoyo') { T.armRx = -0.95 + Math.sin(tt * 8) * 0.12; T.armRz = -0.1; T.headX = 0.18; }
+    else if (e === 'trompo') { T.bodyY = -0.12; T.lean += 0.22; T.armRx = -0.55; T.armLx = -0.4; T.headX = 0.38; }
+    else if (e === 'papalote') { T.armRx = -2.45 + Math.sin(tt * 1.3) * 0.12; T.armRz = -0.25; T.headX = -0.42; }
+    else if (e === 'burbujas') { T.armRx = -1.8; T.armRz = 0.45; T.headX = -0.05; T.bodyY += Math.sin(tt * 2) * 0.01; }
+    if (['petting', 'throw', 'drink', 'balero', 'yoyo', 'trompo', 'papalote', 'burbujas'].includes(e)) anim = e;
+    prop?.update(tt);
     if (state.emote === 'wave') {
       anim = 'wave'; T.armRz = -2.55 + Math.sin(state.time * 11) * 0.32; T.armRx = 0; T.headY += 0.12;
     } else if (state.emote === 'celebrate') {
@@ -257,5 +280,5 @@ export function createAvatar(look = {}) {
     if (state.blink <= 0) state.blink = 2.4 + Math.random() * 3.2;
   }
 
-  return { group: root, update, playEmote, get anim() { return state.anim; }, get emote() { return state.emote; }, head, look: L, height: 1.72 * L.scale };
+  return { group: root, update, playEmote, hand: handR, perch, setHold(on) { state.hold = Boolean(on); }, get anim() { return state.anim; }, get emote() { return state.emote; }, get emoteTime() { return state.emoteTime; }, head, look: L, height: 1.72 * L.scale };
 }

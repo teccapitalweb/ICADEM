@@ -4,6 +4,7 @@ import { LANDMARKS } from '../edu/district-rules.js';
 import { levelFromXp } from '../core/store.js';
 import { emptyPlay, playAchievements } from '../edu/play-rules.js';
 import { HAT_OPTIONS, HAT_ACCESSORIES, COSMETIC_OPTIONS, HAIR_COLORS } from './appearance-catalog.js';
+import { emptyVivo } from '../vivo/vivo-rules.js';
 export * from './appearance-catalog.js';
 
 export const PROFILE_VERSION = 1;
@@ -85,6 +86,9 @@ export function applyCustom(look, custom) {
   if (c.hairStyle) out.hairStyle = c.hairStyle;
   if (c.hairColor) out.hair = HAIR_COLORS.find(o => o.id === c.hairColor).color;
   if (c.necklace) { out.necklaceStyle = c.necklace; out.accessories = out.accessories.filter(a => !['scarf', 'medal'].includes(a)); }
+  if (c.glasses) { out.glassesStyle = c.glasses; out.accessories = out.accessories.filter(a => a !== 'glasses'); }
+  if (c.bracelet) out.braceletStyle = c.bracelet;
+  if (c.headphones) out.headphonesStyle = c.headphones;
   return out;
 }
 
@@ -102,5 +106,5 @@ export function deriveAchievements(p) {
 }
 
 export function emptyProfile() {
-  return { v: PROFILE_VERSION, rev: 0, xp: 0, missions: {}, visited: [], discovered: [], tutorialDone: false, achievements: [], avatarId: 'explorador', avatarChosen: false, custom: cleanCustom(null), testCredits: 0, testLedger: [], play: emptyPlay(), privacy: { listed: true } };
+  return { v: PROFILE_VERSION, rev: 0, xp: 0, missions: {}, visited: [], discovered: [], tutorialDone: false, achievements: [], avatarId: 'explorador', avatarChosen: false, custom: cleanCustom(null), testCredits: 0, testLedger: [], play: emptyPlay(), privacy: { listed: true }, ...emptyVivo() };
 }

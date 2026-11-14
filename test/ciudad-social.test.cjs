@@ -57,7 +57,8 @@ test('avatares: mismo esqueleto, iniciales gratuitos, desbloqueo por juego y equ
 test('progreso en servidor: el cliente manda acciones y el servidor calcula XP, logros y recompensas de prueba', async () => {
   const profiles = await makeProfiles();
   const r = await load('ciudad/js/progress/rules.js');
-  assert.deepEqual(await profiles.get('ana'), { ...r.emptyProfile(), testLedger: undefined, testMoves: 0 }.testLedger === undefined && { v: 1, rev: 0, xp: 0, missions: {}, visited: [], discovered: [], tutorialDone: false, achievements: [], avatarId: 'explorador', avatarChosen: false, custom: { outfit: 'base', hat: 'base', tone: 'base' }, testCredits: 0, testMoves: 0, play: { day: '', quizToday: 0, quizCorrect: 0, quizSeen: {}, act: {} }, privacy: { listed: true }, chat: { enabled: false, accepted: false, off: false, blocked: [] } });
+  const vivo = await load('ciudad/js/vivo/vivo-rules.js');
+  assert.deepEqual(await profiles.get('ana'), { ...vivo.vivoView(vivo.emptyVivo()), vivo: 1, v: 1, rev: 0, xp: 0, missions: {}, visited: [], discovered: [], tutorialDone: false, achievements: [], avatarId: 'explorador', avatarChosen: false, custom: { outfit: 'base', hat: 'base', tone: 'base' }, testCredits: 0, testMoves: 0, play: { day: '', quizToday: 0, quizCorrect: 0, quizSeen: {}, act: {} }, privacy: { listed: true }, chat: { enabled: false, accepted: false, off: false, blocked: [] } });
   assert.equal((await profiles.completeMission('ana', r.MISSION_BANK, [{ type: 'talk' }, { type: 'justify', payload: { reasons: ['costo'] } }])).reason, 'bitacora-invalida', 'una bitácora que se salta pasos no cuenta');
   assert.equal((await profiles.completeMission('ana', 'inventada', [])).reason, 'mision-desconocida');
   assert.equal((await profiles.completeMission('ana', r.MISSION_BANK, 'x')).ok, false);
@@ -65,20 +66,21 @@ test('progreso en servidor: el cliente manda acciones y el servidor calcula XP, 
   const bad = await profiles.completeMission('ana', r.MISSION_BANK, BANK_LOG('expres', ['rapidez']));
   assert.deepEqual([bad.ok, bad.passed, bad.credits, bad.xp], [true, false, 0, 0]);
   const win = await profiles.completeMission('ana', r.MISSION_BANK, BANK_LOG());
-  assert.deepEqual([win.score, win.credits, win.xp, win.profile.testCredits, win.profile.xp], [100, 15, 120, 15, 120]);
+  assert.deepEqual([win.score, win.credits, win.xp, win.profile.testCredits, win.profile.xp], [100, 15, 120, 0, 120]);
+  assert.equal(win.profile.coins, 100 + 15 + 2 * 10, 'bienvenida + misión + dos logros nuevos, en monedas del juego');
   assert.deepEqual(win.profile.achievements, ['primera-mision', 'decision-impecable'], 'los logros los deriva el servidor');
   const again = await profiles.completeMission('ana', r.MISSION_BANK, BANK_LOG());
-  assert.deepEqual([again.credits, again.xp, again.profile.testCredits, again.profile.missions[r.MISSION_BANK].attempts], [0, 30, 15, 3], 'repetir no duplica créditos de prueba');
+  assert.deepEqual([again.credits, again.xp, again.profile.coins - win.profile.coins, again.profile.missions[r.MISSION_BANK].attempts], [0, 30, 4, 3], 'repetir no duplica la recompensa: solo monedas de práctica');
   // dos dispositivos cerrando la misma misión a la vez: sigue habiendo una sola recompensa
   const twin = await makeProfiles();
   const both = await Promise.all([twin.completeMission('beto', r.MISSION_BANK, BANK_LOG()), twin.completeMission('beto', r.MISSION_BANK, BANK_LOG())]);
-  assert.deepEqual(both.map(x => x.credits).sort(), [0, 15]); assert.equal((await twin.get('beto')).testCredits, 15);
+  assert.deepEqual(both.map(x => x.credits).sort(), [0, 15]); assert.equal((await twin.get('beto')).coins, 100 + 15 + 20 + 4);
   assert.equal((await profiles.setAvatar('ana', 'ejecutivo', { outfit: 'coral', hat: 'trampa' })).profile.custom.hat, 'base');
   assert.equal((await profiles.visit('ana', 'luna')).ok, false);
   const v1 = await profiles.visit('ana', 'banco'), v2 = await profiles.visit('ana', 'banco');
   assert.equal(v2.profile.xp - (v1.profile.xp - 10), 10, 'un edificio da XP una sola vez');
   const t1 = await profiles.tutorial('ana'), t2 = await profiles.tutorial('ana');
-  assert.deepEqual([t1.profile.testCredits, t2.profile.testCredits, t2.profile.rev], [25, 25, t1.profile.rev]);
+  assert.deepEqual([t1.profile.coins - again.profile.coins, t2.profile.coins, t2.profile.rev], [10 + 10, t1.profile.coins, t1.profile.rev], 'tutorial y su logro pagan una sola vez');
   assert.equal(JSON.stringify(await profiles.get('ana')).includes('testLedger'), false);
   assert.equal((await profiles.get('otra')).xp, 0, 'cada usuario tiene su propio progreso');
 });
@@ -90,7 +92,7 @@ test('progreso en servidor: sobrevive a un reinicio y no toca la cartera real', 
   const a = await makeProfiles(new JsonFileStorage(dir));
   await a.completeMission('uid-ana', r.MISSION_BANK, BANK_LOG()); await a.setAvatar('uid-ana', 'ejecutivo', { outfit: 'sol', hat: 'none' });
   const b = await makeProfiles(new JsonFileStorage(dir)), p = await b.get('uid-ana');   // "otro dispositivo" tras reiniciar el servidor
-  assert.deepEqual([p.xp, p.avatarId, p.custom.outfit, p.missions[r.MISSION_BANK].completed, p.testCredits], [120, 'ejecutivo', 'sol', true, 15]);
+  assert.deepEqual([p.xp, p.avatarId, p.custom.outfit, p.missions[r.MISSION_BANK].completed, p.coins], [120, 'ejecutivo', 'sol', true, 135]);
   assert.equal(fs.readdirSync(dir).some(f => f.includes('uid-ana')), false, 'el nombre del archivo no expone al usuario');
   fs.rmSync(dir, { recursive: true, force: true });
   for (const file of ['_ciudad-server/profiles.js', '_ciudad-server/server.js', '_ciudad-server/hub.js']) assert.doesNotMatch(fs.readFileSync(path.join(root, file), 'utf8').replace(/^\s*\/\/.*$/gm, ''), /credits\/|\/api\/credits|collection\(['"]credits|stripe|wallet/i, file + ' no conoce la cartera real');
@@ -166,7 +168,7 @@ test('socket real: el progreso sigue al usuario entre conexiones y la apariencia
   ana.tell({ t: 'profile', op: 'avatar', id: 'ejecutivo', custom: { outfit: 'coral', hat: 'cap' } }); await ana.wait('profile'); await beto.wait('look');
   // otro dispositivo de la misma cuenta: mismo progreso; la sesión anterior se cierra
   const ana2 = await connect('ana', 'Ana'); assert.equal((await ana.wait('bye')).reason, 'sesion-en-otro-lugar');
-  assert.deepEqual([ana2.welcome.profile.xp, ana2.welcome.profile.avatarId, ana2.welcome.profile.missions['banco-credito-correcto'].completed, ana2.welcome.profile.testCredits], [120, 'ejecutivo', true, 15]);
+  assert.deepEqual([ana2.welcome.profile.xp, ana2.welcome.profile.avatarId, ana2.welcome.profile.missions['banco-credito-correcto'].completed, ana2.welcome.profile.coins], [120, 'ejecutivo', true, 135]);
   assert.deepEqual([ana2.welcome.profile.avatarChosen, ana2.welcome.profile.custom], [true, { outfit: 'coral', hat: 'cap', tone: 'base' }], 'otro dispositivo recibe el mismo personaje y no vuelve a preguntar');
   // amigos e invitación por red
   assert.deepEqual(ana2.welcome.friends.map(f => f.name), ['Beto']);

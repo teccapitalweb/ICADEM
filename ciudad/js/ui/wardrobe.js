@@ -177,11 +177,11 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   // Presentation groups contain only identifiers already present in the shared
   // catalog. Missing categories, prices and unlock states are never invented.
   const types = {
-    top: [['camisetas', 'Camisetas', ['tee']], ['sudaderas', 'Sudaderas', ['hoodie']], ['chaquetas', 'Chaquetas y blazers', ['denimJacket', 'blazer']], ['tops', 'Tops', ['cropTop']]],
-    bottom: [['pantalones', 'Pantalones', ['straight', 'cargo', 'flare']], ['faldas', 'Faldas', ['skirt', 'pleatedSkirt']]],
-    shoes: [['tenis', 'Tenis', ['sneakers', 'chunky']], ['botas', 'Botas', ['boots']], ['mocasines', 'Mocasines', ['loafers']]],
-    hat: [['gorras', 'Gorras', ['cap']], ['gorros', 'Gorros', ['beanie']], ['sombreros', 'Sombreros', ['explorerHat', 'bucketHat', 'fedora', 'cowboyHat']], ['boinas', 'Boinas', ['beret']]],
-    hairStyle: [['peinados', 'Peinados', ['short', 'side', 'long', 'bun', 'ponytail', 'curly', 'pigtails', 'waves']], ['pelucas', 'Pelucas', ['bob']]]
+    top: [['camisetas', 'Camisetas', ['tee', 'printTee']], ['camisas', 'Camisas y blusas', ['shirt', 'blouse']], ['sudaderas', 'Sudaderas', ['hoodie']], ['sueteres', 'Suéteres', ['sweater']], ['chaquetas', 'Chaquetas y blazers', ['denimJacket', 'blazer', 'sportJacket']], ['tops', 'Tops', ['cropTop', 'tank']]],
+    bottom: [['pantalones', 'Pantalones', ['straight', 'cargo', 'flare', 'joggers', 'wideJeans', 'capri']], ['shorts', 'Shorts y bermudas', ['shorts', 'bermuda']], ['faldas', 'Faldas', ['skirt', 'pleatedSkirt', 'longSkirt', 'denimSkirt']]],
+    shoes: [['tenis', 'Tenis', ['sneakers', 'chunky', 'runners']], ['botas', 'Botas', ['boots', 'ankleBoots']], ['mocasines', 'Mocasines', ['loafers']], ['zapatos', 'Zapatos de vestir', ['oxfords']], ['sandalias', 'Sandalias', ['sandals']]],
+    hat: [['gorras', 'Gorras', ['cap', 'sportCap']], ['gorros', 'Gorros', ['beanie']], ['sombreros', 'Sombreros', ['explorerHat', 'bucketHat', 'fedora', 'cowboyHat', 'sunHat', 'strawHat']], ['boinas', 'Boinas', ['beret']]],
+    hairStyle: [['peinados', 'Peinados', ['short', 'side', 'long', 'bun', 'ponytail', 'curly', 'pigtails', 'waves', 'braid', 'afro']], ['pelucas', 'Pelucas', ['bob']]]
   };
   const filters = new Map(), match = value => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   const colorLabels = new Map([
@@ -218,7 +218,8 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
           const b = h('button', (on ? 'is-on ' : '') + (worn ? 'is-equipped ' : on ? 'is-trying ' : '') + (['base', 'none'].includes(o.id) ? 'is-reset ' : '') + (key === 'tone' ? 'vest__tone' : 'voption')); b.type = 'button'; b.dataset[key] = o.id; b.title = o.name; b.setAttribute('aria-label', `${label}: ${o.name}${worn ? ', equipado' : on ? ', en prueba' : ''}`); b.setAttribute('aria-pressed', String(on));
           if (o.color !== null && o.color !== undefined) b.style.setProperty('--dot', hex(o.color)); else if (swatch) b.classList.add('is-base');
           if (key !== 'tone') {
-            const pic = h('span', 'voption__pic'), img = h('img'), copy = h('span', 'voption__copy'); img.alt = ''; img.decoding = 'async'; pic.append(img); copy.append(h('strong', null, o.name), h('small', null, worn ? 'Equipado' : on ? 'En prueba' : 'Disponible')); b.append(pic, copy);
+            const pic = h('span', 'voption__pic'), img = h('img'), copy = h('span', 'voption__copy'); img.alt = ''; img.decoding = 'async'; pic.append(img); const shop = api.vivo?.wearInfo?.(key, o.id), inShop = shop && !shop.owned;   // prenda de tienda (monedas del juego) que aún no es tuya
+            copy.append(h('strong', null, o.name), h('small', null, worn ? 'Equipado' : on ? 'En prueba' : inShop ? `En tienda · ${shop.item.price} monedas` : 'Disponible')); if (inShop) b.classList.add('is-shop'); b.append(pic, copy);
             if (key === 'hairColor' && o.color !== null) pic.append(h('span', 'vest__hair-swatch'));
             if (on || worn) pic.append(h('span', 'voption__check', worn ? '✓' : '◉'));
             jobs.push({ id: viewing, custom: { ...draft, [key]: o.id }, img, detail: key });

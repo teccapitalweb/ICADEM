@@ -11,13 +11,19 @@ import { ChatGuard } from './chat.js';
 import { MissionRun } from '../ciudad/js/missions/engine.js';
 import { RACE, TREASURES, TREASURE_RADIUS, treasureRounds, validSeed } from '../ciudad/js/edu/activities.js';
 import { MAZE, landmarkById } from '../ciudad/js/edu/district-rules.js';
+import { FIELD_GAMES, fieldStart, fieldState, fieldStep, fieldScore } from '../ciudad/js/edu/field-games.js';
+import { QUESTIONS, questionById } from '../ciudad/js/edu/questions.js';
 
 /** Recorridos validados por posición: puntos en orden y puntuación por tiempo. */
-const ROUTES = Object.freeze({ carrera: { ...RACE, par: 30, per: 1.5, away: 'fuera-del-parque' }, laberinto: { ...MAZE, away: 'fuera-del-distrito' } });
+/** Carrera del Saber (2.0): la carrera del parque con dos barreras que solo abren con una respuesta correcta. */
+const QUIZ_LEVELS = ['juvenil', 'general'];
+const ROUTES = Object.freeze({ carrera: { ...RACE, par: 45, per: 1.2, quiz: [2, 5], away: 'fuera-del-parque' }, laberinto: { ...MAZE, away: 'fuera-del-distrito' } });
 
 /** Equipo libre (sin misión): de 2 a 4 personas, sin roles. */
 const TEAM = Object.freeze({ title: 'Equipo', min: 2, max: 4, roles: [], playable: false });
 const specOf = room => COOP_MISSIONS[room.mission] || TEAM;
+
+import { FLIGHTS, FLIGHT_TOLERANCE, FLIGHT_COOLDOWN_MS, flightPoint } from '../ciudad/js/vivo/flight.js';
 
 export const LIMITS = Object.freeze({
   capacity: 16,          // jugadores por instancia (objetivo 10–20, sujeto a pruebas de carga)
@@ -27,7 +33,7 @@ export const LIMITS = Object.freeze({
   resumeMs: 30000,       // tiempo que se guarda el lugar de alguien que perdió la conexión
   nameMax: 28,
   // Topes por tipo de acción (máximo, ventana en ms). Lo que los excede se descarta.
-  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], chat: [40, 60000], coop: [40, 10000], code: [10, 60000], quiz: [20, 60000], activity: [20, 60000], play: [40, 60000] },
+  actions: { s: [25, 1000], report: [5, 60000], room: [12, 60000], verify: [6, 60000], friends: [20, 60000], invite: [6, 60000], profile: [30, 60000], chat: [40, 60000], coop: [40, 10000], code: [10, 60000], quiz: [20, 60000], activity: [20, 60000], play: [40, 60000], vivo: [40, 60000] },
   inviteMs: 60000,       // una invitación sin responder caduca en un minuto
   coopLog: 400,          // acciones máximas de un intento en equipo
   coopPayload: 1500,     // bytes máximos de los datos de una acción en equipo
@@ -91,7 +97,7 @@ export class Hub {
     const player = {
       minor: Boolean(minor), guardian: minor ? guardian : null,
       uid, pid: this.publicId(uid), name: cleanName(name), avatar: String(avatar).slice(0, 24), instance,
-      online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null, listed: true,
+      online: true, detachedAt: 0, epoch: 1, state: null, stateAt: 0, rejected: 0, fresh: true, room: null, friends: new Set(), custom: null, pet: null, listed: true,
       chat: { ok: false, blocked: new Set() },
       allowSay: createRateLimiter(SAY_LIMIT),
       limits: Object.fromEntries(Object.entries(LIMITS.actions).map(([k, [max, windowMs]]) => [k, createRateLimiter({ max, windowMs })]))
@@ -131,8 +137,24 @@ export class Hub {
     const reject = reason => { player.rejected++; return { ok: false, reason, fix: player.state ? encodeState(player.state) : null }; };
     if (!s || !NET_SCENES.includes(s.scene)) return reject('formato');
     const rule = SCENE_RULES[s.scene], b = rule.bounds;
-    if (s.x < b.minX || s.x > b.maxX || s.z < b.minZ || s.z > b.maxZ || s.y < -0.5 || s.y > 6) return reject('fuera-del-mapa');
+    if (s.x < b.minX || s.x > b.maxX || s.z < b.minZ || s.z > b.maxZ || s.y < -0.5 || s.y > 30) return reject('fuera-del-mapa');
     const prev = player.state;
+    // Vuelo en dragón autorizado: la posición debe ir sobre la ruta fija, en el momento que corresponde.
+    const fl = player.flight;
+    if (fl) {
+      const f = FLIGHTS[fl.id], k = (t - fl.start) / fl.ms;
+      if (k <= 1.15 && s.scene === f.scene) {
+        const at = flightPoint(fl.id, Math.min(1, Math.max(0, k)));
+        // tolerancia: la ruta en el instante del servidor o un poco antes (latencia del cliente)
+        const near = [0, -0.02, -0.04].some(dk => { const q = flightPoint(fl.id, Math.min(1, Math.max(0, k + dk))); return Math.hypot(s.x - q.x, s.z - q.z) <= FLIGHT_TOLERANCE; });
+        if (!near || s.y > f.cruise + 5) return reject('vuelo');
+        player.state = s; player.stateAt = t; player.fresh = false;
+        if (k >= 1 && s.y < 3 && Math.hypot(s.x - f.pad.x, s.z - f.pad.z) <= f.pad.r + 2.5) player.flight = null;   // aterrizó
+        return { ok: true };
+      }
+      player.flight = null;
+    }
+    if (s.y > 6) return reject('fuera-del-mapa');
     // El primer estado de cada conexión solo se valida contra el mapa: pudo moverse sin red.
     if (prev && !player.fresh) {
       if (prev.scene === s.scene) {
@@ -419,7 +441,7 @@ export class Hub {
   }
 
   /** Jugadores reales conectados en la instancia (sin NPC), con el nombre que le corresponde ver a `viewer`. */
-  roster(instance, viewer = null) { return [...instance.players.values()].filter(p => p.online && p !== viewer && (!viewer ? !p.minor : this.sees(viewer, p))).map(p => ({ pid: p.pid, name: this.nameFor(viewer, p), avatar: p.avatar, custom: p.custom })); }
+  roster(instance, viewer = null) { return [...instance.players.values()].filter(p => p.online && p !== viewer && (!viewer ? !p.minor : this.sees(viewer, p))).map(p => ({ pid: p.pid, name: this.nameFor(viewer, p), avatar: p.avatar, custom: p.custom, pet: p.pet })); }
 
   /** Presencia controlada por el servidor: solo cuenta sesiones conectadas (las desconectadas expiran en `resumeMs`). */
   presence(player) {
@@ -491,8 +513,25 @@ export class Hub {
   #where(player, scene) { const st = player.state; return st && st.scene === scene && this.now() - player.stateAt < 2500 ? st : null; }
 
   playStart(player, game, seed) {
+    if (this.flying(player)) return { ok: false, reason: 'en-vuelo' };   // la montura no sirve de atajo
     const route = ROUTES[game];
-    if (route) { if (!this.#where(player, route.scene)) return { ok: false, reason: route.away }; player.play = { game, next: 0, at: this.now() }; return { ok: true, next: 0 }; }
+    if (route) {
+      if (!this.#where(player, route.scene)) return { ok: false, reason: route.away };
+      player.play = { game, next: 0, at: this.now(), pen: 0 };
+      if (route.quiz) {   // preguntas de cada barrera (varias por si hay que reintentar), elegidas por el servidor
+        const pool = QUESTIONS.filter(q => QUIZ_LEVELS.includes(q.level)).map(q => q.id).sort(() => Math.random() - 0.5);
+        player.play.q = Object.fromEntries(route.quiz.map((i, k) => [i, pool.slice(k * 4, k * 4 + 4)])); player.play.tries = {}; player.play.open = {};
+        return { ok: true, next: 0, quiz: Object.fromEntries(route.quiz.map(i => [i, player.play.q[i][0]])) };
+      }
+      return { ok: true, next: 0 };
+    }
+    const field = FIELD_GAMES[game];
+    if (field) {
+      if (!validSeed(seed)) return { ok: false, reason: 'datos' };
+      if (!this.#where(player, field.scene)) return { ok: false, reason: 'lejos' };
+      player.play = { game, field: true, data: fieldStart(game, seed), st: fieldState(game), at: this.now() };
+      return { ok: true, data: player.play.data };
+    }
     if (game === 'tesoro') {
       if (!validSeed(seed)) return { ok: false, reason: 'datos' };
       if (!this.#where(player, 'plaza')) return { ok: false, reason: 'fuera-de-la-plaza' };
@@ -506,18 +545,27 @@ export class Hub {
    * control de velocidad y de puertas) está junto al punto. El navegador no puede «llegar» por decirlo.
    */
   playCheck(player, payload = {}) {
+    if (this.flying(player)) return { ok: false, reason: 'en-vuelo' };
     const run = player.play; if (!run) return { ok: false, reason: 'sin-partida' };
     const route = ROUTES[run.game];
     if (route) {
       const st = this.#where(player, route.scene), i = payload.i, cp = route.checkpoints[run.next];
       if (!st) return { ok: false, reason: route.away };
       if (i !== run.next || !cp) return { ok: false, reason: 'fuera-de-orden' };
+      if (route.quiz && route.quiz.includes(run.next) && !run.open[run.next]) return { ok: false, reason: 'barrera', i: run.next, q: this.#barrierQ(run, run.next) };
       if (Math.hypot(st.x - cp[0], st.z - cp[1]) > route.radius + 0.6 || st.y < (cp[2] || 0) - 0.35) return { ok: false, reason: 'lejos' };
       run.next++;
       if (run.next < route.checkpoints.length) return { ok: true, next: run.next };
       const seconds = (this.now() - run.at) / 1000; player.play = null;
       if (seconds < route.minSeconds) return { ok: false, reason: 'imposible' };
-      return { ok: true, done: true, game: run.game, seconds: Math.round(seconds), score: Math.max(50, Math.min(100, Math.round(100 - Math.max(0, seconds - route.par) * route.per))) };
+      return { ok: true, done: true, game: run.game, seconds: Math.round(seconds), score: Math.max(route.quiz ? 40 : 50, Math.min(100, Math.round(100 - (run.pen || 0) - Math.max(0, seconds - route.par) * route.per))) };
+    }
+    if (run.field) {
+      const r = fieldStep(run.game, run.data, run.st, payload.action, scene => this.#where(player, scene));
+      if (!r.done) return r;
+      const seconds = (this.now() - run.at) / 1000; player.play = null;
+      if (seconds < FIELD_GAMES[run.game].minSeconds) return { ok: false, reason: 'imposible' };
+      return { ok: true, done: true, game: run.game, seconds: Math.round(seconds), score: fieldScore(run.game, seconds, r.st) };
     }
     const st = this.#where(player, 'plaza'), t = TREASURES.find(x => x.id === payload.id), round = run.rounds[run.round];
     if (!st) return { ok: false, reason: 'fuera-de-la-plaza' };
@@ -534,13 +582,49 @@ export class Hub {
 
   playQuit(player) { player.play = null; return { ok: true }; }
 
+  #barrierQ(run, i) { const list = run.q[i]; return list[Math.min(run.tries[i] || 0, list.length - 1)]; }
+  /** Barrera de la Carrera del Saber: se abre solo con la respuesta correcta (cada error resta 5 y trae otra pregunta). */
+  playAnswer(player, { i, choice } = {}) {
+    const run = player.play, route = run && ROUTES[run.game];
+    if (!route || !route.quiz || !route.quiz.includes(i) || run.open[i]) return { ok: false, reason: 'sin-barrera' };
+    const qn = questionById(this.#barrierQ(run, i));
+    if (Number.isInteger(choice) && choice === qn.answer) { run.open[i] = true; return { ok: true, i, open: true, explain: qn.explain }; }
+    run.tries[i] = (run.tries[i] || 0) + 1; run.pen += 5;
+    return { ok: false, reason: 'incorrecta', i, explain: qn.explain, q: this.#barrierQ(run, i) };
+  }
+  /** Pista: quita una opción equivocada (resta 3). */
+  playHint(player, { i } = {}) {
+    const run = player.play, route = run && ROUTES[run.game];
+    if (!route || !route.quiz || !route.quiz.includes(i) || run.open[i]) return { ok: false, reason: 'sin-barrera' };
+    const qn = questionById(this.#barrierQ(run, i)), wrong = qn.options.map((_, k) => k).filter(k => k !== qn.answer);
+    run.pen += 3; return { ok: true, i, q: qn.id, remove: wrong[Math.floor(Math.random() * wrong.length)] };
+  }
+
   /** Ruta del explorador: el sitio cuenta solo si la última posición aceptada está ahí. */
   discover(player, id) {
+    if (this.flying(player)) return { ok: false, reason: 'en-vuelo' };
     const l = landmarkById(String(id)); if (!l) return { ok: false, reason: 'sitio-desconocido' };
     const st = this.#where(player, l.scene);
     if (!st || Math.hypot(st.x - l.at[0], st.z - l.at[1]) > l.r + 0.6) return { ok: false, reason: 'lejos' };
     return { ok: true, id: l.id };
   }
+
+  /**
+   * Vuelo panorámico en el Gran dragón de viaje. Solo desde el helipuerto, sin partidas ni misiones en
+   * curso y con una pausa entre vuelos. Durante el vuelo no se descubren sitios ni se juega.
+   */
+  startFlight(player, id, hasDragon) {
+    const f = FLIGHTS[id], t = this.now();
+    if (!f) return { ok: false, reason: 'ruta' };
+    if (!hasDragon) return { ok: false, reason: 'sin-dragon' };
+    if (player.flight && t - player.flight.start < player.flight.ms * 1.15) return { ok: false, reason: 'en-vuelo' };
+    if (player.play || (player.room && player.room.session && !player.room.session.done)) return { ok: false, reason: 'ocupado' };
+    if (player.lastFlight && t - player.lastFlight < f.seconds * 1000 + FLIGHT_COOLDOWN_MS) return { ok: false, reason: 'espera' };
+    const st = this.#where(player, f.scene); if (!st || Math.hypot(st.x - f.pad.x, st.z - f.pad.z) > f.pad.r + 1.6) return { ok: false, reason: 'lejos' };
+    player.flight = { id, start: t, ms: f.seconds * 1000 }; player.lastFlight = t;
+    return { ok: true, route: id, seconds: f.seconds };
+  }
+  flying(player) { return Boolean(player.flight && this.now() - player.flight.start < player.flight.ms * 1.15); }
 
   stats() { return { instances: this.instances.size, players: [...this.byUid.values()].filter(p => p.online).length, rooms: this.rooms.size, reports: this.reports.length }; }
 }

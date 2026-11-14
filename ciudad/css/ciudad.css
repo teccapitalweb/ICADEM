@@ -712,3 +712,76 @@ button.chat__who:hover,button.chat__who:focus-visible{text-decoration:underline;
 .esc__win{margin:6px 0;font-size:18px;font-weight:800;text-align:center}
 @media (max-width:560px){.lab__stage{height:96px}.lab__art{font-size:36px}.lab__art--1{font-size:44px}.esc__lock{min-width:70px;font-size:24px}}
 @media (prefers-reduced-motion:reduce){.lab__art,.esc__lock,.esc__card{animation:none!important;transition:none!important}}
+
+/* ===== Ciudad ICADEM 2.0 · paneles funcionales de Mundo vivo (Codex los rediseña) ===== */
+.vp{display:grid;gap:14px}
+.vp--pets{grid-template-columns:minmax(200px,250px) 1fr;align-items:start}
+.vp__stage{display:grid;gap:6px;justify-items:center;position:sticky;top:0}
+.vp__stage canvas{width:100%;max-width:250px;height:auto;border-radius:16px;background:#eef3fb;touch-action:none}
+.vp__caption{margin:0;font-size:13px;font-weight:700;color:var(--ink);text-align:center}
+.vp__panel{display:grid;gap:10px;min-width:0}
+.vp__list{display:grid;gap:8px}
+.vp__pet{width:100%;text-align:left;border:2px solid transparent;cursor:pointer}
+.vp__pet.is-on{border-color:var(--teal);background:#e3f4ec}
+.vp__actions{display:flex;flex-wrap:wrap;gap:8px}
+.vp__block{display:grid;gap:8px;padding:12px;border-radius:14px;background:#f5f7fb}
+.vp__block h4{margin:0;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#5b6b86}
+.vp__block .btn{justify-self:start}
+.vp__slot{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.vp__slotname{min-width:88px;font-size:13px;font-weight:700}
+.vp__rename input,.vp__block input{padding:10px 12px;border-radius:11px;border:1px solid #d5ddeb;font:inherit;max-width:260px}
+.vp__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+.vp__card{display:grid;gap:4px;padding:10px 12px;border-radius:13px;background:#f5f7fb;border:2px solid transparent;text-align:left;cursor:pointer;position:relative}
+.vp__card.is-on{border-color:var(--teal);background:#e3f4ec}
+.vp__card.is-adopted{opacity:.65}
+.vp__card small{color:#5b6b86}
+.vp__bar{display:block;height:5px;border-radius:5px;background:#dde4ef;overflow:hidden;position:relative}
+.vp__bar::after{content:'';position:absolute;inset:0;width:var(--p,0%);background:var(--teal)}
+.vp__product{cursor:default;justify-items:start}
+.vp__icon{font-size:26px;line-height:1}
+.vp__greeting{margin:0;padding:10px 12px;border-radius:12px;background:#fff6e0;font-weight:600}
+@media (max-width:620px){.vp--pets{grid-template-columns:1fr}.vp__stage{position:static}.vp__stage canvas{max-width:200px}}
+.vp__chip{padding:7px 11px;border-radius:999px;border:1.5px solid rgba(15,31,61,.16);background:#fff;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer}
+.vp__chip.is-on{background:var(--night);border-color:var(--night);color:#fff}
+/* editor funcional de «Mi casa» */
+.hed{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:min(720px,calc(100% - 16px));max-height:46vh;overflow:auto;display:grid;gap:8px;padding:12px;border-radius:18px;background:rgba(255,255,255,.96);box-shadow:0 18px 50px rgba(5,12,30,.35);z-index:5;color:var(--ink)}
+.hed__head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;justify-content:space-between}
+.hed__status{font-size:13px;color:#2f7a5f;font-weight:600}
+.hed__status.is-bad{color:#c0392b}
+.hed__tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hed__tools .btn{padding:8px 12px;min-width:40px}
+.hed__sel{font-weight:700;margin-right:6px}
+.hed__shelf{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.hed__item{display:grid;justify-items:center;gap:2px;min-width:86px;padding:8px;border-radius:12px;background:#f5f7fb;border:1.5px solid #e1e7f0;cursor:pointer}
+.hed__item span{font-size:22px}.hed__item small{font-size:11px;text-align:center}
+.hed__item:disabled{opacity:.45;cursor:default}
+.hed__looks{display:grid;gap:6px}
+.hed__chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.hed__chips small{min-width:58px;font-weight:700;font-size:12px}
+.hed__chip{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px #c9d3e2;cursor:pointer}
+.hed__chip.is-on{box-shadow:0 0 0 3px var(--teal)}
+.hed__foot{display:flex;justify-content:flex-end;gap:8px}
+/* puesto de aguas frescas */
+.aguas{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:start}
+.aguas__glass{grid-row:span 3;position:relative;width:96px;height:150px;border:4px solid #cfe3f2;border-top:0;border-radius:0 0 22px 22px;overflow:hidden;background:rgba(220,240,255,.5)}
+.aguas__fill{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--c);transition:height .35s}
+.aguas__side{display:grid;gap:4px}.aguas__log{margin:0;padding-left:18px;font-size:13px}
+.aguas__steps{display:flex;flex-wrap:wrap;gap:6px}
+.aguas__btn{display:grid;justify-items:center;gap:2px;padding:8px 10px;min-width:92px}
+.aguas__btn span{font-size:20px}.aguas__btn small{font-size:12px}
+.aguas__btn.is-done{opacity:.5}
+.aguas__hint{grid-column:2;margin:0;font-weight:600;color:#2f7a5f}.aguas__hint.is-bad{color:#c0392b}
+@media (max-width:620px){.aguas{grid-template-columns:1fr}.aguas__glass{grid-row:auto;margin:0 auto}.aguas__hint{grid-column:auto}}
+/* juegos de elección de Mundo vivo */
+.vg{display:grid;gap:12px}
+.vg__progress{position:relative;height:22px;border-radius:999px;background:#eef2f8;font-size:12px;font-weight:700;display:grid;place-items:center;overflow:hidden;z-index:0}
+.vg__progress::before{content:'';position:absolute;inset:0;width:var(--p,0%);background:#c7f0dc;z-index:-1;transition:width .3s}
+.vg__stage{display:flex;justify-content:center}.vg__stage canvas{border-radius:14px;max-width:220px}
+.vg__case{margin:0;padding:10px 12px;border-radius:12px;background:#fff6e0;font-weight:600}
+.vg__task{display:grid;gap:8px}.vg__task h4{margin:0;font-size:16px}.vg__task p{margin:0}
+.vg__opts{display:grid;gap:6px}
+.vg__opt{text-align:left;padding:11px 13px;border-radius:12px;border:1.5px solid #dfe5ef;background:#fff;font:inherit;cursor:pointer}
+.vg__opt:hover:not(:disabled){border-color:var(--teal)}
+.vg__opt.is-v2{border-color:#2fa37d;background:#e3f6ec}.vg__opt.is-v1{border-color:#e0a63a;background:#fff6e0}.vg__opt.is-v0{border-color:#e2483d;background:#fdecea}
+.vg__fb{margin:0;font-weight:600}.vg__fb.is-v2{color:#1f7a57}.vg__fb.is-v1{color:#9a6a12}.vg__fb.is-v0{color:#b3362c}
+.vg__task .btn{justify-self:start}

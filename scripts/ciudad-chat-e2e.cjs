@@ -109,7 +109,7 @@ function startServer() {
     await ana.fill('#chat-input', 'Beto, ¿me lees?'); await ana.press('#chat-input', 'Enter');
     ok('tras el bloqueo, Beto ya no recibe a Ana (y Ana sabe que nadie la leyó)', await until(() => ana.evaluate(() => /Nadie más te lee/.test(document.getElementById('chat').textContent))) && !(await rows(beto)).includes('Beto, ¿me lees?'));
     // desbloquear desde ⋯ (en el celular)
-    await beto.tap('#chat .chat__icon'); await until(() => beto.evaluate(() => document.getElementById('modal-title').textContent === 'Opciones del chat'));
+    await beto.evaluate(() => document.querySelector('#chat button[aria-label="Opciones del chat"]').click()); await until(() => beto.evaluate(() => document.getElementById('modal-title').textContent === 'Opciones del chat'));
     await beto.evaluate(() => [...document.querySelectorAll('#modal-body .btn')].find(b => b.textContent === 'Desbloquear').click());
     await beto.evaluate(() => document.querySelector('#modal-actions .btn--primary').click());
     ok('desbloquear desde las opciones del chat', await toast(beto, /Desbloqueo hecho/));

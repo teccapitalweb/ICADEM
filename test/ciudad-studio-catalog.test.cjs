@@ -123,7 +123,7 @@ test('character equipped badges also wait for confirmation rather than reflectin
 
 test('real catalog filters narrow type, visible color, search and equipped state without changing any appearance', async () => {
   const a = await studio({ tab: 'ropa' }), original = copy(a.state);
-  assert.equal(a.find('.vest__top-options').children.length, 6);
+  assert.equal(a.find('.vest__top-options').children.length, 12);   // 6 de Codex + 6 de la colección Mundo vivo
   assert.equal(a.find('.vest__top-options').children[0].dataset.top, 'tee', 'real pieces precede reset controls on mobile');
   a.select('[data-wardrobe-filter="type"]', 'sudaderas'); assert.deepEqual(a.find('.vest__top-options').children.map(n => n.dataset.top), ['hoodie']);
   a.select('[data-wardrobe-filter="type"]', '');

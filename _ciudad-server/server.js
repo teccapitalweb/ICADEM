@@ -12,6 +12,9 @@ import { WebSocketServer } from 'ws';
 import { Hub, LIMITS } from './hub.js';
 import { TicketAuthority, createFirebaseVerifier, googleKeys } from './auth.js';
 import { Profiles, MemoryStorage, JsonFileStorage } from './profiles.js';
+import { breedById } from '../ciudad/js/pets/pet-catalog.js';
+import { VIVO_OPS } from '../ciudad/js/vivo/vivo-rules.js';
+import { MOUNT_BREED } from '../ciudad/js/vivo/flight.js';
 import { kidKey } from '../ciudad/js/edu/family.js';
 import { connectFirebase, createIcademServices, ACCESS_MODES } from './icadem.js';
 import { REWARDS } from '../ciudad/js/economy/economy.js';
@@ -114,7 +117,10 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
     toRoom(room, { op: 'done' });
   }
   /** Aviso de llegada personalizado: cada quien recibe el nombre que le corresponde ver. */
-  const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom }); };
+  const announce = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'join', pid: player.pid, name: hub.nameFor(p, player), avatar: player.avatar, custom: player.custom, pet: player.pet }); };
+  /* Mascota que acompaña (solo apariencia: raza y accesorios; el nombre no se comparte). */
+  const petLook = (profile, leash = false) => { const x = profile && Array.isArray(profile.pets) ? profile.pets.find(q => q.id === profile.activePet) : null; if (!x) return null; const b = breedById(x.breed); return { breed: x.breed, acc: { ...x.acc }, leash: Boolean(leash && b && b.species === 'perro' && x.acc.leash) }; };
+  const showPet = player => { for (const o of player.instance.players.values()) if (o !== player && o.online && hub.sees(o, player)) send(sockets.get(o), { t: 'pet', pid: player.pid, pet: player.pet }); };
   const moveInstance = (player, moved) => { toInstance(moved.from, { t: 'leave', pid: player.pid }); send(sockets.get(player), { t: 'instance', instance: player.instance.id, roster: hub.roster(player.instance, player) }); announce(player); pushPresence(); };
   const renameAll = player => { for (const p of player.instance.players.values()) if (p !== player && p.online && hub.sees(p, player)) send(sockets.get(p), { t: 'name', pid: player.pid, name: hub.nameFor(p, player) }); };
   /** Presencia: a cada quien se le avisa en cuanto cambia el número de jugadores conectados. */
@@ -162,7 +168,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         // La apariencia sale del perfil guardado en el servidor, no de lo que anuncie el cliente.
         const profile = await profiles.get(session.uid);
         const joined = hub.join({ uid: session.uid, name: session.name, avatar: profile.avatarId, minor: session.minor, guardian: session.guardian });
-        player = joined.player; epoch = player.epoch; identityOf = who; sessionUid = session.uid; player.avatar = profile.avatarId; player.custom = profile.custom; player.listed = !session.minor && !(profile.privacy && profile.privacy.listed === false);
+        player = joined.player; epoch = player.epoch; identityOf = who; sessionUid = session.uid; player.avatar = profile.avatarId; player.custom = profile.custom; player.pet = player.minor ? null : petLook(profile); player.listed = !session.minor && !(profile.privacy && profile.privacy.listed === false);
         if (!player.minor) await hub.loadFriends(player);
         hub.setChat(player, player.minor ? null : await profiles.chatState(session.uid), chat);   // chat libre: solo cuentas adultas que aceptaron las normas
         const old = sockets.get(player);
@@ -219,10 +225,11 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
           const g = await profiles.discover(sessionUid, d.id);
           return send(ws, { t: 'play', op: 'discover', id: d.id, ok: g.ok, reason: g.reason, xp: g.xp, profile: g.profile });
         }
-        const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id }) : hub.playQuit(player);
+        const r = msg.op === 'start' ? hub.playStart(player, String(msg.game), msg.seed) : msg.op === 'check' ? hub.playCheck(player, { i: msg.i, id: msg.id, action: msg.action && typeof msg.action === 'object' ? { type: String(msg.action.type || ''), id: String(msg.action.id || ''), bin: String(msg.action.bin || ''), choice: msg.action.choice } : null })
+          : msg.op === 'answer' ? hub.playAnswer(player, { i: msg.i, choice: msg.choice }) : msg.op === 'hint' ? hub.playHint(player, { i: msg.i }) : hub.playQuit(player);
         send(ws, { t: 'play', op: msg.op, game: msg.game, ...r });
         // La XP va al juego de la partida que el servidor abrió, no al nombre que mande el navegador.
-        if (r.done) { const g = await profiles.grantPositional(sessionUid, r.game, r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: r.game, score: r.score, xp: g.xp, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
+        if (r.done) { const g = await profiles.grantPositional(sessionUid, r.game, r.score); send(ws, { t: 'profile', op: 'activity', ok: g.ok, id: r.game, score: r.score, xp: g.xp, coins: g.coins, bonus: g.bonus, capped: g.capped, profile: g.profile }); }
       }
       else if (msg.t === 'code') {
         // Códigos temporales para unirse a un equipo: vencen, tienen usos limitados y se revocan.
@@ -247,6 +254,26 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
         toCoop(r.room, { op: 'state' });
         if (r.complete) { log('coop-done', r.room.id, r.session.mission, r.result.score); await finishCoop(r.room, r.session); }
       }
+      else if (msg.t === 'vivo') {
+        // Mundo vivo: compras, mascotas, casa y aguas frescas. Las cuentas infantiles todavía no lo tienen.
+        if (player.minor) return send(ws, { t: 'vivo', op: msg.op, ok: false, reason: 'no-disponible', n: msg.n });
+        if (msg.op === 'walk') {   // paseo con correa: estado del momento, no se guarda
+          const prof = await profiles.get(sessionUid); player.pet = petLook(prof, msg.leash === true); showPet(player);
+          return send(ws, { t: 'vivo', op: 'walk', ok: true, leash: Boolean(player.pet && player.pet.leash), n: msg.n });
+        }
+        if (msg.op === 'fly') {   // vuelo panorámico en el Gran dragón de viaje (ruta fija validada por el hub)
+          const prof = await profiles.get(sessionUid), hasDragon = prof.pets.some(x => x.breed === MOUNT_BREED);
+          const r = hub.startFlight(player, String(msg.route || ''), hasDragon);
+          if (r.ok) log('vuelo', player.pid, r.route);
+          return send(ws, { t: 'vivo', op: 'fly', n: msg.n, ...r });
+        }
+        if (!VIVO_OPS.includes(msg.op)) return send(ws, { t: 'vivo', op: msg.op, ok: false, reason: 'operacion', n: msg.n });
+        const r = await profiles.vivo(sessionUid, msg.op, msg);
+        const { profile: prof, ...rest } = r;
+        send(ws, { t: 'vivo', ...rest, op: msg.op, n: msg.n, profile: prof });
+        if (r.ok && ['adopt', 'pet', 'rest'].includes(msg.op)) { player.pet = petLook(prof, Boolean(player.pet && player.pet.leash)); showPet(player); }
+        if (r.ok && msg.op === 'buy') log('compra', player.pid, String(msg.item || '').slice(0, 30), r.spent || 0);
+      }
       else if (msg.t === 'profile') {
         // Progreso: el cliente manda acciones; el resultado lo calcula y guarda el servidor.
         const uid = sessionUid;
@@ -258,13 +285,13 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
             : msg.action === 'remove' ? await profiles.familyRemove(uid, String(msg.id || '')) : await profiles.familyList(uid);
           return send(ws, { t: 'profile', op: 'family', ok: f.ok, reason: f.reason, family: f.family });
         }
-        const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log, { minor: player.minor }) : msg.op === 'visit' ? await profiles.visit(uid, msg.id)
+        const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log, { minor: player.minor }) : msg.op === 'visit' ? (hub.flying(player) ? { ok: false, reason: 'en-vuelo' } : await profiles.visit(uid, msg.id))
           : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom, { customVersion: msg.customVersion })
           : msg.op === 'quiz' ? (hub.allow(player, 'quiz') ? await profiles.answerQuiz(uid, msg.id, msg.choice) : { ok: false, reason: 'demasiado-rapido' })
           : msg.op === 'activity' ? (hub.allow(player, 'activity') ? await profiles.playActivity(uid, String(msg.id), msg.seed, String(msg.level), msg.log) : { ok: false, reason: 'demasiado-rapido' })
           : msg.op === 'privacy' ? await profiles.setPrivacy(uid, msg.listed !== false) : { ok: true, profile: await profiles.get(uid) };
         send(ws, { t: 'profile', op: msg.op || 'get', ok: r.ok, reason: r.reason, profile: r.profile, score: r.score, passed: r.passed, credits: r.credits, xp: r.xp, mission: msg.mission,
-          ...(msg.op === 'quiz' ? { id: msg.id, correct: r.correct, answer: r.answer, explain: r.explain, why: r.why } : {}), ...(msg.op === 'activity' ? { id: msg.id, bonus: r.bonus, capped: r.capped } : {}), n: msg.n });
+          ...(msg.op === 'quiz' ? { id: msg.id, correct: r.correct, answer: r.answer, explain: r.explain, why: r.why } : {}), ...(msg.op === 'activity' ? { id: msg.id, bonus: r.bonus, capped: r.capped, coins: r.coins } : {}), ...(msg.op === 'quiz' ? { coins: r.coins } : {}), n: msg.n });
         if (msg.op === 'privacy' && r.ok) { player.listed = r.profile.privacy.listed; renameAll(player); }
         if (msg.op === 'avatar' && r.ok) { player.avatar = r.profile.avatarId; player.custom = r.profile.custom; for (const o of player.instance.players.values()) if (o !== player && o.online && hub.sees(o, player)) send(sockets.get(o), { t: 'look', pid: player.pid, avatar: player.avatar, custom: player.custom }); }
       }
