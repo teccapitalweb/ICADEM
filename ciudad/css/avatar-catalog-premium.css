@@ -1,0 +1,44 @@
+/* Avatar Studio · preview and filters over the existing finite cosmetic catalog. */
+.vest--catalog .vest__catalog-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;min-width:0}
+.vest--catalog .vest__catalog-search{display:flex;min-width:0}
+.vest--catalog .vest__catalog-search input{width:100%;min-width:0;min-height:44px;padding:10px 13px;border:1px solid #d7deee;border-radius:12px;background:#fff;color:#2c3c5f;font:inherit;font-size:13px;appearance:none}
+.vest--catalog .vest__catalog-search input::placeholder{color:#63718a;opacity:1}
+.vest--catalog .vest__filters{min-width:88px;position:relative}
+.vest--catalog .vest__filters summary{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 13px;border:1px solid #d7deee;border-radius:12px;background:#eef1fa;color:#354568;font-size:12px;font-weight:750;cursor:pointer;list-style:none}
+.vest--catalog .vest__filters summary::-webkit-details-marker{display:none}
+.vest--catalog .vest__filters summary::before{content:"";width:14px;height:11px;border-top:1.5px solid currentColor;border-bottom:1.5px solid currentColor;background:linear-gradient(currentColor,currentColor) center/8px 1.5px no-repeat}
+.vest--catalog .vest__filters[open] summary{border-color:#b2a2d9;background:#eae4f8;color:#594185}
+.vest--catalog .vest__filter-fields{display:flex;flex-wrap:wrap;gap:9px;position:absolute;z-index:5;right:0;top:calc(100% + 7px);width:min(410px,calc(100vw - 52px));padding:12px;border:1px solid #d9deee;border-radius:15px;background:#fff;box-shadow:0 14px 36px #25396621;scroll-margin-block:8px}
+.vest--catalog .vest__filter-field{display:flex;flex:1 1 110px;min-width:0;flex-direction:column;gap:5px}
+.vest--catalog .vest__filter-field>span{font-size:10px;letter-spacing:.03em;font-weight:750;color:#65718a}
+.vest--catalog .vest__filter-field select{width:100%;min-width:0;min-height:44px;padding:9px 10px;border:1px solid #dce2ef;border-radius:10px;background:#f7f8fd;color:#2c3c5f;font:inherit;font-size:12px;color-scheme:light}
+.vest--catalog .vest__option-count{color:#5f6d85;font-size:10px;line-height:1.35;font-variant-numeric:tabular-nums;margin-top:-3px}
+.vest--catalog .voption__copy small,.vest--catalog .vest__result-count,.vest--catalog .vest__collection-note,.vest--catalog .vest__style .note{color:#5f6d85}
+.vest--catalog .vest__catalog-empty{grid-column:1/-1;text-align:center;padding:20px 12px;border:1px dashed #d8deee;border-radius:14px;color:#66738c;font-size:12px}
+.vest--catalog .vest__catalog-empty p{margin:0 0 6px}
+.vest--catalog .vest__clear-filters{min-height:44px;padding:9px 14px;color:#354b79;background:#eef1fa;border:1px solid #dce2ef;border-radius:10px;font-weight:700}
+.vest--catalog .vest__item-options button.is-trying{border-color:#9983c8;background:#f4f0fc;box-shadow:0 0 0 1px #9983c8}
+.vest--catalog .vest__item-options button.is-trying .voption__check{background:#8264b8}
+.vest--catalog .vest__item-options button.is-equipped:not(.is-on){border-color:#a4d6c3;background:#f6fbf8}
+.vest--catalog .vest__item-options button.is-reset .voption__pic{opacity:.82}
+.vest--catalog .vest__trial,.vest--catalog .vest__pending{font-size:11px;line-height:1.45;color:#66508b;background:#ffffff9c;border:1px solid #dcd2ee;border-radius:9px;padding:6px 9px}
+.vest--catalog .vest__pending{color:#466184;border-color:#d5deec}
+.vest--catalog .vest__save-feedback{font-size:10px;line-height:1.4;color:#486952}
+.vest--catalog .vest__discard{min-height:44px;align-self:center;padding:8px 10px;border:0;background:transparent;color:#5a6481;font-size:11px;font-weight:650;text-decoration:underline;text-underline-offset:3px}
+#modal:has(.vest--catalog) .modal__card footer [data-action="equip"]:disabled{opacity:1;background:#e9edf4;border-color:#dce2ec;color:#7a879c;box-shadow:none}
+#modal:has(.vest--catalog) .modal__card footer [data-action="equip"][aria-busy="true"]{background:#e6edf8;color:#4d6488;border-color:#cad8ed}
+#modal:has(.vest--catalog) .modal__card footer .btn{white-space:normal;line-height:1.25;min-width:0}
+@media(max-width:599px){
+ .vest--catalog .vest__catalog-search input,.vest--catalog .vest__filter-field select{font-size:16px}
+ .vest--catalog .vest__catalog-tools{gap:7px}
+ .vest--catalog .vest__filters{min-width:82px}
+ .vest--catalog .vest__filter-fields{gap:8px;padding:10px;width:min(355px,calc(100vw - 44px))}
+ .vest--catalog .vest__filter-field{flex-basis:125px}
+ .vest--catalog .vest__trial,.vest--catalog .vest__pending{font-size:10px;padding:5px 7px}
+ .vest--catalog .vest__status{gap:3px}
+ .vest--catalog .vest__discard{font-size:10px;min-height:44px;padding:5px 7px}
+ #modal:has(.vest--catalog) .modal__card footer .btn{padding-inline:12px;font-size:12px}
+ #modal:has(.vest--catalog) [data-action="equip"]{flex:1}
+ #modal:has(.vest--catalog) [data-action="close"]{flex:0 0 auto}
+}
+@media(prefers-reduced-motion:reduce){.vest--catalog .vest__filters,.vest--catalog .vest__item-options button{transition:none!important}}
