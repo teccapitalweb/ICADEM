@@ -102,11 +102,11 @@ export class PetCompanion {
     if (!show) return;
     const o = this.owner, ox = o.position.x, oz = o.position.z, ownerSpeed = o.speed || 0;
     if (this.action) { this.actionT -= dt; if (this.actionT <= 0) { const n = this.queue.shift(); if (n) this.setAction(n[0], n[1]); else this.action = null; } }
-    if (ownerSpeed > 5 && this.lastOwnerSpeed <= 5 && Math.random() < 0.35) this.react('correr');
+    if (!o.home && ownerSpeed > 5 && this.lastOwnerSpeed <= 5 && Math.random() < 0.35) this.react('correr');
     this.lastOwnerSpeed = ownerSpeed;
     const dx = ox - this.pos.x, dz = oz - this.pos.z, dist = Math.hypot(dx, dz);
     // muy lejos (atajo, salto, escalera) o atrapada: reaparece discretamente junto al dueño
-    if (dist > (this.kind === 'bigdragon' ? 18 : 13) || this.stuckT > 2.2) { this.#dropBall(); this.place(); }
+    if (dist > (o.home ? 40 : this.kind === 'bigdragon' ? 18 : 13) || this.stuckT > 2.2) { this.#dropBall(); this.place(); }
     if (this.kind === 'bird') this.#bird(dt, ownerSpeed);
     else if (this.kind === 'dragon') this.#hover(dt, ownerSpeed, dist);
     else this.#walker(dt, ownerSpeed, dist);
@@ -144,13 +144,13 @@ export class PetCompanion {
       if (dist < 1.1) { this.#dropBall(); this.react('cariño'); }
       return;
     }
-    const follow = big ? 3.0 : this.leashed ? 1.2 : 1.5;
+    const follow = o.home ? 0.25 : big ? 3.0 : this.leashed ? 1.2 : 1.5;   // en casa (home): va justo al lugar indicado
     if (dist > follow) {
       this.idleT = 0; this.wander = null; this.perched = false;
       // a un costado y apenas atrás: así se ve en la cámara de tercera persona (detrás quedaría oculta)
-      const behind = big ? 2.4 : this.leashed ? 0.25 : 0.55, side = big ? 1.2 : this.leashed ? 0.85 : 0.75;
+      const behind = o.home ? 0 : big ? 2.4 : this.leashed ? 0.25 : 0.55, side = o.home ? 0 : big ? 1.2 : this.leashed ? 0.85 : 0.75;
       const tx = o.position.x - Math.sin(o.yaw) * behind + Math.cos(o.yaw) * side, tz = o.position.z - Math.cos(o.yaw) * behind - Math.sin(o.yaw) * side;
-      const want = Math.max(1.4, Math.min(7.2, ownerSpeed * 1.08 + (dist - follow) * 1.6));
+      const want = o.home ? 1.3 : Math.max(1.4, Math.min(7.2, ownerSpeed * 1.08 + (dist - follow) * 1.6));
       this.#move(tx, tz, want, dt);
       // la correa nunca se estira de más: si se pasa, la mascota alcanza al dueño
       if (this.leashed) { const ddx = this.pos.x - o.position.x, ddz = this.pos.z - o.position.z, dd = Math.hypot(ddx, ddz); if (dd > LEASH_LENGTH) { const s = this.env.scene(), k = LEASH_LENGTH / dd, p = s && s.collision ? s.collision.resolve(o.position.x + ddx * k, o.position.z + ddz * k, this.radius) : { x: o.position.x + ddx * k, z: o.position.z + ddz * k }; this.pos.x = p.x; this.pos.z = p.z; } }
@@ -170,7 +170,7 @@ export class PetCompanion {
     if (this.idleT > 40) this.idleAction = 'sleep';
     else if (this.idleT > 4) {
       this.idleAction = 'sit';
-      if ((this.wanderT -= dt) < 0 && !this.leashed && !big) {
+      if ((this.wanderT -= dt) < 0 && !this.leashed && !big && !o.home) {
         const a = Math.random() * TAU, r = 1.2 + Math.random() * 1.8, tx = o.position.x + Math.cos(a) * r, tz = o.position.z + Math.sin(a) * r, s = this.env.scene();
         if (!s || !s.collision || s.collision.isFree(tx, tz, this.radius)) this.wander = { x: tx, z: tz }; else this.wanderT = 1.5;
       }

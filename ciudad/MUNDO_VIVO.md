@@ -181,3 +181,41 @@ La interfaz del menú es de Codex; cada botón llama a una de estas funciones (u
 
 Mientras no exista el menú rápido de Codex en `main`, «Mis mascotas» y «Mi inventario» están en el
 menú «Más» (`#btn-pets`, `#btn-inventory`). Al integrar, esas entradas pasan al menú rápido.
+
+## 13. Lugares nuevos
+
+| Lugar | Dónde | Qué hay |
+|---|---|---|
+| **Paseo comercial** (`comercio`) | puerta al este de la plaza (`COMERCIO_GATE`) | 7 tiendas (`ropa`, `zapateria`, `accesorios`, `especial`, `mascotas`, `muebles`, `juguetes`), cada una con vendedor; el mostrador abre `api.actions.shop(id)` |
+| **Aguas frescas** | carrito de la plaza, con Don Chema | `openAguas(api)` (`js/ui/aguas.js`): pedir (5 monedas) o preparar (receta validada) |
+| **Helipuerto de dragones** | plaza, lado oeste | vuelo panorámico (sección 11) |
+| **Mi casa** (`casa`) | puerta «MI CASA» en la pared sur de la habitación | sala privada personalizable; las mascotas que no te acompañan viven ahí |
+
+El mapa (`mapDestinations`) incluye `comercio`, `aguas` y `dragones` con su punto de llegada real.
+
+## 14. Casa y editor (`api.homeEditor`)
+
+- `api.goHome()` lleva a «Mi casa» desde cualquier escenario (pasando por la plaza y la habitación).
+- `api.scene.applyHome(layout)` (solo en `casa`) dibuja una distribución sin guardarla: sirve para
+  previsualizar. `api.scene.layout` es la distribución que se ve; `api.scene.furniture` los muebles.
+- `api.homeEditor.open()` / `.close(revertir)` / `.save()`.
+- Borrador: `.draft` ({ wall, floor, items }), `.sel` (índice del mueble elegido), `.available(id)`
+  (piezas que quedan por colocar), `.add(id)`, `.move(dx, dz)`, `.rotate()`, `.remove()`,
+  `.setWall(id)`, `.setFloor(id)`, `.check()` → `{ ok, reason, index }` con las reglas del servidor.
+- En la sala: tocar un mueble lo selecciona y arrastrarlo lo mueve; al soltarlo se valida.
+- La interfaz actual (`.hed`) es funcional; Codex puede reemplazarla usando solo estas llamadas.
+
+## 15. Ropa de la colección Mundo vivo
+
+- 31 piezas nuevas en el catálogo compartido (`appearance-catalog.js`), en las ranuras de siempre más
+  tres nuevas: `glasses`, `bracelet` y `headphones`. Se dibujan en `js/characters/fashion-extra.js`.
+- Algunas son gratis; las de pago tienen un artículo `wear` en `catalog.js` (`slot`, `option`, `price`).
+- `api.vivo.wearInfo(ranura, opción)` → `{ item, owned }` o `null` (gratis). `api.vivo.locked(custom)`
+  → ranuras con prendas de pago que la cuenta no tiene. El servidor rechaza esas prendas con
+  `reason: 'prenda-bloqueada'`; el vestidor debe mostrarlas con candado y su precio.
+
+## 16. Animaciones con objeto
+
+`api.player.emote(nombre, segundos, color?)` con `petting`, `throw`, `drink`, `balero`, `yoyo`,
+`trompo`, `papalote`, `burbujas`. Los juguetes del inventario se usan con `api.actions.useToy(idArtículo)`.
+Todas viajan por la red como animaciones (al final de `ANIMS`), así que los demás las ven.

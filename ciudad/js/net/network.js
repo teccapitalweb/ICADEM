@@ -15,7 +15,7 @@ export const NET_TICK_HZ = 10;
 // Las animaciones nuevas se agregan SIEMPRE al final: el índice viaja por la red.
 export const ANIMS = Object.freeze(['idle', 'walk', 'run', 'jump', 'wave', 'celebrate', 'sit', 'interact', 'beckon', 'clap', 'point', 'help', 'ride', 'petting', 'throw', 'drink', 'balero', 'yoyo', 'trompo', 'papalote', 'burbujas']);   // agregar al final: los índices viajan por la red
 /** Escenarios que existen en la red. La habitación es privada: nunca se comparte con otros jugadores. */
-export const NET_SCENES = Object.freeze(['room', 'plaza', 'bank', 'court', 'market', 'site', 'hospital', 'vet', 'restaurant', 'greenhouse', 'office', 'tower', 'park', 'distrito']);   // los nuevos van al final: los índices anteriores no cambian
+export const NET_SCENES = Object.freeze(['room', 'plaza', 'bank', 'court', 'market', 'site', 'hospital', 'vet', 'restaurant', 'greenhouse', 'office', 'tower', 'park', 'distrito', 'comercio', 'casa']);   // los nuevos van al final: los índices anteriores no cambian
 export const PRIVATE_SCENES = Object.freeze(['room']);
 
 const q = (v, step) => Math.round(v / step);

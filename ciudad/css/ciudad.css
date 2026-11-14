@@ -743,3 +743,32 @@ button.chat__who:hover,button.chat__who:focus-visible{text-decoration:underline;
 @media (max-width:620px){.vp--pets{grid-template-columns:1fr}.vp__stage{position:static}.vp__stage canvas{max-width:200px}}
 .vp__chip{padding:7px 11px;border-radius:999px;border:1.5px solid rgba(15,31,61,.16);background:#fff;color:var(--ink);font-size:13px;font-weight:600;cursor:pointer}
 .vp__chip.is-on{background:var(--night);border-color:var(--night);color:#fff}
+/* editor funcional de «Mi casa» */
+.hed{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:min(720px,calc(100% - 16px));max-height:46vh;overflow:auto;display:grid;gap:8px;padding:12px;border-radius:18px;background:rgba(255,255,255,.96);box-shadow:0 18px 50px rgba(5,12,30,.35);z-index:5;color:var(--ink)}
+.hed__head{display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;justify-content:space-between}
+.hed__status{font-size:13px;color:#2f7a5f;font-weight:600}
+.hed__status.is-bad{color:#c0392b}
+.hed__tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.hed__tools .btn{padding:8px 12px;min-width:40px}
+.hed__sel{font-weight:700;margin-right:6px}
+.hed__shelf{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.hed__item{display:grid;justify-items:center;gap:2px;min-width:86px;padding:8px;border-radius:12px;background:#f5f7fb;border:1.5px solid #e1e7f0;cursor:pointer}
+.hed__item span{font-size:22px}.hed__item small{font-size:11px;text-align:center}
+.hed__item:disabled{opacity:.45;cursor:default}
+.hed__looks{display:grid;gap:6px}
+.hed__chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.hed__chips small{min-width:58px;font-weight:700;font-size:12px}
+.hed__chip{width:26px;height:26px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1.5px #c9d3e2;cursor:pointer}
+.hed__chip.is-on{box-shadow:0 0 0 3px var(--teal)}
+.hed__foot{display:flex;justify-content:flex-end;gap:8px}
+/* puesto de aguas frescas */
+.aguas{display:grid;grid-template-columns:110px 1fr;gap:12px;align-items:start}
+.aguas__glass{grid-row:span 3;position:relative;width:96px;height:150px;border:4px solid #cfe3f2;border-top:0;border-radius:0 0 22px 22px;overflow:hidden;background:rgba(220,240,255,.5)}
+.aguas__fill{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--c);transition:height .35s}
+.aguas__side{display:grid;gap:4px}.aguas__log{margin:0;padding-left:18px;font-size:13px}
+.aguas__steps{display:flex;flex-wrap:wrap;gap:6px}
+.aguas__btn{display:grid;justify-items:center;gap:2px;padding:8px 10px;min-width:92px}
+.aguas__btn span{font-size:20px}.aguas__btn small{font-size:12px}
+.aguas__btn.is-done{opacity:.5}
+.aguas__hint{grid-column:2;margin:0;font-weight:600;color:#2f7a5f}.aguas__hint.is-bad{color:#c0392b}
+@media (max-width:620px){.aguas{grid-template-columns:1fr}.aguas__glass{grid-row:auto;margin:0 auto}.aguas__hint{grid-column:auto}}

@@ -124,9 +124,9 @@ export function slotFits(slot, breed) {
 }
 
 /** Escenarios donde una mascota puede acompañar al jugador. En los demás espera en casa. */
-export const PET_SCENES = Object.freeze(['room', 'casa', 'plaza', 'park', 'distrito', 'vet']);
+export const PET_SCENES = Object.freeze(['room', 'casa', 'plaza', 'park', 'distrito', 'vet', 'comercio']);
 /** Escenarios con paseo con correa (calles y parques). */
-export const WALK_SCENES = Object.freeze(['plaza', 'park', 'distrito']);
+export const WALK_SCENES = Object.freeze(['plaza', 'park', 'distrito', 'comercio']);
 
 /** Nombre de mascota: letras, números y espacios; 2 a 16 caracteres. El filtro de palabras lo aplica vivo-rules. */
 export function shapePetName(raw) {

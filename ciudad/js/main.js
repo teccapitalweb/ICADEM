@@ -44,6 +44,9 @@ import { NpcQuiz } from './edu/npc-quiz.js';
 import { Games } from './edu/games.js';
 import { buildPark } from './world/park.js';
 import { buildDistrito } from './world/distrito.js';
+import { buildComercio } from './world/comercio.js';
+import { buildCasa } from './world/casa.js';
+import { HomeEditor } from './home/home-editor.js';
 import { District } from './edu/district.js';
 import { BUILDINGS, doorPoint } from './world/buildings.js';
 import { marker, CUTOUT } from './world/kit.js';
@@ -68,7 +71,7 @@ import { Mounts } from './vivo/mounts.js';
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
 const angleDelta = (a, b) => { let d = (b - a) % TAU; if (d > Math.PI) d -= TAU; if (d < -Math.PI) d += TAU; return d; };
-const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant , greenhouse: buildGreenhouse , office: buildOffice , tower: buildTower, park: buildPark, distrito: buildDistrito };
+const SCENES = { room: buildRoom, plaza: buildPlaza, bank: buildBank, court: buildCourt, market: buildMarket, site: buildSite, hospital: buildHospital , vet: buildVet , restaurant: buildRestaurant , greenhouse: buildGreenhouse , office: buildOffice , tower: buildTower, park: buildPark, distrito: buildDistrito, comercio: buildComercio, casa: buildCasa };
 const PLAYER_RADIUS = 0.36, WALK = 3.3, RUN = 6.4, JUMP = 7.4, GRAVITY = 21;
 const ACCEL = 30, BRAKE = 38, AIR_CONTROL = 9, JUMP_BUFFER = 0.14;
 
@@ -191,6 +194,15 @@ async function boot() {
   api.vivo = new VivoService(api);
   api.pets = new PetController(api);
   api.mounts = new Mounts(api);
+  api.homeEditor = new HomeEditor(api);
+  /** «Mi casa»: desde la habitación se entra directo; desde la plaza, pasando por la habitación. */
+  api.goHome = async () => {
+    if (api.sceneName === 'casa') return api.homeEditor.active ? null : api.ui.toast('Ya estás en tu casa. Toca «Decorar mi casa» para cambiarla.', 3000);
+    if (api.sceneName === 'room') return travel('casa', 'default');
+    if (api.sceneName !== 'plaza') await travel('plaza', placeByScene(api.sceneName)?.spawn || ({ park: 'park', distrito: 'distrito', comercio: 'comercio' })[api.sceneName] || 'default');
+    await travel('room', 'door'); await new Promise(r => setTimeout(r, 450)); return travel('casa', 'default');
+  };
+  api.vivo.on('change', st => { if (st && api.sceneName === 'casa' && !api.homeEditor.active) { api.scene.applyHome(st.home); api.scene.syncPets(); } });
   installVivoActions(api);
   api.missions.bank = new BankCreditMission(api, bankDef);
   api.missions.court = new CourtJudgeMission(api, registry.register(defineMission(COURT_JUDGE_MISSION)));
@@ -384,7 +396,7 @@ async function boot() {
     }
     avatar.group.rotation.y = player.yaw;
     avatar.update(dt, { speed: player.speed, grounded: player.grounded, sitting: Boolean(player.seat || api.mounts.active) });
-    api.pets.update(dt);
+    api.pets.update(dt); api.homeEditor.update(dt);
 
     for (const n of scene.npcs) n.update(dt, p);
     api.npcQuiz.update(dt); api.games.update(dt, t); api.district.update(dt, t);

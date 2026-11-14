@@ -233,3 +233,17 @@ test('ropa 2.0: 31 piezas nuevas con forma propia; las de pago se compran antes 
   assert.equal((await profiles.vivo('lu', 'buy', { item: 'ropa-shirt', rid: 'ropa-compra-2' })).reason, 'ya-lo-tienes');
   assert.equal(base.group.children.length > 0 && baseMeshes > 0, true);
 });
+
+test('escenarios nuevos: Paseo comercial y «Mi casa» en el grafo de viajes, con índices de red estables', async () => {
+  const { SCENE_RULES, ENTRY_RADIUS } = await load('ciudad/js/net/scenes.js');
+  const { NET_SCENES } = await load('ciudad/js/net/network.js');
+  assert.deepEqual(NET_SCENES.slice(0, 14), ['room', 'plaza', 'bank', 'court', 'market', 'site', 'hospital', 'vet', 'restaurant', 'greenhouse', 'office', 'tower', 'park', 'distrito'], 'los índices anteriores no cambian');
+  assert.deepEqual(NET_SCENES.slice(14), ['comercio', 'casa']);
+  for (const [name, r] of Object.entries(SCENE_RULES)) for (const to of r.links) assert.ok(SCENE_RULES[to].links.includes(name), `${name} ↔ ${to}`);
+  assert.equal(SCENE_RULES.casa.privacy, 'private', 'nadie más ve tu casa');
+  assert.deepEqual(SCENE_RULES.casa.links, ['room']);
+  const { COMERCIO_GATE } = await load('ciudad/js/world/comercio.js');
+  assert.ok(SCENE_RULES.plaza.entries.some(([x, z]) => Math.hypot(x - COMERCIO_GATE.arrival.x, z - COMERCIO_GATE.arrival.z) <= ENTRY_RADIUS), 'la llegada a la plaza desde el Paseo es una entrada válida');
+  const { HOME } = await load('ciudad/js/home/home-rules.js'), b = SCENE_RULES.casa.bounds;
+  assert.deepEqual([b.minX, b.maxX, b.minZ, b.maxZ], [HOME.minX, HOME.maxX, HOME.minZ, HOME.maxZ], 'el servidor y el editor usan el mismo espacio');
+});
