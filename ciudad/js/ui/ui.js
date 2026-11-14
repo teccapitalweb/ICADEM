@@ -293,7 +293,7 @@ export class UI {
         body.append(rows, h('p', 'note', 'Son créditos de prueba del juego: no forman parte de tu cartera ICADEM.'));
       }
     };
-    const show = id => { tabs.querySelectorAll('button').forEach(b => b.classList.toggle('is-on', b.dataset.id === id)); body.replaceChildren(); views[id](); };
+    const show = id => { tabs.querySelectorAll('button').forEach(b => { const selected = b.dataset.id === id; b.classList.toggle('is-on', selected); b.setAttribute('aria-pressed', String(selected)); }); body.replaceChildren(); views[id](); };
     [['resumen', 'Resumen'], ['logros', 'Logros'], ['avatar', 'Avatar'], ['movimientos', 'Movimientos']].forEach(([id, t]) => { const b = h('button', null, t); b.type = 'button'; b.dataset.id = id; b.addEventListener('click', () => show(id)); tabs.append(b); });
     wrap.append(tabs, body); show(views[tab] ? tab : 'resumen');
     return this.modal({ eyebrow: 'Pasaporte ICADEM', title: api.playerName, content: wrap });

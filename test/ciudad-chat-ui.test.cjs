@@ -9,6 +9,7 @@ class Element {
   set className(s){this._classes=new Set(s.split(/\s+/).filter(Boolean));}get className(){return [...this._classes].join(' ');}
   set textContent(s){this._text=String(s);this.children=[];}get textContent(){return this._text+this.children.map(c=>c.textContent).join('');}
   append(...nodes){for(const n of nodes){n.parentElement=this;this.children.push(n);}}replaceChildren(...nodes){this.children=[];this._text='';this.append(...nodes);}
+  remove(){if(this.parentElement){this.parentElement.children=this.parentElement.children.filter(n=>n!==this);this.parentElement=null;}}
   setAttribute(k,v){this.attributes[k]=String(v);}getAttribute(k){return this.attributes[k]??null;}
   addEventListener(type,fn){if(!this.listeners.has(type))this.listeners.set(type,[]);this.listeners.get(type).push(fn);}
   emit(type,extra={}){const e={type,target:this,preventDefault(){this.defaultPrevented=true;},stopPropagation(){this.propagationStopped=true;},...extra};for(const fn of this.listeners.get(type)||[])fn(e);return e;}
@@ -112,4 +113,32 @@ test('the collapsed opener announces its unread count rather than hiding it behi
 test('editing and restoring the same words while the latest send waits creates a draft that its ACK cannot clear',()=>fixture(f=>{
  const p=f.panel;p.toggle(true);p.input.value='Mismas palabras';p.input.emit('input');p.submit();const n=f.sent[0].n;
  p.input.value='Lo cambio';p.input.emit('input');p.input.value='Mismas palabras';p.input.emit('input');acknowledge(f,n,'Mismas palabras');assert.equal(p.input.value,'Mismas palabras');assert.equal(p.open,true);assert.equal(p.log.filter(e=>e.mine).length,1);
+}));
+
+test('incoming messages preserve older-message reading and author focus while a reader at the bottom keeps following',()=>fixture(f=>{
+ const p=f.panel;p.toggle(true);
+ const receive=id=>f.fire('chat',{op:'msg',id,pid:'peer'+id,name:'Persona '+id,text:'Mensaje '+id,at:1e6});
+ for(let id=1;id<=12;id++)receive(id);
+ p.list.clientHeight=100;Object.defineProperty(p.list,'scrollHeight',{get:()=>p.list.children.length*40});p.list.getBoundingClientRect=()=>({top:0});
+ const measure=row=>row.getBoundingClientRect=()=>{const top=p.list.children.indexOf(row)*40-p.list.scrollTop;return{top,bottom:top+40};};
+ p.list.children.forEach(measure);p.list.scrollTop=0;const author=p.list.children[0].children[0];author.focus();receive(13);measure(p.list.children.at(-1));
+ assert.equal(p.list.scrollTop,0,'a new arrival must not interrupt reading older messages');assert.equal(p.list.children[0].children[0],author,'an existing author control is never recreated');assert.equal(f.doc.activeElement,author);
+ p.list.scrollTop=p.list.scrollHeight-p.list.clientHeight;receive(14);measure(p.list.children.at(-1));assert.equal(p.list.scrollTop,p.list.scrollHeight,'a reader at the end keeps following arrivals');
+ p.list.scrollTop=80;const anchor=p.list.children[2],before=anchor.getBoundingClientRect().top;
+ // A confirmed block removes preceding rows; the surviving visible row stays put.
+ f.fire('chat',{op:'block',ok:true,pid:'peer1'});assert.equal(anchor.getBoundingClientRect().top,before);assert.equal(p.rows.size,p.log.length);assert.equal(p.list.children.length,p.log.length);
+ for(let id=15;id<=70;id++){receive(id);measure(p.list.children.at(-1));}
+ assert(p.log.length<70&&p.log[0].id>14,'the existing history limit still removes old messages');assert.equal(p.rows.size,p.log.length);assert.equal(p.list.children.length,p.log.length,'rendered rows remain bounded with history');
+}));
+
+test('only the latest in-flight own ACK reveals its message and closing/reopening keeps it visible',()=>fixture(f=>{
+ const p=f.panel;p.toggle(true);p.after.checked=false;
+ for(let id=1;id<=12;id++)f.fire('chat',{op:'msg',id,pid:'peer'+id,name:'Persona '+id,text:'Mensaje '+id,at:1e6});
+ p.list.clientHeight=100;Object.defineProperty(p.list,'scrollHeight',{get:()=>p.list.children.length*40});p.list.getBoundingClientRect=()=>({top:0});
+ const measure=()=>p.list.children.forEach(row=>row.getBoundingClientRect=()=>{const top=p.list.children.indexOf(row)*40-p.list.scrollTop;return{top,bottom:top+40};});measure();
+ p.list.scrollTop=0;p.input.value='Mi mensaje actual';p.submit();acknowledge(f,f.sent.at(-1).n,'Mi mensaje actual');measure();assert.equal(p.list.scrollTop,p.list.scrollHeight,'the current confirmation reveals its own message');
+ p.toggle(false);p.toggle(true);assert.equal(p.list.scrollTop,p.list.scrollHeight);assert.equal(p.list.children.at(-1).children[1].textContent,'Mi mensaje actual');
+ p.input.value='Confirmación incierta';p.submit();[...f.timers.values()].find(t=>t.ms===12000).fn();p.list.scrollTop=0;
+ acknowledge(f,f.sent.at(-1).n,'Confirmación incierta');measure();assert.equal(p.list.scrollTop,0,'a late uncertain confirmation must not interrupt older-message reading');
+ acknowledge(f,999,'Confirmación sin pendiente');assert.equal(p.list.scrollTop,0,'an unknown confirmation must not interrupt reading either');
 }));
