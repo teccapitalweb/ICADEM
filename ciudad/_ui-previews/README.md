@@ -14,7 +14,7 @@ Servir el repositorio con un servidor estático local y abrir `/ciudad/_ui-previ
 
 `views.js` exporta `createVisualLab(host,{model,catalogs,dispatch,initialView})`, `icon(name)` y `catalogCard(...)`. Son componentes locales propuestos, **no contratos técnicos de Claude**. Exige modelo y catálogos explícitos y no importa fixtures. Sin `dispatch`, las acciones de escritura aparecen deshabilitadas. El modelo sólo se sustituye después de una respuesta `{ok:true,model}`; el ejemplo no decide compras ni saldos dentro del renderizador. `fixtures.js` contiene el controlador de muestra, claramente separado.
 
-Para integrar una pantalla futura, acordar primero los contratos de [MUNDO_VIVO_UI_CONTRACTS.md](../MUNDO_VIVO_UI_CONTRACTS.md). Reemplazar el controlador de muestra por la funcionalidad autorizada, conservar estados pendientes/errores y mostrar sólo acciones admitidas. No importar `fixtures.js` ni `demo.js` desde producción.
+La rama de Claude `feature/ciudad-mundo-vivo` en **ca84ff6** ya contiene `api.vivo`, paneles funcionales, mascotas, tiendas, casa y aguas. Main **f43f608** todavía no contiene esa expansión. Antes de integrar, revisar las APIs reales y sus límites en [MUNDO_VIVO_UI_CONTRACTS.md](../MUNDO_VIVO_UI_CONTRACTS.md) y el [plan QA](INTEGRATION_QA.md); sustituir los datos y acciones de muestra por contratos aprobados, sin inventar traducciones por nombre. No importar `fixtures.js` ni `demo.js` desde producción.
 
 La carpeta comienza por `_`, por lo que el flujo actual de Jekyll no la publica. No añadirla a `include`. Las pruebas verifican también que ningún archivo de producción la importa.
 
@@ -30,3 +30,13 @@ Capturas y comprobación de navegador: `node ciudad/_ui-previews/render.cjs RUTA
 - Chrome 1440×1000, 768×1024 y 390×844; WebKit 390×844. Siete vistas por tamaño, sin desbordamiento horizontal ni errores de JavaScript, compra local confirmada e inventario actualizado. Son 28 composiciones verificadas, más capturas del inventario equipado.
 - Revisión visual de escritorio y móvil: mascotas, casa, inventario y panel de preguntas. Los iconos de mascotas y objetos son esquemas SVG de referencia; no representan modelos 3D ya disponibles.
 - No se usó una cuenta real, no hubo escrituras en Railway/Firestore y no se probaron dispositivos físicos. Las siete vistas siguen aisladas de la producción.
+
+## Segunda revisión local (13 de noviembre)
+
+Correcciones pequeñas: contraste de textos auxiliares, objetivos de 44 px también en tablet, cierre del diálogo de 44 px en móvil, limpieza de la alerta al cambiar de composición y conservación del scroll horizontal del navegador interno para mantener visible la opción seleccionada. Sin cambios de presentación general ni conexión a servicios.
+
+`qa.cjs` añade revisión de teclado/foco, diálogo, etiquetas, objetivos, overflow y contrastes concretos. La matriz local previa al último ajuste exclusivo de scroll cubrió **56 composiciones**: siete vistas en Chrome y WebKit, 320×740, 390×844, 768×1024 y 1440×1000. Después se verificaron **28 composiciones móviles finales** (14 Chrome y 14 WebKit en 320/390 px), incluida la nueva aserción de que el elemento seleccionado del nav permanece visible. Las capturas y métricas separan esa base de las pasadas finales de navegación. Se revisaron visualmente las siete vistas en móvil. No equivale a una auditoría WCAG completa ni a dispositivos físicos.
+
+`integration-harness.cjs` queda **pendiente de adaptador externo**: sin él sale con PENDIENTE, no certifica backend. Sus pruebas en memoria validan solamente el verificador. No exige CAS a compras atómicas y no exige persistir la correa de paseo; vivienda y ciclo de sesión tienen casos distintos. Ver instrucciones, fuentes reales y puertas pendientes en [INTEGRATION_QA.md](INTEGRATION_QA.md).
+
+Pruebas ejecutadas en esta revisión: **20/20 pruebas finales**, sin omisiones: las diez originales, una regresión de composición y nueve unidades del harness, incluida su salida CLI 2/PENDIENTE sin adaptador. No se ejecutó una integración con la rama de Claude, backend o cuentas reales.
