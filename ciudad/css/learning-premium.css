@@ -26,7 +26,7 @@
 .arcade__card .arcade__icon{width:42px;height:42px;border-radius:13px;background:#fff9;border:1px solid #fff;color:var(--game-accent);font-size:25px}
 .arcade__card .arcade__best{font-size:10px!important;background:#ffffffbd;color:#53627d!important;border:1px solid #e3e6ef;font-weight:650}
 .arcade__card strong{font-size:16px;line-height:1.25}.arcade__card>span{font-size:12px;line-height:1.45;color:#5e6d84}.arcade__card>small{font-size:10px;margin-top:auto;color:#64728b}
-.arcade__card:focus-visible,.quiz__opt:focus-visible{outline:3px solid #ad90d0;outline-offset:3px}
+.arcade__card:focus-visible,.quiz__opt:focus-visible{outline:3px solid #725092;outline-offset:3px}
 .mg-bar{font-size:12px;line-height:1.4;padding:7px 10px;border:1px solid #e3e7f0;background:#f5f6fc;border-radius:11px;font-variant-numeric:tabular-nums}
 .mg .timebar{height:6px}.mg-result{gap:12px;padding:5px 0}.mg-result .result__rewards{justify-content:center}
 @media(max-width:599px){

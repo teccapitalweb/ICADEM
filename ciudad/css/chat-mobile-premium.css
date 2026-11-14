@@ -1,9 +1,12 @@
 /* UI-1: same chat protocol and history, clearer delivery and compact touch sheet. */
-.chat{border-color:#91a8cd55;background:linear-gradient(145deg,#14284bee,#10203dea);border-radius:18px}
+.chat{border-color:#91a8cd55;background:linear-gradient(145deg,#14284bee,#10203dea);border-radius:18px;transition:box-shadow .2s,opacity .2s,border-color .15s}
 .chat__head{padding:8px 8px 7px 13px;border-bottom:1px solid #cbd7f01a}
 .chat__title{gap:3px}.chat__title strong{font-size:13px}.chat__title small{font-size:11px;color:#bdcce3}
 .chat__icon{width:36px;height:36px;flex:none;border:1px solid #d8e3ff1f;border-radius:11px;font-size:21px}
 .chat__close{font-weight:500;font-size:25px;background:#e1ebff12}
+/* Idle reduces visual weight without making text translucent over a bright world. */
+.chat.is-idle:not(.is-active),.chat.is-sheet.is-idle:not(.is-active){background:rgba(16,32,61,.97);box-shadow:0 8px 24px #050c1e33}
+.chat.is-idle:not(.is-active) :is(.chat__head,.chat__quick){opacity:1}
 .chat__log{padding:9px 12px;min-height:32px;scrollbar-gutter:stable;overscroll-behavior:contain}
 .chat__row{line-height:1.45}.chat__form{margin-bottom:0;min-height:44px;flex:none}
 .chat__send{width:38px;height:38px}.chat__send:disabled{opacity:.45;cursor:wait}

@@ -66,6 +66,9 @@ export class UI {
       if (open) more.querySelector('button:not([hidden])')?.focus(); };
     moreBtn.addEventListener('click', e => { e.stopPropagation(); setMore(more.hidden); });
     more.addEventListener('click', () => setMore(false));
+    more.addEventListener('keydown', e => { if (e.key === 'Tab') { setMore(false); moreBtn.focus({ preventScroll: true }); } });
+    more.addEventListener('focusout', e => { if (!more.hidden && e.relatedTarget && !more.contains(e.relatedTarget) && e.relatedTarget !== moreBtn) setMore(false); });
+    moreBtn.addEventListener('focusout', e => { if (!more.hidden && e.relatedTarget && !more.contains(e.relatedTarget)) setMore(false); });
     document.addEventListener('pointerdown', e => { if (!more.hidden && !more.contains(e.target) && e.target !== moreBtn && !moreBtn.contains(e.target)) setMore(false); });
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && !more.hidden) { setMore(false); moreBtn.focus(); } });
     $('btn-settings').addEventListener('click', () => this.openSettings());
@@ -194,7 +197,8 @@ export class UI {
   /* ---------- ventana genérica ---------- */
   modal({ eyebrow = '', title, content, actions = [{ id: 'ok', label: 'Cerrar', primary: true }], validate, wide = false, hint = '', onClose }) {
     const run = () => new Promise(resolve => {
-      const m = $('modal'), card = m.querySelector('.modal__card'), body = $('modal-body'), foot = $('modal-actions');
+      const m = $('modal'), card = m.querySelector('.modal__card'), body = $('modal-body'), foot = $('modal-actions'), previousFocus = document.activeElement;
+      const focusable = () => [...card.querySelectorAll('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),textarea:not(:disabled),summary,[tabindex]:not([tabindex="-1"])')].filter(node => !node.closest('[hidden]') && node.getClientRects().length && getComputedStyle(node).visibility !== 'hidden');
       this.#block(true); m.hidden = false; card.classList.toggle('is-wide', wide);
       $('modal-eyebrow').textContent = eyebrow; $('modal-title').textContent = title;
       body.replaceChildren(content); body.scrollTop = 0; $('modal-hint').textContent = ''; $('modal-hint').dataset.base = hint;
@@ -205,13 +209,29 @@ export class UI {
         const problem = validate ? validate(id) : null;
         if (problem && id !== 'x') { $('modal-hint').textContent = problem; return; }
         m.hidden = true; $('modal-x').removeEventListener('click', onX); removeEventListener('keydown', key, true);
-        this.#block(false); onClose?.(); resolve(id);
+        this.#block(false); onClose?.();
+        // A shortcut may now be inside the collapsed menu. Return to its visible
+        // trigger instead of leaving keyboard focus in a hidden modal/menu.
+        if (m.contains(document.activeElement) || document.activeElement === document.body) {
+          const target = previousFocus !== document.body && previousFocus?.isConnected && previousFocus.getClientRects().length && !previousFocus.closest('[hidden]') && !previousFocus.matches(':disabled') ? previousFocus : $('btn-more');
+          target?.focus({ preventScroll: true });
+        }
+        resolve(id);
       };
       const onX = () => done('x');
-      const key = e => { if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); done('x'); } };
+      const key = e => {
+        if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); done('x'); }
+        else if (e.key === 'Tab') {
+          const items = focusable(), first = items[0], last = items.at(-1);
+          if (!first) { e.preventDefault(); return; }
+          if (!items.includes(document.activeElement) || e.shiftKey && document.activeElement === first || !e.shiftKey && document.activeElement === last) {
+            e.preventDefault(); (e.shiftKey ? last : first).focus({ preventScroll: true });
+          }
+        }
+      };
       actions.forEach(a => { const b = h('button', 'btn' + (a.primary ? ' btn--primary' : ''), a.label); b.type = 'button'; b.dataset.action = a.id; b.disabled = Boolean(a.disabled); b.addEventListener('click', () => { if (a.onClick?.() === false) return; if (a.close !== false) done(a.id); }); foot.append(b); });
       $('modal-x').addEventListener('click', onX); addEventListener('keydown', key, true);
-      foot.querySelector('.btn--primary')?.focus({ preventScroll: true });
+      (foot.querySelector('.btn--primary:not(:disabled)') || focusable()[0])?.focus({ preventScroll: true });
     });
     this.queue = this.queue.then(run, run);
     return this.queue;

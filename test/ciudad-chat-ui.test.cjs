@@ -93,3 +93,23 @@ test('Enter/Space on chat buttons preserve native actions and never reach world 
  p.input.value='Con teclado';e=simulate(p.send,'Enter');assert.equal(e.defaultPrevented,undefined);if(!e.defaultPrevented)p.form.emit('submit');assert.equal(f.sent.length,1);assert.equal(world,0);acknowledge(f,f.sent[0].n,'Con teclado');p.toggle(true);
  const close=p.box.children[0].children.at(-1);simulate(close,' ');assert.equal(p.open,false);assert.equal(world,0);
 }));
+
+test('keyboard opening focuses the panel, explicit close and touch Escape return focus to the visible opener',()=>fixture(f=>{
+ const p=f.panel;p.fab.focus();p.fab.emit('click',{detail:0});assert.equal(p.open,true);assert.equal(f.doc.activeElement,p.box,'focus must not remain on the now-hidden opener');assert.equal(p.box.emit('keydown',{key:'Enter',code:'Enter'}).propagationStopped,true,'focused panel cannot interact with the world');
+ const close=p.box.children[0].children.at(-1);close.focus();close.click();assert.equal(p.open,false);assert.equal(f.doc.activeElement,p.fab,'explicit close must not leave focus in hidden content');
+ p.toggle(true);p.input.focus();p.input.emit('keydown',{key:'Escape'});assert.equal(f.doc.activeElement,p.fab);assert.equal(p.fab.hidden,false);
+}));
+
+test('an older uncertain ACK cannot clear a fresh draft that happens to have the same words',()=>fixture(f=>{
+ const p=f.panel;p.toggle(true);p.input.value='Texto repetido';p.submit();const first=f.sent[0].n;[...f.timers.values()].find(t=>t.ms===12000).fn();
+ p.input.value='Otro mensaje';p.submit();const second=f.sent.at(-1).n;p.input.value='Texto repetido';acknowledge(f,first,'Texto repetido');assert.equal(p.input.value,'Texto repetido','the draft belongs to a newer editing intent');assert.equal(p.sending,true);acknowledge(f,second,'Otro mensaje');assert.equal(p.input.value,'Texto repetido');
+}));
+
+test('the collapsed opener announces its unread count rather than hiding it behind a fixed aria-label',()=>fixture(f=>{
+ const p=f.panel;p.toggle(false);f.fire('chat',{op:'msg',id:21,pid:'peer',name:'Ana',text:'Hola',at:1e6});assert.equal(p.fab.getAttribute('aria-label'),'Abrir chat, 1 mensaje nuevo');f.fire('chat',{op:'msg',id:22,pid:'peer',name:'Ana',text:'¿Jugamos?',at:1e6});assert.equal(p.fab.getAttribute('aria-label'),'Abrir chat, 2 mensajes nuevos');p.toggle(true);assert.equal(p.fab.getAttribute('aria-label'),'Abrir chat');
+}));
+
+test('editing and restoring the same words while the latest send waits creates a draft that its ACK cannot clear',()=>fixture(f=>{
+ const p=f.panel;p.toggle(true);p.input.value='Mismas palabras';p.input.emit('input');p.submit();const n=f.sent[0].n;
+ p.input.value='Lo cambio';p.input.emit('input');p.input.value='Mismas palabras';p.input.emit('input');acknowledge(f,n,'Mismas palabras');assert.equal(p.input.value,'Mismas palabras');assert.equal(p.open,true);assert.equal(p.log.filter(e=>e.mine).length,1);
+}));

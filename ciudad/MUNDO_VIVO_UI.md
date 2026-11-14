@@ -53,3 +53,31 @@ Los scripts de regresión anteriores se adaptaron al botón explícito «Equipar
 ## Integración con Claude
 
 Revisar `main` de nuevo antes de integrar. Conservar sus controladores, viajes 1.3 y selección inicial tardía. Los cambios funcionales de esta entrega se limitan al flujo de UI; los archivos de modelos y mecánica no deben sustituirse. Al incorporar los catálogos 2.0, suministrar primero datos/capacidades reales, mantener acciones ausentes si no están disponibles y conservar la validación del backend. La ampliación visual no crea un nuevo sistema de propiedad, colocación, compras o relaciones.
+
+### Revisión de calidad y compatibilidad posterior
+
+La revisión remota de `main` sigue siendo **f43f608**. Esta entrega es independiente sobre Ciudad 1.3: no necesita migrar perfiles ni desplegar otro contrato del servidor. Se conserva la selección inicial tardía y la cola autoritativa de apariencia. El PR #73 se mantiene preparado para integración; las vistas del PR #72 permanecen aisladas.
+
+Se corrigieron fallos concretos de foco del modal/menú, texto secundario demasiado tenue, foco perdido al reconstruir filtros del Studio y la confirmación antigua que podía borrar un borrador de chat nuevo con idénticas palabras. El modal contiene Tab/Shift+Tab y devuelve el foco a un control visible; los mensajes de validación se anuncian como estado. Los botones del menú conservan al menos 44 px y sus etiquetas se hacen más legibles, sin ampliar la navegación ni cambiar mecánicas.
+
+Resultados de la pasada de calidad:
+
+- **580/580 pruebas del repositorio aprobadas, sin omisiones.** La ejecución completa requiere acceso a sus servidores en `127.0.0.1`; una primera ejecución restringida falló por `EACCES` del sandbox y se repitió con ese permiso local.
+- Chat: **14/14 pruebas específicas**, conservación de la revisión de edición incluso al reponer el mismo texto, estado inactivo legible, foco de apertura/cierre y contador accesible de mensajes nuevos. Chromium 1440/390/320 y WebKit 390/320 con DOM/Input/WebSocket locales reales. Los 18 casos de teclado reducido por motor siguen aprobados. Contraste CSS calculado sobre fondo blanco: mínimo 4,81:1.
+- Studio: **11/11 pruebas específicas** (20/20 con preview y contratos de apariencia). Chromium y WebKit 320/390 con servidor local real; segunda sesión, reinicio, ACK intercalados y perfil tardío. Foco/caret y scroll se conservan al recibir el perfil; los filtros se hacen visibles sólo al abrirlos. Regresión final de «Limpiar filtros» repetida en ambos motores. Controles de al menos 44 px, contraste medido de 4,66–5,02:1 y ningún desbordamiento horizontal.
+- La auditoría independiente encontró el recorrido inverso de Tab del menú; queda cubierto en la prueba real del shell. El cierre con Tab no depende de que el navegador proporcione `relatedTarget`, por lo que también funciona al pasar el foco a la barra del navegador.
+- Shell final con teclado/foco/contraste y objetivos táctiles: Chromium 1440×1000, 768×1024, 320×740, 390×844 y 740×390; WebKit 768×1024, 320×740, 390×844 y 740×390. Los nueve casos terminaron sin errores ni solapamiento con correr/saltar. Se comprobó también apertura programática de modal y acción primaria deshabilitada.
+
+Son pruebas locales y tamaños emulados, no dispositivos físicos, lectores de pantalla manuales, pruebas contra Railway/Firestore o medición de FPS. Los resultados de la suite anterior de 575 se conservan como historial; no sustituyen estos resultados posteriores.
+
+**Hay contratos nuevos, todavía en una rama de desarrollo:** se consultó en modo de lectura `feature/ciudad-mundo-vivo`, commit **ca84ff6**, y su `ciudad/MUNDO_VIVO.md`. Esto actualiza la situación de la entrega inicial: `api.vivo`, `api.actions`, `PetPreview` y `api.homeEditor` ya están descritos e implementados en esa rama; no forman parte de `main` f43f608 ni han sido integrados/probados con este PR. La matriz exacta y las pruebas de conexión están en el PR #72. Los diez juegos nuevos siguen necesitando sus contratos propios.
+
+Antes de integrar la expansión, hay que reconciliar expresamente estos puntos:
+
+1. El menú de esta entrega reorganiza y reemplaza los hijos de `#more-menu`. La rama 2.0 incorpora `#btn-pets` y `#btn-inventory`, cuyos listeners instala `installVivoActions(api)` **después** de construir `UI`. No mezclar las ramas sin conservar esas entradas y acordar el montaje posterior a las capacidades reales; no duplicar listeners ni navegación.
+2. La semántica 2.0 pasa por `api.actions`: Mi avatar abre Pasaporte/avatar y Mi casa llama a `api.goHome()`. En 1.3 Mi avatar abre Personajes y Mi casa sólo marca la puerta existente. Elegir las acciones canónicas de la expansión al conectarla, sin ejecutar ambas rutas.
+3. El catálogo 2.0 añade 31 prendas, tres ranuras y artículos de pago. Deben usarse `api.vivo.wearInfo(slot, option)`, `locked(custom)` e inventario confirmado para mostrar propiedad/precio/candado. La etiqueta Gratuito del catálogo actual **no** es una garantía para futuras prendas. No habilitar el catálogo 2.0 en este Studio sin esta adaptación y pruebas de rechazo/compra/equipamiento.
+4. Conservar el historial y las etiquetas de monedas autoritativas que Claude añadió a `ui.js`, sus destinos nuevos de `city-map.js` y sus controladores. Los cambios de foco/modal son complementarios, no un reemplazo de esos archivos completos.
+5. Resolver las versiones de `index.html`, puente y caché una sola vez sobre el `main` que exista al integrar. Las pruebas de mapa deben contemplar los destinos canónicos nuevos, y las de vestidor el botón Equipar explícito.
+
+No se hizo checkout, merge, escritura ni ejecución con datos reales sobre la rama de Claude. Consultar un contrato en desarrollo no equivale a dar la expansión por validada ni autoriza publicar las siete vistas de muestra.

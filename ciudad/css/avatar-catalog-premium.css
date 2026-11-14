@@ -2,17 +2,18 @@
 .vest--catalog .vest__catalog-tools{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:start;min-width:0}
 .vest--catalog .vest__catalog-search{display:flex;min-width:0}
 .vest--catalog .vest__catalog-search input{width:100%;min-width:0;min-height:44px;padding:10px 13px;border:1px solid #d7deee;border-radius:12px;background:#fff;color:#2c3c5f;font:inherit;font-size:13px;appearance:none}
-.vest--catalog .vest__catalog-search input::placeholder{color:#78849a}
+.vest--catalog .vest__catalog-search input::placeholder{color:#63718a;opacity:1}
 .vest--catalog .vest__filters{min-width:88px;position:relative}
 .vest--catalog .vest__filters summary{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 13px;border:1px solid #d7deee;border-radius:12px;background:#eef1fa;color:#354568;font-size:12px;font-weight:750;cursor:pointer;list-style:none}
 .vest--catalog .vest__filters summary::-webkit-details-marker{display:none}
 .vest--catalog .vest__filters summary::before{content:"";width:14px;height:11px;border-top:1.5px solid currentColor;border-bottom:1.5px solid currentColor;background:linear-gradient(currentColor,currentColor) center/8px 1.5px no-repeat}
 .vest--catalog .vest__filters[open] summary{border-color:#b2a2d9;background:#eae4f8;color:#594185}
-.vest--catalog .vest__filter-fields{display:flex;flex-wrap:wrap;gap:9px;position:absolute;z-index:5;right:0;top:calc(100% + 7px);width:min(410px,calc(100vw - 52px));padding:12px;border:1px solid #d9deee;border-radius:15px;background:#fff;box-shadow:0 14px 36px #25396621}
+.vest--catalog .vest__filter-fields{display:flex;flex-wrap:wrap;gap:9px;position:absolute;z-index:5;right:0;top:calc(100% + 7px);width:min(410px,calc(100vw - 52px));padding:12px;border:1px solid #d9deee;border-radius:15px;background:#fff;box-shadow:0 14px 36px #25396621;scroll-margin-block:8px}
 .vest--catalog .vest__filter-field{display:flex;flex:1 1 110px;min-width:0;flex-direction:column;gap:5px}
 .vest--catalog .vest__filter-field>span{font-size:10px;letter-spacing:.03em;font-weight:750;color:#65718a}
 .vest--catalog .vest__filter-field select{width:100%;min-width:0;min-height:44px;padding:9px 10px;border:1px solid #dce2ef;border-radius:10px;background:#f7f8fd;color:#2c3c5f;font:inherit;font-size:12px;color-scheme:light}
-.vest--catalog .vest__option-count{color:#6b7890;font-size:10px;line-height:1.35;font-variant-numeric:tabular-nums;margin-top:-3px}
+.vest--catalog .vest__option-count{color:#5f6d85;font-size:10px;line-height:1.35;font-variant-numeric:tabular-nums;margin-top:-3px}
+.vest--catalog .voption__copy small,.vest--catalog .vest__result-count,.vest--catalog .vest__collection-note,.vest--catalog .vest__style .note{color:#5f6d85}
 .vest--catalog .vest__catalog-empty{grid-column:1/-1;text-align:center;padding:20px 12px;border:1px dashed #d8deee;border-radius:14px;color:#66738c;font-size:12px}
 .vest--catalog .vest__catalog-empty p{margin:0 0 6px}
 .vest--catalog .vest__clear-filters{min-height:44px;padding:9px 14px;color:#354b79;background:#eef1fa;border:1px solid #dce2ef;border-radius:10px;font-weight:700}

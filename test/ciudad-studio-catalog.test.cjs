@@ -36,6 +36,9 @@ async function studio(options = {}, initial = {}) {
     getAttribute(name) { return name.startsWith('data-') ? this.dataset[datasetKey(name)] ?? null : this.attributes[name] ?? null; }
     addEventListener(name, fn) { if (!this.listeners.has(name)) this.listeners.set(name, []); this.listeners.get(name).push(fn); }
     focus() { document.activeElement = this; }
+    contains(node) { return node === this || this.children.some(child => child.contains(node)); }
+    setSelectionRange(start, end, direction) { this.selectionStart = start; this.selectionEnd = end; this.selectionDirection = direction; }
+    scrollIntoView() { this.scrollCalls = (this.scrollCalls || 0) + 1; }
     matches(selector) {
       const attr = /\[([^=\]]+)(?:="([^"]*)")?\]/.exec(selector);
       if (attr && (this.getAttribute(attr[1]) === null || attr[2] !== undefined && this.getAttribute(attr[1]) !== attr[2])) return false;
@@ -102,10 +105,13 @@ test('cosmetics stay in a local multi-piece preview until explicit Equipar and c
 
 test('Equipar uses the existing avatar API once, shows confirmation pending, and keeps the modal open', async () => {
   const a = await studio({ tab: 'ropa' }); a.click('[data-top="hoodie"]'); a.click('[data-fashion-group="bottom"]'); a.click('[data-bottom="cargo"]');
+  assert.match(a.find('[data-bottom="cargo"]').getAttribute('aria-label'), /en prueba/); assert.equal(a.find('.vest__status').getAttribute('role'), 'status');
   a.click('[data-action="equip"]'); assert.equal(a.sent.length, 1); assert.equal(a.sent[0].custom.top, 'hoodie'); assert.equal(a.sent[0].custom.bottom, 'cargo');
   assert(a.find('.vest--catalog')); assert.match(a.find('.vest__status').textContent, /Confirmando/); assert.doesNotMatch(a.find('.vest__status').textContent, /confirmada/);
   assert.equal(a.find('[data-action="equip"]').disabled, true); a.click('[data-action="equip"]'); assert.equal(a.sent.length, 1);
+  assert.equal(a.find('[data-action="equip"]').getAttribute('aria-busy'), 'true'); assert.doesNotMatch(a.find('[data-bottom="cargo"]').getAttribute('aria-label'), /equipado/);
   a.ack(); assert.match(a.find('.vest__status').textContent, /Apariencia confirmada/); assert.doesNotMatch(a.find('.vest__status').textContent, /Confirmando/);
+  assert.equal(a.find('[data-action="equip"]').getAttribute('aria-busy'), 'false'); assert.match(a.find('[data-bottom="cargo"]').getAttribute('aria-label'), /equipado/);
   assert.equal(a.find('[data-bottom="cargo"]').classList.contains('is-equipped'), true); a.close(); await a.result;
 });
 
@@ -131,7 +137,7 @@ test('catalog filters never fabricate unsupported categories, locks, prices or n
   const a = await studio({ tab: 'cabello' });
   a.select('[data-wardrobe-filter="type"]', 'pelucas'); assert.deepEqual(a.find('.vest__hairStyle-options').children.map(n => n.dataset.hairStyle), ['bob']);
   const typeNames = a.find('[data-wardrobe-filter="type"]').children.map(n => n.textContent);
-  assert.deepEqual(typeNames, ['Todos los tipos', 'Peinados', 'Pelucas']);
+  assert.deepEqual(typeNames, ['Todos', 'Peinados', 'Pelucas']);
   assert(!a.find('[data-wardrobe-filter="style"]')); assert.doesNotMatch(a.find('.vest__style').textContent, /Comprar|Desbloquear|Nuevo|Montura|Vestidos|Shorts|Capris/);
   a.close(); await a.result;
 });
@@ -183,4 +189,22 @@ test('a completely lost response has bounded presentation and the timer does not
   const stored = copy(a.state); assert.equal(a.timers.size, 1); assert.equal([...a.timers.values()][0].ms, 12500);
   a.expire(); assert.deepEqual(a.state, stored); assert.equal(a.sent.length, 1, 'presentation timer never retries a write'); assert.match(a.find('.vest__status').textContent, /Sin confirmación/); assert.doesNotMatch(a.find('.vest__status').textContent, /Confirmando/);
   a.click('[data-top="tee"]'); a.click('[data-action="equip"]'); assert.equal(a.timers.size, 1); a.close(); await a.result; assert.equal(a.timers.size, 0);
+});
+
+test('profile refreshes preserve the active catalog control, search cursor and keyboard category focus', async () => {
+  const a = await studio({ tab: 'ropa' });
+  const input = a.select('.vest__catalog-search input', 'denim', 'input'); input.focus(); input.setSelectionRange(2, 4, 'forward');
+  a.remote('universitaria', { bottom: 'skirt' });
+  let focused = a.document.activeElement;
+  assert.equal(focused, a.find('.vest__catalog-search input')); assert.equal(focused.value, 'denim'); assert.equal(focused.selectionStart, 2); assert.equal(focused.selectionEnd, 4);
+  const filter = a.find('[data-wardrobe-filter="state"]'); filter.focus(); a.remote('universitaria', { bottom: 'skirt', hairColor: 'rosa' });
+  assert.equal(a.document.activeElement, a.find('[data-wardrobe-filter="state"]'));
+  const detail = a.find('.vest__filters'); detail.open = true; detail.emit('toggle'); a.flush(); assert.equal(a.find('.vest__filter-fields').scrollCalls, 1, 'opening brings the panel into view');
+  a.remote('universitaria', { bottom: 'skirt' }); a.find('.vest__filters').emit('toggle'); a.flush(); assert.equal(a.find('.vest__filter-fields').scrollCalls, undefined, 'repainting an open filter does not move the page');
+  a.select('.vest__catalog-search input', 'noexiste', 'input'); a.find('.vest__clear-filters').focus(); a.remote('universitaria', { bottom: 'skirt' });
+  assert.equal(a.document.activeElement, a.find('.vest__clear-filters'), 'empty-result recovery keeps its focused reset control');
+  a.click('.vest__tabs [data-id="personajes"]');
+  const category = a.find('.vest__cats').children[1]; category.focus(); category.click(); a.flush();
+  assert.equal(a.document.activeElement, a.find('.vest__cats').children[1]);
+  a.close(); await a.result;
 });

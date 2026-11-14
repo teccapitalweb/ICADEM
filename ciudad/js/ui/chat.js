@@ -18,23 +18,23 @@ const clock = at => new Date(at).toLocaleTimeString('es-MX', { hour: '2-digit', 
 export class ChatPanel {
   constructor(api, social) {
     this.api = api; this.social = social; this.net = api.net;
-    this.log = []; this.unread = 0; this.open = false; this.state = null; this.pending = new Map(); this.seq = 0; this.view = 0;
+    this.log = []; this.unread = 0; this.open = false; this.state = null; this.pending = new Map(); this.seq = 0; this.view = 0; this.editRevision = 0;
     const hud = document.getElementById('hud');
 
     // botón (celular/tablet o ventana minimizada)
     this.fab = h('button', 'chat-fab'); this.fab.type = 'button'; this.fab.id = 'btn-chat'; this.fab.hidden = true;
     this.fab.setAttribute('aria-label', 'Abrir chat'); this.fab.append(h('span', 'chat-fab__icon', '💬'), h('span', 'chat-fab__text', 'Chat'), this.badge = h('b', 'chat-fab__badge'));
     this.badge.hidden = true;
-    this.fab.addEventListener('click', () => this.toggle(true));
+    this.fab.addEventListener('click', e => { this.toggle(true); if (this.touch && e.detail === 0) this.box.focus({ preventScroll: true }); });
 
     // ventana
-    this.box = h('section', 'chat'); this.box.id = 'chat'; this.box.hidden = true; this.box.setAttribute('aria-label', 'Chat de la ciudad');
+    this.box = h('section', 'chat'); this.box.id = 'chat'; this.box.hidden = true; this.box.setAttribute('aria-label', 'Chat de la ciudad'); this.box.tabIndex = -1;
     const head = h('header', 'chat__head');
     const title = h('div', 'chat__title'); title.append(h('strong', null, 'Chat de la ciudad'), this.sub = h('small', null, ''));
     this.menuBtn = h('button', 'chat__icon'); this.menuBtn.type = 'button'; this.menuBtn.setAttribute('aria-label', 'Opciones del chat'); this.menuBtn.textContent = '⋯';
     this.menuBtn.addEventListener('click', () => this.options());
     const close = h('button', 'chat__icon chat__close'); close.type = 'button'; close.setAttribute('aria-label', 'Cerrar chat'); close.title = 'Cerrar chat'; close.textContent = '×';
-    close.addEventListener('click', () => this.toggle(false));
+    close.addEventListener('click', () => { this.toggle(false); this.#returnFocus(); });
     head.append(title, this.menuBtn, close);
     this.list = h('ol', 'chat__log'); this.list.setAttribute('role', 'log'); this.list.setAttribute('aria-live', 'polite');
     this.gate = h('div', 'chat__gate');
@@ -54,8 +54,8 @@ export class ChatPanel {
     hud.append(this.box, this.fab);
 
     this.form.addEventListener('submit', e => { e.preventDefault(); this.submit(); });
-    this.input.addEventListener('input', () => { this.#count(); if (!this.sending) this.#notice(''); });
-    this.input.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); this.input.blur(); if (this.touch) this.toggle(false); } if (e.isComposing && e.key === 'Enter') e.preventDefault(); e.stopPropagation(); });
+    this.input.addEventListener('input', () => { this.editRevision++; this.#count(); if (!this.sending) this.#notice(''); });
+    this.input.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); this.input.blur(); if (this.touch) { this.toggle(false); this.#returnFocus(); } } if (e.isComposing && e.key === 'Enter') e.preventDefault(); e.stopPropagation(); });
     this.input.addEventListener('compositionstart', () => { this.composing = true; });
     this.input.addEventListener('compositionend', () => { this.composing = false; });
     this.input.addEventListener('focus', () => { this.box.classList.add('is-active'); this.api.input.keys.clear(); });
@@ -64,7 +64,7 @@ export class ChatPanel {
     this.box.addEventListener('pointerleave', () => this.#idle());
     // Let native button activation run, without Enter/Space also interacting or
     // jumping in the world. Input's window listener otherwise prevents it.
-    const buttonKeys = e => { if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') && e.target.closest?.('button')) e.stopPropagation(); };
+    const buttonKeys = e => { if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') && (e.target === this.box || e.target.closest?.('button'))) e.stopPropagation(); };
     this.box.addEventListener('keydown', buttonKeys); this.fab.addEventListener('keydown', buttonKeys);
     // Keep the keyboard until a touch button's click has actually run. Native
     // pointer focus can otherwise resize the visual viewport between down/up.
@@ -75,7 +75,7 @@ export class ChatPanel {
       if (this.touch && this.open && !this.api.ui.isBlocking && !this.box.contains(e.target) && !this.fab.contains(e.target)) this.toggle(false);
     });
     document.addEventListener('keydown', e => {
-      if (e.key === 'Escape' && this.touch && this.open && !this.api.ui.isBlocking) { this.toggle(false); this.fab.focus({ preventScroll: true }); }
+      if (e.key === 'Escape' && this.touch && this.open && !this.api.ui.isBlocking) { this.toggle(false); this.#returnFocus(); }
     });
     const viewport = () => {
       const vv = window.visualViewport;
@@ -99,6 +99,7 @@ export class ChatPanel {
   get enabled() { return Boolean(this.available && this.state && this.state.enabled); }
   get sending() { return [...this.pending.values()].some(p => p.sending); }
 
+  #returnFocus() { if (!this.fab.hidden) this.fab.focus({ preventScroll: true }); }
   #count() { const n = this.input.value.length; this.count.hidden = n < CHAT_MAX - 30; this.count.textContent = `${n}/${CHAT_MAX}`; }
   #notice(text, kind = '') { this.notice.textContent = text; this.notice.dataset.state = kind; }
   #delivery() { this.send.disabled = this.sending || !this.enabled; this.form.setAttribute('aria-busy', String(this.sending)); this.afterLabel.hidden = !this.touch || !this.enabled; }
@@ -141,6 +142,7 @@ export class ChatPanel {
     this.fab.setAttribute('aria-expanded', String(!this.box.hidden)); this.fab.setAttribute('aria-controls', 'chat');
     this.#delivery();
     this.badge.hidden = !this.unread; this.badge.textContent = this.unread > 9 ? '9+' : String(this.unread);
+    this.fab.setAttribute('aria-label', this.unread ? `Abrir chat, ${this.unread} ${this.unread === 1 ? 'mensaje nuevo' : 'mensajes nuevos'}` : 'Abrir chat');
     if (!show) return;
     const pr = this.net.presence, others = pr ? Math.max(0, pr.instance - 1) : this.net.roster.size;
     this.sub.textContent = others ? `${others} ${others === 1 ? 'persona' : 'personas'} en tu ciudad` : 'Por ahora estás solo en tu ciudad';
@@ -185,7 +187,7 @@ export class ChatPanel {
     const c = checkMessage(raw);
     if (!c.ok) { const message = CHAT_REASONS[c.reason] || 'No se pudo enviar.'; this.#notice(message, 'error'); api.ui.toast(message, 2600); return; }
     const n = ++this.seq;
-    const pending = { raw, text: c.text, sending: true, close: this.touch && this.after.checked, view: this.view, timer: null };
+    const pending = { raw, text: c.text, sending: true, close: this.touch && this.after.checked, view: this.view, editRevision: this.editRevision, timer: null };
     this.pending.set(n, pending);
     this.#notice('Enviando…', 'pending'); this.#delivery();
     let sent = false; try { sent = this.net.chat('send', { text: raw, n }); } catch (_) { /* the socket may close before its status event */ }
@@ -220,7 +222,7 @@ export class ChatPanel {
       this.social.bubble('me', m.text, CHAT_BUBBLE_SECONDS);
       if (!m.heard) this.#system('Nadie más te lee ahora: acércate a otras personas o invita a alguien.', 'heard');
       if (pending) {
-        if (this.input.value === pending.raw) this.input.value = ''; this.#count();
+        if (m.n === this.seq && this.editRevision === pending.editRevision && this.input.value === pending.raw) this.input.value = ''; this.#count();
         if (m.n === this.seq && !this.sending) this.#notice('Mensaje enviado', 'sent');
         if (m.n === this.seq && pending.close && this.touch && this.open && pending.view === this.view && !this.input.value) this.toggle(false);
         if (m.n === this.seq && this.box.hidden) api.ui.toast('Mensaje enviado. Puedes verlo al abrir el chat.', 2400);

@@ -25,6 +25,21 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   let viewing = first ? (AVATARS.find(a => a.id === st.avatarId && a.category === 'inicial') || AVATARS[0]).id : st.avatarId;
   let cat = first ? 'inicial' : (avatarById(viewing).category || 'inicial'), tab = 'personajes', query = '', availability = 'all';
   let draft = cleanCustom(st.custom), equipped = { id: st.avatarId, custom: cleanCustom(st.custom) }, pendingLook = null, pendingTimer = null, touched = false, feedback = '', offProfile = null, offStatus = null, lastAvatarAck = -1;
+  // Authoritative profile updates may repaint these controls while someone is
+  // typing or navigating by keyboard. Retain the same semantic control and caret.
+  const retainFocus = root => {
+    const active = document.activeElement;
+    if (!active || !root.contains(active)) return () => {};
+    const identity = Object.entries(active.dataset)[0], label = active.getAttribute('aria-label'), tag = active.tagName;
+    const selection = [active.selectionStart, active.selectionEnd, active.selectionDirection], scroll = [];
+    for (let node = root; node && node !== document.body; node = node.parentElement) scroll.push([node, node.scrollLeft, node.scrollTop]);
+    return () => {
+      const target = [...root.querySelectorAll('button,input,select,summary')].find(node => node.tagName === tag && (identity ? node.dataset[identity[0]] === identity[1] : label !== null ? node.getAttribute('aria-label') === label : node.className === active.className));
+      target?.focus({ preventScroll: true });
+      if (target?.setSelectionRange && typeof selection[0] === 'number') target.setSelectionRange(...selection);
+      for (const [node, left, top] of scroll) { node.scrollLeft = left; node.scrollTop = top; }
+    };
+  };
   const sameCustom = (a, b) => JSON.stringify(cleanCustom(a)) === JSON.stringify(cleanCustom(b));
   const sameLook = (a, b) => a.id === b.id && sameCustom(a.custom, b.custom);
   const current = () => ({ id: viewing, custom: draft });
@@ -53,7 +68,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     } else equipped = selection;
     paintStage(); if (tab === 'personajes') paintCards(); else paintStyle();
   };
-  const discardTrial = () => { viewing = st.avatarId; draft = cleanCustom(st.custom); touched = false; feedback = ''; paintStage(); if (tab === 'personajes') paintCards(); else paintStyle(); };
+  const discardTrial = () => { viewing = st.avatarId; draft = cleanCustom(st.custom); touched = false; feedback = ''; paintStage(); if (tab === 'personajes') paintCards(); else paintStyle(); customize.focus({ preventScroll: true }); };
   const shots = new Map();
   const thumbnails = queue => {
     const run = ++thumbnailRun;
@@ -63,6 +78,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
 
   /* escenario: personaje en 3D + estado */
   const tag = h('span', 'vest__tag'), name = h('strong', 'vest__name'), status = h('div', 'vest__status');
+  status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true');
   const paintStage = () => {
     const a = avatarById(viewing), open = isAvatarUnlocked(a.id, st), on = sameLook(current(), equipped) && !first;
     if (preview) { preview.show(lookOf(a.id)); preview.canvas.setAttribute('aria-label', 'Vista previa 3D de ' + a.name); }
@@ -111,11 +127,12 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     return shots.get(key);
   };
   const paintCards = () => {
+    const restoreFocus = retainFocus(body);
     cats.replaceChildren(); cards.replaceChildren();
     for (const c of AVATAR_CATEGORIES) {
       if (first && c.id !== 'inicial') continue;
       const list = AVATARS.filter(a => a.category === c.id), got = list.filter(a => isAvatarUnlocked(a.id, st)).length;
-      const b = h('button', c.id === cat ? 'is-on' : '', null); b.type = 'button'; b.setAttribute('aria-pressed', String(c.id === cat)); b.append(h('span', null, c.name), h('small', null, `${got}/${list.length}`));
+      const b = h('button', c.id === cat ? 'is-on' : '', null); b.type = 'button'; b.dataset.avatarCategory = c.id; b.setAttribute('aria-pressed', String(c.id === cat)); b.append(h('span', null, c.name), h('small', null, `${got}/${list.length}`));
       b.addEventListener('click', () => { cat = c.id; paintCards(); }); cats.append(b);
     }
     const match = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(), needle = match(query.trim());
@@ -136,6 +153,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     // miniaturas 3D poco a poco, sin trabar la animación
     if (!list.length) cards.append(h('p', 'vest__empty', 'No hay personajes con estos filtros. Prueba otra categoría o búsqueda.'));
     thumbnails(queue);
+    restoreFocus();
   };
 
   /* Opciones cosméticas reales: el mismo catálogo validado por el servidor. */
@@ -178,6 +196,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   };
   const style = h('div', 'vest__style');
   const paintStyle = () => {
+    const restoreFocus = retainFocus(style);
     style.replaceChildren(); style.classList.toggle('vest__fashion', Boolean(fashionSections[tab])); const queue = [];
     const group = (label, key, options, swatch) => {
       const f = h('section', 'field vest__style-group'), head = h('div', 'vest__style-head'), row = h('div', 'chips' + (swatch ? ' chips--swatch' : '') + (key === 'tone' ? '' : ' vest__item-options') + ' vest__' + key + '-options'); f.dataset.cosmeticGroup = key; head.append(h('h3', null, label), h('small', null, 'Gratuito')); f.append(head, row);
@@ -196,7 +215,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
         if (summary) { const n = [selectedFilter.type, selectedFilter.color, selectedFilter.state].filter(Boolean).length; summary.textContent = 'Filtros' + (n ? ` · ${n}` : ''); }
         visible.forEach(o => {
           const on = (draft[key] || 'base') === o.id, worn = !first && viewing === equipped.id && (equipped.custom[key] || 'base') === o.id;
-          const b = h('button', (on ? 'is-on ' : '') + (worn ? 'is-equipped ' : on ? 'is-trying ' : '') + (['base', 'none'].includes(o.id) ? 'is-reset ' : '') + (key === 'tone' ? 'vest__tone' : 'voption')); b.type = 'button'; b.dataset[key] = o.id; b.title = o.name; b.setAttribute('aria-label', `${label}: ${o.name}`); b.setAttribute('aria-pressed', String(on));
+          const b = h('button', (on ? 'is-on ' : '') + (worn ? 'is-equipped ' : on ? 'is-trying ' : '') + (['base', 'none'].includes(o.id) ? 'is-reset ' : '') + (key === 'tone' ? 'vest__tone' : 'voption')); b.type = 'button'; b.dataset[key] = o.id; b.title = o.name; b.setAttribute('aria-label', `${label}: ${o.name}${worn ? ', equipado' : on ? ', en prueba' : ''}`); b.setAttribute('aria-pressed', String(on));
           if (o.color !== null && o.color !== undefined) b.style.setProperty('--dot', hex(o.color)); else if (swatch) b.classList.add('is-base');
           if (key !== 'tone') {
             const pic = h('span', 'voption__pic'), img = h('img'), copy = h('span', 'voption__copy'); img.alt = ''; img.decoding = 'async'; pic.append(img); copy.append(h('strong', null, o.name), h('small', null, worn ? 'Equipado' : on ? 'En prueba' : 'Disponible')); b.append(pic, copy);
@@ -209,21 +228,26 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
         });
         if (!visible.length) {
           const empty = h('div', 'vest__catalog-empty'), reset = h('button', 'vest__clear-filters', 'Limpiar filtros'); reset.type = 'button'; empty.append(h('p', null, 'No hay opciones con estos filtros.'), reset); row.append(empty);
-          reset.addEventListener('click', () => { Object.assign(selectedFilter, { query: '', type: '', color: '', state: '' }); paintStyle(); });
+          reset.addEventListener('click', () => { Object.assign(selectedFilter, { query: '', type: '', color: '', state: '' }); paintStyle(); style.querySelector('.vest__catalog-search input')?.focus({ preventScroll: true }); });
         }
         if (refresh) thumbnails(jobs); else queue.push(...jobs);
       };
       if (fashionSections[tab]) {
         const controls = h('div', 'vest__catalog-tools'), search = h('label', 'vest__catalog-search'), input = h('input'), detail = h('details', 'vest__filters'), fields = h('div', 'vest__filter-fields');
         input.type = 'search'; input.value = selectedFilter.query; input.placeholder = 'Buscar opción…'; input.setAttribute('aria-label', 'Buscar en ' + label); search.append(input); input.addEventListener('input', () => { selectedFilter.query = input.value; renderOptions(true); });
-        summary = h('summary', '', 'Filtros'); detail.open = selectedFilter.open; detail.addEventListener('toggle', () => { selectedFilter.open = detail.open; }); detail.append(summary, fields); controls.append(search, detail);
+        summary = h('summary', '', 'Filtros'); detail.open = selectedFilter.open; detail.addEventListener('toggle', () => {
+          const opened = detail.open && !selectedFilter.open; selectedFilter.open = detail.open;
+          // On a short phone viewport the popover may start behind the footer.
+          // Move only for an explicit opening, never for a profile-driven repaint.
+          if (opened) requestAnimationFrame(() => { if (detail.isConnected && detail.open) fields.scrollIntoView({ block: 'nearest' }); });
+        }); detail.append(summary, fields); controls.append(search, detail);
         const select = (caption, field, values) => {
           const label = h('label', 'vest__filter-field'), control = h('select'); control.setAttribute('aria-label', caption); control.dataset.wardrobeFilter = field;
           for (const [value, text] of values) { const option = h('option', null, text); option.value = value; control.append(option); }
           control.value = selectedFilter[field]; control.addEventListener('change', () => { selectedFilter[field] = control.value; renderOptions(true); }); label.append(h('span', null, caption), control); fields.append(label);
         };
-        if (categories.length > 1) select('Tipo', 'type', [['', 'Todos los tipos'], ...categories.map(([id, name]) => [id, name])]);
-        if (colors.size > 1) select('Color', 'color', [['', 'Todos los colores'], ...colors]);
+        if (categories.length > 1) select('Tipo', 'type', [['', 'Todos'], ...categories.map(([id, name]) => [id, name])]);
+        if (colors.size > 1) select('Color', 'color', [['', 'Todos'], ...colors]);
         if (!first) select('Estado', 'state', [['', 'Todas las opciones'], ['available', 'Disponibles'], ['equipped', 'Equipado']]);
         f.insertBefore(controls, row); f.append(count);
       }
@@ -243,6 +267,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     } else style.append(group('Color del atuendo', 'outfit', OUTFIT_COLORS, true), group('Sombrero', 'hat', HAT_OPTIONS), group('Tono de piel', 'tone', SKIN_TONES, true));
     style.append(h('p', 'note', first ? 'Prueba tu estilo. Lo aplicarás al comenzar.' : 'Prueba y combina. Pulsa Equipar selección para aplicar tu apariencia.'));
     thumbnails(queue);
+    restoreFocus();
   };
 
   const tabs = h('div', 'tabs vest__tabs'), body = h('div', 'vest__body');

@@ -15,6 +15,12 @@ export function installQuickMenu(ui) {
   trigger.classList.add('quick-trigger'); trigger.setAttribute('aria-label', 'Accesos rápidos'); trigger.setAttribute('aria-controls', panel.id); trigger.title = 'Accesos rápidos';
   trigger.querySelector('span').textContent = 'Accesos';
   trigger.addEventListener('keydown', event => { if (event.key === 'Enter' || event.code === 'Space') event.stopPropagation(); });
+  trigger.addEventListener('keydown', event => {
+    if (!['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+    event.preventDefault(); event.stopPropagation(); if (panel.hidden) trigger.click();
+    const buttons = [...panel.querySelectorAll('button:not([hidden])')];
+    (event.key === 'ArrowUp' ? buttons.at(-1) : buttons[0])?.focus({ preventScroll: true });
+  });
   trigger.addEventListener('click', () => { if (!panel.hidden) api.social?.toggle(false); });
   const toolbar = trigger.closest('.toolbar'); toolbar?.classList.add('toolbar--quick');
   const head = h('div', 'quick-menu__heading'), grid = h('div', 'quick-menu__grid'), utility = h('div', 'quick-menu__utility');
@@ -22,9 +28,9 @@ export function installQuickMenu(ui) {
   head.setAttribute('role', 'presentation'); grid.setAttribute('role', 'group'); grid.setAttribute('aria-label', 'Explorar y personalizar'); utility.setAttribute('role', 'group'); utility.setAttribute('aria-label', 'Tu cuenta y ajustes');
   let active = null;
   const prepare = (button, id, name, symbol, detail) => {
-    button.className = 'quick-menu__item'; button.type = 'button'; button.dataset.quickAction = id; button.setAttribute('role', 'menuitem'); button.setAttribute('aria-label', name); button.title = name;
+    button.className = 'quick-menu__item'; button.type = 'button'; button.tabIndex = -1; button.dataset.quickAction = id; button.setAttribute('role', 'menuitem'); button.setAttribute('aria-label', name); button.title = name;
     const copy = h('span'); copy.append(h('strong', null, name)); if (detail) copy.append(h('small', null, detail)); button.replaceChildren(icon(symbol), copy);
-    button.addEventListener('click', () => { active = id; }); return button;
+    button.addEventListener('click', () => { active = ['avatar', 'wardrobe', 'map', 'games', 'passport', 'settings'].includes(id) ? id : null; }); return button;
   };
   const existing = (elementId, id, name, symbol, detail, target = grid) => { const button = document.getElementById(elementId); if (button) target.append(prepare(button, id, name, symbol, detail)); };
   const action = (id, name, symbol, detail, run) => { const button = prepare(h('button'), id, name, symbol, detail); button.addEventListener('click', run); grid.append(button); };
