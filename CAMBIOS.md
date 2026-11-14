@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-11-13 — QA conservadora de Ciudad ICADEM 1.3 (preparada en PR)
+
+- El chat conserva filas, foco y posición al recibir mensajes mientras se lee el historial. Sólo el ACK del último envío aún en curso lleva al mensaje propio; respuestas tardías o desconocidas respetan la lectura. Borradores, moderación y protocolo sin cambios.
+- El Studio reutiliza su modelo si la apariencia no cambia: 20 perfiles idénticos pasan de 20 reconstrucciones a 0 en la prueba de referencia; 10 lecturas reales del servidor local también producen 0 y conservan los contadores de geometrías/texturas. Se conserva el foco de Descartar prueba durante las actualizaciones.
+- Pasaporte y menú de juegos mantienen su diseño con objetivos táctiles de 44 px, estado accesible de pestañas y distintivos existentes de progreso visibles en móvil. El mapa no necesitó cambios.
+- 585/585 pruebas del repositorio y 22/22 del laboratorio/verificador de PR #72. La guía `ciudad/CHAT_PRUEBA_MANUAL.md` permite completar la prueba autenticada sin consola ni secretos. No se afirma una comprobación de envío en producción ni de teléfonos físicos.
+- Entrada/puente v16, hoja educativa v2 y caché v183 preparados para integrar; **no publicados por esta auditoría**. La producción auditada sigue en b97c80d/v15/v182. Sin cambios en motor, física, servidor, reglas, sincronización, Firestore o Railway.
+
 ## 2026-11-13 — Mundo Vivo: entregas de UI sobre Ciudad 1.3
 
 - Revisión posterior del PR #73: foco contenido/restaurado en modales, menú que cierra correctamente con Tab/Shift+Tab, textos secundarios y estado inactivo del chat con mejor contraste, contador accesible de mensajes y borrador rehecho protegido frente a confirmaciones tardías. El Studio conserva foco/caret durante actualizaciones del perfil y abre sus filtros dentro del área visible. 580/580 pruebas; chat14/14 y Studio11/11, además de comprobaciones de navegador en 320/390 px con WebSocket local real.

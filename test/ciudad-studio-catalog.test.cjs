@@ -61,7 +61,7 @@ async function studio(options = {}, initial = {}) {
   document.getElementById = id => document.body.querySelector('#' + id);
   class AvatarPreview {
     constructor() { this.canvas = new Element('canvas'); this.scene = { background: { setHex() {} } }; this.camera = { position: { set() {} }, lookAt() {} }; previews.push(this); }
-    show(look) { this.look = copy(look); } start() {} stop() { this.stopped = true; } still() { return 'data:image/png;base64,transport'; }
+    show(look) { this.showCalls = (this.showCalls || 0) + 1; this.look = copy(look); } start() {} stop() { this.stopped = true; } still() { return 'data:image/png;base64,transport'; }
   }
   const state = { ...rules.emptyProfile(), avatarId: 'universitaria', avatarChosen: true, synced: true, economy: { balance: 100 }, ...initial };
   state.custom = rules.cleanCustom(initial.custom);
@@ -207,4 +207,26 @@ test('profile refreshes preserve the active catalog control, search cursor and k
   const category = a.find('.vest__cats').children[1]; category.focus(); category.click(); a.flush();
   assert.equal(a.document.activeElement, a.find('.vest__cats').children[1]);
   a.close(); await a.result;
+});
+
+test('unchanged profile confirmations do not rebuild the same 3D preview', async t => {
+  const a = await studio({ tab: 'ropa' }), preview = a.previews[0], before = preview.showCalls;
+  for (let i = 0; i < 20; i++) a.emit({ op: 'get', ok: true, profile: { avatarId: a.state.avatarId, custom: a.state.custom } });
+  const builds = preview.showCalls - before;
+  t.diagnostic('20 unchanged profiles: ' + builds + ' AvatarPreview.show calls');
+  assert.equal(builds, 0);
+  a.click('[data-top="hoodie"]'); assert.equal(preview.showCalls, before + 1, 'a different actual look still updates immediately');
+  a.emit({ op: 'get', ok: true, profile: { avatarId: a.state.avatarId, custom: a.state.custom } });
+  assert.equal(preview.showCalls, before + 1, 'receiving the stored appearance cannot rebuild or replace an unsent trial');
+  a.close(); await a.result;
+});
+
+test('profile refresh preserves focus on the trial discard action', async () => {
+  const a = await studio({ tab: 'ropa' }); a.click('[data-top="hoodie"]');
+  a.find('.vest__discard').focus();
+  a.emit({ op: 'get', ok: true, profile: { avatarId: a.state.avatarId, custom: a.state.custom } });
+  assert.equal(a.document.activeElement === a.find('.vest__discard'), true, 'the focused status action survives a profile repaint');
+  a.remote('universitaria', { top: 'hoodie' });
+  assert.equal(a.document.activeElement === a.find('.vest__customize'), true, 'a removed discard action returns focus to a visible stage control');
+  assert.equal(a.sent.length, 0); a.close(); await a.result;
 });

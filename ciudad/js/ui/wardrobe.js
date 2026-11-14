@@ -20,7 +20,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   if (ui.isBlocking) return Promise.resolve('blocked');
   const api = ui.api, st = api.store.state, hex = n => '#' + n.toString(16).padStart(6, '0');
   const wrap = h('div', 'vest vest--studio vest--fashion vest--catalog' + (first ? ' is-first' : '')), stage = h('div', 'vest__stage'), panel = h('div', 'vest__panel');
-  let preview = null, thumbs = null, thumbnailRun = 0;
+  let preview = null, thumbs = null, thumbnailRun = 0, previewLook = null;
   try { preview = new AvatarPreview(api.engine.renderer, { width: 320, height: 390 }); thumbs = new AvatarPreview(api.engine.renderer, { width: 150, height: 190 }); thumbs.camera.position.set(0, 1.15, 3.4); thumbs.camera.lookAt(0, 0.95, 0); preview.scene.background.setHex(0xeaeafa); thumbs.scene.background.setHex(0xf1f2fc); } catch (_) { preview = thumbs = null; }
   let viewing = first ? (AVATARS.find(a => a.id === st.avatarId && a.category === 'inicial') || AVATARS[0]).id : st.avatarId;
   let cat = first ? 'inicial' : (avatarById(viewing).category || 'inicial'), tab = 'personajes', query = '', availability = 'all';
@@ -38,6 +38,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
       target?.focus({ preventScroll: true });
       if (target?.setSelectionRange && typeof selection[0] === 'number') target.setSelectionRange(...selection);
       for (const [node, left, top] of scroll) { node.scrollLeft = left; node.scrollTop = top; }
+      return Boolean(target);
     };
   };
   const sameCustom = (a, b) => JSON.stringify(cleanCustom(a)) === JSON.stringify(cleanCustom(b));
@@ -80,8 +81,15 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   const tag = h('span', 'vest__tag'), name = h('strong', 'vest__name'), status = h('div', 'vest__status');
   status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true');
   const paintStage = () => {
+    const restoreFocus = retainFocus(status);
     const a = avatarById(viewing), open = isAvatarUnlocked(a.id, st), on = sameLook(current(), equipped) && !first;
-    if (preview) { preview.show(lookOf(a.id)); preview.canvas.setAttribute('aria-label', 'Vista previa 3D de ' + a.name); }
+    if (preview) {
+      const look = lookOf(a.id), signature = JSON.stringify(look);
+      // Status/profile updates can leave the visible appearance unchanged. Keep
+      // its existing model instead of disposing and rebuilding every geometry.
+      if (signature !== previewLook) { preview.show(look); previewLook = signature; }
+      preview.canvas.setAttribute('aria-label', 'Vista previa 3D de ' + a.name);
+    }
     tag.textContent = (AVATAR_CATEGORIES.find(c => c.id === a.category) || {}).name || ''; tag.dataset.cat = a.category;
     name.textContent = a.name; status.replaceChildren();
     if (first) { status.append(h('span', 'vest__hint', 'Gratuito · podrás cambiarlo cuando quieras en el Vestidor')); return; }
@@ -95,6 +103,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     }
     if (hasTrial()) { const discard = h('button', 'vest__discard', 'Descartar prueba'); discard.type = 'button'; discard.dataset.discardTrial = ''; discard.addEventListener('click', discardTrial); status.append(discard); }
     refreshActions();
+    if (restoreFocus() === false) customize.focus({ preventScroll: true });
   };
   const stageTop = h('div', 'vest__stage-top'), badge3d = h('span', 'vest__3d', '3D'); badge3d.prepend(icon('cube')); stageTop.append(badge3d, h('small', 'vest__tip', '↻ Arrastra para girar')); stage.append(stageTop);
   if (preview) {

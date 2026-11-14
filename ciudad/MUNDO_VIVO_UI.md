@@ -81,3 +81,31 @@ Antes de integrar la expansión, hay que reconciliar expresamente estos puntos:
 5. Resolver las versiones de `index.html`, puente y caché una sola vez sobre el `main` que exista al integrar. Las pruebas de mapa deben contemplar los destinos canónicos nuevos, y las de vestidor el botón Equipar explícito.
 
 No se hizo checkout, merge, escritura ni ejecución con datos reales sobre la rama de Claude. Consultar un contrato en desarrollo no equivale a dar la expansión por validada ni autoriza publicar las siete vistas de muestra.
+
+## Última auditoría de la versión publicada 1.3
+
+Base auditada: `main` **b97c80d**, publicada por el PR #73 con entrada v15 y caché v182. Las correcciones se preparan en `fix/ciudad-ui-final-qa`, worktree independiente. No se publican en esta fase. Las versiones v16/v183 y la hoja educativa v2 quedan listas para una futura integración revisada.
+
+| Defecto reproducido | Corrección mínima | Evidencia |
+| --- | --- | --- |
+| Recibir un mensaje reiniciaba la lectura y eliminaba el control con foco. | Conservar las filas y su ancla; seguir abajo sólo si ya se leía al final. Un ACK actual propio muestra su mensaje; uno tardío/antiguo no interrumpe. | Chrome/WebKit DOM390; 16 pruebas de ChatPanel, incluidas cierre/reapertura, eliminación por bloqueo y límite de historial. |
+| Una actualización sin cambio de apariencia reconstruía el modelo 3D del Studio y podía perder foco de Descartar. | Comparar la apariencia visible antes de `preview.show`; restaurar el control de estado o un destino visible si desaparece. No se cambia `AvatarPreview`, modelos, rig ni motor. | 13 pruebas del Studio y 2 de recursos de preview; E2E con juego y WebSocket locales reales, preview/cancelación, ACK intercalados, reinicio y perfil tardío. |
+| Pasaporte tenía pestañas de 32 px, cierre de 36 px y acciones de 40–42 px, sin estado accesible seleccionado. | Objetivos de al menos 44 px y `aria-pressed`. | Juego local offline Chrome320/390/768/1440; estado académico/apariencia inalterados. |
+| El cierre de Juegos era de 36 px y una regla heredada ocultaba sus distintivos Nuevo/Mejor en móvil. | Ajustar únicamente objetivos y visibilidad de los distintivos reales, con wrap seguro. | Misma matriz y capturas antes/después; ningún juego iniciado ni regla cambiada. |
+
+El mapa pasó límites, scroll de lista, zoom, teclado y áreas táctiles en esos cuatro tamaños sin necesitar cambios. La versión 1.3 no tiene un inventario 2.0 publicado: conserva catálogo cosmético y Pasaporte; no se añadió un módulo ficticio.
+
+### Trabajo y memoria medidos
+
+- Referencia reproducida antes de corregir: 20 perfiles idénticos provocaban 20 llamadas a `AvatarPreview.show` (que reconstruye el modelo). Después: **0**. Un cambio real de ropa sigue actualizando la vista inmediatamente.
+- Con el juego/modelos y servidor local reales: **10 lecturas confirmadas, 0 reconstrucciones**, contadores del renderizador estables en **22 geometrías y 2 texturas** antes/después. La fixture pausa mundo/giro continuo para reducir el coste del render por software; no mide FPS.
+- Chat DOM390 con 20 filas: al llegar una nueva, **1 nodo añadido y 0 eliminados**; las 20 filas anteriores, scroll y foco permanecen. El historial y la tabla de filas siguen acotados por el límite existente.
+- Las pruebas de recursos conservan liberación de geometrías propias, materiales compartidos y target del renderizador. No se afirma una mejora de FPS, de consumo de batería ni de memoria total del dispositivo: esas magnitudes no se midieron.
+
+### Alcance de las comprobaciones
+
+**585/585 pruebas del repositorio** sin omisiones. Chat con WebSocket local real en WebKit390 y 18 casos de viewport reducido; Studio Chrome390 con servidor real y receptor independiente. Pasaporte/mapa/Juegos se revisaron offline, sin sembrar progreso ni iniciar partidas. Son tamaños emulados, no teléfonos físicos ni sesiones reales de producción.
+
+El control de la sesión autenticada se había detenido al no poder identificar con seguridad la URL. No se intentó eludirlo, recuperar tokens ni reutilizar credenciales. Para cerrar el único pendiente de envío en producción, usar la [prueba manual de siete pasos](CHAT_PRUEBA_MANUAL.md). Historial y borrador permanecen en memoria durante la sesión; no se prometen tras recargar.
+
+PR #72 sigue aislado y en borrador. En esta revisión mantiene como fuente de desarrollo **ca84ff6**, sin cambios nuevos de contratos recibidos; su laboratorio/verificador pasa **22/22**, incluidas dos pruebas negativas nuevas de revisión de vivienda y confirmación de B. No hay adaptador real: integración y sincronización 2.0 siguen pendientes, sin ejecutar migraciones ni cuentas reales. Ver `MUNDO_VIVO_UI_CONTRACTS.md` e `INTEGRATION_QA.md` en ese PR, no importarlos desde el juego.
