@@ -1,0 +1,28 @@
+/* Real shortcuts only; expansion actions appear when their systems are integrated. */
+.toolbar--quick{padding:3px;border-radius:17px}
+.toolbar--quick .quick-trigger{display:flex;gap:8px;width:auto;min-width:103px;min-height:44px;padding:0 13px;color:#f8faff}
+.toolbar--quick .quick-trigger span{position:static;transform:none;opacity:1;background:none;padding:0;font-size:12px;font-weight:650;pointer-events:none}
+.toolbar--quick .quick-trigger[aria-expanded=true]{background:#ffffff1f}
+.quick-menu{width:min(356px,calc(100vw - 24px - var(--safe-l) - var(--safe-r)));min-width:0;max-height:calc(100dvh - 208px - var(--safe-t) - var(--safe-b));overflow:auto;overscroll-behavior:contain;touch-action:pan-y;padding:13px;border-radius:22px;background:linear-gradient(145deg,#f9fafffa,#f0f2fbfa);border:1px solid #dce3f6;color:#233859;box-shadow:0 18px 48px #0c173b38;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+.quick-menu[hidden]{display:none}
+.quick-menu__heading{display:flex;flex-direction:column;gap:3px;padding:2px 3px 12px}
+.quick-menu__heading>span{font-size:8px;font-weight:750;letter-spacing:.12em;color:#6d6892}
+.quick-menu__heading>strong{font-size:15px;font-weight:750}
+.quick-menu__grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.quick-menu__item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:78px;padding:11px 5px;border:1px solid #dce2f1;border-radius:15px;background:#fff9;color:#32446b;text-align:center;transition:background .15s,border-color .15s,transform .15s}
+.quick-menu__item .ic{width:23px;height:23px;flex:none;color:#65578f}
+.quick-menu__item>span{display:flex;flex-direction:column;gap:3px;min-width:0}
+.quick-menu__item strong{font-size:11px;line-height:1.2;font-weight:700}
+.quick-menu__item small{font-size:8px;line-height:1.25;color:#73809b}
+.quick-menu__item:hover,.quick-menu__item.is-active{background:#e9e4f7;border-color:#c7b9e7}
+.quick-menu__item:active{transform:scale(.97)}
+.quick-menu__item:focus-visible{outline:3px solid #b191d4;outline-offset:2px}
+.quick-menu__utility{display:flex;gap:5px;padding-top:10px;margin-top:10px;border-top:1px solid #dbe0ed}
+.quick-menu__utility .quick-menu__item{flex:1;min-height:44px;flex-direction:row;gap:5px;padding:8px 5px;border:0;background:transparent}
+.quick-menu__utility .quick-menu__item .ic{width:17px;height:17px}
+.quick-menu__utility .quick-menu__item small{display:none}
+.quick-menu__utility .quick-menu__item strong{font-size:10px}
+.has-quick-menu>.say-btn:not(.friends-btn){display:none}
+@media(max-width:599px){.toolbar--quick .quick-trigger{min-width:96px;padding:0 11px}.is-touch .toolbar--quick .quick-trigger span{display:block}.quick-menu{padding:11px}.quick-menu__item{min-height:71px}.quick-menu__item small{font-size:8px}}
+@media(max-height:480px){.quick-menu{max-height:calc(100dvh - 180px - var(--safe-t) - var(--safe-b));width:min(356px,55vw)}.quick-menu__heading{padding-bottom:8px}.quick-menu__item{min-height:56px;gap:4px;padding:7px 3px}.quick-menu__item small{display:none}.quick-menu__item .ic{width:20px;height:20px}.quick-menu__utility{margin-top:7px;padding-top:5px}}
+@media(prefers-reduced-motion:reduce){.quick-menu,.quick-menu__item{animation:none;transition:none}.quick-menu__item:active{transform:none}}

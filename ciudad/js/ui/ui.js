@@ -5,6 +5,7 @@ import { AVATARS, AVATAR_CATEGORIES, avatarById } from '../characters/catalog.js
 import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, SKIN_TONES, isAvatarUnlocked, applyCustom, unlockProgress } from '../progress/rules.js';
 import { openWardrobe } from './wardrobe.js';
 import { createCityMap } from './city-map.js';
+import { installQuickMenu } from './quick-menu.js';
 import { GAME_LIST } from '../edu/games.js';
 import { BUILDINGS, doorPoint } from '../world/buildings.js';
 import { placeByBuilding } from '../world/places.js';
@@ -82,6 +83,10 @@ export class UI {
     $('waypoint').addEventListener('click', () => api.setWaypoint(null));
     if (isTouchDevice()) document.documentElement.classList.add('is-touch');
     if (api.embedded) $('btn-exit').hidden = false;
+    this.quickMenu = installQuickMenu(this);
+    // Native button activation belongs to the modal, rather than the world's
+    // Enter/Space shortcuts. Input remains unchanged outside the UI surface.
+    $('modal').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.code === 'Space') && e.target.closest('button,summary')) e.stopPropagation(); });
   }
 
   get isBlocking() { return this.blocking > 0; }
@@ -193,6 +198,7 @@ export class UI {
       this.#block(true); m.hidden = false; card.classList.toggle('is-wide', wide);
       $('modal-eyebrow').textContent = eyebrow; $('modal-title').textContent = title;
       body.replaceChildren(content); body.scrollTop = 0; $('modal-hint').textContent = ''; $('modal-hint').dataset.base = hint;
+      const speaker = content.querySelector?.('.quiz__speaker'); if (speaker) speaker.dataset.initial = speaker.textContent.trim().slice(0, 1).toUpperCase();
       const score = content.querySelector?.('.result__score'); if (score) score.style.setProperty('--p', score.querySelector('b').textContent);
       foot.replaceChildren();
       const done = id => {
@@ -203,7 +209,7 @@ export class UI {
       };
       const onX = () => done('x');
       const key = e => { if (e.code === 'Escape') { e.preventDefault(); e.stopPropagation(); done('x'); } };
-      actions.forEach(a => { const b = h('button', 'btn' + (a.primary ? ' btn--primary' : ''), a.label); b.type = 'button'; b.addEventListener('click', () => done(a.id)); foot.append(b); });
+      actions.forEach(a => { const b = h('button', 'btn' + (a.primary ? ' btn--primary' : ''), a.label); b.type = 'button'; b.dataset.action = a.id; b.disabled = Boolean(a.disabled); b.addEventListener('click', () => { if (a.onClick?.() === false) return; if (a.close !== false) done(a.id); }); foot.append(b); });
       $('modal-x').addEventListener('click', onX); addEventListener('keydown', key, true);
       foot.querySelector('.btn--primary')?.focus({ preventScroll: true });
     });

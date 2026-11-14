@@ -18,7 +18,7 @@ const clock = at => new Date(at).toLocaleTimeString('es-MX', { hour: '2-digit', 
 export class ChatPanel {
   constructor(api, social) {
     this.api = api; this.social = social; this.net = api.net;
-    this.log = []; this.unread = 0; this.open = false; this.state = null; this.pending = new Map(); this.seq = 0;
+    this.log = []; this.unread = 0; this.open = false; this.state = null; this.pending = new Map(); this.seq = 0; this.view = 0;
     const hud = document.getElementById('hud');
 
     // botón (celular/tablet o ventana minimizada)
@@ -33,7 +33,7 @@ export class ChatPanel {
     const title = h('div', 'chat__title'); title.append(h('strong', null, 'Chat de la ciudad'), this.sub = h('small', null, ''));
     this.menuBtn = h('button', 'chat__icon'); this.menuBtn.type = 'button'; this.menuBtn.setAttribute('aria-label', 'Opciones del chat'); this.menuBtn.textContent = '⋯';
     this.menuBtn.addEventListener('click', () => this.options());
-    const close = h('button', 'chat__icon'); close.type = 'button'; close.setAttribute('aria-label', 'Minimizar chat'); close.textContent = '–';
+    const close = h('button', 'chat__icon chat__close'); close.type = 'button'; close.setAttribute('aria-label', 'Cerrar chat'); close.title = 'Cerrar chat'; close.textContent = '×';
     close.addEventListener('click', () => this.toggle(false));
     head.append(title, this.menuBtn, close);
     this.list = h('ol', 'chat__log'); this.list.setAttribute('role', 'log'); this.list.setAttribute('aria-live', 'polite');
@@ -42,25 +42,54 @@ export class ChatPanel {
     PHRASES.forEach(p => { const b = h('button', null, p.text); b.type = 'button'; b.addEventListener('click', () => { this.social.say(p.id); }); this.quick.append(b); });
     this.form = h('form', 'chat__form'); this.form.autocomplete = 'off';
     this.input = h('input', 'chat__input'); this.input.type = 'text'; this.input.maxLength = CHAT_MAX; this.input.id = 'chat-input';
-    this.input.setAttribute('aria-label', 'Escribe un mensaje'); this.input.setAttribute('enterkeyhint', 'send'); this.input.spellcheck = true;
+    this.input.setAttribute('aria-label', 'Escribe un mensaje'); this.input.setAttribute('enterkeyhint', 'send'); this.input.setAttribute('aria-describedby', 'chat-delivery'); this.input.spellcheck = true;
     this.count = h('span', 'chat__count'); this.count.hidden = true;
-    this.send = h('button', 'chat__send'); this.send.type = 'submit'; this.send.setAttribute('aria-label', 'Enviar'); this.send.textContent = '➤';
+    this.send = h('button', 'chat__send'); this.send.type = 'submit'; this.send.setAttribute('aria-label', 'Enviar'); this.send.title = 'Enviar mensaje'; this.send.textContent = '➤';
     this.form.append(this.input, this.count, this.send);
-    this.box.append(head, this.list, this.gate, this.quick, this.form);
+    const footer = h('div', 'chat__delivery');
+    this.notice = h('small', 'chat__notice'); this.notice.id = 'chat-delivery'; this.notice.setAttribute('role', 'status'); this.notice.setAttribute('aria-live', 'polite');
+    this.afterLabel = h('label', 'chat__after'); this.after = h('input'); this.after.type = 'checkbox'; this.after.checked = true;
+    this.afterLabel.append(this.after, h('span', null, 'Cerrar al enviar')); footer.append(this.notice, this.afterLabel);
+    this.box.append(head, this.list, this.gate, this.quick, this.form, footer);
     hud.append(this.box, this.fab);
 
     this.form.addEventListener('submit', e => { e.preventDefault(); this.submit(); });
-    this.input.addEventListener('input', () => { const n = this.input.value.length; this.count.hidden = n < CHAT_MAX - 30; this.count.textContent = `${n}/${CHAT_MAX}`; });
-    this.input.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); this.input.blur(); if (this.touch) this.toggle(false); } e.stopPropagation(); });
+    this.input.addEventListener('input', () => { this.#count(); if (!this.sending) this.#notice(''); });
+    this.input.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); this.input.blur(); if (this.touch) this.toggle(false); } if (e.isComposing && e.key === 'Enter') e.preventDefault(); e.stopPropagation(); });
+    this.input.addEventListener('compositionstart', () => { this.composing = true; });
+    this.input.addEventListener('compositionend', () => { this.composing = false; });
     this.input.addEventListener('focus', () => { this.box.classList.add('is-active'); this.api.input.keys.clear(); });
     this.input.addEventListener('blur', () => { this.box.classList.remove('is-active'); this.#idle(); });
     this.box.addEventListener('pointerenter', () => this.box.classList.remove('is-idle'));
     this.box.addEventListener('pointerleave', () => this.#idle());
+    // Let native button activation run, without Enter/Space also interacting or
+    // jumping in the world. Input's window listener otherwise prevents it.
+    const buttonKeys = e => { if ((e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar' || e.code === 'Space') && e.target.closest?.('button')) e.stopPropagation(); };
+    this.box.addEventListener('keydown', buttonKeys); this.fab.addEventListener('keydown', buttonKeys);
+    // Keep the keyboard until a touch button's click has actually run. Native
+    // pointer focus can otherwise resize the visual viewport between down/up.
+    this.box.addEventListener('pointerdown', e => { if (this.touch && e.target.closest?.('button,.chat__after')) e.preventDefault(); });
+    // No backdrop: a tap on the world closes this sheet and remains usable by
+    // the camera/joystick. A tap inside, on its opener or in another dialog does not.
+    document.addEventListener('pointerdown', e => {
+      if (this.touch && this.open && !this.api.ui.isBlocking && !this.box.contains(e.target) && !this.fab.contains(e.target)) this.toggle(false);
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && this.touch && this.open && !this.api.ui.isBlocking) { this.toggle(false); this.fab.focus({ preventScroll: true }); }
+    });
+    const viewport = () => {
+      const vv = window.visualViewport;
+      const height = vv ? vv.height : window.innerHeight;
+      this.box.style.setProperty('--chat-viewport-height', height + 'px');
+      this.box.style.setProperty('--chat-viewport-top', (vv ? vv.offsetTop : 0) + 'px');
+      this.box.classList.toggle('is-viewport-compact', this.touch && height <= 380);
+      this.box.classList.toggle('is-viewport-tight', this.touch && height <= 320);
+    };
+    window.visualViewport?.addEventListener('resize', viewport); window.visualViewport?.addEventListener('scroll', viewport); window.addEventListener('resize', viewport); viewport();
 
     this.net.on('chat', m => this.#onChat(m));
     this.net.on('profile', m => { if (m.profile && m.profile.chat) { this.state = m.profile.chat; this.render(); } });
     this.net.on('status', s => this.#onStatus(s));
-    this.net.on('leave', ({ pid, soft }) => { if (!soft) this.pending.delete(pid); });
     this.render();
   }
 
@@ -68,10 +97,20 @@ export class ChatPanel {
   /** ¿El servidor ofrece chat libre a esta sesión? (sin red, perfil infantil o apagado: no). */
   get available() { return Boolean(this.net.isOnline && this.net.chatAvailable); }
   get enabled() { return Boolean(this.available && this.state && this.state.enabled); }
+  get sending() { return [...this.pending.values()].some(p => p.sending); }
+
+  #count() { const n = this.input.value.length; this.count.hidden = n < CHAT_MAX - 30; this.count.textContent = `${n}/${CHAT_MAX}`; }
+  #notice(text, kind = '') { this.notice.textContent = text; this.notice.dataset.state = kind; }
+  #delivery() { this.send.disabled = this.sending || !this.enabled; this.form.setAttribute('aria-busy', String(this.sending)); this.afterLabel.hidden = !this.touch || !this.enabled; }
 
   #idle() { clearTimeout(this.idleTimer); this.idleTimer = setTimeout(() => { if (document.activeElement !== this.input) this.box.classList.add('is-idle'); }, 9000); }
 
   #onStatus(s) {
+    if (s.status !== 'online' && this.sending) {
+      for (const p of this.pending.values()) { clearTimeout(p.timer); p.sending = false; }
+      this.#notice('Se perdió la conexión. Conservamos tu texto; revisa el historial antes de volver a enviarlo.', 'error');
+      this.api.ui.toast('Sin conexión: no se pudo confirmar el mensaje. Tu texto sigue en el chat.', 3400);
+    }
     if (s.status === 'online' && this.wasOffline && this.log.length) this.#system('Conexión recuperada.');
     this.wasOffline = s.status !== 'online';
     this.render();
@@ -79,7 +118,8 @@ export class ChatPanel {
 
   /** Abre/cierra la ventana. En computadora "cerrada" = minimizada al botón. */
   toggle(force) {
-    this.open = force ?? !this.open;
+    const next = force ?? !this.open; if (next !== this.open) this.view++; this.open = next;
+    if (!this.open) this.input.blur();
     if (this.open) { this.unread = 0; this.minimized = false; } else if (!this.touch) this.minimized = true;
     this.render();
     if (this.open && this.enabled && !this.touch) this.input.focus({ preventScroll: true });
@@ -98,6 +138,8 @@ export class ChatPanel {
     this.box.hidden = !show || !(this.touch ? this.open : desktopOpen);
     this.fab.hidden = !show || (!this.touch && desktopOpen) || (this.touch && this.open);
     this.box.classList.toggle('is-sheet', this.touch);
+    this.fab.setAttribute('aria-expanded', String(!this.box.hidden)); this.fab.setAttribute('aria-controls', 'chat');
+    this.#delivery();
     this.badge.hidden = !this.unread; this.badge.textContent = this.unread > 9 ? '9+' : String(this.unread);
     if (!show) return;
     const pr = this.net.presence, others = pr ? Math.max(0, pr.instance - 1) : this.net.roster.size;
@@ -137,13 +179,23 @@ export class ChatPanel {
 
   submit() {
     const api = this.api, raw = this.input.value;
+    if (this.composing || this.sending) return;
+    if (!this.enabled) { this.#notice('El chat no está disponible para enviar ahora.', 'error'); return; }
     if (!raw.trim()) { this.input.blur(); return; }
     const c = checkMessage(raw);
-    if (!c.ok) { api.ui.toast(CHAT_REASONS[c.reason] || 'No se pudo enviar.', 2600); return; }
+    if (!c.ok) { const message = CHAT_REASONS[c.reason] || 'No se pudo enviar.'; this.#notice(message, 'error'); api.ui.toast(message, 2600); return; }
     const n = ++this.seq;
-    if (!this.net.chat('send', { text: raw, n })) { api.ui.toast('Sin conexión: el mensaje no se envió.', 2200); return; }
-    this.pending.set(n, c.text);
-    this.input.value = ''; this.count.hidden = true;
+    const pending = { raw, text: c.text, sending: true, close: this.touch && this.after.checked, view: this.view, timer: null };
+    this.pending.set(n, pending);
+    this.#notice('Enviando…', 'pending'); this.#delivery();
+    let sent = false; try { sent = this.net.chat('send', { text: raw, n }); } catch (_) { /* the socket may close before its status event */ }
+    if (!sent) { this.pending.delete(n); this.#notice('Sin conexión. Tu mensaje sigue aquí.', 'error'); this.#delivery(); api.ui.toast('Sin conexión: el mensaje no se envió.', 2200); return; }
+    // No automatic retry: this protocol has no message-idempotency operation.
+    // Keep a bounded record so a late acknowledgement can still settle its text.
+    if (this.pending.get(n) === pending) pending.timer = setTimeout(() => {
+      pending.sending = false; this.#notice('No llegó la confirmación. Revisa el historial antes de volver a enviar.', 'error'); this.#delivery();
+    }, 12000);
+    if (this.pending.size > 16) { const first = this.pending.keys().next().value; clearTimeout(this.pending.get(first).timer); this.pending.delete(first); }
     if (this.touch) this.input.blur();
   }
 
@@ -158,11 +210,21 @@ export class ChatPanel {
       return;
     }
     if (m.op === 'send') {
-      const text = this.pending.get(m.n); this.pending.delete(m.n);
-      if (!m.ok) { api.ui.toast(m.reason === 'restringido' && m.wait ? `${CHAT_REASONS.restringido} Podrás escribir en ${Math.ceil(m.wait / 60)} min.` : CHAT_REASONS[m.reason] || 'No se pudo enviar el mensaje.', 3400); if (text && m.reason !== 'restringido') this.input.value = this.input.value || text; return; }
+      const pending = this.pending.get(m.n); if (pending) clearTimeout(pending.timer); this.pending.delete(m.n); this.#delivery();
+      if (!m.ok) {
+        const message = m.reason === 'restringido' && m.wait ? `${CHAT_REASONS.restringido} Podrás escribir en ${Math.ceil(m.wait / 60)} min.` : CHAT_REASONS[m.reason] || 'No se pudo enviar el mensaje.';
+        if (pending && m.n === this.seq) { if (!this.input.value) this.input.value = pending.raw; this.#count(); this.#notice(message, 'error'); }
+        api.ui.toast(message, 3400); return;
+      }
       this.#push({ id: m.id, pid: 'me', name: 'Tú', text: m.text, at: m.at, mine: true });
       this.social.bubble('me', m.text, CHAT_BUBBLE_SECONDS);
       if (!m.heard) this.#system('Nadie más te lee ahora: acércate a otras personas o invita a alguien.', 'heard');
+      if (pending) {
+        if (this.input.value === pending.raw) this.input.value = ''; this.#count();
+        if (m.n === this.seq && !this.sending) this.#notice('Mensaje enviado', 'sent');
+        if (m.n === this.seq && pending.close && this.touch && this.open && pending.view === this.view && !this.input.value) this.toggle(false);
+        if (m.n === this.seq && this.box.hidden) api.ui.toast('Mensaje enviado. Puedes verlo al abrir el chat.', 2400);
+      }
       return;
     }
     if (m.op === 'accept' && m.ok) { api.ui.toast('Chat activado. ¡Saluda a la ciudad!', 2400); this.open = true; this.minimized = false; this.render(); if (!this.touch) setTimeout(() => this.input.focus({ preventScroll: true }), 60); }
@@ -177,7 +239,7 @@ export class ChatPanel {
     this.#push({ system: true, text, at: Date.now(), tag });
   }
 
-  #push(entry) { this.log.push(entry); if (this.log.length > CHAT_HISTORY) this.log.shift(); this.#paint(); this.box.classList.remove('is-idle'); this.#idle(); }
+  #push(entry) { if (entry.id && this.log.some(e => !e.system && e.id === entry.id)) return; this.log.push(entry); if (this.log.length > CHAT_HISTORY) this.log.shift(); this.#paint(); this.box.classList.remove('is-idle'); this.#idle(); }
 
   #paint() {
     const rows = this.log.map(e => {

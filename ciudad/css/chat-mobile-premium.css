@@ -1,0 +1,37 @@
+/* UI-1: same chat protocol and history, clearer delivery and compact touch sheet. */
+.chat{border-color:#91a8cd55;background:linear-gradient(145deg,#14284bee,#10203dea);border-radius:18px}
+.chat__head{padding:8px 8px 7px 13px;border-bottom:1px solid #cbd7f01a}
+.chat__title{gap:3px}.chat__title strong{font-size:13px}.chat__title small{font-size:11px;color:#bdcce3}
+.chat__icon{width:36px;height:36px;flex:none;border:1px solid #d8e3ff1f;border-radius:11px;font-size:21px}
+.chat__close{font-weight:500;font-size:25px;background:#e1ebff12}
+.chat__log{padding:9px 12px;min-height:32px;scrollbar-gutter:stable;overscroll-behavior:contain}
+.chat__row{line-height:1.45}.chat__form{margin-bottom:0;min-height:44px;flex:none}
+.chat__send{width:38px;height:38px}.chat__send:disabled{opacity:.45;cursor:wait}
+.chat__delivery{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:30px;padding:3px 12px 7px;flex:none}
+.chat__notice{min-width:0;color:#bbcae2;font-size:10.5px;line-height:1.35;overflow-wrap:anywhere}
+.chat__notice[data-state=pending]{color:#ffdf8f}.chat__notice[data-state=sent]{color:#a7e6c8}.chat__notice[data-state=error]{color:#ffd0c9}
+.chat__after{display:flex;align-items:center;gap:6px;min-height:30px;margin-left:auto;flex:none;font-size:10.5px;color:#d1dbeb;cursor:pointer;white-space:nowrap}
+.chat__after[hidden]{display:none}.chat__after input{width:16px;height:16px;accent-color:#eac565;margin:0}
+.chat :is(button,input):focus-visible,.chat-fab:focus-visible{outline:2px solid #ffe0a0;outline-offset:2px}
+.chat.is-sheet{--chat-anchor:96px;--chat-inset:min(var(--chat-anchor),max(12px,calc(var(--chat-viewport-height,100dvh) - 320px)));top:calc(var(--chat-inset) + var(--safe-t,0px) + var(--chat-viewport-top,0px));width:min(calc(100vw - 24px),440px);max-height:min(46dvh,390px,calc(var(--chat-viewport-height,100dvh) - var(--chat-inset) - 16px - var(--safe-t,0px)));background:linear-gradient(145deg,#14284bf7,#10203df5);animation:ciudadChatSheetIn .14s ease}
+.chat.is-sheet .chat__head{padding:6px 7px 6px 12px}.chat.is-sheet .chat__icon{width:44px;height:44px}
+.chat.is-sheet .chat__log{min-height:0;flex:1 1 auto;max-height:none}
+.chat.is-sheet .chat__quick{flex:none;height:clamp(0px,calc(var(--chat-viewport-height,100dvh) - 340px),50px);min-height:0;align-items:center;padding:0 10px;overflow-y:hidden}.chat.is-sheet .chat__quick button{min-height:40px;padding:7px 12px;font-size:12px}
+.chat.is-sheet .chat__form{margin:0 8px;padding:3px 3px 3px 10px}.chat.is-sheet .chat__send{width:44px;height:44px}
+.chat.is-sheet .chat__input{font-size:16px;min-height:38px;padding:6px 0}
+.chat.is-sheet .chat__delivery{padding:1px 11px 5px;min-height:36px}.chat.is-sheet .chat__after{min-height:36px}
+/* Keep the submit target in the same place when focus moves input → button.
+   Resizing on input blur can cancel that very tap, especially with a soft keyboard. */
+@media(min-width:600px) and (min-height:481px){.chat.is-sheet{--chat-anchor:62px;max-height:min(49dvh,420px,calc(var(--chat-viewport-height,100dvh) - var(--chat-inset) - 16px - var(--safe-t,0px)))}}
+@media(max-height:480px) and (min-width:600px){.chat.is-sheet{--chat-anchor:58px;--chat-inset:min(var(--chat-anchor),max(12px,calc(var(--chat-viewport-height,100dvh) - 280px)));width:min(58vw,440px);max-height:max(142px,calc(var(--chat-viewport-height,100dvh) - 180px))}.chat.is-sheet .chat__quick{display:none}.chat.is-sheet .chat__title small{display:none}.chat.is-sheet .chat__delivery{min-height:30px}.chat.is-sheet .chat__after{min-height:30px}}
+/* A soft keyboard can leave only 260–300 px. Reclaim space from the greeting
+   and quick phrases, never from submit, close or the send-and-close preference. */
+.chat.is-sheet.is-viewport-compact .chat__quick{display:none}
+.chat.is-sheet.is-viewport-compact .chat__head{padding:4px 6px 4px 10px}
+.chat.is-sheet.is-viewport-compact .chat__title small{display:none}
+.chat.is-sheet.is-viewport-compact .chat__log{padding:4px 10px}
+.chat.is-sheet.is-viewport-compact .chat__delivery{padding:1px 10px 4px;min-height:30px}
+.chat.is-sheet.is-viewport-compact .chat__after{min-height:30px}
+.chat.is-sheet.is-viewport-tight{max-height:min(390px,calc(var(--chat-viewport-height,100dvh) - var(--chat-inset) - 16px - var(--safe-t,0px)))}
+@keyframes ciudadChatSheetIn{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){.chat,.chat.is-sheet,.chat__row,.chat-fab__badge{animation:none;transition:none}}

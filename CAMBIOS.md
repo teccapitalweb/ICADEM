@@ -1,5 +1,14 @@
 # CAMBIOS
 
+## 2026-11-13 — Mundo Vivo: entregas de UI sobre Ciudad 1.3
+
+- Chat móvil con cierre claro y exterior, borrador conservado, Enviando/Enviado/Error y cierre opcional después del ACK real. No borra texto nuevo por una respuesta anterior, no reintenta mensajes automáticamente y conserva historial al reabrir. Botones y teclado no disparan interacción/salto del mundo. Auth, edad y moderación intactas.
+- Accesos rápidos flotantes que reorganizan los botones existentes, con navegación de teclado y áreas táctiles libres en horizontal. Mi avatar y Vestidor tienen entradas distintas; Mi casa marca su entrada real en la plaza. Sin inventario, mascotas, tiendas o monturas ficticios.
+- Avatar Studio con prueba local de varias piezas, Equipar selección explícito, confirmación/error, descarte, filtros Tipo/Color/Estado derivados del catálogo y entrada directa a Ropa. Se conserva la protección de selección inicial tardía de Claude. Miniaturas, limpieza y renderizador compartido siguen usando los modelos originales.
+- Presentación de NPC y catálogo de los nueve juegos actuales con respuestas táctiles, feedback y tarjetas compactas, sin cambios de preguntas, resultados, XP ni controladores. Los diez juegos 2.0 y las demás áreas nuevas tienen prototipos aislados en el PR #72, fuera del juego público.
+- Verificación: 575/575 pruebas, sin omisiones; Chromium en escritorio/tablet/móvil y WebKit en móvil/tablet, con teclado, orientación y alturas reducidas del chat. Studio, modelos, confirmaciones y sincronización de aspecto comprobados con servidor WebSocket local real, observador independiente y nueva sesión; sin cuentas de producción ni afirmación de pruebas en teléfonos físicos. Matriz, alcance y limitaciones documentados en la guía de la entrega.
+- Nuevas hojas limitadas a las interfaces; entrada/puente v15 y caché v182. Sin cambios en servidor, motor, modelos, físicas, viajes 1.3, misiones, reglas, recompensas, Firebase, economía ni Railway. Integración y límites en `ciudad/MUNDO_VIVO_UI.md`.
+
 ## 2026-11-13 — Ciudad ICADEM 1.3: Distrito del Saber
 
 - Escenario nuevo al sur de la plaza (portal en la calle sur): Laberinto del conocimiento, Laboratorio de ciencias, Sala de escape, Anfiteatro del Encuentro con gradas, Jardín de mariposas, Observatorio con telescopio, cartelera de retos y NPC (la Dra. Elena propone retos).
