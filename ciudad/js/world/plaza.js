@@ -7,6 +7,7 @@ import { KID_SCENES } from '../edu/family.js';
 import { mat, box, cyl, sph, plane, slab, sign, grassTexture, pavingTexture, roadTexture, tree, bush, flowers, lamp, bench, cloud, skyDome, sunLight, mergeStatic, dotTexture } from './kit.js';
 import { BUILDINGS, buildBuilding, doorPoint, footprint } from './buildings.js';
 import { PLACES, placeByBuilding } from './places.js';
+import { FLIGHTS } from '../vivo/flight.js';
 
 /** Puntos de llegada a la plaza al salir de un edificio, cuando el de la puerta no deja ver bien
  *  (toldo del supermercado) o cae sobre vegetación (obra). Deben coincidir con SCENE_RULES.plaza.entries. */
@@ -178,6 +179,15 @@ export function buildPlaza(api) {
     box(5.8, 0.6, 0.45, violet, gx, 3.5, gz, g);
     const ds = sign('DISTRITO DEL SABER', 3.8, 0.55, { bg: '#ffd166', fg: '#2a1c55', sub: 'Laberinto · Laboratorio · Escape' }); ds.position.set(gx, 3.8, gz + 0.26); g.add(ds);
   }
+  /* Helipuerto de dragones (Mundo vivo): despegue y aterrizaje del vuelo panorámico */
+  {
+    const P = FLIGHTS.plaza.pad, gold = mat(0xffd166, { r: 0.45, m: 0.2 });
+    cyl(P.r, P.r, 0.06, mat(0x2a3f6b, { r: 0.85 }), P.x, 0.01, P.z, g, { seg: 40, cast: false });
+    cyl(P.r - 0.35, P.r - 0.35, 0.07, mat(0x3a5a96, { r: 0.85 }), P.x, 0.012, P.z, g, { seg: 40, cast: false });
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; box(0.18, 0.04, 0.7, gold, P.x + Math.cos(a) * (P.r - 0.2), 0.05, P.z + Math.sin(a) * (P.r - 0.2), g, { ry: -a + Math.PI / 2, cast: false }); }
+    for (const s2 of [-1, 1]) { cyl(0.12, 0.14, 2.6, mat(0x12325f, { r: 0.6 }), P.x + 0.4, 0, P.z + s2 * (P.r + 0.35), g, { seg: 10 }); sph(0.2, mat(0xffb347, { e: 0xffb347, ei: 0.8 }), P.x + 0.4, 2.7, P.z + s2 * (P.r + 0.35), g, { seg: 12, rings: 8 }); col.addCircle(P.x + 0.4, P.z + s2 * (P.r + 0.35), 0.2); }
+    const hs = sign('HELIPUERTO DE DRAGONES', 3.4, 0.5, { bg: '#2a3f6b', fg: '#ffd166', sub: 'Vuelo panorámico' }); hs.position.set(P.x - 0.2, 2.25, P.z + P.r + 0.35); hs.rotation.y = Math.PI / 2; g.add(hs);
+  }
   const mergedCount = mergeStatic(g);
 
   /* personajes del escenario (NPC, sin nombre de jugador) */
@@ -224,6 +234,7 @@ export function buildPlaza(api) {
   });
   interactables.push({ id: 'park', x: PARK_GATE.x, y: 1.8, z: PARK_GATE.z - 1.2, radius: 2.6, color: 0xffd166, label: 'Entrar al Parque de retos', action: () => api.travel('park', 'default') });
   interactables.push({ id: 'distrito', x: DISTRICT_GATE.x, y: 1.8, z: DISTRICT_GATE.z + 1.2, radius: 2.6, color: 0xb388ff, label: 'Entrar al Distrito del Saber', action: () => api.travel('distrito', 'default') });
+  interactables.push({ id: 'dragones', x: FLIGHTS.plaza.pad.x, y: 1.6, z: FLIGHTS.plaza.pad.z, radius: FLIGHTS.plaza.pad.r + 0.6, color: 0xffb347, label: 'Volar en dragón', action: () => api.mounts.open() });
   interactables.push({ id: 'guard', x: -9.6, y: 1.8, z: -20.6, radius: 2.2, color: 0x9fd3ff, label: 'Hablar con el guardia',
     action: () => api.ui.dialog({ speaker: 'Guardia del banco', lines: ['¡Buen día! El Banco ICADEM está abierto.', 'Adentro hay una clienta que necesita ayuda para elegir su crédito. Pasa por la puerta principal.'] }) });
 

@@ -19,6 +19,8 @@ const ROUTES = Object.freeze({ carrera: { ...RACE, par: 30, per: 1.5, away: 'fue
 const TEAM = Object.freeze({ title: 'Equipo', min: 2, max: 4, roles: [], playable: false });
 const specOf = room => COOP_MISSIONS[room.mission] || TEAM;
 
+import { FLIGHTS, FLIGHT_TOLERANCE, FLIGHT_COOLDOWN_MS, flightPoint } from '../ciudad/js/vivo/flight.js';
+
 export const LIMITS = Object.freeze({
   capacity: 16,          // jugadores por instancia (objetivo 10–20, sujeto a pruebas de carga)
   maxSpeed: 6.4 * 1.6,   // m/s: velocidad de carrera del juego + tolerancia por latencia
@@ -131,8 +133,24 @@ export class Hub {
     const reject = reason => { player.rejected++; return { ok: false, reason, fix: player.state ? encodeState(player.state) : null }; };
     if (!s || !NET_SCENES.includes(s.scene)) return reject('formato');
     const rule = SCENE_RULES[s.scene], b = rule.bounds;
-    if (s.x < b.minX || s.x > b.maxX || s.z < b.minZ || s.z > b.maxZ || s.y < -0.5 || s.y > 6) return reject('fuera-del-mapa');
+    if (s.x < b.minX || s.x > b.maxX || s.z < b.minZ || s.z > b.maxZ || s.y < -0.5 || s.y > 30) return reject('fuera-del-mapa');
     const prev = player.state;
+    // Vuelo en dragón autorizado: la posición debe ir sobre la ruta fija, en el momento que corresponde.
+    const fl = player.flight;
+    if (fl) {
+      const f = FLIGHTS[fl.id], k = (t - fl.start) / fl.ms;
+      if (k <= 1.15 && s.scene === f.scene) {
+        const at = flightPoint(fl.id, Math.min(1, Math.max(0, k)));
+        // tolerancia: la ruta en el instante del servidor o un poco antes (latencia del cliente)
+        const near = [0, -0.02, -0.04].some(dk => { const q = flightPoint(fl.id, Math.min(1, Math.max(0, k + dk))); return Math.hypot(s.x - q.x, s.z - q.z) <= FLIGHT_TOLERANCE; });
+        if (!near || s.y > f.cruise + 5) return reject('vuelo');
+        player.state = s; player.stateAt = t; player.fresh = false;
+        if (k >= 1 && s.y < 3 && Math.hypot(s.x - f.pad.x, s.z - f.pad.z) <= f.pad.r + 2.5) player.flight = null;   // aterrizó
+        return { ok: true };
+      }
+      player.flight = null;
+    }
+    if (s.y > 6) return reject('fuera-del-mapa');
     // El primer estado de cada conexión solo se valida contra el mapa: pudo moverse sin red.
     if (prev && !player.fresh) {
       if (prev.scene === s.scene) {
@@ -491,6 +509,7 @@ export class Hub {
   #where(player, scene) { const st = player.state; return st && st.scene === scene && this.now() - player.stateAt < 2500 ? st : null; }
 
   playStart(player, game, seed) {
+    if (this.flying(player)) return { ok: false, reason: 'en-vuelo' };   // la montura no sirve de atajo
     const route = ROUTES[game];
     if (route) { if (!this.#where(player, route.scene)) return { ok: false, reason: route.away }; player.play = { game, next: 0, at: this.now() }; return { ok: true, next: 0 }; }
     if (game === 'tesoro') {
@@ -506,6 +525,7 @@ export class Hub {
    * control de velocidad y de puertas) está junto al punto. El navegador no puede «llegar» por decirlo.
    */
   playCheck(player, payload = {}) {
+    if (this.flying(player)) return { ok: false, reason: 'en-vuelo' };
     const run = player.play; if (!run) return { ok: false, reason: 'sin-partida' };
     const route = ROUTES[run.game];
     if (route) {
@@ -536,11 +556,29 @@ export class Hub {
 
   /** Ruta del explorador: el sitio cuenta solo si la última posición aceptada está ahí. */
   discover(player, id) {
+    if (this.flying(player)) return { ok: false, reason: 'en-vuelo' };
     const l = landmarkById(String(id)); if (!l) return { ok: false, reason: 'sitio-desconocido' };
     const st = this.#where(player, l.scene);
     if (!st || Math.hypot(st.x - l.at[0], st.z - l.at[1]) > l.r + 0.6) return { ok: false, reason: 'lejos' };
     return { ok: true, id: l.id };
   }
+
+  /**
+   * Vuelo panorámico en el Gran dragón de viaje. Solo desde el helipuerto, sin partidas ni misiones en
+   * curso y con una pausa entre vuelos. Durante el vuelo no se descubren sitios ni se juega.
+   */
+  startFlight(player, id, hasDragon) {
+    const f = FLIGHTS[id], t = this.now();
+    if (!f) return { ok: false, reason: 'ruta' };
+    if (!hasDragon) return { ok: false, reason: 'sin-dragon' };
+    if (player.flight && t - player.flight.start < player.flight.ms * 1.15) return { ok: false, reason: 'en-vuelo' };
+    if (player.play || (player.room && player.room.session && !player.room.session.done)) return { ok: false, reason: 'ocupado' };
+    if (player.lastFlight && t - player.lastFlight < f.seconds * 1000 + FLIGHT_COOLDOWN_MS) return { ok: false, reason: 'espera' };
+    const st = this.#where(player, f.scene); if (!st || Math.hypot(st.x - f.pad.x, st.z - f.pad.z) > f.pad.r + 1.6) return { ok: false, reason: 'lejos' };
+    player.flight = { id, start: t, ms: f.seconds * 1000 }; player.lastFlight = t;
+    return { ok: true, route: id, seconds: f.seconds };
+  }
+  flying(player) { return Boolean(player.flight && this.now() - player.flight.start < player.flight.ms * 1.15); }
 
   stats() { return { instances: this.instances.size, players: [...this.byUid.values()].filter(p => p.online).length, rooms: this.rooms.size, reports: this.reports.length }; }
 }

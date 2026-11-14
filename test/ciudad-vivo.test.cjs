@@ -167,3 +167,39 @@ test('socket real: los perfiles infantiles no usan Mundo vivo y el servidor no c
   kid.tell({ t: 'vivo', op: 'buy', item: 'pelota', rid: 'kid-compra-1', n: 1 });
   assert.equal((await kid.wait('vivo')).reason, 'no-disponible');
 });
+
+test('montura: vuelo panorámico solo desde el helipuerto, sobre la ruta fija y sin servir de atajo', async () => {
+  const { Hub } = await load('_ciudad-server/hub.js');
+  const { encodeState } = await load('ciudad/js/net/network.js');
+  const { FLIGHTS, flightPoint } = await load('ciudad/js/vivo/flight.js');
+  const { SCENE_RULES } = await load('ciudad/js/net/scenes.js');
+  let clock = 1_000_000; const hub = new Hub({ now: () => clock });
+  const ana = hub.join({ uid: 'ana', name: 'Ana' }).player, f = FLIGHTS.plaza;
+  const go = (x, y, z) => hub.state(ana, encodeState({ scene: 'plaza', x, y, z, yaw: 0 }));
+  // la ruta empieza y termina en el helipuerto, no sale del mapa y vuela por encima de los edificios
+  const b = SCENE_RULES.plaza.bounds; let maxStep = 0, prev = flightPoint('plaza', 0);
+  for (let i = 1; i <= 400; i++) { const q = flightPoint('plaza', i / 400); assert.ok(q.x > b.minX && q.x < b.maxX && q.z > b.minZ && q.z < b.maxZ); maxStep = Math.max(maxStep, Math.hypot(q.x - prev.x, q.z - prev.z) / (f.seconds / 400)); prev = q; }
+  assert.ok(maxStep < 10, 'la velocidad de la ruta cabe en la del juego'); assert.ok(Math.hypot(flightPoint('plaza', 1).x - f.pad.x, flightPoint('plaza', 1).z - f.pad.z) < 0.1);
+  go(0, 0, 9); clock += 100;
+  assert.equal(hub.startFlight(ana, 'plaza', true).reason, 'lejos', 'hay que estar en el helipuerto');
+  for (let x = 0; x >= f.pad.x; x -= 1) { go(x, 0, Math.max(0, 9 + x * 0.45)); clock += 150; }
+  go(f.pad.x, 0, 0); clock += 150;
+  assert.equal(hub.startFlight(ana, 'plaza', false).reason, 'sin-dragon');
+  assert.equal(go(f.pad.x, 12, 0).reason, 'fuera-del-mapa', 'sin vuelo autorizado no se sube');
+  clock += 150; go(f.pad.x, 0, 0); clock += 150;
+  const start = hub.startFlight(ana, 'plaza', true); assert.deepEqual([start.ok, start.seconds], [true, f.seconds]);
+  assert.equal(hub.startFlight(ana, 'plaza', true).ok, false, 'un vuelo a la vez');
+  // a lo largo de la ruta se acepta la altura; fuera de ella, no
+  let accepted = 0;
+  for (let i = 1; i <= 20; i++) { clock += f.seconds * 1000 / 20 * 0.5; const q = flightPoint('plaza', Math.min(1, (clock - ana.flight.start) / ana.flight.ms)); if (go(q.x, q.y, q.z).ok) accepted++; }
+  assert.equal(accepted, 20, 'el servidor sigue al dragón por la ruta');
+  assert.equal(hub.discover(ana, 'fuente').reason, 'en-vuelo', 'volando no se descubren sitios');
+  assert.equal(hub.playStart(ana, 'carrera').reason, 'en-vuelo', 'ni se empiezan minijuegos');
+  const k = (clock - ana.flight.start) / ana.flight.ms, q = flightPoint('plaza', k);
+  assert.equal(go(q.x + 15, q.y, q.z).reason, 'vuelo', 'salirse de la ruta se rechaza');
+  // aterrizaje
+  clock = ana.flight.start + ana.flight.ms + 200; const end = flightPoint('plaza', 1);
+  assert.equal(go(end.x, 1.4, end.z).ok, true); assert.equal(ana.flight, null, 'al aterrizar termina el vuelo');
+  clock += 200; assert.equal(go(end.x, 10, end.z).reason, 'fuera-del-mapa');
+  assert.equal(hub.startFlight(ana, 'plaza', true).reason, 'espera', 'hay una pausa entre vuelos');
+});

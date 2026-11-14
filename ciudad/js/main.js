@@ -61,6 +61,9 @@ import { defineMission, MissionRegistry, MissionService } from './missions/engin
 import { UI } from './ui/ui.js';
 import { Tutorial } from './ui/tutorial.js';
 import { VivoService } from './vivo/vivo-service.js';
+import { PetController } from './pets/pet-controller.js';
+import { installVivoActions } from './ui/vivo-panels.js';
+import { Mounts } from './vivo/mounts.js';
 
 const $ = id => document.getElementById(id);
 const TAU = Math.PI * 2;
@@ -130,6 +133,7 @@ async function boot() {
     next.group.position.copy(old.group.position); next.group.rotation.y = old.group.rotation.y;
     engine.scene.remove(old.group); old.group.traverse(o => { if (o.isMesh) o.geometry.dispose(); });
     engine.scene.add(next.group); avatar = next; player.position = next.group.position;
+    api.pets?.rebind();
   }
   let confirmedAvatar = null;
   const avatarSaves = new AppearanceSaves({
@@ -168,6 +172,8 @@ async function boot() {
     if (!avatarSaves.receive(message)) return;
     if (message.profile) applyProfile(message.profile);
     if (message.op === 'avatar' && message.ok === false) api.ui.toast('El servidor no autorizó ese avatar.');
+    if (message.op === 'mission' && message.passed) events.emit('mission-passed');
+    if (message.op === 'activity' && message.ok && message.score >= 50) events.emit('game-done');
   }
   /* misiones: un solo motor para todos los juegos; cada edificio registra la suya */
   const registry = new MissionRegistry();
@@ -182,6 +188,9 @@ async function boot() {
   });
   api.ui = new UI(api);
   api.vivo = new VivoService(api);
+  api.pets = new PetController(api);
+  api.mounts = new Mounts(api);
+  installVivoActions(api);
   api.missions.bank = new BankCreditMission(api, bankDef);
   api.missions.court = new CourtJudgeMission(api, registry.register(defineMission(COURT_JUDGE_MISSION)));
   api.missions.market = new MarketInventoryMission(api, registry.register(defineMission(MARKET_INVENTORY_MISSION)));
@@ -195,7 +204,7 @@ async function boot() {
   api.edu = new EduService(api); api.npcQuiz = new NpcQuiz(api); api.games = new Games(api); api.district = new District(api);
   const remotes = new RemotePlayers(engine.scene, net);
   const social = new Social(api, remotes);
-  api.remotes = remotes; api.social = social;
+  api.remotes = remotes; api.social = social; remotes.getScene = () => api.scene;
   const chat = new ChatPanel(api, social); api.chat = chat;
   if (net instanceof WsAdapter) {
     net.on('status', st => { if (st.status !== 'online') avatarSaves.clear(); if (st.status === 'online' && net.name) { api.playerName = net.name; api.ui.refreshHud(); } });   // el nombre lo dicta el servidor
@@ -284,6 +293,7 @@ async function boot() {
     api.missions[name]?.enter();
     beam.visible = Boolean(api.waypoint) && name === 'plaza';
     api.ui.setPlace(scene.title);
+    events.emit('scene', name);
   }
 
   async function travel(name, spawnKey = 'default') {
@@ -341,7 +351,8 @@ async function boot() {
     let dx = fwd.x * input.move.z + right.x * input.move.x, dz = fwd.z * input.move.z + right.z * input.move.x;
     const mag = Math.min(1, Math.hypot(dx, dz));
     const p = player.position;
-    if (player.seat) {
+    if (api.mounts.active) api.mounts.step(dt);   // vuelo en dragón: ruta fija, sin control libre
+    else if (player.seat) {
       if (mag > 0.2 || input.presses.has('jump')) { const s = player.seat; player.seat = null; p.y = 0; const out = scene.collision.resolve(s.x + Math.sin(s.yaw) * 0.9, s.z + Math.cos(s.yaw) * 0.9, PLAYER_RADIUS); p.x = out.x; p.z = out.z; input.consume('jump'); }
       player.speed = 0; player.vx = player.vz = 0;
     } else {
@@ -371,7 +382,8 @@ async function boot() {
       if (!player.grounded) { player.vy -= GRAVITY * dt; p.y += player.vy * dt; if (p.y <= floor) { p.y = floor; player.vy = 0; player.grounded = true; } }
     }
     avatar.group.rotation.y = player.yaw;
-    avatar.update(dt, { speed: player.speed, grounded: player.grounded, sitting: Boolean(player.seat) });
+    avatar.update(dt, { speed: player.speed, grounded: player.grounded, sitting: Boolean(player.seat || api.mounts.active) });
+    api.pets.update(dt);
 
     for (const n of scene.npcs) n.update(dt, p);
     api.npcQuiz.update(dt); api.games.update(dt, t); api.district.update(dt, t);
@@ -411,7 +423,7 @@ async function boot() {
     /* edificios descubiertos y destino */
     if (api.sceneName === 'plaza') {
       for (const b of BUILDINGS) {
-        if (store.state.visited.includes(b.id)) continue;
+        if (store.state.visited.includes(b.id) || api.mounts.active) continue;   // volando no se «descubren» edificios
         const d = doorPoint(b, 2.5);
         if (Math.hypot(d.x - p.x, d.z - p.z) < 5.5 && store.visit(b.id)) {
           if (net.isOnline) net.profile('visit', { id: b.id });
@@ -444,7 +456,7 @@ async function boot() {
         api.ui.toast('Ajustamos la calidad gráfica para que el juego corra más fluido.');
       }
     }
-    sync.update(dt, () => ({ scene: api.sceneName, x: p.x, y: p.y, z: p.z, yaw: player.yaw, anim: avatar.anim }));
+    sync.update(dt, () => ({ scene: api.sceneName, x: p.x, y: p.y, z: p.z, yaw: player.yaw, anim: api.mounts.active ? 'ride' : avatar.anim }));
   });
 
   /* ---------- arranque ---------- */

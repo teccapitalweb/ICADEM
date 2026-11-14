@@ -14,6 +14,7 @@ import { TicketAuthority, createFirebaseVerifier, googleKeys } from './auth.js';
 import { Profiles, MemoryStorage, JsonFileStorage } from './profiles.js';
 import { breedById } from '../ciudad/js/pets/pet-catalog.js';
 import { VIVO_OPS } from '../ciudad/js/vivo/vivo-rules.js';
+import { MOUNT_BREED } from '../ciudad/js/vivo/flight.js';
 import { kidKey } from '../ciudad/js/edu/family.js';
 import { connectFirebase, createIcademServices, ACCESS_MODES } from './icadem.js';
 import { REWARDS } from '../ciudad/js/economy/economy.js';
@@ -259,6 +260,12 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
           const prof = await profiles.get(sessionUid); player.pet = petLook(prof, msg.leash === true); showPet(player);
           return send(ws, { t: 'vivo', op: 'walk', ok: true, leash: Boolean(player.pet && player.pet.leash), n: msg.n });
         }
+        if (msg.op === 'fly') {   // vuelo panorámico en el Gran dragón de viaje (ruta fija validada por el hub)
+          const prof = await profiles.get(sessionUid), hasDragon = prof.pets.some(x => x.breed === MOUNT_BREED);
+          const r = hub.startFlight(player, String(msg.route || ''), hasDragon);
+          if (r.ok) log('vuelo', player.pid, r.route);
+          return send(ws, { t: 'vivo', op: 'fly', n: msg.n, ...r });
+        }
         if (!VIVO_OPS.includes(msg.op)) return send(ws, { t: 'vivo', op: msg.op, ok: false, reason: 'operacion', n: msg.n });
         const r = await profiles.vivo(sessionUid, msg.op, msg);
         const { profile: prof, ...rest } = r;
@@ -277,7 +284,7 @@ export function createServer({ port = 0, host = '127.0.0.1', authority = new Tic
             : msg.action === 'remove' ? await profiles.familyRemove(uid, String(msg.id || '')) : await profiles.familyList(uid);
           return send(ws, { t: 'profile', op: 'family', ok: f.ok, reason: f.reason, family: f.family });
         }
-        const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log, { minor: player.minor }) : msg.op === 'visit' ? await profiles.visit(uid, msg.id)
+        const r = msg.op === 'mission' ? await profiles.completeMission(uid, msg.mission, msg.log, { minor: player.minor }) : msg.op === 'visit' ? (hub.flying(player) ? { ok: false, reason: 'en-vuelo' } : await profiles.visit(uid, msg.id))
           : msg.op === 'tutorial' ? await profiles.tutorial(uid) : msg.op === 'avatar' ? await profiles.setAvatar(uid, msg.id, msg.custom, { customVersion: msg.customVersion })
           : msg.op === 'quiz' ? (hub.allow(player, 'quiz') ? await profiles.answerQuiz(uid, msg.id, msg.choice) : { ok: false, reason: 'demasiado-rapido' })
           : msg.op === 'activity' ? (hub.allow(player, 'activity') ? await profiles.playActivity(uid, String(msg.id), msg.seed, String(msg.level), msg.log) : { ok: false, reason: 'demasiado-rapido' })

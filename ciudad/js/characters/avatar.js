@@ -168,6 +168,9 @@ export function createAvatar(look = {}) {
   /* ---------- animación ---------- */
   const pose = { legL: 0, legR: 0, armLx: 0, armRx: 0, armLz: 0.08, armRz: -0.08, lean: 0, bodyY: 0, headX: 0, headY: 0, squash: 1, bank: 0 };
   const state = { phase: 0, time: Math.random() * 10, emote: null, emoteTime: 0, anim: 'idle', blink: 2 + Math.random() * 3, lookYaw: 0, prevYaw: null, turn: 0, idle: 0 };
+  /* Mundo vivo: mano derecha (correa) y hombro izquierdo (donde se posan las aves). Solo puntos de referencia. */
+  const handR = new THREE.Object3D(); handR.position.set(0, -0.43, 0.03); arms[1].add(handR);
+  const perch = new THREE.Object3D(); perch.position.set(-0.2, 0.66, -0.02); torso.add(perch);
 
   function playEmote(name, seconds = 1.6) { state.emote = name; state.emoteTime = seconds; }
 
@@ -214,6 +217,8 @@ export function createAvatar(look = {}) {
       const mix = Math.min(1, Math.max(0, (state.idle - 4) / 2));
       if (mix && s.lookYaw === undefined) { T.headY += Math.sin(state.time * 0.42) * 0.42 * mix; T.bank = Math.sin(state.time * 0.33) * 0.03 * mix; T.legL += Math.max(0, Math.sin(state.time * 0.33)) * 0.08 * mix; }
     }
+    // paseando con correa: el brazo derecho sostiene la correa un poco al frente
+    if (state.hold && !s.sitting && grounded && !state.emote) { T.armRx = -0.42 + Math.sin(state.time * 2.4) * 0.04 + (moving ? T.armRx * 0.15 : 0); T.armRz = -0.16; }
     if (state.emote === 'wave') {
       anim = 'wave'; T.armRz = -2.55 + Math.sin(state.time * 11) * 0.32; T.armRx = 0; T.headY += 0.12;
     } else if (state.emote === 'celebrate') {
@@ -257,5 +262,5 @@ export function createAvatar(look = {}) {
     if (state.blink <= 0) state.blink = 2.4 + Math.random() * 3.2;
   }
 
-  return { group: root, update, playEmote, get anim() { return state.anim; }, get emote() { return state.emote; }, head, look: L, height: 1.72 * L.scale };
+  return { group: root, update, playEmote, hand: handR, perch, setHold(on) { state.hold = Boolean(on); }, get anim() { return state.anim; }, get emote() { return state.emote; }, head, look: L, height: 1.72 * L.scale };
 }
