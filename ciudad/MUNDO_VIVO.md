@@ -25,6 +25,9 @@ Reglas que no cambian:
 | `js/home/home-rules.js` | Espacio de la casa, colores, pisos, `checkLayout` | Claude |
 | `js/vivo/vivo-rules.js` | Reglas de compras, adopción, mascotas, casa, comida y aguas | Claude |
 | `js/vivo/vivo-service.js` | `api.vivo`: la única puerta que usan las interfaces | Claude |
+| `js/pets/pet-model.js`, `pet-companion.js`, `pet-controller.js`, `pet-preview.js` | Modelos 3D, comportamiento, mascota propia (`api.pets`), vista previa 3D | Claude |
+| `js/vivo/flight.js`, `mounts.js` | Ruta del vuelo en dragón y montura (`api.mounts`) | Claude |
+| `js/ui/vivo-panels.js` | Paneles **funcionales** (mascotas, inventario, tienda) y `api.actions` | Claude hoy; Codex puede reemplazar los paneles |
 | `_ciudad-server/profiles.js`, `server.js` | Aplicación de las reglas sobre la cuenta | Claude |
 
 ## 2. Perfil (lo que llega del servidor)
@@ -132,3 +135,49 @@ Cliente → servidor: `{ t: 'vivo', op, n, ...datos }` con `op` = `buy | adopt |
 Servidor → cliente: `{ t: 'vivo', op, n, ok, reason?, ...datos, profile }` y a los demás
 `{ t: 'pet', pid, pet: { breed, acc, leash } | null }`. La lista de jugadores incluye `pet`.
 Tope: 40 acciones por minuto.
+
+## 10. Mascota en el mundo (`api.pets`)
+
+| Llamada | Qué hace |
+|---|---|
+| `api.pets.companion` | la mascota activa en la escena (o `null`) |
+| `api.pets.react(tipo)` | animación de reacción: `food`, `cariño`, `saludo`, `mision`, `casa`, `parque`, `descanso` |
+| `api.pets.throwBall()` | lanza la pelota (perros y fantásticos de cuatro patas); `false` si no se puede |
+
+El juego ya hace reaccionar a la mascota al llegar a casa o al parque y al aprobar misiones o minijuegos.
+`PetPreview` (`js/pets/pet-preview.js`) dibuja una raza con accesorios en un lienzo, con el mismo
+renderizador del juego (no abre otro contexto WebGL): `new PetPreview(api.engine.renderer)`, `.show(raza, acc)`, `.start()`, `.stop()`.
+
+## 11. Montura: vuelo controlado (`api.mounts`)
+
+- Requisito: tener al **Gran dragón de viaje** (`dragon-grande`, nivel 8 y 600 monedas).
+- Despegue y aterrizaje en el **Helipuerto de dragones** de la plaza (`FLIGHTS.plaza.pad`).
+- `api.mounts.open()` explica el requisito, marca el helipuerto o pide confirmación y despega.
+- `api.mounts.owned`, `api.mounts.nearPad()`, `api.mounts.active` (durante el vuelo).
+- Ruta fija de 26 s (`flightPoint`), validada posición por posición en el servidor. Durante el vuelo
+  no hay control libre, no se descubren edificios ni sitios y no se inician minijuegos.
+- Red: `{ t: 'vivo', op: 'fly', route }` → `{ ok, route, seconds }` o `reason`: `lejos`, `sin-dragon`,
+  `ocupado`, `espera`, `en-vuelo`. La animación de red `ride` (agregada al final de `ANIMS`) indica a
+  los demás que el jugador va montado; ellos dibujan el dragón bajo su avatar.
+
+## 12. Menú rápido (`api.actions`)
+
+La interfaz del menú es de Codex; cada botón llama a una de estas funciones (una sola navegación):
+
+| Acción | Llamada |
+|---|---|
+| Mi avatar | `api.actions.avatar()` |
+| Mi vestidor | `api.actions.wardrobe()` |
+| Mi inventario | `api.actions.inventory()` |
+| Mis mascotas | `api.actions.pets(pestaña?)` (`'mis'` o `'adoptar'`) |
+| Mi casa | `api.actions.home()` |
+| Monturas | `api.actions.mounts()` |
+| Frases y gestos | `api.actions.emotes()` |
+| Mapa | `api.actions.map()` |
+| Misiones | `api.actions.missions()` |
+| Juegos | `api.actions.games()` |
+| Una tienda | `api.actions.shop(idTienda)` |
+| Lanzar la pelota | `api.actions.ball()` |
+
+Mientras no exista el menú rápido de Codex en `main`, «Mis mascotas» y «Mi inventario» están en el
+menú «Más» (`#btn-pets`, `#btn-inventory`). Al integrar, esas entradas pasan al menú rápido.
