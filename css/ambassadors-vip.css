@@ -105,3 +105,95 @@
  .av-dashboard .av-code-card{padding:11px;column-gap:8px}
  .av-dashboard .av-code-card>strong{font-size:20px}
 }
+/* Editorial header: three useful zones, with the existing program data/actions. */
+.av-dashboard .av-hero--modern{--av-navy:#0b1739;--av-blue:#1748ed;--text:#0b1739;--text-2:#3c4d6b;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.9fr) minmax(0,1.15fr);grid-template-areas:"identity benefits code";align-items:center;gap:18px;padding:22px;background:#fffefb;color:var(--text);border:2px solid #0b1739;border-radius:20px;box-shadow:4px 5px 0 #0b1739;isolation:isolate}
+.av-hero--modern .av-center-zone{min-width:0}
+.av-dashboard .av-hero--modern .av-center-zone--identity{grid-area:identity;display:block;padding-right:4px}
+.av-dashboard .av-hero--modern .av-badge{max-width:100%;padding:7px 9px;border:1px solid #0b1739;border-radius:999px;background:#fff;color:#0b1739;font-size:9px;line-height:1.3;letter-spacing:.55px}
+.av-dashboard .av-hero--modern .av-badge .av-icon{width:16px;height:16px}
+.av-dashboard .av-hero--modern .av-hello{margin:13px 0 0;color:#3c4d6b;font-size:11px;line-height:1.4}
+.av-dashboard .av-hero--modern .av-center-title{max-width:none;margin:13px 0 12px;font-size:clamp(25px,2.2vw,36px);font-weight:850;line-height:1.09;letter-spacing:-1.05px;color:#0b1739;overflow-wrap:normal}
+.av-dashboard .av-hero--modern .av-center-title>span{display:table;margin-bottom:6px;padding:3px 8px 4px;background:#ffda36;border-radius:7px;color:#0b1739;font-size:.57em;font-weight:800;letter-spacing:.1px;text-transform:uppercase;line-height:1.25}
+.av-dashboard .av-hero--modern .av-hero__copy>p:not(.av-hello){max-width:320px;margin:0;color:#3c4d6b;font-size:12px;line-height:1.6}
+.av-dashboard .av-hero--modern .av-center-zone--benefits{grid-area:benefits;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin:0;padding:0;border:0;max-width:none}
+.av-dashboard .av-hero--modern .av-hero-benefits>div{display:block;min-width:0;padding:13px 14px;border:1.5px solid #0b1739;border-radius:12px;background:#ffdf53;box-shadow:2px 3px 0 #0b1739}
+.av-dashboard .av-hero--modern .av-hero-benefits>.av-center-discounts{background:#ffe0db}
+.av-dashboard .av-hero--modern .av-hero-benefits>div>span{font-size:9px;line-height:1.4;letter-spacing:.65px;font-weight:750;color:#0b1739}
+.av-dashboard .av-hero--modern .av-hero-benefits strong{display:block;margin:6px 0;font-size:28px;line-height:1.15;letter-spacing:-.65px;color:#0b1739;font-weight:800}
+.av-dashboard .av-hero--modern .av-hero-benefits strong small{font-size:10px;color:#243757;font-weight:650}
+.av-dashboard .av-hero--modern .av-hero-benefits>div>small{display:block;font-size:9px;line-height:1.5;color:#243757}
+.av-dashboard .av-hero--modern .av-center-discounts strong{display:flex;flex-wrap:wrap;align-items:baseline;gap:3px 7px;font-size:21px;line-height:1.3}
+.av-dashboard .av-hero--modern .av-center-discounts strong b{display:none}
+.av-dashboard .av-hero--modern .av-price-period{display:inline-flex;gap:4px;align-items:baseline;white-space:nowrap}
+.av-dashboard .av-hero--modern .av-center-zone--code{grid-area:code;display:block;align-self:stretch;padding:16px;background:#f4f7ff;border:1px solid #c5d0ed;border-radius:14px;box-shadow:none;color:#0b1739}
+.av-dashboard .av-hero--modern .av-code-card>span{display:block;font-size:9px;letter-spacing:1px;line-height:1.5;font-weight:700;color:#3c4d6b}
+.av-dashboard .av-hero--modern .av-code-card>strong{display:block;max-width:100%;margin:10px 0 15px;font-size:clamp(21px,1.9vw,30px);line-height:1.2;letter-spacing:.7px;text-align:left;color:#0b1739;overflow-wrap:anywhere}
+.av-dashboard .av-hero--modern .av-code-actions{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px;margin:0 0 9px}
+.av-dashboard .av-hero--modern .av-code-actions button{display:flex;align-items:center;justify-content:center;gap:5px;min-height:44px;min-width:0;padding:7px 6px;background:#fff;border:1px solid #b9c9e5;border-radius:9px;color:#163b90;font-size:10px;font-weight:650;line-height:1.3;white-space:normal;box-shadow:none}
+.av-dashboard .av-hero--modern .av-code-actions .av-icon{width:15px;height:15px}
+.av-dashboard .av-hero--modern .av-code-actions button:hover{background:#e8efff;border-color:#1748ed}
+.av-dashboard .av-hero--modern .av-code-card>.av-button{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;min-height:44px;margin:0;padding:10px 12px;border:1.5px solid #0b1739;border-radius:10px;background:#1748ed;color:#fff;font-size:12px;line-height:1.3;font-weight:750;box-shadow:2px 3px 0 #0b1739;white-space:normal}
+.av-dashboard .av-hero--modern .av-code-card>.av-button:hover{background:#103bd3}
+.av-dashboard .av-hero--modern .av-member-state{display:flex;gap:6px;align-items:center;margin:14px 0 0;color:#205e49;font-size:10px;line-height:1.4}
+.av-dashboard .av-hero--modern .av-member-state--paused{color:#795018}
+.av-dashboard .av-hero--modern .av-code-card>small{display:block;margin:6px 0 0;color:#3c4d6b;font-size:9px;line-height:1.5}
+.av-dashboard .av-hero--modern .av-code-card .av-paused-note{margin:7px 0 0;color:#795018;font-size:10px;line-height:1.5}
+.av-dashboard .av-hero--modern :is(button,a):focus-visible{outline:3px solid #1748ed;outline-offset:3px}
+.av-dashboard .av-hero--modern .av-code-card>.av-button:focus-visible{outline-color:#0b1739;outline-offset:5px}
+@container ambvip (max-width:799px){
+ .av-dashboard .av-hero--modern{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"identity code" "benefits code";align-items:start;gap:15px 20px;padding:20px}
+ .av-dashboard .av-hero--modern .av-center-title{font-size:30px;margin-top:11px}
+ .av-dashboard .av-hero--modern .av-hello{margin-top:9px}
+ .av-dashboard .av-hero--modern .av-center-zone--benefits{gap:10px}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div{padding:11px 13px}
+ .av-dashboard .av-hero--modern .av-hero-benefits strong{font-size:26px}
+ .av-dashboard .av-hero--modern .av-center-discounts strong{font-size:20px;flex-direction:row}
+ .av-dashboard .av-hero--modern .av-center-zone--code{align-self:stretch}
+}
+@container ambvip (max-width:560px){
+ .av-dashboard .av-hero--modern{grid-template-columns:minmax(0,1fr);grid-template-areas:"identity" "benefits" "code";gap:12px;padding:16px;border-radius:17px;box-shadow:3px 4px 0 #0b1739}
+ .av-dashboard .av-hero--modern .av-center-zone--identity{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 9px;align-items:center;padding:0}
+ .av-dashboard .av-hero--modern .av-hello{margin:0;text-align:right;font-size:10px;overflow-wrap:anywhere}
+ .av-dashboard .av-hero--modern .av-center-title{grid-column:1/-1;margin:9px 0 6px;font-size:29px;letter-spacing:-.7px}
+ .av-dashboard .av-hero--modern .av-center-title>span{display:inline-block;vertical-align:middle;margin:0 6px 4px 0;font-size:12px;padding:3px 6px}
+ .av-dashboard .av-hero--modern .av-hero__copy>p:not(.av-hello){grid-column:1/-1;max-width:none;font-size:11px;line-height:1.5}
+ .av-dashboard .av-hero--modern .av-center-zone--benefits{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:10px}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div{padding:10px;border-radius:10px;box-shadow:1px 2px 0 #0b1739}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div>span{font-size:9px;letter-spacing:.3px}
+ .av-dashboard .av-hero--modern .av-hero-benefits strong{font-size:25px;line-height:1.15;margin:5px 0}
+ .av-dashboard .av-hero--modern .av-center-discounts strong{display:flex;flex-direction:column;align-items:flex-start;gap:3px;font-size:19px}
+ .av-dashboard .av-hero--modern .av-hero-benefits strong small{font-size:9px}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div>small{font-size:9px;line-height:1.45}
+ .av-dashboard .av-hero--modern .av-center-zone--code{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);align-items:center;gap:6px 10px;padding:12px}
+ .av-dashboard .av-hero--modern .av-code-card>span{font-size:9px;letter-spacing:.65px}
+ .av-dashboard .av-hero--modern .av-code-card>strong{font-size:21px;margin:0;text-align:right;letter-spacing:.6px}
+ .av-dashboard .av-hero--modern .av-code-card>:is(.av-code-actions,.av-button,.av-member-state,.av-paused-note,small){grid-column:1/-1}
+ .av-dashboard .av-hero--modern .av-code-actions{margin:0}
+ .av-dashboard .av-hero--modern .av-member-state{margin:3px 0 0;font-size:9px}
+ .av-dashboard .av-hero--modern .av-code-card>small{margin:0;font-size:9px}
+}
+@container ambvip (max-width:330px){
+ .av-dashboard .av-hero--modern{padding:13px;gap:12px}
+ .av-dashboard .av-hero--modern .av-badge{padding:5px 7px;font-size:9px}
+ .av-dashboard .av-hero--modern .av-center-title{font-size:25px;letter-spacing:-.7px}
+ .av-dashboard .av-hero--modern .av-center-title>span{font-size:10px}
+ .av-dashboard .av-hero--modern .av-center-zone--benefits{gap:8px}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div{padding:9px}
+ .av-dashboard .av-hero--modern .av-hero-benefits strong{font-size:22px}
+ .av-dashboard .av-hero--modern .av-center-discounts strong{font-size:17px}
+ .av-dashboard .av-hero--modern .av-price-period{gap:3px}
+ .av-dashboard .av-hero--modern .av-code-card>strong{font-size:19px}
+ .av-dashboard .av-hero--modern .av-code-actions button{font-size:9px}
+}
+@container ambvip (min-width:561px) and (max-width:799px){
+ .av-dashboard .av-hero--modern .av-center-zone--identity{display:grid;grid-template-columns:auto minmax(0,1fr);gap:0 10px;align-items:center}
+ .av-dashboard .av-hero--modern .av-hello{margin:0;font-size:10px;line-height:1.4;text-align:right;overflow-wrap:anywhere}
+ .av-dashboard .av-hero--modern .av-center-title,.av-dashboard .av-hero--modern .av-hero__copy>p:not(.av-hello){grid-column:1/-1}
+ .av-dashboard .av-hero--modern .av-center-title{margin:12px 0 8px}
+ .av-dashboard .av-hero--modern .av-center-zone--benefits{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:9px}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div{padding:10px}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div>span{font-size:9px;letter-spacing:.3px}
+ .av-dashboard .av-hero--modern .av-hero-benefits strong{font-size:25px}
+ .av-dashboard .av-hero--modern .av-center-discounts strong{flex-direction:column;align-items:flex-start;font-size:18px;gap:3px}
+ .av-dashboard .av-hero--modern .av-hero-benefits>div>small{font-size:9px;line-height:1.45}
+}
