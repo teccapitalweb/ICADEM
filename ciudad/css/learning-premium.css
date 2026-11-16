@@ -24,11 +24,15 @@
 .arcade__card[data-game=tesoro]{--game-accent:#b9974e;--game-tint:#fdf7e8}
 .arcade__card[data-game=idiomas],.arcade__card[data-game=clasificacion]{--game-accent:#bc7f76;--game-tint:#fdf2ee}
 .arcade__card .arcade__icon{width:42px;height:42px;border-radius:13px;background:#fff9;border:1px solid #fff;color:var(--game-accent);font-size:25px}
-.arcade__card .arcade__best{font-size:10px!important;background:#ffffffbd;color:#53627d!important;border:1px solid #e3e6ef;font-weight:650}
+.arcade__card .arcade__best{display:inline-flex;align-items:center;max-width:100%;overflow-wrap:anywhere;font-size:10px!important;background:#ffffffbd;color:#53627d!important;border:1px solid #e3e6ef;font-weight:650}
+.arcade__top{gap:6px;flex-wrap:wrap}
 .arcade__card strong{font-size:16px;line-height:1.25}.arcade__card>span{font-size:12px;line-height:1.45;color:#5e6d84}.arcade__card>small{font-size:10px;margin-top:auto;color:#64728b}
 .arcade__card:focus-visible,.quiz__opt:focus-visible{outline:3px solid #725092;outline-offset:3px}
 .mg-bar{font-size:12px;line-height:1.4;padding:7px 10px;border:1px solid #e3e7f0;background:#f5f6fc;border-radius:11px;font-variant-numeric:tabular-nums}
 .mg .timebar{height:6px}.mg-result{gap:12px;padding:5px 0}.mg-result .result__rewards{justify-content:center}
+/* Keep the existing passport and game-menu composition, with usable targets. */
+.modal__card:has(.passport,.arcade) .modal__x{width:44px;height:44px}
+.modal__card:has(.passport,.arcade) footer .btn,.passport .btn,.passport .tabs button,.passport .pass__todo{min-height:44px;min-width:44px}
 @media(max-width:599px){
  .modal__card:has(.quiz,.arcade,.mg,.mg-result){width:100%;border-radius:21px;max-height:calc(100dvh - 24px - var(--safe-t) - var(--safe-b))}
  .modal__card:has(.quiz,.arcade,.mg,.mg-result) header{padding:14px 16px 12px}.modal__card:has(.quiz,.arcade,.mg,.mg-result) h2{font-size:20px}

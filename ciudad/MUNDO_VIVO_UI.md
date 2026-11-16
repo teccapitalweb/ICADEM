@@ -1,4 +1,90 @@
-# Mundo Vivo · entregas visuales sobre Ciudad 1.3
+# Mundo Vivo · integración visual de Ciudad ICADEM 2.0
+
+## 2026-11-16 · integración sobre PR #75
+
+Base: `main` **fd0c2b5**, Ciudad ICADEM 2.0 publicada por Claude. Esta entrega integra el trabajo
+visual de los PR #72 y #74 mediante los servicios reales de `MUNDO_VIVO.md`, en rama y worktree
+independientes. Se conservan los sistemas y modelos 2.0. El estado de publicación se verifica
+en el PR de integración y en sus despliegues; esta sección documenta el código y sus pruebas.
+
+| Componente | Integración y corrección |
+|---|---|
+| Mascotas, accesorios y paseos | Catálogo y fichas sobre `api.vivo`; colección, requisitos, saldo y equipamiento confirmados. Las miniaturas proceden de los modelos originales. |
+| Tiendas e inventario | Precios y cantidades del catálogo real, confirmación explícita, rechazo visible y recuperación de compras sin confirmar. Nada se concede o descuenta por seleccionar una tarjeta. |
+| Vivienda | Editor compacto, categorías y controles táctiles; borrador separado de la casa guardada, mensajes de estado y conflicto sin perder el borrador. |
+| Aguas frescas | Receta y progreso accesibles, confirmación del servidor y recuperación explícita de una respuesta desconocida. |
+| Diez juegos | Presentación coherente, progreso y feedback accesibles; se conservan bitácoras, posiciones, calificación y recompensas de Claude. |
+| Chat y navegación | Historial con filas/foco conservados, cierre exterior y borradores; el chat se oculta durante juegos de campo para no cubrir preguntas, avisos ni controles. |
+| Avatar Studio y Pasaporte | Se integran el trabajo de rendimiento y accesibilidad del PR #74 y las ranuras 2.0. Las prendas de pago muestran su estado y requieren propiedad confirmada; el servidor conserva la validación. |
+
+El catálogo canónico contiene **39 razas**, no 40: 14 perros, 11 gatos, 8 aves y 6 fantásticas.
+Los contadores se calculan desde esos datos. No se añadió una raza ficticia para coincidir con
+la cifra anunciada, ni se publican las pantallas de muestra del PR #72 como funciones reales.
+
+### Persistencia y corrección de servidor autorizada
+
+La revisión encontró dos defectos reproducibles: un borrador antiguo podía sobrescribir una
+vivienda guardada desde otra sesión, y un reintento de compra tras perder su confirmación
+generaba otro `rid` y podía cobrar de nuevo un consumible.
+
+El usuario autorizó expresamente la corrección mínima del servidor para la vivienda:
+`homeRev` normaliza a cero en perfiles anteriores y cada guardado envía
+`saveHome(layout, { expectedHomeRevision })`. La comparación ocurre dentro de la operación
+serializada; `casa-conflicto` devuelve el perfil actual sin guardar encima. El editor conserva
+el borrador y requiere una decisión explícita antes de cargar la casa confirmada. Compras,
+mascotas y juegos no cambian la revisión de vivienda. No se modifican reglas Firestore ni se
+requiere una migración de datos. Un cliente antiguo sin revisión debe actualizarse antes de guardar.
+
+Para compras, adopciones y aguas, el servicio cliente conserva la solicitud original cuando
+falta confirmación. Un gesto explícito recupera su resultado con el mismo identificador;
+cerrar y reabrir el panel dentro de esa instancia no obliga a recordar cantidad o nombre.
+No hay reenvíos automáticos. Se mantiene el límite existente de **40 identificadores** del
+servidor y la solicitud pendiente vive en memoria del juego; no se promete deduplicación
+indefinida ni recuperación del intento después de cerrar el juego.
+
+Entrada, puente y referencias del panel: **v17**. Caché: **v184**. Servidor y cliente
+deben desplegarse de forma coordinada para el contrato de vivienda. No se modifican Stripe,
+créditos reales, comisiones, membresías, motor, físicas ni reglas de las mecánicas.
+
+### Evidencia confirmada
+
+Son ejecuciones distintas y pueden solaparse; las cifras no se suman como casos únicos:
+
+- Suite final del repositorio: **629/629**, sin omisiones.
+- Contratos y regresiones de Mundo Vivo, incluida la suite existente: **31/31**, sin omisiones.
+  Incluyen WebSockets locales reales, prendas no compradas, saldo/inventario, UID manipulado,
+  reintentos, lectura desde otra sesión, vivienda obsoleta y progreso de actividades.
+- Controladores de vivienda, aguas y juegos con DOM/transporte controlado: **10/10**.
+- Mascotas, tiendas e inventario con DOM real y transporte de prueba: cuatro tamaños,
+  **320, 390, 768 y 1440 px**, incluido cierre/reapertura y recuperación del mismo `rid`.
+- Vivienda, aguas y actividades en Chrome y WebKit: **ocho combinaciones** de motor/tamaño.
+- Juego, modelos originales y WebSocket local real: **39 comprobaciones** de interfaces y
+  flujos, con contextos independientes a 320/390/768/1440 px. Adopción, accesorios, paseo,
+  compra, inventario, chat, vivienda y agua confirmados; seis actividades de elección
+  completadas y persistidas; tres juegos de campo con tracker y chat apartado. Los diez
+  juegos permanecen en el catálogo real y sus reglas se cubren en la suite.
+- Studio en Chrome 390 px: diez piezas, confirmaciones demoradas e intercaladas,
+  observador multijugador independiente, nueva sesión y reinicio con almacenamiento
+  temporal JSON; filtros, foco, contraste y menú real. **10 lecturas confirmadas: 0
+  reconstrucciones**, geometrías **22→22**, texturas **2→2**. Chat con envío local confirmado,
+  borrador, toque exterior y controles sin solaparse en vertical y horizontal.
+
+Las pruebas locales usan UIDs ficticios y no escriben cuentas de producción. El adaptador CAS
+que fuerza conflictos entre procesos es **emulado**: no demuestra un despliegue Firestore.
+Los tamaños de pantalla son emulados; no equivalen a teléfonos físicos. La prueba autenticada
+de chat en producción conserva su guía manual y no se da por realizada con una sesión inexistente.
+
+El despliegue debe comprobar el mismo commit en GitHub Pages y Railway y `/health` correcto.
+El informe del PR registra esas referencias; las pruebas locales anteriores no sustituyen
+la comprobación autenticada de producción ni las pruebas en teléfonos físicos.
+
+Contratos, reproducciones y comandos: [VIVO_INTEGRATION_CHECKS.md](VIVO_INTEGRATION_CHECKS.md).
+
+## Archivo histórico · entregas sobre Ciudad 1.3
+
+Los apartados siguientes conservan los estados, versiones y evidencias de aquellas entregas.
+Sus referencias a funciones 2.0 pendientes, prototipos o versiones v15/v16 son históricas;
+la situación actual y el contrato de vivienda se describen arriba.
 
 Base: `main` f43f608 (PR #71), con Avatar Studio y equipamiento del PR #70. Este cambio se desarrolla en `feature/ciudad-mundo-vivo-premium-ui` y un worktree propio. No modifica la rama de Claude.
 
@@ -81,3 +167,31 @@ Antes de integrar la expansión, hay que reconciliar expresamente estos puntos:
 5. Resolver las versiones de `index.html`, puente y caché una sola vez sobre el `main` que exista al integrar. Las pruebas de mapa deben contemplar los destinos canónicos nuevos, y las de vestidor el botón Equipar explícito.
 
 No se hizo checkout, merge, escritura ni ejecución con datos reales sobre la rama de Claude. Consultar un contrato en desarrollo no equivale a dar la expansión por validada ni autoriza publicar las siete vistas de muestra.
+
+## Última auditoría de la versión publicada 1.3
+
+Base auditada: `main` **b97c80d**, publicada por el PR #73 con entrada v15 y caché v182. Las correcciones se preparan en `fix/ciudad-ui-final-qa`, worktree independiente. No se publican en esta fase. Las versiones v16/v183 y la hoja educativa v2 quedan listas para una futura integración revisada.
+
+| Defecto reproducido | Corrección mínima | Evidencia |
+| --- | --- | --- |
+| Recibir un mensaje reiniciaba la lectura y eliminaba el control con foco. | Conservar las filas y su ancla; seguir abajo sólo si ya se leía al final. Un ACK actual propio muestra su mensaje; uno tardío/antiguo no interrumpe. | Chrome/WebKit DOM390; 16 pruebas de ChatPanel, incluidas cierre/reapertura, eliminación por bloqueo y límite de historial. |
+| Una actualización sin cambio de apariencia reconstruía el modelo 3D del Studio y podía perder foco de Descartar. | Comparar la apariencia visible antes de `preview.show`; restaurar el control de estado o un destino visible si desaparece. No se cambia `AvatarPreview`, modelos, rig ni motor. | 13 pruebas del Studio y 2 de recursos de preview; E2E con juego y WebSocket locales reales, preview/cancelación, ACK intercalados, reinicio y perfil tardío. |
+| Pasaporte tenía pestañas de 32 px, cierre de 36 px y acciones de 40–42 px, sin estado accesible seleccionado. | Objetivos de al menos 44 px y `aria-pressed`. | Juego local offline Chrome320/390/768/1440; estado académico/apariencia inalterados. |
+| El cierre de Juegos era de 36 px y una regla heredada ocultaba sus distintivos Nuevo/Mejor en móvil. | Ajustar únicamente objetivos y visibilidad de los distintivos reales, con wrap seguro. | Misma matriz y capturas antes/después; ningún juego iniciado ni regla cambiada. |
+
+El mapa pasó límites, scroll de lista, zoom, teclado y áreas táctiles en esos cuatro tamaños sin necesitar cambios. La versión 1.3 no tiene un inventario 2.0 publicado: conserva catálogo cosmético y Pasaporte; no se añadió un módulo ficticio.
+
+### Trabajo y memoria medidos
+
+- Referencia reproducida antes de corregir: 20 perfiles idénticos provocaban 20 llamadas a `AvatarPreview.show` (que reconstruye el modelo). Después: **0**. Un cambio real de ropa sigue actualizando la vista inmediatamente.
+- Con el juego/modelos y servidor local reales: **10 lecturas confirmadas, 0 reconstrucciones**, contadores del renderizador estables en **22 geometrías y 2 texturas** antes/después. La fixture pausa mundo/giro continuo para reducir el coste del render por software; no mide FPS.
+- Chat DOM390 con 20 filas: al llegar una nueva, **1 nodo añadido y 0 eliminados**; las 20 filas anteriores, scroll y foco permanecen. El historial y la tabla de filas siguen acotados por el límite existente.
+- Las pruebas de recursos conservan liberación de geometrías propias, materiales compartidos y target del renderizador. No se afirma una mejora de FPS, de consumo de batería ni de memoria total del dispositivo: esas magnitudes no se midieron.
+
+### Alcance de las comprobaciones
+
+**585/585 pruebas del repositorio** sin omisiones. Chat con WebSocket local real en WebKit390 y 18 casos de viewport reducido; Studio Chrome390 con servidor real y receptor independiente. Pasaporte/mapa/Juegos se revisaron offline, sin sembrar progreso ni iniciar partidas. Son tamaños emulados, no teléfonos físicos ni sesiones reales de producción.
+
+El control de la sesión autenticada se había detenido al no poder identificar con seguridad la URL. No se intentó eludirlo, recuperar tokens ni reutilizar credenciales. Para cerrar el único pendiente de envío en producción, usar la [prueba manual de siete pasos](CHAT_PRUEBA_MANUAL.md). Historial y borrador permanecen en memoria durante la sesión; no se prometen tras recargar.
+
+PR #72 sigue aislado y en borrador. En esta revisión mantiene como fuente de desarrollo **ca84ff6**, sin cambios nuevos de contratos recibidos; su laboratorio/verificador pasa **22/22**, incluidas dos pruebas negativas nuevas de revisión de vivienda y confirmación de B. No hay adaptador real: integración y sincronización 2.0 siguen pendientes, sin ejecutar migraciones ni cuentas reales. Ver `MUNDO_VIVO_UI_CONTRACTS.md` e `INTEGRATION_QA.md` en ese PR, no importarlos desde el juego.

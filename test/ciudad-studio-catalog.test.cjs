@@ -61,12 +61,16 @@ async function studio(options = {}, initial = {}) {
   document.getElementById = id => document.body.querySelector('#' + id);
   class AvatarPreview {
     constructor() { this.canvas = new Element('canvas'); this.scene = { background: { setHex() {} } }; this.camera = { position: { set() {} }, lookAt() {} }; previews.push(this); }
-    show(look) { this.look = copy(look); } start() {} stop() { this.stopped = true; } still() { return 'data:image/png;base64,transport'; }
+    show(look) { this.showCalls = (this.showCalls || 0) + 1; this.look = copy(look); } start() {} stop() { this.stopped = true; } still() { return 'data:image/png;base64,transport'; }
   }
   const state = { ...rules.emptyProfile(), avatarId: 'universitaria', avatarChosen: true, synced: true, economy: { balance: 100 }, ...initial };
   state.custom = rules.cleanCustom(initial.custom);
   const net = { isOnline: true, on(name, fn) { if (!handlers.has(name)) handlers.set(name, new Set()); handlers.get(name).add(fn); return () => handlers.get(name).delete(fn); } };
   const api = { store: { state }, engine: { renderer: {} }, net, setAvatar(id, custom) { sent.push({ id, custom: copy(custom) }); state.avatarId = id; state.custom = rules.cleanCustom(custom); state.avatarChosen = true; return true; } };
+  if (options.inventory) {
+    const { wearItemFor, lockedWear } = await load('economy/catalog.js');
+    api.vivo = { online: true, locked: custom => lockedWear(custom, options.inventory), wearInfo(slot, option) { const item = wearItemFor(slot, option); return item ? { item, owned: Boolean(options.inventory[item.id]) } : null; } };
+  }
   const ui = {
     api, isBlocking: false, toast: text => toasts.push(text),
     modal(settings) { let resolve; const result = new Promise(r => resolve = r); document.body.append(settings.content); foot.replaceChildren(); modal = { settings, close(id = 'close') { settings.onClose?.(); settings.content.remove(); foot.replaceChildren(); resolve(id); } };
@@ -101,6 +105,27 @@ test('cosmetics stay in a local multi-piece preview until explicit Equipar and c
   assert.equal(a.find('[data-action="equip"]').disabled, false);
   a.close(); await a.result;
   assert.deepEqual(a.state, original); assert(a.previews.every(p => p.stopped)); assert([...a.handlers.values()].every(s => s.size === 0));
+});
+
+test('Mundo Vivo paid pieces can be previewed but require real ownership before equipping; availability filters agree', async () => {
+  const inventory = {}, a = await studio({ tab: 'ropa', inventory });
+  const { wearItemFor } = await load('economy/catalog.js'), item = wearItemFor('top', 'shirt'); assert(item);
+  a.click('[data-top="shirt"]'); assert.equal(a.find('[data-action="equip"]').disabled, true); assert.equal(a.sent.length, 0);
+  assert.equal(a.find('[data-action="shop"]').hidden, false); assert.match(a.find('.vest__shop-hint').textContent, /monedas del juego/);
+  a.select('[aria-label="Estado"]', 'available'); assert.equal(a.find('[data-top="shirt"]'), null);
+  a.select('[aria-label="Estado"]', 'shop'); assert(a.find('[data-top="shirt"]')); assert.equal(a.find('[data-top="tee"]'), null);
+  inventory[item.id] = 1; a.emit({ op: 'vivo', ok: true, profile: { avatarId: a.state.avatarId, custom: a.state.custom } });
+  assert.equal(a.find('[data-action="equip"]').disabled, false); assert.equal(a.find('[data-action="shop"]').hidden, true);
+  a.click('[data-action="equip"]'); assert.equal(a.sent.length, 1); a.close(); await a.result;
+});
+
+test('all new real accessory slots are exposed and can be previewed without changing the profile', async () => {
+  const a = await studio({ tab: 'accesorios' }), before = copy(a.state);
+  for (const [slot, id] of [['glasses', 'round'], ['bracelet', 'beads'], ['headphones', 'over']]) {
+    a.click('[data-fashion-group="' + slot + '"]'); a.click('[data-' + slot + '="' + id + '"]');
+  }
+  assert.deepEqual(a.state, before); assert.equal(a.sent.length, 0); assert.equal(a.find('[data-action="equip"]').disabled, false);
+  a.close(); await a.result;
 });
 
 test('Equipar uses the existing avatar API once, shows confirmation pending, and keeps the modal open', async () => {
@@ -207,4 +232,26 @@ test('profile refreshes preserve the active catalog control, search cursor and k
   const category = a.find('.vest__cats').children[1]; category.focus(); category.click(); a.flush();
   assert.equal(a.document.activeElement, a.find('.vest__cats').children[1]);
   a.close(); await a.result;
+});
+
+test('unchanged profile confirmations do not rebuild the same 3D preview', async t => {
+  const a = await studio({ tab: 'ropa' }), preview = a.previews[0], before = preview.showCalls;
+  for (let i = 0; i < 20; i++) a.emit({ op: 'get', ok: true, profile: { avatarId: a.state.avatarId, custom: a.state.custom } });
+  const builds = preview.showCalls - before;
+  t.diagnostic('20 unchanged profiles: ' + builds + ' AvatarPreview.show calls');
+  assert.equal(builds, 0);
+  a.click('[data-top="hoodie"]'); assert.equal(preview.showCalls, before + 1, 'a different actual look still updates immediately');
+  a.emit({ op: 'get', ok: true, profile: { avatarId: a.state.avatarId, custom: a.state.custom } });
+  assert.equal(preview.showCalls, before + 1, 'receiving the stored appearance cannot rebuild or replace an unsent trial');
+  a.close(); await a.result;
+});
+
+test('profile refresh preserves focus on the trial discard action', async () => {
+  const a = await studio({ tab: 'ropa' }); a.click('[data-top="hoodie"]');
+  a.find('.vest__discard').focus();
+  a.emit({ op: 'get', ok: true, profile: { avatarId: a.state.avatarId, custom: a.state.custom } });
+  assert.equal(a.document.activeElement === a.find('.vest__discard'), true, 'the focused status action survives a profile repaint');
+  a.remote('universitaria', { top: 'hoodie' });
+  assert.equal(a.document.activeElement === a.find('.vest__customize'), true, 'a removed discard action returns focus to a visible stage control');
+  assert.equal(a.sent.length, 0); a.close(); await a.result;
 });

@@ -7,7 +7,7 @@
 //   api.vivo.on('change', fn) → se llama cada vez que el servidor confirma un cambio
 //   await api.vivo.buy(item, qty)            await api.vivo.adopt(breed, name)
 //   await api.vivo.setPet(id, { name, acc, active })    await api.vivo.rest()
-//   await api.vivo.saveHome(layout)          await api.vivo.feed(petId, food)
+//   await api.vivo.saveHome(layout, { expectedHomeRevision })   await api.vivo.feed(petId, food)
 //   await api.vivo.drink(flavor, 'self' | 'buy', steps) await api.vivo.walk(true | false)
 // Todas devuelven { ok, reason?, message?, ... }: `message` es el texto listo para mostrar.
 import { itemById, ITEMS, SHOPS, lockedWear, wearItemFor } from '../economy/catalog.js';
@@ -16,12 +16,12 @@ import { VIVO_REASONS } from './vivo-rules.js';
 import { HOME_REASONS } from '../home/home-rules.js';
 
 const rid = () => (globalThis.crypto && crypto.randomUUID ? crypto.randomUUID().replace(/-/g, '').slice(0, 20) : Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
-const NET_REASONS = { 'sin-conexion': 'Necesitas conexión con la ciudad para esto.', 'sin-respuesta': 'La ciudad no respondió. Inténtalo de nuevo.', 'no-disponible': 'Esta función todavía no está disponible para tu perfil.', operacion: 'Esa acción no existe.' };
+const NET_REASONS = { 'sin-conexion': 'Necesitas conexión con la ciudad para esto.', 'sin-respuesta': 'Falta confirmar la acción. Al reintentar consultaremos la misma solicitud.', 'pendiente-confirmacion': 'Primero confirma la solicitud anterior reintentando la misma acción.', 'sin-pendiente': 'Esa solicitud ya no está pendiente.', 'casa-conflicto': 'La vivienda cambió o esta versión necesita actualizarse. Revisa la casa guardada antes de volver a editar.', 'no-disponible': 'Esta función todavía no está disponible para tu perfil.', operacion: 'Esa acción no existe.' };
 export const vivoMessage = reason => VIVO_REASONS[reason] || NET_REASONS[reason] || (reason && reason.startsWith('casa-') ? HOME_REASONS[reason.slice(5)] : null) || 'No se pudo completar la acción.';
 
 export class VivoService {
   constructor(api) {
-    this.api = api; this.listeners = new Set(); this.leash = false; this.busy = new Set();
+    this.api = api; this.listeners = new Set(); this.leash = false; this.busy = new Set(); this.uncertain = new Map();
     api.net.on('status', st => { if (st.status !== 'online' && this.leash) { this.leash = false; this.emit(); } });
   }
   get online() { return Boolean(this.api.net.isOnline && this.state); }
@@ -36,11 +36,33 @@ export class VivoService {
 
   async #ask(op, payload, key = op) {
     if (this.busy.has(key)) return { ok: false, reason: 'en-curso', message: 'Espera un momento…' };
+    // Una desconexión puede perder la confirmación después de que el servidor haya guardado.
+    // Un reintento explícito conserva el rid y los datos originales para la deduplicación del servidor.
+    const charge = typeof payload.rid === 'string', previous = this.uncertain.get(key);
+    const signature = charge ? JSON.stringify({ op, ...payload, rid: undefined }) : null;
+    if (previous && previous.signature !== signature) return { ok: false, reason: 'pendiente-confirmacion', message: vivoMessage('pendiente-confirmacion') };
+    if (previous) payload = previous.payload;
+    else if (charge) payload = JSON.parse(JSON.stringify(payload));
     this.busy.add(key);
+    if (charge) this.uncertain.set(key, { op, signature, payload });
     try {
       const r = await this.api.net.vivo(op, payload);
+      if (charge && r.reason !== 'sin-respuesta' && !(previous && r.reason === 'sin-conexion')) this.uncertain.delete(key);
       return r.ok ? r : { ...r, message: vivoMessage(r.reason) };
     } finally { this.busy.delete(key); }
+  }
+
+  /** Intenciones sin confirmación de esta instancia; sin rid ni permiso para alterar la solicitud. */
+  pendingTransactions() {
+    return [...this.uncertain].filter(([key]) => !this.busy.has(key)).map(([key, pending]) => {
+      const data = { ...pending.payload }; delete data.rid;
+      return { key, op: pending.op, payload: JSON.parse(JSON.stringify(data)) };
+    });
+  }
+  /** Solo lo invoca una acción explícita de recuperación; no repite la compra con datos nuevos. */
+  retryTransaction(key) {
+    const pending = this.uncertain.get(key);
+    return pending ? this.#ask(pending.op, pending.payload, key) : Promise.resolve({ ok: false, reason: 'sin-pendiente', message: vivoMessage('sin-pendiente') });
   }
 
   /* ---------- compras ---------- */
@@ -79,7 +101,7 @@ export class VivoService {
   }
 
   /* ---------- casa y puestos ---------- */
-  saveHome(layout) { return this.#ask('home', { layout }); }
+  saveHome(layout, { expectedHomeRevision } = {}) { return this.#ask('home', { layout, expectedHomeRevision }); }
   drink(flavor, mode, steps) { return this.#ask('drink', { flavor, mode, steps, rid: rid() }, 'drink'); }
 
   itemName(id) { return (itemById(id) || {}).name || id; }

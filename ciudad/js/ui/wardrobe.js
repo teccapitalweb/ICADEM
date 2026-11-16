@@ -2,7 +2,7 @@
 // requisitos reales de desbloqueo (los mismos que comprueba el servidor), ropa, cabello y accesorios.
 // También es la selección de personaje de la primera vez (`first: true`).
 import { AVATARS, AVATAR_CATEGORIES, avatarById } from '../characters/catalog.js';
-import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, SKIN_TONES, TOP_OPTIONS, BOTTOM_OPTIONS, SHOE_OPTIONS, BAG_OPTIONS, HAIR_STYLE_OPTIONS, HAIR_COLORS, NECKLACE_OPTIONS, cleanCustom, isAvatarUnlocked, applyCustom, unlockProgress } from '../progress/rules.js';
+import { AVATAR_UNLOCKS, OUTFIT_COLORS, HAT_OPTIONS, SKIN_TONES, TOP_OPTIONS, BOTTOM_OPTIONS, SHOE_OPTIONS, BAG_OPTIONS, HAIR_STYLE_OPTIONS, HAIR_COLORS, NECKLACE_OPTIONS, GLASSES_OPTIONS, BRACELET_OPTIONS, HEADPHONE_OPTIONS, cleanCustom, isAvatarUnlocked, applyCustom, unlockProgress } from '../progress/rules.js';
 import { AvatarPreview } from './preview.js';
 
 const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined && text !== null) e.textContent = text; return e; };
@@ -20,7 +20,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   if (ui.isBlocking) return Promise.resolve('blocked');
   const api = ui.api, st = api.store.state, hex = n => '#' + n.toString(16).padStart(6, '0');
   const wrap = h('div', 'vest vest--studio vest--fashion vest--catalog' + (first ? ' is-first' : '')), stage = h('div', 'vest__stage'), panel = h('div', 'vest__panel');
-  let preview = null, thumbs = null, thumbnailRun = 0;
+  let preview = null, thumbs = null, thumbnailRun = 0, previewLook = null;
   try { preview = new AvatarPreview(api.engine.renderer, { width: 320, height: 390 }); thumbs = new AvatarPreview(api.engine.renderer, { width: 150, height: 190 }); thumbs.camera.position.set(0, 1.15, 3.4); thumbs.camera.lookAt(0, 0.95, 0); preview.scene.background.setHex(0xeaeafa); thumbs.scene.background.setHex(0xf1f2fc); } catch (_) { preview = thumbs = null; }
   let viewing = first ? (AVATARS.find(a => a.id === st.avatarId && a.category === 'inicial') || AVATARS[0]).id : st.avatarId;
   let cat = first ? 'inicial' : (avatarById(viewing).category || 'inicial'), tab = 'personajes', query = '', availability = 'all';
@@ -38,24 +38,29 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
       target?.focus({ preventScroll: true });
       if (target?.setSelectionRange && typeof selection[0] === 'number') target.setSelectionRange(...selection);
       for (const [node, left, top] of scroll) { node.scrollLeft = left; node.scrollTop = top; }
+      return Boolean(target);
     };
   };
   const sameCustom = (a, b) => JSON.stringify(cleanCustom(a)) === JSON.stringify(cleanCustom(b));
   const sameLook = (a, b) => a.id === b.id && sameCustom(a.custom, b.custom);
   const current = () => ({ id: viewing, custom: draft });
   const hasTrial = () => !sameLook(current(), { id: st.avatarId, custom: st.custom });
+  const missingPieces = () => (api.vivo?.locked?.(draft) || []).map(slot => api.vivo.wearInfo(slot, draft[slot])?.item).filter(Boolean);
   const clearPending = () => { if (pendingTimer !== null) clearTimeout(pendingTimer); pendingTimer = null; pendingLook = null; };
   const lookOf = (id, custom = draft) => applyCustom(avatarById(id).look, custom);
   const refreshActions = () => {
     if (first || !wrap.isConnected) return;
     const button = document.getElementById('modal-actions')?.querySelector('[data-action="equip"]');
     if (!button) return;
-    button.disabled = !isAvatarUnlocked(viewing, st) || !hasTrial();
+    const missing = missingPieces();
+    button.disabled = Boolean(pendingLook && sameLook(current(), pendingLook)) || !isAvatarUnlocked(viewing, st) || !hasTrial() || missing.length > 0;
     button.textContent = pendingLook && sameLook(current(), pendingLook) ? 'Confirmando…' : 'Equipar selección';
     button.setAttribute('aria-busy', String(Boolean(pendingLook)));
+    const shop = document.getElementById('modal-actions')?.querySelector('[data-action="shop"]');
+    if (shop) { shop.hidden = !missing.length; shop.disabled = !missing.length || !api.vivo?.online; }
   };
   const applyDraft = () => {
-    if (first || !hasTrial() || !isAvatarUnlocked(viewing, st)) return;
+    if (first || !hasTrial() || !isAvatarUnlocked(viewing, st) || missingPieces().length) return;
     const selection = { id: viewing, custom: cleanCustom(draft) };
     if (!api.setAvatar(selection.id, selection.custom)) return;
     touched = false; feedback = '';
@@ -80,8 +85,15 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   const tag = h('span', 'vest__tag'), name = h('strong', 'vest__name'), status = h('div', 'vest__status');
   status.setAttribute('role', 'status'); status.setAttribute('aria-live', 'polite'); status.setAttribute('aria-atomic', 'true');
   const paintStage = () => {
+    const restoreFocus = retainFocus(status);
     const a = avatarById(viewing), open = isAvatarUnlocked(a.id, st), on = sameLook(current(), equipped) && !first;
-    if (preview) { preview.show(lookOf(a.id)); preview.canvas.setAttribute('aria-label', 'Vista previa 3D de ' + a.name); }
+    if (preview) {
+      const look = lookOf(a.id), signature = JSON.stringify(look);
+      // Status/profile updates can leave the visible appearance unchanged. Keep
+      // its existing model instead of disposing and rebuilding every geometry.
+      if (signature !== previewLook) { preview.show(look); previewLook = signature; }
+      preview.canvas.setAttribute('aria-label', 'Vista previa 3D de ' + a.name);
+    }
     tag.textContent = (AVATAR_CATEGORIES.find(c => c.id === a.category) || {}).name || ''; tag.dataset.cat = a.category;
     name.textContent = a.name; status.replaceChildren();
     if (first) { status.append(h('span', 'vest__hint', 'Gratuito · podrás cambiarlo cuando quieras en el Vestidor')); return; }
@@ -93,8 +105,11 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
       const [now, goal] = unlockProgress(a.id, st), meter = h('i', 'meter'), fill = h('i'); fill.style.width = Math.round(100 * now / goal) + '%'; meter.append(fill);
       status.append(h('span', 'vest__lock', '🔒 ' + AVATAR_UNLOCKS[a.id].text), meter, h('small', null, goal > 1 ? `Llevas ${now} de ${goal}` : 'Aún no lo consigues'));
     }
+    const missing = missingPieces();
+    if (missing.length) status.append(h('span', 'vest__shop-hint', `${missing.length === 1 ? missing[0].name : `${missing.length} prendas`} en tienda · compra con monedas del juego antes de equipar.`));
     if (hasTrial()) { const discard = h('button', 'vest__discard', 'Descartar prueba'); discard.type = 'button'; discard.dataset.discardTrial = ''; discard.addEventListener('click', discardTrial); status.append(discard); }
     refreshActions();
+    if (restoreFocus() === false) customize.focus({ preventScroll: true });
   };
   const stageTop = h('div', 'vest__stage-top'), badge3d = h('span', 'vest__3d', '3D'); badge3d.prepend(icon('cube')); stageTop.append(badge3d, h('small', 'vest__tip', '↻ Arrastra para girar')); stage.append(stageTop);
   if (preview) {
@@ -119,7 +134,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     const key = id + ':' + detail + JSON.stringify(custom);
     if (!shots.has(key)) {
       // Show small accessories at a useful size, with the same real equipped model.
-      const [y, distance] = detail === 'necklace' ? [1.0, 1.55] : detail === 'shoes' ? [.24, 1.8] : ['hairStyle', 'hairColor', 'hat'].includes(detail) ? [1.4, 2.25] : [0.95, 3.4];
+      const [y, distance] = detail === 'necklace' ? [1.0, 1.55] : detail === 'bracelet' ? [.72, 2.1] : detail === 'shoes' ? [.24, 1.8] : ['hairStyle', 'hairColor', 'hat', 'glasses', 'headphones'].includes(detail) ? [1.4, 2.25] : [0.95, 3.4];
       thumbs.camera.position.set(0, y + .2, distance); thumbs.camera.lookAt(0, y, 0);
       if (shots.size >= 128) shots.delete(shots.keys().next().value);
       shots.set(key, thumbs.still(lookOf(id, custom)));
@@ -166,7 +181,10 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     accesorios: [
       { key: 'hat', label: 'Gorras y sombreros', options: HAT_OPTIONS },
       { key: 'bag', label: 'Bolsos', options: BAG_OPTIONS },
-      { key: 'necklace', label: 'Collares', options: NECKLACE_OPTIONS }
+      { key: 'necklace', label: 'Collares', options: NECKLACE_OPTIONS },
+      { key: 'glasses', label: 'Lentes', options: GLASSES_OPTIONS },
+      { key: 'bracelet', label: 'Pulseras', options: BRACELET_OPTIONS },
+      { key: 'headphones', label: 'Audífonos', options: HEADPHONE_OPTIONS }
     ],
     cabello: [
       { key: 'hairStyle', label: 'Peinados y pelucas', options: HAIR_STYLE_OPTIONS },
@@ -199,7 +217,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
     const restoreFocus = retainFocus(style);
     style.replaceChildren(); style.classList.toggle('vest__fashion', Boolean(fashionSections[tab])); const queue = [];
     const group = (label, key, options, swatch) => {
-      const f = h('section', 'field vest__style-group'), head = h('div', 'vest__style-head'), row = h('div', 'chips' + (swatch ? ' chips--swatch' : '') + (key === 'tone' ? '' : ' vest__item-options') + ' vest__' + key + '-options'); f.dataset.cosmeticGroup = key; head.append(h('h3', null, label), h('small', null, 'Gratuito')); f.append(head, row);
+      const f = h('section', 'field vest__style-group'), head = h('div', 'vest__style-head'), row = h('div', 'chips' + (swatch ? ' chips--swatch' : '') + (key === 'tone' ? '' : ' vest__item-options') + ' vest__' + key + '-options'); f.dataset.cosmeticGroup = key; head.append(h('h3', null, label), h('small', null, options.some(o => api.vivo?.wearInfo?.(key, o.id)) ? 'Gratis y de tienda' : 'Gratuito')); f.append(head, row);
       if (!filters.has(key)) filters.set(key, { query: '', type: '', color: '', state: '', open: false });
       const selectedFilter = filters.get(key), categories = (types[key] || []).filter(([, , ids]) => options.some(o => ids.includes(o.id))), colors = new Map();
       for (const option of options) { const color = colorOf(key, option); if (typeof color === 'number') colors.set(String(color), colorLabels.get(color) || hex(color).toUpperCase()); }
@@ -208,7 +226,10 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
       let summary = null;
       const renderOptions = (refresh = false) => {
         row.replaceChildren(); const jobs = [], needle = match(selectedFilter.query.trim());
-        const visible = options.filter(o => (!needle || match(o.name).includes(needle)) && (!selectedFilter.type || categories.find(c => c[0] === selectedFilter.type)?.[2].includes(o.id)) && (!selectedFilter.color || String(colorOf(key, o)) === selectedFilter.color) && (selectedFilter.state !== 'equipped' || !first && viewing === equipped.id && (equipped.custom[key] || 'base') === o.id));
+        const visible = options.filter(o => {
+          const piece = api.vivo?.wearInfo?.(key, o.id), available = !piece || piece.owned;
+          return (!needle || match(o.name).includes(needle)) && (!selectedFilter.type || categories.find(c => c[0] === selectedFilter.type)?.[2].includes(o.id)) && (!selectedFilter.color || String(colorOf(key, o)) === selectedFilter.color) && (selectedFilter.state !== 'equipped' || !first && viewing === equipped.id && (equipped.custom[key] || 'base') === o.id) && (selectedFilter.state !== 'available' || available) && (selectedFilter.state !== 'shop' || !available);
+        });
         // Real pieces come before reset controls, so accessories are visible on a small screen.
         visible.sort((a, b) => Number(['base', 'none'].includes(a.id)) - Number(['base', 'none'].includes(b.id)));
         count.textContent = `${visible.length} de ${options.length} opciones`;
@@ -249,7 +270,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
         };
         if (categories.length > 1) select('Tipo', 'type', [['', 'Todos'], ...categories.map(([id, name]) => [id, name])]);
         if (colors.size > 1) select('Color', 'color', [['', 'Todos'], ...colors]);
-        if (!first) select('Estado', 'state', [['', 'Todas las opciones'], ['available', 'Disponibles'], ['equipped', 'Equipado']]);
+        if (!first) select('Estado', 'state', [['', 'Todas las opciones'], ['available', 'Disponibles'], ['equipped', 'Equipado'], ...(options.some(o => api.vivo?.wearInfo?.(key, o.id)) ? [['shop', 'En tienda']] : [])]);
         f.insertBefore(controls, row); f.append(count);
       }
       renderOptions();
@@ -302,7 +323,7 @@ export function openWardrobe(ui, { first = false, tab: initialTab = 'personajes'
   });
   offStatus = api.net?.on('status', message => { if (!wrap.isConnected || message.status === 'online' || !pendingLook) return; clearPending(); touched = true; feedback = 'Sin confirmación. Tu prueba sigue disponible.'; paintStage(); });
   const result = ui.modal({ eyebrow: 'Ciudad ICADEM · Avatar Studio', title: 'Mi avatar', content: wrap, wide: true, onClose: stop,
-    actions: [{ id: 'equip', label: 'Equipar selección', primary: true, disabled: true, close: false, onClick: applyDraft }, { id: 'close', label: 'Cerrar' }] });
+    actions: [{ id: 'equip', label: 'Equipar selección', primary: true, disabled: true, close: false, onClick: applyDraft }, { id: 'shop', label: 'Ver en tienda', disabled: true, onClick: () => { const shop = missingPieces()[0]?.shop; if (shop) requestAnimationFrame(() => api.actions?.shop(shop)); } }, { id: 'close', label: 'Cerrar' }] });
   requestAnimationFrame(refreshActions);
   return result;
 }

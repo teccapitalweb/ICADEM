@@ -18,7 +18,7 @@ const clock = at => new Date(at).toLocaleTimeString('es-MX', { hour: '2-digit', 
 export class ChatPanel {
   constructor(api, social) {
     this.api = api; this.social = social; this.net = api.net;
-    this.log = []; this.unread = 0; this.open = false; this.state = null; this.pending = new Map(); this.seq = 0; this.view = 0; this.editRevision = 0;
+    this.log = []; this.rows = new Map(); this.unread = 0; this.open = false; this.state = null; this.pending = new Map(); this.seq = 0; this.view = 0; this.editRevision = 0;
     const hud = document.getElementById('hud');
 
     // botón (celular/tablet o ventana minimizada)
@@ -98,6 +98,17 @@ export class ChatPanel {
   get available() { return Boolean(this.net.isOnline && this.net.chatAvailable); }
   get enabled() { return Boolean(this.available && this.state && this.state.enabled); }
   get sending() { return [...this.pending.values()].some(p => p.sending); }
+  // The existing game controller owns this state. No polling or game rules in
+  // the chat: UI.setTracker calls syncActivity at each start/end/HUD change.
+  get activityBlocking() { return Boolean(this.api.games?.active); }
+
+  syncActivity() {
+    if (this.activityBlocking) {
+      if (this.open) this.view++;
+      this.open = false; this.minimized = true; this.input.blur();
+    }
+    this.render();
+  }
 
   #returnFocus() { if (!this.fab.hidden) this.fab.focus({ preventScroll: true }); }
   #count() { const n = this.input.value.length; this.count.hidden = n < CHAT_MAX - 30; this.count.textContent = `${n}/${CHAT_MAX}`; }
@@ -119,6 +130,7 @@ export class ChatPanel {
 
   /** Abre/cierra la ventana. En computadora "cerrada" = minimizada al botón. */
   toggle(force) {
+    if (this.activityBlocking && force !== false) { this.syncActivity(); return; }
     const next = force ?? !this.open; if (next !== this.open) this.view++; this.open = next;
     if (!this.open) this.input.blur();
     if (this.open) { this.unread = 0; this.minimized = false; } else if (!this.touch) this.minimized = true;
@@ -128,13 +140,13 @@ export class ChatPanel {
 
   /** Atajo de teclado (C o /): lleva el foco a la caja de texto. */
   focus() {
-    if (!this.available || this.api.ui.isBlocking) return;
+    if (!this.available || this.api.ui.isBlocking || this.activityBlocking) return;
     this.open = true; this.minimized = false; this.unread = 0; this.render();
     if (this.enabled) this.input.focus({ preventScroll: true }); else this.askAccept();
   }
 
   render() {
-    const show = this.available;
+    const show = this.available && !this.activityBlocking;
     const desktopOpen = !this.touch && !this.minimized;
     this.box.hidden = !show || !(this.touch ? this.open : desktopOpen);
     this.fab.hidden = !show || (!this.touch && desktopOpen) || (this.touch && this.open);
@@ -218,7 +230,7 @@ export class ChatPanel {
         if (pending && m.n === this.seq) { if (!this.input.value) this.input.value = pending.raw; this.#count(); this.#notice(message, 'error'); }
         api.ui.toast(message, 3400); return;
       }
-      this.#push({ id: m.id, pid: 'me', name: 'Tú', text: m.text, at: m.at, mine: true });
+      this.#push({ id: m.id, pid: 'me', name: 'Tú', text: m.text, at: m.at, mine: true }, Boolean(pending?.sending && m.n === this.seq));
       this.social.bubble('me', m.text, CHAT_BUBBLE_SECONDS);
       if (!m.heard) this.#system('Nadie más te lee ahora: acércate a otras personas o invita a alguien.', 'heard');
       if (pending) {
@@ -241,19 +253,30 @@ export class ChatPanel {
     this.#push({ system: true, text, at: Date.now(), tag });
   }
 
-  #push(entry) { if (entry.id && this.log.some(e => !e.system && e.id === entry.id)) return; this.log.push(entry); if (this.log.length > CHAT_HISTORY) this.log.shift(); this.#paint(); this.box.classList.remove('is-idle'); this.#idle(); }
+  #push(entry, forceFollow = false) { if (entry.id && this.log.some(e => !e.system && e.id === entry.id)) return; this.log.push(entry); if (this.log.length > CHAT_HISTORY) this.log.shift(); this.#paint(forceFollow); this.box.classList.remove('is-idle'); this.#idle(); }
 
-  #paint() {
-    const rows = this.log.map(e => {
+  #paint(forceFollow = false) {
+    const follow = forceFollow || !this.list.clientHeight || this.list.scrollHeight - this.list.clientHeight - this.list.scrollTop <= 24;
+    const scrollTop = this.list.scrollTop, kept = new Set(this.log);
+    // Reading older messages must survive an arrival, including its focused
+    // author button. Reuse rows instead of removing and recreating the log.
+    const anchor = follow ? null : [...this.rows].find(([e, row]) => kept.has(e) && row.getBoundingClientRect().bottom > this.list.getBoundingClientRect().top)?.[1];
+    const anchorTop = anchor?.getBoundingClientRect().top;
+    for (const [e, row] of this.rows) if (!kept.has(e)) { row.remove(); this.rows.delete(e); }
+    for (const e of this.log) {
+      if (this.rows.has(e)) continue;
       const li = h('li', 'chat__row' + (e.system ? ' is-system' : '') + (e.mine ? ' is-mine' : ''));
-      if (e.system) { li.textContent = e.text; return li; }
-      const who = h(e.mine ? 'span' : 'button', 'chat__who', e.name);
-      if (!e.mine) { who.type = 'button'; who.style.setProperty('--h', hue(e.pid)); who.title = 'Opciones para ' + e.name; who.addEventListener('click', () => this.actions(e)); }
-      li.append(who, h('span', 'chat__text', e.text), h('time', null, clock(e.at)));
-      return li;
-    });
-    this.list.replaceChildren(...rows);
-    this.list.scrollTop = this.list.scrollHeight;
+      if (e.system) li.textContent = e.text;
+      else {
+        const who = h(e.mine ? 'span' : 'button', 'chat__who', e.name);
+        if (!e.mine) { who.type = 'button'; who.style.setProperty('--h', hue(e.pid)); who.title = 'Opciones para ' + e.name; who.addEventListener('click', () => this.actions(e)); }
+        li.append(who, h('span', 'chat__text', e.text), h('time', null, clock(e.at)));
+      }
+      this.rows.set(e, li); this.list.append(li);
+    }
+    if (follow) this.list.scrollTop = this.list.scrollHeight;
+    else if (anchor) this.list.scrollTop += anchor.getBoundingClientRect().top - anchorTop;
+    else this.list.scrollTop = scrollTop;
   }
 
   /** Silenciar (solo en este dispositivo), bloquear (en la cuenta) o reportar el mensaje. */
