@@ -121,7 +121,9 @@ export function applyVivo(p, op, args = {}, { now = Date.now() } = {}) {
   }
 
   if (op === 'pet') {
-    const pet = p.pets.find(x => x.id === a.id); if (!pet) return { ok: false, reason: 'sin-mascota' };
+    const index = p.pets.findIndex(x => x.id === a.id); if (index < 0) return { ok: false, reason: 'sin-mascota' };
+    // Valida todos los cambios antes de exponerlos en un perfil confirmado.
+    const pet = { ...p.pets[index], acc: { ...p.pets[index].acc } };
     if (a.name !== undefined) { const n = petName(a.name); if (!n) return { ok: false, reason: 'nombre' }; pet.name = n; }
     if (a.acc && typeof a.acc === 'object') for (const [slot, id] of Object.entries(a.acc)) {
       if (!PET_SLOTS[slot]) return { ok: false, reason: 'no-compatible' };
@@ -131,6 +133,7 @@ export function applyVivo(p, op, args = {}, { now = Date.now() } = {}) {
       if (!p.inv[def.id]) return { ok: false, reason: 'no-lo-tienes' };
       pet.acc[slot] = def.id;
     }
+    p.pets[index] = pet;
     if (a.active === true) p.activePet = pet.id;
     if (a.active === false && p.activePet === pet.id) p.activePet = null;
     return { ok: true, changed: true, pet: { ...pet, acc: { ...pet.acc } } };
