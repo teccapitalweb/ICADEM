@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var GAME_URL = 'ciudad/index.html?v=18';
+  var GAME_URL = 'ciudad/index.html?v=19';
 
   // Enlace de invitación (?ciudad=CÓDIGO). Solo se lleva el código al juego: no da acceso a ninguna
   // cuenta ni salta el piloto. El juego lo canjea con la sesión de quien lo abre, y pregunta antes.
@@ -161,8 +161,8 @@
     img.alt = 'Vista de la plaza de Ciudad ICADEM con el avatar Explorador frente a la fuente y el Banco ICADEM';
     img.width = 1280; img.height = 720; img.decoding = 'async';
     var veil = el('div', 'ciudad-cover__veil');
-    veil.appendChild(el('span', 'ciudad-cover__badge', 'Versión 1.3'));
-    veil.appendChild(el('strong', null, 'Explora el nuevo Distrito del Saber: laberinto, laboratorio y sala de escape'));
+    veil.appendChild(el('span', 'ciudad-cover__badge', 'Versión 2.0'));
+    veil.appendChild(el('strong', null, 'Mundo vivo: mascotas, tiendas y viviendas, junto al Distrito del Saber'));
     var play = el('button', 'btn btn--primary ciudad-cover__play', 'Entrar a Ciudad ICADEM');
     play.type = 'button';
     play.id = 'ciudad-play';
@@ -174,7 +174,7 @@
     grid.appendChild(card('Qué puedes hacer hoy', [
       'Jugar las diez misiones profesionales: Banco, Tribunal, Supermercado, Obra, Hospital, Veterinaria, Restaurante, Invernadero, Oficina y Torre.',
       'Jugar en equipo la Torre y el Tribunal, cada quien con su rol.',
-      'Seis minijuegos (carrera, memoria, matemáticas, idiomas, búsqueda del tesoro y clasificación) y retos rápidos de los personajes de la plaza.',
+      'Minijuegos educativos, actividades de Mundo vivo y retos rápidos de los personajes de la plaza.',
       'Invitar a tus conexiones o a tu familia con un código temporal.'
     ]));
     grid.appendChild(card('Controles', [
@@ -183,7 +183,7 @@
       'En celular se juega mejor con el teléfono en horizontal.'
     ]));
     grid.appendChild(card('Antes de jugar', [
-      'Los créditos del juego son de prueba: no suman ni restan a tu cartera ICADEM. Retos y minijuegos solo dan XP del juego.',
+      'Las monedas y la experiencia de Ciudad ICADEM son solo del juego: no modifican tu cartera ni tus créditos reales de ICADEM.',
       'Tu avance se guarda en tu cuenta de ICADEM: sigue donde lo dejaste desde cualquier dispositivo.',
       'Juega en línea con otros miembros: invítalos con un código o formen equipo en la Torre y el Tribunal.',
       'Chat de la ciudad para personas adultas: se activa una vez aceptando las normas. Sin enlaces ni datos personales; puedes silenciar, bloquear y reportar.'
