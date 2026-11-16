@@ -76,3 +76,5 @@
     animation:none!important;transition:none!important;scroll-behavior:auto!important;
   }
 }
+#modal-x{width:44px;height:44px;min-width:44px;min-height:44px;flex-shrink:0}
+#modal-actions>.btn{min-width:44px;min-height:44px}

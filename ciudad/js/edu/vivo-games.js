@@ -32,6 +32,7 @@ export class VivoGames {
     const api = this.api, a = ACTIVITIES[id], seed = Math.floor(Math.random() * 0xFFFFFFFF), content = a.build(seed, level), log = [];
     this.current = { id, content };   // para depurar y para las pruebas automáticas
     const wrap = h('div', 'vg'), stage = h('div', 'vg__stage'), body = h('div', 'vg__body'), bar = h('div', 'vg__progress');
+    wrap.dataset.game = id; bar.setAttribute('role', 'progressbar'); bar.setAttribute('aria-label', 'Avance de la actividad'); bar.setAttribute('aria-valuemin', '0'); bar.setAttribute('aria-valuemax', String(content.tasks.length));
     let preview = null; if (id === 'veterinarios') try { preview = new PetPreview(api.engine.renderer, { width: 220, height: 170 }); stage.append(preview.canvas); preview.start(); } catch (_) { preview = null; }
     if (content.case) body.append(h('p', 'vg__case', content.case.intro));
     wrap.append(bar, stage, body);
@@ -39,9 +40,11 @@ export class VivoGames {
     const show = () => {
       const task = content.tasks[t]; body.querySelectorAll('.vg__task').forEach(n => n.remove());
       bar.textContent = `${t + 1} de ${content.tasks.length}`; bar.style.setProperty('--p', Math.round(100 * t / content.tasks.length) + '%');
+      bar.setAttribute('aria-valuenow', String(t)); bar.setAttribute('aria-valuetext', `Pregunta ${t + 1} de ${content.tasks.length}`);
       if (preview && task.breed) preview.show(task.breed, {}); stage.hidden = !(preview && task.breed);
       const box = h('div', 'vg__task'); box.append(h('h4', null, task.title), h('p', null, task.text));
       const opts = h('div', 'vg__opts'), fb = h('p', 'vg__fb');
+      fb.setAttribute('role', 'status'); fb.setAttribute('aria-live', 'polite'); fb.setAttribute('aria-atomic', 'true');
       task.options.forEach((o, c) => { const b = h('button', 'vg__opt', o.text); b.type = 'button'; b.addEventListener('click', () => {
         log.push({ t, c }); opts.querySelectorAll('button').forEach(x => { x.disabled = true; }); b.classList.add('is-v' + o.value);
         fb.textContent = `${VERDICT[o.value]}: ${o.feedback}`; fb.className = 'vg__fb is-v' + o.value;

@@ -44,10 +44,12 @@ inv: { 'correa-roja': 1, 'premio-galleta': 3 },   // artículos y cantidades
 pets: [{ id: 'm1', breed: 'golden', name: 'Sol', acc: { collar: 'collar-basico', leash: 'correa-roja' } }],
 activePet: 'm1',                              // la que acompaña; null = todas en casa
 home: { wall: 'menta', floor: 'talavera', items: [{ item: 'sillon', x: 2.2, z: 1.4, r: 2 }] },
+homeRev: 0,                                  // revisión exclusiva del guardado de vivienda
 coinbook: { today: 30, cap: 150, recent: [{ k: 'logro:poliglota', a: 10, at: 1763140000000 }] }
 ```
 
-En el cliente esto queda en `api.store.state.vivo` (null sin conexión). `testCredits` sigue en el
+En el cliente esto queda en `api.store.state.vivo`; `api.vivo.online` indica si se puede operar.
+Durante una desconexión puede conservarse una copia confirmada para mostrarla, sin habilitar escrituras. `testCredits` sigue en el
 perfil solo como historial: los créditos de prueba se convirtieron **una vez** en monedas.
 
 ## 3. Servicio del cliente `api.vivo`
@@ -58,7 +60,7 @@ texto para mostrar al jugador. Mientras una acción del mismo tipo está en curs
 
 | Llamada | Respuesta útil | Notas |
 |---|---|---|
-| `api.vivo.state` | estado de la sección 2 | `null` sin conexión |
+| `api.vivo.state` | estado de la sección 2 | puede conservar la última copia confirmada; comprobar `online` |
 | `api.vivo.on('change', fn)` | — | se dispara con cada perfil confirmado |
 | `api.vivo.shop(idTienda)` | artículos con `owned`, `affordable`, `unique` | catálogo para el escaparate |
 | `api.vivo.buy(item, qty)` | `{ item, qty, spent }` | idempotente (identificador interno por toque) |
@@ -69,8 +71,10 @@ texto para mostrar al jugador. Mientras una acción del mismo tipo está en curs
 | `api.vivo.rest()` | — | todas las mascotas se quedan en casa |
 | `api.vivo.feed(petId, food)` | `{ treat, coins }` | `food`: `'croquetas'` (gratis) o un premio del inventario |
 | `api.vivo.walk(true\|false)` | `{ leash }` | paseo con correa; solo perros con correa equipada |
-| `api.vivo.saveHome(layout)` | — | se valida completa en el servidor |
+| `api.vivo.saveHome(layout, { expectedHomeRevision })` | perfil con `homeRev` actualizado | revisión capturada al abrir el borrador; servidor rechaza `casa-conflicto` si quedó obsoleto |
 | `api.vivo.drink(flavor, 'self'\|'buy', steps)` | `{ flavor, coins \| spent }` | ver sección 7 |
+| `api.vivo.pendingTransactions()` | metadatos de solicitudes inciertas, sin `rid` | sobreviven al cierre de un panel durante esta sesión |
+| `api.vivo.retryTransaction(key)` | resultado confirmado de la solicitud original | gesto explícito; nunca repetir automáticamente ni cambiar el payload |
 
 Motivos de rechazo (`reason`) y su texto: `VIVO_REASONS` en `vivo-rules.js`, `HOME_REASONS` en
 `home-rules.js` (llegan con prefijo `casa-`), más `sin-conexion`, `sin-respuesta` y `no-disponible`.
@@ -140,6 +144,14 @@ Servidor → cliente: `{ t: 'vivo', op, n, ok, reason?, ...datos, profile }` y a
 `{ t: 'pet', pid, pet: { breed, acc, leash } | null }`. La lista de jugadores incluye `pet`.
 Tope: 40 acciones por minuto.
 
+Guardado de vivienda: enviar `layout` y `expectedHomeRevision` dentro de la misma operación
+`home`. Se compara la revisión y se guarda de forma atómica. Un conflicto devuelve la casa
+actual sin sustituirla. Los perfiles anteriores parten de `homeRev: 0` sin migración masiva;
+clientes antiguos sin revisión deben actualizarse antes de guardar. Compras y aguas conservan
+el identificador original cuando falta confirmación; el servidor deduplica los últimos 40
+identificadores de compra, no un historial ilimitado. Detalles y evidencia en
+[`VIVO_INTEGRATION_CHECKS.md`](VIVO_INTEGRATION_CHECKS.md).
+
 ## 10. Mascota en el mundo (`api.pets`)
 
 | Llamada | Qué hace |
@@ -203,6 +215,9 @@ El mapa (`mapDestinations`) incluye `comercio`, `aguas` y `dragones` con su punt
 - `api.scene.applyHome(layout)` (solo en `casa`) dibuja una distribución sin guardarla: sirve para
   previsualizar. `api.scene.layout` es la distribución que se ve; `api.scene.furniture` los muebles.
 - `api.homeEditor.open()` / `.close(revertir)` / `.save()`.
+- El editor captura `homeRev` al abrir y sólo da por guardado tras la respuesta del servidor.
+  Si otra sesión guardó antes, conserva el borrador y pide cargar expresamente la casa actual;
+  no cambia la revisión para reenviar automáticamente un borrador obsoleto.
 - Borrador: `.draft` ({ wall, floor, items }), `.sel` (índice del mueble elegido), `.available(id)`
   (piezas que quedan por colocar), `.add(id)`, `.move(dx, dz)`, `.rotate()`, `.remove()`,
   `.setWall(id)`, `.setFloor(id)`, `.check()` → `{ ok, reason, index }` con las reglas del servidor.

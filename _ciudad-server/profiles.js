@@ -218,8 +218,14 @@ export class Profiles {
    * ciudad/js/vivo/vivo-rules.js; aquí solo se aplican sobre el perfil guardado y se responde.
    */
   vivo(uid, op, args, { now = Date.now() } = {}) {
+    const action = String(op || '');
     return this.#serial(uid, async () => {
-      const p = await this.#read(uid), r = applyVivo(p, String(op || ''), args, { now });
+      const p = await this.#read(uid);
+      // La transacción de almacenamiento evita carreras de escritura; esta revisión también
+      // impide que un borrador antiguo de otra sesión sustituya una casa ya confirmada.
+      if (action === 'home' && (!Number.isSafeInteger(args?.expectedHomeRevision) || args.expectedHomeRevision !== p.homeRev || p.homeRev >= Number.MAX_SAFE_INTEGER))
+        return { ok: false, reason: 'casa-conflicto', profile: this.view(p) };
+      const r = applyVivo(p, action, args, { now });
       const profile = r.ok && r.changed ? this.view(await this.#write(uid, p)) : this.view(p);
       return { ...r, profile };
     });

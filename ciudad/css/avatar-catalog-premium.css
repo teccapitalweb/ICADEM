@@ -42,3 +42,5 @@
  #modal:has(.vest--catalog) [data-action="close"]{flex:0 0 auto}
 }
 @media(prefers-reduced-motion:reduce){.vest--catalog .vest__filters,.vest--catalog .vest__item-options button{transition:none!important}}
+.vest--catalog .vest__shop-hint{font-size:12px;line-height:1.4;color:#5a471f;background:#fff4d5;border-radius:9px;padding:7px 9px}
+.vest--catalog .voption.is-shop .voption__copy small{color:#745517}

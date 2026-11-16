@@ -143,9 +143,9 @@ test('socket real: compras, adopción y casa van a la cuenta; los demás ven la 
   await ask(ana, { op: 'pet', id: adopt.pet.id, acc: { leash: 'correa-arcoiris' } }); await beto.wait('pet');
   assert.equal((await ask(ana, { op: 'walk', leash: true })).leash, true);
   const walk = await beto.wait('pet', m => m.pet && m.pet.leash); assert.equal(walk.pet.acc.leash, 'correa-arcoiris');
-  const home = await ask(ana, { op: 'home', layout: { wall: 'lavanda', floor: 'talavera', items: [{ item: 'sillon', x: 3, z: 2, r: 1 }] } });
+  const home = await ask(ana, { op: 'home', expectedHomeRevision: adopt.profile.homeRev, layout: { wall: 'lavanda', floor: 'talavera', items: [{ item: 'sillon', x: 3, z: 2, r: 1 }] } });
   assert.deepEqual([home.ok, home.profile.home.wall, home.profile.home.items.length], [true, 'lavanda', 1]);
-  assert.equal((await ask(ana, { op: 'home', layout: { wall: 'lavanda', floor: 'talavera', items: [{ item: 'cama-doble', x: 0, z: 2 }] } })).reason, 'casa-no-lo-tienes');
+  assert.equal((await ask(ana, { op: 'home', expectedHomeRevision: home.profile.homeRev, layout: { wall: 'lavanda', floor: 'talavera', items: [{ item: 'cama-doble', x: 0, z: 2 }] } })).reason, 'casa-no-lo-tienes');
   assert.equal((await ask(ana, { op: 'inventar' })).reason, 'operacion');
   // otro dispositivo: todo viene de la cuenta; quien llega después ve la mascota en la lista
   const ana2 = await srv.client('ana-vivo');

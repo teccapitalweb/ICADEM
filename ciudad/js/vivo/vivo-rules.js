@@ -8,6 +8,7 @@
 //   pets             [{ id, breed, name, acc: { ranura: idArtículo } }]
 //   activePet        id de la mascota que acompaña, o null
 //   home             { wall, floor, items: [{ item, x, z, r }] }
+//   homeRev          revisión exclusiva de la vivienda (no cambia al comprar o jugar)
 //   rids             últimos identificadores de compra (para no cobrar dos veces el mismo toque)
 import { ITEMS, itemById, STARTER_ITEMS, STARTER_COUNTS, DRINK_PRICE, flavorById, checkDrinkSteps } from '../economy/catalog.js';
 import { COINS, emptyCoinbook, cleanCoinbook, earn, spend } from '../economy/coins.js';
@@ -24,7 +25,7 @@ const copyHome = h => ({ wall: h.wall, floor: h.floor, items: h.items.map(e => (
 
 /** Campos de «Mundo vivo» de una cuenta que nunca los tuvo. */
 export function emptyVivo() {
-  return { vivo: VIVO_VERSION, coins: COINS.start, coinbook: { ...emptyCoinbook(), keys: ['bienvenida'], ledger: [{ k: 'bienvenida', a: COINS.start, at: 0 }] }, inv: starterInventory(), pets: [], activePet: null, home: copyHome(DEFAULT_HOME), rids: [] };
+  return { vivo: VIVO_VERSION, coins: COINS.start, coinbook: { ...emptyCoinbook(), keys: ['bienvenida'], ledger: [{ k: 'bienvenida', a: COINS.start, at: 0 }] }, inv: starterInventory(), pets: [], activePet: null, home: copyHome(DEFAULT_HOME), homeRev: 0, rids: [] };
 }
 
 /**
@@ -51,6 +52,7 @@ export function cleanVivo(saved) {
   return {
     vivo: VIVO_VERSION, coins: Math.max(0, Math.round(Number(s.coins) || 0)), coinbook: cleanCoinbook(s.coinbook), inv, pets,
     activePet: pets.some(x => x.id === s.activePet) ? s.activePet : null, home: home.ok ? home.layout : copyHome(DEFAULT_HOME),
+    homeRev: Number.isSafeInteger(s.homeRev) && s.homeRev >= 0 ? s.homeRev : 0,
     rids: Array.isArray(s.rids) ? s.rids.filter(r => typeof r === 'string').slice(-RID_MAX) : []
   };
 }
@@ -58,7 +60,7 @@ export function cleanVivo(saved) {
 /** Lo que ve el cliente (sin claves internas ni identificadores de compra). */
 export function vivoView(p) {
   const w = p.coinbook || emptyCoinbook();
-  return { coins: p.coins, inv: { ...p.inv }, pets: p.pets.map(x => ({ id: x.id, breed: x.breed, name: x.name, acc: { ...x.acc } })), activePet: p.activePet, home: copyHome(p.home),
+  return { coins: p.coins, inv: { ...p.inv }, pets: p.pets.map(x => ({ id: x.id, breed: x.breed, name: x.name, acc: { ...x.acc } })), activePet: p.activePet, home: copyHome(p.home), homeRev: p.homeRev,
     coinbook: { today: w.today, cap: COINS.dailyCap, recent: w.ledger.slice(-12).reverse().map(e => ({ k: e.k, a: e.a, at: e.at })) } };
 }
 
@@ -138,7 +140,7 @@ export function applyVivo(p, op, args = {}, { now = Date.now() } = {}) {
 
   if (op === 'home') {
     const r = checkLayout(a.layout, p.inv); if (!r.ok) return { ok: false, reason: 'casa-' + r.reason, index: r.index };
-    p.home = r.layout; return { ok: true, changed: true };
+    p.home = r.layout; p.homeRev++; return { ok: true, changed: true };
   }
 
   if (op === 'feed') {

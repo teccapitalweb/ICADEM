@@ -1,5 +1,24 @@
 # CAMBIOS
 
+## 2026-11-16 — Integración visual de Ciudad ICADEM 2.0
+
+- Integración sobre `main` fd0c2b5/PR #75, conservando la expansión de Claude. Mascotas y correas, tiendas, inventario, vivienda, aguas frescas y los diez juegos utilizan los servicios, catálogos, saldos y respuestas reales; no se conectan prototipos ni datos ficticios del PR #72 a producción. El catálogo contiene 39 razas reales (14 perros, 11 gatos, 8 aves y 6 fantásticas), con cantidades calculadas desde sus datos.
+- Chat, Avatar Studio, Pasaporte y navegación incorporan las correcciones compatibles del PR #74. El chat conserva borradores y confirmación, respeta la lectura del historial y se oculta durante juegos de campo para no tapar sus avisos o controles. El Studio conserva los modelos originales, evita reconstrucciones de apariencia idéntica y presenta la propiedad de prendas de pago sin sustituir la validación del servidor.
+- Corrección mínima de servidor expresamente autorizada: `homeRev` y `expectedHomeRevision` impiden sobrescribir una vivienda desde un borrador obsoleto. El rechazo conserva el perfil guardado y el editor mantiene el borrador hasta una decisión explícita. Sin migración ni cambios de reglas Firestore; clientes antiguos sin revisión deben actualizarse antes de guardar.
+- Recuperación explícita de compras, adopciones y aguas con el identificador y los datos originales tras perder la confirmación, incluso al cerrar y reabrir el panel en la misma instancia. Sin reenvíos automáticos ni saldos optimistas. Se conserva el límite del servidor de 40 identificadores; no se promete deduplicación indefinida ni conservación de la solicitud tras cerrar el juego.
+- Evidencia final: 629/629 pruebas sin omisiones; 39 comprobaciones integradas con juego, modelos y servidor local real en 320/390/768/1440 px; seis actividades completadas y persistidas, tres juegos de campo con chat apartado y vivienda/mascota recuperadas por contextos independientes. Además, 10/10 controladores DOM y ocho matrices Chrome/WebKit; las cifras se solapan y no se suman como casos únicos. Studio 390 px con ACK demorados/intercalados, observador multijugador y reinicio: 10 lecturas confirmadas, 0 reconstrucciones, geometrías 22→22 y texturas 2→2. No equivale a persistencia Firestore desplegada, sesiones de producción ni teléfonos físicos.
+- Entrada/puente v17 y caché v184. Servidor y cliente se coordinan para el contrato de vivienda; verificar ambos despliegues del commit integrado antes de dar la publicación por concluida. Motor, físicas, mecánicas, membresías, Stripe, comisiones y créditos reales se conservan. Detalles en `ciudad/MUNDO_VIVO_UI.md` y `ciudad/VIVO_INTEGRATION_CHECKS.md`.
+
+Las entradas fechadas a continuación son históricas; sus versiones y funciones pendientes describen el estado de aquellas entregas.
+
+## 2026-11-13 — QA conservadora de Ciudad ICADEM 1.3 (preparada en PR)
+
+- El chat conserva filas, foco y posición al recibir mensajes mientras se lee el historial. Sólo el ACK del último envío aún en curso lleva al mensaje propio; respuestas tardías o desconocidas respetan la lectura. Borradores, moderación y protocolo sin cambios.
+- El Studio reutiliza su modelo si la apariencia no cambia: 20 perfiles idénticos pasan de 20 reconstrucciones a 0 en la prueba de referencia; 10 lecturas reales del servidor local también producen 0 y conservan los contadores de geometrías/texturas. Se conserva el foco de Descartar prueba durante las actualizaciones.
+- Pasaporte y menú de juegos mantienen su diseño con objetivos táctiles de 44 px, estado accesible de pestañas y distintivos existentes de progreso visibles en móvil. El mapa no necesitó cambios.
+- 585/585 pruebas del repositorio y 22/22 del laboratorio/verificador de PR #72. La guía `ciudad/CHAT_PRUEBA_MANUAL.md` permite completar la prueba autenticada sin consola ni secretos. No se afirma una comprobación de envío en producción ni de teléfonos físicos.
+- Entrada/puente v16, hoja educativa v2 y caché v183 preparados para integrar; **no publicados por esta auditoría**. La producción auditada sigue en b97c80d/v15/v182. Sin cambios en motor, física, servidor, reglas, sincronización, Firestore o Railway.
+
 ## 2026-11-13 — Mundo Vivo: entregas de UI sobre Ciudad 1.3
 
 - Revisión posterior del PR #73: foco contenido/restaurado en modales, menú que cierra correctamente con Tab/Shift+Tab, textos secundarios y estado inactivo del chat con mejor contraste, contador accesible de mensajes y borrador rehecho protegido frente a confirmaciones tardías. El Studio conserva foco/caret durante actualizaciones del perfil y abre sus filtros dentro del área visible. 580/580 pruebas; chat14/14 y Studio11/11, además de comprobaciones de navegador en 320/390 px con WebSocket local real.

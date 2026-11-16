@@ -168,7 +168,7 @@ async function boot() {
     const appearance = avatarSaves.pending || confirmedAvatar;
     st.tutorialDone = st.tutorialDone || profile.tutorialDone; st.avatarId = appearance.id; st.custom = { ...appearance.custom }; st.avatarChosen = Boolean(st.avatarChosen || profile.avatarChosen);
     st.economy.balance = Number.isFinite(profile.coins) ? profile.coins : profile.testCredits; st.synced = true;
-    if (profile.inv) st.vivo = { coins: profile.coins, inv: { ...profile.inv }, pets: profile.pets.map(x => ({ ...x, acc: { ...x.acc } })), activePet: profile.activePet, home: profile.home, coinbook: profile.coinbook }; if (profile.play) st.play = profile.play; if (profile.privacy) st.privacyListed = profile.privacy.listed !== false; store.save();
+    if (profile.inv) st.vivo = { coins: profile.coins, inv: { ...profile.inv }, pets: profile.pets.map(x => ({ ...x, acc: { ...x.acc } })), activePet: profile.activePet, home: profile.home, homeRev: profile.homeRev, coinbook: profile.coinbook }; if (profile.play) st.play = profile.play; if (profile.privacy) st.privacyListed = profile.privacy.listed !== false; store.save();
     if (look !== st.avatarId + JSON.stringify(st.custom)) rebuildAvatar();
     api.ui.refreshHud(); Object.values(api.missions).forEach(m => m.refreshTracker && m.refreshTracker());
     api.vivo?.changed();
