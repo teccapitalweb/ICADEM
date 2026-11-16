@@ -26,6 +26,8 @@
     const detail = document.createElement('span');
     detail.textContent = slides[index][2];
     text.replaceChildren(title, detail);
+    const banner = byId('fomo-banner');
+    if (banner) banner.dataset.vipSlide = String(index + 1);
     byId('fomo-banner-dots')?.querySelectorAll('i').forEach((dot, n) => {
       dot.classList.toggle('is-current', n === index);
     });

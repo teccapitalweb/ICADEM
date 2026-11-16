@@ -1,85 +1,79 @@
-/* ICADEM VIP · luminous invitation ribbon */
+/* ICADEM VIP · editorial ribbon. Its original outer geometry is preserved. */
 #fomo-banner {
   isolation:isolate; position:relative; overflow:hidden; display:flex; flex-wrap:nowrap;
   align-items:center; justify-content:center; gap:24px !important;
   min-height:92px !important; padding:calc(14px + env(safe-area-inset-top)) 24px 14px !important;
-  color:#173d51 !important; background:linear-gradient(110deg,#faf3e1,#fffaf0 48%,#f8f2e6) !important;
-  border-bottom:1px solid #e4d6b5 !important; box-shadow:0 3px 12px #173d5108;
+  color:#0b1b40 !important; background:#fffefa !important;
+  border-bottom:1px solid #152447 !important; box-shadow:0 3px 0 #1524470d;
   font-family:'Inter',sans-serif;
 }
 #fomo-banner::before {
-  content:''; position:absolute; z-index:-1; pointer-events:none; inset:-90px -10%;
-  background:radial-gradient(ellipse at 28% 40%,#cce5ec30,transparent 32%),radial-gradient(ellipse at 70% 80%,#e7cb8f20,transparent 35%);
-  animation:vip-aurora 13s ease-in-out infinite alternate;
+  content:''; position:absolute; z-index:-1; pointer-events:none; inset:0;
+  background:linear-gradient(135deg,#1557f5 0 2.2%,transparent 2.2% 97.8%,#1557f5 97.8%);
 }
 #fomo-banner::after {
   content:''; position:absolute; pointer-events:none; inset:auto 0 0; height:1px;
-  background:linear-gradient(90deg,transparent 10%,#e4c88d 45%,#f7e4b8 50%,transparent 90%);
+  background:#152447;
 }
 #fomo-banner .vip-ribbon__atmosphere { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:-1; }
 #fomo-banner .vip-ribbon__atmosphere::before,#fomo-banner .vip-ribbon__atmosphere::after {
-  content:''; position:absolute; width:470px; height:190px; top:-120px; left:calc(50% - 670px);
-  border:1px solid #b3965820; border-radius:50%; transform:rotate(-20deg);
+  content:''; position:absolute; width:24px; height:3px; top:24px; left:calc(50% - 555px);
+  border:0; border-radius:3px; background:#0b1b40; transform:rotate(-28deg);
 }
-#fomo-banner .vip-ribbon__atmosphere::after { left:auto; right:calc(50% - 660px); top:32px; width:600px; }
-#fomo-banner .vip-ribbon__atmosphere i { position:absolute; width:3px; height:3px; border-radius:50%; background:#ae8a44; opacity:0; animation:vip-dust 8s ease-in-out infinite; }
+#fomo-banner .vip-ribbon__atmosphere::after { left:auto; right:calc(50% - 555px); top:64px; width:19px; background:#ffb8ad; transform:rotate(-28deg); }
+#fomo-banner .vip-ribbon__atmosphere i { position:absolute; width:3px; height:3px; border-radius:50%; background:#ffd528; opacity:.8; }
 #fomo-banner .vip-ribbon__atmosphere i:nth-child(1){left:12%;top:65%;animation-delay:-2s}
 #fomo-banner .vip-ribbon__atmosphere i:nth-child(2){left:34%;top:22%;animation-delay:-5s}
 #fomo-banner .vip-ribbon__atmosphere i:nth-child(3){left:73%;top:76%;animation-delay:-1s}
 #fomo-banner .vip-ribbon__atmosphere i:nth-child(4){left:88%;top:38%;animation-delay:-6s}
 #fomo-banner .vip-ribbon__identity { display:flex; align-items:center; gap:15px; flex-shrink:0; }
 #fomo-banner .vip-ribbon__seal {
-  position:relative; display:grid; place-items:center; width:49px; height:49px; border-radius:50%;
-  color:#785a2a; background:radial-gradient(circle at 30% 20%,#fffdf8,#f1e4c6 70%);
-  border:1px solid #cfb67f; box-shadow:inset 0 0 0 4px #fff9ed,inset 0 0 0 5px #d9b77850;
+  position:relative; display:grid; place-items:center; width:49px; height:49px; border-radius:13px;
+  color:#0b1b40; background:#ffd528;
+  border:1px solid #0b1b40; box-shadow:2px 2px 0 #0b1b40;
 }
 #fomo-banner .vip-ribbon__seal::before {
-  content:''; position:absolute; inset:-5px; border-radius:50%; border:1px solid transparent;
-  border-top-color:#b89a5b75; border-bottom-color:#b89a5b30; animation:vip-orbit 18s linear infinite;
+  content:''; position:absolute; inset:4px; border-radius:9px; border:1px solid #0b1b4026;
 }
-#fomo-banner .vip-ribbon__seal svg { width:25px; height:25px; filter:drop-shadow(0 2px 5px #d8b57a40); animation:vip-float 5s ease-in-out infinite; }
+#fomo-banner .vip-ribbon__seal svg { width:25px; height:25px; stroke-width:1.8; }
 #fomo-banner .vip-ribbon__brand { display:grid; gap:7px; }
-#fomo-banner .vip-ribbon__brand b { font-size:15px; font-weight:700; letter-spacing:2px; color:#173d51; }
-#fomo-banner .vip-ribbon__brand small { font-size:8px; letter-spacing:1.8px; color:#70582c; font-weight:600; }
-#fomo-banner .vip-ribbon__divider { width:1px; height:39px; background:linear-gradient(transparent,#b7a47c70,transparent); }
+#fomo-banner .vip-ribbon__brand b { font-size:15px; font-weight:900; letter-spacing:2px; color:#0b1b40; }
+#fomo-banner .vip-ribbon__brand small { font-size:8px; letter-spacing:1.8px; color:#164cb8; font-weight:700; }
+#fomo-banner .vip-ribbon__divider { width:1px; height:39px; background:#0b1b4033; }
 #fomo-banner .vip-ribbon__copy { width:430px; min-width:0; position:relative; }
 #fomo-banner-text { display:grid; align-content:center; gap:6px; min-height:43px; min-width:0 !important; }
-#fomo-banner-text strong { font-size:16px; font-weight:600; line-height:1.35; letter-spacing:-.35px; }
-#fomo-banner-text em { font-style:normal; color:#785a2a; font-weight:800; }
-#fomo-banner-text > span { color:#526b78; font-size:11px; font-weight:400; line-height:1.45; letter-spacing:.05px; }
+#fomo-banner-text strong { font-size:16px; font-weight:900; font-style:italic; text-transform:uppercase; line-height:1.35; letter-spacing:-.45px; }
+#fomo-banner-text em { font-style:inherit; color:#0b1b40; background:#ffd528; font-weight:900; padding:0 3px; border-radius:3px; box-shadow:1px 1px 0 #0b1b40; white-space:nowrap; -webkit-box-decoration-break:clone; box-decoration-break:clone; }
+#fomo-banner-text em:empty { display:none; }
+#fomo-banner[data-vip-slide="3"] #fomo-banner-text em { background:#1557f5; color:#fff; }
+#fomo-banner-text > span { color:#344765; font-size:11px; font-weight:400; line-height:1.45; letter-spacing:.05px; }
 #fomo-banner-dots { display:flex; gap:5px; margin-top:8px; height:3px; }
-#fomo-banner-dots i { position:relative; overflow:hidden; width:17px; height:2px; border-radius:4px; background:#a9bac34d; transition:width .6s; }
-#fomo-banner-dots i.is-current { width:38px; background:#cfb67f66; }
-#fomo-banner-dots i.is-current::after { content:''; position:absolute; inset:0; background:#8a6a30; transform-origin:left; animation:vip-progress 7s linear both; }
-#fomo-banner-timer { flex-shrink:0; padding:5px 8px; color:#526b78; border:1px solid #d9c79c; font-size:10px; font-variant-numeric:tabular-nums; }
+#fomo-banner-dots i { position:relative; overflow:hidden; width:17px; height:2px; border-radius:4px; background:#0b1b4020; transition:width .6s; }
+#fomo-banner-dots i.is-current { width:38px; background:#1557f53d; }
+#fomo-banner-dots i.is-current::after { content:''; position:absolute; inset:0; background:#1557f5; transform-origin:left; animation:vip-progress 7s linear both; }
+#fomo-banner-timer { flex-shrink:0; padding:5px 8px; color:#344765; border:1px solid #bdc9dc; font-size:10px; font-variant-numeric:tabular-nums; }
 #fomo-banner-cta {
   position:relative; overflow:hidden; flex-shrink:0; justify-content:center; min-height:44px !important;
-  gap:16px; padding:0 12px 0 20px !important; border:1px solid #245b78; border-radius:100px !important;
-  background:#245b78 !important;
+  gap:16px; padding:0 12px 0 20px !important; border:1px solid #0b1b40; border-radius:10px !important;
+  background:#124bdb !important;
   color:#fff !important; font-size:12px !important; font-weight:800;
-  box-shadow:0 3px 9px #173d5112 !important;
+  box-shadow:2px 2px 0 #0b1b40 !important;
   transition:transform .3s,box-shadow .3s;
 }
 #fomo-banner-cta::before {
-  content:''; position:absolute; inset:-20% auto -20% -65%; width:40%; pointer-events:none;
-  background:linear-gradient(90deg,transparent,#ffffff18,transparent); transform:skewX(-22deg); animation:vip-sheen 8s ease-in-out infinite;
+  content:none;
 }
-#fomo-banner-cta:hover { transform:translateY(-1px); box-shadow:0 4px 12px #173d511c !important; }
+#fomo-banner-cta:hover { transform:translateY(-1px); box-shadow:2px 3px 0 #0b1b40 !important; }
 #fomo-banner-cta svg { box-sizing:content-box; width:13px; height:13px; padding:7px; border-radius:50%; background:#ffffff16; transition:transform .3s,background .3s; }
 #fomo-banner-cta:hover svg { transform:translateX(2px); background:#ffffff25; }
-#fomo-banner-motion { display:grid; place-items:center; flex-shrink:0; width:28px; height:28px; padding:0; border:1px solid #c9d5d9; border-radius:50%; background:#fff9; color:#3f5e6e; cursor:pointer; }
+#fomo-banner-motion { display:grid; place-items:center; flex-shrink:0; width:28px; height:28px; padding:0; border:1px solid #0b1b40; border-radius:8px; background:#fffefa; color:#0b1b40; cursor:pointer; }
 #fomo-banner-motion[hidden] { display:none; }
 #fomo-banner-motion svg { width:11px; height:11px; }
 #fomo-banner-motion .vip-ribbon__play,#fomo-banner-motion.is-paused .vip-ribbon__pause { display:none; }
 #fomo-banner-motion.is-paused .vip-ribbon__play { display:block; }
-#fomo-banner button:focus-visible { outline:2px solid #245b78; outline-offset:4px; }
+#fomo-banner button:focus-visible { outline:2px solid #0b1b40; outline-offset:4px; }
 #fomo-banner.vip-ribbon--still::before,#fomo-banner.vip-ribbon--still *,#fomo-banner.vip-ribbon--still *::before,#fomo-banner.vip-ribbon--still *::after { animation-play-state:paused !important; }
-@keyframes vip-aurora { to { transform:translateX(100px) scale(1.08); opacity:.6; } }
-@keyframes vip-orbit { to { transform:rotate(360deg); } }
-@keyframes vip-float { 50% { transform:translateY(-2px); } }
-@keyframes vip-dust { 0%,100%{opacity:0;transform:translateY(8px)} 45%{opacity:.6} 85%{opacity:0;transform:translateY(-18px)} }
 @keyframes vip-progress { from{transform:scaleX(0)} to{transform:scaleX(1)} }
-@keyframes vip-sheen { 0%,65%{left:-65%} 90%,100%{left:135%} }
 @media(max-width:1100px) {
   #fomo-banner { gap:17px !important; }
   #fomo-banner .vip-ribbon__brand { display:none; }
@@ -94,7 +88,7 @@
   #fomo-banner-text > span { font-size:10px; line-height:1.45; }
   #fomo-banner-cta { grid-column:2; grid-row:1; align-self:end; justify-self:end; min-height:44px !important; padding:0 7px 0 13px !important; gap:8px; font-size:10.5px !important; }
   #fomo-banner-cta svg { width:11px; height:11px; padding:5px; }
-  #fomo-banner-motion { position:static; grid-column:2; grid-row:2; align-self:start; justify-self:end; width:24px; height:24px; border-color:transparent; }
+  #fomo-banner-motion { position:static; grid-column:2; grid-row:2; align-self:start; justify-self:end; width:24px; height:24px; border-color:#0b1b40; }
   #fomo-banner-timer { position:absolute; right:48px; bottom:10px; padding:0; border:0; background:transparent !important; font-size:9px; }
   #fomo-banner-dots { margin-top:5px; }
 }

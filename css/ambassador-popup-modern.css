@@ -1,0 +1,134 @@
+/* Ambassador invitation only: existing actions and server values, modern visual direction. */
+.amb-promo-dialog{--amb-ink:#061638;--amb-muted:#44536c;--amb-line:#cbd4e5;--amb-paper:#fffefa;--amb-cream:#fffefa;--amb-brown:#253954;--amb-blue:#1647ed;--amb-yellow:#ffda24;--amb-coral:#ffaaa0;width:min(1120px,calc(100% - 40px));max-height:calc(100dvh - 40px);border:3px solid var(--amb-ink);border-radius:28px;background:var(--amb-paper);box-shadow:7px 9px 0 #0616381f,0 24px 70px #0616382b;color:var(--amb-ink)}
+.amb-promo-dialog[open]{grid-template-columns:1.12fr 1fr;grid-template-rows:minmax(0,1fr) auto}
+.amb-promo-dialog::backdrop{background:#07153772;backdrop-filter:blur(5px)}
+.amb-promo-dialog::after{content:"";position:absolute;z-index:0;right:-1px;top:-1px;width:153px;height:106px;border-bottom-left-radius:100%;background:#1a61e9;pointer-events:none}
+.amb-promo-dialog .amb-promo-close{right:18px;top:15px;width:48px;height:48px;min-width:48px;min-height:48px;border:2px solid var(--amb-ink);border-radius:14px;background:#fffefa;color:var(--amb-ink);box-shadow:3px 3px 0 var(--amb-ink);z-index:5}
+.amb-promo-dialog .amb-promo-close:before{display:none}
+.amb-promo-dialog .amb-promo-close .ic{width:23px;height:23px}
+.amb-promo-dialog .amb-promo-close:hover{background:var(--amb-yellow);box-shadow:1px 1px 0 var(--amb-ink);transform:translate(1px,1px)}
+.amb-promo-dialog .amb-promo-story{padding:30px 34px 25px;background:var(--amb-paper);overflow-x:hidden;overflow-y:auto;scrollbar-color:#a8b9db transparent}
+.amb-promo-dialog .amb-promo-story:before{inset:auto auto 0 0;width:115px;height:74px;border-radius:0;background:#1a61e9;clip-path:polygon(0 0,0 100%,100% 100%);opacity:.12}
+.amb-promo-dialog .amb-promo-dialog-head .amb-promo-eyebrow{padding:6px 10px;border:1.5px solid var(--amb-ink);border-radius:9px;background:var(--amb-yellow);color:var(--amb-ink);font-size:9px;font-weight:800;letter-spacing:.9px}
+.amb-promo-dialog .amb-promo-dialog-head .amb-promo-eyebrow .ic{width:16px;height:16px}
+.amb-promo-dialog .amb-promo-dialog-head h2{margin:17px 0 13px;font:900 italic clamp(44px,4.7vw,67px)/.96 Inter,system-ui,sans-serif;letter-spacing:-2.5px;max-width:100%;text-wrap:initial}
+.amb-promo-dialog .amb-promo-dialog-head h2>span{display:block}
+.amb-promo-dialog .amb-promo-dialog-head h2 em{display:inline-block;margin:6px 0 8px;padding:2px 15px 6px 9px;max-width:100%;background:var(--amb-blue);color:#fff;font-size:1.08em;font-style:italic;font-weight:900;line-height:1;letter-spacing:-2.5px;transform:rotate(-3deg);box-decoration-break:clone}
+.amb-promo-dialog .amb-promo-dialog-head>p{font-size:12px;line-height:1.6;max-width:405px;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-sparks{inset:88px 35px auto auto;width:44px;height:48px;opacity:1;pointer-events:none}
+.amb-promo-dialog .amb-promo-sparks i{position:absolute;width:6px;height:24px;border-radius:4px;background:var(--amb-ink);transform:rotate(18deg);box-shadow:none;clip-path:none;animation:none}
+.amb-promo-dialog .amb-promo-sparks i:first-child{left:8px;top:0}
+.amb-promo-dialog .amb-promo-sparks i:last-child{left:29px;top:20px;transform:rotate(60deg)}
+.amb-promo-dialog .amb-promo-sparks i:before,.amb-promo-dialog .amb-promo-sparks i:after{display:none}
+.amb-promo-dialog .amb-promo-offer{margin-top:17px;max-width:100%}
+.amb-promo-dialog .amb-promo-offer-top{padding:0 0 8px;font-size:8px;letter-spacing:.9px;font-weight:750;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-offer-top .ic{color:var(--amb-ink)}
+.amb-promo-dialog .amb-promo-benefit--reward{padding:15px 20px 16px;border:2px solid var(--amb-ink);border-radius:22px;background:var(--amb-yellow);box-shadow:5px 6px 0 var(--amb-ink);overflow:visible}
+.amb-promo-dialog .amb-promo-benefit--reward>span:first-child{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--amb-ink);font-weight:800}
+.amb-promo-dialog .amb-promo-benefit--reward strong{margin:1px 0 4px;padding-right:46px;font:900 italic clamp(62px,6.5vw,86px)/1 Inter,system-ui,sans-serif;letter-spacing:-4px;gap:9px;overflow-wrap:anywhere;color:var(--amb-ink)}
+.amb-promo-dialog .amb-promo-benefit--reward strong small{font:850 italic 19px/1 Inter,system-ui,sans-serif;color:var(--amb-ink);letter-spacing:-.5px}
+.amb-promo-dialog .amb-promo-benefit p{color:#20304c;font-size:10px;line-height:1.45}
+.amb-promo-dialog .amb-promo-reward-mark{position:absolute;right:18px;top:21px;display:grid;place-items:center;width:41px;height:41px;background:#fff6bb;border:1.5px solid var(--amb-ink);border-radius:11px;transform:rotate(7deg)}
+.amb-promo-dialog .amb-promo-reward-mark .ic{width:24px;height:24px}
+.amb-promo-dialog .amb-promo-benefit--guest{margin-top:17px;padding:12px 16px;background:var(--amb-coral);border:2px solid var(--amb-ink);border-radius:17px;box-shadow:3px 4px 0 var(--amb-ink);gap:11px}
+.amb-promo-dialog .amb-promo-benefit--guest:before,.amb-promo-dialog .amb-promo-benefit--guest:after{display:none}
+.amb-promo-dialog .amb-promo-guest-icon{width:34px;height:34px;border:0;border-radius:9px;background:#ffffff57;color:var(--amb-ink)}
+.amb-promo-dialog .amb-promo-benefit--guest div>span{font-size:11px;color:var(--amb-ink);font-weight:700}
+.amb-promo-dialog .amb-promo-benefit--guest strong{display:flex;align-items:baseline;flex-wrap:wrap;gap:0 5px;margin:2px 0;color:var(--amb-ink);font-size:24px;line-height:1.17;font-weight:850;letter-spacing:-.7px}
+.amb-promo-dialog .amb-promo-benefit--guest strong>span{white-space:nowrap}
+.amb-promo-dialog .amb-promo-benefit--guest strong small{font-size:11px;color:var(--amb-ink);font-weight:650;letter-spacing:-.15px}
+.amb-promo-dialog .amb-promo-benefit--guest p{font-size:9px}
+.amb-promo-dialog .amb-promo-offer-seal{padding:12px 0 0;color:var(--amb-muted);font-size:9px;letter-spacing:0}
+.amb-promo-dialog .amb-promo-guide{position:relative;z-index:1;padding:72px 34px 10px 32px;scrollbar-color:#a8b9db transparent}
+.amb-promo-dialog .amb-promo-guide-label{font-size:9px;font-weight:800;letter-spacing:1.2px;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-guide-label:before{background:var(--amb-blue);box-shadow:none}
+.amb-promo-dialog .amb-promo-dialog-body>h3{margin:9px 0 22px;font:800 25px/1.13 Inter,system-ui,sans-serif;letter-spacing:-1px;color:var(--amb-ink)}
+.amb-promo-dialog .amb-promo-guide-intro{display:none}
+.amb-promo-dialog .amb-promo-steps{gap:20px}
+.amb-promo-dialog .amb-promo-steps li{position:relative;align-items:flex-start;gap:17px;min-height:80px;animation:none}
+.amb-promo-dialog .amb-promo-steps li:not(:last-child):before{content:"";position:absolute;left:28px;top:63px;bottom:-10px;border-left:2px dashed #8290ae;pointer-events:none}
+.amb-promo-dialog .amb-promo-steps li>span{width:58px;height:58px;flex:0 0 58px;border:1.5px solid var(--amb-ink);border-radius:15px;background:#b4dbff;box-shadow:3px 3px 0 var(--amb-ink);color:var(--amb-ink)}
+.amb-promo-dialog .amb-promo-steps li:nth-child(2)>span{background:var(--amb-yellow)}
+.amb-promo-dialog .amb-promo-steps li:nth-child(3)>span{background:var(--amb-coral)}
+.amb-promo-dialog .amb-promo-steps li>span .ic{width:29px;height:29px}
+.amb-promo-dialog .amb-promo-steps li>div{flex:1;min-width:0;padding-top:4px}
+.amb-promo-dialog .amb-promo-steps strong{font-size:18px;line-height:1.18;letter-spacing:-.45px;font-weight:800;color:var(--amb-ink);margin-bottom:7px}
+.amb-promo-dialog .amb-promo-steps p{font-size:11px;line-height:1.65;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-conditions{margin-top:18px;padding-top:6px;border-top:1px solid #c8d3e9;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-conditions summary{min-height:44px;padding:12px 0;font-size:10px;font-weight:650;line-height:1.6}
+.amb-promo-dialog .amb-promo-conditions ul{margin:3px 0 8px;font-size:10px;line-height:1.65}
+.amb-promo-dialog .amb-promo-dialog-footer{position:relative;z-index:1;gap:4px 10px;padding:8px 34px 20px 32px;background:var(--amb-paper)}
+.amb-promo-dialog .amb-promo-access{grid-column:1/-1;margin:0 0 5px;font-size:9px;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-dialog-footer .amb-promo-primary{min-height:52px;padding:12px 16px;border:2px solid var(--amb-ink);border-radius:13px;background:var(--amb-blue);font-size:15px;font-weight:800;line-height:1.2;color:#fff;box-shadow:3px 4px 0 var(--amb-ink)}
+.amb-promo-dialog .amb-promo-dialog-footer .amb-promo-primary:hover{background:#1039bf;box-shadow:1px 2px 0 var(--amb-ink);transform:translate(1px,1px)}
+.amb-promo-dialog .amb-promo-dialog-footer .amb-promo-primary .ic{width:24px;height:24px;background:transparent;padding:0;border-radius:0;color:#fff}
+.amb-promo-dialog .amb-promo-dialog-footer .amb-promo-secondary{min-height:48px;padding:9px 10px;font-size:11px;font-weight:650;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-dialog-footer .amb-promo-secondary:hover{background:#edf2ff;color:var(--amb-ink)}
+.amb-promo-dialog .amb-promo-optout{min-height:44px;margin:4px 0 0;gap:9px;font-size:10px;line-height:1.45;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-optout input{width:17px;height:17px;accent-color:var(--amb-blue)}
+.amb-promo-dialog .amb-promo-dialog-footer>small{font-size:9px;margin-top:-4px;line-height:1.5;color:var(--amb-muted)}
+.amb-promo-dialog .amb-promo-demo-note{margin-top:21px;padding:18px;border:1.5px solid var(--amb-ink);border-radius:15px;background:#eef3ff;font-size:12px;line-height:1.6;color:var(--amb-ink)}
+.amb-promo-dialog :is(button,input,summary):focus-visible{outline:3px solid #1647ed;outline-offset:4px}
+@media(max-width:1000px) and (min-width:761px){
+ .amb-promo-dialog .amb-promo-story{padding:27px 27px 23px}
+ .amb-promo-dialog .amb-promo-dialog-head h2{font-size:52px}
+ .amb-promo-dialog .amb-promo-guide{padding:72px 23px 8px 24px}
+ .amb-promo-dialog .amb-promo-dialog-footer{padding:8px 23px 18px 24px}
+ .amb-promo-dialog .amb-promo-steps{gap:16px}.amb-promo-dialog .amb-promo-steps li{gap:13px}
+ .amb-promo-dialog .amb-promo-steps strong{font-size:16px}
+ .amb-promo-dialog .amb-promo-benefit--guest strong{font-size:22px}
+ .amb-promo-dialog .amb-promo-benefit--guest strong small{font-size:10px}
+}
+@media(max-width:760px){
+ .amb-promo-dialog{width:calc(100% - 20px);max-height:calc(100dvh - 20px);border-radius:22px}
+ .amb-promo-dialog[open]{display:flex;flex-direction:column}
+ .amb-promo-dialog::after{width:106px;height:74px;opacity:.12}
+ .amb-promo-dialog .amb-promo-close{right:12px;top:12px;width:44px;height:44px;min-width:44px;min-height:44px;border-radius:12px;box-shadow:2px 2px 0 var(--amb-ink)}
+ .amb-promo-dialog .amb-promo-scroll{display:block;min-height:0;overflow:auto;overscroll-behavior:contain;scrollbar-color:#a8b9db transparent}
+ .amb-promo-dialog .amb-promo-story{padding:22px 22px 20px;overflow:visible}
+ .amb-promo-dialog .amb-promo-dialog-head .amb-promo-eyebrow{font-size:8px;letter-spacing:.5px;padding:6px 9px;max-width:calc(100% - 44px)}
+ .amb-promo-dialog .amb-promo-dialog-head h2{margin:20px 0 12px;font-size:clamp(39px,10.2vw,56px);line-height:.97;letter-spacing:-1.6px}
+ .amb-promo-dialog .amb-promo-dialog-head h2 em{font-size:1.08em;margin:5px 0 7px;letter-spacing:-1.6px;padding:2px 11px 5px 7px}
+ .amb-promo-dialog .amb-promo-dialog-head>p{font-size:11px;line-height:1.6;max-width:100%}
+ .amb-promo-dialog .amb-promo-sparks{right:25px;top:105px;transform:scale(.7);transform-origin:top right}
+ .amb-promo-dialog .amb-promo-offer{margin-top:15px}
+ .amb-promo-dialog .amb-promo-offer-top,.amb-promo-dialog .amb-promo-offer-seal{display:none}
+ .amb-promo-dialog .amb-promo-benefit--reward{padding:12px 16px 14px;border-radius:18px;box-shadow:4px 4px 0 var(--amb-ink)}
+ .amb-promo-dialog .amb-promo-benefit--reward strong{font-size:66px;letter-spacing:-3px;padding-right:35px;gap:7px}
+ .amb-promo-dialog .amb-promo-benefit--reward strong small{font-size:16px}
+ .amb-promo-dialog .amb-promo-reward-mark{right:13px;top:17px;width:33px;height:33px;border-radius:9px}.amb-promo-dialog .amb-promo-reward-mark .ic{width:20px;height:20px}
+ .amb-promo-dialog .amb-promo-benefit--guest{margin-top:13px;padding:11px 12px;gap:10px;border-radius:15px;box-shadow:3px 3px 0 var(--amb-ink)}
+ .amb-promo-dialog .amb-promo-benefit--guest strong{font-size:23px;gap:0 5px;letter-spacing:-.5px}
+ .amb-promo-dialog .amb-promo-benefit--guest strong small{font-size:10px}
+ .amb-promo-dialog .amb-promo-benefit--guest div>span{font-size:10px}
+ .amb-promo-dialog .amb-promo-guest-icon{display:none}
+ .amb-promo-dialog .amb-promo-guide{padding:20px 22px 12px;overflow:visible;border-top:1px solid var(--amb-line)}
+ .amb-promo-dialog .amb-promo-dialog-body>h3{font-size:21px;margin-bottom:18px;letter-spacing:-.65px}
+ .amb-promo-dialog .amb-promo-guide-label{font-size:8px}
+ .amb-promo-dialog .amb-promo-steps{gap:14px}
+ .amb-promo-dialog .amb-promo-steps li{min-height:67px;gap:13px}
+ .amb-promo-dialog .amb-promo-steps li>span{width:46px;height:46px;flex-basis:46px;border-radius:13px;box-shadow:2px 2px 0 var(--amb-ink)}
+ .amb-promo-dialog .amb-promo-steps li>span .ic{width:23px;height:23px}
+ .amb-promo-dialog .amb-promo-steps li:not(:last-child):before{left:22px;top:53px;bottom:-6px}
+ .amb-promo-dialog .amb-promo-steps strong{font-size:15px;letter-spacing:-.2px;margin-bottom:5px}
+ .amb-promo-dialog .amb-promo-steps p{font-size:10px;line-height:1.6}
+ .amb-promo-dialog .amb-promo-conditions{margin-top:12px}
+ .amb-promo-dialog .amb-promo-dialog-footer{padding:10px 17px calc(12px + env(safe-area-inset-bottom));border-top:2px solid var(--amb-ink);box-shadow:0 -4px 15px #06163809;gap:3px 7px}
+ .amb-promo-dialog .amb-promo-dialog-footer .amb-promo-primary{font-size:12px;min-height:48px;padding:10px 12px;border-radius:11px;gap:10px}
+ .amb-promo-dialog .amb-promo-dialog-footer .amb-promo-secondary{font-size:10px;min-height:46px;padding:8px}
+ .amb-promo-dialog .amb-promo-optout{min-height:44px;font-size:9px;margin-top:2px}
+ .amb-promo-dialog .amb-promo-access{font-size:8px;margin-bottom:3px}
+ .amb-promo-dialog .amb-promo-dialog-footer>small{font-size:8px;margin-top:-1px}
+}
+@media(max-height:560px) and (min-width:761px){
+ .amb-promo-dialog{max-height:calc(100dvh - 20px);width:min(1120px,calc(100% - 28px));border-radius:20px}
+ .amb-promo-dialog .amb-promo-story{padding:21px 26px}
+ .amb-promo-dialog .amb-promo-dialog-head h2{font-size:40px;margin:13px 0 10px}
+ .amb-promo-dialog .amb-promo-benefit--reward strong{font-size:58px}.amb-promo-dialog .amb-promo-benefit--reward{padding:12px 16px}
+ .amb-promo-dialog .amb-promo-guide{padding-top:54px}
+ .amb-promo-dialog .amb-promo-dialog-body>h3{font-size:22px;margin-bottom:18px}
+ .amb-promo-dialog .amb-promo-dialog-footer{padding-bottom:10px;gap:1px 6px}
+ .amb-promo-dialog .amb-promo-access{display:none}
+ .amb-promo-dialog .amb-promo-optout{min-height:44px;margin:0}
+}
+@media(prefers-reduced-motion:reduce){.amb-promo-dialog,.amb-promo-dialog *{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

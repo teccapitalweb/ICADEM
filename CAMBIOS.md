@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-11-16 — Presentación moderna de Embajadores y franja VIP
+
+- Cinco superficies con fondo claro, azul marino/eléctrico, amarillo y coral: invitación emergente, tres vistas de la franja VIP, banners de Inicio/Mi perfil y cabecera funcional del Centro de Embajadores. Logotipo institucional y contenido académico intactos.
+- Se mantienen las fuentes actuales del servidor para categoría, comisiones, descuentos, código y estado. Cierre, Más tarde, condiciones, opt-out, activación, copiar/compartir, historial, retiros y modo presentación conservan sus handlers y protecciones.
+- La franja conserva exactamente sus dimensiones y posición en 24 comparaciones de tres vistas con Chrome/WebKit. Inicio y Mi perfil conservan su huella fluida original: 70 comparaciones contra 83e2d4d en 320/375/390/768/844/1024/1440 px. El cálculo de huella sólo mide presentación pública y restaura los mismos nodos/foco, sin consultas ni almacenamiento adicionales.
+- 631/631 pruebas del repositorio sin omisiones. Popups y Centro comprobados con panel real y respuestas API aisladas, en Chrome/WebKit y estados gratuito/VIP, activo/nuevo/pausado. Navegación, copia/compartir interceptados, importes personalizados, foco, fuentes y giro móvil comprobados sin operaciones financieras reales. No son pruebas en teléfonos físicos ni con cuentas autenticadas de producción.
+- Caché del panel v185 y referencias de assets actualizadas. Ciudad permanece en v17: no se cambian sus archivos, motor, servidor ni Railway. No se modifica ninguna regla de Stripe, membresía, comisiones, descuentos, monedero o acceso.
+
 ## 2026-11-16 — Integración visual de Ciudad ICADEM 2.0
 
 - Integración sobre `main` fd0c2b5/PR #75, conservando la expansión de Claude. Mascotas y correas, tiendas, inventario, vivienda, aguas frescas y los diez juegos utilizan los servicios, catálogos, saldos y respuestas reales; no se conectan prototipos ni datos ficticios del PR #72 a producción. El catálogo contiene 39 razas reales (14 perros, 11 gatos, 8 aves y 6 fantásticas), con cantidades calculadas desde sus datos.

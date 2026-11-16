@@ -57,7 +57,7 @@ test('copy uses server amounts, validation, eligible plans and withdrawal condit
 });
 test('existing ambassadors get a dashboard entry instead of an enrollment invitation', () => {
   const html=app().cardMarkup({...fixture(),registered:true,ambassador:{active:true}},'home');
-  assert.match(html,/Ir a mi panel/);assert.doesNotMatch(html,/Quiero ser embajador|Para tu invitado/);
+  assert.match(html,/data-amb-promo="panel"/);assert.match(html,/Conocer el programa/);assert.doesNotMatch(html,/Quiero ser embajador|Para tu invitado/);
 });
 test('profile uses the verified server commission, original vector and two distinct actions', async () => {
   for(const [category,amount,label] of [['vip',15000,'EMBAJADOR VIP'],['free',10000,'EMBAJADOR ICADEM']]) {
@@ -65,16 +65,16 @@ test('profile uses the verified server commission, original vector and two disti
     const ui=app({load:async()=>data});await ui.refresh();
     const profile=ui.roots['ambassador-profile-promo'];
     assert.equal(profile.attributes['data-amb-category'],category);
-    assert.match(profile.innerHTML,new RegExp(label));assert.match(profile.innerHTML,/Convierte tus recomendaciones en ingresos\./);
+    assert.match(profile.innerHTML,new RegExp(label));assert.match(visibleText(profile.innerHTML),/Comparte ICADEM y gana recompensas\./);
     assert.ok(visibleText(profile.innerHTML).includes(`Gana $${amount/100} MXN por cada compra elegible realizada con tu código.`));
     assert.match(profile.innerHTML,/data-amb-promo="share"/);assert.match(profile.innerHTML,/Ver mi código y compartir/);
     assert.match(profile.innerHTML,/data-amb-promo="panel"/);assert.match(profile.innerHTML,/Ir a mi panel/);
-    assert.match(profile.innerHTML,/#i-crown/);assert.match(profile.innerHTML,/amb-promo-profile-art/);
-    assert.match(profile.innerHTML,/viewBox="0 0 210 200"/);assert.match(profile.innerHTML,/class="amb-promo-commission-card"><strong>\$\d+ <small>MXN<\/small><\/strong><span>por compra elegible/);
+    assert.match(profile.innerHTML,/#i-users/);assert.match(profile.innerHTML,/amb-promo-profile-art/);
+    assert.match(profile.innerHTML,/viewBox="0 0 210 200"/);assert.match(profile.innerHTML,/class="amb-promo-commission-card"><span>Tú ganas<\/span><strong>\$\d+ <small>MXN<\/small><\/strong><span>por compra elegible/);
     assert.doesNotMatch(profile.innerHTML,/<img|https?:|#i-share|#i-external/);
     assert.doesNotMatch(profile.innerHTML,/amb-promo-(?:offer|symbol|coin|caption)|Tu comunidad crece contigo/);
-    assert.match(ui.roots['ambassador-home-promo'].innerHTML,/Tus recomendaciones ya tienen su espacio\./);
-    assert.match(ui.roots['ambassador-home-promo'].innerHTML,/amb-promo-symbol/);
+    assert.match(visibleText(ui.roots['ambassador-home-promo'].innerHTML),/Comparte ICADEM y gana recompensas\./);
+    assert.match(ui.roots['ambassador-home-promo'].innerHTML,/amb-modern-home-art/);
   }
   const custom=app().cardMarkup({...fixture(),registered:true,category:'vip',config:{...config,directCommissionVipCents:17500},ambassador:{active:true}},'profile');
   assert.match(custom,/<strong>\$175 <small>MXN/);assert.doesNotMatch(custom,/\$150/);
