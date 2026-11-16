@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-11-16 — Auditoría de estabilidad y atomicidad de mascotas
+
+- Defecto reproducido: editar nombre/accesorios junto con un accesorio no poseído podía devolver al cliente cambios parciales no guardados. La regla compartida valida ahora una copia y sólo la asigna si toda la operación es válida; no cambian precios, propiedad, monedas, recompensas ni permisos. Dos regresiones comprueban perfil, revisión y datos intactos ante rechazo, además de una edición válida completa.
+- 633/633 pruebas del repositorio, sin omisiones; 11 comprobaciones adicionales con WebSocket y almacenamiento JSON temporales recuperan avatar/equipo, mascotas, compras, inventario, monedas, vivienda, XP/logros/misiones tras nueva sesión y reinicio. La vivienda conserva `homeRev` y rechaza borradores obsoletos. Una sola sesión activa por UID es el contrato actual.
+- Chat con dos identidades locales y UI real en Chrome/WebKit, 320/390/768/1440 y horizontal: envío/recepción, ACK demorado, rechazo, borrador, cierre exterior, reconexión y viewport reducido. Se estabiliza sólo la preparación del ensayo de contraste para que un `pointerenter` pendiente de WebKit no invalide el estado de reposo medido. No cambia el chat del producto.
+- 39 comprobaciones integradas de juego/UI con servidor local; 39 razas reales/22 accesorios, seguimiento/escenas y modelos CPU. Panel premium sin defectos: 80 pares de geometría Inicio/Perfil y 24 de franja, Chrome/WebKit, más estados, importes configurados, acciones y preferencias. Las cifras se solapan con la regresión general y no deben sumarse como casos únicos.
+- Producción inicial: Pages e329250/v185 y Railway 83e2d4d, health correcto y rutas de prueba cerradas. No se verificó persistencia Firestore desplegada ni chat con dos cuentas autenticadas ni teléfonos físicos; quedan como comprobaciones manuales. Los RID recuerdan las últimas 40 operaciones: no se promete deduplicación indefinida de reintentos antiguos. Caché de esta corrección v186 y entrada/puente v18; verificar ambos despliegues antes de cerrar la publicación.
+
 ## 2026-11-16 — Presentación moderna de Embajadores y franja VIP
 
 - Cinco superficies con fondo claro, azul marino/eléctrico, amarillo y coral: invitación emergente, tres vistas de la franja VIP, banners de Inicio/Mi perfil y cabecera funcional del Centro de Embajadores. Logotipo institucional y contenido académico intactos.

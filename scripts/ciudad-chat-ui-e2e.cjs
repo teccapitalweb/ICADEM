@@ -39,6 +39,9 @@ async function viewportMatrix(page){
  return results;
 }
 async function idleContrast(page){
+ // Settle pointerenter outside the panel before forcing the idle state. WebKit
+ // can otherwise clear it after a sheet reopens beneath the previous pointer.
+ await page.mouse.move(0,0);
  return page.locator('#chat').evaluate(async n=>{
   const wasIdle=n.classList.contains('is-idle'),stage=document.getElementById('stage'),background=stage.style.background;n.querySelector('.chat__input').blur();stage.style.background='#fff';n.classList.add('is-idle');
   const rgba=s=>{const a=s.match(/[\d.]+/g).map(Number);return [a[0],a[1],a[2],a.length>3?a[3]:1];},over=(c,b)=>c.slice(0,3).map((v,i)=>v*c[3]+b[i]*(1-c[3])),lum=c=>c.slice(0,3).map(v=>{v/=255;return v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4);}).reduce((s,v,i)=>s+v*[.2126,.7152,.0722][i],0),ratio=(a,b)=>(Math.max(lum(a),lum(b))+.05)/(Math.min(lum(a),lum(b))+.05);
