@@ -14,6 +14,7 @@
   var activeView='dashboard';
   var sessionGeneration=0;
   var shownCelebrations=new Set();
+  var celebrationContext=null,celebrationTimer=0;
   var presentationMode=false;
   var sharingIntent=null,sharingNavigation=0,renderRevision=0;
 
@@ -83,7 +84,7 @@
   }
   function acceptsRefresh(root){
     if(!root?.isConnected||location.hash!=='#embajadores'||window.__sessionEnding||!currentUid()||notificationUid!==currentUid()||document.visibilityState==='hidden'||navigator.onLine===false)return false;
-    if(window.ICADEMCommissionConversion?.isOpen()||document.querySelector?.('.modal-backdrop,.amb-commission-celebration,.credit-wallet-modal,.cc-overlay,#icadem-credit-gift,#name-modal,#free-course-intro,.ica-tour-overlay,dialog[open],[data-experience-dialog]'))return false;
+    if(window.ICADEMCommissionConversion?.isOpen()||window.ICADEMCommissionCelebration?.isOpen()||document.querySelector?.('.modal-backdrop,.amb-commission-celebration,.credit-wallet-modal,.cc-overlay,#icadem-credit-gift,#name-modal,#free-course-intro,.ica-tour-overlay,dialog[open],[data-experience-dialog]'))return false;
     if(root.querySelector('[data-amb-dirty="true"]'))return false;
     var focused=document.activeElement;return !(focused&&root.contains?.(focused)&&focused.matches?.('input,textarea,select,[contenteditable="true"]'));
   }
@@ -98,7 +99,7 @@
   }
   function earningsMarkup(data){
     var w=data.wallet||{},enabled=Boolean(window.ICADEMCommissionConversion?.hasPending()||data.ambassador?.active&&!Number(w.debtCents)&&Number(w.availableCents)>=100);
-    return '<section class="amb-earnings" aria-label="Mis ganancias"><div class="amb-earnings__balance"><h2>Mis ganancias</h2><span>Saldo disponible en comisiones</span><strong>'+money(w.availableCents)+' <small>MXN</small></strong><small>Elige cómo utilizar tus ganancias confirmadas.</small></div><div class="amb-earnings__actions"><button type="button" data-amb-view="withdrawals">Transferencia bancaria<small>Recibe tu dinero en tu cuenta</small></button><button type="button" data-amb-convert '+(!enabled?'disabled':'')+'>Convertir a créditos<small>$1 MXN = 1 crédito ICADEM</small></button></div></section>';
+    return '<section class="amb-earnings" aria-label="Mis ganancias"><div class="amb-earnings__balance" data-amb-wallet="available" tabindex="-1"><h2>Mis ganancias</h2><span>Saldo disponible en comisiones</span><strong>'+money(w.availableCents)+' <small>MXN</small></strong><small>Elige cómo utilizar tus ganancias confirmadas.</small></div><div class="amb-earnings__actions"><button type="button" data-amb-view="withdrawals">Transferencia bancaria<small>Recibe tu dinero en tu cuenta</small></button><button type="button" data-amb-convert '+(!enabled?'disabled':'')+'>Convertir a créditos<small>$1 MXN = 1 crédito ICADEM</small></button></div></section>';
   }
   function conversionHistoryMarkup(items){
     return '<section class="amb-card amb-conversion-history"><div class="amb-card__head"><div><h3>Conversiones a créditos</h3><p>Comisiones utilizadas en tu monedero ICADEM. Historial confirmado por el servidor.</p></div></div><div class="amb-card__body amb-table-wrap">'+(items?.length?'<table class="amb-table"><thead><tr><th>Fecha</th><th>Comisiones utilizadas</th><th>Créditos recibidos</th><th>Estado</th></tr></thead><tbody>'+items.map(function(item){return '<tr><td>'+date(item.createdAt)+'<small style="display:block;font-size:9px;overflow-wrap:anywhere">'+esc(item.id)+'</small></td><td>'+money(item.amountCents)+' MXN</td><td class="acc-history-credits">+'+number(item.credits)+' créditos</td><td>Confirmada</td></tr>';}).join('')+'</tbody></table>':'<div class="amb-note">Todavía no has convertido comisiones a créditos.</div>')+'</div></section>';
@@ -274,23 +275,57 @@
     try{var data=await load(true);if(revision===renderRevision&&location.hash===route&&sameSession(uid,generation))renderData(root,data);}catch(error){if(revision!==renderRevision)return;if(sharingIntent===intentAtRender)cancelSharing(false);if(location.hash!==route||!sameSession(uid,generation))return;if(stable){toast('error','No se pudo actualizar','Se conservan los últimos datos recibidos. Puedes reintentar.');return;}root.innerHTML='<div class="amb-empty"><div><strong>No pudimos cargar Embajadores</strong><p>'+esc(error.message)+'</p><button class="amb-btn" type="button" data-amb-retry>Reintentar</button></div></div>';root.querySelector('[data-amb-retry]')?.addEventListener('click',function(){render(root);});}finally{if(sharingIntent&&!sameSession(sharingIntent.uid,sharingIntent.generation))cancelSharing(false);if(revision===renderRevision&&sameSession(uid,generation))root.removeAttribute('aria-busy');}
   }
 
-  function acknowledgeCelebration(id){if(!id)return;request('/api/ambassadors/notifications/'+encodeURIComponent(id)+'/read',{method:'POST'}).catch(function(){});}
-
-  function showCommissionCelebration(item){
-    if(!item?.id||shownCelebrations.has(item.id))return;
-    shownCelebrations.add(item.id);
-    document.querySelector('.amb-commission-celebration')?.remove();
-    var amount=money(item.amountCents),days=Number(item.validationDays)||7,root=document.createElement('div');
-    root.className='amb-commission-celebration';root.setAttribute('role','dialog');root.setAttribute('aria-modal','true');root.setAttribute('aria-labelledby','amb-commission-title');
-    root.innerHTML='<div class="amb-commission-celebration__shade" data-amb-celebration-close></div><section class="amb-commission-celebration__dialog" role="document"><div class="amb-commission-celebration__coins" aria-hidden="true">'+Array.from({length:18},function(_,index){return '<span style="--i:'+index+'">'+emoji('1FA99')+'</span>';}).join('')+'</div><button class="amb-commission-celebration__close" type="button" aria-label="Cerrar" data-amb-celebration-close>×</button><div class="amb-commission-celebration__icon" aria-hidden="true">'+emoji('1FA99')+'</div><p class="amb-commission-celebration__eyebrow">NUEVA COMISIÓN REGISTRADA</p><h2 id="amb-commission-title">¡Tu recomendación se convirtió en una membresía VIP!</h2><p><strong>+'+esc(amount)+'</strong> quedó registrada en tu cuenta de embajador. Está en validación y se liberará después de '+esc(days)+' días.</p><button class="amb-btn" type="button" data-amb-celebration-close>Ver mi panel</button></section>';
-    document.body.appendChild(root);
-    function close(){if(!root.isConnected)return;root.remove();acknowledgeCelebration(item.id);}
-    root.querySelectorAll('[data-amb-celebration-close]').forEach(function(button){button.addEventListener('click',close);});
-    root.addEventListener('keydown',function(event){if(event.key==='Escape')close();});
-    setTimeout(function(){root.querySelector('.amb-commission-celebration__close')?.focus();},0);
+  function confirmedCommission(data,id){
+    if(!data?.registered||!/^commission-[A-Za-z0-9_-]{1,120}$/.test(id||''))return null;
+    var notice=(Array.isArray(data.commissionCelebrations)?data.commissionCelebrations:[]).find(function(item){return item?.id===id&&item.type==='commission-earned'&&item.seen!==true;});
+    var commission=(Array.isArray(data.commissions)?data.commissions:[]).find(function(item){return item?.id&&'commission-'+item.id===id;});
+    if(!notice||!commission||!['pending','available'].includes(commission.status)||!Number.isSafeInteger(commission.commissionCents)||commission.commissionCents<=0||notice.amountCents!==commission.commissionCents)return null;
+    return {id:id,status:commission.status,amountCents:commission.commissionCents};
+  }
+  function cancelCommissionExperience(){if(celebrationTimer)clearTimeout(celebrationTimer);celebrationTimer=0;var context=celebrationContext;celebrationContext=null;context?.handle?.cancel();}
+  function currentCelebration(context){return celebrationContext===context&&sameSession(context.uid,context.generation)&&notificationUid===context.uid&&context.root.isConnected&&location.hash==='#embajadores'&&activeView==='dashboard'&&!presentationMode;}
+  function commissionBlocked(root){
+    if(document.visibilityState==='hidden'||navigator.onLine===false||presentationMode||window.ICADEMCommissionConversion?.isOpen()||sharingIntent||root.querySelector('[data-amb-dirty="true"]'))return true;
+    var focused=document.activeElement;if(focused&&root.contains?.(focused)&&focused.matches?.('input,textarea,select,[contenteditable="true"]'))return true;
+    var blockers=document.querySelectorAll?.('.modal-backdrop,.credit-wallet-modal,.cc-overlay,#icadem-credit-gift,#name-modal,#free-course-intro,.ica-tour-overlay,.ica-tour-root,.ica-experience,dialog[open],[data-experience-dialog]')||[];
+    return Array.from(blockers).some(function(node){
+      if(node.hidden||node.closest?.('[hidden]')||typeof node.getClientRects==='function'&&!node.getClientRects().length)return false;
+      return typeof getComputedStyle!=='function'||getComputedStyle(node).visibility!=='hidden';
+    });
+  }
+  function acknowledgeCelebration(context){if(!sameSession(context.uid,context.generation))return;request('/api/ambassadors/notifications/'+encodeURIComponent(context.info.id)+'/read',{method:'POST'}).catch(function(){});}
+  function showCommissionCelebration(root,data,info){
+    var uid=currentUid(),key=uid+':'+info.id;
+    if(!uid||celebrationContext||shownCelebrations.has(key)||!window.ICADEMCommissionCelebration?.show)return;
+    var context={uid:uid,generation:sessionGeneration,root:root,info:info,handle:null};celebrationContext=context;
+    context.handle=window.ICADEMCommissionCelebration.show({amountCents:info.amountCents,status:info.status,
+      canContinue:function(){return currentCelebration(context);},returnFocus:function(){return root.querySelector('[data-amb-heading]');},
+      onCollect:async function(){
+        var fresh=await load(true);if(!currentCelebration(context))return {skip:true};
+        var latest=confirmedCommission(fresh,info.id);renderData(root,fresh);
+        if(!currentCelebration(context))return {skip:true};
+        if(!latest||latest.amountCents!==info.amountCents){toast('info','Estado actualizado','La comisión cambió. Consulta los movimientos confirmados de tu panel.');return {skip:true};}
+        if(latest.status!==info.status)toast('info','Comisión actualizada','Tu panel ya refleja el estado y los saldos confirmados.');
+        var target=latest.status==='pending'?root.querySelector('[data-amb-wallet="pending"]'):root.querySelector('.amb-earnings__balance[data-amb-wallet="available"]')||root.querySelector('[data-amb-wallet="available"]');
+        return {target:target,status:latest.status,amountCents:latest.amountCents};
+      },
+      onDismiss:function(reason){if(celebrationContext!==context)return;celebrationContext=null;if(reason==='collected'||reason==='dismissed')acknowledgeCelebration(context);}
+    });
+    if(context.handle)shownCelebrations.add(key);else if(celebrationContext===context)celebrationContext=null;
+  }
+  function scheduleCommissionCelebration(root,data){
+    if(celebrationTimer)clearTimeout(celebrationTimer);celebrationTimer=0;
+    if(activeView!=='dashboard'||presentationMode){cancelCommissionExperience();return;}
+    if(celebrationContext||!Array.isArray(data.commissionCelebrations))return;
+    var uid=currentUid(),generation=sessionGeneration;
+    celebrationTimer=setTimeout(function(){
+      celebrationTimer=0;if(!sameSession(uid,generation)||!uid||notificationUid!==uid||notificationData!==data||!root.isConnected||location.hash!=='#embajadores'||activeView!=='dashboard'||commissionBlocked(root))return;
+      var info=data.commissionCelebrations.map(function(item){return confirmedCommission(data,item?.id);}).find(function(item){return item&&!shownCelebrations.has(uid+':'+item.id);});
+      if(info)showCommissionCelebration(root,data,info);
+    },80);
   }
 
-  function renderData(root,data){notificationRoot=root;notificationData=data;notificationUid=currentUid();var sharing=sharingIntent&&currentSharing(sharingIntent),notice=sharing?null:window.ICADEMNotifications?.consume('embajadores');if(sharing)activeView='dashboard';else if(notice)activeView=notice.view==='withdrawals'?'withdrawals':'dashboard';document.body?.classList.toggle('amb-presentation-active',presentationMode&&data.registered);root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);showNotificationTarget(root,data,notice);finishSharingRender(root,data);if(activeView==='dashboard'&&data.commissionCelebrations?.length)setTimeout(function(){if(root.isConnected&&notificationData===data&&notificationUid===currentUid()&&!window.__sessionEnding&&location.hash==='#embajadores'&&!window.ICADEMCommissionConversion?.isOpen())showCommissionCelebration(data.commissionCelebrations[0]);},80);}
+  function renderData(root,data){notificationRoot=root;notificationData=data;notificationUid=currentUid();var sharing=sharingIntent&&currentSharing(sharingIntent),notice=sharing?null:window.ICADEMNotifications?.consume('embajadores');if(sharing)activeView='dashboard';else if(notice)activeView=notice.view==='withdrawals'?'withdrawals':'dashboard';document.body?.classList.toggle('amb-presentation-active',presentationMode&&data.registered);root.innerHTML=data.registered?(activeView==='withdrawals'?withdrawalPageMarkup(data):dashboardMarkup(data)):enrollMarkup(data);bind(root,data);showNotificationTarget(root,data,notice);finishSharingRender(root,data);scheduleCommissionCelebration(root,data);}
 
   async function copyText(value){
     if(navigator.clipboard?.writeText){try{await navigator.clipboard.writeText(value);return true;}catch(_){}}
@@ -368,6 +403,8 @@
     root.querySelector('[data-amb-bank]')?.addEventListener('submit',async function(event){event.preventDefault();var form=event.currentTarget,button=form.querySelector('button'),field=form.elements.namedItem('clabe');if(!validateContact(root,field,normalizeClabe,clabeError,'#amb-clabe-error')||form.reportValidity&&!form.reportValidity())return;button.disabled=true;try{await request('/api/ambassadors/bank',{method:'PUT',body:{holderName:form.holderName.value,bank:form.bank.value,clabe:field.value}});invalidateCache();toast('success','Cuenta protegida','La CLABE quedó cifrada y solo mostraremos sus últimos dígitos.');await render(root);}catch(error){toast('error',error.data?.code==='reauth-required'?'Vuelve a iniciar sesión':'No pudimos guardar la cuenta',error.message);button.disabled=false;}});
     root.querySelector('[data-amb-withdraw]')?.addEventListener('submit',async function(event){event.preventDefault();var form=event.currentTarget,button=form.querySelector('button'),amount=Math.round(Number(form.amount.value)*100);if(!amount)return;button.disabled=true;try{if(!form.dataset.requestId||form.dataset.requestAmount!==String(amount)){form.dataset.requestId=(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random().toString(36).slice(2));form.dataset.requestAmount=String(amount);}await request('/api/ambassadors/withdrawals',{method:'POST',body:{amountCents:amount,requestId:form.dataset.requestId}});invalidateCache();toast('success','Solicitud registrada','El saldo quedó reservado para que administración procese la transferencia.');await render(root);}catch(error){toast('error','No pudimos solicitar el retiro',error.message);button.disabled=false;}});
     window.ICADEMAmbassadorsVIP?.bind(root,data);
+    var pendingWallet=root.querySelector('[data-vip-kpi="1"]')||root.querySelector('.amb-kpis .amb-kpi:nth-child(2)');
+    if(pendingWallet){pendingWallet.setAttribute('data-amb-wallet','pending');if(pendingWallet.tagName!=='BUTTON')pendingWallet.setAttribute('tabindex','-1');}
   }
 
   async function syncInvite(container){
@@ -380,12 +417,12 @@
   }
 
   captureRef();
-  function resetSession(){cancelSharing(false);sessionGeneration+=1;invalidateCache();activeView='dashboard';if(notificationRoot?.isConnected)notificationRoot.innerHTML='';notificationRoot=null;notificationData=null;notificationUid='';shownCelebrations.clear();presentationMode=false;document.querySelector?.('.amb-commission-celebration')?.remove();document.body?.classList.remove('amb-presentation-active');setMemberNav(false);}
+  function resetSession(){cancelCommissionExperience();cancelSharing(false);sessionGeneration+=1;invalidateCache();activeView='dashboard';if(notificationRoot?.isConnected)notificationRoot.innerHTML='';notificationRoot=null;notificationData=null;notificationUid='';shownCelebrations.clear();presentationMode=false;document.querySelector?.('.amb-commission-celebration')?.remove();document.body?.classList.remove('amb-presentation-active');setMemberNav(false);}
   document.addEventListener('icadem:session-ending',resetSession);
   document.addEventListener('icadem:user-ready',function(){resetSession();claimStoredRef();syncMemberNav();});
   document.addEventListener('visibilitychange',function(){if(document.visibilityState!=='hidden')refresh();});
   window.addEventListener?.('online',refresh);
   if(typeof setInterval==='function')setInterval(refresh,60000);
-  window.addEventListener?.('icadem:navigation',function(event){sharingNavigation++;if(sharingIntent){if(event.detail?.section==='embajadores'&&sharingIntent.awaitingNavigation){sharingIntent.awaitingNavigation=false;sharingIntent.navigation=sharingNavigation;}else cancelSharing(false);}if(event.detail?.section!=='embajadores'){presentationMode=false;document.body?.classList.remove('amb-presentation-active');}});
+  window.addEventListener?.('icadem:navigation',function(event){sharingNavigation++;if(sharingIntent){if(event.detail?.section==='embajadores'&&sharingIntent.awaitingNavigation){sharingIntent.awaitingNavigation=false;sharingIntent.navigation=sharingNavigation;}else cancelSharing(false);}if(event.detail?.section!=='embajadores'){cancelCommissionExperience();presentationMode=false;document.body?.classList.remove('amb-presentation-active');}});
   window.ICADEMAmbassadors={render:render,openSharing:openSharing,openNotificationTarget:openNotificationTarget,syncInvite:syncInvite,showInfo:showInfo,claimStoredRef:claimStoredRef,getSummary:load,refresh:refresh,acceptConversion:acceptConversion};
 })();
