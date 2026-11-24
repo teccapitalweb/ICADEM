@@ -90,3 +90,21 @@ test('invalid first events do not starve a valid commission and deduplication is
  const base=summary(),ui=app(summary({commissionCelebrations:[{id:'commission-missing',type:'commission-earned',amountCents:99999},...base.commissionCelebrations]}));await ui.render();assert.equal(ui.shows.length,1);assert.equal(ui.shows[0].options.amountCents,17501);ui.shows[0].options.onDismiss('dismissed');await flush();
  ui.window.__currentUser={uid:'owner-b'};ui.setData(summary());ui.emitDocument('icadem:user-ready');await flush();await ui.render();assert.equal(ui.shows.length,2,'the other account has its own legitimate event');assert.equal(ui.shows[1].options.amountCents,17501);assert.equal(ui.requests.filter(r=>r.method==='POST').length,1,'only the old owner dismissal has been acknowledged');
 });
+
+test('a failed automatic refresh leaves the notice unread and eligible for the next existing refresh',async()=>{
+ const ui=app();await ui.render();assert.equal(ui.shows.length,1);
+ ui.shows[0].options.onDismiss('failed');await flush();assert(ui.requests.every(r=>r.method==='GET'),'failed visual attempt does not consume the server notice');
+ await ui.render();assert.equal(ui.shows.length,2,'the same valid notice can retry after a later panel refresh');
+ const result=await ui.shows[1].options.onCollect();assert.equal(result.amountCents,17501);assert.equal(ui.renders.at(-1).wallet.availableCents,12345);
+ ui.shows[1].options.onDismiss('collected');await flush();assert.equal(ui.requests.filter(r=>r.method==='POST').length,1,'only the completed retry marks the notification read');
+ await ui.render();assert.equal(ui.shows.length,2,'completed retry remains deduplicated');
+});
+
+test('interaction during the automatic fresh GET defers decoration without replacing the focused panel',async()=>{
+ const ui=app();await ui.render();const shown=ui.shows[0],snapshot=summary(),original=ui.window.ICADEMPlatform.request;let release;
+ ui.window.ICADEMPlatform.request=(path,options)=>path==='/api/ambassadors/me'?new Promise(resolve=>{release=()=>resolve(snapshot);}):original(path,options);
+ const pending=shown.options.onCollect();await flush();const rendersBefore=ui.renders.length,focused={matches:()=>true};ui.document.activeElement=focused;ui.root.contains=node=>node===focused;
+ release();const result=await pending;assert.equal(result.defer,true);assert.equal(ui.renders.length,rendersBefore,'automatic refresh cannot replace a newly focused control');assert.equal(ui.document.activeElement,focused,'focus stays on the existing control');
+ shown.options.onDismiss('deferred');await flush();assert(ui.requests.every(r=>r.method==='GET'),'deferred notice remains unread');
+ ui.document.activeElement=null;ui.window.ICADEMPlatform.request=original;await ui.render();assert.equal(ui.shows.length,2,'same notice can play after interaction has ended');
+});

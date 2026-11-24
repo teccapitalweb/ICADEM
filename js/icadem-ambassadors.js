@@ -286,7 +286,7 @@
   function currentCelebration(context){return celebrationContext===context&&sameSession(context.uid,context.generation)&&notificationUid===context.uid&&context.root.isConnected&&location.hash==='#embajadores'&&activeView==='dashboard'&&!presentationMode;}
   function commissionBlocked(root){
     if(document.visibilityState==='hidden'||navigator.onLine===false||presentationMode||window.ICADEMCommissionConversion?.isOpen()||sharingIntent||root.querySelector('[data-amb-dirty="true"]'))return true;
-    var focused=document.activeElement;if(focused&&root.contains?.(focused)&&focused.matches?.('input,textarea,select,[contenteditable="true"]'))return true;
+    var focused=document.activeElement;if(focused&&root.contains?.(focused)&&focused.matches?.('button,a,input,textarea,select,[contenteditable="true"]'))return true;
     var blockers=document.querySelectorAll?.('.modal-backdrop,.credit-wallet-modal,.cc-overlay,#icadem-credit-gift,#name-modal,#free-course-intro,.ica-tour-overlay,.ica-tour-root,.ica-experience,dialog[open],[data-experience-dialog]')||[];
     return Array.from(blockers).some(function(node){
       if(node.hidden||node.closest?.('[hidden]')||typeof node.getClientRects==='function'&&!node.getClientRects().length)return false;
@@ -301,7 +301,9 @@
     context.handle=window.ICADEMCommissionCelebration.show({amountCents:info.amountCents,status:info.status,
       canContinue:function(){return currentCelebration(context);},returnFocus:function(){return root.querySelector('[data-amb-heading]');},
       onCollect:async function(){
+        if(commissionBlocked(root))return {defer:true};
         var fresh=await load(true);if(!currentCelebration(context))return {skip:true};
+        if(commissionBlocked(root))return {defer:true};
         var latest=confirmedCommission(fresh,info.id);renderData(root,fresh);
         if(!currentCelebration(context))return {skip:true};
         if(!latest||latest.amountCents!==info.amountCents){toast('info','Estado actualizado','La comisión cambió. Consulta los movimientos confirmados de tu panel.');return {skip:true};}
@@ -309,7 +311,8 @@
         var target=latest.status==='pending'?root.querySelector('[data-amb-wallet="pending"]'):root.querySelector('.amb-earnings__balance[data-amb-wallet="available"]')||root.querySelector('[data-amb-wallet="available"]');
         return {target:target,status:latest.status,amountCents:latest.amountCents};
       },
-      onDismiss:function(reason){if(celebrationContext!==context)return;celebrationContext=null;if(reason==='collected'||reason==='dismissed')acknowledgeCelebration(context);}
+      onError:function(){toast('info','Consulta pendiente','No pudimos actualizar las comisiones. El aviso se conserva para la siguiente actualización.');},
+      onDismiss:function(reason){if(celebrationContext!==context)return;celebrationContext=null;if(['failed','deferred','cancelled'].includes(reason))shownCelebrations.delete(key);if(reason==='collected'||reason==='dismissed')acknowledgeCelebration(context);}
     });
     if(context.handle)shownCelebrations.add(key);else if(celebrationContext===context)celebrationContext=null;
   }

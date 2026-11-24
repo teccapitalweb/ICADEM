@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-11-24 — Fajitas de billetes sin recuadro
+
+- El aviso visual de comisión pasa a ser una animación automática y transparente: sólo fajitas completas de billetes, sin ventana blanca, fondo, botones ni texto superpuesto. Aparecen brevemente en el centro y siguen una misma trayectoria ascendente hasta la esquina superior derecha, con una separación temporal discreta. Se elimina la base y los destellos del SVG.
+- El panel conserva su altura, scroll, foco y controles durante el efecto. Se anuncia el importe/estado a lectores de pantalla y se omite el movimiento cuando el usuario lo solicita. Escape, navegación, sesión y visibilidad limpian animaciones y temporizadores. Tres fajitas en móvil y cuatro en pantallas grandes, con transform/opacity y sin solicitudes por partícula.
+- Sigue siendo obligatorio consultar el resumen real antes de mostrar billetes. Si empieza una interacción durante esa consulta, se aplaza el efecto sin reemplazar el control enfocado ni sus datos. Un fallo conserva el aviso sin leer y permite reintentar en la siguiente actualización existente. No se realiza ninguna suma local ni operación financiera.
+- 645/645 pruebas del repositorio, sin omisiones. Chrome y WebKit en 320/390/768/1440 px: transparencia, trayectoria compartida, pausa central, destino, ausencia de scroll/foco/intercepción, carga lenta, reversión, fallo/reintento, cambios de cuenta/ruta, movimiento reducido y saldo neto cero. Datos API aislados y tamaños emulados, sin compras reales ni teléfonos físicos.
+- Caché v189, controlador de embajadores v19 y presentación/SVG v2. Sin cambios de servidor, reglas, dinero, créditos, membresías ni Ciudad ICADEM.
+
 ## 2026-11-24 — Celebración de comisiones con billetes
 
 - El aviso existente de una comisión incorpora una pila de billetes y una transición hacia el contador correspondiente al pulsar «Ver comisión» o «Ver saldo». Se distingue una comisión en validación del saldo disponible; el registro gratuito de un referido no genera una celebración monetaria.
