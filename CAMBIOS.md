@@ -1,5 +1,13 @@
 # CAMBIOS
 
+## 2026-11-24 — Celebración de comisiones con billetes
+
+- El aviso existente de una comisión incorpora una pila de billetes y una transición hacia el contador correspondiente al pulsar «Ver comisión» o «Ver saldo». Se distingue una comisión en validación del saldo disponible; el registro gratuito de un referido no genera una celebración monetaria.
+- Se correlaciona la notificación con el identificador, importe y estado actuales de la comisión. Antes de la transición se vuelve a consultar el resumen del servidor; una reversión o un cambio de importe cancela el efecto. Los contadores muestran siempre el saldo recibido, sin sumas locales ni confusión entre comisión bruta y saldo neto después de deudas. Sólo se utiliza el endpoint existente para marcar el aviso leído.
+- Foco contenido y restaurado, cierre accesible, limpieza al navegar/cambiar de cuenta, movimiento reducido y billetes decorativos que no interceptan pulsaciones. Se corrige un bloqueo real por el contenedor oculto del recorrido inicial. SVG ligeros y animación con transform/opacity, sin cambios de altura del panel.
+- 643/643 pruebas del repositorio, sin omisiones, incluidas diez regresiones del controlador. Panel completo comprobado en Chrome y WebKit a 320/390/768/1440 px, con recarga, consulta lenta/error/reintento, reversión, saldo neto cero, cambio de cuenta/ruta y foco. Son pruebas locales con respuestas API aisladas, no teléfonos físicos ni una compra de producción.
+- Caché v188, controlador de embajadores v18 y módulo visual v1. Ciudad permanece en v19. No se cambian servidor, Stripe, membresías, comisiones, retiros, créditos ni reglas del monedero.
+
 ## 2026-11-16 — Textos de entrada de Ciudad ICADEM 2.0
 
 - La auditoría autenticada encontró la portada del panel todavía identificada como 1.3 y con una descripción anterior de minijuegos/recompensas. Se actualizan sólo esos textos para reflejar Mundo vivo y distinguir monedas/experiencia del juego de la cartera y créditos reales. Se conserva la imagen, distribución, controles y mecánicas. Entrada/puente v19 y caché v187 para entregar la corrección editorial.
