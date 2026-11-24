@@ -3,7 +3,6 @@
     <linearGradient id="note" x1="45" y1="45" x2="270" y2="143" gradientUnits="userSpaceOnUse"><stop stop-color="#DDFA83"/><stop offset="1" stop-color="#A9D94A"/></linearGradient>
     <linearGradient id="band" x1="133" y1="38" x2="226" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#FFF4AD"/><stop offset=".6" stop-color="#FFDF5E"/><stop offset="1" stop-color="#F8C538"/></linearGradient>
   </defs>
-  <ellipse cx="160" cy="194" rx="139" ry="22" fill="#C7DEC7" opacity=".6"/>
   <g stroke="#183C2C" stroke-width="3.5" stroke-linejoin="round">
     <path d="M30 131 202 67 292 128 120 195Z" fill="#5B9439"/>
     <path d="M30 123 202 59 292 120 120 187Z" fill="#6DA943"/>
@@ -24,9 +23,4 @@
   </g>
   <path d="m211 115 24-10v37l-24 10Z" fill="#F6C84A"/>
   <path d="m153 67 21 15m-16-12c-7 0-10 3-8 6 3 5 18 3 21 8 3 4-1 8-9 7m-17-17 5-4m17 20 5-4" stroke="#BE8A1C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  <g fill="#FFDF5E" stroke="#E9B524" stroke-width="2" stroke-linejoin="round">
-    <path d="m58 30 3 10 10 3-10 3-3 10-3-10-10-3 10-3Z"/>
-    <path d="m273 166 3 10 10 3-10 3-3 10-3-10-10-3 10-3Z"/>
-  </g>
-  <path d="m84 17 1.5 5.5L91 24l-5.5 1.5L84 31l-1.5-5.5L77 24l5.5-1.5Z" fill="#F4C542"/>
 </svg>
