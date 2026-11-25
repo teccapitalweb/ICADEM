@@ -34,7 +34,7 @@ test('Shift+Enter and composition preserve typing; unchanged polling preserves D
 
 test('admin authentication and page polling refresh the selected conversation with the same timer',async()=>{
   const requests=[],events={};let timer,interval;
-  const context={window:{addEventListener(n,f){events[n]=f;}},Pages:{_getAuthToken:async()=> 'test',_webhookUrl:''},document:{getElementById(){return null;}},__seccionActual:'soporte',Toast:{error(){}},setInterval(f,ms){timer=f;interval=ms;return 1;},clearInterval(){},setTimeout(){},fetch:async path=>{requests.push(path);return{ok:true,json:async()=>({conversations:[],conversation:{uid:'alice'},messages:[]})};}};
+  const context={window:{__currentAdmin:{uid:'admin-test'},addEventListener(n,f){events[n]=f;}},Pages:{_getAuthToken:async()=> 'test',_webhookUrl:''},document:{getElementById(){return null;}},__seccionActual:'soporte',Toast:{error(){}},setInterval(f,ms){timer=f;interval=ms;return 1;},clearInterval(){},setTimeout(){},fetch:async path=>{requests.push(path);return{ok:true,json:async()=>({conversations:[],conversation:{uid:'alice'},messages:[]})};}};
   const source=fs.readFileSync(__dirname+'/../js/icadem-support-admin.js','utf8').replace(/\}\)\(\);\s*$/, 'window.__supportState=state;})();');
   vm.runInNewContext(source,context);events.adminready();await new Promise(setImmediate);assert.equal(interval,20000);
   context.window.__supportState.selected='alice';requests.length=0;timer();await new Promise(setImmediate);

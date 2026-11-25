@@ -21,6 +21,12 @@
   function setCaseStatus(root,conversation){var kind=!conversation?'new':conversation.status==='closed'?'closed':'open',text=kind==='new'?'Sin consulta':kind==='closed'?'Resuelto':'En seguimiento';root.querySelectorAll('[data-support-case-state]').forEach(function(node){node.textContent=text;node.dataset.state=kind;});}
   function composerMarkup(admin){var prefix=admin?'support-admin':'support';return '<form class="'+prefix+'-composer sp-composer" id="'+prefix+'-form"><label class="sp-composer__label" for="'+prefix+'-message">'+(admin?'Tu respuesta':'Tu mensaje')+'</label><div class="sp-composer__row"><textarea id="'+prefix+'-message" maxlength="3000" rows="1" placeholder="'+(admin?'Escribe tu respuesta…':'Escribe tu mensaje…')+'" aria-label="'+(admin?'Respuesta al miembro':'Mensaje para soporte')+'" required></textarea><button class="'+prefix+'-send sp-send" id="'+prefix+'-send" type="submit" aria-label="'+(admin?'Enviar respuesta':'Enviar mensaje')+'">'+icon('send')+'</button></div><div class="sp-composer__footer"><span>'+icon('shield')+(admin?'Solo este miembro y administración pueden ver la respuesta.':'No compartas contraseñas ni datos completos de tu tarjeta.')+'</span><span class="sp-counter" data-support-count>0 / 3000</span></div></form>';}
   var focusedText=null,threadFits=new Map();
+  function trackTextFocus(text){
+    function focus(){focusedText=text;}
+    function blur(){if(focusedText===text)focusedText=null;var thread=text.closest('.support-thread,.support-admin-thread');if(thread){thread.style.maxHeight='';thread.style.minHeight='';}}
+    text.addEventListener('focus',focus);text.addEventListener('blur',blur);
+    return function(){text.removeEventListener('focus',focus);text.removeEventListener('blur',blur);blur();};
+  }
   function resizeThreads(){threadFits.forEach(function(fit,thread){if(thread.isConnected)fit();else threadFits.delete(thread);});}
   window.addEventListener?.('resize',resizeThreads,{passive:true});
   if(window.visualViewport)window.visualViewport.addEventListener('resize',function(){
@@ -37,7 +43,7 @@
     if(template.content&&box.children){
       var old=new Map(Array.from(box.children).map(function(node){return[node.getAttribute('data-support-key'),node];})),keep=new Set();
       Array.from(template.content.children).forEach(function(next,index){
-        var key=next.getAttribute('data-support-key'),existing=key&&old.get(key),node=existing&&existing.outerHTML===next.outerHTML?existing:next;
+        var key=next.getAttribute('data-support-key'),existing=key&&old.get(key),node=existing&&(existing.hasAttribute?.('data-support-editing')||existing.contains?.(document.activeElement)||existing.outerHTML===next.outerHTML)?existing:next;
         if(!existing&&next.matches('[data-support-message]')){added=true;if(!force&&!window.matchMedia?.('(prefers-reduced-motion:reduce)').matches){node.classList.add('sp-message-new');node.addEventListener('animationend',function(){node.classList.remove('sp-message-new');},{once:true});}}
         keep.add(node);if(box.children[index]!==node)box.insertBefore(node,box.children[index]||null);
       });
@@ -82,5 +88,5 @@
     });
     update();return{isBusy:function(){return busy;}};
   }
-  window.ICADEMSupportUI={syncMessages:syncMessages,bindComposer:bindComposer,icon:icon,hero:hero,categoriesMarkup:categoriesMarkup,bindCategories:bindCategories,setCaseStatus:setCaseStatus,composerMarkup:composerMarkup,bindThread:bindThread};
+  window.ICADEMSupportUI={syncMessages:syncMessages,bindComposer:bindComposer,icon:icon,hero:hero,categoriesMarkup:categoriesMarkup,bindCategories:bindCategories,setCaseStatus:setCaseStatus,composerMarkup:composerMarkup,bindThread:bindThread,trackTextFocus:trackTextFocus};
 })();

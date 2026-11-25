@@ -1,4 +1,28 @@
 /* Shared community language; all selectors are scoped to these two modules. */
+.foro-page--clean[data-community-forum] .community-post-edit{flex-shrink:0;min-height:44px;min-width:54px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text-2);font:600 11px/1.3 Inter,system-ui,sans-serif;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.foro-page--clean[data-community-forum] .community-post-edit:hover{background:var(--surface-2);border-color:var(--border-2)}
+.foro-page--clean[data-community-forum] .community-post-edit:disabled{opacity:.55;cursor:wait}
+.foro-page--clean[data-community-forum] .post__edited{font-size:inherit;white-space:nowrap;font-weight:500}
+.community-edit-dialog{position:fixed;inset:0;width:min(480px,calc(100vw - 24px));max-height:calc(100dvh - 32px);box-sizing:border-box;margin:auto;padding:23px;border:1px solid var(--border,#dce5e5);border-radius:17px;background:var(--surface,#fff);color:var(--text,#203446);box-shadow:0 20px 64px #102d4926;overflow:auto;color-scheme:light}
+.community-edit-dialog::backdrop{background:#10243770}
+.community-edit-dialog [hidden]{display:none!important}
+.community-edit-dialog h2{margin:0 0 7px;font:750 19px/1.3 'Plus Jakarta Sans',Inter,system-ui,sans-serif;letter-spacing:-.35px}
+.community-edit-hint{margin:0 0 17px;color:var(--text-2,#526777);font:400 12px/1.6 Inter,system-ui,sans-serif}
+.community-edit-dialog label{display:block;margin-bottom:8px;font:650 12px/1.4 Inter,system-ui,sans-serif}
+.community-edit-dialog textarea{display:block;box-sizing:border-box;width:100%;min-height:150px;max-height:38dvh;resize:vertical;padding:12px 13px;border:1px solid var(--border-2,#c7d5dd);border-radius:11px;background:var(--surface,#fff);color:var(--text,#203446);font:400 16px/1.6 Inter,system-ui,sans-serif;overflow-wrap:anywhere}
+.community-edit-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:8px 0 0;font:400 10px/1.5 Inter,system-ui,sans-serif;color:var(--text-2,#526777)}
+.community-edit-meta output{font-variant-numeric:tabular-nums;white-space:nowrap}
+.community-edit-error{margin:13px 0 0;font:500 12px/1.6 Inter,system-ui,sans-serif;color:var(--danger,#a73142)}
+.community-edit-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:18px}
+.community-edit-dialog button{min-height:44px;box-sizing:border-box;border:1px solid var(--border,#dce5e5);border-radius:10px;padding:10px 13px;background:var(--surface,#fff);color:var(--text-2,#526777);font:650 12px/1.4 Inter,system-ui,sans-serif;cursor:pointer}
+.community-edit-dialog [data-post-edit-save]{background:#1b4258;color:#fff;border-color:#1b4258}
+.community-edit-dialog button:disabled{opacity:.55;cursor:default}
+.community-edit-dialog :focus-visible,.foro-page--clean[data-community-forum] .community-post-edit:focus-visible{outline:3px solid #1550ed;outline-offset:3px}
+.community-edit-comparison{margin-top:14px;padding:13px;border:1px solid var(--border,#dce5e5);border-radius:11px;background:var(--surface-2,#f1f5f7)}
+.community-edit-comparison strong{font:650 11px/1.4 Inter,system-ui,sans-serif}
+.community-edit-comparison p{max-height:130px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;font:400 12px/1.65 Inter,system-ui,sans-serif;margin:9px 0 12px}
+@media(max-width:540px){.community-edit-dialog{padding:19px}.community-edit-actions{gap:7px}.community-edit-actions button{flex:1 1 auto}.community-edit-dialog h2{font-size:18px}}
+@media(prefers-reduced-motion:reduce){.foro-page--clean[data-community-forum] .community-post-edit{transition:none}}
 .community-nav {
   display: flex;
   gap: 5px;
