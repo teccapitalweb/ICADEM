@@ -153,6 +153,9 @@
           render(next);
           var fresh=current()&&root.querySelector('.course-rating__state');
           var creditedAmount=Number(next.reward?.creditedAmount);
+          if(next.reward?.granted===true&&Number.isSafeInteger(creditedAmount)&&creditedAmount>0){
+            window.ICADEMPanelSounds?.confirmed('credit','rating:'+courseId,owner);
+          }
           if(fresh)fresh.innerHTML='<span class="course-rating__state-mark">✓</span><span>'+((next.reward?.granted===true&&Number.isSafeInteger(creditedAmount)&&creditedAmount>0)?'¡Gracias por tu opinión! +'+creditedAmount+' créditos añadidos a tu cartera.':'Gracias. Tu valoración quedó guardada.')+'</span>';
           document.dispatchEvent(new CustomEvent('icadem:course-rating-saved',{detail:{courseId,subject:isLesson?'lesson':'course'}}));
           if(current()){try{options.onSaved?.(next);}catch(_){}}

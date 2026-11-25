@@ -74,13 +74,110 @@
     shell(); load();
   }
 
+  function mountMissionReminders(section, options) {
+    var content = section.querySelector('[data-mission-email-preview]');
+    var feedback = section.querySelector('[data-mission-email-feedback]');
+    var previewButton = section.querySelector('[data-mission-email-load]');
+    var metrics = section.querySelector('[data-mission-email-metrics]');
+    var verified = null;
+    var currentCursor = '';
+    var busy = false;
+
+    async function preview(cursor, message) {
+      if (busy) return;
+      busy = true;
+      verified = null;
+      previewButton.disabled = true;
+      content.replaceChildren();
+      feedback.textContent = message || 'Revisando cuentas elegibles…';
+      try {
+        var data = await api(options, '/admin/mission-invitations/preview' + (cursor ? '?cursor=' + encodeURIComponent(cursor) : ''));
+        if (!section.isConnected) return;
+        currentCursor = cursor;
+        verified = data;
+        var status = num(data.eligible) + ' elegibles entre ' + num(data.reviewed) + ' cuentas revisadas.';
+        content.innerHTML = '<p class="mx-muted">' + esc(status) + '</p>'
+          + (data.example ? '<details class="mx-panel"><summary>Ver ejemplo del correo</summary><p><strong>' + esc(data.example.subject) + '</strong></p><p style="white-space:pre-wrap;overflow-wrap:anywhere">' + esc(data.example.text) + '</p></details>' : '')
+          + '<div class="mx-toolbar">'
+          + (currentCursor ? '<button type="button" class="mx-btn" data-mission-email-first>Primera página</button>' : '')
+          + (data.nextCursor ? '<button type="button" class="mx-btn" data-mission-email-next>Siguiente página</button>' : '')
+          + (data.sendable && data.deliveryReady ? '<button type="button" class="mx-btn" data-mission-email-send>Revisar envío de ' + num(data.sendable) + ' recordatorios</button>' : '')
+          + '</div>';
+        if (!data.deliveryReady) feedback.textContent = 'Vista previa disponible. Configura el remitente en el servidor para habilitar envíos.';
+        else feedback.textContent = message || 'Vista previa actualizada.';
+      } catch (error) {
+        if (section.isConnected) feedback.textContent = error.message;
+      } finally {
+        busy = false;
+        previewButton.disabled = false;
+      }
+    }
+
+    async function send(button) {
+      if (busy || !verified?.sendable || !verified.deliveryReady) return;
+      var approved = verified;
+      if (!window.confirm('¿Enviar hasta ' + num(approved.sendable) + ' recordatorios a las cuentas elegibles de esta página?')) return;
+      busy = true;
+      verified = null;
+      button.disabled = true;
+      previewButton.disabled = true;
+      feedback.textContent = 'Confirmando el lote…';
+      var message;
+      try {
+        var result = await api(options, '/admin/mission-invitations/send', {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({
+            confirmed:'ENVIAR_RECORDATORIOS_MISIONES', approval:approved.approval, cursor:currentCursor
+          })
+        });
+        message = num(result.sent) + ' aceptados por el proveedor · ' + num(result.skipped) + ' omitidos · ' + num(result.requireReview) + ' requieren revisión.';
+      } catch (error) {
+        message = error.message;
+      } finally {
+        busy = false;
+        if (section.isConnected) await preview(currentCursor, message);
+      }
+    }
+
+    previewButton.addEventListener('click', function () { preview(''); });
+    content.addEventListener('click', function (event) {
+      var button = event.target.closest('button');
+      if (!button || busy) return;
+      if (button.hasAttribute('data-mission-email-first')) preview('');
+      else if (button.hasAttribute('data-mission-email-next') && verified?.nextCursor) preview(verified.nextCursor);
+      else if (button.hasAttribute('data-mission-email-send')) send(button);
+    });
+    metrics.addEventListener('click', async function () {
+      if (metrics.disabled) return;
+      metrics.disabled = true;
+      var output = section.querySelector('[data-mission-email-results]');
+      try {
+        var data = await api(options, '/admin/mission-invitations/measurements');
+        if (!section.isConnected) return;
+        var inline = data.groups?.inline || {};
+        var popup = data.groups?.popup || {};
+        output.textContent = 'Misión acreditada en 7 días. Aviso en Inicio ' + num(inline.credited) + ' de ' + num(inline.measured)
+          + ' · Popup ' + num(popup.credited) + ' de ' + num(popup.measured) + '. Muestra de hasta ' + num(data.sampleLimit) + ' invitaciones con siete días transcurridos.';
+      } catch (error) {
+        if (section.isConnected) output.textContent = error.message;
+      } finally {
+        metrics.disabled = false;
+      }
+    });
+  }
+
   function mountEmails(container, options) {
     function members() {
       return options.members ? options.members() : [];
     }
     function shell() {
-      container.innerHTML = '<div class="mx-page mk-page fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Marketing · conversión</span><h1 class="sec-hero__title">Correos</h1><p class="sec-hero__sub">Tres mensajes para cuentas registradas —anteriores y nuevas— que aún no son VIP: beneficios a las 12 h, precio especial 12 h después y último llamado 24 h más tarde.</p></div>' + tabs('correos') + '<div data-email-body class="mk-loading"><span class="mx-spin"></span>Cargando campaña…</div></div>';
+      container.innerHTML = '<div class="mx-page mk-page fade-up"><div class="sec-hero"><span class="sec-hero__eyebrow">Comunicaciones ICADEM</span><h1 class="sec-hero__title">Correos</h1><p class="sec-hero__sub">Gestiona los recordatorios de misiones y la campaña de membresías.</p></div>' + tabs('correos')
+        + '<section class="mx-panel" data-mission-email-panel><div class="mx-panel__head"><div><h2>Recordatorios de misiones</h2><p class="mx-muted">Un correo por cuenta, con permiso explícito y al menos tres días sin entrar.</p></div></div>'
+        + '<div class="mx-toolbar"><button type="button" class="mx-btn" data-mission-email-load>Revisar destinatarios</button><button type="button" class="mx-btn" data-mission-email-metrics>Comparar invitaciones</button></div>'
+        + '<p class="mx-muted" role="status" data-mission-email-feedback></p><p class="mx-muted" role="status" data-mission-email-results></p><div data-mission-email-preview></div></section>'
+        + '<div data-email-body class="mk-loading"><span class="mx-spin"></span>Cargando campaña…</div></div>';
       bindTabs(container);
+      mountMissionReminders(container.querySelector('[data-mission-email-panel]'), options);
     }
     function memberOptions() {
       var rows = members().slice().sort(function (a, b) { return String(a.email || '').localeCompare(String(b.email || '')); });

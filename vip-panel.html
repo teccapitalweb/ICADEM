@@ -24,7 +24,8 @@
 <link rel="stylesheet" href="css/platform-v2.css?v=13">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=57" defer></script>
+<script src="js/icadem-panel-sounds.js?v=1" defer></script>
+<script src="js/icadem-platform-v2.js?v=58" defer></script>
 <script src="js/icadem-course-unlocks.js?v=7" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=4">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
@@ -33,6 +34,7 @@
 <link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
+<script src="js/icadem-mission-invitations.js?v=1" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
 <script src="js/icadem-vip-banner.js?v=3"></script>
 <script src="js/icadem-ambassadors-vip.js?v=5" defer></script>
@@ -4099,11 +4101,11 @@ body.has-fomo .main{padding-top:18px}
 <script src="js/icadem-cv-languages.js?v=1"></script>
 <script src="js/icadem-professional-profile.js?v=7"></script>
 <script src="js/icadem-professional-activity.js?v=4" defer></script>
-<script src="js/icadem-professional-network.js?v=3" defer></script>
+<script src="js/icadem-professional-network.js?v=4" defer></script>
 <script src="js/icadem-post-style.js?v=2" defer></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
-<script src="js/icadem-community.js?v=13"></script>
-<script src="js/icadem-notifications.js?v=3" defer></script>
+<script src="js/icadem-community.js?v=14"></script>
+<script src="js/icadem-notifications.js?v=4" defer></script>
 <link rel="stylesheet" href="css/icadem-contacts.css?v=1">
 </head>
 <body style="visibility:hidden">
@@ -12509,7 +12511,17 @@ const Sections = (function(){
             <div class="perfil-field"><span class="perfil-field__lbl">Nuevos cursos</span><span class="perfil-field__val" style="color:var(--success);">✓ Activado</span></div>
             <div class="perfil-field"><span class="perfil-field__lbl">Clases en vivo</span><span class="perfil-field__val" style="color:var(--success);">✓ Activado</span></div>
             <div class="perfil-field"><span class="perfil-field__lbl">Comunidad ICADEM</span><span class="perfil-field__val" style="color:var(--success);">✓ Activado</span></div>
+            ${window.__isDemoMode?'':`<label class="perfil-field" style="min-height:44px;cursor:pointer;">
+              <span><span class="perfil-field__lbl">Sonidos del panel</span><small id="pf-panel-sounds-description" style="display:block;color:var(--text-2);">Solo en este navegador</small></span>
+              <input type="checkbox" role="switch" data-panel-sounds aria-describedby="pf-panel-sounds-description" aria-label="Sonidos del panel" style="accent-color:var(--primary);width:20px;height:20px;flex:none;">
+            </label>`}
             <div class="perfil-field"><span class="perfil-field__lbl">Newsletter quincenal</span><span class="perfil-field__val" style="color:var(--text-3);">— Desactivado</span></div>
+            ${window.__isDemoMode ? '' : `<div class="mission-email-setting">
+              <strong id="mission-email-label">Recordatorio de misiones por correo</strong>
+              <small id="mission-email-help">Recibe un correo si tienes una misión pendiente y pasan al menos tres días sin entrar. Puedes cambiar esta preferencia aquí.</small>
+              <button type="button" class="mission-email-toggle" data-mission-email-toggle aria-labelledby="mission-email-label" aria-describedby="mission-email-help" aria-pressed="false" disabled>Cargando…</button>
+              <p role="status" data-mission-email-status></p>
+            </div>`}
           </div>
 
           <div class="perfil-card">
@@ -12526,6 +12538,7 @@ const Sections = (function(){
     if (typeof window.__refreshPerfilDatos==='function') window.__refreshPerfilDatos();
     // Interruptor para activar o quitar los avisos en el teléfono (js/icadem-push.js)
     window.ICADEMPush?.montarInterruptor(container);
+    window.ICADEMPanelSounds?.mount(container);
     window.ICADEMAmbassadors?.syncInvite(container);
   }
 
@@ -22484,7 +22497,8 @@ h1, h2, h3, h4{ color: var(--text); }
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
   <link rel="stylesheet" href="css/vip-banner.css?v=4">
   <link rel="stylesheet" href="css/icadem-games-v4.css?v=12">
-  <link rel="stylesheet" href="css/icadem-wallet-page.css?v=1">
+  <link rel="stylesheet" href="css/icadem-wallet-page.css?v=2">
+  <link rel="stylesheet" href="css/icadem-mission-invitations.css?v=1">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){
@@ -22640,7 +22654,7 @@ h1, h2, h3, h4{ color: var(--text); }
   .lesson-tools-bottom .lesson-outline{grid-template-columns:1fr;gap:8px}
 }
 </style>
-<script src="js/icadem-course-ratings.js?v=8"></script>
+<script src="js/icadem-course-ratings.js?v=9"></script>
 <script src="js/icadem-credit-rewards.js?v=2"></script>
 <script src="js/icadem-onboarding.js?v=24"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>

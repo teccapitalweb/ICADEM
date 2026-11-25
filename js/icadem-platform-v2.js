@@ -443,7 +443,10 @@
   async function toggleForumLike(postId, liked) {
     const id = String(postId || '').trim();
     if (!id) throw new Error('Publicación inválida.');
-    return request(`/api/forum/posts/${encodeURIComponent(id)}/like`, { method: 'POST', body: typeof liked==='boolean'?{liked}:{} });
+    const owner = platformSession().uid;
+    const result = await request(`/api/forum/posts/${encodeURIComponent(id)}/like`, { method: 'POST', body: typeof liked==='boolean'?{liked}:{} });
+    if (result?.ok && result.changed === true && result.liked === true) window.ICADEMPanelSounds?.confirmed('like', null, owner);
+    return result;
   }
 
   async function createForumPost(post) {
@@ -461,10 +464,13 @@
   async function createForumComment(postId, comment) {
     const id = String(postId || '').trim();
     if (!id) throw new Error('Publicación inválida.');
-    return request(`/api/forum/posts/${encodeURIComponent(id)}/comments`, {
+    const owner = platformSession().uid;
+    const result = await request(`/api/forum/posts/${encodeURIComponent(id)}/comments`, {
       method: 'POST',
       body: { texto: String(comment?.texto || '').trim(), requestId:comment?.requestId || crypto.randomUUID() }
     });
+    if (result?.ok && result.created === true) window.ICADEMPanelSounds?.confirmed('comment', result.commentId, owner);
+    return result;
   }
 
   async function deleteForumComment(postId, commentId) {
@@ -712,12 +718,21 @@
 
   function missionMarkup(mission) {
     const amount = missionAmount(mission);
+    const icons = {
+      'professional-card': 'i-user', 'professional-cv': 'i-book', 'first-connection': 'i-users',
+      'forum-reply': 'i-messages', 'referral-activation': 'i-link', 'referral-email': 'i-mail',
+      'referral-first-activity': 'i-trophy'
+    };
+    const icon = Object.hasOwn(icons, mission.id) ? icons[mission.id] : 'i-check-circle';
     return `<li class="credit-mission credit-mission--${mission.status}">
-      <div class="credit-mission__title"><strong>${esc(mission.title)}</strong><small>${missionStates[mission.status]}</small></div>
+      <span class="credit-mission__symbol">${walletIcon(icon)}</span>
+      <div class="credit-mission__body">
+        <div class="credit-mission__title"><strong>${esc(mission.title)}</strong><small>${missionStates[mission.status]}</small></div>
+        ${mission.description ? `<p class="credit-mission__description">${esc(mission.description)}</p>` : ''}
+        ${missionProgress(mission)}
+        ${missionControls(mission)}
+      </div>
       ${amount ? `<span class="credit-mission__amount">+${amount}<small> créditos</small></span>` : ''}
-      ${mission.description ? `<p class="credit-mission__description">${esc(mission.description)}</p>` : ''}
-      ${missionProgress(mission)}
-      ${missionControls(mission)}
     </li>`;
   }
 
@@ -761,9 +776,9 @@
   }
 
   const walletViews = {
+    misiones: { section: 'cartera-misiones', label: 'Misiones', icon: 'i-trophy' },
     resumen: { section: 'cartera', label: 'Resumen', icon: 'i-credit-card' },
     movimientos: { section: 'cartera-movimientos', label: 'Movimientos', icon: 'i-clock' },
-    misiones: { section: 'cartera-misiones', label: 'Misiones', icon: 'i-trophy' },
     canjes: { section: 'cartera-canjes', label: 'Canjes', icon: 'i-gift' }
   };
   const walletSections = new Set(Object.values(walletViews).map(view => view.section));
@@ -826,16 +841,25 @@
       </section>`;
     }
     if (view === 'misiones') {
-      const missions = walletMissions(data);
+      const statusOrder = { available: 0, pending: 1, completed: 2, limited: 3 };
+      const missionOrder = mission => statusOrder[mission.status] * 2
+        + (['referral-email', 'referral-first-activity'].includes(mission.id) ? 0 : 1);
+      const missions = walletMissions(data).sort((a, b) => missionOrder(a) - missionOrder(b));
       const rules = Array.isArray(data?.earnRules) ? data.earnRules : [];
-      return `<section class="credit-wallet-page__panel credit-wallet-missions" aria-labelledby="wallet-missions-title">
-        <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-missions-title">Misiones para sumar créditos</h2><p>Consulta tu avance y continúa desde cada actividad.</p></div></header>
-        ${missions.length ? `<ul>${missions.map(missionMarkup).join('')}</ul>` : '<p class="credit-wallet-page__empty">Aún no hay misiones disponibles para esta cuenta.</p>'}
-      </section>
-      <section class="credit-wallet-page__panel credit-wallet-rules" aria-labelledby="wallet-rules-title">
-        <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-rules-title">Cómo sumar créditos</h2></div></header>
-        <ul>${rules.map(rule => `<li><strong>+${walletNumber(rule.amount)}</strong><div><b>${esc(rule.label)}</b><p>${esc(rule.note)}</p></div></li>`).join('')}</ul>
-      </section>`;
+      return `<div class="credit-wallet-page__mission-layout">
+        <section class="credit-wallet-page__panel credit-wallet-page__mission-balance" aria-label="Saldo disponible">
+          <span class="credit-wallet-page__symbol">${walletIcon('i-credit-card')}</span>
+          <div><small>Saldo disponible</small><strong data-credit-balance data-credit-formatted>${walletNumber(data?.credits?.balance)}</strong><span> créditos</span></div>
+        </section>
+        <section class="credit-wallet-page__panel credit-wallet-missions" aria-labelledby="wallet-missions-title">
+          <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-missions-title">Misiones para sumar créditos</h2><p>Consulta tu avance y continúa desde cada actividad.</p></div></header>
+          ${missions.length ? `<ul>${missions.map(missionMarkup).join('')}</ul>` : '<p class="credit-wallet-page__empty">Aún no hay misiones disponibles para esta cuenta.</p>'}
+        </section>
+        ${rules.length ? `<details class="credit-wallet-page__panel credit-wallet-rules" open>
+          <summary>Cómo sumar créditos</summary>
+          <ul>${rules.map(rule => `<li><strong>+${walletNumber(rule.amount)}</strong><div><b>${esc(rule.label)}</b><p>${esc(rule.note)}</p></div></li>`).join('')}</ul>
+        </details>` : ''}
+      </div>`;
     }
     if (view === 'canjes') {
       const destinations = Array.isArray(data?.destinations) ? data.destinations : [];
@@ -916,11 +940,11 @@
     else location.hash = '#' + section;
   }
 
-  function openCreditWallet(view = 'resumen') {
+  function openCreditWallet(view = 'misiones') {
     if (!currentPlatformSession(platformSession())) return;
     const source = location.hash.slice(1) || 'inicio';
     if (!walletSections.has(source)) walletOrigin = Object.hasOwn(walletSourceLabels, source) ? source : 'inicio';
-    goToWalletSection((Object.hasOwn(walletViews, view) ? walletViews[view] : walletViews.resumen).section);
+    goToWalletSection((Object.hasOwn(walletViews, view) ? walletViews[view] : walletViews.misiones).section);
   }
 
   function clearCreditWalletPage() {
@@ -2311,6 +2335,7 @@
     try {
       const data = await request('/api/credits/notifications');
       const items = Array.isArray(data?.items) ? data.items.filter(item => Number(item.amount) > 0) : [];
+      window.ICADEMPanelSounds?.inbox('credit', items.map(item => ({ id: item.id, createdAtMs: Date.parse(item.createdAt) })), data?.serverNowMs, scope.uid);
       if (!items.length) return;
       const total = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const last = items[items.length - 1];
@@ -2406,6 +2431,9 @@
     const continueButton = shell.content.querySelector('[data-game-continue]');
     publishCredits({ ...(window.UserState?.credits || {}), balance: next }, { source: hasReward ? (isReto ? 'reto-game' : 'lesson-game') : 'practice' });
     if (hasReward) {
+      if (result.ok === true && Number(result.reward) > 0 && !challenge.local) {
+        window.ICADEMPanelSounds?.confirmed('credit', `activity:${result.transactionId || challenge.challengeId}`, platformSession().uid);
+      }
       creditWalletCache = null;
       celebrate(result.courseCompleted || stars === 3);
       setTimeout(() => showCoinChest({ amount: reward, total: next, title: completionReward ? '¡Curso completado!' : (isReto ? '¡Reto superado!' : '¡Mini juego superado!') }), 450);
