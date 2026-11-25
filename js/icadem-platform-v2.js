@@ -104,8 +104,7 @@
     if (accountDeletedHandled || window.__isDemoMode) return false;
     accountDeletedHandled = true;
 
-    document.querySelector('.credit-wallet-modal')?.remove();
-    document.body.classList.remove('has-credit-wallet');
+    clearCreditWalletPage();
 
     try { sessionStorage.setItem('icadem:account-deleted', '1'); } catch (_) {}
 
@@ -560,7 +559,10 @@
     if (window.UserState) window.UserState.credits = { ...(window.UserState.credits || {}), ...normalized };
     if (identityCache && currentPlatformSession(identityCache.scope)) identityCache.data = { ...identityCache.data, credits: { ...normalized } };
     document.querySelectorAll('[data-credit-balance]').forEach(element => {
-      element.textContent = String(normalized.balance);
+      element.textContent = element.hasAttribute?.('data-credit-formatted') ? walletNumber(normalized.balance) : String(normalized.balance);
+    });
+    activeWalletPage?.root.querySelectorAll('[data-wallet-stat]').forEach(element => {
+      element.textContent = walletNumber(normalized[element.dataset.walletStat]);
     });
     const { readTicket, ...publicMeta } = meta || {};
     document.dispatchEvent(new CustomEvent('icadem:credits-changed', { detail: { credits: normalized, ...publicMeta } }));
@@ -605,7 +607,8 @@
   let creditWalletCache = null;
   let creditWalletPromise = null;
   let creditWalletSequence = 0;
-  let closeCreditWallet = null;
+  let activeWalletPage = null;
+  let walletOrigin = '';
 
   function demoCreditWallet() {
     const ledger = readDemoCreditLedger();
@@ -645,7 +648,7 @@
     entry.promise = request('/api/credits/wallet').then(data => {
       if (!currentPlatformSession(scope)) throw changedSessionError();
       if (entry.sequence !== creditWalletSequence || !currentCreditRead(entry.creditTicket)) {
-        // Sigue la lectura más reciente; nunca entrega un saldo vencido al modal.
+        // Sigue la lectura más reciente para presentar el saldo confirmado.
         if (creditWalletPromise === entry) creditWalletPromise = null;
         return loadCreditWallet(false);
       }
@@ -656,13 +659,6 @@
     }).finally(() => { if (creditWalletPromise === entry) creditWalletPromise = null; });
     creditWalletPromise = entry;
     return entry.promise;
-  }
-
-  function formatMovementDate(value) {
-    if (!value) return 'Reciente';
-    try {
-      return new Intl.DateTimeFormat('es-MX', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
-    } catch (_) { return 'Reciente'; }
   }
 
   const missionActions = {
@@ -710,7 +706,7 @@
     const current = Number(mission.progress?.current);
     const total = Number(mission.progress?.total);
     if (!Number.isSafeInteger(current) || !Number.isSafeInteger(total) || total <= 1 || current < 0 || current > total) return '';
-    const label = mission.id === 'forum-reply' ? 'Respuestas premiadas esta semana' : 'Invitados premiados este mes';
+    const label = mission.id === 'forum-reply' ? 'Comentarios premiados esta semana' : 'Invitados premiados este mes';
     return `<div class="credit-mission__progress"><progress aria-label="${label}" value="${current}" max="${total}"></progress><small>${current} de ${total}</small></div>`;
   }
 
@@ -744,7 +740,7 @@
     const description = host.querySelector('header p');
     description.textContent = visible.length ? 'Completa una actividad y suma créditos para tus próximos canjes.' : 'Consulta tus misiones y recompensas en la cartera.';
     const markup = visible.map(mission => {
-      const attribute = mission.id === 'referral-email' ? 'data-credit-wallet-open' : `data-credit-mission="${esc(mission.id)}"`;
+      const attribute = mission.id === 'referral-email' ? 'data-credit-wallet-open="misiones"' : `data-credit-mission="${esc(mission.id)}"`;
       const amount = missionAmount(mission);
       return `<li><button type="button" ${attribute}><span>${esc(mission.title)}</span>${amount ? `<b>+${amount}<small> créditos</small></b>` : '<span aria-hidden="true">→</span>'}</button></li>`;
     }).join('');
@@ -764,23 +760,114 @@
     host.hidden = false;
   }
 
-  function walletMarkup(data) {
-    const credits = data?.credits || { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0 };
+  const walletViews = {
+    resumen: { section: 'cartera', label: 'Resumen', icon: 'i-credit-card' },
+    movimientos: { section: 'cartera-movimientos', label: 'Movimientos', icon: 'i-clock' },
+    misiones: { section: 'cartera-misiones', label: 'Misiones', icon: 'i-trophy' },
+    canjes: { section: 'cartera-canjes', label: 'Canjes', icon: 'i-gift' }
+  };
+  const walletSections = new Set(Object.values(walletViews).map(view => view.section));
+  const walletNumberFormat = new Intl.NumberFormat('es-MX');
+  const walletDateFormat = new Intl.DateTimeFormat('es-MX', {
+    day: 'numeric', month: 'long', year: 'numeric', timeZone: 'America/Mexico_City'
+  });
+  const walletTimeFormat = new Intl.DateTimeFormat('es-MX', {
+    hour: 'numeric', minute: '2-digit', timeZone: 'America/Mexico_City'
+  });
+  const walletSourceLabels = { inicio: 'Inicio', retos: 'Retos', materiales: 'Materiales', libros: 'Libros', perfil: 'Mi perfil' };
+  const walletFilters = { all: 'Todos', earn: 'Entradas', spend: 'Canjes' };
+  const retoMovementNames = { pro: 'Práctica Pro', applied: 'Reto aplicado', catalog: 'Juegos ICADEM', daily: 'Reto diario' };
+  const walletBag = 'assets/mascotas/cartera-creditos.webp?v=1';
+  const walletNumber = value => walletNumberFormat.format(Number(value) || 0);
+  const walletIcon = icon => `<svg class="ic" aria-hidden="true"><use href="#${icon}"/></svg>`;
+
+  function walletLink(section, label, cssClass) {
+    return `<a class="${cssClass}" href="#${section}" data-wallet-section="${section}">${label}</a>`;
+  }
+
+  function walletHistory(movements, filter = 'all') {
+    const dates = new Map();
+    for (const item of movements) {
+      const amount = Number(item.amount) || 0;
+      const direction = amount < 0 ? 'spend' : 'earn';
+      if (filter !== 'all' && filter !== direction) continue;
+      const date = new Date(item.createdAt || NaN);
+      const hasDate = Number.isFinite(date.getTime());
+      const day = hasDate ? walletDateFormat.format(date) : 'Fecha sin registrar';
+      const detail = item.type === 'reto-game' && Object.hasOwn(retoMovementNames, item.detail)
+        ? retoMovementNames[item.detail] : item.detail;
+      const time = hasDate ? `<time datetime="${date.toISOString()}">${esc(walletTimeFormat.format(date))}</time>` : '';
+      const meta = [detail && esc(detail), time].filter(Boolean).join('<span aria-hidden="true">·</span>');
+      const sign = amount < 0 ? '−' : '+';
+      const group = dates.get(day) || [];
+      group.push(`<li class="credit-wallet-page__row${direction === 'spend' ? ' credit-wallet-page__row--spend' : ''}" data-direction="${direction}">
+        <span class="credit-wallet-page__symbol" aria-hidden="true">${direction === 'spend' ? '↗' : '↘'}</span>
+        <div class="credit-wallet-page__entry"><strong>${esc(item.label)}</strong>${meta ? `<small>${meta}</small>` : ''}</div>
+        <strong class="credit-wallet-page__amount"><span>${sign}${walletNumber(Math.abs(amount))}</span><small>créditos</small></strong>
+      </li>`);
+      dates.set(day, group);
+    }
+    if (!dates.size) {
+      const message = filter === 'spend' ? 'Aún no hay canjes entre tus movimientos recientes.'
+        : filter === 'earn' ? 'Aún no hay entradas entre tus movimientos recientes.'
+        : 'Las recompensas acreditadas y los canjes aparecerán aquí.';
+      return `<p class="credit-wallet-page__empty">${message}</p>`;
+    }
+    return `<ul class="credit-wallet-page__history">${Array.from(dates, ([day, rows]) => `<li><h3 class="credit-wallet-page__date">${esc(day)}</h3><ul>${rows.join('')}</ul></li>`).join('')}</ul>`;
+  }
+
+  function walletMarkup(data, view) {
     const movements = Array.isArray(data?.recentMovements) ? data.recentMovements : [];
-    const rules = Array.isArray(data?.earnRules) ? data.earnRules : [];
-    const destinations = Array.isArray(data?.destinations) ? data.destinations : [];
-    const missions = walletMissions(data);
-    return `<div class="credit-wallet-modal__grid${missions.length ? ' credit-wallet-modal__grid--missions' : ''}">
-      <section class="credit-vault">
-        <span class="credit-vault__gem credit-vault__gem--bag" aria-hidden="true"><img src="assets/mascotas/cartera-creditos.webp?v=1" alt="" width="320" height="320" decoding="async" draggable="false"></span>
-        <div class="credit-vault__copy"><small>Mi cartera ICADEM</small><strong><b data-credit-balance>${Number(credits.balance) || 0}</b><em> créditos</em></strong><p>Tu saldo profesional, validado y listo para canjear.</p></div>
-        <div class="credit-vault__stats"><span><b>${Number(credits.lifetimeEarned) || 0}</b> ganados</span><span><b>${Number(credits.lifetimeSpent) || 0}</b> canjeados</span></div>
+    if (view === 'movimientos') {
+      return `<section class="credit-wallet-page__panel" aria-labelledby="wallet-history-title">
+        <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-history-title">Movimientos recientes</h2><p>Consulta las últimas entradas de créditos y los canjes de tu cuenta.</p></div></header>
+        <div class="credit-wallet-page__filters" role="group" aria-label="Filtrar movimientos">${Object.entries(walletFilters).map(([id, label]) => `<button type="button" data-wallet-filter="${id}" aria-pressed="${id === 'all'}">${label}</button>`).join('')}</div>
+        <div data-wallet-history aria-live="polite">${walletHistory(movements)}</div>
+      </section>`;
+    }
+    if (view === 'misiones') {
+      const missions = walletMissions(data);
+      const rules = Array.isArray(data?.earnRules) ? data.earnRules : [];
+      return `<section class="credit-wallet-page__panel credit-wallet-missions" aria-labelledby="wallet-missions-title">
+        <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-missions-title">Misiones para sumar créditos</h2><p>Consulta tu avance y continúa desde cada actividad.</p></div></header>
+        ${missions.length ? `<ul>${missions.map(missionMarkup).join('')}</ul>` : '<p class="credit-wallet-page__empty">Aún no hay misiones disponibles para esta cuenta.</p>'}
       </section>
-      ${missions.length ? `<section class="credit-wallet-missions" aria-labelledby="wallet-missions-title"><header><h3 id="wallet-missions-title">Misiones para sumar créditos</h3><p>Consulta tu avance y continúa desde cada actividad.</p></header><ul>${missions.map(missionMarkup).join('')}</ul></section>` : ''}
-      <section class="credit-wallet-panel credit-wallet-panel--rewards"><header><span>Recompensas</span><small>Tu saldo, tus elecciones</small></header><div>${destinations.map(item => `<button type="button" ${item.available ? `data-wallet-destination="${esc(item.section || '')}"` : 'disabled'}><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span><em>${item.available ? 'Explorar' : 'Próximamente'}</em></button>`).join('')}</div></section>
-      <section class="credit-wallet-panel credit-wallet-panel--earn"><header><span>Cómo sumar créditos</span><small>Según las reglas de cada actividad</small></header><div>${rules.map(rule => `<article><i>+${Number(rule.amount) || 0}</i><span><strong>${esc(rule.label)}</strong><small>${esc(rule.note)}</small></span></article>`).join('')}</div></section>
-      <section class="credit-wallet-panel credit-wallet-panel--history"><header><span>Movimientos recientes</span><small>${movements.length ? `${movements.length} registrados` : 'Sin movimientos todavía'}</small></header><div>${movements.length ? movements.map(item => `<article><span class="credit-movement__icon credit-movement__icon--${Number(item.amount) < 0 ? 'spend' : 'earn'}">${Number(item.amount) < 0 ? '−' : '+'}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.detail || '')} · ${esc(formatMovementDate(item.createdAt))}</small></span><b class="credit-movement__amount credit-movement__amount--${Number(item.amount) < 0 ? 'spend' : 'earn'}">${Number(item.amount) > 0 ? '+' : ''}${Number(item.amount) || 0}</b></article>`).join('') : '<p class="credit-wallet-empty">Supera un reto o un juego de clase y aquí verás el movimiento.</p>'}</div></section>
-    </div>`;
+      <section class="credit-wallet-page__panel credit-wallet-rules" aria-labelledby="wallet-rules-title">
+        <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-rules-title">Cómo sumar créditos</h2></div></header>
+        <ul>${rules.map(rule => `<li><strong>+${walletNumber(rule.amount)}</strong><div><b>${esc(rule.label)}</b><p>${esc(rule.note)}</p></div></li>`).join('')}</ul>
+      </section>`;
+    }
+    if (view === 'canjes') {
+      const destinations = Array.isArray(data?.destinations) ? data.destinations : [];
+      return `<section class="credit-wallet-page__panel credit-wallet-destinations" aria-labelledby="wallet-rewards-title">
+        <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-rewards-title">Canjea tus créditos</h2><p>Elige un recurso. Tus canjes quedan vinculados a tu cuenta.</p></div></header>
+        <ul>${destinations.map(item => {
+          const section = item.section === 'libros' ? 'libros' : item.section === 'materiales' ? 'materiales' : '';
+          const redeemed = section === 'libros' ? data.redemptions?.books : data.redemptions?.materials;
+          return `<li><span class="credit-wallet-page__symbol">${walletIcon(section === 'libros' ? 'i-book' : 'i-folder')}</span><div>
+            <h3>${esc(item.label)}</h3><p>${esc(item.description)}</p>
+            ${Number(redeemed) > 0 ? `<small>${walletNumber(redeemed)} en tu cuenta</small>` : ''}</div>
+            ${item.available && section ? walletLink(section, 'Explorar ' + walletIcon('i-arrow-right'), 'credit-wallet-page__action') : '<small>Próximamente</small>'}
+          </li>`;
+        }).join('')}</ul>
+      </section>`;
+    }
+    const credits = data?.credits || {};
+    return `<section class="credit-wallet-page__hero" aria-label="Resumen de saldo">
+      <div class="credit-wallet-page__balance"><div><span>Saldo disponible</span>
+        <strong data-credit-balance data-credit-formatted>${walletNumber(credits.balance)}</strong><small>créditos ICADEM</small></div>
+        <img src="${walletBag}" alt="" width="320" height="320" decoding="async" draggable="false">
+      </div>
+      <div class="credit-wallet-page__stats">
+        <div class="credit-wallet-page__stat"><small>Total ganado</small><strong data-wallet-stat="lifetimeEarned">${walletNumber(credits.lifetimeEarned)}</strong><span>créditos</span></div>
+        <div class="credit-wallet-page__stat"><small>Total canjeado</small><strong data-wallet-stat="lifetimeSpent">${walletNumber(credits.lifetimeSpent)}</strong><span>créditos</span></div>
+      </div>
+    </section>
+    <section class="credit-wallet-page__panel" aria-labelledby="wallet-history-title">
+      <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-history-title">Movimientos recientes</h2></div>
+        ${walletLink('cartera-movimientos', 'Ver movimientos ' + walletIcon('i-arrow-right'), 'credit-wallet-page__action')}
+      </header>${walletHistory(movements.slice(0, 4))}
+    </section>`;
   }
 
   function openMission(missionId) {
@@ -824,97 +911,140 @@
     }
   }
 
-  function bindWallet(root, scope, close) {
-    root.querySelectorAll('[data-wallet-destination]').forEach(button => button.addEventListener('click', () => {
-      const section = button.dataset.walletDestination;
-      close();
-      if (section) location.hash = `#${section}`;
-    }));
-    const controls = root.querySelectorAll('[data-credit-verify]');
-    let verificationBusy = false;
-    controls.forEach(button => button.addEventListener('click', async () => {
-      const feedback = root.querySelector('[data-credit-verification-status]');
-      const operation = button.dataset.creditVerify;
-      const user = platformUser();
-      if (!feedback || !user || verificationBusy || !currentPlatformSession(scope)) return;
-      verificationBusy = true;
-      controls.forEach(control => control.setAttribute('aria-disabled', 'true'));
-      feedback.textContent = operation === 'send' ? 'Solicitando enlace…' : 'Comprobando correo…';
-      try {
-        const verified = await window.ICADEMEmailVerification.refresh(user);
-        if (!root.isConnected || !currentPlatformSession(scope)) return;
-        if (verified) {
-          await reconcileCreditMissions(true);
-          const data = await loadCreditWallet(true);
-          if (!root.isConnected || !currentPlatformSession(scope)) return;
-          const body = root.querySelector('.credit-wallet-modal__body');
-          body.innerHTML = '<p class="credit-wallet-confirmation">✓ Correo verificado.</p>' + walletMarkup(data);
-          body.scrollTop = 0;
-          bindWallet(root, scope, close);
-          root.querySelector('[data-credit-wallet-close]:not(.credit-wallet-modal__veil)')?.focus({ preventScroll: true });
-          announce('Correo verificado.');
-        } else if (operation === 'send') {
-          await window.ICADEMEmailVerification.send(user);
-          if (root.isConnected && currentPlatformSession(scope)) feedback.textContent = 'Enlace enviado. Abre tu correo y vuelve aquí para comprobarlo.';
-        } else {
-          feedback.textContent = 'El correo sigue pendiente. Abre el enlace de verificación y vuelve a comprobarlo.';
-        }
-      } catch (error) {
-        if (root.isConnected && currentPlatformSession(scope)) feedback.textContent = error?.code === 'auth/too-many-requests'
-          ? 'Solicitaste varios enlaces. Revisa el último correo o vuelve más tarde.'
-          : 'No pudimos completar la verificación. Intenta de nuevo.';
-      } finally {
-        verificationBusy = false;
-        if (root.isConnected && currentPlatformSession(scope)) controls.forEach(control => control.removeAttribute('aria-disabled'));
-      }
-    }));
+  function goToWalletSection(section) {
+    if (typeof window.navigateToSection === 'function') window.navigateToSection(section);
+    else location.hash = '#' + section;
   }
 
-  async function openCreditWallet() {
-    const scope = platformSession();
-    if (!currentPlatformSession(scope)) return;
-    closeCreditWallet?.();
-    document.querySelector('.credit-wallet-modal')?.remove();
-    const root = document.createElement('div');
-    root.className = 'credit-wallet-modal';
-    root.setAttribute('role', 'dialog');
-    root.setAttribute('aria-modal', 'true');
-    root.setAttribute('aria-labelledby', 'credit-wallet-title');
-    root.innerHTML = `<div class="credit-wallet-modal__veil" data-credit-wallet-close></div><section class="credit-wallet-modal__shell"><header><div><span>Créditos ICADEM</span><h2 id="credit-wallet-title">Tu cartera profesional</h2></div><button type="button" data-credit-wallet-close aria-label="Cerrar cartera">×</button></header><div class="credit-wallet-modal__body"><div class="credit-wallet-loading">Sincronizando tu saldo…</div></div></section>`;
-    document.body.appendChild(root);
-    document.body.classList.add('has-credit-wallet');
-    let releaseA11y = () => {};
-    let closed = false;
-    const opener = document.activeElement;
-    const homeOpener = opener?.closest?.('[data-credit-missions-home]');
-    const close = () => {
-      if (closed) return;
-      closed = true;
-      root.remove(); document.body.classList.remove('has-credit-wallet'); releaseA11y();
-      if (homeOpener && !opener.isConnected && !homeOpener.hidden && currentPlatformSession(scope)) {
-        homeOpener.querySelector('header [data-credit-wallet-open]')?.focus({ preventScroll: true });
-      }
-      if (closeCreditWallet === close) closeCreditWallet = null;
-    };
-    closeCreditWallet = close;
-    releaseA11y = activateDialogA11y(root, close);
-    root.querySelectorAll('[data-credit-wallet-close]').forEach(button => button.addEventListener('click', close));
-    root.querySelector('[data-credit-wallet-close]:not(.credit-wallet-modal__veil)')?.focus();
+  function openCreditWallet(view = 'resumen') {
+    if (!currentPlatformSession(platformSession())) return;
+    const source = location.hash.slice(1) || 'inicio';
+    if (!walletSections.has(source)) walletOrigin = Object.hasOwn(walletSourceLabels, source) ? source : 'inicio';
+    goToWalletSection((Object.hasOwn(walletViews, view) ? walletViews[view] : walletViews.resumen).section);
+  }
+
+  function clearCreditWalletPage() {
+    activeWalletPage?.root.remove();
+    activeWalletPage = null;
+  }
+
+  function currentWalletPage(page) {
+    return activeWalletPage === page && page.root.isConnected && currentPlatformSession(page.scope);
+  }
+
+  function paintWalletPage(page, data, { verified = false } = {}) {
+    page.movements = (Array.isArray(data?.recentMovements) ? data.recentMovements : [])
+      .slice().sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0));
+    page.content.innerHTML = (verified ? '<p class="credit-wallet-confirmation" role="status">Correo verificado.</p>' : '')
+      + walletMarkup({ ...data, recentMovements: page.movements }, page.view);
+  }
+
+  async function fetchWalletPage(page, { force = false, retry = false } = {}) {
+    page.content.setAttribute('aria-busy', 'true');
+    page.content.innerHTML = '<p class="credit-wallet-page__status" role="status">Cargando tu cartera…</p>';
     try {
       await reconcileCreditMissions();
-      if (!root.isConnected || !currentPlatformSession(scope)) return;
-      const data = await loadCreditWallet(true);
-      if (!root.isConnected) return;
-      if (!currentPlatformSession(scope)) { close(); return; }
-      root.querySelector('.credit-wallet-modal__body').innerHTML = walletMarkup(data);
-      bindWallet(root, scope, close);
+      if (!currentWalletPage(page)) return;
+      const data = await loadCreditWallet(force);
+      if (!currentWalletPage(page)) return;
+      paintWalletPage(page, data);
     } catch (error) {
-      if (!root.isConnected) return;
-      if (!currentPlatformSession(scope) || error?.code === 'session-ended') { close(); return; }
-      if (error?.status === 410 && error?.data?.code === 'account-deleted') { close(); return; }
-      root.querySelector('.credit-wallet-modal__body').innerHTML = `<div class="credit-wallet-error"><strong>No pudimos sincronizar tu cartera.</strong><span>${esc(error.message)}</span><button type="button" data-wallet-retry>Reintentar</button></div>`;
-      root.querySelector('[data-wallet-retry]')?.addEventListener('click', () => { close(); openCreditWallet(); });
+      if (!currentWalletPage(page) || error?.code === 'session-ended' || error?.data?.code === 'account-deleted') return;
+      page.content.innerHTML = '<div class="credit-wallet-page__status" role="status"><strong>No pudimos cargar tu cartera.</strong><button type="button" data-wallet-retry>Reintentar</button></div>';
+    } finally {
+      if (currentWalletPage(page)) {
+        page.content.removeAttribute('aria-busy');
+        if (retry) (page.content.querySelector('[data-wallet-retry]') || page.root.querySelector('h1'))?.focus({ preventScroll: true });
+      }
     }
+  }
+
+  async function handleWalletVerification(page, button) {
+    const user = platformUser();
+    const feedback = page.root.querySelector('[data-credit-verification-status]');
+    const controls = page.root.querySelectorAll('[data-credit-verify]');
+    if (!user || !feedback || !currentWalletPage(page)) return;
+    const sending = button.dataset.creditVerify === 'send';
+    controls.forEach(control => { control.disabled = true; });
+    feedback.textContent = sending ? 'Solicitando enlace…' : 'Comprobando correo…';
+    try {
+      const verified = await window.ICADEMEmailVerification.refresh(user);
+      if (!currentWalletPage(page)) return;
+      if (verified) {
+        await reconcileCreditMissions(true);
+        const data = await loadCreditWallet(true);
+        if (!currentWalletPage(page)) return;
+        paintWalletPage(page, data, { verified: true });
+        page.root.querySelector('#credit-wallet-title')?.focus({ preventScroll: true });
+      } else if (sending) {
+        await window.ICADEMEmailVerification.send(user);
+        if (currentWalletPage(page)) feedback.textContent = 'Enlace enviado. Abre tu correo y vuelve aquí para comprobarlo.';
+      } else {
+        feedback.textContent = 'El correo sigue pendiente. Abre el enlace de verificación y vuelve a comprobarlo.';
+      }
+    } catch (error) {
+      if (currentWalletPage(page)) feedback.textContent = error?.code === 'auth/too-many-requests'
+        ? 'Solicitaste varios enlaces. Revisa el último correo o vuelve más tarde.'
+        : 'No pudimos completar la verificación. Intenta de nuevo.';
+    } finally {
+      if (currentWalletPage(page)) controls.forEach(control => { control.disabled = false; });
+    }
+  }
+
+  function handleWalletClick(event, page) {
+    const action = event.target.closest?.('[data-wallet-section], [data-wallet-filter], [data-wallet-retry], [data-credit-verify]');
+    if (!action || !currentWalletPage(page)) return;
+    const section = action.dataset.walletSection;
+    if (section) {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      if (section !== walletViews[page.view].section) goToWalletSection(section);
+      return;
+    }
+    const filter = action.dataset.walletFilter;
+    if (Object.hasOwn(walletFilters, filter)) {
+      page.root.querySelectorAll('[data-wallet-filter]').forEach(control => {
+        control.setAttribute('aria-pressed', String(control === action));
+      });
+      page.root.querySelector('[data-wallet-history]').innerHTML = walletHistory(page.movements, filter);
+    } else if (action.hasAttribute('data-wallet-retry')) {
+      fetchWalletPage(page, { force: true, retry: true });
+    } else if (action.dataset.creditVerify) {
+      handleWalletVerification(page, action);
+    }
+  }
+
+  function renderCreditWallet(container, view = 'resumen') {
+    const scope = platformSession();
+    const fromWallet = Boolean(activeWalletPage && currentPlatformSession(activeWalletPage.scope));
+    const savedOrigin = window.history?.state?.icademWalletOrigin;
+    const previous = walletOrigin || (Object.hasOwn(walletSourceLabels, savedOrigin) ? savedOrigin : '')
+      || (fromWallet ? activeWalletPage.origin : 'inicio');
+    walletOrigin = '';
+    const title = 'Mi cartera ICADEM';
+    container.innerHTML = `<div class="credit-wallet-page" data-credit-wallet-page>
+      <header class="credit-wallet-page__header">
+        ${walletLink(previous, walletIcon('i-arrow-left') + ' Volver a ' + walletSourceLabels[previous], 'credit-wallet-page__back')}
+        <div><h1 id="credit-wallet-title" tabindex="-1">${title}</h1><p>Consulta tu saldo y elige cómo ganar o canjear créditos.</p></div>
+      </header>
+      <nav class="credit-wallet-page__nav" aria-label="Secciones de la cartera">
+        ${Object.entries(walletViews).map(([key, item]) => `<a href="#${item.section}" data-wallet-section="${item.section}" class="credit-wallet-page__tab"${key === view ? ' aria-current="page"' : ''}>${walletIcon(item.icon)}<span>${item.label}</span></a>`).join('')}
+      </nav>
+      <div class="credit-wallet-page__content" data-wallet-content></div>
+    </div>`;
+    const root = container.querySelector('[data-credit-wallet-page]');
+    const page = { scope, root, content: root.querySelector('[data-wallet-content]'), view, origin: previous, movements: [] };
+    activeWalletPage = page;
+    root.addEventListener('click', event => handleWalletClick(event, page));
+    if (!currentPlatformSession(scope)) {
+      page.content.innerHTML = '<p class="credit-wallet-page__status">Inicia sesión para consultar tu cartera.</p>';
+      return;
+    }
+    if (window.history?.replaceState && savedOrigin !== previous) {
+      window.history.replaceState({ ...window.history.state, icademWalletOrigin: previous }, '');
+    }
+    root.querySelector('#credit-wallet-title')?.focus({ preventScroll: true });
+    return fetchWalletPage(page, { force: !fromWallet });
   }
 
   async function markProfileIntakeSeen() {
@@ -2189,7 +2319,7 @@
         : items.every(item => item.kind === 'gift') ? '¡Te regalaron créditos!' : '¡Créditos acreditados!';
       const note = items.length === 1 && last.note ? last.note : '';
       // Espera a que no haya otra ventana encima (bienvenida, recorrido, etc.)
-      const blocker = '.modal-backdrop.is-open, .cc-overlay, .rv, .credit-wallet-modal, .learning-game, .ica-experience';
+      const blocker = '.modal-backdrop.is-open, .cc-overlay, .rv, .learning-game, .ica-experience';
       const blocked = () => document.querySelector(blocker) || window.ICADEMResumeEditor?.isOpen?.();
       for (let i = 0; i < 20 && currentPlatformSession(scope) && blocked(); i++) await new Promise(r => setTimeout(r, 1000));
       if (!currentPlatformSession(scope) || document.hidden || blocked()) return;
@@ -2691,7 +2821,6 @@
   document.addEventListener('click', event => {
     const mission = event.target.closest?.('[data-credit-mission]');
     if (!mission || !currentPlatformSession(platformSession())) return;
-    closeCreditWallet?.();
     openMission(mission.dataset.creditMission);
   });
 
@@ -2699,7 +2828,7 @@
     const trigger = event.target.closest?.('[data-credit-wallet-open]');
     if (!trigger) return;
     event.preventDefault();
-    openCreditWallet();
+    openCreditWallet(trigger.dataset.creditWalletOpen);
   });
 
   document.addEventListener('click', event => {
@@ -2777,9 +2906,8 @@
     criticalRefreshPromise = null; lastCriticalRefresh = 0;
     if (criticalRefreshTimer) clearInterval(criticalRefreshTimer);
     criticalRefreshTimer = null;
-    closeCreditWallet?.();
-    document.querySelector('.credit-wallet-modal')?.remove();
-    document.body.classList.remove('has-credit-wallet');
+    clearCreditWalletPage();
+    walletOrigin = '';
   }
   function refreshCriticalData() {
     const scope = platformSession();
@@ -2823,6 +2951,9 @@
     startCriticalRefresh();
     refreshHomeMissions().catch(() => {});
   });
+  window.addEventListener('icadem:navigation', event => {
+    if (!walletSections.has(event.detail?.section)) clearCreditWalletPage();
+  });
   window.addEventListener('icadem:section-ready', event => {
     if (event.detail?.section === 'inicio') refreshHomeMissions(true).catch(() => {});
   });
@@ -2836,7 +2967,7 @@
     request, syncIdentity, applyIdentity, loadDirectory, loadRanking, loadCourseCatalog, loadLibrary, redeemBook, loadMaterials, redeemMaterial, selectFreeCourse, markFreeCourseOfferSeen, claimExperience, markMembershipWelcomeSeen,
     createForumPost, deleteForumPost, toggleForumLike, createForumComment, deleteForumComment, mountRanking,
     loadLearningProgress, refreshCriticalData,
-    loadCreditWallet, openCreditWallet, applyDemoCreditMovement, syncCreditSnapshot,
+    loadCreditWallet, openCreditWallet, renderCreditWallet, applyDemoCreditMovement, syncCreditSnapshot,
     saveProfile, markProfileIntakeSeen, startLessonChallenge, startRetoChallenge, openPractice, openPracticePicker, openProPicker, mountRetosStatus
   };
 })();

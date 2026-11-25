@@ -13,11 +13,12 @@ const serviceWorker = read('sw.js');
 
 assert.match(platform, /async function handleAccountDeleted\(\)/);
 assert.match(platform, /await handleAccountDeleted\(\)/);
-assert.match(platform, /error\?\.status === 410 && error\?\.data\?\.code === 'account-deleted'/);
+assert.match(platform, /response\.status === 410 && data\.code === 'account-deleted'\) await handleAccountDeleted\(\)/);
 assert.match(platform, /cache: 'no-store'/);
 assert.match(platform, /await user\.getIdToken\(true\)/);
 assert.match(platform, /method === 'GET' && response\.status === 410/);
-assert.match(platform, /document\.querySelector\('\.credit-wallet-modal'\)\?\.remove\(\)/);
+const accountDeletionBlock = platform.slice(platform.indexOf('async function handleAccountDeleted()'), platform.indexOf('async function request('));
+assert.match(accountDeletionBlock, /clearCreditWalletPage\(\)/);
 assert.match(platform, /window\.location\.replace\('vip-auth\.html\?tab=register&deleted=1'\)/);
 
 assert.match(auth, /window\.__icademDeletedAccountRecovery = true/);
@@ -36,7 +37,7 @@ for (const code of [
 ]) {
   assert.ok(panel.includes(code), `falta recuperar el error ${code}`);
 }
-assert.match(panel, /await signOut\(auth\)/);
+assert.match(panel, /await session\.logout\(\{redirect:'vip-auth\.html\?tab=register&deleted=1'\}\)/);
 assert.match(panel, /sessionStorage\.setItem\('icadem:account-deleted', '1'\)/);
 assert.match(panel, /vip-auth\.html\?tab=register&deleted=1/);
 assert.match(panel, /membership\/\$\{user\.uid\}[\s\S]*cache:'no-store'/);
