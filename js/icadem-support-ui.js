@@ -43,7 +43,7 @@
     if(template.content&&box.children){
       var old=new Map(Array.from(box.children).map(function(node){return[node.getAttribute('data-support-key'),node];})),keep=new Set();
       Array.from(template.content.children).forEach(function(next,index){
-        var key=next.getAttribute('data-support-key'),existing=key&&old.get(key),node=existing&&(existing.hasAttribute?.('data-support-editing')||existing.contains?.(document.activeElement)||existing.outerHTML===next.outerHTML)?existing:next;
+        var key=next.getAttribute('data-support-key'),existing=key&&old.get(key),node=existing&&(existing.hasAttribute?.('data-support-editing')||existing.hasAttribute?.('data-support-changing')||existing.contains?.(document.activeElement)||existing.outerHTML===next.outerHTML)?existing:next;
         if(!existing&&next.matches('[data-support-message]')){added=true;if(!force&&!window.matchMedia?.('(prefers-reduced-motion:reduce)').matches){node.classList.add('sp-message-new');node.addEventListener('animationend',function(){node.classList.remove('sp-message-new');},{once:true});}}
         keep.add(node);if(box.children[index]!==node)box.insertBefore(node,box.children[index]||null);
       });

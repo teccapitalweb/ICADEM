@@ -17,7 +17,7 @@ function fixture(read){
  const tools=window.ICADEMSupportMessages.bind(root,{box:'#thread',active:()=>model.active,read:async body=>{const value=JSON.parse(JSON.stringify(body));requests.push(value);return read?read(value):{read:value.messages.map(item=>({...item,seenAt:'2026-11-25T00:00:00.000Z'}))};},readResult:value=>results.push(value)});
  function fire(scope,name){for(const fn of events[scope].get(name)||[])fn();}
  async function flush(){for(let step=0;step<8;step++){const batch=[...timers.values()];timers.clear();batch.forEach(fn=>fn());await Promise.resolve();await Promise.resolve();}}
- return{model,document,node,tools,requests,results,fire,flush,timers};
+ return{model,document,node,tools,requests,results,fire,flush,timers,render:window.ICADEMSupportMessages};
 }
 const record=(id='incoming',revision=0)=>({id,revision,text:'Mensaje de prueba',seenAt:null,seenRevision:null});
 
@@ -43,6 +43,19 @@ test('hidden, inactive, detached, offscreen and covered message markers cannot b
 test('only incoming DOM markers and the currently rendered revision are acknowledged',async()=>{
  const app=fixture();app.node('incoming',1,true,180);app.node('outgoing',0,false,210);
  app.tools.update([{...record('incoming',1),seenAt:'2026-11-24T00:00:00.000Z',seenRevision:0},record('outgoing')]);await app.flush();assert.deepEqual(app.requests,[{messages:[{id:'incoming',revision:1}]}]);app.tools.dispose();
+});
+
+test('withdrawal keeps a stale snapshot hidden and a restored revision gets a separate receipt',async()=>{
+ const app=fixture();app.node('incoming');
+ const withdrawn={...record('incoming',1),withdrawn:true,canRestore:true};
+ app.tools.update([withdrawn]);await app.flush();assert.equal(app.requests.length,0);
+ const stale=app.tools.reconcile([record()])[0];assert.equal(stale.withdrawn,true);
+ assert.equal(app.render.bodyText(withdrawn),'Mensaje retirado');
+ assert.doesNotMatch(app.render.meta(withdrawn,false,'12:00'),/data-support-read-marker|data-support-restore/);
+ assert.match(app.render.meta(withdrawn,true,'12:00'),/data-support-restore/);
+ app.tools.update([record('incoming',2)]);await app.flush();
+ assert.deepEqual(app.requests,[{messages:[{id:'incoming',revision:2}]}]);
+ app.tools.dispose();
 });
 
 test('an empty stale read response has no retry loop, and a later revision remains eligible',async()=>{
