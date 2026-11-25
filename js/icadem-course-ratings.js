@@ -133,9 +133,12 @@
       function paint(preview){var active=Number(preview)||selected;root.querySelectorAll('[data-rating]').forEach(function(button){var value=Number(button.dataset.rating);button.classList.toggle('is-active',value<=active);button.setAttribute('aria-checked',String(value===selected));button.disabled=busy;});selection.textContent=ratingLabel(active,isLesson);save.disabled=busy||!selected;}
       root.querySelectorAll('[data-rating]').forEach(function(button){button.addEventListener('mouseenter',function(){paint(button.dataset.rating);});button.addEventListener('mouseleave',function(){paint();});button.addEventListener('focus',function(){paint(button.dataset.rating);});button.addEventListener('blur',function(){paint();});button.addEventListener('click',function(){selected=Number(button.dataset.rating);paint();state.className='course-rating__state';state.textContent='';});});
       textarea.addEventListener('input',function(){counter.textContent=textarea.value.length+' / 1000';});
-      if(!isLesson&&data.reward?.eligible){
-        var offer=document.createElement('p');offer.className='course-rating__reward';offer.textContent='Recibe 25 créditos por tu primera valoración de este curso completado, sin importar la puntuación.';form.prepend(offer);
-        if(options.rewardMode)save.textContent='Calificar y ganar 25 créditos';
+      var rewardAmount=Number(data.reward?.amount);
+      var canEarn=!isLesson&&data.reward?.eligible&&Number.isSafeInteger(rewardAmount)&&rewardAmount>0;
+      var saveLabel=mine?'Actualizar valoración':(options.rewardMode&&canEarn?'Calificar y ganar '+rewardAmount+' créditos':'Guardar valoración');
+      save.textContent=saveLabel;
+      if(canEarn){
+        var offer=document.createElement('p');offer.className='course-rating__reward';offer.textContent='Recibe '+rewardAmount+' créditos por tu primera valoración de este curso completado, sin importar la puntuación.';form.prepend(offer);
       }
       form.addEventListener('submit',async function(event){
         event.preventDefault();if(!selected||busy||!current())return;
@@ -149,10 +152,11 @@
           window.ICADEMPlatform?.loadCreditWallet?.(true)?.catch(()=>{});
           render(next);
           var fresh=current()&&root.querySelector('.course-rating__state');
-          if(fresh)fresh.innerHTML='<span class="course-rating__state-mark">✓</span><span>'+((next.reward?.granted===true&&next.reward?.creditedAmount===25)?'¡Gracias por tu opinión! +25 créditos añadidos a tu cartera.':'Gracias. Tu valoración quedó guardada.')+'</span>';
+          var creditedAmount=Number(next.reward?.creditedAmount);
+          if(fresh)fresh.innerHTML='<span class="course-rating__state-mark">✓</span><span>'+((next.reward?.granted===true&&Number.isSafeInteger(creditedAmount)&&creditedAmount>0)?'¡Gracias por tu opinión! +'+creditedAmount+' créditos añadidos a tu cartera.':'Gracias. Tu valoración quedó guardada.')+'</span>';
           document.dispatchEvent(new CustomEvent('icadem:course-rating-saved',{detail:{courseId,subject:isLesson?'lesson':'course'}}));
           if(current()){try{options.onSaved?.(next);}catch(_){}}
-        }catch(error){busy=false;delete root.dataset.ratingBusy;if(!current())return;paint();textarea.disabled=false;save.textContent=mine?'Actualizar valoración':(options.rewardMode?'Calificar y ganar 25 créditos':'Guardar valoración');state.className='course-rating__state is-error';state.innerHTML='<span class="course-rating__state-mark">!</span><span>'+esc(friendlyError(error))+'</span>';}
+        }catch(error){busy=false;delete root.dataset.ratingBusy;if(!current())return;paint();textarea.disabled=false;save.textContent=saveLabel;state.className='course-rating__state is-error';state.innerHTML='<span class="course-rating__state-mark">!</span><span>'+esc(friendlyError(error))+'</span>';}
       });
     }
   }

@@ -9,12 +9,12 @@ async function ready(a, arm = false) {
   a.signin(); if (arm) a.window.ICADEMCreditRewards.arm('course'); await flush();
   a.pending(pendingPath).respond({ items: [item] }); await flush();
 }
-async function invitation(a) {
+async function invitation(a, reward = eligible) {
   const job = a.jobs.shift(); assert.equal(job.id, 'course-rating');
   const completion = a.window.ICADEMCreditRewards.runInvitation(job.payload); await flush();
-  a.pending(ratingPath).respond(eligible); await flush();
+  a.pending(ratingPath).respond(reward); await flush();
   // The existing rating widget independently verifies the saved rating.
-  a.pending(ratingPath).respond(eligible); await flush();
+  a.pending(ratingPath).respond(reward); await flush();
   const modal = a.document.querySelector('[data-modal-id="course-rating-reward"]');
   assert.ok(modal); return { completion, modal, widget: modal.querySelector('.rating-reward-dialog__widget'), later: modal.querySelector('.rating-reward-dialog__footer').querySelector('button') };
 }
@@ -73,6 +73,24 @@ test('a failed rating preserves the selected score and review and never displays
   assert.equal(a.publications.length, 0); assert.equal(view.later.textContent, 'Ahora no · Puedes calificar después');
   assert.equal(view.widget.querySelector('textarea').value, 'Opinión pendiente'); assert.equal(view.widget.querySelector('textarea').disabled, false);
   assert.ok(view.widget.querySelector('.course-rating__state').innerHTML.includes('Servicio temporalmente no disponible'));
+});
+
+test('the invitation and the saved message use the verified five-credit amount for newly finished courses', async () => {
+  const a = browser(modules); await ready(a);
+  const view = await invitation(a, { ...eligible, reward:{ eligible:true, amount:5 } });
+  assert.match(view.modal.querySelector('.rating-reward-dialog__gift').innerHTML, /\+5 créditos/);
+  assert.match(view.widget.querySelector('.course-rating__save').textContent, /ganar 5 créditos/);
+  await view.widget.querySelectorAll('[data-rating]')[0].emit('click');
+  const saving = view.widget.querySelector('form').emit('submit');
+  await flush();
+  a.pending(ratingPath, 'PUT').respond({
+    summary:{ratingCount:1,average:1}, mine:{rating:1,review:''},
+    credits:{balance:105}, reward:{eligible:false,granted:true,creditedAmount:5}
+  });
+  await saving;
+  assert.match(view.widget.querySelector('.course-rating__state').innerHTML, /\+5 créditos/);
+  assert.equal(a.publications[0][0].balance, 105);
+  await view.later.emit('click'); a.runTimers(250); await view.completion;
 });
 
 test('same UID relogin discards queued invitations, certificate intents and late saved acknowledgements', async () => {

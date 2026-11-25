@@ -160,6 +160,91 @@ body.has-credit-wallet{overflow:hidden!important}
 .credit-wallet-panel--history{grid-column:1/-1}.credit-wallet-panel--history>div{grid-template-columns:repeat(2,minmax(0,1fr))}.credit-movement__icon{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;font:800 15px/1 'JetBrains Mono',monospace}.credit-movement__icon--earn{color:#24725f;background:#e7f2ed}.credit-movement__icon--spend{color:#9a6a31;background:#f7efe2}.credit-movement__amount{font:800 11px/1 'JetBrains Mono',monospace}.credit-movement__amount--earn{color:#24725f}.credit-movement__amount--spend{color:#9a6a31}.credit-wallet-empty{grid-column:1/-1;margin:0;padding:24px;border:1px dashed var(--border);border-radius:12px;color:var(--text-3);font-size:10.5px;text-align:center}
 .credit-wallet-loading,.credit-wallet-error{display:grid;place-items:center;gap:10px;min-height:340px;color:var(--text-3);font-size:12px;text-align:center}.credit-wallet-error strong{color:var(--text);font-size:15px}.credit-wallet-error button{min-height:40px;padding:0 18px;border-radius:10px;color:#fff;background:#17455e;font-size:11px;font-weight:750}
 
+.home-credit-missions,.credit-wallet-missions {
+  min-width:0;padding:clamp(12px,2.3vw,20px);border:1px solid var(--border);
+  border-radius:16px;background:var(--surface);color:var(--text);
+}
+.home-credit-missions[hidden],.home-credit-missions ul[hidden]{display:none}
+.home-credit-missions{margin:18px 0 24px}
+.home-credit-missions>header{display:flex;align-items:center;justify-content:space-between;gap:10px 18px;flex-wrap:wrap}
+.home-credit-missions h2,.credit-wallet-missions h3{margin:0;font-size:clamp(16px,2vw,20px);line-height:1.2;font-weight:800;letter-spacing:-.025em}
+.home-credit-missions>header p,.credit-wallet-missions>header p{margin:6px 0 0;font-size:13px;line-height:1.45;color:var(--text-2)}
+.home-credit-missions ul,.credit-wallet-missions ul{display:grid;gap:9px;list-style:none;margin:12px 0 0;padding:0}
+.home-credit-missions ul{grid-template-columns:repeat(auto-fit,minmax(min(208px,100%),1fr))}
+.home-credit-missions li{min-width:0}
+.home-credit-missions li button {
+  display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;min-width:0;width:100%;
+  min-height:52px;padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:var(--surface-2);color:var(--text);
+  font-family:inherit;font-size:13px;line-height:1.35;font-weight:700;cursor:pointer;
+}
+.home-credit-missions li button span{overflow-wrap:anywhere;font-size:13px;font-weight:700}
+.home-credit-missions li button b,.credit-mission__amount{
+  display:inline-flex;align-items:baseline;gap:3px;padding:5px 7px;border-radius:7px;
+  color:#195945;background:#e6f3ec;font-weight:800;font-size:13px;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums;
+}
+.home-credit-missions li button small,.credit-mission__amount small{font-size:10px;font-weight:650}
+.credit-mission__action{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:7px 10px;min-height:44px;
+  max-width:100%;text-align:left;border:1px solid var(--border);border-radius:9px;color:var(--text);background:var(--surface-2);
+  font-size:12px;font-weight:750;line-height:1.3;cursor:pointer;
+}
+.credit-mission__action[aria-disabled="true"]{opacity:.6;cursor:wait}
+.home-credit-missions button:focus-visible,.credit-mission__action:focus-visible{outline:2px solid #177795;outline-offset:2px}
+.credit-wallet-modal__grid--missions .credit-vault{grid-row:auto;align-self:start;min-height:210px}
+.credit-wallet-modal__grid--missions .credit-vault__copy{min-width:0}
+.credit-wallet-modal__grid--missions .credit-vault__copy>strong{flex-wrap:wrap}
+.credit-wallet-modal__grid--missions .credit-vault__copy>strong b{overflow-wrap:anywhere;font-size:clamp(26px,4vw,42px)}
+.credit-wallet-missions ul{grid-template-columns:repeat(2,minmax(0,1fr))}
+.credit-wallet-modal__grid--missions .credit-wallet-panel strong{white-space:normal}
+.credit-wallet-modal__grid--missions .credit-wallet-panel small{font-size:11px;color:var(--text-2)}
+.credit-wallet-modal__grid--missions .credit-wallet-panel--rewards button{min-height:56px}
+.credit-wallet-confirmation{
+  margin:0 0 12px;padding:10px 13px;border:1px solid var(--border);border-radius:10px;
+  background:var(--surface-2);color:var(--text);font-size:13px;font-weight:750;
+}
+.credit-mission{
+  display:grid;grid-template-columns:minmax(0,1fr) auto;align-content:start;align-items:start;gap:6px 10px;padding:11px 12px;
+  border:1px solid var(--border);border-radius:11px;background:var(--surface-2);min-width:0;
+}
+.credit-mission__title{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;color:var(--text)}
+.credit-mission__title strong{font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.credit-mission__title small{font-size:10px;color:var(--text-2);line-height:1.35}
+.credit-mission__description,.credit-mission__email p{margin:0;color:var(--text-2);font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.credit-mission__description,.credit-mission__progress{grid-column:1/-1}
+.credit-mission>.credit-mission__action{grid-column:1/-1;justify-self:start}
+.credit-mission__progress{display:flex;align-items:center;gap:8px;color:var(--text-2)}
+.credit-mission__progress progress{width:min(90px,45%);height:8px;accent-color:#218273}
+.credit-mission__progress small{font-size:11px;font-variant-numeric:tabular-nums}
+.credit-mission__email{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.credit-mission__email p{flex-basis:100%;margin:0}
+.credit-mission__email p:empty{position:absolute}
+[data-theme="night"] .home-credit-missions li button b,[data-theme="night"] .credit-mission__amount{color:#a1e9ce;background:#173d36}
+.credit-wallet-modal__shell>header button{width:44px;height:44px;flex:none}
+@media (hover:hover){
+  .home-credit-missions li button:hover,.credit-mission__action:not([aria-disabled="true"]):hover{border-color:#337d88}
+}
+@media (min-width:821px){
+  .credit-wallet-modal__grid--missions{
+    grid-template-columns:minmax(242px,.72fr) minmax(426px,1.28fr);
+    grid-template-areas:"balance missions" "rewards missions" "rules rules" "history history";
+    grid-template-rows:auto 1fr auto auto;
+  }
+  .credit-wallet-modal__grid--missions .credit-vault{grid-area:balance}
+  .credit-wallet-missions{grid-area:missions}
+  .credit-wallet-modal__grid--missions .credit-wallet-panel--rewards{grid-area:rewards;align-self:start}
+  .credit-wallet-modal__grid--missions .credit-wallet-panel--earn{grid-area:rules}
+  .credit-wallet-modal__grid--missions .credit-wallet-panel--earn>div{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .credit-wallet-modal__grid--missions .credit-wallet-panel--history{grid-area:history}
+}
+@media (max-width:640px){
+  .credit-wallet-missions ul{grid-template-columns:minmax(0,1fr)}
+  .credit-wallet-modal .credit-wallet-modal__body{padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  .credit-wallet-modal .credit-wallet-modal__shell>header{padding-top:max(16px,env(safe-area-inset-top))}
+  .credit-wallet-modal__grid--missions .credit-vault{min-height:174px}
+  .home-credit-missions ul{grid-template-columns:minmax(0,1fr)}
+  .home-credit-missions{margin:14px 0 20px}
+}
+
 /* Juegos v3 · una experiencia compacta y consistente dentro y fuera. */
 .learning-game--v3 .learning-game__panel{display:grid;grid-template-rows:auto minmax(0,1fr);width:min(960px,100%);height:min(760px,calc(100dvh - 36px));max-height:none;overflow:hidden;border-radius:24px;color:var(--text);background:var(--surface);border-color:color-mix(in srgb,var(--border) 72%,transparent)}
 .learning-game--v3 .learning-game__header{position:static;height:72px;padding:0 24px;border-color:var(--border);background:color-mix(in srgb,var(--surface) 93%,transparent)}

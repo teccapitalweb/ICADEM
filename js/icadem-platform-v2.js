@@ -9,6 +9,7 @@
   // Créditos (iguales a IMFRA y Synova; el servidor es quien los acredita).
   const CLASS_CREDITS = 10;
   const RETO_CREDITS = 30;
+  const DEMO_WELCOME_CREDITS = 100;
   const REDUCED_MOTION = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   const PRACTICE_TYPES = ['crossword', 'memory', 'wordsearch', 'puzzle', 'guess', 'classify'];
   const GAME_LABELS = {
@@ -572,7 +573,7 @@
     const rewardedIds = readDemoCreditIds();
     const movementId = String(details?.id || `demo:${Date.now()}`);
     const existing = ledger.find(item => item.id === movementId);
-    const previousBalance = Number(localStorage.getItem('icadem:demo:credits') || 200);
+    const previousBalance = Number(localStorage.getItem('icadem:demo:credits') || DEMO_WELCOME_CREDITS);
     if (rewardedIds.includes(movementId)) return { awarded: false, reward: 0, previousBalance, newBalance: previousBalance, movement: existing || null };
     if (numericAmount < 0 && previousBalance + numericAmount < 0) throw new Error('Créditos insuficientes para completar este canje.');
     const newBalance = previousBalance + numericAmount;
@@ -608,14 +609,14 @@
 
   function demoCreditWallet() {
     const ledger = readDemoCreditLedger();
-    const balance = Number(localStorage.getItem('icadem:demo:credits') || 200);
+    const balance = Number(localStorage.getItem('icadem:demo:credits') || DEMO_WELCOME_CREDITS);
     const stats = readDemoCreditStats();
     return {
       ok: true,
       credits: { balance, lifetimeEarned: stats.earned, lifetimeSpent: stats.spent },
       recentMovements: ledger.slice(0, 12),
       earnRules: [
-        { id: 'welcome', label: 'Regalo de bienvenida', amount: 200, note: 'Se acredita una sola vez al crear tu cuenta.' },
+        { id: 'welcome', label: 'Regalo de bienvenida', amount: DEMO_WELCOME_CREDITS, note: 'Se acredita una sola vez al crear tu cuenta.' },
         { id: 'retos', label: 'Supera un reto', amount: RETO_CREDITS, note: 'Una recompensa por reto.' },
         { id: 'class-games', label: 'Completa un juego de clase', amount: CLASS_CREDITS, note: 'Una sola recompensa por clase.' },
         { id: 'arcade', label: 'Entrena en Juegos ICADEM', amount: RETO_CREDITS, note: 'Una recompensa por dinámica.' }
@@ -650,6 +651,7 @@
       }
       creditWalletCache = { scope, creditTicket: entry.creditTicket, at: Date.now(), data };
       publishCredits(data.credits, { source: 'wallet', readTicket: entry.creditTicket });
+      paintHomeMissions(data);
       return data;
     }).finally(() => { if (creditWalletPromise === entry) creditWalletPromise = null; });
     creditWalletPromise = entry;
@@ -663,21 +665,209 @@
     } catch (_) { return 'Reciente'; }
   }
 
+  const missionActions = {
+    'professional-card': { editor: 'basicos', label: 'Editar tarjeta' },
+    'professional-cv': { editor: 'formacion', label: 'Completar CV' },
+    'forum-reply': { section: 'foro', label: 'Ir a Comunidad' },
+    'first-connection': { section: 'directorio', label: 'Explorar directorio' },
+    'referral-activation': { section: 'embajadores', label: 'Ver invitaciones' },
+    'referral-first-activity': { section: 'cursos', label: 'Ver cursos' }
+  };
+  const missionStates = {
+    available: 'Disponible', pending: 'En espera', completed: 'Completada', limited: 'Límite alcanzado'
+  };
+  const homeMissionPriority = [
+    'referral-email', 'referral-first-activity', 'professional-card', 'forum-reply',
+    'professional-cv', 'first-connection', 'referral-activation'
+  ];
+
+  function walletMissions(data) {
+    return Array.isArray(data?.missions)
+      ? data.missions.filter(mission => mission && Object.hasOwn(missionStates, mission.status) && typeof mission.title === 'string')
+      : [];
+  }
+
+  function missionAmount(mission) {
+    const amount = Number(mission.amount);
+    return Number.isSafeInteger(amount) && amount > 0 ? amount : 0;
+  }
+
+  function missionControls(mission) {
+    if (mission.status !== 'available' && mission.status !== 'pending') return '';
+    if (mission.id === 'referral-email') {
+      if (typeof window.ICADEMEmailVerification?.send !== 'function') return '';
+      return `<div class="credit-mission__email">
+        <button type="button" class="credit-mission__action" data-credit-verify="send">Enviar enlace</button>
+        <button type="button" class="credit-mission__action" data-credit-verify="refresh">Ya verifiqué</button>
+        <p role="status" data-credit-verification-status></p>
+      </div>`;
+    }
+    const action = Object.hasOwn(missionActions, mission.id) && missionActions[mission.id];
+    return action ? `<button type="button" class="credit-mission__action" data-credit-mission="${esc(mission.id)}">${action.label} <span aria-hidden="true">→</span></button>` : '';
+  }
+
+  function missionProgress(mission) {
+    const current = Number(mission.progress?.current);
+    const total = Number(mission.progress?.total);
+    if (!Number.isSafeInteger(current) || !Number.isSafeInteger(total) || total <= 1 || current < 0 || current > total) return '';
+    const label = mission.id === 'forum-reply' ? 'Respuestas premiadas esta semana' : 'Invitados premiados este mes';
+    return `<div class="credit-mission__progress"><progress aria-label="${label}" value="${current}" max="${total}"></progress><small>${current} de ${total}</small></div>`;
+  }
+
+  function missionMarkup(mission) {
+    const amount = missionAmount(mission);
+    return `<li class="credit-mission credit-mission--${mission.status}">
+      <div class="credit-mission__title"><strong>${esc(mission.title)}</strong><small>${missionStates[mission.status]}</small></div>
+      ${amount ? `<span class="credit-mission__amount">+${amount}<small> créditos</small></span>` : ''}
+      ${mission.description ? `<p class="credit-mission__description">${esc(mission.description)}</p>` : ''}
+      ${missionProgress(mission)}
+      ${missionControls(mission)}
+    </li>`;
+  }
+
+  function paintHomeMissions(data) {
+    const host = document.querySelector('[data-credit-missions-home]');
+    if (!host) return;
+    const missions = walletMissions(data);
+    if (!missions.length) {
+      host.hidden = true;
+      host.replaceChildren();
+      delete host.dataset.missionsMarkup;
+      return;
+    }
+    const available = new Map(missions.filter(mission => mission.status === 'available').map(mission => [mission.id, mission]));
+    const visible = homeMissionPriority.map(id => available.get(id)).filter(Boolean).slice(0, 3);
+    if (!host.firstElementChild) host.innerHTML = `<header>
+      <div><h2 id="home-missions-title">Misiones de ICADEM</h2><p></p></div>
+      <button type="button" class="credit-mission__action" data-credit-wallet-open>Ver mi cartera <span aria-hidden="true">→</span></button>
+    </header><ul hidden></ul>`;
+    const description = host.querySelector('header p');
+    description.textContent = visible.length ? 'Completa una actividad y suma créditos para tus próximos canjes.' : 'Consulta tus misiones y recompensas en la cartera.';
+    const markup = visible.map(mission => {
+      const attribute = mission.id === 'referral-email' ? 'data-credit-wallet-open' : `data-credit-mission="${esc(mission.id)}"`;
+      const amount = missionAmount(mission);
+      return `<li><button type="button" ${attribute}><span>${esc(mission.title)}</span>${amount ? `<b>+${amount}<small> créditos</small></b>` : '<span aria-hidden="true">→</span>'}</button></li>`;
+    }).join('');
+    // Avoid replacing the focused card or announcing unchanged state on refresh.
+    if (host.dataset.missionsMarkup !== markup) {
+      const list = host.querySelector('ul');
+      const focus = list.contains(document.activeElement) && document.activeElement;
+      const focusedMission = focus?.dataset?.creditMission;
+      list.innerHTML = markup;
+      list.hidden = !visible.length;
+      host.dataset.missionsMarkup = markup;
+      if (focus) {
+        const equivalent = Array.from(host.querySelectorAll('[data-credit-mission]')).find(button => button.dataset.creditMission === focusedMission);
+        (equivalent || host.querySelector('[data-credit-wallet-open]'))?.focus({ preventScroll: true });
+      }
+    }
+    host.hidden = false;
+  }
+
   function walletMarkup(data) {
     const credits = data?.credits || { balance: 0, lifetimeEarned: 0, lifetimeSpent: 0 };
     const movements = Array.isArray(data?.recentMovements) ? data.recentMovements : [];
     const rules = Array.isArray(data?.earnRules) ? data.earnRules : [];
     const destinations = Array.isArray(data?.destinations) ? data.destinations : [];
-    return `<div class="credit-wallet-modal__grid">
+    const missions = walletMissions(data);
+    return `<div class="credit-wallet-modal__grid${missions.length ? ' credit-wallet-modal__grid--missions' : ''}">
       <section class="credit-vault">
         <span class="credit-vault__gem credit-vault__gem--bag" aria-hidden="true"><img src="assets/mascotas/cartera-creditos.webp?v=1" alt="" width="320" height="320" decoding="async" draggable="false"></span>
         <div class="credit-vault__copy"><small>Mi cartera ICADEM</small><strong><b data-credit-balance>${Number(credits.balance) || 0}</b><em> créditos</em></strong><p>Tu saldo profesional, validado y listo para canjear.</p></div>
         <div class="credit-vault__stats"><span><b>${Number(credits.lifetimeEarned) || 0}</b> ganados</span><span><b>${Number(credits.lifetimeSpent) || 0}</b> canjeados</span></div>
       </section>
-      <section class="credit-wallet-panel credit-wallet-panel--earn"><header><span>Cómo sumar créditos</span><small>Cada premio se valida una sola vez</small></header><div>${rules.map(rule => `<article><i>+${Number(rule.amount) || 0}</i><span><strong>${esc(rule.label)}</strong><small>${esc(rule.note)}</small></span></article>`).join('')}</div></section>
+      ${missions.length ? `<section class="credit-wallet-missions" aria-labelledby="wallet-missions-title"><header><h3 id="wallet-missions-title">Misiones para sumar créditos</h3><p>Consulta tu avance y continúa desde cada actividad.</p></header><ul>${missions.map(missionMarkup).join('')}</ul></section>` : ''}
       <section class="credit-wallet-panel credit-wallet-panel--rewards"><header><span>Recompensas</span><small>Tu saldo, tus elecciones</small></header><div>${destinations.map(item => `<button type="button" ${item.available ? `data-wallet-destination="${esc(item.section || '')}"` : 'disabled'}><span><strong>${esc(item.label)}</strong><small>${esc(item.description)}</small></span><em>${item.available ? 'Explorar' : 'Próximamente'}</em></button>`).join('')}</div></section>
+      <section class="credit-wallet-panel credit-wallet-panel--earn"><header><span>Cómo sumar créditos</span><small>Según las reglas de cada actividad</small></header><div>${rules.map(rule => `<article><i>+${Number(rule.amount) || 0}</i><span><strong>${esc(rule.label)}</strong><small>${esc(rule.note)}</small></span></article>`).join('')}</div></section>
       <section class="credit-wallet-panel credit-wallet-panel--history"><header><span>Movimientos recientes</span><small>${movements.length ? `${movements.length} registrados` : 'Sin movimientos todavía'}</small></header><div>${movements.length ? movements.map(item => `<article><span class="credit-movement__icon credit-movement__icon--${Number(item.amount) < 0 ? 'spend' : 'earn'}">${Number(item.amount) < 0 ? '−' : '+'}</span><span><strong>${esc(item.label)}</strong><small>${esc(item.detail || '')} · ${esc(formatMovementDate(item.createdAt))}</small></span><b class="credit-movement__amount credit-movement__amount--${Number(item.amount) < 0 ? 'spend' : 'earn'}">${Number(item.amount) > 0 ? '+' : ''}${Number(item.amount) || 0}</b></article>`).join('') : '<p class="credit-wallet-empty">Supera un reto o un juego de clase y aquí verás el movimiento.</p>'}</div></section>
     </div>`;
+  }
+
+  function openMission(missionId) {
+    if (!Object.hasOwn(missionActions, missionId)) return;
+    const action = missionActions[missionId];
+    if (action.editor && window.ICADEMProfessionalNavigation?.openEditor(action.editor)) return;
+    const section = action.section || 'directorio';
+    if (typeof window.navigateToSection === 'function') window.navigateToSection(section);
+    else location.hash = `#${section}`;
+  }
+
+  let missionReconciliation = null;
+  async function reconcileCreditMissions(force = false) {
+    const scope = platformSession();
+    if (window.__isDemoMode || !currentPlatformSession(scope)) return;
+    // A single request in flight per session even if Inicio and the wallet open together.
+    if (currentPlatformSession(missionReconciliation?.scope) && (!force || !missionReconciliation.done)) {
+      return missionReconciliation.promise;
+    }
+    const entry = { scope, done: false };
+    entry.promise = request('/api/credits/missions/reconcile', { method: 'POST', body: {} })
+      .then(() => {
+        if (currentPlatformSession(scope)) {
+          creditWalletCache = null;
+          entry.done = true;
+        }
+      })
+      .catch(() => { if (missionReconciliation === entry) missionReconciliation = null; });
+    missionReconciliation = entry;
+    return entry.promise;
+  }
+
+  async function refreshHomeMissions(refresh = false) {
+    const scope = platformSession();
+    if (window.__isDemoMode || !currentPlatformSession(scope)) return;
+    await reconcileCreditMissions();
+    const hash = window.location?.hash || '#inicio';
+    if (currentPlatformSession(scope) && hash === '#inicio' && document.querySelector('[data-credit-missions-home]')) {
+      if (refresh) creditWalletCache = null;
+      await loadCreditWallet(false);
+    }
+  }
+
+  function bindWallet(root, scope, close) {
+    root.querySelectorAll('[data-wallet-destination]').forEach(button => button.addEventListener('click', () => {
+      const section = button.dataset.walletDestination;
+      close();
+      if (section) location.hash = `#${section}`;
+    }));
+    const controls = root.querySelectorAll('[data-credit-verify]');
+    let verificationBusy = false;
+    controls.forEach(button => button.addEventListener('click', async () => {
+      const feedback = root.querySelector('[data-credit-verification-status]');
+      const operation = button.dataset.creditVerify;
+      const user = platformUser();
+      if (!feedback || !user || verificationBusy || !currentPlatformSession(scope)) return;
+      verificationBusy = true;
+      controls.forEach(control => control.setAttribute('aria-disabled', 'true'));
+      feedback.textContent = operation === 'send' ? 'Solicitando enlace…' : 'Comprobando correo…';
+      try {
+        const verified = await window.ICADEMEmailVerification.refresh(user);
+        if (!root.isConnected || !currentPlatformSession(scope)) return;
+        if (verified) {
+          await reconcileCreditMissions(true);
+          const data = await loadCreditWallet(true);
+          if (!root.isConnected || !currentPlatformSession(scope)) return;
+          const body = root.querySelector('.credit-wallet-modal__body');
+          body.innerHTML = '<p class="credit-wallet-confirmation">✓ Correo verificado.</p>' + walletMarkup(data);
+          body.scrollTop = 0;
+          bindWallet(root, scope, close);
+          root.querySelector('[data-credit-wallet-close]:not(.credit-wallet-modal__veil)')?.focus({ preventScroll: true });
+          announce('Correo verificado.');
+        } else if (operation === 'send') {
+          await window.ICADEMEmailVerification.send(user);
+          if (root.isConnected && currentPlatformSession(scope)) feedback.textContent = 'Enlace enviado. Abre tu correo y vuelve aquí para comprobarlo.';
+        } else {
+          feedback.textContent = 'El correo sigue pendiente. Abre el enlace de verificación y vuelve a comprobarlo.';
+        }
+      } catch (error) {
+        if (root.isConnected && currentPlatformSession(scope)) feedback.textContent = error?.code === 'auth/too-many-requests'
+          ? 'Solicitaste varios enlaces. Revisa el último correo o vuelve más tarde.'
+          : 'No pudimos completar la verificación. Intenta de nuevo.';
+      } finally {
+        verificationBusy = false;
+        if (root.isConnected && currentPlatformSession(scope)) controls.forEach(control => control.removeAttribute('aria-disabled'));
+      }
+    }));
   }
 
   async function openCreditWallet() {
@@ -695,10 +885,15 @@
     document.body.classList.add('has-credit-wallet');
     let releaseA11y = () => {};
     let closed = false;
+    const opener = document.activeElement;
+    const homeOpener = opener?.closest?.('[data-credit-missions-home]');
     const close = () => {
       if (closed) return;
       closed = true;
       root.remove(); document.body.classList.remove('has-credit-wallet'); releaseA11y();
+      if (homeOpener && !opener.isConnected && !homeOpener.hidden && currentPlatformSession(scope)) {
+        homeOpener.querySelector('header [data-credit-wallet-open]')?.focus({ preventScroll: true });
+      }
       if (closeCreditWallet === close) closeCreditWallet = null;
     };
     closeCreditWallet = close;
@@ -706,15 +901,13 @@
     root.querySelectorAll('[data-credit-wallet-close]').forEach(button => button.addEventListener('click', close));
     root.querySelector('[data-credit-wallet-close]:not(.credit-wallet-modal__veil)')?.focus();
     try {
+      await reconcileCreditMissions();
+      if (!root.isConnected || !currentPlatformSession(scope)) return;
       const data = await loadCreditWallet(true);
       if (!root.isConnected) return;
       if (!currentPlatformSession(scope)) { close(); return; }
       root.querySelector('.credit-wallet-modal__body').innerHTML = walletMarkup(data);
-      root.querySelectorAll('[data-wallet-destination]').forEach(button => button.addEventListener('click', () => {
-        const section = button.dataset.walletDestination;
-        close();
-        if (section) location.hash = `#${section}`;
-      }));
+      bindWallet(root, scope, close);
     } catch (error) {
       if (!root.isConnected) return;
       if (!currentPlatformSession(scope) || error?.code === 'session-ended') { close(); return; }
@@ -747,7 +940,7 @@
       ok: true, local: true, challengeId: `practice-${Date.now()}`, type: selected,
       title: title || GAME_LABELS[selected], objective: 'Resuelve la actividad y comprueba tu criterio.',
       instructions: ['Observa la consigna', 'Resuelve con calma', 'Comprueba tu respuesta'], reward: 5,
-      balance: Number(localStorage.getItem('icadem:demo:credits') || 200)
+      balance: Number(localStorage.getItem('icadem:demo:credits') || DEMO_WELCOME_CREDITS)
     };
     if (DEMO_PRO[selected]) {
       const board = DEMO_PRO[selected]();
@@ -1979,12 +2172,11 @@
   }
   window.ICADEMCoinChest = { show: showCoinChest };
 
-  // Créditos que el equipo ICADEM regaló o vendió desde el admin: el servidor
-  // deja un aviso y aquí se muestra el cofre con el monto, una sola vez.
+  // El servidor deja un aviso por cada entrega y el cofre reconoce el saldo confirmado.
   let creditGiftsChecking = null;
   async function checkCreditGifts() {
     const scope = platformSession();
-    if (window.__isDemoMode || !currentPlatformSession(scope) || (creditGiftsChecking && currentPlatformSession(creditGiftsChecking))) return;
+    if (window.__isDemoMode || document.hidden || !currentPlatformSession(scope) || (creditGiftsChecking && currentPlatformSession(creditGiftsChecking))) return;
     creditGiftsChecking = scope;
     try {
       const data = await request('/api/credits/notifications');
@@ -1992,14 +2184,22 @@
       if (!items.length) return;
       const total = items.reduce((sum, item) => sum + Number(item.amount || 0), 0);
       const last = items[items.length - 1];
-      const purchase = items.every(item => item.kind === 'purchase');
+      const title = items.every(item => item.kind === 'purchase') ? '¡Compra acreditada!'
+        : items.every(item => item.kind === 'mission') ? '¡Sumaste créditos por tus misiones!'
+        : items.every(item => item.kind === 'gift') ? '¡Te regalaron créditos!' : '¡Créditos acreditados!';
       const note = items.length === 1 && last.note ? last.note : '';
       // Espera a que no haya otra ventana encima (bienvenida, recorrido, etc.)
-      for (let i = 0; i < 20 && document.querySelector('.modal-backdrop.is-open, .cc-overlay, .rv'); i++) await new Promise(r => setTimeout(r, 1000));
-      if (!currentPlatformSession(scope)) return;
-      showCoinChest({ amount: total, total: Number(last.balanceAfter), title: purchase ? '¡Compra acreditada!' : '¡Te regalaron créditos!', note });
+      const blocker = '.modal-backdrop.is-open, .cc-overlay, .rv, .credit-wallet-modal, .learning-game, .ica-experience';
+      const blocked = () => document.querySelector(blocker) || window.ICADEMResumeEditor?.isOpen?.();
+      for (let i = 0; i < 20 && currentPlatformSession(scope) && blocked(); i++) await new Promise(r => setTimeout(r, 1000));
+      if (!currentPlatformSession(scope) || document.hidden || blocked()) return;
+      const wallet = await loadCreditWallet(true).catch(() => null);
+      if (!currentPlatformSession(scope) || document.hidden || blocked()) return;
+      const balance = wallet?.credits?.balance;
+      const confirmed = Number.isSafeInteger(balance) && balance >= 0;
+      if (!confirmed && items.some(item => item.kind === 'mission')) return;
+      showCoinChest({ amount: total, total: confirmed ? balance : (last.balanceAfter ?? undefined), title, note });
       await request('/api/credits/notifications/read', { method: 'POST', body: { ids: items.map(item => item.id) } }).catch(() => {});
-      loadCreditWallet(true).catch(() => {});
     } catch (_) {
       // Sin aviso: se vuelve a intentar en la siguiente visita
     } finally {
@@ -2034,6 +2234,8 @@
     const next = Number(result.newBalance ?? previous + reward);
     const hasReward = reward > 0;
     const isReto = challenge.scope === 'reto';
+    const completionReward = Number(result.courseCompletionReward) || 0;
+    const lessonReward = Number(result.lessonReward ?? reward) || 0;
     const seconds = Math.max(1, Math.round(stats?.seconds || 0));
     const mistakes = Math.max(0, Number(stats?.mistakes) || 0);
     const par = challenge.type === 'quiz' ? 240 : 120;
@@ -2046,7 +2248,7 @@
     const subtitle = [challenge.displayTitle || challenge.title, isReto ? '' : gameName].filter((v, i, all) => v && all.indexOf(v) === i).join(' · ');
     const star = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.1 1.1-6.5L2.6 9.4l6.5-.9z" fill="currentColor"/></svg>';
     const rewardLine = hasReward
-      ? `<span class="gw-coin" aria-hidden="true">${CHEST_COIN}</span><span class="gw-reward__copy"><span><b>+${reward} créditos</b> ${isReto ? 'sumados a tu saldo' : 'por superar la clase'}</span><small>Saldo total: <b>${next.toLocaleString('es-MX')}</b> créditos</small></span>`
+      ? `<span class="gw-coin" aria-hidden="true">${CHEST_COIN}</span><span class="gw-reward__copy"><span><b>+${reward} créditos</b> ${completionReward ? 'por tu avance en el curso' : (isReto ? 'sumados a tu saldo' : 'por superar la clase')}</span>${completionReward ? `<small>${lessonReward ? `+${lessonReward} por la clase · ` : ''}+${completionReward} por completar el curso</small>` : ''}<small>Saldo total: <b>${next.toLocaleString('es-MX')}</b> créditos</small></span>`
       : `<span>${isReto ? 'Modo práctica · este reto ya estaba registrado, sin créditos' : 'Modo práctica · esta clase ya había sumado sus créditos'}</span>`;
     const primaryLabel = result.nextLessonNumber ? 'Abrir siguiente clase' : (isReto ? 'Volver a Retos' : (result.courseCompleted ? 'Ver mi certificado' : 'Volver al curso'));
     const anotherLabel = isReto && challenge.experienceId === 'pro' ? 'Elegir otra dinámica' : isReto && challenge.experienceId === 'catalog' ? 'Elegir otro juego' : '';
@@ -2076,7 +2278,7 @@
     if (hasReward) {
       creditWalletCache = null;
       celebrate(result.courseCompleted || stars === 3);
-      setTimeout(() => showCoinChest({ amount: reward, total: next, title: isReto ? '¡Reto superado!' : '¡Mini juego superado!' }), 450);
+      setTimeout(() => showCoinChest({ amount: reward, total: next, title: completionReward ? '¡Curso completado!' : (isReto ? '¡Reto superado!' : '¡Mini juego superado!') }), 450);
       announce(`Ganaste ${reward} créditos. Nuevo saldo: ${next}.`);
     } else {
       celebrate(false);
@@ -2375,7 +2577,7 @@
     if (window.__isDemoMode) {
       const demoStatus = readDemoRetoStatus();
       const today = mexicoDateKey();
-      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, catalogUsedTypes: demoStatus.catalogTypes, proUsedTypes: (() => { try { return JSON.parse(localStorage.getItem(demoProStatusKey()) || '[]'); } catch (_) { return []; } })(), balance: Number(localStorage.getItem('icadem:demo:credits') || 200), reward: 5 };
+      data = { isAdmin: false, used: demoStatus.used, dailyUsedToday: demoStatus.dailyDate === today, catalogUsedCount: demoStatus.catalogTypes.length, catalogUsedTypes: demoStatus.catalogTypes, proUsedTypes: (() => { try { return JSON.parse(localStorage.getItem(demoProStatusKey()) || '[]'); } catch (_) { return []; } })(), balance: Number(localStorage.getItem('icadem:demo:credits') || DEMO_WELCOME_CREDITS), reward: 5 };
     } else {
       try { data = await request('/api/retos/status'); }
       catch (error) {
@@ -2487,6 +2689,13 @@
   }
 
   document.addEventListener('click', event => {
+    const mission = event.target.closest?.('[data-credit-mission]');
+    if (!mission || !currentPlatformSession(platformSession())) return;
+    closeCreditWallet?.();
+    openMission(mission.dataset.creditMission);
+  });
+
+  document.addEventListener('click', event => {
     const trigger = event.target.closest?.('[data-credit-wallet-open]');
     if (!trigger) return;
     event.preventDefault();
@@ -2556,6 +2765,8 @@
     progressSequence++; progressPromise = null;
     creditSnapshotRevision++; appliedCreditRead = 0;
     invalidateCreditWallet();
+    missionReconciliation = null;
+    paintHomeMissions(null);
     appliedIdentityFingerprint = '';
     window.__pendingServerProgress = null;
     window.__serverCourseProgress = {};
@@ -2598,7 +2809,9 @@
     if (criticalRefreshTimer) clearInterval(criticalRefreshTimer);
     if (window.__isDemoMode || !currentPlatformSession(platformSession())) return;
     criticalRefreshTimer = setInterval(() => {
-      if (Date.now() - lastCriticalRefresh >= 60000) refreshCriticalData();
+      if (Date.now() - lastCriticalRefresh >= 60000) refreshCriticalData().then(results => {
+        if (walletMissions(results?.[2]?.value).length) checkCreditGifts();
+      });
     }, 60000);
   }
   document.addEventListener('icadem:session-ending', resetPlatformSession);
@@ -2608,6 +2821,10 @@
     resetPlatformSession();
     syncIdentity();
     startCriticalRefresh();
+    refreshHomeMissions().catch(() => {});
+  });
+  window.addEventListener('icadem:section-ready', event => {
+    if (event.detail?.section === 'inicio') refreshHomeMissions(true).catch(() => {});
   });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') refreshCriticalData();
