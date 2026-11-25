@@ -28,6 +28,7 @@
   function now(c){return c.clock?c.clock.server+Math.max(0,performance.now()-c.clock.received):Infinity;}
   function photo(profile){var src=url(profile.foto);if(src)src=window.__avatarSrc?.(src,profile.photoVersion)||src;return '<span class="activity-avatar">'+(src?'<img src="'+esc(src)+'" alt="" decoding="async" referrerpolicy="no-referrer">':esc(profile.iniciales||'MI'))+'</span>';}
   function date(ms){return new Intl.DateTimeFormat('es-MX',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(ms);}
+  function edited(item){var time=Date.parse(item.editedAt);return Number.isFinite(time)?'<span class="activity-edited" title="'+esc('Editado el '+date(time))+'"> · Editado</span>':'';}
   function status(c,text,error){var node=c.root.querySelector('[data-activity-status]');node.textContent=text||'';node.hidden=!text;node.setAttribute('role',error?'alert':'status');}
   function paint(c,restore){
     if(!active(c))return;
@@ -38,7 +39,7 @@
     var list=c.root.querySelector('[data-activity-list]');
     list.innerHTML=c.items.length?c.items.map(item=>{
       var image=url(item.imagen,true);
-      return '<article class="activity-card '+(p.isVip?'activity-card--vip':'')+'" data-activity-post="'+esc(item.id)+'" data-post-accent="'+(window.ICADEMPostStyle?.accent(item.style)||'default')+'"><a class="activity-card__link" data-activity-open="'+esc(item.id)+'" href="'+esc(postHref(item.id))+'" aria-label="Abrir publicación de '+esc(p.nombre)+' del '+esc(date(item.createdAtMs))+'"><header>'+photo(p)+'<div><strong>'+esc(p.nombre)+'</strong><time datetime="'+new Date(item.createdAtMs).toISOString()+'">'+esc(date(item.createdAtMs))+'</time></div>'+(p.isVip?'<span class="activity-vip">'+icon('crown')+'VIP</span>':'')+'</header>'+
+      return '<article class="activity-card '+(p.isVip?'activity-card--vip':'')+'" data-activity-post="'+esc(item.id)+'" data-post-accent="'+(window.ICADEMPostStyle?.accent(item.style)||'default')+'"><a class="activity-card__link" data-activity-open="'+esc(item.id)+'" href="'+esc(postHref(item.id))+'" aria-label="Abrir publicación de '+esc(p.nombre)+' del '+esc(date(item.createdAtMs))+'"><header>'+photo(p)+'<div><strong>'+esc(p.nombre)+'</strong><time datetime="'+new Date(item.createdAtMs).toISOString()+'">'+esc(date(item.createdAtMs))+edited(item)+'</time></div>'+(p.isVip?'<span class="activity-vip">'+icon('crown')+'VIP</span>':'')+'</header>'+
         (item.texto?'<p class="activity-text">'+esc(item.texto)+'</p>':'')+(image?'<div class="activity-image"><img src="'+esc(image)+'" alt="Imagen compartida por '+esc(p.nombre)+'" loading="lazy" decoding="async"></div>':'')+
         '<footer><div class="activity-counts" aria-label="Interacciones de la publicación"><span>'+icon('heart')+item.likes+' <span>reacciones</span></span><span>'+icon('messages')+item.comentariosCount+' <span>comentarios</span></span></div></footer></a></article>';
     }).join(''):'<div class="activity-empty" role="status">'+icon('messages')+'<h2>Sin publicaciones recientes</h2><p>Este profesional todavía no tiene publicaciones visibles en la comunidad.</p>'+(p.own&&c.canPublish?'<button class="community-primary" data-activity-compose>Crear una publicación</button>':'')+'</div>';

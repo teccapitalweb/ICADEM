@@ -1,7 +1,7 @@
 /* Private support presentation. Existing authenticated API and polling are retained. */
 (function(){
   'use strict';
-  var poll=null,view=null,lastRoot=null,sessionGeneration=0,sessionUid='',ui=window.ICADEMSupportUI;
+  var poll=null,view=null,lastRoot=null,sessionGeneration=0,sessionUid='',ui=window.ICADEMSupportUI,tools=window.ICADEMSupportMessages;
   function currentUid(){return window.__auth?.currentUser?.uid||'';}
   function esc(value){return String(value==null?'':value).replace(/[&<>"']/g,function(ch){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[ch];});}
   async function request(path,options){
@@ -16,7 +16,7 @@
     if(config.body)config.headers['Content-Type']='application/json';
     var response=await fetch((window.WEBHOOK_URL||'https://icadem-webhook-production.up.railway.app')+path,config),data=await response.json().catch(function(){return{};});
     assertSession();
-    if(!response.ok)throw new Error(data.error||'No pudimos conectar con soporte');
+    if(!response.ok)throw Object.assign(new Error(data.error||'No pudimos conectar con soporte'),{status:response.status,code:data.code,data:data});
     return data;
   }
   function fmt(value,dayOnly){
@@ -29,7 +29,8 @@
     if(!messages?.length)return '<div class="support-empty"><div class="sp-empty-art">'+ui.icon('chat')+'</div><span class="sp-eyebrow">TU ESPACIO DE ATENCIÓN</span><strong>¿En qué podemos ayudarte?</strong><p>Elige el tema de tu consulta y escribe al equipo ICADEM. Tu conversación se conservará aquí.</p><span class="sp-empty-private">'+ui.icon('shield')+'Una conversación privada</span></div>';
     var lastDay='';return messages.map(function(message){
       var day=message.createdAt?new Date(message.createdAt).toDateString():'sin-fecha',divider=day!==lastDay?'<div class="support-day" data-support-key="day-'+esc(day)+'"><span>'+esc(fmt(message.createdAt,true))+'</span></div>':'';lastDay=day;
-      return divider+'<div class="support-message '+(message.sender==='member'?'is-member':'is-admin')+'" data-support-key="message-'+esc(message.id)+'" data-support-message><div class="support-bubble"><div class="support-bubble__sender">'+(message.sender==='member'?'Tú':'Equipo ICADEM')+'</div><div class="support-bubble__text">'+esc(message.text||'')+'</div><time class="support-bubble__time" datetime="'+esc(message.createdAt||'')+'">'+esc(fmt(message.createdAt,false))+'</time></div></div>';
+      var mine=message.sender==='member';
+      return divider+'<div class="support-message '+(mine?'is-member':'is-admin')+'" data-support-key="message-'+esc(message.id)+'" data-support-message tabindex="-1"'+(tools?tools.attributes(message,mine):'')+'><div class="support-bubble"><div class="support-bubble__sender">'+(mine?'Tú':'Equipo ICADEM')+'</div><div class="support-bubble__text">'+esc(message.text||'')+'</div>'+(tools?tools.meta(message,mine,fmt(message.createdAt,false)):'<time class="support-bubble__time" datetime="'+esc(message.createdAt||'')+'">'+esc(fmt(message.createdAt,false))+'</time>')+'</div></div>';
     }).join('');
   }
   async function load(silent){
@@ -37,9 +38,10 @@
     var box=current.root.querySelector('#support-messages'),revision=current.picker.revision();
     try{
       var data=await request('/support/me');if(view!==current||!current.root.isConnected)return;
-      ui.syncMessages(box,messagesHtml(data.messages||[]),current.firstPaint);current.firstPaint=false;
+      var messages=current.messageTools?current.messageTools.reconcile(data.messages||[]):data.messages||[];
+      ui.syncMessages(box,messagesHtml(messages),current.firstPaint);current.firstPaint=false;current.messageTools?.update(messages);
       ui.setCaseStatus(current.root,data.conversation);current.picker.set(data.conversation?.topic||'membresia',revision);
-      var dot=document.getElementById('support-unread-dot');if(dot)dot.hidden=true;
+      var dot=document.getElementById('support-unread-dot');if(dot)dot.hidden=!(data.conversation&&data.conversation.unreadUser>0);
     }catch(error){
       if(!silent&&view===current&&current.firstPaint){box.innerHTML='<div class="support-empty"><div class="sp-empty-art">'+ui.icon('help')+'</div><strong>No pudimos abrir la conversación</strong><p>Revisa tu conexión o vuelve a iniciar sesión. Tu historial se conserva.</p><button type="button" class="sp-retry" data-support-retry>Volver a intentar</button></div>';box.querySelector('[data-support-retry]')?.addEventListener('click',function(){load(false);});}
     }finally{current.loading=false;}
@@ -47,7 +49,7 @@
   async function refreshBadge(){try{var data=await request('/support/me?peek=1'),dot=document.getElementById('support-unread-dot');if(dot)dot.hidden=!(data.conversation&&data.conversation.unreadUser>0);}catch(_){}}
   function beginPoll(){clearInterval(poll);if(!currentUid()||window.__sessionEnding)return;poll=setInterval(function(){if(document.visibilityState==='hidden')return;if(location.hash.replace(/^#/,'')==='soporte')load(true);else refreshBadge();},20000);}
   function resetSession(){
-    sessionGeneration++;clearInterval(poll);poll=null;
+    sessionGeneration++;clearInterval(poll);poll=null;view?.messageTools?.dispose();
     if(view?.root?.querySelector('[data-support-premium]'))view.root.replaceChildren();
     view=null;sessionUid='';var dot=document.getElementById('support-unread-dot');if(dot)dot.hidden=true;
   }
@@ -57,11 +59,13 @@
     refreshBadge();beginPoll();
   }
   Sections.renderers.soporte=function(root){
+    view?.messageTools?.dispose();
     root.innerHTML='<div class="support-page sp-premium" data-support-premium>'+ui.hero(false)+'<div class="support-layout"><details class="support-info sp-case" open><summary><span><span class="sp-eyebrow">TU SOLICITUD</span><strong>Detalles de tu consulta</strong></span>'+ui.icon('arrow')+'</summary><div class="sp-case__body">'+ui.categoriesMarkup()+'<section class="sp-case-status"><span>Estado del caso</span><strong class="sp-case-state" data-support-case-state data-state="loading">Cargando estado…</strong></section><div class="sp-case-note">'+ui.icon('book')+'<div><strong>Seguimiento en el mismo lugar</strong><p>Tu historial se conserva para continuar donde lo dejaste.</p></div></div><div class="sp-case-note">'+ui.icon('shield')+'<div><strong>Conversación privada</strong><p>Solo tú y el equipo de administración pueden consultar este espacio.</p></div></div></div></details><section class="support-thread" aria-label="Conversación de soporte"><header class="support-thread__head"><div class="support-thread__identity"><div class="support-thread__avatar">'+ui.icon('headset')+'</div><div><strong>Equipo ICADEM</strong><span>Administración de membresías</span></div></div><span class="sp-case-state" data-support-case-state data-state="loading">Cargando…</span></header><div class="sp-message-stage"><div class="support-messages" id="support-messages" role="log" tabindex="0" aria-label="Historial de la conversación" aria-live="polite" aria-relevant="additions" aria-atomic="false"><div class="support-loading"><span class="sp-loading-mark">'+ui.icon('chat')+'</span><p>Cargando tu conversación…</p></div></div><button class="sp-new-messages" data-support-new type="button" hidden>Nuevos mensajes '+ui.icon('arrow')+'</button></div>'+ui.composerMarkup(false)+'</section></div></div>';
-    var current={root:root,loading:false,firstPaint:true,picker:null};view=current;lastRoot=root;sessionUid=currentUid();
+    var current={root:root,loading:false,firstPaint:true,picker:null,uid:currentUid(),messageTools:null};view=current;lastRoot=root;sessionUid=currentUid();
     current.picker=ui.bindCategories(root,function(topic){return request('/support/me',{method:'PATCH',body:JSON.stringify({topic:topic})});});
     if(root.querySelector('[data-support-premium]').getBoundingClientRect().width<=720)root.querySelector('.sp-case').open=false;
     ui.bindThread(root);
+    current.messageTools=tools?.bind(root,{box:'#support-messages',active:function(){return view===current&&current.uid===currentUid()&&!window.__sessionEnding&&location.hash.replace(/^#/,'')==='soporte';},edit:function(id,body){return request('/support/me/messages/'+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify(body)});},read:function(body){return request('/support/me/read',{method:'POST',body:JSON.stringify(body)});},readResult:function(result){var dot=document.getElementById('support-unread-dot');if(dot)dot.hidden=!(result.conversation&&result.conversation.unreadUser>0);},refresh:function(){return load(true);}});
     ui.bindComposer(root.querySelector('#support-form'),{topic:current.picker.value,send:function(body){return request('/support/me/messages',{method:'POST',body:JSON.stringify(body)});},sent:function(){return load(true);}});
     load(false);beginPoll();
   };

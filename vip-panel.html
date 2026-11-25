@@ -4085,9 +4085,10 @@ body.has-fomo .main{padding-top:18px}
 @media(prefers-reduced-motion:reduce){.courses-page--premium .curso-card,.courses-page--premium .curso-card__cover>img,.courses-page--premium .curso-card__progress-fill,.courses-filter-chip{transition:none}.course-skeleton__cover,.course-skeleton__line{animation:none}}
 </style>
 <link rel="stylesheet" href="css/icadem-support-premium.css?v=2">
+<link rel="stylesheet" href="css/icadem-support-messages.css?v=1">
 <link rel="stylesheet" href="css/icadem-directory.css?v=3">
 <script src="js/icadem-directory.js?v=2"></script>
-<link rel="stylesheet" href="css/icadem-community.css?v=1">
+<link rel="stylesheet" href="css/icadem-community.css?v=2">
 <link rel="stylesheet" href="css/icadem-post-style.css?v=3">
 <link rel="stylesheet" href="css/icadem-professional-profile.css?v=4">
 <link rel="stylesheet" href="css/icadem-professional-activity.css?v=3">
@@ -4097,11 +4098,11 @@ body.has-fomo .main{padding-top:18px}
 <script src="js/icadem-forum-authors.js?v=1"></script>
 <script src="js/icadem-cv-languages.js?v=1"></script>
 <script src="js/icadem-professional-profile.js?v=7"></script>
-<script src="js/icadem-professional-activity.js?v=3" defer></script>
+<script src="js/icadem-professional-activity.js?v=4" defer></script>
 <script src="js/icadem-professional-network.js?v=3" defer></script>
 <script src="js/icadem-post-style.js?v=2" defer></script>
 <script src="js/icadem-resume-editor.js?v=4"></script>
-<script src="js/icadem-community.js?v=12"></script>
+<script src="js/icadem-community.js?v=13"></script>
 <script src="js/icadem-notifications.js?v=3" defer></script>
 <link rel="stylesheet" href="css/icadem-contacts.css?v=1">
 </head>
@@ -11940,6 +11941,13 @@ const Sections = (function(){
     const pasados = Math.floor((Date.now()-d.getTime())/86400000);
     return Math.max(0, FORO_DIAS_VIDA - pasados);
   }
+  function foroEditadoMarkup(post){
+    const raw=post.editedAt?.toDate?.()||post.editedAt;
+    if(!raw)return '';
+    const date=new Date(raw);if(!Number.isFinite(date.getTime()))return '';
+    const label=new Intl.DateTimeFormat('es-MX',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(date);
+    return `<span class="post__edited" title="${escapeHtml('Editado el '+label)}"> · Editado</span>`;
+  }
   // Redimensiona y comprime a base64 ligero (máx ~900px, JPEG .72)
   function foroComprimirImagen(file){
     return new Promise((resolve,reject)=>{
@@ -12069,6 +12077,7 @@ const Sections = (function(){
     });
 
     window.ICADEMCommunity?.enhanceForum(container);
+    window.ICADEMCommunity?.mountPostEditor(container,patch=>{const post=_foroPosts.find(item=>item.id===patch.id);if(post){Object.assign(post,patch);foroPintar();}});
     window.ICADEMPostStyle?.mount(container,patch=>{const post=_foroPosts.find(item=>item.id===patch.id);if(post){post.style=patch.style;post.styleRevision=patch.styleRevision;}});
     // Suscripción en tiempo real
     foroSuscribir();
@@ -12136,6 +12145,7 @@ const Sections = (function(){
       list.innerHTML = `<div class="foro-empty"><svg class="ic" aria-hidden="true"><use href="#i-messages"/></svg><strong>Un espacio para compartir experiencia</strong>${_foroFiltro==='mios'?'Aún no has publicado nada. ¡Comparte algo con la comunidad!':'Todavía no hay publicaciones. Sé el primero en compartir.'}</div>`;
       window.ICADEMProfessionalNavigation?.forumReady(document.querySelector('[data-community-forum]'));
       window.ICADEMPostStyle?.posts([],list);
+      window.ICADEMCommunity?.postRecords([],list);
       return;
     }
     const esAdmin = esAdminReal();
@@ -12150,7 +12160,7 @@ const Sections = (function(){
           <div class="post__header">
             ${foroAutorMarkup(p,'name')}
             ${p.esAdmin?'<span class="post__role">ICADEM</span>':p.esVip===true?'<span class="post__role post__role--vip">VIP</span>':'<span class="post__role">Miembro</span>'}
-            <span class="post__time">${foroTiempoRel(p.createdAt)}</span>
+            <span class="post__time">${foroTiempoRel(p.createdAt)}${foroEditadoMarkup(p)}</span>
             ${puedeBorrar?`<button class="post__del" data-del="${p.id}" title="Eliminar">&times;</button>`:''}
           </div>
           ${p.texto?`<div class="post__content">${escapeHtml(p.texto).replace(/\n/g,'<br>')}</div>`:''}
@@ -12174,6 +12184,7 @@ const Sections = (function(){
     window.ICADEMForumAuthors?.bind(list);
     window.ICADEMForumAuthors?.hydrate(posts);
     window.ICADEMPostStyle?.posts(posts,list);
+    window.ICADEMCommunity?.postRecords(posts,list);
     window.ICADEMProfessionalNavigation?.forumReady(document.querySelector('[data-community-forum]'));
   }
 
@@ -22516,8 +22527,9 @@ h1, h2, h3, h4{ color: var(--text); }
 .support-composer{padding:14px 16px;border-top:1px solid var(--border);background:var(--surface)}.support-composer__row{display:flex;align-items:flex-end;gap:10px}.support-composer textarea{min-height:44px;max-height:126px;flex:1;resize:none;padding:12px 14px;border:1px solid var(--border-2);border-radius:14px;background:var(--surface-2);color:var(--text);font:500 12px/1.45 'Inter',sans-serif;outline:none}.support-composer textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px color-mix(in srgb,var(--primary) 11%,transparent)}.support-send{width:44px;height:44px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;border:0;border-radius:14px;background:linear-gradient(135deg,var(--primary-deep),var(--primary));color:#fff;box-shadow:0 7px 17px color-mix(in srgb,var(--primary) 22%,transparent)}.support-send:disabled{opacity:.55;box-shadow:none}.support-send .ic{width:18px;height:18px}.support-composer__hint{display:flex;justify-content:space-between;gap:12px;margin-top:7px;color:var(--text-3);font-size:9.5px}.support-unread-dot{position:absolute;right:4px;top:4px;width:9px;height:9px;border:2px solid var(--surface);border-radius:50%;background:var(--danger)}
 @media(max-width:1180px){.support-page{padding-left:4px;padding-right:4px}}@media(max-width:900px){.support-page{padding:18px 2px 110px}.support-layout{grid-template-columns:1fr}.support-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.support-info__card:last-child{grid-column:1/-1}.support-thread{min-height:620px}.support-hero{align-items:flex-start}.support-privacy{display:none}}@media(max-width:560px){.support-page{padding:10px 0 105px}.support-hero{padding:22px 20px;border-radius:20px}.support-hero h1{font-size:28px}.support-hero p{font-size:12px}.support-info{grid-template-columns:1fr}.support-info__card:last-child{grid-column:auto}.support-thread{min-height:calc(100dvh - 185px);border-radius:18px}.support-thread__head{padding:14px}.support-messages{padding:16px 12px}.support-bubble{max-width:86%;font-size:11.5px}.support-composer{padding:12px}.support-composer__hint span:first-child{display:none}}
 </style>
-<script src="js/icadem-support-ui.js?v=2"></script>
-<script src="js/icadem-support-member.js?v=4"></script>
+<script src="js/icadem-support-ui.js?v=3"></script>
+<script src="js/icadem-support-messages.js?v=1"></script>
+<script src="js/icadem-support-member.js?v=5"></script>
 <style id="icadem-panel-fixes-2026-11">
 /* Marca tipográfica: nítida a cualquier escala y sin el isotipo antiguo. */
 .brand,.sidebar>.brand{min-height:68px!important;justify-content:flex-start!important;gap:10px!important;padding:8px 10px 14px!important}

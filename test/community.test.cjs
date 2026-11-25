@@ -107,7 +107,8 @@ test("community integration preserves the forum write service, existing filters 
   const head = html.slice(0, html.indexOf("</head>"));
   const script=head.match(/src="(js\/icadem-community\.js\?v=\d+)"/);
   assert(script);assert.ok(fs.readFileSync(__dirname+'/../sw.js','utf8').includes('./'+script[1]),'service worker caches the same community asset version');
-  assert.match(head, /css\/icadem-community\.css\?v=1/);
+  const stylesheet=head.match(/href="(css\/icadem-community\.css\?v=\d+)"/);
+  assert(stylesheet);assert.ok(fs.readFileSync(__dirname+'/../sw.js','utf8').includes('./'+stylesheet[1]),'service worker caches the same community stylesheet version');
   assert.match(html, /createForumPost\(/);
   for (const value of ["recientes", "populares", "mios"])
     assert.ok(html.includes('data-foro-tab="' + value + '"'));

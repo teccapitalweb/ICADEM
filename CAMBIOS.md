@@ -1,5 +1,14 @@
 # CAMBIOS
 
+## 2026-11-25 — Edición de publicaciones y seguimiento privado
+
+- Comunidad permite al autor gratuito o VIP corregir el texto de una publicación vigente y muestra «Editado», también en Actividad profesional. Se conservan la fecha original, los 15 días de caducidad, imagen, estilo, reacciones y comentarios. Guardado con revisión del servidor, comparación explícita ante conflicto y borrador protegido frente a errores y cambios de sesión.
+- Soporte permite corregir mensajes propios durante 15 minutos desde el envío original, tanto al miembro como al administrador que escribió la respuesta. Edición integrada en la burbuja, controles táctiles y texto conservado ante errores; los administradores no reciben permiso para modificar respuestas de otra persona.
+- «Visto» corresponde a una versión que se mostró en la conversación activa, enfocada y visible. Consultas, listas y envíos no marcan lecturas. Mensajes fuera de pantalla, pestañas ocultas y revisiones nuevas siguen pendientes; una corrección vista anteriormente vuelve a «Enviado» hasta visualizar la nueva versión. Los contadores se actualizan con la respuesta confirmada, sin inferir lecturas históricas.
+- Backend separado con comprobaciones de autor, plazo y versión en transacciones, auditoría privada y confirmaciones de lectura idempotentes. Las reglas desplegadas deniegan acceso del navegador a los nuevos historiales; no se despliegan reglas ni se cambian pagos, membresías, cursos o Ciudad.
+- 660/660 regresiones del panel sin omisiones. Comunidad y soporte de usuario/administrador comprobados en Chrome/WebKit a 320/390/768/1440 px, con errores, conflictos, borradores, sesiones, lectura parcial y marcas por revisión. Se corrigió la posición de Guardar en el historial móvil. Backend: 499 casos aprobados, cero fallos y ocho pruebas optativas omitidas en la suite general; ejecución adicional con Firestore emulado 13/13 sin omisiones, con casos solapados. Son pruebas locales, sin conversaciones reales ni teléfonos físicos.
+- Caché del panel v190 y referencias de soporte/comunidad actualizadas. La interfaz requiere publicar primero el contrato del servidor.
+
 ## 2026-11-24 — Fajitas de billetes sin recuadro
 
 - El aviso visual de comisión pasa a ser una animación automática y transparente: sólo fajitas completas de billetes, sin ventana blanca, fondo, botones ni texto superpuesto. Aparecen brevemente en el centro y siguen una misma trayectoria ascendente hasta la esquina superior derecha, con una separación temporal discreta. Se elimina la base y los destellos del SVG.

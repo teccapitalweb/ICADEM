@@ -674,3 +674,114 @@
     profileMarkup: profileMarkup,
   };
 })();
+
+/* Text edits use the existing post and its server revision; no second publication. */
+(function () {
+  'use strict';
+  var scope = null, dialog = null, epoch = 0, expiryTimer = null;
+  var RETENTION = 15 * 86400000;
+  function viewer() { return window.__currentUser?.uid || window.__auth?.currentUser?.uid || ''; }
+  function validId(value) { return /^[A-Za-z0-9_-]{1,180}$/.test(value || ''); }
+  function current(c) { return scope === c && c.uid === viewer() && c.root.isConnected && !window.__sessionEnding; }
+  function created(post) { return Number(post.createdAtMs) || post.createdAt?.toDate?.().getTime() || 0; }
+  function revision(post) { return Number.isSafeInteger(post.contentRevision) && post.contentRevision >= 0 ? post.contentRevision : 0; }
+  function editable(post, uid) { var time = created(post); return !!uid && post.uid === uid && validId(post.id) && time > 0 && time + RETENTION > Date.now(); }
+  function api(id, options) { return window.ICADEMPlatform.request('/api/forum/posts/' + encodeURIComponent(id), options); }
+  function closeDialog() { if (dialog) dialog.close(); }
+  function decorate(c, list) {
+    if (!current(c) || !list) return;
+    var byId = new Map(c.posts.map(function (post) { return [post.id, post]; }));
+    list.querySelectorAll('[data-post]').forEach(function (row) {
+      var post = byId.get(row.dataset.post), button = row.querySelector('[data-post-text-edit]');
+      if (!post || !editable(post, c.uid)) { button?.remove(); return; }
+      if (button) return;
+      button = document.createElement('button'); button.type = 'button'; button.className = 'community-post-edit';
+      button.dataset.postTextEdit = post.id; button.textContent = 'Editar'; button.setAttribute('aria-label', 'Editar el texto de mi publicación');
+      button.addEventListener('click', function () { open(post.id, button); }); row.querySelector('.post__header')?.appendChild(button);
+    });
+  }
+  function postRecords(posts, list) {
+    var c = scope; if (!c || !current(c)) return;
+    c.posts = posts || []; decorate(c, list); if (expiryTimer) clearTimeout(expiryTimer); expiryTimer = null;
+    var deadlines = c.posts.filter(function (p) { return editable(p, c.uid); }).map(function (p) { return created(p) + RETENTION - Date.now(); });
+    if (deadlines.length) expiryTimer = setTimeout(function () { if (current(c)) postRecords(c.posts, c.root.querySelector('#foro-list')); }, Math.max(1, Math.min.apply(null, deadlines)));
+  }
+  function mountPostEditor(root, onSaved) {
+    closeDialog(); if (expiryTimer) clearTimeout(expiryTimer); expiryTimer = null; scope = {root:root, uid:viewer(), posts:[], onSaved:onSaved, opening:'', intent:0};
+  }
+  async function open(postId, trigger) {
+    var c = scope, uid = viewer(), run = epoch;
+    if (!c || !current(c) || c.opening === postId || !validId(postId) || !c.posts.some(function (p) { return p.id === postId && editable(p, uid); })) return;
+    c.opening = postId; var intent = ++c.intent;
+    if (trigger) { trigger.disabled = true; trigger.setAttribute('aria-busy', 'true'); }
+    try {
+      var response = await api(postId);
+      if (run !== epoch || !current(c) || intent !== c.intent) return;
+      var post = response?.post;
+      if (response?.ok !== true || post?.id !== postId || !editable(post, uid)) throw Error('Esta publicación ya no está disponible para editar.');
+      closeDialog();
+      var node = document.createElement('dialog'); dialog = node; node.className = 'community-edit-dialog';
+      node.setAttribute('aria-labelledby', 'community-edit-title'); node.setAttribute('aria-describedby', 'community-edit-hint');
+      node.innerHTML = '<h2 id="community-edit-title">Editar publicación</h2><p id="community-edit-hint" class="community-edit-hint">Corrige el texto sin reiniciar los 15 días de vigencia.</p><label for="community-edit-text">Texto de tu publicación</label><textarea id="community-edit-text" data-post-edit-text rows="5" maxlength="1500" aria-describedby="community-edit-count community-edit-error"></textarea><div class="community-edit-meta"><span>La imagen y el estilo se conservan.</span><output id="community-edit-count"></output></div><p id="community-edit-error" class="community-edit-error" role="alert" hidden></p><section class="community-edit-comparison" data-post-edit-comparison hidden><strong>Versión actual de la publicación</strong><p data-post-edit-current></p><button type="button" data-post-edit-accept>Continuar con mi texto</button></section><div class="community-edit-actions"><button type="button" data-post-edit-cancel>Cancelar</button><button type="button" data-post-edit-review hidden>Revisar versión actual</button><button type="button" data-post-edit-save>Guardar cambios</button></div>';
+      var text = node.querySelector('[data-post-edit-text]'), save = node.querySelector('[data-post-edit-save]'), error = node.querySelector('#community-edit-error');
+      var review = node.querySelector('[data-post-edit-review]'), comparison = node.querySelector('[data-post-edit-comparison]'), accept = node.querySelector('[data-post-edit-accept]');
+      var busy = false, conflict = false, baseRevision = revision(post), nextPost = null, savedText = String(post.texto || '');
+      text.value = savedText;
+      function fresh() { return run === epoch && current(c) && node.isConnected; }
+      function update() {
+        node.querySelector('#community-edit-count').textContent = text.value.length + ' / 1500';
+        save.disabled = busy || conflict || text.value.length > 1500 || (!text.value.trim() && !post.imagen) || text.value.trim() === savedText;
+        node.querySelectorAll('button:not([data-post-edit-save])').forEach(function (button) { button.disabled = busy; });
+        text.readOnly = busy; node.setAttribute('aria-busy', String(busy)); save.textContent = busy ? 'Guardando…' : baseRevision === revision(post) ? 'Guardar cambios' : 'Guardar mi texto';
+      }
+      function fail(message) { error.textContent = message; error.hidden = false; }
+      text.addEventListener('input', update);
+      node.querySelector('[data-post-edit-cancel]').addEventListener('click', function () { node.close(); });
+      node.addEventListener('cancel', function (event) { if (busy) event.preventDefault(); });
+      node.addEventListener('close', function () {
+        node.remove(); if (dialog === node) dialog = null;
+        if (current(c)) Array.from(c.root.querySelectorAll('[data-post-text-edit]')).find(function (b) { return b.dataset.postTextEdit === postId; })?.focus({preventScroll:true});
+      });
+      review.addEventListener('click', async function () {
+        if (busy || !fresh()) return; busy = true; update(); error.hidden = true;
+        try {
+          var latest = await api(postId); if (!fresh()) return;
+          if (latest?.ok !== true || latest.post?.id !== postId || !editable(latest.post, uid)) throw Error('La publicación ya no está disponible para editar. Tu texto sigue aquí.');
+          nextPost = latest.post; node.querySelector('[data-post-edit-current]').textContent = nextPost.texto || 'Publicación sin texto.';
+          comparison.hidden = false; review.hidden = true;
+          fail('Tu borrador se conserva. Revisa la versión actual y decide si quieres continuar con tu texto.');
+        } catch (e) { if (fresh()) fail(e.message || 'No pudimos consultar la versión actual. Conservamos tu borrador.'); }
+        finally { busy = false; if (fresh()) update(); }
+      });
+      accept.addEventListener('click', function () {
+        if (!nextPost || busy) return;
+        baseRevision = revision(nextPost); savedText = String(nextPost.texto || ''); post = nextPost; nextPost = null;
+        conflict = false; comparison.hidden = true; error.hidden = true; update(); text.focus({preventScroll:true});
+      });
+      save.addEventListener('click', async function () {
+        update(); if (save.disabled || !fresh()) return;
+        busy = true; update(); error.hidden = true;
+        try {
+          var result = await api(postId, {method:'PATCH', body:{texto:text.value.trim(), expectedRevision:baseRevision}});
+          if (!fresh()) return;
+          if (result?.ok !== true || result.postId !== postId || typeof result.texto !== 'string' || !Number.isSafeInteger(result.contentRevision) || result.contentRevision < baseRevision || !Number.isFinite(Date.parse(result.editedAt))) throw Error('No pudimos confirmar los cambios guardados. Conservamos tu texto.');
+          var patch = {id:postId, texto:result.texto, contentRevision:result.contentRevision, editedAt:result.editedAt};
+          c.posts = c.posts.map(function (p) { return p.id === postId ? Object.assign({}, p, patch) : p; });
+          c.onSaved?.(patch); node.close(); window.Toast?.success?.('Publicación actualizada', 'Se conservaron sus respuestas, reacciones y caducidad.');
+        } catch (e) {
+          if (!fresh()) return;
+          fail(e.message || 'No pudimos guardar. Conservamos tu texto para reintentar.');
+          if (e.status === 409) { conflict = true; review.hidden = false; fail('La publicación cambió en otra sesión. Conservamos tu texto; revisa la versión actual antes de guardar.'); }
+          if ([403,404,410].includes(e.status)) { conflict = true; fail('La publicación ya no está disponible para editar. Conservamos tu texto para que puedas copiarlo.'); }
+        } finally { busy = false; if (fresh()) update(); }
+      });
+      update(); document.body.appendChild(node); node.showModal(); text.focus({preventScroll:true});
+    } catch (error) { if (run === epoch && current(c) && intent === c.intent) window.Toast?.error?.('No pudimos abrir la publicación', error.message || 'Intenta de nuevo.'); }
+    finally { if (current(c) && intent === c.intent) c.opening = ''; if (trigger?.isConnected) { trigger.disabled = false; trigger.setAttribute('aria-busy', 'false'); } }
+  }
+  function reset() { epoch++; if (expiryTimer) clearTimeout(expiryTimer); expiryTimer = null; scope = null; closeDialog(); }
+  document.addEventListener('icadem:session-ending', reset); document.addEventListener('icadem:session-ended', reset);
+  document.addEventListener('icadem:user-ready', function () { if (scope && scope.uid !== viewer()) reset(); });
+  window.addEventListener?.('icadem:navigation', function (event) { if (event.detail?.section !== 'foro') reset(); });
+  Object.assign(window.ICADEMCommunity, {mountPostEditor:mountPostEditor, postRecords:postRecords});
+})();
