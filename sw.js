@@ -1,10 +1,10 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v190';
+const CACHE = 'icadem-vip-v191';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=3',
-  './js/icadem-course-ratings.js?v=7',
-  './js/icadem-credit-rewards.js?v=1',
+  './js/icadem-course-ratings.js?v=8',
+  './js/icadem-credit-rewards.js?v=2',
   './js/icadem-commission-conversion.js?v=1',
   './js/icadem-lesson-notes.js?v=1',
   './css/icadem-credit-rewards.css?v=1',
@@ -18,7 +18,7 @@ const SHELL = [
   './icon-512.png?v=20260815',
   './icon-maskable-512.png?v=20260815',
   './apple-touch-icon.png?v=20260815',
-  './css/platform-v2.css?v=11',
+  './css/platform-v2.css?v=12',
   './css/auth-minimal.css?v=8',
   './js/icadem-mascots.js?v=1',
   './js/icadem-analytics.js?v=4',
@@ -29,7 +29,7 @@ const SHELL = [
   './assistant/assets/icadem-guide.png',
   './assistant/assets/icadem-guide-blink.png',
   './privacidad.html',
-  './js/icadem-platform-v2.js?v=55',
+  './js/icadem-platform-v2.js?v=56',
   './js/icadem-course-unlocks.js?v=7',
   './css/icadem-course-unlocks.css?v=4',
   './css/icadem-contacts.css?v=1',
@@ -89,7 +89,7 @@ const SHELL = [
   './js/icadem-home.js?v=3',
   './js/icadem-vip-banner.js?v=3',
   './assets/logo/icadem-wordmark.png?v=1',
-  './js/icadem-onboarding.js?v=23',
+  './js/icadem-onboarding.js?v=24',
   './css/icadem-ciudad.css?v=1',
   './js/icadem-ciudad.js?v=19'
 ];

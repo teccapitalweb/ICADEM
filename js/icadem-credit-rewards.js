@@ -47,9 +47,11 @@
     if(!same(item.owner,item.generation)||contextOffered||document.hidden||navigating||viewIntent||blocked()||offered.has(item.courseId))return;
     if(preferredCourseId&&preferredCourseId!==item.courseId){maybeQueue();return;}
     if(!data.reward?.eligible){pending.delete(item.courseId);if(preferredCourseId===item.courseId)preferredCourseId='';maybeQueue();return;}
+    const amount=Number(data.reward.amount ?? item.amount);
+    if(!Number.isSafeInteger(amount)||amount<1)return;
     const body=document.createElement('div');body.className='rating-reward-dialog';
     const lead=document.createElement('p');lead.className='rating-reward-dialog__lead';lead.textContent=item.courseTitle||'Curso completado';
-    const gift=document.createElement('div');gift.className='rating-reward-dialog__gift';gift.innerHTML='<svg aria-hidden="true"><use href="#i-gift"/></svg><strong>+25 créditos ICADEM</strong><small>Por tu opinión sincera, sin importar la puntuación.</small>';
+    const gift=document.createElement('div');gift.className='rating-reward-dialog__gift';gift.innerHTML='<svg aria-hidden="true"><use href="#i-gift"/></svg><strong>+'+amount+' créditos ICADEM</strong><small>Por tu opinión sincera, sin importar la puntuación.</small>';
     const copy=document.createElement('p');copy.className='rating-reward-dialog__copy';copy.textContent='Utiliza tus créditos para desbloquear materiales y recursos profesionales. El comentario es opcional.';
     const widget=document.createElement('div');widget.className='rating-reward-dialog__widget';
     body.append(lead,gift,copy,widget);

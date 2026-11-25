@@ -1,5 +1,12 @@
 # CAMBIOS
 
+## 2026-11-25 — Misiones en la cartera de créditos
+
+- Inicio muestra hasta tres actividades disponibles. La cartera muestra avances, límites y accesos a tarjeta profesional, CV, Comunidad, Directorio e invitaciones. Los importes, estados y movimientos proceden del servidor.
+- Las altas nuevas reciben 100 créditos para el primer material. El juego de la última clase muestra el premio académico confirmado y desglosa la finalización cuando corresponde. La invitación a valorar cursos muestra el importe vigente para cada cuenta, incluidos los cursos históricos.
+- Los invitados con correo pendiente pueden solicitar el enlace de verificación desde la cartera y volver a consultar su estado. El panel conserva el historial de créditos y muestra la confirmación de misiones con el saldo consultado.
+- Caché v191 y componentes actualizados. Se despliega después del contrato del servidor.
+
 ## 2026-11-25 — Edición de publicaciones y seguimiento privado
 
 - Comunidad permite al autor gratuito o VIP corregir el texto de una publicación vigente y muestra «Editado», también en Actividad profesional. Se conservan la fecha original, los 15 días de caducidad, imagen, estilo, reacciones y comentarios. Guardado con revisión del servidor, comparación explícita ante conflicto y borrador protegido frente a errores y cambios de sesión.

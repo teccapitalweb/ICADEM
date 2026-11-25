@@ -227,13 +227,14 @@
     if(!wallet)return'unavailable';
     const welcomeRule=(wallet.earnRules||[]).find(rule=>rule.id==='welcome');
     const welcomeMovement=(wallet.recentMovements||[]).find(item=>item.type==='welcome-bonus');
-    const amount=Math.max(0,Number(welcomeMovement?.amount||welcomeRule?.amount||(window.__isDemoMode?200:0))||0);
+    const announcedAmount=Math.max(0,Number(welcomeMovement?.amount||welcomeRule?.amount||(window.__isDemoMode?100:0))||0);
     const balance=Math.max(0,Number(wallet.credits?.balance)||0);
-    if(!amount)return'unavailable';
+    if(!announcedAmount)return'unavailable';
     let claim;
     try{claim=await claimExperience(CREDIT_EXPERIENCE);}catch(error){console.warn('[ICADEM welcome credits claim]',error.message);return'unavailable';}
     markCreditGiftSeen();
     if(claim?.claimed!==true)return'seen';
+    const amount=Number(claim.amount)>0?Number(claim.amount):announcedAmount;
     return new Promise(resolve=>{
       const modal=document.createElement('div');
       modal.id='icadem-credit-gift';modal.className='ica-experience';modal.setAttribute('role','dialog');modal.setAttribute('aria-modal','true');modal.setAttribute('aria-labelledby','icadem-credit-gift-title');

@@ -21,10 +21,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/platform-v2.css?v=11">
+<link rel="stylesheet" href="css/platform-v2.css?v=12">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=55" defer></script>
+<script src="js/icadem-platform-v2.js?v=56" defer></script>
 <script src="js/icadem-course-unlocks.js?v=7" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=4">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
@@ -4191,8 +4191,8 @@ window.__scheduleExperience = window.__scheduleExperience || function(id, payloa
   window.UserState.freeCourseId = localStorage.getItem('icadem:demo:free-course') || '';
   window.UserState.freeCourseOfferSeen = localStorage.getItem('icadem:experience:v3:demo:free-course-offer-seen') === 'complete';
   window.UserState.identityReady = true;
-  if (localStorage.getItem('icadem:demo:credits') === null) localStorage.setItem('icadem:demo:credits', '200');
-  window.UserState.credits = { balance:Number(localStorage.getItem('icadem:demo:credits') || 200), lifetimeEarned:200, lifetimeSpent:0 };
+  if (localStorage.getItem('icadem:demo:credits') === null) localStorage.setItem('icadem:demo:credits', '100');
+  window.UserState.credits = { balance:Number(localStorage.getItem('icadem:demo:credits') || 100), lifetimeEarned:100, lifetimeSpent:0 };
   window.__isDemoMode = true;  // bandera para que el módulo Firebase NO redirija
 
   // Contar visitas al demo
@@ -4218,7 +4218,7 @@ window.__scheduleExperience = window.__scheduleExperience || function(id, payloa
 <script src="js/icadem-dialog-focus.js?v=1"></script>
 <script type="module">
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, updateProfile, GoogleAuthProvider, linkWithPopup, reauthenticateWithPopup, reload } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence, sendPasswordResetEmail, sendEmailVerification, updateProfile, GoogleAuthProvider, linkWithPopup, reauthenticateWithPopup, reload } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, getDocs, query, orderBy, onSnapshot, limit, where, addDoc, setDoc, updateDoc, deleteDoc, deleteField, increment, serverTimestamp, Timestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -4234,6 +4234,25 @@ const app = getApps().length ? getApps()[0] : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 window.__auth = auth;
+window.ICADEMEmailVerification = {
+  async refresh(user) {
+    if (auth.currentUser !== user || window.__sessionEnding) throw new Error('Sesión no disponible.');
+    await reload(user);
+    if (auth.currentUser !== user || window.__sessionEnding) throw new Error('Sesión no disponible.');
+    if (user.emailVerified) await user.getIdToken(true);
+    return user.emailVerified;
+  },
+  async send(user) {
+    if (auth.currentUser !== user || window.__sessionEnding) throw new Error('Sesión no disponible.');
+    try {
+      await sendEmailVerification(user, { url: 'https://www.icademx.com/vip-panel.html#inicio', handleCodeInApp: false });
+    } catch (error) {
+      if (error?.code !== 'auth/unauthorized-continue-uri' || auth.currentUser !== user || window.__sessionEnding) throw error;
+      // The default Firebase action still verifies the email if a project has disabled custom return URLs.
+      await sendEmailVerification(user);
+    }
+  }
+};
 const session = window.ICADEMCreateSession({ auth, signOut });
 window.ICADEMSession = session;
 window.__signOut = options => session.logout(options);
@@ -4860,6 +4879,7 @@ window.__setDisplayName = async (nombre) => {
         <button type="button" data-home-go="retos"><span class="home-metric-icon"><svg class="ic" aria-hidden="true"><use href="#i-bolt"/></svg></span><b id="bn-stat-retos">3</b><span>Experiencias de retos</span></button>
       </section>
       <section id="ambassador-home-promo" class="ambassador-promo" aria-label="Programa ICADEM Embajadores" hidden></section>
+      <section class="home-credit-missions" data-credit-missions-home aria-labelledby="home-missions-title" hidden></section>
       <section class="home-paths" aria-labelledby="home-paths-title">
         <div class="home-section-head"><div><h2 id="home-paths-title">Más formas de avanzar</h2><p>Practica lo aprendido y encuentra recursos para tu trabajo.</p></div></div>
         <div class="home-paths__grid">
@@ -8451,7 +8471,7 @@ const Sections = (function(){
   // ═══════════════════════════════════════════════════════════════════
   // MATERIALES · herramientas profesionales descargables para toda cuenta.
   // A diferencia de Libros, este catálogo NO requiere membresía VIP: los
-  // 200 créditos de bienvenida alcanzan para realizar los primeros canjes.
+  // El regalo de bienvenida permite elegir un primer material.
   // Producción usa el catálogo y la validación autoritativa del backend.
   // ═══════════════════════════════════════════════════════════════════
   const MATERIAL_FALLBACK_COVERS = [
@@ -22615,9 +22635,9 @@ h1, h2, h3, h4{ color: var(--text); }
   .lesson-tools-bottom .lesson-outline{grid-template-columns:1fr;gap:8px}
 }
 </style>
-<script src="js/icadem-course-ratings.js?v=7"></script>
-<script src="js/icadem-credit-rewards.js?v=1"></script>
-<script src="js/icadem-onboarding.js?v=23"></script>
+<script src="js/icadem-course-ratings.js?v=8"></script>
+<script src="js/icadem-credit-rewards.js?v=2"></script>
+<script src="js/icadem-onboarding.js?v=24"></script>
 <script src="js/icadem-visitas.js?v=1" data-pagina="panel" defer></script>
 <link rel="stylesheet" href="css/icadem-home.css?v=8">
 <link rel="stylesheet" href="css/icadem-courses.css?v=13">
