@@ -14,7 +14,17 @@ function app(server) {
   let now = 100000, timerId = 0;
   const classes = () => ({ values: new Set(), add(value) { this.values.add(value); }, remove(value) { this.values.delete(value); }, toggle(value, enabled) { enabled ? this.add(value) : this.remove(value); }, contains(value) { return this.values.has(value); } });
   class Element {
-    constructor() { this.classList = classes(); this.isConnected = false; this.attributes = new Map(); this.children = []; this.style = {}; this.innerHTML = ''; this.body = null; }
+    constructor() { this.classList = classes(); this.isConnected = false; this.attributes = new Map(); this.children = []; this.style = {}; this.html = ''; }
+    get innerHTML() { return this.html; }
+    set innerHTML(value) {
+      this.html = value;
+      this.children.forEach(child => child.remove());
+      this.children = [];
+      if (!value.includes('data-credit-wallet-page>')) return;
+      const wallet = this.appendChild(new Element());
+      wallet.setAttribute('data-credit-wallet-page', '');
+      wallet.appendChild(new Element()).setAttribute('data-wallet-content', '');
+    }
     setAttribute(name, value) { this.attributes.set(name, value); }
     hasAttribute(name) { return this.attributes.has(name); }
     removeAttribute(name) { this.attributes.delete(name); }
@@ -24,14 +34,14 @@ function app(server) {
     focus() {}
     contains() { return false; }
     querySelectorAll() { return []; }
-    querySelector(selector) { if (selector === '.credit-wallet-modal__body') return this.body ||= new Element(); return null; }
-    remove() { this.isConnected = false; }
+    querySelector(selector) { return this.children.find(child => child.isConnected && child.hasAttribute(selector.slice(1, -1))) || null; }
+    remove() { this.isConnected = false; this.children.forEach(child => child.remove()); }
     appendChild(element) { element.isConnected = true; this.children.push(element); elements.push(element); return element; }
   }
   const document = {
     body: new Element(), visibilityState: 'visible', activeElement: null,
     createElement: () => new Element(), querySelectorAll: () => [], getElementById: () => null,
-    querySelector: selector => selector === '.credit-wallet-modal' ? elements.find(element => element.className === 'credit-wallet-modal' && element.isConnected) || null : null,
+    querySelector: () => null,
     addEventListener(name, listener) { if (!docListeners.has(name)) docListeners.set(name, new Set()); docListeners.get(name).add(listener); },
     removeEventListener(name, listener) { docListeners.get(name)?.delete(listener); },
     dispatchEvent(event) { events.push(event); for (const listener of [...docListeners.get(event.type) || []]) listener(event); }
@@ -135,13 +145,20 @@ test('removing and returning to the same UID invalidates its old request generat
   assert.equal(a.window.UserState.credits.balance, 50);
 });
 
-test('a wallet closes on session-ending and its late response cannot restore private content', async () => {
-  const a = app(); a.authenticate('a'); const pending = a.api.openCreditWallet(); await flush();
-  const modal = a.document.querySelector('.credit-wallet-modal'); assert.ok(modal);
+test('a wallet page clears on session-ending and a late response cannot restore private content', async () => {
+  const a = app(); a.authenticate('a');
+  const host = a.document.body.appendChild(a.document.createElement('div'));
+  const pending = a.api.renderCreditWallet(host, 'movimientos'); await flush();
+  const wallet = host.querySelector('[data-credit-wallet-page]'); assert.ok(wallet);
+  const content = wallet.querySelector('[data-wallet-content]');
+  a.requests.find(request => request.path === '/api/credits/missions/reconcile').respond({ ok: true });
+  await flush();
+  const read = a.requests.find(request => request.path === '/api/credits/wallet'); assert.ok(read);
   a.window.__sessionEnding = true; a.emit('icadem:session-ending');
-  assert.equal(a.document.querySelector('.credit-wallet-modal'), null); assert.equal(a.document.body.classList.contains('has-credit-wallet'), false);
-  a.requests.at(-1).respond({ credits: credits(999), recentMovements: [{ id: 'private' }] }); await pending;
-  assert.equal(modal.isConnected, false); assert.ok(!modal.body?.innerHTML.includes('private'));
+  assert.equal(host.querySelector('[data-credit-wallet-page]'), null);
+  read.respond({ credits: credits(999), recentMovements: [{ label: 'private' }] }); await pending;
+  assert.equal(wallet.isConnected, false); assert.ok(!content.innerHTML.includes('private'));
+  assert.equal(a.window.UserState.credits.balance, 0);
 });
 
 test('two independent sessions refresh confirmed balance and completed lessons on immediate visibility/online return', async () => {

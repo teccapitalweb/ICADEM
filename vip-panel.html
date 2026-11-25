@@ -21,10 +21,10 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;750&family=Plus+Jakarta+Sans:wght@600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500;1,9..144,600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/platform-v2.css?v=12">
+<link rel="stylesheet" href="css/platform-v2.css?v=13">
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
-<script src="js/icadem-platform-v2.js?v=56" defer></script>
+<script src="js/icadem-platform-v2.js?v=57" defer></script>
 <script src="js/icadem-course-unlocks.js?v=7" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=4">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
@@ -8337,7 +8337,7 @@ const Sections = (function(){
     const ownerKey = demo ? _libraryDemoKey() : (uid ? `uid:${uid}` : '');
     if (!ownerKey) {
       container.innerHTML = `<div class="fade-up library-page library-page--catalog"><section class="library-hero library-hero--catalog"><div class="library-hero__copy"><h1>Preparando tu<br>biblioteca.</h1><p>Estamos sincronizando tu identidad y tus referencias.</p></div></section></div>`;
-      window.setTimeout(() => { if (container.isConnected && !window.__isDemoMode) renderLibros(container); }, 300);
+      window.setTimeout(() => { if (container.isConnected && __seccionActualVIP === 'libros' && !window.__isDemoMode) renderLibros(container); }, 300);
       return;
     }
     if (!__libraryUiState || __libraryUiOwner !== ownerKey) {
@@ -8356,6 +8356,7 @@ const Sections = (function(){
     }
 
     const paint = () => {
+      if (__seccionActualVIP !== 'libros' || !container.isConnected) return;
       const state = __libraryUiState;
       container.innerHTML = `<div class="fade-up library-page library-page--catalog">
         <section class="library-hero library-hero--catalog">
@@ -8367,7 +8368,7 @@ const Sections = (function(){
             <small>Mi cartera</small>
             <strong><i class="icadem-credit-coin" aria-hidden="true">C</i><b data-credit-balance>${state.balance}</b></strong>
             <span>Créditos ICADEM</span>
-            <button type="button" class="library-balance__action" data-credit-wallet-open>Ver movimientos <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+            <button type="button" class="library-balance__action" data-credit-wallet-open="movimientos">Ver movimientos <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
           </aside>
         </section>
         <div class="library-head">
@@ -8683,7 +8684,7 @@ const Sections = (function(){
             <small>Tu saldo disponible</small>
             <strong><i class="icadem-credit-coin" aria-hidden="true">C</i><b data-credit-balance>${state.verificationPending?'—':state.balance}</b></strong>
             <span>Créditos ICADEM</span>
-            <button type="button" data-credit-wallet-open>Ver movimientos <svg class="ic"><use href="#i-arrow-right"/></svg></button>
+            <button type="button" data-credit-wallet-open="movimientos">Ver movimientos <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
           </aside>
         </section>
         <div class="materials-head"><div><h2>Elige un recurso práctico</h2><p>Cada herramienta cuesta 100 créditos y solo se cobra una vez.</p></div><span>${catalogReady ? `${MATERIALES_CATALOG.length} materiales` : 'Sincronizando catálogo'}</span></div>
@@ -9227,10 +9228,9 @@ const Sections = (function(){
           <span class="credit-wallet-card__coins credit-wallet-card__coins--bag" aria-hidden="true"><img src="assets/mascotas/cartera-creditos.webp?v=1" alt="" width="320" height="320" decoding="async" draggable="false"></span>
           <div class="credit-wallet-card__copy">
             <small>Mi cartera ICADEM</small>
-            <strong><b data-credit-balance>${saldoCreditos}</b><em> créditos</em></strong>
-            <p>Tu saldo para canjear materiales prácticos y próximas recompensas.</p>
+            <strong><b data-credit-balance data-credit-formatted>${Number(saldoCreditos).toLocaleString('es-MX')}</b><em> créditos</em></strong>
           </div>
-          <button type="button" data-credit-wallet-open>Ver recompensas <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+          <button type="button" data-credit-wallet-open>Abrir mi cartera <svg class="ic" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
         </section>
         <section class="retos-misioncard">
           <header>
@@ -13326,6 +13326,10 @@ const Sections = (function(){
       'curso-detalle':renderCursoDetalle,
       'clase-detalle':renderClaseDetalle,
       retos:renderRetos,
+      cartera:container=>window.ICADEMPlatform.renderCreditWallet(container),
+      'cartera-movimientos':container=>window.ICADEMPlatform.renderCreditWallet(container,'movimientos'),
+      'cartera-misiones':container=>window.ICADEMPlatform.renderCreditWallet(container,'misiones'),
+      'cartera-canjes':container=>window.ICADEMPlatform.renderCreditWallet(container,'canjes'),
       ciudad:(c)=>window.ICADEMCiudad.mount(c),
       herramientas:renderHerramientas,
       materiales:renderMateriales,
@@ -22480,6 +22484,7 @@ h1, h2, h3, h4{ color: var(--text); }
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
   <link rel="stylesheet" href="css/vip-banner.css?v=4">
   <link rel="stylesheet" href="css/icadem-games-v4.css?v=12">
+  <link rel="stylesheet" href="css/icadem-wallet-page.css?v=1">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){
