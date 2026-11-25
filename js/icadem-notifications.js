@@ -66,6 +66,7 @@
       state().personalItems = items.filter(function (item) { return item.source === 'personal'; });
       state().loaded = true; state().error = false; state().source = 'server';
       state().preferences = response.preferences || {forumActivity:true,forumNews:false}; state().forumAvailable = response.forumAvailable === true;
+      window.ICADEMPanelSounds?.inbox('notification', items, response.serverNowMs, owner);
       merge();
       await migrateLegacy(run, owner);
       window.refreshNotifDropdown?.();

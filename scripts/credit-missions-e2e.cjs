@@ -84,6 +84,10 @@ async function scenario(width) {
       await route.fulfill({ json:{ok:true}, headers });
       return true;
     }
+    if (url.pathname === '/api/credits/mission-invitation') {
+      await route.fulfill({ json:{ok:true,invitation:null,emailReminderEnabled:false}, headers });
+      return true;
+    }
     if (url.pathname === '/api/credits/wallet') {
       assert.equal(route.request().method(), 'GET');
       assert.equal(route.request().headers().authorization, 'Bearer browser-fixture-only');
@@ -149,11 +153,17 @@ async function scenario(width) {
     const launch = home.locator('header [data-credit-wallet-open]');
     await launch.focus();
     await page.keyboard.press('Enter');
-    const wallet = await checkRoute(page, 'cartera');
+    const wallet = await checkRoute(page, 'cartera-misiones');
     const balance = wallet.locator('[data-credit-balance]').first();
     await balance.getByText('137', {exact:true}).or(balance.filter({hasText:'137'})).first().waitFor();
     await page.waitForFunction(() => document.activeElement?.id === 'credit-wallet-title');
     await checkControls(wallet.locator('nav a'));
+    assert.equal(await wallet.locator('nav a').first().getAttribute('href'), '#cartera-misiones');
+    assert.match(await wallet.locator('.credit-mission').first().innerText(), /Verifica tu correo/);
+    await harness.noOverflow(page, 'Misiones predeterminadas');
+    await wallet.locator('nav a[href="#cartera"]').click();
+    await checkRoute(page, 'cartera');
+    await wallet.locator('.credit-wallet-page__row').first().waitFor();
     await harness.noOverflow(page, 'Cartera');
     assert.ok(await wallet.locator('.credit-wallet-page__row').count() <= 4);
     await harness.shot(page, `cartera-${width}`);
@@ -235,7 +245,7 @@ async function scenario(width) {
       await visit(page, 'retos');
       await harness.shot(page, `retos-cartera-${width}`, '.credit-wallet-card');
       await page.locator('.credit-wallet-card [data-credit-wallet-open]').click();
-      await checkRoute(page, 'cartera');
+      await checkRoute(page, 'cartera-misiones');
       assert.equal(await wallet.locator('.credit-wallet-page__back').getAttribute('href'), '#retos');
       await wallet.locator('.credit-wallet-page__back').click();
       await page.waitForFunction(() => location.hash === '#retos');
@@ -296,7 +306,7 @@ async function scenario(width) {
       await teaser.waitFor();
       failWalletOnce = true;
       await teaser.click();
-      await checkRoute(page, 'cartera');
+      await checkRoute(page, 'cartera-misiones');
       await wallet.getByText('No pudimos cargar tu cartera.').waitFor();
       await wallet.getByRole('button', {name:'Reintentar'}).click();
       await wallet.locator('[data-credit-balance]').waitFor();

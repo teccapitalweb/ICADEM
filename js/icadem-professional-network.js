@@ -62,7 +62,7 @@
   }finally{if(alive(c)){c.busy=false;c.root.querySelector('[data-network-more]').disabled=false;c.root.querySelector('[data-network-list]').removeAttribute('aria-busy');if(c.queued){c.queued=false;load(false);}}}
  }
  async function act(c,button,action){const uid=button.dataset.uid;if(!alive(c)||c.pending.has(uid))return;c.pending.add(uid);const label=button.innerHTML;button.disabled=true;button.textContent='Guardando…';
-  try{const result=await api('/connections'+(action==='request'?'':'/'+encodeURIComponent(uid)+'/'+action),{method:'POST',body:action==='request'?{targetUid:uid}:{}});if(!alive(c))return;if(result?.ok!==true)throw Error('El servidor no confirmó la solicitud.');c.version++;await load(false);if(alive(c))window.Toast?.success?.(action==='request'?'Solicitud enviada':action==='accept'?'Conexión aceptada':'Solicitud actualizada','');}
+  try{const result=await api('/connections'+(action==='request'?'':'/'+encodeURIComponent(uid)+'/'+action),{method:'POST',body:action==='request'?{targetUid:uid}:{}});if(!alive(c))return;if(result?.ok!==true)throw Error('El servidor no confirmó la solicitud.');if(action==='request'&&result.created===true&&result.connection==='sent')window.ICADEMPanelSounds?.confirmed('connection',null,c.viewer);c.version++;await load(false);if(alive(c))window.Toast?.success?.(action==='request'?'Solicitud enviada':action==='accept'?'Conexión aceptada':'Solicitud actualizada','');}
   catch(error){if(alive(c))window.Toast?.error?.('No se pudo guardar',error.message||'Reintenta cuando tengas conexión.');}
   finally{c.pending.delete(uid);if(button.isConnected){button.disabled=false;button.innerHTML=label;}}
  }

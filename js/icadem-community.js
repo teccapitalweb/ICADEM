@@ -95,7 +95,7 @@
             ? "Actualizando…"
             : "Enviando…";
     try {
-      await api(
+      var result=await api(
         "/connections" +
           (action === "request"
             ? ""
@@ -107,6 +107,9 @@
       );
       if (ticket !== generation || context?.viewer !== window.UserState?.uid)
         return;
+      if(action==='request'&&result?.ok===true&&result.created===true&&result.connection==='sent'){
+        window.ICADEMPanelSounds?.confirmed('connection',null,context.viewer);
+      }
       notify(
         action === "request"
           ? "Solicitud enviada"

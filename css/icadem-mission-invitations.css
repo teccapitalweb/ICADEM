@@ -1,0 +1,119 @@
+.mission-invitation {
+  --mission-accent: #255676;
+  --mission-soft: #e8f1f7;
+  --mission-line: #c9dce9;
+  --mission-copy: #36526b;
+  color: var(--text);
+  border: 1px solid var(--mission-line);
+  border-radius: 16px;
+  background: linear-gradient(115deg, var(--mission-soft), var(--surface) 65%);
+  box-shadow: 0 12px 25px rgb(24 57 77 / .06);
+}
+
+aside.mission-invitation { margin: 18px 0; }
+.mission-invitation__body {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px 18px;
+  padding: 16px 18px;
+}
+
+.mission-invitation__icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border: 1px solid var(--mission-line);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--mission-accent);
+}
+.mission-invitation__icon .ic { width: 20px; height: 20px; }
+.mission-invitation__title { display: flex; align-items: baseline; gap: 6px 10px; flex-wrap: wrap; }
+.mission-invitation__title h2 {
+  font: 780 clamp(16px, 1.7vw, 20px)/1.22 'Plus Jakarta Sans', sans-serif;
+  margin: 0;
+  letter-spacing: -.025em;
+  overflow-wrap: anywhere;
+}
+.mission-invitation__title strong {
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--mission-accent);
+  background: var(--mission-soft);
+}
+.mission-invitation__copy p {
+  margin: 6px 0 0;
+  max-width: 55ch;
+  color: var(--mission-copy);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.mission-invitation__actions { display: flex; align-items: stretch; flex-wrap: wrap; gap: 4px 8px; }
+.mission-invitation__actions button, .mission-email-toggle {
+  min-height: 44px;
+  border-radius: 8px;
+  padding: 8px 12px;
+  border: 1px solid transparent;
+  font-size: 12px;
+  line-height: 1.3;
+  font-weight: 750;
+  cursor: pointer;
+}
+.mission-invitation__actions [data-credit-mission] { background: #205372; color: #fff; }
+.mission-invitation__actions [data-credit-mission] span { margin-left: 3px; }
+.mission-invitation__actions [data-mission-dismiss] { background: transparent; color: var(--mission-accent); }
+.mission-invitation__actions button:focus-visible, .mission-email-toggle:focus-visible {
+  outline: 2px solid var(--mission-accent);
+  outline-offset: 2px;
+}
+.mission-invitation--dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(460px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  overflow: auto;
+  z-index: 1;
+}
+.mission-invitation--dialog::backdrop { background: rgb(8 25 43 / .47); }
+.mission-invitation--dialog .mission-invitation__body { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: clamp(16px, 5vw, 27px); }
+.mission-invitation--dialog .mission-invitation__actions { margin-top: 3px; }
+.mission-email-setting {
+  --mission-accent: var(--primary);
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 8px;
+  min-width: 0;
+}
+.mission-email-setting strong { font-size: 13px; line-height: 1.35; }
+.mission-email-setting small, .mission-email-setting p { font-size: 12px; line-height: 1.45; color: var(--text-2); margin: 0; }
+.mission-email-setting p:empty { display: none; }
+.mission-email-toggle { justify-self: start; border-color: var(--border); background: var(--surface-2); color: var(--text); }
+.mission-email-toggle[aria-pressed="true"] { color: var(--primary); border-color: var(--primary); }
+.mission-email-toggle:disabled { cursor: default; opacity: .7; }
+[data-theme="night"] .mission-invitation {
+  --mission-accent: #9bd5fa;
+  --mission-soft: #1e3b50;
+  --mission-line: #42677c;
+  --mission-copy: #c2d8e8;
+}
+@media (hover: hover) {
+  .mission-invitation__actions [data-credit-mission]:hover { background: #17445e; }
+  .mission-invitation__actions [data-mission-dismiss]:hover { background: var(--mission-soft); }
+}
+@media (max-width: 1100px) {
+  aside.mission-invitation .mission-invitation__body { grid-template-columns: auto minmax(0, 1fr); }
+  aside.mission-invitation .mission-invitation__actions { grid-column: 2; }
+}
+@media (max-width: 490px) {
+  aside.mission-invitation .mission-invitation__body { gap: 10px 12px; padding: 13px; }
+  aside.mission-invitation .mission-invitation__actions { grid-column: 1/-1; }
+}
