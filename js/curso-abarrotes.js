@@ -19,6 +19,12 @@ const offerSummary = document.querySelector('#offer-summary');
 const paymentMessage = document.querySelector('#payment-message');
 const payButton = document.querySelector('#pay');
 const checkoutContainer = document.querySelector('#stripe-checkout');
+const paymentTitle = document.querySelector('#offer-title');
+const paymentSecure = document.querySelector('#payment-secure');
+const paymentBack = document.querySelector('#payment-back');
+const paymentFinalAmount = document.querySelector('#payment-final-amount');
+const paymentSummaryStep = document.querySelector('#payment-step-summary');
+const paymentCheckoutStep = document.querySelector('#payment-step-checkout');
 const classroom = document.querySelector('#mi-curso');
 const content = document.querySelector('#classroom-content');
 let currentPrice = 599;
@@ -99,33 +105,11 @@ function refreshPrices() {
 }
 refreshPrices();
 
-const tabs = [...document.querySelectorAll('.content-tabs [role="tab"]')];
-function selectTab(tab, focus = false) {
-  for (const button of tabs) {
-    const active = button === tab;
-    button.tabIndex = active ? 0 : -1;
-    button.setAttribute('aria-selected', active);
-    document.getElementById(button.getAttribute('aria-controls')).hidden = !active;
-  }
-  if (focus) tab.focus();
-}
-for (const [index, tab] of tabs.entries()) {
-  tab.addEventListener('click', () => selectTab(tab));
-  tab.addEventListener('keydown', event => {
-    const next = { ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index + tabs.length - 1) % tabs.length, Home: 0, End: tabs.length - 1 }[event.key];
-    if (next === undefined) return;
-    event.preventDefault();
-    selectTab(tabs[next], true);
-  });
-}
-document.querySelector('[data-open-content]').addEventListener('click', () => selectTab(document.querySelector('#tab-temario')));
-
 const promo = document.querySelector('#promocional');
 if (promoUrl) {
   promo.src = promoUrl;
   promo.hidden = false;
-  document.querySelector('.store-img').hidden = true;
-  document.querySelector('.media-caption').hidden = true;
+  document.querySelector('.media-placeholder').hidden = true;
   promo.addEventListener('playing', () => startTime('video'));
   for (const event of ['pause', 'ended', 'waiting']) promo.addEventListener(event, () => pauseTime('video'));
 }
@@ -152,22 +136,40 @@ function loadStripe() {
   return stripePromise;
 }
 for (const button of document.querySelectorAll('[data-offer]')) button.addEventListener('click', () => {
+  if (offer.open) return;
+  showPaymentSummary();
   offer.showModal();
   startTime('oferta');
   refreshPrices();
 });
-offer.addEventListener('close', () => {
+function showPaymentSummary() {
   paymentGeneration++;
-  pauseTime('oferta');
   pauseTime('checkout');
   checkout?.destroy();
   checkout = null;
   checkoutContainer.replaceChildren();
   checkoutContainer.hidden = true;
+  paymentSecure.hidden = true;
   offerSummary.hidden = false;
+  offer.classList.remove('is-checkout');
+  paymentTitle.textContent = 'Inscripción al curso';
+  paymentCheckoutStep.removeAttribute('aria-current');
+  paymentSummaryStep.setAttribute('aria-current', 'step');
   paymentMessage.textContent = '';
   payButton.disabled = false;
   payButton.textContent = 'Continuar al pago';
+  offer.scrollTop = 0;
+}
+offer.addEventListener('close', () => {
+  if (offer.open) return;
+  pauseTime('oferta');
+  showPaymentSummary();
+});
+paymentBack.addEventListener('click', () => {
+  showPaymentSummary();
+  startTime('oferta');
+  refreshPrices();
+  payButton.focus({ preventScroll: true });
 });
 payButton.addEventListener('click', async () => {
   const generation = ++paymentGeneration;
@@ -191,23 +193,28 @@ payButton.addEventListener('click', async () => {
       return;
     }
     checkout = instance;
+    paymentTitle.textContent = 'Completa tu pago';
+    paymentFinalAmount.textContent = mxn(amountShown);
+    paymentSummaryStep.removeAttribute('aria-current');
+    paymentCheckoutStep.setAttribute('aria-current', 'step');
+    offer.classList.add('is-checkout');
+    paymentSecure.hidden = false;
     checkoutContainer.hidden = false;
     offerSummary.hidden = true;
     checkout.mount(checkoutContainer);
+    offer.scrollTop = 0;
+    paymentBack.focus({ preventScroll: true });
+    pauseTime('oferta');
     startTime('checkout');
   } catch (error) {
     if (generation !== paymentGeneration) return;
-    checkout?.destroy();
-    checkout = null;
-    checkoutContainer.hidden = true;
-    offerSummary.hidden = false;
+    showPaymentSummary();
     if (error.curso) {
       checkoutAttempt = null;
       setPrices(error.curso);
     }
-    paymentMessage.textContent = error.message;
-    payButton.disabled = false;
-    payButton.textContent = 'Continuar al pago';
+    paymentMessage.textContent = error.curso ? error.message : 'No pudimos abrir Stripe. Revisa tu conexión y vuelve a intentar.';
+    payButton.focus({ preventScroll: true });
   }
 });
 
@@ -339,7 +346,6 @@ for (const link of document.querySelectorAll('a[href="#mi-curso"]')) link.addEve
 function syncHash() {
   if (location.hash === '#mi-curso') openClassroom();
   else if (classroom.open) classroom.close();
-  if (location.hash === '#temario') selectTab(document.querySelector('#tab-temario'));
 }
 window.addEventListener('hashchange', syncHash);
 syncHash();
