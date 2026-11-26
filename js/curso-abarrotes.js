@@ -110,11 +110,30 @@ refreshPrices();
 
 const promo = document.querySelector('#promocional');
 if (promoUrl) {
-  promo.src = promoUrl;
-  promo.hidden = false;
-  document.querySelector('.media-placeholder').hidden = true;
+  const placeholder = document.querySelector('.media-placeholder');
+  const sound = document.querySelector('.media-sound');
+  const updateSound = () => { sound.hidden = promo.hidden || (!promo.muted && promo.volume > 0); };
   promo.addEventListener('playing', () => startTime('video'));
   for (const event of ['pause', 'ended', 'waiting']) promo.addEventListener(event, () => pauseTime('video'));
+  promo.addEventListener('volumechange', updateSound);
+  promo.addEventListener('error', () => {
+    pauseTime('video');
+    promo.hidden = true;
+    placeholder.hidden = false;
+    updateSound();
+  });
+  sound.addEventListener('click', () => {
+    if (!promo.volume) promo.volume = 1;
+    promo.muted = false;
+    promo.play().catch(() => {});
+    updateSound();
+  });
+  promo.autoplay = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  promo.muted = true;
+  promo.hidden = false;
+  placeholder.hidden = true;
+  updateSound();
+  promo.src = promoUrl;
 }
 
 function loadStripe() {
