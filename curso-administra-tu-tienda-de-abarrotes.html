@@ -15,11 +15,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/curso-abarrotes.css?v=5">
+  <link rel="stylesheet" href="css/curso-abarrotes.css?v=6">
   <link rel="stylesheet" href="css/curso-abarrotes-pago.css">
-  <link rel="stylesheet" href="css/curso-abarrotes-resenas.css">
+  <link rel="stylesheet" href="css/curso-abarrotes-resenas.css?v=2">
   <script src="js/curso-abarrotes.js?v=2" type="module"></script>
-  <script src="js/curso-abarrotes-presentacion.js?v=3" type="module"></script>
+  <script src="js/curso-abarrotes-presentacion.js?v=4" type="module"></script>
 </head>
 <body>
   <header class="top">
@@ -83,16 +83,23 @@
         <button type="button" role="tab" id="tab-dirigido" aria-controls="dirigido" aria-selected="false" tabindex="-1"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-4m-3-12a4 4 0 0 1 0 8"/><circle cx="9" cy="7" r="4"/></svg>Dirigido a</button>
       </div>
       <article class="instructor panel" id="ponente" role="tabpanel" aria-labelledby="tab-ponente" tabindex="0">
-        <img class="instructor-photo" src="assets/curso-abarrotes/fayne-gomez.webp" alt="L.C. Fayne Cristel Gómez Barrios" width="480" height="600" loading="lazy">
-        <div class="instructor-bio">
-          <p class="eyebrow">Ponente</p>
-          <h3>L.C. Fayne Cristel Gómez Barrios</h3>
-          <p>La Lic. Fayne Cristel Gómez Barrios, Contadora Pública egresada de la Universidad Autónoma de Chiapas, es una profesional con experiencia en el área contable, fiscal y administrativa, destacándose por su liderazgo y capacidad de gestión.</p>
-          <p>Ha desarrollado su trayectoria como contadora y directora de despacho, encabezando actualmente el despacho Barrios y Asociados, donde lidera equipos de trabajo, asesora a empresas en materia fiscal y coordina procesos contables y administrativos.</p>
-          <p>Su experiencia incluye la determinación y presentación de impuestos (ISR, IVA), manejo de nóminas, cumplimiento ante el SAT e IMSS, así como asesoría en obligaciones fiscales y laborales.</p>
-          <p>Además, cuenta con experiencia docente a nivel licenciatura y se encuentra cursando una Maestría en Pedagogía, fortaleciendo su perfil académico y formativo.</p>
-          <p>Se distingue por su enfoque en resultados, liderazgo, ética profesional y habilidades para la toma de decisiones, consolidándose como una profesionista integral en el ámbito contable y empresarial.</p>
-        </div>
+        <details class="instructor-details">
+          <summary>
+            <h3 class="instructor-heading">
+              <img class="instructor-photo" src="assets/curso-abarrotes/fayne-gomez.webp" alt="" width="480" height="600" loading="lazy">
+              <span>L.C. Fayne Cristel Gómez Barrios
+                <span class="instructor-action"><span class="instructor-action-more">Ver más</span><span class="instructor-action-less">Ver menos</span></span>
+              </span>
+            </h3>
+          </summary>
+          <div class="instructor-bio">
+            <p>La Lic. Fayne Cristel Gómez Barrios, Contadora Pública egresada de la Universidad Autónoma de Chiapas, es una profesional con experiencia en el área contable, fiscal y administrativa, destacándose por su liderazgo y capacidad de gestión.</p>
+            <p>Ha desarrollado su trayectoria como contadora y directora de despacho, encabezando actualmente el despacho Barrios y Asociados, donde lidera equipos de trabajo, asesora a empresas en materia fiscal y coordina procesos contables y administrativos.</p>
+            <p>Su experiencia incluye la determinación y presentación de impuestos (ISR, IVA), manejo de nóminas, cumplimiento ante el SAT e IMSS, así como asesoría en obligaciones fiscales y laborales.</p>
+            <p>Además, cuenta con experiencia docente a nivel licenciatura y se encuentra cursando una Maestría en Pedagogía, fortaleciendo su perfil académico y formativo.</p>
+            <p>Se distingue por su enfoque en resultados, liderazgo, ética profesional y habilidades para la toma de decisiones, consolidándose como una profesionista integral en el ámbito contable y empresarial.</p>
+          </div>
+        </details>
       </article>
       <article class="panel text-panel" id="objetivo" role="tabpanel" aria-labelledby="tab-objetivo" tabindex="0" hidden>
         <h3>Qué aprenderás</h3>
@@ -193,15 +200,7 @@
               </figcaption>
             </figure>
           </div>
-          <div class="review-controls" hidden>
-            <div class="review-dots" aria-hidden="true"><span data-review-dot class="is-current"></span><span data-review-dot></span></div>
-            <span class="sr-only" data-review-status role="status"></span>
-            <div class="review-buttons">
-              <button type="button" data-review-autoplay aria-controls="review-track" aria-label="Pausar reproducción automática">Pausar</button>
-              <button type="button" data-review-prev aria-controls="review-track">Anterior</button>
-              <button type="button" data-review-next aria-controls="review-track">Siguiente</button>
-            </div>
-          </div>
+          <span class="sr-only" data-review-status role="status"></span>
         </div>
       </div>
     </section>
