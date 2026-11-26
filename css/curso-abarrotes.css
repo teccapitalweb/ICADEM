@@ -37,7 +37,30 @@ em { color: var(--blue); font-style: normal; }
 .button-primary { min-height: 54px; padding-inline: 26px; box-shadow: 0 7px 17px -7px #164ac8c2; }
 .button-light { color: var(--blue-dark); background: #fff; border-color: var(--line); }
 .button-light:hover { color: var(--blue-dark); background: var(--light); }
-.hero { padding-block: clamp(36px, 6vw, 83px); background: radial-gradient(ellipse at 82% 18%, #dce9ff, transparent 67%), linear-gradient(175deg, #f6f9ff, #fff); }
+.hero { padding-block: clamp(28px, 5vw, 70px); background: radial-gradient(ellipse at 82% 18%, #dce9ff, transparent 67%), linear-gradient(175deg, #f6f9ff, #fff); }
+.hero-timing { display: flex; justify-content: center; }
+.course-countdown {
+  width: fit-content;
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 9px 17px;
+  margin-bottom: clamp(21px, 4vw, 35px);
+  padding: 10px 16px;
+  border-radius: 14px;
+  color: #fff;
+  background: #10244d;
+  box-shadow: 0 12px 32px -18px #10244dd9;
+}
+.course-countdown p { display: flex; align-items: center; gap: 9px; font-weight: 760; font-size: .88rem; }
+.course-countdown p span { width: 8px; height: 8px; border-radius: 50%; background: #ffc76e; box-shadow: 0 0 0 5px #ffc76e20; }
+.course-countdown__time { display: flex; gap: 5px; text-align: center; }
+.course-countdown__time > span { min-width: 49px; padding: 5px 7px; border-radius: 7px; background: #fff2; }
+.course-countdown__time b, .course-countdown__time small { display: block; }
+.course-countdown__time b { font-size: 1.28rem; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.course-countdown__time small { color: #d8e3fa; font-size: .59rem; font-weight: 720; letter-spacing: .06em; text-transform: uppercase; }
 .hero-grid { display: grid; grid-template-columns: 1.04fr 1fr; gap: clamp(24px, 4.2vw, 60px); align-items: center; }
 .hero-content { min-width: 0; }
 .tag { display: inline-flex; align-items: center; gap: 7px; background: #e5edff; color: var(--blue-dark); padding: 7px 11px; border-radius: 999px; font-weight: 800; text-transform: uppercase; font-size: .75rem; letter-spacing: .055em; }
@@ -45,7 +68,7 @@ em { color: var(--blue); font-style: normal; }
 .hero h1 em { display: block; }
 .lead { color: var(--muted); font-size: clamp(1rem, 1.55vw, 1.13rem); line-height: 1.62; max-width: 43ch; margin-top: 17px; }
 .lead strong { color: var(--ink); }
-.price { margin-top: 24px; }
+.price { width: fit-content; margin-top: 24px; padding: 13px 22px; border: 1px solid #d1dff5; border-radius: 15px; background: #ffffffe6; box-shadow: 0 12px 25px -22px #143b93a3; }
 .price-before { color: var(--muted); font-size: .95rem; font-weight: 600; }
 .price-before s { margin-left: 5px; }
 .price-today { display: flex; align-items: baseline; gap: 8px; color: var(--blue-dark); line-height: 1.03; margin-block: 3px 7px; font-weight: 850; }
@@ -55,14 +78,9 @@ em { color: var(--blue); font-style: normal; }
 .perks li::before { content: '✓'; display: inline-grid; place-items: center; width: 21px; height: 21px; border-radius: 50%; background: #e8f0ff; color: var(--blue-dark); margin-right: 8px; font-weight: 850; }
 .below-cta { color: var(--muted); font-size: .84rem; margin-top: 10px; }
 .hero-links { display: flex; flex-wrap: wrap; gap: 9px 18px; font-size: .88rem; margin-top: 15px; font-weight: 720; }
-.media-frame { position: relative; aspect-ratio: 16 / 10; border: 1px solid #2f4c83; border-radius: 24px; overflow: hidden; background: var(--navy); box-shadow: 0 24px 58px -29px #092766a8; }
+.media-frame { position: relative; aspect-ratio: 16 / 10; border: 1px solid #d2def2; border-radius: 24px; overflow: hidden; background: var(--navy); box-shadow: 0 24px 58px -29px #092766a8; }
 .media-frame video { width: 100%; height: 100%; object-fit: contain; }
-.media-placeholder { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 7px; color: #e9f1ff; text-align: center; background: radial-gradient(ellipse at 50% 22%, #244b8d, #102853 55%, #0d2045 100%); }
-.media-placeholder::after { content: ''; position: absolute; inset: 12px; border: 1px solid #b0c8ff35; border-radius: 16px; pointer-events: none; }
-.media-placeholder strong { font-size: 1rem; font-weight: 740; letter-spacing: -.01em; }
-.media-placeholder > span:last-child { font-size: .83rem; color: #bdd0f5; }
-.media-icon { width: 57px; height: 57px; display: grid; place-items: center; margin-bottom: 7px; color: #d0e0ff; border-radius: 15px; border: 1px solid #c9dcff4d; background: #d4e3ff12; }
-.media-icon svg { width: 28px; height: 28px; }
+.media-placeholder { width: 100%; height: 100%; object-fit: cover; }
 .course-facts { background: radial-gradient(ellipse at 25% 0%, #183b78, transparent 52%), var(--navy); color: white; }
 .facts-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); padding-block: clamp(26px,4.3vw,52px); }
 .fact { display: grid; place-content: center; gap: 7px; padding: 6px 10px; text-align: center; line-height: 1.3; color: #e2eafa; font-size: .9rem; font-weight: 630; }
@@ -166,11 +184,15 @@ dialog::backdrop { background: #0b1c40a6; backdrop-filter: blur(4px); }
   .access-link { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding-inline: 3px; font-size: .78rem; white-space: nowrap; }
   .top .button-small, .sticky-buy .button-small { min-height: 44px; padding-inline: 14px; font-size: .875rem; }
   .hero { padding-block: 22px 28px; }
+  .course-countdown { margin-bottom: 17px; gap: 8px 12px; padding: 8px 11px; }
+  .course-countdown p { font-size: .77rem; }
+  .course-countdown__time > span { min-width: 41px; padding-inline: 5px; }
+  .course-countdown__time b { font-size: 1.12rem; }
   .hero-grid { gap: 21px; }
   .hero .tag { padding: 5px 9px; font-size: .7rem; }
   .hero h1 { max-width: none; margin-top: 11px; font-size: clamp(1.65rem, 7.55vw, 2.35rem); line-height: 1.07; letter-spacing: -.05em; }
   .hero .lead { max-width: 40ch; margin-top: 10px; font-size: .9375rem; line-height: 1.5; }
-  .hero .price { margin-top: 15px; }
+  .hero .price { margin-top: 15px; padding: 10px 15px; }
   .hero .price-before { font-size: .8125rem; }
   .hero .price-today { gap: 5px; margin-block: 2px 5px; font-size: .8rem; }
   .hero .price-today strong { font-size: clamp(2.25rem, 10vw, 3rem); }
