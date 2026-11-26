@@ -1,7 +1,7 @@
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const tabList = document.querySelector('.content-tabs');
 const tabs = [...tabList.querySelectorAll('[role="tab"]')];
-const programTab = document.querySelector('#tab-temario');
+const instructorTab = document.querySelector('#tab-ponente');
 
 function showTab(tab, { focus = false, instant = false } = {}) {
   for (const other of tabs) {
@@ -31,8 +31,13 @@ for (const [index, tab] of tabs.entries()) {
   });
 }
 
-document.querySelector('[data-open-content="temario"]').addEventListener('click', () => showTab(programTab, { instant: true }));
-if (location.hash === '#temario') showTab(programTab, { instant: true });
+document.querySelector('[data-open-content="ponente"]').addEventListener('click', () => showTab(instructorTab, { instant: true }));
+
+function showInstructorFromHash() {
+  if (location.hash === '#temario' || location.hash === '#ponente') showTab(instructorTab, { instant: true });
+}
+window.addEventListener('hashchange', showInstructorFromHash);
+showInstructorFromHash();
 
 const figures = [...document.querySelectorAll('[data-count]')].map(element => {
   const decimals = Number(element.dataset.decimals || 0);
