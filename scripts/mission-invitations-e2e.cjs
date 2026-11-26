@@ -63,12 +63,34 @@ async function scenario(width, channel) {
   };
   const { context, page } = await harness.fixture(width, shared);
   try {
-    await page.evaluate(() => navigateToSection('inicio'));
+    await page.evaluate(() => {
+      const blocker = document.createElement('dialog');
+      blocker.id = 'fixture-mission-blocker';
+      blocker.innerHTML = '<button type="button">Aviso en curso</button>';
+      document.body.append(blocker);
+      blocker.showModal();
+      navigateToSection('inicio');
+    });
     const home = page.locator('[data-credit-missions-home]');
     await home.scrollIntoViewIfNeeded();
     const invitation = page.locator('.mission-invitation');
+    await page.waitForTimeout(250);
+    assert.equal(claims, 0, 'Exposure waits while an existing dialog has focus');
+    assert.equal(await invitation.count(), 0);
+    assert.equal(await page.locator('dialog[open]').count(), 1);
+    assert.equal(await page.locator('#fixture-mission-blocker button').evaluate(node => node === document.activeElement), true);
+    await page.evaluate(() => {
+      const blocker = document.getElementById('fixture-mission-blocker');
+      blocker.close();
+      blocker.remove();
+      document.querySelector('[data-credit-missions-home] [data-credit-wallet-open]').focus({ preventScroll:true });
+    });
     await invitation.waitFor();
-    assert.equal(await invitation.evaluate(node => node.tagName), channel === 'popup' ? 'DIALOG' : 'ASIDE');
+    assert.equal(await invitation.evaluate(node => node.tagName), 'ASIDE');
+    assert.equal(await invitation.getAttribute('data-mission-invitation-id'), mission.id);
+    assert.equal(await page.locator('dialog[open]').count(), 0, 'Both cohorts render in the page');
+    assert.equal(await home.locator('[data-credit-wallet-open]').first().evaluate(node => node === document.activeElement), true, 'The invitation preserves focus');
+    assert.equal(await home.locator(`[data-credit-mission="${mission.id}"]`).count(), 0, 'Home presents the mission once');
     assert.match(await invitation.innerText(), /Comenta en Comunidad[\s\S]*\+3 créditos/);
     await harness.noOverflow(page, `${channel} ${width}`);
     const controls = await invitation.locator('button').evaluateAll(nodes => nodes.map(node => node.getBoundingClientRect().height));
@@ -76,9 +98,11 @@ async function scenario(width, channel) {
     if (process.argv[3]) await harness.shot(page, channel + '-' + width, '.mission-invitation');
     if (channel === 'popup') {
       const sent = page.waitForResponse(response => new URL(response.url()).pathname === root + '/dismiss');
-      await page.keyboard.press('Escape');
+      await invitation.getByRole('button',{name:'Ahora no'}).press('Enter');
       await sent;
       await invitation.waitFor({state:'detached'});
+      await home.locator(`[data-credit-mission="${mission.id}"]`).waitFor();
+      assert.equal(await home.locator('[data-credit-wallet-open]').first().evaluate(node => node === document.activeElement), true, 'Dismissal returns focus to the wallet link');
       assert.equal(dismissed,true);
     } else {
       await invitation.getByRole('button',{name:'Ir a Comunidad'}).click();

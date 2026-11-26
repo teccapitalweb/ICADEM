@@ -1,12 +1,12 @@
 /* ICADEM VIP · Service Worker */
-const CACHE = 'icadem-vip-v194';
+const CACHE = 'icadem-vip-v195';
 const SHELL = [
   './vip-panel.html',
   './js/icadem-session.js?v=3',
   './js/icadem-course-ratings.js?v=9',
   './js/icadem-credit-rewards.js?v=2',
   './js/icadem-commission-conversion.js?v=1',
-  './js/icadem-lesson-notes.js?v=1',
+  './js/icadem-lesson-notes.js?v=2',
   './css/icadem-credit-rewards.css?v=1',
   './css/icadem-commission-conversion.css?v=1',
   './js/icadem-dialog-focus.js?v=1',
@@ -19,8 +19,8 @@ const SHELL = [
   './icon-maskable-512.png?v=20260815',
   './apple-touch-icon.png?v=20260815',
   './css/platform-v2.css?v=13',
-  './css/icadem-wallet-page.css?v=2',
-  './css/icadem-mission-invitations.css?v=1',
+  './css/icadem-wallet-page.css?v=3',
+  './css/icadem-mission-invitations.css?v=2',
   './css/auth-minimal.css?v=8',
   './js/icadem-mascots.js?v=1',
   './js/icadem-analytics.js?v=4',
@@ -31,8 +31,8 @@ const SHELL = [
   './assistant/assets/icadem-guide.png',
   './assistant/assets/icadem-guide-blink.png',
   './privacidad.html',
-  './js/icadem-platform-v2.js?v=58',
-  './js/icadem-mission-invitations.js?v=1',
+  './js/icadem-platform-v2.js?v=59',
+  './js/icadem-mission-invitations.js?v=2',
   './js/icadem-panel-sounds.js?v=1',
   './js/icadem-course-unlocks.js?v=7',
   './css/icadem-course-unlocks.css?v=4',
