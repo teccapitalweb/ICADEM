@@ -1032,6 +1032,7 @@ body{
 }
 </style>
 <link rel="stylesheet" href="css/icadem-admin-metrics.css?v=1">
+<link rel="stylesheet" href="css/icadem-admin-cursos-individuales.css">
 <link rel="stylesheet" href="css/icadem-admin-marketing.css?v=1">
 <link rel="stylesheet" href="css/ambassadors-admin.css?v=3">
 <link rel="stylesheet" href="css/icadem-support-premium.css?v=2">
@@ -1193,6 +1194,7 @@ window.__signOut = async () => {
     <div class="nav-section">
       <div class="nav-label">Comunidad</div>
       <a class="nav-item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros VIP<span class="nav-item__badge">486</span></a>
+      <a class="nav-item" data-section="cursos-individuales"><svg class="ic"><use href="#i-book"/></svg>Cursos individuales</a>
       <a class="nav-item" data-section="estado-pagos"><svg class="ic"><use href="#i-dollar"/></svg>Estado de pagos<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="embajadores"><svg class="ic"><use href="#i-users"/></svg>Embajadores<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
       <a class="nav-item" data-section="creditos-masivos"><svg class="ic"><use href="#i-dollar"/></svg>Créditos masivos<span class="nav-item__badge nav-item__badge--new">NUEVO</span></a>
@@ -1238,6 +1240,7 @@ window.__signOut = async () => {
     <a class="mobile-nav__item" data-section="webinars"><svg class="ic"><use href="#i-broadcast"/></svg>Vivo</a>
     <a class="mobile-nav__item" data-section="miembros"><svg class="ic"><use href="#i-users"/></svg>Miembros</a>
     <a class="mobile-nav__item" data-section="estado-pagos"><svg class="ic"><use href="#i-dollar"/></svg>Pagos</a>
+    <a class="mobile-nav__item" data-section="cursos-individuales"><svg class="ic"><use href="#i-book"/></svg>Cursos individuales</a>
     <a class="mobile-nav__item" data-section="embajadores"><svg class="ic"><use href="#i-users"/></svg>Embajadores</a>
     <a class="mobile-nav__item" data-section="creditos-masivos"><svg class="ic"><use href="#i-dollar"/></svg>Créditos</a>
     <a class="mobile-nav__item" data-section="auditoria"><svg class="ic"><use href="#i-search"/></svg>Auditar</a>
@@ -7484,6 +7487,7 @@ if (window.__currentAdmin) {
 <script src="js/icadem-admin-metrics.js?v=2" defer></script>
 <script src="js/icadem-admin-marketing.js?v=7" defer></script>
 <script src="js/icadem-ambassadors-admin.js?v=5" defer></script>
+<script src="js/icadem-admin-cursos-individuales.js" defer></script>
 <script>
 // ── Marketing (patrón Alintecfood): Encuestas, Métricas y Correos ──
 (function(){
@@ -7519,6 +7523,14 @@ if (window.__currentAdmin) {
     if (window.ICADEMAmbassadorsAdmin) return montar();
     p.innerHTML = '<div class="amb-admin__loading"><div><span class="amb-admin__spin"></span>Cargando Embajadores…</div></div>';
     window.addEventListener('icadem:ambassadors-admin-ready', function(){ if (__seccionActual === 'embajadores') montar(); }, { once: true });
+  };
+  Pages['cursos-individuales'] = function(p){
+    var mount = function(){ window.ICADEMCursosIndividuales.mount(p, { getToken: tokenAdmin, api: Pages._webhookUrl }); };
+    if (window.ICADEMCursosIndividuales) return mount();
+    p.innerHTML = '<p role="status">Cargando Cursos individuales…</p>';
+    window.addEventListener('icadem:cursos-individuales-ready', function(){
+      if (__seccionActual === 'cursos-individuales') mount();
+    }, { once: true });
   };
 })();
 </script>
