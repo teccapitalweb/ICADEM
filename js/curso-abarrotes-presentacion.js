@@ -32,6 +32,7 @@ for (const [index, tab] of tabs.entries()) {
 }
 
 document.querySelector('[data-open-content="temario"]').addEventListener('click', () => showTab(programTab, { instant: true }));
+if (location.hash === '#temario') showTab(programTab, { instant: true });
 
 const figures = [...document.querySelectorAll('[data-count]')].map(element => {
   const decimals = Number(element.dataset.decimals || 0);
