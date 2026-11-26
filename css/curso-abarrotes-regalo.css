@@ -1,0 +1,82 @@
+.course-gift-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  padding: 0;
+  color: var(--blue-dark);
+  background: transparent;
+  font: inherit;
+  font-weight: 760;
+  text-decoration: underline;
+  text-underline-offset: .23em;
+}
+
+.course-gift-trigger svg { flex: 0 0 16px; }
+.course-gift {
+  width: min(690px, calc(100% - 24px));
+  max-height: calc(100dvh - 24px);
+  border-radius: 22px;
+  background: var(--white);
+}
+
+.course-gift-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: clamp(15px, 3vw, 23px) clamp(15px, 4vw, 28px);
+  border-bottom: 1px solid var(--line);
+  background: linear-gradient(115deg, #eff5ff, #f9fbff);
+}
+
+.course-gift-header h2 {
+  font-size: clamp(1.27rem, 3.5vw, 1.75rem);
+  font-weight: 850;
+  line-height: 1.13;
+  letter-spacing: -.04em;
+}
+
+.course-gift-close {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  color: var(--navy);
+  background: #fff;
+}
+
+.course-gift-content {
+  display: grid;
+  gap: clamp(13px, 3vw, 20px);
+  padding: clamp(15px, 4vw, 28px);
+}
+
+.course-gift-content > p {
+  max-width: 61ch;
+  color: var(--muted);
+  font-size: .99rem;
+  line-height: 1.5;
+}
+
+.course-gift-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(8px, 2vw, 15px); }
+.course-gift-card { overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #fff; }
+.course-gift-card-featured { border-color: #a5bee9; background: #f2f7ff; }
+.course-gift-card img { width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; background: var(--light); }
+.course-gift-card > div { display: grid; gap: 5px; padding: clamp(8px, 2vw, 14px); }
+.course-gift-card span { color: var(--muted); font-size: .79rem; font-weight: 690; }
+.course-gift-card-featured span { color: var(--blue-dark); font-weight: 800; }
+.course-gift-card h3 { font-size: clamp(.88rem, 2vw, 1.09rem); line-height: 1.25; letter-spacing: -.015em; }
+
+.course-gift-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
+.course-gift-actions .button { min-height: 48px; padding: 10px 16px; }
+.course-gift-dismiss { min-height: 44px; padding: 8px 10px; border: 0; color: var(--muted); background: transparent; font-weight: 700; text-decoration: underline; text-underline-offset: .23em; }
+
+@media (max-width: 575px) {
+  .course-gift-trigger { min-height: 44px; }
+  .course-gift-actions { display: grid; }
+  .course-gift-actions form { text-align: center; }
+}
