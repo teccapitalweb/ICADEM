@@ -1,0 +1,345 @@
+const coursePath = '/api/cursos-individuales/administra-tu-tienda-de-abarrotes';
+const api = 'https://icadem-webhook-production.up.railway.app' + coursePath;
+const stripeKey = 'pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b';
+const promoUrl = '';
+const money = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
+const mxn = amount => '$' + money.format(amount);
+const visitId = crypto.randomUUID();
+const search = new URLSearchParams(location.search);
+const checkoutId = search.get('checkout');
+const referrer = document.referrer ? new URL(document.referrer) : null;
+const origin = search.get('utm_source') || (referrer && referrer.origin !== location.origin ? referrer.hostname : 'directo');
+const device = /iPad|Tablet|Android(?!.*Mobile)/i.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) ? 'tableta' :
+  /Mobi|iPhone|Android/i.test(navigator.userAgent) ? 'telefono' : 'computadora';
+const context = { visitaId: visitId, origen: origin, dispositivo: device };
+
+const offer = document.querySelector('#oferta');
+const offerSummary = document.querySelector('#offer-summary');
+const paymentMessage = document.querySelector('#payment-message');
+const payButton = document.querySelector('#pay');
+const checkoutContainer = document.querySelector('#stripe-checkout');
+const classroom = document.querySelector('#mi-curso');
+const content = document.querySelector('#classroom-content');
+let currentPrice = 599;
+let checkout;
+let checkoutAttempt;
+let paymentGeneration = 0;
+let stripePromise;
+let classroomGeneration = 0;
+let firebase;
+let firebaseReady;
+let authUnsubscribe;
+let priceRequest;
+
+const times = new Map();
+function flush(event) {
+  const clock = times.get(event);
+  if (!clock) return;
+  const seconds = Math.min(14400, Math.floor((clock.elapsed + (clock.start ? performance.now() - clock.start : 0)) / 1000));
+  if (seconds === clock.sent) return;
+  clock.sent = seconds;
+  fetch(api + '/actividad', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, keepalive: true,
+    body: JSON.stringify({ ...context, evento: event, segundos: seconds }),
+  }).then(response => {
+    if (!response.ok && clock.sent === seconds) clock.sent = null;
+  }).catch(() => { if (clock.sent === seconds) clock.sent = null; });
+}
+function startTime(event) {
+  if (!times.has(event)) times.set(event, { elapsed: 0, active: true });
+  const clock = times.get(event);
+  clock.active = true;
+  if (!document.hidden && !clock.start) clock.start = performance.now();
+  flush(event);
+}
+function pauseTime(event, active = false) {
+  const clock = times.get(event);
+  if (!clock) return;
+  if (clock.start) clock.elapsed += performance.now() - clock.start;
+  clock.start = null;
+  clock.active = active;
+  flush(event);
+}
+startTime('visita');
+document.addEventListener('visibilitychange', () => {
+  for (const [event, clock] of times) {
+    if (!clock.active) continue;
+    if (document.hidden) pauseTime(event, true);
+    else startTime(event);
+  }
+});
+window.addEventListener('pagehide', () => {
+  for (const event of times.keys()) flush(event);
+});
+
+function setPrices(course) {
+  if (!Number.isInteger(course?.precioNormal) || !Number.isInteger(course?.precioLanzamiento)) return;
+  currentPrice = course.precioLanzamiento;
+  document.querySelectorAll('[data-normal]').forEach(el => { el.textContent = mxn(course.precioNormal) + ' MXN'; });
+  document.querySelectorAll('[data-current]').forEach(el => { el.textContent = mxn(currentPrice); });
+  const saving = document.querySelector('[data-saving]');
+  const difference = course.precioNormal - currentPrice;
+  saving.hidden = difference <= 0;
+  saving.textContent = 'Ahorras ' + mxn(difference) + ' MXN';
+}
+async function json(path = '', options = {}) {
+  const response = await fetch(api + path, { cache: 'no-store', ...options });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    const fallback = response.status >= 500 || response.status === 404
+      ? 'El servicio no está disponible por el momento. Intenta de nuevo.' : 'No pudimos completar la solicitud.';
+    throw Object.assign(new Error(data.error || fallback), data);
+  }
+  return data;
+}
+function refreshPrices() {
+  if (!priceRequest) priceRequest = json().then(setPrices).catch(() => {}).finally(() => { priceRequest = null; });
+  return priceRequest;
+}
+refreshPrices();
+
+const tabs = [...document.querySelectorAll('.content-tabs [role="tab"]')];
+function selectTab(tab, focus = false) {
+  for (const button of tabs) {
+    const active = button === tab;
+    button.tabIndex = active ? 0 : -1;
+    button.setAttribute('aria-selected', active);
+    document.getElementById(button.getAttribute('aria-controls')).hidden = !active;
+  }
+  if (focus) tab.focus();
+}
+for (const [index, tab] of tabs.entries()) {
+  tab.addEventListener('click', () => selectTab(tab));
+  tab.addEventListener('keydown', event => {
+    const next = { ArrowRight: (index + 1) % tabs.length, ArrowLeft: (index + tabs.length - 1) % tabs.length, Home: 0, End: tabs.length - 1 }[event.key];
+    if (next === undefined) return;
+    event.preventDefault();
+    selectTab(tabs[next], true);
+  });
+}
+document.querySelector('[data-open-content]').addEventListener('click', () => selectTab(document.querySelector('#tab-temario')));
+
+const promo = document.querySelector('#promocional');
+if (promoUrl) {
+  promo.src = promoUrl;
+  promo.hidden = false;
+  document.querySelector('.store-img').hidden = true;
+  document.querySelector('.media-caption').hidden = true;
+  promo.addEventListener('playing', () => startTime('video'));
+  for (const event of ['pause', 'ended', 'waiting']) promo.addEventListener(event, () => pauseTime('video'));
+}
+
+function loadStripe() {
+  if (window.Stripe) return Promise.resolve(window.Stripe(stripeKey));
+  if (!stripePromise) stripePromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://js.stripe.com/v3/';
+    const timer = setTimeout(() => fail(), 12000);
+    function fail() {
+      clearTimeout(timer);
+      script.remove();
+      reject(new Error('No se pudo abrir Stripe. Intenta de nuevo.'));
+    }
+    script.onload = () => {
+      clearTimeout(timer);
+      if (window.Stripe) resolve(window.Stripe(stripeKey));
+      else fail();
+    };
+    script.onerror = fail;
+    document.head.append(script);
+  }).catch(error => { stripePromise = null; throw error; });
+  return stripePromise;
+}
+for (const button of document.querySelectorAll('[data-offer]')) button.addEventListener('click', () => {
+  offer.showModal();
+  startTime('oferta');
+  refreshPrices();
+});
+offer.addEventListener('close', () => {
+  paymentGeneration++;
+  pauseTime('oferta');
+  pauseTime('checkout');
+  checkout?.destroy();
+  checkout = null;
+  checkoutContainer.replaceChildren();
+  checkoutContainer.hidden = true;
+  offerSummary.hidden = false;
+  paymentMessage.textContent = '';
+  payButton.disabled = false;
+  payButton.textContent = 'Continuar al pago';
+});
+payButton.addEventListener('click', async () => {
+  const generation = ++paymentGeneration;
+  payButton.disabled = true;
+  payButton.textContent = 'Abriendo pago…';
+  paymentMessage.textContent = '';
+  try {
+    // The customer must see and accept any change before Stripe is initialized.
+    const amountShown = currentPrice;
+    if (checkoutAttempt?.price !== amountShown) checkoutAttempt = { id: crypto.randomUUID(), price: amountShown };
+    const stripe = await loadStripe();
+    if (generation !== paymentGeneration) return;
+    const { clientSecret } = await json('/checkout', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...context, intento: checkoutAttempt.id, precio: amountShown }),
+    });
+    if (generation !== paymentGeneration) return;
+    const instance = await stripe.initEmbeddedCheckout({ clientSecret });
+    if (generation !== paymentGeneration) {
+      instance.destroy();
+      return;
+    }
+    checkout = instance;
+    checkoutContainer.hidden = false;
+    offerSummary.hidden = true;
+    checkout.mount(checkoutContainer);
+    startTime('checkout');
+  } catch (error) {
+    if (generation !== paymentGeneration) return;
+    checkout?.destroy();
+    checkout = null;
+    checkoutContainer.hidden = true;
+    offerSummary.hidden = false;
+    if (error.curso) {
+      checkoutAttempt = null;
+      setPrices(error.curso);
+    }
+    paymentMessage.textContent = error.message;
+    payButton.disabled = false;
+    payButton.textContent = 'Continuar al pago';
+  }
+});
+
+function notice(title, body, buttons = '') {
+  content.innerHTML = '<h3></h3><p></p><div class="aula-actions">' + buttons + '</div>';
+  content.querySelector('h3').textContent = title;
+  content.querySelector('p').textContent = body;
+}
+function showSignIn() {
+  notice('Entra a tu curso', 'Usa el correo con el que hiciste el pago. Si aún no tienes una cuenta ICADEM, puedes crearla con ese correo.', '<a class="button" id="course-login">Iniciar sesión o registrarme</a>');
+  const redirect = location.pathname + location.search + '#mi-curso';
+  content.querySelector('#course-login').href = 'vip-auth.html?redirect=' + encodeURIComponent(redirect);
+}
+function renderClassroom(data) {
+  content.innerHTML = '<div class="aula-hero"><p>ICADEM · Mi aula</p><h3></h3></div>' +
+    '<div class="aula-tabs" aria-label="Contenido del aula"><button type="button" aria-pressed="true" data-aula="clases">Clases</button><button type="button" aria-pressed="false" data-aula="materiales">Materiales</button></div>' +
+    '<div class="aula-empty"><strong></strong><p></p></div>' +
+    '<div class="aula-links"><a href="https://wa.me/522383738143" target="_blank" rel="noopener">Soporte ICADEM</a><button type="button" id="aula-signout">Cerrar sesión</button></div>';
+  content.querySelector('h3').textContent = data.curso;
+  const actions = [...content.querySelectorAll('[data-aula]')];
+  function setAulaTab(key) {
+    for (const action of actions) action.setAttribute('aria-pressed', action.dataset.aula === key);
+    const media = key === 'materiales';
+    content.querySelector('.aula-empty strong').textContent = media ? 'Sin materiales por ahora' : 'Las clases aún no están publicadas';
+    content.querySelector('.aula-empty p').textContent = media ? 'Aquí encontrarás los recursos del curso cuando estén disponibles.' : 'Las grabaciones se habilitarán en esta sección.';
+  }
+  actions.forEach(action => action.addEventListener('click', () => setAulaTab(action.dataset.aula)));
+  setAulaTab('clases');
+  content.querySelector('#aula-signout').addEventListener('click', signOutCourse);
+}
+async function signOutCourse() {
+  try { await firebase.signOut(firebase.auth); } catch { showRetry('No se pudo cerrar la sesión. Intenta de nuevo.'); }
+}
+function showRetry(message) {
+  notice('No pudimos cargar el aula', message, '<button class="button" type="button" id="retry-aula">Reintentar</button>');
+  content.querySelector('#retry-aula').addEventListener('click', connectClassroom);
+}
+async function checkAccess(user) {
+  const generation = ++classroomGeneration;
+  const isCurrent = () => classroom.open && generation === classroomGeneration;
+  if (!user) return showSignIn();
+  notice('Mi curso', 'Verificando tu acceso…');
+  try {
+    const token = await user.getIdToken(true);
+    const params = new URLSearchParams({ visitaId: visitId });
+    if (checkoutId) params.set('checkout', checkoutId);
+    const data = await json('/aula?' + params, { headers: { Authorization: 'Bearer ' + token } });
+    if (isCurrent()) {
+      if (checkoutId) {
+        const clean = new URL(location.href);
+        clean.searchParams.delete('checkout');
+        history.replaceState(null, '', clean);
+      }
+      renderClassroom(data);
+    }
+  } catch (error) {
+    if (!isCurrent()) return;
+    if (error.code === 'verificar-correo') {
+      notice('Verifica tu correo', 'Confirma tu correo para vincular tu inscripción a esta cuenta.',
+        '<button class="button" type="button" id="send-verification">Enviar correo de verificación</button><button class="button button-light" type="button" id="check-verification">Ya lo verifiqué</button><button class="button button-light" type="button" id="change-account">Cambiar de cuenta</button><p class="status" role="status"></p>');
+      content.querySelector('#send-verification').addEventListener('click', async event => {
+        const button = event.currentTarget;
+        const status = content.querySelector('.status');
+        button.disabled = true;
+        try {
+          await firebase.sendEmailVerification(user);
+          status.textContent = 'Revisa tu bandeja de entrada y tu correo no deseado.';
+        } catch {
+          status.textContent = 'No se pudo enviar el correo. Espera un momento y vuelve a intentarlo.';
+          button.disabled = false;
+        }
+      });
+      content.querySelector('#check-verification').addEventListener('click', () => checkAccess(user));
+    } else if (error.code === 'sin-compra') {
+      notice('Inscripción por confirmar', 'Usa el correo que ingresaste al pagar. Si acabas de pagar, puedes volver a comprobar tu acceso.',
+        '<button class="button" type="button" id="check-verification">Comprobar acceso</button><button class="button button-light" type="button" id="change-account">Cambiar de cuenta</button><a class="button button-light" href="https://wa.me/522383738143" target="_blank" rel="noopener">Contactar a ICADEM</a>');
+      content.querySelector('#check-verification').addEventListener('click', () => checkAccess(user));
+    } else {
+      return showRetry(error.message);
+    }
+    content.querySelector('#change-account').addEventListener('click', signOutCourse);
+  }
+}
+async function loadFirebase() {
+  const [app, auth] = await Promise.all([
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js'),
+    import('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js'),
+  ]);
+  const instance = app.getApps()[0] || app.initializeApp({
+    apiKey: 'AIzaSyBzPC1wxbzOYutcECtwYBWTTbo76cqrmdA',
+    authDomain: 'icadem-vip.firebaseapp.com',
+    projectId: 'icadem-vip',
+    appId: '1:12508983783:web:b12be6f1fab9bb91fb8d42',
+  });
+  return { ...auth, auth: auth.getAuth(instance) };
+}
+async function connectClassroom() {
+  const generation = ++classroomGeneration;
+  notice('Mi curso', 'Verificando tu acceso…');
+  try {
+    firebaseReady ||= loadFirebase().catch(error => { firebaseReady = null; throw error; });
+    firebase = await firebaseReady;
+    if (!classroom.open || generation !== classroomGeneration) return;
+    authUnsubscribe?.();
+    authUnsubscribe = firebase.onAuthStateChanged(firebase.auth, checkAccess);
+  } catch {
+    if (classroom.open && generation === classroomGeneration) showRetry('Revisa tu conexión y vuelve a intentarlo.');
+  }
+}
+function openClassroom() {
+  if (classroom.open) return;
+  if (offer.open) offer.close();
+  if (location.hash !== '#mi-curso') history.pushState(null, '', '#mi-curso');
+  classroom.showModal();
+  startTime('yaPague');
+  connectClassroom();
+}
+classroom.addEventListener('close', () => {
+  classroomGeneration++;
+  authUnsubscribe?.();
+  authUnsubscribe = null;
+  pauseTime('yaPague');
+  if (location.hash === '#mi-curso') history.replaceState(null, '', location.pathname + location.search);
+});
+for (const link of document.querySelectorAll('a[href="#mi-curso"]')) link.addEventListener('click', event => {
+  event.preventDefault();
+  openClassroom();
+});
+function syncHash() {
+  if (location.hash === '#mi-curso') openClassroom();
+  else if (classroom.open) classroom.close();
+  if (location.hash === '#temario') selectTab(document.querySelector('#tab-temario'));
+}
+window.addEventListener('hashchange', syncHash);
+syncHash();
