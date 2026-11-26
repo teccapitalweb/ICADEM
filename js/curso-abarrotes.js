@@ -4,6 +4,7 @@ const coursePath = '/api/cursos-individuales/administra-tu-tienda-de-abarrotes';
 const api = 'https://icadem-webhook-production.up.railway.app' + coursePath;
 const stripeKey = 'pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b';
 const promoUrl = '';
+const giftVideoHosts = new Set(['storage.googleapis.com', 'icadem-vip.firebasestorage.app']);
 const money = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
 const mxn = amount => '$' + money.format(amount);
 const visitId = crypto.randomUUID();
@@ -293,11 +294,18 @@ function showGiftClassroom(data, user) {
       const url = new URL(itemData.url);
       if (url.protocol !== 'https:') throw new Error('Enlace inválido');
       if (kind === 'clase') {
-        const player = document.createElement('iframe');
+        if (itemData.tipo !== 'video/mp4' || !giftVideoHosts.has(url.hostname)) throw new Error('Video inválido');
+        const player = document.createElement('video');
+        player.controls = true;
+        player.playsInline = true;
+        player.preload = 'metadata';
+        player.setAttribute('aria-label', item.titulo);
+        player.addEventListener('error', () => {
+          if (player.isConnected && generation === classroomGeneration && id === selection) {
+            result.textContent = 'No pudimos cargar el video. Selecciona la clase para volver a intentarlo.';
+          }
+        }, { once: true });
         player.src = url.href;
-        player.title = item.titulo;
-        player.allow = 'autoplay; encrypted-media; picture-in-picture';
-        player.allowFullscreen = true;
         result.replaceChildren(player);
       } else {
         const download = document.createElement('a');

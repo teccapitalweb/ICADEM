@@ -113,7 +113,7 @@
 }
 .aula-gift-list button:hover { background: var(--light); }
 .aula-gift-view:empty { display: none; }
-.aula-gift-view iframe { display: block; width: 100%; aspect-ratio: 16/9; border: 0; border-radius: 12px; background: var(--navy); }
+.aula-gift-view video { width: 100%; aspect-ratio: 16/9; border-radius: 12px; background: var(--navy); }
 
 @media (max-width: 575px) {
   .course-gift-trigger { min-height: 44px; }
