@@ -193,3 +193,7 @@ dialog::backdrop { background: #0b1c40a6; backdrop-filter: blur(4px); }
   .sticky-buy s { display: block; color: var(--muted); font-size: .73rem; }
   .sticky-buy strong { display: block; color: var(--blue-dark); font-size: 1rem; }
 }
+@media (max-width: 350px) {
+  .facts-row { padding-inline: 6px; }
+  .fact { padding-inline: 2px; }
+}
