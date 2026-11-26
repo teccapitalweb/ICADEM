@@ -72,6 +72,8 @@ async function scenario(width, channel) {
       navigateToSection('inicio');
     });
     const home = page.locator('[data-credit-missions-home]');
+    // The panel also resets scroll after the navigation paint.
+    await page.waitForTimeout(160);
     await home.scrollIntoViewIfNeeded();
     const invitation = page.locator('.mission-invitation');
     await page.waitForTimeout(250);
@@ -79,12 +81,21 @@ async function scenario(width, channel) {
     assert.equal(await invitation.count(), 0);
     assert.equal(await page.locator('dialog[open]').count(), 1);
     assert.equal(await page.locator('#fixture-mission-blocker button').evaluate(node => node === document.activeElement), true);
+    if (channel === 'inline') {
+      await home.evaluate(node => {
+        const replacement = node.cloneNode(true);
+        replacement.style.marginTop = '110vh';
+        node.replaceWith(replacement);
+        window.dispatchEvent(new CustomEvent('icadem:section-ready', {detail:{section:'inicio'}}));
+      });
+    }
     await page.evaluate(() => {
       const blocker = document.getElementById('fixture-mission-blocker');
       blocker.close();
       blocker.remove();
       document.querySelector('[data-credit-missions-home] [data-credit-wallet-open]').focus({ preventScroll:true });
     });
+    await home.scrollIntoViewIfNeeded();
     await invitation.waitFor();
     assert.equal(await invitation.evaluate(node => node.tagName), 'ASIDE');
     assert.equal(await invitation.getAttribute('data-mission-invitation-id'), mission.id);
@@ -124,6 +135,15 @@ async function scenario(width, channel) {
     assert.equal(await invitation.count(),0);
     assert.equal(claims,1,'The same account only reserves one exposure');
     console.log(`${process.env.ICADEM_TEST_ENGINE || 'chrome'} ${width} ${channel} passed`);
+  } catch (error) {
+    const panelState = await page.evaluate(() => ({
+      section: location.hash, focused: document.hasFocus(), visibility: document.visibilityState,
+      active: document.activeElement?.outerHTML.slice(0, 160),
+      home: document.querySelector('[data-credit-missions-home]')?.getBoundingClientRect().toJSON(),
+      openDialogs: Array.from(document.querySelectorAll('dialog[open]'), node => node.id || node.className)
+    })).catch(() => null);
+    console.error('Mission invitation fixture', {channel, width, claims, panelState});
+    throw error;
   } finally { await context.close(); }
 }
 

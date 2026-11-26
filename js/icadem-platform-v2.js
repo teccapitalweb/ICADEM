@@ -2424,8 +2424,10 @@
         : items.every(item => item.kind === 'gift') ? '¡Te regalaron créditos!' : '¡Créditos acreditados!';
       const note = items.length === 1 && last.note ? last.note : '';
       // Espera a que no haya otra ventana encima (bienvenida, recorrido, etc.)
-      const blocker = '.modal-backdrop.is-open, .cc-overlay, .rv, .learning-game, .ica-experience';
-      const blocked = () => document.querySelector(blocker) || window.ICADEMResumeEditor?.isOpen?.();
+      const blocker = 'dialog[open], [role="dialog"][aria-modal="true"], .modal-backdrop.is-open, .cc-overlay, .rv.is-open, .learning-game, .ica-experience';
+      const blocked = () => document.activeElement?.matches('[data-lesson-notes]')
+        || window.ICADEMResumeEditor?.isOpen?.()
+        || Array.from(document.querySelectorAll(blocker)).some(element => element.getClientRects().length && getComputedStyle(element).visibility !== 'hidden');
       for (let i = 0; i < 20 && currentPlatformSession(scope) && blocked(); i++) await new Promise(r => setTimeout(r, 1000));
       if (!currentPlatformSession(scope) || document.hidden || blocked()) return;
       const wallet = await loadCreditWallet(true).catch(() => null);

@@ -18,6 +18,7 @@
   const mailToggle = '[data-mission-email-toggle]';
   let state = null;
   let observer = null;
+  let watchedTarget = null;
   let retry = 0;
   let surface = null;
   let lastSection = section();
@@ -78,6 +79,7 @@
   function stopWatching() {
     observer?.disconnect();
     observer = null;
+    watchedTarget = null;
     clearTimeout(retry);
     retry = 0;
   }
@@ -144,7 +146,7 @@
   }
 
   async function present(entry, target) {
-    if (!current(entry) || entry.dismissed || entry.claiming || section() !== 'inicio' || !entry.invitation
+    if (target !== watchedTarget || !current(entry) || entry.dismissed || entry.claiming || section() !== 'inicio' || !entry.invitation
         || document.visibilityState !== 'visible' || !document.hasFocus() || !visible(target)) return;
     const picked = entry.invitation;
     if (picked.channel === 'popup' && !entry.seenHomeBefore && returningUid !== entry.uid) return;
@@ -173,7 +175,7 @@
       } catch (_) {
         return;
       } finally { entry.claiming = false; }
-      return present(entry, target);
+      return watchHome(entry);
     }
     entry.invitation = null;
     stopWatching();
@@ -181,8 +183,13 @@
   }
 
   function watchHome(entry) {
+    if (!current(entry) || section() !== 'inicio' || !entry.invitation || entry.dismissed) return;
     const target = document.querySelector('[data-credit-missions-home]');
-    if (!target || !entry.invitation || entry.dismissed) return;
+    if (target !== watchedTarget) {
+      stopWatching();
+      watchedTarget = target;
+    }
+    if (!target) return;
     if (entry.seenHomeBefore === undefined) {
       const key = 'icadem:mission-invite-home-visited:' + entry.uid;
       try {
