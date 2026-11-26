@@ -18,8 +18,22 @@ const missionData = [
   { id:'first-connection', title:'Tu primera conexión aceptada', amount:5, description:'Se acredita una sola vez, cuando la otra persona acepte.', status:'pending' },
   { id:'referral-activation', title:'Invita a alguien a aprender', amount:10, description:'El invitado verifica su correo y aprueba su primera actividad.', status:'limited', progress:{current:2,total:2} },
   { id:'referral-email', title:'Verifica tu correo', amount:0, description:'Completa este paso para activar tu invitación.', status:'available' },
-  { id:'referral-first-activity', title:'Aprueba tu primera actividad', amount:0, description:'Abre un curso para empezar.', status:'available' }
+  { id:'referral-first-activity', title:'Aprueba tu primera actividad', amount:0, description:'Abre un curso para empezar.', status:'available' },
+  { id:'first-lesson-note', title:'Guarda tu primera nota de clase', amount:5, description:'Guarda una nota en una clase que tengas disponible.', status:'available' },
+  { id:'first-class-game', title:'Completa tu primer juego de clase', amount:10, description:'Aprueba un juego desde una de tus clases.', status:'available' },
+  { id:'first-completed-course', title:'Completa tu primer curso', amount:20, description:'Completa las actividades obligatorias de un curso.', status:'completed' },
+  { id:'eligible-course-rating', title:'Califica un curso completado', amount:5, description:'Califica un curso que ya completaste.', status:'available', courseId:'course-6' }
 ];
+
+const dailyChallenge = {
+  id:'daily-challenge',
+  title:'Completa el reto de hoy',
+  description:'Responde correctamente el reto diario para obtener la recompensa.',
+  amount:30,
+  section:'retos',
+  status:'available',
+  date:new Intl.DateTimeFormat('en-CA', { timeZone:'America/Mexico_City', year:'numeric', month:'2-digit', day:'2-digit' }).format(new Date())
+};
 
 const movements = [
   { id:'first-profile', label:'Tarjeta completada', amount:15, direction:'earn', detail:'Tu perfil profesional', createdAt:'2026-11-25T15:30:00Z' },
@@ -66,6 +80,39 @@ async function checkControls(locator) {
   for (const size of sizes) assert.ok(size.width >= 44 && size.height >= 44, JSON.stringify(size));
 }
 
+async function checkInlineDaily(page, card, wrapper) {
+  await card.waitFor();
+  assert.equal(await card.count(), 1);
+  assert.match(await card.innerText(), /Completa el reto de hoy/);
+  assert.match(await card.innerText(), /\+\s*30\s*créditos/i);
+  assert.equal(await card.evaluate((element, selector) => {
+    const style = getComputedStyle(element);
+    return Boolean(element.closest(selector)) && !element.closest('dialog,[aria-modal="true"]')
+      && style.position !== 'fixed' && style.position !== 'absolute';
+  }, wrapper), true, 'the suggestion is in the section’s normal layout');
+  const action = card.getByRole('link').or(card.getByRole('button'));
+  assert.equal(await action.count(), 1);
+  assert.equal(await action.isEnabled(), true);
+  await checkControls(action);
+  await harness.noOverflow(page, 'Sugerencia del reto diario');
+  return action;
+}
+
+async function openDailyByKeyboard(page, action) {
+  await page.keyboard.press('Tab');
+  await action.focus();
+  assert.equal(await action.evaluate(element => element === document.activeElement && element.matches(':focus-visible')), true);
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => location.hash === '#retos');
+  await page.locator('.retos-page [data-reto-key="daily"]').waitFor();
+}
+
+async function checkCompletedDaily(card) {
+  await card.waitFor();
+  assert.match(await card.innerText(), /Ya completaste el reto de hoy/);
+  assert.equal(await card.getByRole('link').or(card.getByRole('button')).count(), 0);
+}
+
 async function scenario(width) {
   const calls = { reads:0, reconciles:0 };
   let libraryRequested = false;
@@ -74,6 +121,8 @@ async function scenario(width) {
   let completeWallet;
   let failWalletOnce = false;
   let verified = false;
+  let displayMissions = missionData;
+  let dailyMission = dailyChallenge;
   const shared = { data:harness.initial(), async handle(route, url) {
     const headers = {'Access-Control-Allow-Origin':'*'};
     if (url.pathname === '/api/credits/missions/reconcile') {
@@ -98,9 +147,10 @@ async function scenario(width) {
         await route.fulfill({ status:503, json:{ok:false, error:'Temporalmente no disponible'}, headers });
         return true;
       }
-      const missions = missionData.map(mission => verified && mission.id === 'referral-email' ? {...mission,status:'completed'} : mission);
+      const missions = displayMissions.map(mission => verified && mission.id === 'referral-email' ? {...mission,status:'completed'} : mission);
       await route.fulfill({ json:{
         ok:true, credits:{balance:137,lifetimeEarned:1037,lifetimeSpent:900}, missions,
+        dailyMission,
         earnRules:[
           {id:'welcome',label:'Regalo de bienvenida',amount:100,note:'Un primer material para cuentas nuevas.'},
           {id:'course-completion',label:'Completa un curso',amount:20,note:'Tu avance se verifica al completar las actividades.'},
@@ -112,6 +162,10 @@ async function scenario(width) {
         ],
         recentMovements:movements
       }, headers });
+      return true;
+    }
+    if (url.pathname === '/api/retos/status') {
+      await route.fulfill({ json:{ok:true, balance:137, reward:30, dailyUsedToday:dailyMission?.status === 'completed'}, headers });
       return true;
     }
     if (url.pathname === '/api/library' && width === 390) {
@@ -139,6 +193,7 @@ async function scenario(width) {
     const home = page.locator('[data-credit-missions-home]');
     await home.getByRole('heading', { name:'Misiones de ICADEM' }).waitFor();
     assert.equal(await home.locator('li').count(), 3);
+    assert.equal(await home.locator('[data-home-daily]:visible').count(), 0, 'Inicio keeps actionable missions ahead of the daily suggestion');
     assert.equal(calls.reconciles, 1);
     await checkControls(home.locator('button,a'));
     await harness.noOverflow(page, 'Inicio');
@@ -159,7 +214,7 @@ async function scenario(width) {
     await page.waitForFunction(() => document.activeElement?.id === 'credit-wallet-title');
     await checkControls(wallet.locator('nav a'));
     assert.equal(await wallet.locator('nav a').first().getAttribute('href'), '#cartera-misiones');
-    assert.match(await wallet.locator('.credit-mission').first().innerText(), /Verifica tu correo/);
+    assert.match(await wallet.locator('.credit-wallet-missions .credit-mission').first().innerText(), /Verifica tu correo/);
     await harness.noOverflow(page, 'Misiones predeterminadas');
     await wallet.locator('nav a[href="#cartera"]').click();
     await checkRoute(page, 'cartera');
@@ -197,17 +252,38 @@ async function scenario(width) {
     await wallet.locator('nav a[href="#cartera-misiones"]').click();
     await checkRoute(page, 'cartera-misiones');
     await wallet.getByText('Comenta en Comunidad', {exact:true}).waitFor();
-    await wallet.getByText(/\+100/).first().waitFor();
-    assert.equal(await wallet.locator('.credit-mission').count(), 7);
+    const earningRules = wallet.locator('.credit-wallet-rules');
+    assert.equal(await earningRules.getAttribute('open'), null);
+    await earningRules.locator('summary').click();
+    await earningRules.getByText(/\+100/).first().waitFor();
+    await earningRules.locator('summary').click();
+    const missionCards = wallet.locator('.credit-wallet-missions .credit-mission');
+    assert.equal(await missionCards.count(), missionData.length);
+    for (const mission of missionData) {
+      const card = missionCards.filter({has:page.getByText(mission.title, {exact:true})});
+      assert.equal(await card.count(), 1, mission.id);
+      assert.match(await card.getAttribute('class'), new RegExp(`credit-mission--${mission.status}\\b`));
+      const amount = card.locator('.credit-mission__amount');
+      if (mission.amount) assert.match(await amount.innerText(), new RegExp(`\\+${mission.amount}\\b`));
+      else assert.equal(await amount.count(), 0);
+    }
     assert.equal(await wallet.locator('.credit-mission--completed button,.credit-mission--limited button').count(), 0);
     assert.equal(await wallet.getByRole('progressbar', { name:'Comentarios premiados esta semana' }).getAttribute('value'), '1');
     assert.equal(await wallet.getByRole('progressbar', { name:'Invitados premiados este mes' }).getAttribute('value'), '2');
     await checkControls(wallet.locator('.credit-mission button'));
+    const walletDaily = wallet.locator('[data-wallet-daily]');
+    const initialDailyAction = await checkInlineDaily(page, walletDaily, '[data-wallet-content]');
     const overflow = await wallet.evaluate(e => ({scroll:e.scrollWidth,client:e.clientWidth}));
     assert.ok(overflow.scroll <= overflow.client + 1, JSON.stringify(overflow));
     assert.equal(calls.reconciles, 1);
+    await wallet.locator('header').first().evaluate(element => element.scrollIntoView({block:'start', behavior:'instant'}));
     await harness.shot(page, `misiones-${width}`);
     await harness.noOverflow(page, 'Misiones');
+
+    await openDailyByKeyboard(page, initialDailyAction);
+    await page.goBack();
+    await checkRoute(page, 'cartera-misiones');
+    await wallet.getByText('Comenta en Comunidad', {exact:true}).waitFor();
 
     if (width === 390) {
       await wallet.getByRole('button', {name:'Enviar enlace'}).click();
@@ -221,6 +297,15 @@ async function scenario(width) {
       await wallet.locator('.credit-mission--completed').getByText('Verifica tu correo').waitFor();
       await wallet.getByText('Correo verificado.', {exact:false}).waitFor();
       assert.equal(calls.reconciles, 2);
+
+      for (const [id, section] of [['first-lesson-note', 'cursos'], ['first-class-game', 'cursos'], ['eligible-course-rating', 'curso-detalle']]) {
+        await wallet.locator(`[data-credit-mission="${id}"]`).click();
+        await page.waitForFunction(selected => location.hash === '#' + selected, section, {timeout:8000})
+          .catch(async () => assert.fail(`${id} should open #${section}; opened ${new URL(page.url()).hash}`));
+        if (id === 'eligible-course-rating') await page.waitForFunction(() => window.__cursoActualId === 'course-6');
+        await page.goBack();
+        await checkRoute(page, 'cartera-misiones');
+      }
     }
     await wallet.getByRole('button', { name:'Ir a Comunidad' }).or(wallet.getByRole('link', { name:'Ir a Comunidad' })).click();
     await page.waitForFunction(() => location.hash === '#foro');
@@ -233,6 +318,10 @@ async function scenario(width) {
     await harness.noOverflow(page, 'Canjes');
     if (width === 1440) {
       await page.evaluate(() => { document.documentElement.dataset.theme = 'night'; });
+      await wallet.locator('nav a[href="#cartera-misiones"]').click();
+      await checkRoute(page, 'cartera-misiones');
+      await checkInlineDaily(page, walletDaily, '[data-wallet-content]');
+      await harness.shot(page, `misiones-noche-${width}`);
       await wallet.locator('nav a[href="#cartera-movimientos"]').click();
       await checkRoute(page, 'cartera-movimientos');
       await wallet.locator('.credit-wallet-page__row').first().waitFor();
@@ -240,6 +329,54 @@ async function scenario(width) {
       await harness.shot(page, `movimientos-noche-${width}`);
       await page.evaluate(() => { document.documentElement.dataset.theme = 'day'; });
     }
+
+    displayMissions = missionData.map(mission => mission.status === 'limited' ? mission : {...mission, status:'completed'});
+    const forceWalletRead = () => page.evaluate(() => window.ICADEMPlatform.loadCreditWallet(true));
+    await visit(page, 'inicio');
+    await home.getByRole('heading', {name:'Misiones de ICADEM'}).waitFor();
+    await forceWalletRead();
+    const homeDaily = home.locator('[data-home-daily]');
+    assert.equal(await home.locator('li:visible').count(), 0);
+    const homeDailyAction = await checkInlineDaily(page, homeDaily, '[data-credit-missions-home]');
+    await harness.shot(page, `inicio-reto-del-dia-${width}`, '[data-credit-missions-home]');
+    await openDailyByKeyboard(page, homeDailyAction);
+
+    await visit(page, 'inicio');
+    await homeDailyAction.waitFor();
+    await homeDailyAction.focus();
+    await forceWalletRead();
+    assert.equal(await homeDailyAction.evaluate(element => element === document.activeElement), true, 'refresh keeps focus on the unchanged suggestion');
+    dailyMission = {...dailyChallenge, status:'completed'};
+    await forceWalletRead();
+    await checkCompletedDaily(homeDaily);
+    assert.equal(await launch.evaluate(element => element === document.activeElement), true, 'completion moves focus to the wallet control');
+    await launch.click();
+    await checkRoute(page, 'cartera-misiones');
+    await checkCompletedDaily(walletDaily);
+    await harness.noOverflow(page, 'Reto diario completado');
+
+    if (width === 390) {
+      dailyMission = dailyChallenge;
+      await forceWalletRead();
+      const dailyAction = await checkInlineDaily(page, walletDaily, '[data-wallet-content]');
+      await dailyAction.focus();
+      const invalidDaily = [{...dailyChallenge,date:'2000-01-01'}, {...dailyChallenge,date:'2026-13-40'}, null, undefined];
+      for (dailyMission of invalidDaily) {
+        await forceWalletRead();
+        assert.equal(await walletDaily.count(), 0);
+        assert.equal(await wallet.getByText(/\+\s*30\s*créditos/i).count(), 0);
+        await page.waitForFunction(() => document.activeElement?.id === 'credit-wallet-title');
+      }
+      await visit(page, 'inicio');
+      await home.getByRole('heading', {name:'Misiones de ICADEM'}).waitFor();
+      for (dailyMission of invalidDaily) {
+        await forceWalletRead();
+        assert.equal(await homeDaily.count(), 0);
+        assert.equal(await home.getByText(/\+\s*30\s*créditos/i).count(), 0);
+      }
+    }
+    displayMissions = missionData;
+    dailyMission = dailyChallenge;
 
     if (width === 390) {
       await visit(page, 'retos');
@@ -314,7 +451,7 @@ async function scenario(width) {
       assert.equal(await wallet.locator('[data-wallet-content][aria-busy]').count(), 0);
     }
     assert.deepEqual(errors, []);
-    console.log(process.env.ICADEM_TEST_ENGINE || 'chrome', width, 'Rutas, foco, historial cronológico, filtros, misiones, canjes y reconciliación verificados');
+    console.log(process.env.ICADEM_TEST_ENGINE || 'chrome', width, 'Rutas, foco, movimientos, misiones, reto del día, canjes y reconciliación verificados');
   } finally {
     completeLibrary?.();
     completeWallet?.();

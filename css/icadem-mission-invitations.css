@@ -1,16 +1,17 @@
 .mission-invitation {
-  --mission-accent: #255676;
-  --mission-soft: #e8f1f7;
-  --mission-line: #c9dce9;
-  --mission-copy: #36526b;
+  --mission-accent: #513397;
+  --mission-soft: #eee6ff;
+  --mission-line: #d9c9f6;
+  --mission-copy: #4f4266;
+  --mission-glow: #e3f6f5;
+  margin: 18px 0;
   color: var(--text);
   border: 1px solid var(--mission-line);
   border-radius: 16px;
-  background: linear-gradient(115deg, var(--mission-soft), var(--surface) 65%);
-  box-shadow: 0 12px 25px rgb(24 57 77 / .06);
+  background: linear-gradient(112deg, var(--mission-soft), var(--surface) 58%, var(--mission-glow));
+  box-shadow: 0 12px 25px rgb(42 29 77 / .07);
 }
 
-aside.mission-invitation { margin: 18px 0; }
 .mission-invitation__body {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -64,26 +65,13 @@ aside.mission-invitation { margin: 18px 0; }
   font-weight: 750;
   cursor: pointer;
 }
-.mission-invitation__actions [data-credit-mission] { background: #205372; color: #fff; }
+.mission-invitation__actions [data-credit-mission] { background: #513397; color: #fff; }
 .mission-invitation__actions [data-credit-mission] span { margin-left: 3px; }
 .mission-invitation__actions [data-mission-dismiss] { background: transparent; color: var(--mission-accent); }
 .mission-invitation__actions button:focus-visible, .mission-email-toggle:focus-visible {
   outline: 2px solid var(--mission-accent);
   outline-offset: 2px;
 }
-.mission-invitation--dialog {
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  width: min(460px, calc(100% - 24px));
-  max-height: calc(100dvh - 24px);
-  padding: 0;
-  overflow: auto;
-  z-index: 1;
-}
-.mission-invitation--dialog::backdrop { background: rgb(8 25 43 / .47); }
-.mission-invitation--dialog .mission-invitation__body { grid-template-columns: minmax(0, 1fr); gap: 12px; padding: clamp(16px, 5vw, 27px); }
-.mission-invitation--dialog .mission-invitation__actions { margin-top: 3px; }
 .mission-email-setting {
   --mission-accent: var(--primary);
   display: grid;
@@ -100,20 +88,23 @@ aside.mission-invitation { margin: 18px 0; }
 .mission-email-toggle[aria-pressed="true"] { color: var(--primary); border-color: var(--primary); }
 .mission-email-toggle:disabled { cursor: default; opacity: .7; }
 [data-theme="night"] .mission-invitation {
-  --mission-accent: #9bd5fa;
-  --mission-soft: #1e3b50;
-  --mission-line: #42677c;
-  --mission-copy: #c2d8e8;
+  --mission-accent: #d6bfff;
+  --mission-soft: #342650;
+  --mission-line: #634c8b;
+  --mission-copy: #e1d7f1;
+  --mission-glow: #1c363d;
 }
+[data-theme="night"] .mission-invitation__actions [data-credit-mission] { background: #653db3; }
 @media (hover: hover) {
-  .mission-invitation__actions [data-credit-mission]:hover { background: #17445e; }
+  .mission-invitation__actions [data-credit-mission]:hover { background: #40287b; }
+  [data-theme="night"] .mission-invitation__actions [data-credit-mission]:hover { background: #56349b; }
   .mission-invitation__actions [data-mission-dismiss]:hover { background: var(--mission-soft); }
 }
 @media (max-width: 1100px) {
-  aside.mission-invitation .mission-invitation__body { grid-template-columns: auto minmax(0, 1fr); }
-  aside.mission-invitation .mission-invitation__actions { grid-column: 2; }
+  .mission-invitation__body { grid-template-columns: auto minmax(0, 1fr); }
+  .mission-invitation__actions { grid-column: 2; }
 }
 @media (max-width: 490px) {
-  aside.mission-invitation .mission-invitation__body { gap: 10px 12px; padding: 13px; }
-  aside.mission-invitation .mission-invitation__actions { grid-column: 1/-1; }
+  .mission-invitation__body { gap: 10px 12px; padding: 13px; }
+  .mission-invitation__actions { grid-column: 1/-1; }
 }

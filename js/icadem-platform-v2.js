@@ -647,7 +647,13 @@
     }
     const scope = platformSession();
     if (!currentPlatformSession(scope)) throw changedSessionError();
-    const fresh = creditWalletCache && currentPlatformSession(creditWalletCache.scope) && currentCreditRead(creditWalletCache.creditTicket) && Date.now() - creditWalletCache.at < 15000;
+    const day = mexicoDateKey();
+    const sessionCache = currentPlatformSession(creditWalletCache?.scope) && creditWalletCache;
+    if (sessionCache && sessionCache.day !== day) {
+      paintHomeMissions(sessionCache.data);
+      refreshWalletDaily(sessionCache.data);
+    }
+    const fresh = sessionCache && sessionCache.day === day && currentCreditRead(sessionCache.creditTicket) && Date.now() - sessionCache.at < 15000;
     if (fresh && !force) return creditWalletCache.data;
     if (creditWalletPromise && currentPlatformSession(creditWalletPromise.scope) && !force) return creditWalletPromise.promise;
     const entry = { scope, sequence: ++creditWalletSequence, creditTicket: beginCreditRead(scope) };
@@ -658,9 +664,10 @@
         if (creditWalletPromise === entry) creditWalletPromise = null;
         return loadCreditWallet(false);
       }
-      creditWalletCache = { scope, creditTicket: entry.creditTicket, at: Date.now(), data };
+      creditWalletCache = { scope, creditTicket: entry.creditTicket, at: Date.now(), day, data };
       publishCredits(data.credits, { source: 'wallet', readTicket: entry.creditTicket });
       paintHomeMissions(data);
+      refreshWalletDaily(data);
       return data;
     }).finally(() => { if (creditWalletPromise === entry) creditWalletPromise = null; });
     creditWalletPromise = entry;
@@ -673,14 +680,20 @@
     'forum-reply': { section: 'foro', label: 'Ir a Comunidad' },
     'first-connection': { section: 'directorio', label: 'Explorar directorio' },
     'referral-activation': { section: 'embajadores', label: 'Ver invitaciones' },
-    'referral-first-activity': { section: 'cursos', label: 'Ver cursos' }
+    'referral-first-activity': { section: 'cursos', label: 'Ver cursos' },
+    'first-lesson-note': { section: 'cursos', label: 'Abrir Mis cursos' },
+    'first-class-game': { section: 'cursos', label: 'Buscar una clase' },
+    'first-completed-course': { section: 'cursos', label: 'Continuar estudiando' },
+    'eligible-course-rating': { section: 'cursos', label: 'Ir al curso' },
+    'daily-challenge': { section: 'retos', label: 'Ver el reto de hoy' }
   };
   const missionStates = {
     available: 'Disponible', pending: 'En espera', completed: 'Completada', limited: 'Límite alcanzado'
   };
   const homeMissionPriority = [
     'referral-email', 'referral-first-activity', 'professional-card', 'forum-reply',
-    'professional-cv', 'first-connection', 'referral-activation'
+    'first-lesson-note', 'eligible-course-rating', 'professional-cv', 'first-connection',
+    'first-class-game', 'first-completed-course', 'referral-activation'
   ];
 
   function walletMissions(data) {
@@ -705,7 +718,12 @@
       </div>`;
     }
     const action = Object.hasOwn(missionActions, mission.id) && missionActions[mission.id];
-    return action ? `<button type="button" class="credit-mission__action" data-credit-mission="${esc(mission.id)}">${action.label} <span aria-hidden="true">→</span></button>` : '';
+    return action ? `<button type="button" class="credit-mission__action" ${missionAttributes(mission)}>${action.label} ${walletIcon('i-arrow-right')}</button>` : '';
+  }
+
+  function missionAttributes(mission) {
+    const course = mission.id === 'eligible-course-rating' && typeof mission.courseId === 'string' && mission.courseId;
+    return `data-credit-mission="${esc(mission.id)}"${course ? ` data-credit-mission-course="${esc(course)}"` : ''}`;
   }
 
   function missionProgress(mission) {
@@ -718,44 +736,83 @@
 
   function missionMarkup(mission) {
     const amount = missionAmount(mission);
-    const icons = {
-      'professional-card': 'i-user', 'professional-cv': 'i-book', 'first-connection': 'i-users',
-      'forum-reply': 'i-messages', 'referral-activation': 'i-link', 'referral-email': 'i-mail',
-      'referral-first-activity': 'i-trophy'
+    const visuals = {
+      'professional-card': ['i-user', 'mint'], 'professional-cv': ['i-book', 'mint'], 'first-connection': ['i-users', 'mint'],
+      'forum-reply': ['i-messages', 'blue'], 'referral-activation': ['i-link', 'blue'], 'referral-email': ['i-mail', 'blue'],
+      'referral-first-activity': ['i-trophy', 'violet'], 'first-lesson-note': ['i-edit', 'violet'],
+      'first-class-game': ['i-play', 'violet'], 'first-completed-course': ['i-book', 'violet'],
+      'eligible-course-rating': ['i-clipboard-check', 'gold']
     };
-    const icon = Object.hasOwn(icons, mission.id) ? icons[mission.id] : 'i-check-circle';
-    return `<li class="credit-mission credit-mission--${mission.status}">
-      <span class="credit-mission__symbol">${walletIcon(icon)}</span>
+    const [icon, tone] = Object.hasOwn(visuals, mission.id) ? visuals[mission.id] : ['i-check-circle', 'blue'];
+    const complete = mission.status === 'completed';
+    return `<li class="credit-mission credit-mission--${mission.status}" data-mission-tone="${tone}">
+      <span class="credit-mission__symbol">${walletIcon(complete ? 'i-check-circle' : icon)}</span>
       <div class="credit-mission__body">
         <div class="credit-mission__title"><strong>${esc(mission.title)}</strong><small>${missionStates[mission.status]}</small></div>
-        ${mission.description ? `<p class="credit-mission__description">${esc(mission.description)}</p>` : ''}
-        ${missionProgress(mission)}
-        ${missionControls(mission)}
+        ${!complete && mission.description ? `<p class="credit-mission__description">${esc(mission.description)}</p>` : ''}
+        ${missionProgress(mission)}${missionControls(mission)}
       </div>
-      ${amount ? `<span class="credit-mission__amount">+${amount}<small> créditos</small></span>` : ''}
+      ${amount ? missionReward(amount) : ''}
     </li>`;
+  }
+
+  function missionReward(amount) {
+    return `<span class="credit-mission__amount"><i aria-hidden="true">C</i>+${walletNumber(amount)}<small> créditos</small></span>`;
+  }
+
+  function dailyMissionMarkup(data, home = false) {
+    const mission = data?.dailyMission;
+    if (mission?.id !== 'daily-challenge' || mission.date !== mexicoDateKey()
+      || !['available', 'completed'].includes(mission.status) || !missionAmount(mission)
+      || typeof mission.title !== 'string') return '';
+    const completed = mission.status === 'completed';
+    const amount = missionAmount(mission);
+    const title = completed ? 'Ya completaste el reto de hoy' : mission.title;
+    const note = completed ? 'Mañana encontrarás otro reto en esta sección.'
+      : (home ? `Completa el reto para ganar ${walletNumber(amount)} créditos.` : mission.description);
+    return `<div class="credit-daily${completed ? ' credit-daily--completed' : ''}" ${home ? 'data-home-daily' : 'data-wallet-daily'} data-daily-date="${mission.date}">
+      <span class="credit-daily__icon">${walletIcon(completed ? 'i-check-circle' : 'i-calendar')}</span>
+      <div class="credit-daily__copy"><small>Reto diario</small><strong>${esc(title)}</strong>
+        ${note ? `<p>${esc(note)}</p>` : ''}</div>
+      <div class="credit-daily__action">${missionReward(amount)}${missionControls(mission)}</div>
+    </div>`;
+  }
+
+  function refreshWalletDaily(data) {
+    const page = activeWalletPage;
+    const slot = page?.content.querySelector('[data-wallet-daily-slot]');
+    if (!slot || !currentWalletPage(page)) return;
+    const markup = dailyMissionMarkup(data);
+    if (slot.dataset.dailyMarkup === markup) return;
+    const focused = slot.contains(document.activeElement);
+    slot.innerHTML = markup;
+    slot.dataset.dailyMarkup = markup;
+    if (focused) (slot.querySelector('button') || page.root.querySelector('h1'))?.focus({ preventScroll: true });
   }
 
   function paintHomeMissions(data) {
     const host = document.querySelector('[data-credit-missions-home]');
     if (!host) return;
     const missions = walletMissions(data);
-    if (!missions.length) {
+    if (!data) {
       host.hidden = true;
       host.replaceChildren();
       delete host.dataset.missionsMarkup;
       return;
     }
-    const available = new Map(missions.filter(mission => mission.status === 'available').map(mission => [mission.id, mission]));
+    const campaignId = document.querySelector('[data-mission-invitation-id]')?.dataset.missionInvitationId;
+    const actionable = missions.filter(mission => (mission.status === 'available' || mission.status === 'pending')
+      && (Object.hasOwn(missionActions, mission.id) || (mission.id === 'referral-email' && window.ICADEMEmailVerification)));
+    const available = new Map(actionable.filter(mission => mission.id !== campaignId).map(mission => [mission.id, mission]));
     const visible = homeMissionPriority.map(id => available.get(id)).filter(Boolean).slice(0, 3);
     if (!host.firstElementChild) host.innerHTML = `<header>
       <div><h2 id="home-missions-title">Misiones de ICADEM</h2><p></p></div>
       <button type="button" class="credit-mission__action" data-credit-wallet-open>Ver mi cartera <span aria-hidden="true">→</span></button>
-    </header><ul hidden></ul>`;
+    </header><ul hidden></ul><div data-home-daily-slot></div>`;
     const description = host.querySelector('header p');
     description.textContent = visible.length ? 'Completa una actividad y suma créditos para tus próximos canjes.' : 'Consulta tus misiones y recompensas en la cartera.';
     const markup = visible.map(mission => {
-      const attribute = mission.id === 'referral-email' ? 'data-credit-wallet-open="misiones"' : `data-credit-mission="${esc(mission.id)}"`;
+      const attribute = mission.id === 'referral-email' ? 'data-credit-wallet-open="misiones"' : missionAttributes(mission);
       const amount = missionAmount(mission);
       return `<li><button type="button" ${attribute}><span>${esc(mission.title)}</span>${amount ? `<b>+${amount}<small> créditos</small></b>` : '<span aria-hidden="true">→</span>'}</button></li>`;
     }).join('');
@@ -771,6 +828,14 @@
         const equivalent = Array.from(host.querySelectorAll('[data-credit-mission]')).find(button => button.dataset.creditMission === focusedMission);
         (equivalent || host.querySelector('[data-credit-wallet-open]'))?.focus({ preventScroll: true });
       }
+    }
+    const dailySlot = host.querySelector('[data-home-daily-slot]');
+    const dailyMarkup = actionable.length ? '' : dailyMissionMarkup(data, true);
+    if (dailySlot.dataset.dailyMarkup !== dailyMarkup) {
+      const focused = dailySlot.contains(document.activeElement);
+      dailySlot.innerHTML = dailyMarkup;
+      dailySlot.dataset.dailyMarkup = dailyMarkup;
+      if (focused) (dailySlot.querySelector('button') || host.querySelector('[data-credit-wallet-open]'))?.focus({ preventScroll: true });
     }
     host.hidden = false;
   }
@@ -845,19 +910,28 @@
       const missionOrder = mission => statusOrder[mission.status] * 2
         + (['referral-email', 'referral-first-activity'].includes(mission.id) ? 0 : 1);
       const missions = walletMissions(data).sort((a, b) => missionOrder(a) - missionOrder(b));
+      const completed = missions.filter(mission => mission.status === 'completed');
+      const remaining = missions.filter(mission => mission.status !== 'completed');
       const rules = Array.isArray(data?.earnRules) ? data.earnRules : [];
       return `<div class="credit-wallet-page__mission-layout">
-        <section class="credit-wallet-page__panel credit-wallet-page__mission-balance" aria-label="Saldo disponible">
-          <span class="credit-wallet-page__symbol">${walletIcon('i-credit-card')}</span>
-          <div><small>Saldo disponible</small><strong data-credit-balance data-credit-formatted>${walletNumber(data?.credits?.balance)}</strong><span> créditos</span></div>
+        <section class="credit-missions-hero" aria-labelledby="wallet-missions-title">
+          <div class="credit-missions-hero__intro"><span class="credit-missions-hero__icon">${walletIcon('i-trophy')}</span>
+            <div><h2 id="wallet-missions-title">Misiones para sumar créditos</h2><p>Elige una actividad y gana créditos para tus próximos canjes.</p></div>
+          </div>
+          <div class="credit-missions-hero__wallet">
+            <div><small>Saldo disponible</small><strong data-credit-balance data-credit-formatted>${walletNumber(data?.credits?.balance)}</strong> <span>créditos</span></div>
+            <img src="${walletBag}" alt="" width="320" height="320" decoding="async" draggable="false">
+          </div>
         </section>
-        <section class="credit-wallet-page__panel credit-wallet-missions" aria-labelledby="wallet-missions-title">
-          <header class="credit-wallet-page__panel-head"><div><h2 id="wallet-missions-title">Misiones para sumar créditos</h2><p>Consulta tu avance y continúa desde cada actividad.</p></div></header>
-          ${missions.length ? `<ul>${missions.map(missionMarkup).join('')}</ul>` : '<p class="credit-wallet-page__empty">Aún no hay misiones disponibles para esta cuenta.</p>'}
+        <div data-wallet-daily-slot>${dailyMissionMarkup(data)}</div>
+        <section class="credit-wallet-page__panel credit-wallet-missions" aria-labelledby="wallet-active-missions">
+          <header class="credit-wallet-page__panel-head"><h2 id="wallet-active-missions">Tus misiones</h2></header>
+          ${remaining.length ? `<ul>${remaining.map(missionMarkup).join('')}</ul>` : '<p class="credit-wallet-page__empty">Estás al día con tus misiones.</p>'}
+          ${completed.length ? `<h3 class="credit-missions-completed">Completadas <span>${completed.length}</span></h3><ul>${completed.map(missionMarkup).join('')}</ul>` : ''}
         </section>
-        ${rules.length ? `<details class="credit-wallet-page__panel credit-wallet-rules" open>
-          <summary>Cómo sumar créditos</summary>
-          <ul>${rules.map(rule => `<li><strong>+${walletNumber(rule.amount)}</strong><div><b>${esc(rule.label)}</b><p>${esc(rule.note)}</p></div></li>`).join('')}</ul>
+        ${rules.length ? `<details class="credit-wallet-page__panel credit-wallet-rules">
+          <summary><span>${walletIcon('i-gift')} Cómo sumar créditos</span>${walletIcon('i-arrow-right')}</summary>
+          <ul>${rules.map(rule => `<li><div><b>${esc(rule.label)}</b><p>${esc(rule.note)}</p></div>${missionReward(Number(rule.amount))}</li>`).join('')}</ul>
         </details>` : ''}
       </div>`;
     }
@@ -894,10 +968,14 @@
     </section>`;
   }
 
-  function openMission(missionId) {
+  function openMission(missionId, courseId) {
     if (!Object.hasOwn(missionActions, missionId)) return;
     const action = missionActions[missionId];
     if (action.editor && window.ICADEMProfessionalNavigation?.openEditor(action.editor)) return;
+    if (missionId === 'eligible-course-rating' && courseId && typeof window.openCursoDetalle === 'function') {
+      window.openCursoDetalle(courseId);
+      return;
+    }
     const section = action.section || 'directorio';
     if (typeof window.navigateToSection === 'function') window.navigateToSection(section);
     else location.hash = `#${section}`;
@@ -961,6 +1039,8 @@
       .slice().sort((a, b) => (Date.parse(b.createdAt) || 0) - (Date.parse(a.createdAt) || 0));
     page.content.innerHTML = (verified ? '<p class="credit-wallet-confirmation" role="status">Correo verificado.</p>' : '')
       + walletMarkup({ ...data, recentMovements: page.movements }, page.view);
+    const dailySlot = page.content.querySelector('[data-wallet-daily-slot]');
+    if (dailySlot) dailySlot.dataset.dailyMarkup = dailySlot.innerHTML ? dailyMissionMarkup(data) : '';
   }
 
   async function fetchWalletPage(page, { force = false, retry = false } = {}) {
@@ -2344,8 +2424,10 @@
         : items.every(item => item.kind === 'gift') ? '¡Te regalaron créditos!' : '¡Créditos acreditados!';
       const note = items.length === 1 && last.note ? last.note : '';
       // Espera a que no haya otra ventana encima (bienvenida, recorrido, etc.)
-      const blocker = '.modal-backdrop.is-open, .cc-overlay, .rv, .learning-game, .ica-experience';
-      const blocked = () => document.querySelector(blocker) || window.ICADEMResumeEditor?.isOpen?.();
+      const blocker = 'dialog[open], [role="dialog"][aria-modal="true"], .modal-backdrop.is-open, .cc-overlay, .rv.is-open, .learning-game, .ica-experience';
+      const blocked = () => document.activeElement?.matches('[data-lesson-notes]')
+        || window.ICADEMResumeEditor?.isOpen?.()
+        || Array.from(document.querySelectorAll(blocker)).some(element => element.getClientRects().length && getComputedStyle(element).visibility !== 'hidden');
       for (let i = 0; i < 20 && currentPlatformSession(scope) && blocked(); i++) await new Promise(r => setTimeout(r, 1000));
       if (!currentPlatformSession(scope) || document.hidden || blocked()) return;
       const wallet = await loadCreditWallet(true).catch(() => null);
@@ -2849,7 +2931,7 @@
   document.addEventListener('click', event => {
     const mission = event.target.closest?.('[data-credit-mission]');
     if (!mission || !currentPlatformSession(platformSession())) return;
-    openMission(mission.dataset.creditMission);
+    openMission(mission.dataset.creditMission, mission.dataset.creditMissionCourse);
   });
 
   document.addEventListener('click', event => {
@@ -2973,6 +3055,13 @@
   document.addEventListener('icadem:session-ending', resetPlatformSession);
   document.addEventListener('icadem:session-ended', resetPlatformSession);
   document.addEventListener('icadem:session-exit-failed', () => { startCriticalRefresh(); refreshCriticalData(); });
+  document.addEventListener('icadem:mission-invitation-changed', () => {
+    if (creditWalletCache && currentPlatformSession(creditWalletCache.scope)) paintHomeMissions(creditWalletCache.data);
+  });
+  document.addEventListener('icadem:mission-awarded', () => {
+    creditWalletCache = null;
+    loadCreditWallet(true).catch(() => {});
+  });
   document.addEventListener('icadem:user-ready', () => {
     resetPlatformSession();
     syncIdentity();

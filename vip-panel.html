@@ -25,7 +25,7 @@
 <script src="js/icadem-mascots.js?v=1"></script>
 <script src="js/icadem-analytics.js?v=4" defer></script>
 <script src="js/icadem-panel-sounds.js?v=1" defer></script>
-<script src="js/icadem-platform-v2.js?v=58" defer></script>
+<script src="js/icadem-platform-v2.js?v=59" defer></script>
 <script src="js/icadem-course-unlocks.js?v=7" defer></script>
 <link rel="stylesheet" href="css/icadem-course-unlocks.css?v=4">
 <script src="js/icadem-learning-route.js?v=4" defer></script>
@@ -34,14 +34,14 @@
 <link rel="stylesheet" href="css/icadem-learning-route.css?v=2">
 <script src="js/icadem-resource-viewer.js?v=1" defer></script>
 <script src="js/icadem-push.js?v=4" defer></script>
-<script src="js/icadem-mission-invitations.js?v=1" defer></script>
+<script src="js/icadem-mission-invitations.js?v=2" defer></script>
 <script src="js/icadem-referral.js?v=2"></script>
 <script src="js/icadem-vip-banner.js?v=3"></script>
 <script src="js/icadem-ambassadors-vip.js?v=5" defer></script>
 <script src="js/icadem-commission-celebration.js?v=2" defer></script>
 <script src="js/icadem-ambassadors.js?v=19" defer></script>
 <script src="js/icadem-commission-conversion.js?v=1" defer></script>
-<script src="js/icadem-lesson-notes.js?v=1" defer></script>
+<script src="js/icadem-lesson-notes.js?v=2" defer></script>
 <link rel="stylesheet" href="css/icadem-commission-conversion.css?v=1">
 <link rel="stylesheet" href="css/icadem-credit-rewards.css?v=1">
 <link rel="stylesheet" href="css/ambassadors.css?v=8">
@@ -7749,6 +7749,7 @@ const Sections = (function(){
     __guardarContextoAprendizajeVIP(id);
     if (typeof navigateToSection === 'function') navigateToSection('curso-detalle');
   }
+  window.openCursoDetalle = openCursoDetalle;
 
   function renderCursoDetalle(container){
     const id = __leerContextoAprendizajeVIP().cursoId;
@@ -22497,8 +22498,8 @@ h1, h2, h3, h4{ color: var(--text); }
   <link rel="stylesheet" href="css/panel-minimal.css?v=31">
   <link rel="stylesheet" href="css/vip-banner.css?v=4">
   <link rel="stylesheet" href="css/icadem-games-v4.css?v=12">
-  <link rel="stylesheet" href="css/icadem-wallet-page.css?v=2">
-  <link rel="stylesheet" href="css/icadem-mission-invitations.css?v=1">
+  <link rel="stylesheet" href="css/icadem-wallet-page.css?v=3">
+  <link rel="stylesheet" href="css/icadem-mission-invitations.css?v=2">
 <style id="icadem-wide-shell-fix">
 /* Portátiles y tabletas horizontales sin panel derecho: no se reserva una columna vacía. */
 @media (min-width:1201px) and (max-width:1380px){

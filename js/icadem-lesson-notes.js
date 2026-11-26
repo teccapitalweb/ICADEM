@@ -49,9 +49,10 @@
         const data=await request({method:'PUT',body:JSON.stringify(submitted)});
         if(!alive())return;
         revision=data.note.revision;attempt=null;
+        if(data.missionAwarded===true)document.dispatchEvent(new Event('icadem:mission-awarded'));
         if(read()===text){
           dirty=false;write(data.note.text);try{localStorage.removeItem(key);localStorage.removeItem(legacyKey);}catch(_){}
-          status('Guardado en tu cuenta · Disponible en tus dispositivos.');
+          status(data.missionAwarded===true?'Apunte guardado. Ganaste 5 créditos.':'Guardado en tu cuenta · Disponible en tus dispositivos.');
         }else{backup();}
       }catch(error){
         if(!alive())return;

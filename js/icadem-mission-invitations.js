@@ -9,10 +9,16 @@
     'first-connection': 'Explorar Directorio',
     'referral-activation': 'Ver mis invitaciones'
   };
-  const blocking = 'dialog[open],.modal-backdrop.is-open,.paywall-modal.is-open,.ica-tour-overlay,.ica-tour-root:not([hidden]),.ica-experience,.mobile-drawer.is-open,#splash-bienvenida,#name-modal,#icadem-credit-gift,.amb-commission-celebration,.learning-game';
+  const blocking = [
+    'dialog[open]', '[role="dialog"][aria-modal="true"]', '.modal-backdrop.is-open', '.paywall-modal.is-open',
+    '.ica-tour-overlay', '.ica-tour-root:not([hidden])', '.ica-experience', '.mobile-drawer.is-open',
+    '#splash-bienvenida', '#name-modal', '#icadem-credit-gift', '#free-course-intro', '#splash-completado',
+    '.amb-commission-celebration', '.learning-game', '.practice-picker--v3', '.cc-overlay', '.rv.is-open'
+  ].join(',');
   const mailToggle = '[data-mission-email-toggle]';
   let state = null;
   let observer = null;
+  let watchedTarget = null;
   let retry = 0;
   let surface = null;
   let lastSection = section();
@@ -32,15 +38,19 @@
   }
 
   function visible(element) {
-    const rect = element?.getBoundingClientRect();
+    const rect = element?.isConnected && element.getBoundingClientRect();
     return !!rect && rect.width > 0 && rect.height > 0
       && rect.bottom > 0 && rect.top < window.innerHeight;
   }
 
-  function interrupted() {
-    return document.activeElement?.matches('input,textarea,[contenteditable="true"]')
+  function interrupted(target, missionId) {
+    const active = document.activeElement;
+    return active?.matches('input,textarea,[contenteditable="true"]')
+      || (target.contains(active) && active?.closest('[data-credit-mission]')?.dataset.creditMission === missionId)
       || Array.from(document.querySelectorAll(blocking)).some(element => {
-        return element.getClientRects().length > 0 && getComputedStyle(element).visibility !== 'hidden';
+        if (!element.getClientRects().length) return false;
+        const style = getComputedStyle(element);
+        return style.visibility !== 'hidden' && style.opacity !== '0';
       });
   }
 
@@ -56,14 +66,20 @@
     return window.ICADEMPlatform.request(endpoint + path, { method: 'POST', body });
   }
 
-  async function sendDismiss(entry) {
-    await post('/dismiss', {});
-    try { localStorage.removeItem(dismissKey(entry.uid)); } catch (_) {}
+  function sendDismiss(entry) {
+    if (!current(entry)) return Promise.resolve();
+    if (!entry.dismissing) {
+      entry.dismissing = post('/dismiss', {}).then(() => {
+        try { localStorage.removeItem(dismissKey(entry.uid)); } catch (_) {}
+      }).finally(() => { entry.dismissing = null; });
+    }
+    return entry.dismissing;
   }
 
   function stopWatching() {
     observer?.disconnect();
     observer = null;
+    watchedTarget = null;
     clearTimeout(retry);
     retry = 0;
   }
@@ -72,14 +88,15 @@
     const old = surface;
     surface = null;
     if (!old) return;
-    if (old.open) old.close();
     old.remove();
+    document.dispatchEvent(new CustomEvent('icadem:mission-invitation-changed'));
   }
 
   function reset() {
     stopWatching();
-    removeSurface();
     state = null;
+    removeSurface();
+    paintPreference(null);
   }
 
   function escapeText(value) {
@@ -89,10 +106,10 @@
   }
 
   function renderInvitation(entry, picked, target) {
-    const { mission, channel } = picked;
-    const modal = channel === 'popup';
-    const node = document.createElement(modal ? 'dialog' : 'aside');
-    node.className = 'mission-invitation' + (modal ? ' mission-invitation--dialog' : '');
+    const { mission } = picked;
+    const node = document.createElement('aside');
+    node.className = 'mission-invitation';
+    node.dataset.missionInvitationId = mission.id;
     node.setAttribute('aria-labelledby', 'mission-invitation-title');
     node.setAttribute('aria-describedby', 'mission-invitation-detail');
     node.innerHTML = `<div class="mission-invitation__body">
@@ -106,46 +123,41 @@
       </div>
       <div class="mission-invitation__actions">
         <button type="button" data-credit-mission="${mission.id}">${actions[mission.id]} <span aria-hidden="true">→</span></button>
-        <button type="button" data-mission-dismiss ${modal ? 'autofocus' : ''}>Ahora no</button>
+        <button type="button" data-mission-dismiss>Ahora no</button>
       </div>
     </div>`;
     const dismiss = () => {
+      if (!current(entry) || surface !== node) return;
       const focused = node.contains(document.activeElement);
       entry.dismissed = true;
       try { localStorage.setItem(dismissKey(entry.uid), '1'); } catch (_) {}
       sendDismiss(entry).catch(() => {});
       removeSurface();
-      if (!modal && focused) target.querySelector('[data-credit-wallet-open]')?.focus({ preventScroll: true });
+      if (focused) target.querySelector('[data-credit-wallet-open]')?.focus({ preventScroll: true });
     };
     node.querySelector('[data-mission-dismiss]').addEventListener('click', dismiss);
-    node.addEventListener('cancel', event => { event.preventDefault(); dismiss(); });
     node.querySelector('[data-credit-mission]').addEventListener('click', () => {
       // Let the same delegated action that powers wallet missions take the user there.
       setTimeout(() => { if (surface === node) removeSurface(); }, 0);
     });
     surface = node;
-    if (modal) {
-      document.body.append(node);
-      node.showModal();
-    } else target.before(node);
+    target.before(node);
+    document.dispatchEvent(new CustomEvent('icadem:mission-invitation-changed'));
   }
 
   async function present(entry, target) {
-    if (!current(entry) || entry.dismissed || entry.claiming || section() !== 'inicio' || !entry.invitation
+    if (target !== watchedTarget || !current(entry) || entry.dismissed || entry.claiming || section() !== 'inicio' || !entry.invitation
         || document.visibilityState !== 'visible' || !document.hasFocus() || !visible(target)) return;
-    if (interrupted()) {
-      if (!retry && (entry.waits || 0) < 8) {
-        entry.waits = (entry.waits || 0) + 1;
-        retry = setTimeout(() => { retry = 0; present(entry, target); }, 1500);
-      }
-      return;
-    }
     const picked = entry.invitation;
     if (picked.channel === 'popup' && !entry.seenHomeBefore && returningUid !== entry.uid) return;
-    if (picked.channel === 'popup' && typeof window.HTMLDialogElement?.prototype.showModal !== 'function') return;
+    if (interrupted(target, picked.mission.id)) {
+      if (!retry) retry = setTimeout(() => { retry = 0; present(entry, target); }, 1500);
+      return;
+    }
     if (!entry.claimed) {
       entry.claiming = true;
       try {
+        // El canal identifica la cohorte que valida el servidor.
         const result = await post('/exposure', { missionId: picked.mission.id, channel: picked.channel });
         if (!current(entry)) return;
         if (result.claimed !== true) {
@@ -163,7 +175,7 @@
       } catch (_) {
         return;
       } finally { entry.claiming = false; }
-      return present(entry, target);
+      return watchHome(entry);
     }
     entry.invitation = null;
     stopWatching();
@@ -171,8 +183,13 @@
   }
 
   function watchHome(entry) {
+    if (!current(entry) || section() !== 'inicio' || !entry.invitation || entry.dismissed) return;
     const target = document.querySelector('[data-credit-missions-home]');
-    if (!target || !entry.invitation || entry.dismissed) return;
+    if (target !== watchedTarget) {
+      stopWatching();
+      watchedTarget = target;
+    }
+    if (!target) return;
     if (entry.seenHomeBefore === undefined) {
       const key = 'icadem:mission-invite-home-visited:' + entry.uid;
       try {
@@ -207,17 +224,18 @@
     const route = section();
     if (route !== 'inicio') { stopWatching(); removeSurface(); }
     const uid = account();
+    if (state && state.uid !== uid) reset();
     if (!uid || !window.ICADEMPlatform || !['inicio', 'perfil'].includes(route)) return;
-    if (state?.uid !== uid) {
-      reset();
-      state = { uid, dismissed: pendingDismiss(uid) };
-    }
+    if (!state) state = { uid, dismissed: pendingDismiss(uid) };
     const entry = state;
     if (entry.loading) return;
+    if (entry.dismissed && pendingDismiss(uid)) {
+      await sendDismiss(entry).catch(() => {});
+      if (!current(entry) || entry.loading) return;
+    }
     if (!entry.loaded) {
       entry.loading = true;
       try {
-        if (entry.dismissed && pendingDismiss(uid)) await sendDismiss(entry).catch(() => {});
         const data = await window.ICADEMPlatform.request(endpoint);
         if (!current(entry)) return;
         entry.invitation = validInvitation(data.invitation) ? data.invitation : null;
