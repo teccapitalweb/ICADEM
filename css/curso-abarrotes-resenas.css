@@ -46,14 +46,6 @@
 .review-card figcaption div span { color: var(--muted); font-size: .81rem; line-height: 1.35; }
 .review-card figcaption a { color: var(--blue-dark); font-size: .82rem; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 
-.review-controls { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-top: 15px; }
-.review-dots, .review-buttons { display: flex; align-items: center; gap: 7px; }
-.review-dots span { width: 8px; height: 8px; border-radius: 12px; background: #a7badd; }
-.review-dots .is-current { width: 22px; background: var(--blue-dark); }
-.review-buttons button { min-height: 44px; padding: 6px 11px; border: 1px solid #cfdbf0; border-radius: 9px; background: var(--white); color: var(--blue-dark); font-size: .84rem; font-weight: 730; }
-.review-buttons button:hover { background: var(--light); border-color: #9eb4df; }
-.review-buttons [data-review-autoplay] { background: transparent; border-color: transparent; text-decoration: underline; text-underline-offset: .2em; }
-
 @media (max-width: 600px) {
   .review-heading { text-align: left; }
   .review-heading p { margin-inline: 0; }

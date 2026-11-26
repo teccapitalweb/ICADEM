@@ -71,17 +71,15 @@ document.querySelector('[data-certificate-open]').addEventListener('click', () =
 const carousel = document.querySelector('.review-carousel');
 const track = carousel.querySelector('.review-track');
 const cards = [...track.children];
-const controls = carousel.querySelector('.review-controls');
-const dots = [...controls.querySelectorAll('[data-review-dot]')];
-const autoplay = controls.querySelector('[data-review-autoplay]');
-const reviewStatus = controls.querySelector('[data-review-status]');
+const reviewStatus = carousel.querySelector('[data-review-status]');
+const pressedPointers = new Set();
+const activeTouches = new Set();
 let first = 0;
 let cycle = 0;
 let step = 0;
-let active = -1;
 let position = 0;
-let visible = false;
-let playing = !reducedMotion.matches;
+let visible = !('IntersectionObserver' in window);
+let mouseOverTrack = false;
 let frame;
 let previousTime;
 let scrollTimer;
@@ -103,47 +101,33 @@ const following = copyReviews();
 track.prepend(...copyReviews());
 track.append(...following);
 track.classList.add('is-looping');
-controls.hidden = false;
 
 function normalize(left) {
   const offset = left - first;
   return first + ((offset % cycle + cycle) % cycle);
 }
 
-function indicate(review) {
-  const index = (review % cards.length + cards.length) % cards.length;
-  if (active !== index) {
-    active = index;
-    for (const [candidate, dot] of dots.entries()) dot.classList.toggle('is-current', candidate === index);
-  }
-  return index;
-}
-
 function measureTrack() {
   const progress = cycle ? (normalize(track.scrollLeft) - first) / cycle : 0;
   first = cards[0].offsetLeft;
-  cycle = following[0].offsetLeft - first;
+  cycle = following[0].getBoundingClientRect().left - cards[0].getBoundingClientRect().left;
   step = cycle / cards.length;
   position = first + progress * cycle;
   track.scrollLeft = position;
-  if (step) indicate(Math.round((position - first) / step));
+  updatePlayback();
 }
 
 function move(now) {
   const elapsed = previousTime === undefined ? 0 : Math.min(now - previousTime, 48);
   previousTime = now;
-  position = normalize(position + .046 * elapsed);
+  position = normalize(position + elapsed * 36 / 1000);
   track.scrollLeft = position;
-  indicate(Math.round((position - first) / step));
   frame = requestAnimationFrame(move);
 }
 
 function updatePlayback() {
-  autoplay.hidden = reducedMotion.matches;
-  autoplay.textContent = playing ? 'Pausar' : 'Reproducir';
-  autoplay.setAttribute('aria-label', playing ? 'Pausar reproducción automática' : 'Activar reproducción automática');
-  const focusIsReading = carousel.matches(':focus-within') && document.activeElement !== autoplay;
-  const canPlay = visible && cycle && playing && !document.hidden && !track.matches(':hover') && !focusIsReading;
+  const canPlay = visible && cycle > 0 && !reducedMotion.matches && !document.hidden && !mouseOverTrack &&
+    !pressedPointers.size && !activeTouches.size && scrollTimer === undefined && !carousel.querySelector(':focus-visible');
   if (!canPlay) {
     cancelAnimationFrame(frame);
     frame = undefined;
@@ -154,70 +138,73 @@ function updatePlayback() {
   }
 }
 
-function stopPlayback() {
-  playing = false;
-  updatePlayback();
-}
-
-function showReview(direction) {
-  if (!step) return;
-  stopPlayback();
-  const review = Math.round((track.scrollLeft - first) / step) + direction;
-  track.scrollTo({
-    left: first + review * step,
-    behavior: reducedMotion.matches ? 'instant' : 'smooth',
-  });
-  reviewStatus.textContent = 'Opinión ' + (indicate(review) + 1) + ' de ' + cards.length;
-}
-
-for (const [selector, direction] of [['[data-review-prev]', -1], ['[data-review-next]', 1]]) {
-  controls.querySelector(selector).addEventListener('click', () => showReview(direction));
-}
-autoplay.addEventListener('click', () => {
-  playing = !playing;
-  updatePlayback();
-  if (!playing && step) {
-    const review = Math.round((track.scrollLeft - first) / step);
-    track.scrollLeft = normalize(first + review * step);
-    indicate(review);
-  }
-});
-track.addEventListener('keydown', event => {
-  if (event.target !== track || !['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-  event.preventDefault();
-  showReview(event.key === 'ArrowRight' ? 1 : -1);
-});
-track.addEventListener('pointerdown', stopPlayback);
-track.addEventListener('wheel', event => {
-  if (event.shiftKey || event.deltaX) stopPlayback();
-}, { passive: true });
-track.addEventListener('scroll', () => {
-  if (frame !== undefined || !step) return;
+function waitForScroll() {
   clearTimeout(scrollTimer);
   scrollTimer = setTimeout(() => {
-    if (frame !== undefined) return;
-    const left = track.scrollLeft;
-    const normalized = normalize(left);
-    if (Math.abs(left - normalized) > 1) track.scrollLeft = normalized;
-    indicate(Math.round((normalized - first) / step));
-  }, 130);
-}, { passive: true });
-for (const event of ['mouseenter', 'mouseleave']) {
-  track.addEventListener(event, updatePlayback);
+    scrollTimer = undefined;
+    updatePlayback();
+  }, 180);
+  updatePlayback();
 }
-carousel.addEventListener('focusin', updatePlayback);
-carousel.addEventListener('focusout', () => requestAnimationFrame(updatePlayback));
-document.addEventListener('visibilitychange', updatePlayback);
-reducedMotion.addEventListener('change', () => {
-  playing = !reducedMotion.matches;
+
+track.addEventListener('keydown', event => {
+  updatePlayback();
+  if (!step || event.target !== track || event.altKey || event.ctrlKey || event.metaKey) return;
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+  event.preventDefault();
+  const direction = event.key === 'ArrowRight' ? 1 : -1;
+  const review = Math.round((track.scrollLeft - first) / step) + direction;
+  const index = (review % cards.length + cards.length) % cards.length;
+  track.scrollLeft = first + index * step;
+  reviewStatus.textContent = `Opinión ${index + 1} de ${cards.length}`;
+});
+
+for (const event of ['pointerenter', 'pointerleave']) {
+  track.addEventListener(event, pointer => {
+    if (pointer.pointerType !== 'mouse') return;
+    mouseOverTrack = event === 'pointerenter';
+    updatePlayback();
+  });
+}
+track.addEventListener('pointerdown', event => {
+  if (event.pointerType === 'touch') return;
+  pressedPointers.add(event.pointerId);
   updatePlayback();
 });
+for (const event of ['pointerup', 'pointercancel']) {
+  window.addEventListener(event, pointer => {
+    if (pressedPointers.delete(pointer.pointerId)) waitForScroll();
+  });
+}
+
+// Touch pointer events can be canceled as native scrolling takes over a drag.
+track.addEventListener('touchstart', event => {
+  for (const touch of event.changedTouches) activeTouches.add(touch.identifier);
+  updatePlayback();
+}, { passive: true });
+for (const event of ['touchend', 'touchcancel']) {
+  track.addEventListener(event, touchEvent => {
+    for (const touch of touchEvent.changedTouches) activeTouches.delete(touch.identifier);
+    waitForScroll();
+  }, { passive: true });
+}
+track.addEventListener('wheel', event => {
+  if (event.shiftKey || event.deltaX) waitForScroll();
+}, { passive: true });
+track.addEventListener('scroll', () => {
+  if (scrollTimer !== undefined) waitForScroll();
+}, { passive: true });
+
+carousel.addEventListener('focusin', updatePlayback);
+carousel.addEventListener('focusout', () => queueMicrotask(updatePlayback));
+document.addEventListener('visibilitychange', updatePlayback);
+reducedMotion.addEventListener('change', updatePlayback);
 measureTrack();
 if ('ResizeObserver' in window) new ResizeObserver(measureTrack).observe(track);
+else window.addEventListener('resize', measureTrack);
 if ('IntersectionObserver' in window) {
   new IntersectionObserver(([entry]) => {
     visible = entry.isIntersecting;
     updatePlayback();
   }, { threshold: 0.12 }).observe(track);
 }
-updatePlayback();
