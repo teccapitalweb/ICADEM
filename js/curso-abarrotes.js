@@ -3,7 +3,7 @@ import { giftCheckoutData, setGiftCheckout } from './curso-abarrotes-regalo.js?v
 const coursePath = '/api/cursos-individuales/administra-tu-tienda-de-abarrotes';
 const api = 'https://icadem-webhook-production.up.railway.app' + coursePath;
 const stripeKey = 'pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b';
-const promoUrl = '';
+const promoUrl = 'https://vz-3dce7590-a3f.b-cdn.net/bc116ee3-6ded-42bc-981a-b15560f0a420/play_720p.mp4';
 const giftVideoHosts = new Set(['storage.googleapis.com', 'icadem-vip.firebasestorage.app']);
 const money = new Intl.NumberFormat('es-MX', { maximumFractionDigits: 0 });
 const mxn = amount => '$' + money.format(amount);
