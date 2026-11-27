@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/curso-auxiliar-de-recursos-humanos.css?v=2">
-  <script type="module" src="/js/curso-auxiliar-rh-presentacion.js?v=1"></script>
-  <script type="module" src="/js/curso-auxiliar-rh-resenas.js?v=1"></script>
+  <link rel="stylesheet" href="/css/curso-auxiliar-de-recursos-humanos.css?v=3">
+  <script type="module" src="/js/curso-auxiliar-rh-presentacion.js?v=2"></script>
+  <script type="module" src="/js/curso-auxiliar-rh-resenas.js?v=2"></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -41,21 +41,24 @@
     <section class="hero" aria-labelledby="titulo-curso">
       <div class="shell hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">Curso de capacitación</p>
+          <p class="eyebrow hero-kicker">Curso de capacitación</p>
           <h1 id="titulo-curso">Auxiliar de <span>Recursos Humanos</span></h1>
           <p class="hero-intro">Prepárate para apoyar al área de RH. Practica cómo prevenir riesgos laborales, calcular finiquitos y aguinaldos, e identificar los componentes de una nómina.</p>
+          <p class="hero-format"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z"/><path d="M8 7h8m-8 4h5"/></svg>5 módulos con ejercicios prácticos</p>
           <div class="hero-actions">
             <a class="button button-primary" href="#temario">Explorar temario</a>
             <a class="button button-quiet" href="#ponente">Conoce a la ponente</a>
           </div>
         </div>
-        <figure class="promo" id="video-promocional">
-          <img src="/assets/curso-auxiliar-rh/portada-video.webp" width="1280" height="720" alt="Equipo de oficina revisando documentación de Recursos Humanos" fetchpriority="high">
-          <figcaption class="promo-caption">
-            <span class="promo-icon" aria-hidden="true"></span>
-            <span><strong>Video promocional</strong><small>Próximamente</small></span>
-          </figcaption>
-        </figure>
+        <div class="hero-visual">
+          <figure class="promo" id="video-promocional">
+            <img src="/assets/curso-auxiliar-rh/portada-video.webp" width="1280" height="720" alt="Equipo de oficina revisando documentación de Recursos Humanos" fetchpriority="high">
+            <figcaption class="promo-caption">
+              <span class="promo-icon-box" aria-hidden="true"><svg class="icon" viewBox="0 0 24 24"><rect x="2.5" y="5" width="13" height="14" rx="2.5"/><path d="m15.5 10 5.5-3v10l-5.5-3"/></svg></span>
+              <span><strong>Video promocional</strong><small>Próximamente</small></span>
+            </figcaption>
+          </figure>
+        </div>
       </div>
       <ul class="shell course-metrics" aria-label="Trayectoria de ICADEM">
         <li><strong><span class="sr-only">Más de 3,240</span><span aria-hidden="true" data-count="3240" data-prefix="+">+3,240</span></strong><span>Personas capacitadas</span></li>
@@ -67,13 +70,23 @@
 
     <section id="conoce-el-curso" class="course-details section" aria-labelledby="titulo-detalles">
       <div class="shell">
-        <h2 id="titulo-detalles">Conoce el curso</h2>
+        <h2 id="titulo-detalles" data-reveal>Conoce el curso</h2>
         <div class="course-tabs" data-course-tabs role="tablist" aria-label="Información del curso" hidden>
-          <button type="button" role="tab" id="tab-ponente" aria-selected="true" aria-controls="ponente">Ponente</button>
-          <button type="button" role="tab" id="tab-objetivo" aria-selected="false" aria-controls="objetivo" tabindex="-1">Qué aprenderás</button>
-          <button type="button" role="tab" id="tab-incluye" aria-selected="false" aria-controls="incluye" tabindex="-1">Qué incluye</button>
-          <button type="button" role="tab" id="tab-temario" aria-selected="false" aria-controls="temario" tabindex="-1">Temario</button>
-          <button type="button" role="tab" id="tab-dirigido" aria-selected="false" aria-controls="dirigido" tabindex="-1">Dirigido a</button>
+          <button type="button" role="tab" id="tab-ponente" aria-selected="true" aria-controls="ponente">
+            <svg class="icon tab-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.4"/><path d="M4 21v-1a5.5 5.5 0 0 1 5.5-5.5h5A5.5 5.5 0 0 1 20 20v1"/></svg><span>Ponente</span>
+          </button>
+          <button type="button" role="tab" id="tab-objetivo" aria-selected="false" aria-controls="objetivo" tabindex="-1">
+            <svg class="icon tab-icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m2 9 10-5 10 5-10 5zM6 11v5c2.7 2.7 9.3 2.7 12 0v-5m4-2v5"/></svg><span>Qué aprenderás</span>
+          </button>
+          <button type="button" role="tab" id="tab-incluye" aria-selected="false" aria-controls="incluye" tabindex="-1">
+            <svg class="icon tab-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="5" rx="1.5"/><path d="M5 9.5v9A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-9M10 13h4"/></svg><span>Qué incluye</span>
+          </button>
+          <button type="button" role="tab" id="tab-temario" aria-selected="false" aria-controls="temario" tabindex="-1">
+            <svg class="icon tab-icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8.5 8h7m-7 4h7m-7 4h4"/></svg><span>Temario</span>
+          </button>
+          <button type="button" role="tab" id="tab-dirigido" aria-selected="false" aria-controls="dirigido" tabindex="-1">
+            <svg class="icon tab-icon" aria-hidden="true" viewBox="0 0 24 24"><circle cx="9" cy="7" r="3.2"/><path d="M2.5 21v-1.2A4.8 4.8 0 0 1 7.3 15h3.4a4.8 4.8 0 0 1 4.8 4.8V21M16.5 4a3.2 3.2 0 0 1 0 6.4M21.5 21v-1.2a4.8 4.8 0 0 0-3.4-4.6"/></svg><span>Dirigido a</span>
+          </button>
         </div>
 
         <article id="ponente" class="course-panel instructor" role="tabpanel" aria-labelledby="tab-ponente" tabindex="0">
@@ -189,55 +202,73 @@
 
     <section id="resenas" class="rh-reviews section" aria-labelledby="titulo-resenas">
       <div class="shell rh-reviews-layout">
-        <div>
-          <h2 id="titulo-resenas">Reseñas de ICADEM</h2>
-          <p class="body-copy">Experiencias de participantes en las capacitaciones de ICADEM, compartidas en Facebook.</p>
+        <div class="rh-reviews-copy" data-reveal>
+          <h2 id="titulo-resenas">Reseñas <span>de ICADEM</span></h2>
+          <p>Participantes de las capacitaciones de ICADEM comparten su experiencia en Facebook.</p>
         </div>
         <div class="rh-review-carousel" data-rh-reviews role="group" aria-roledescription="carrusel" aria-label="Opiniones sobre ICADEM">
-          <div class="rh-review-controls" hidden>
-            <button type="button" data-review-rotation aria-label="Pausar carrusel" aria-controls="resenas-pista">Pausar</button>
-            <button type="button" data-review-direction="-1" aria-label="Reseña anterior" aria-controls="resenas-pista">Anterior</button>
-            <button type="button" data-review-direction="1" aria-label="Siguiente reseña" aria-controls="resenas-pista">Siguiente</button>
-          </div>
-          <div id="resenas-pista" class="rh-review-track" tabindex="0" role="group" aria-label="Reseñas">
+          <p class="sr-only" id="resenas-instrucciones">Desliza o usa las flechas izquierda y derecha para recorrer las reseñas. El avance automático se detiene mientras el carrusel tiene el foco.</p>
+          <div id="resenas-pista" class="rh-review-track" tabindex="0" role="group" aria-label="Reseñas" aria-describedby="resenas-instrucciones">
             <figure class="rh-review-card" role="group" aria-roledescription="reseña" aria-label="1 de 2">
               <blockquote>El curso superó mis expectativas. El contenido estuvo muy bien estructurado, los temas se explicaron de manera clara y práctica.</blockquote>
               <figcaption>
-                <div><strong>Jazmin Rivera Sánchez</strong><span><time datetime="2025-10-15">15 oct 2025</time> · Facebook</span></div>
+                <div class="rh-review-author"><span class="rh-review-initials" aria-hidden="true">JR</span><div><strong>Jazmin Rivera Sánchez</strong><span><time datetime="2025-10-15">15 oct 2025</time> · Facebook</span></div></div>
                 <a href="/assets/testimonios/testimonio-2.png" target="_blank" rel="noopener noreferrer" aria-label="Ver captura de la reseña de Jazmin Rivera Sánchez">Ver captura</a>
               </figcaption>
             </figure>
             <figure class="rh-review-card" role="group" aria-roledescription="reseña" aria-label="2 de 2">
               <blockquote>Muy buenos los cursos que imparten, los maestros y/o licenciados que dan estos mismos están muy bien capacitados y super informados.</blockquote>
               <figcaption>
-                <div><strong>Antonio Antonio</strong><span><time datetime="2025-10-04">4 oct 2025</time> · Facebook</span></div>
+                <div class="rh-review-author"><span class="rh-review-initials" aria-hidden="true">AA</span><div><strong>Antonio Antonio</strong><span><time datetime="2025-10-04">4 oct 2025</time> · Facebook</span></div></div>
                 <a href="/assets/testimonios/testimonio-3.png" target="_blank" rel="noopener noreferrer" aria-label="Ver captura de la reseña de Antonio Antonio">Ver captura</a>
               </figcaption>
             </figure>
           </div>
-          <p class="rh-review-status" data-review-status role="status"></p>
+          <div class="rh-review-indicators" data-review-indicators aria-hidden="true" hidden>
+            <span data-review-indicator data-current></span>
+            <span data-review-indicator></span>
+          </div>
+          <p class="sr-only" data-review-status role="status"></p>
         </div>
       </div>
     </section>
 
     <section id="inscripcion" class="rh-inscripcion section" aria-labelledby="titulo-inscripcion">
       <div class="shell">
-        <h2 id="titulo-inscripcion">Cómo inscribirte</h2>
-        <ol class="rh-pasos">
+        <div class="rh-steps-head">
+          <h2 id="titulo-inscripcion" data-reveal>Cómo inscribirte</h2>
+          <a class="rh-steps-link button" href="#informes">Pedir informes</a>
+        </div>
+        <ol class="rh-pasos" role="list">
           <li>
-            <span class="rh-paso-numero" aria-hidden="true">1</span>
-            <h3>Solicita informes</h3>
-            <p>Escríbenos por WhatsApp para conocer la fecha, la modalidad y el costo.</p>
+            <div class="rh-step-marker" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.6-3.3A7.5 7.5 0 1 1 20 11.5Z"/><path d="M9.5 10h6m-6 3h4"/></svg>
+              <span>1</span>
+            </div>
+            <div class="rh-step-content">
+              <h3>Solicita informes</h3>
+              <p>Escríbenos por WhatsApp para conocer la fecha, la modalidad y el costo.</p>
+            </div>
           </li>
           <li>
-            <span class="rh-paso-numero" aria-hidden="true">2</span>
-            <h3>Confirma tu inscripción</h3>
-            <p>El equipo de ICADEM te orienta para completar tu registro.</p>
+            <div class="rh-step-marker" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="5" y="5" width="14" height="15" rx="2"/><path d="M9 5V3h6v2m-6 8 2 2 4-4"/></svg>
+              <span>2</span>
+            </div>
+            <div class="rh-step-content">
+              <h3>Confirma tu inscripción</h3>
+              <p>El equipo de ICADEM te orienta para completar tu registro.</p>
+            </div>
           </li>
           <li>
-            <span class="rh-paso-numero" aria-hidden="true">3</span>
-            <h3>Recibe las indicaciones</h3>
-            <p>El equipo te indica cómo acceder a tus clases según la modalidad del curso.</p>
+            <div class="rh-step-marker" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M8 20h8m-4-4v4m-2-9 1.5 1.5L14 10"/></svg>
+              <span>3</span>
+            </div>
+            <div class="rh-step-content">
+              <h3>Recibe las indicaciones</h3>
+              <p>El equipo te indica cómo acceder a tus clases según la modalidad del curso.</p>
+            </div>
           </li>
         </ol>
       </div>
@@ -246,9 +277,12 @@
     <section id="preguntas-frecuentes" class="rh-faq section" aria-labelledby="titulo-faq">
       <div class="shell rh-faq-grid">
         <div class="rh-faq-intro">
-          <h2 id="titulo-faq">Preguntas frecuentes</h2>
+          <div class="rh-faq-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5H5l1.6-3.3A7.5 7.5 0 1 1 20 11.5Z"/><path d="M10.5 9.3a1.8 1.8 0 1 1 2.4 1.7c-.6.2-.9.6-.9 1.1m0 2h.01"/></svg>
+          </div>
+          <h2 id="titulo-faq" data-reveal>Preguntas frecuentes</h2>
           <p>¿Tienes otra duda? El equipo de ICADEM puede orientarte.</p>
-          <a class="button button-outline" href="#informes">Pedir informes</a>
+          <a class="rh-faq-link button" href="#informes">Contactar a ICADEM</a>
         </div>
         <div class="rh-faq-list">
           <details name="preguntas-rh" open>
@@ -275,14 +309,13 @@
       </div>
     </section>
 
-
     <section id="informes" class="contact section" aria-labelledby="titulo-informes">
-      <div class="shell contact-inner">
+      <div class="shell contact-inner" data-reveal>
         <div>
           <h2 id="titulo-informes">¿Te interesa el curso?</h2>
           <p>Escríbenos para consultar fecha, modalidad y costo.</p>
         </div>
-        <a class="button button-primary" href="https://wa.me/522383738143?text=Hola%2C%20me%20interesa%20el%20curso%20de%20Auxiliar%20de%20Recursos%20Humanos.%20%C2%BFMe%20pueden%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" rel="noopener noreferrer">Pedir informes por WhatsApp</a>
+        <a class="button button-primary" href="https://wa.me/522383738143?text=Hola%2C%20me%20interesa%20el%20curso%20de%20Auxiliar%20de%20Recursos%20Humanos.%20%C2%BFMe%20pueden%20dar%20m%C3%A1s%20informaci%C3%B3n%3F" target="_blank" rel="noopener noreferrer"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="M20.5 11.5a8.6 8.6 0 0 1-8.8 8.5 9.2 9.2 0 0 1-3.6-.7L4 20.5l1.2-3.9a8.2 8.2 0 0 1-2-5.1A8.6 8.6 0 0 1 12 3a8.6 8.6 0 0 1 8.5 8.5Z"/><path d="M8.5 11.5h7"/></svg>Pedir informes por WhatsApp</a>
       </div>
     </section>
   </main>
