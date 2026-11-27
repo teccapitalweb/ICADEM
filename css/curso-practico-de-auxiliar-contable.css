@@ -53,10 +53,11 @@
 .curso-contable .rh-reviews { background: #152d42; }
 
 @media (max-width: 45rem) {
-  .curso-contable .hero { padding-top: 1rem; }
+  .curso-contable .hero { padding-top: 1rem; background: var(--white); }
   .curso-contable .hero-visual { max-width: none; }
   .curso-contable .hero h1 { max-width: unset; font-size: clamp(2.32rem, 9.2vw, 3.85rem); }
   .curso-contable .hero-grid { gap: .9rem; }
-  .curso-contable .course-metrics { width: calc(100% - 1.55rem); }
+  .curso-contable .course-metrics { width: calc(100% - 2 * var(--course-mobile-gutter)); }
   .curso-contable .course-metrics strong { font-size: clamp(1.15rem, 5.35vw, 2rem); }
+  .curso-contable .rh-reviews { background: var(--white); }
 }

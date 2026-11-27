@@ -133,17 +133,28 @@
   line-height: 1.5;
 }
 
+@media (max-width: 45rem) {
+  .course-enrollment {
+    background: var(--white);
+  }
+
+  .course-enrollment-card {
+    box-shadow: none;
+  }
+}
+
 @media (max-width: 380px) {
   .course-enrollment-card {
     padding-inline: 1.05rem;
   }
 
   .course-enrollment-timer {
-    gap: .45rem;
-    padding-inline: .65rem;
+    gap: .25rem;
+    padding-inline: .48rem;
   }
 
   .course-enrollment-timer .rh-launch-label {
     min-width: 0;
+    gap: .33rem;
   }
 }
