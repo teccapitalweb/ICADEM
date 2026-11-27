@@ -164,6 +164,7 @@ h2 { font-size: clamp(2rem, 4.1vw, 3.4rem); font-weight: 800; letter-spacing: -.
 }
 
 @media (max-width: 22.5rem) {
+  .hero .hero-kicker { padding-inline: .58rem; font-size: .84rem; letter-spacing: .065em; }
   .course-metrics { grid-template-columns: minmax(0, 1fr) minmax(0, .94fr) minmax(0, 1.1fr) minmax(0, .96fr); }
   .course-metrics li > span { font-size: .71rem; overflow-wrap: normal; }
   .course-tabs { gap: .1rem; padding: .18rem; }
