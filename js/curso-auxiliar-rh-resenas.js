@@ -5,12 +5,13 @@ const indicators = carousel.querySelector('[data-review-indicators]');
 const marks = [...indicators.querySelectorAll('[data-review-indicator]')];
 const status = carousel.querySelector('[data-review-status]');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const reviewDelay = 6000;
+const supportsFocusVisible = window.CSS && CSS.supports('selector(:focus-visible)');
+const reviewDelay = 5000;
 let visible = !('IntersectionObserver' in window);
-let hovered = false;
 let activePointer = null;
 let timer;
 let scrollFrame;
+let slideFrame;
 
 function currentIndex() {
   const position = track.scrollLeft + cards[0].offsetLeft;
@@ -20,21 +21,56 @@ function currentIndex() {
   }, 0);
 }
 
+function finishSlide() {
+  if (slideFrame === undefined) return;
+  cancelAnimationFrame(slideFrame);
+  slideFrame = undefined;
+  track.style.removeProperty('scroll-snap-type');
+}
+
 function move(direction, announce = false) {
+  finishSlide();
   const target = (currentIndex() + direction + cards.length) % cards.length;
-  track.scrollTo({
-    left: cards[target].offsetLeft - cards[0].offsetLeft,
-    behavior: reducedMotion.matches ? 'instant' : 'smooth'
-  });
+  const start = track.scrollLeft;
+  const end = cards[target].offsetLeft - cards[0].offsetLeft;
   if (announce) status.textContent = `Reseña ${target + 1} de ${cards.length}`;
+
+  if (reducedMotion.matches) {
+    track.scrollLeft = end;
+    return;
+  }
+
+  // WebKit puede cancelar el desplazamiento programado si el ajuste por tarjeta sigue activo.
+  track.style.scrollSnapType = 'none';
+  const startTime = performance.now();
+  const animate = now => {
+    const progress = Math.min(1, (now - startTime) / 410);
+    track.scrollLeft = start + (end - start) * (1 - (1 - progress) ** 3);
+    if (progress < 1) {
+      slideFrame = requestAnimationFrame(animate);
+      return;
+    }
+    finishSlide();
+    schedule();
+  };
+  slideFrame = requestAnimationFrame(animate);
+}
+
+function hasKeyboardFocus(element) {
+  return element && carousel.contains(element) &&
+    (!supportsFocusVisible || element.matches(':focus-visible'));
+}
+
+function canRotate() {
+  return visible && activePointer === null && !document.hidden && !reducedMotion.matches &&
+    !hasKeyboardFocus(document.activeElement);
 }
 
 function schedule() {
   clearTimeout(timer);
-  if (!visible || hovered || activePointer !== null || document.hidden || reducedMotion.matches || carousel.matches(':focus-within')) return;
+  if (!canRotate()) return;
   timer = setTimeout(() => {
-    move(1);
-    schedule();
+    if (canRotate()) move(1);
   }, reviewDelay);
 }
 
@@ -44,7 +80,7 @@ track.addEventListener('scroll', () => {
     scrollFrame = undefined;
     const current = currentIndex();
     marks.forEach((mark, index) => mark.toggleAttribute('data-current', current === index));
-    schedule();
+    if (slideFrame === undefined) schedule();
   });
 }, { passive: true });
 
@@ -57,6 +93,12 @@ track.addEventListener('keydown', event => {
 });
 track.addEventListener('pointerdown', event => {
   activePointer = event.pointerId;
+  finishSlide();
+  schedule();
+}, { passive: true });
+track.addEventListener('wheel', event => {
+  if (!event.deltaX && !event.shiftKey) return;
+  finishSlide();
   schedule();
 }, { passive: true });
 
@@ -68,27 +110,36 @@ function finishGesture(event) {
 
 window.addEventListener('pointerup', finishGesture, { passive: true });
 window.addEventListener('pointercancel', finishGesture, { passive: true });
-carousel.addEventListener('focusin', schedule);
+carousel.addEventListener('focusin', event => {
+  if (hasKeyboardFocus(event.target)) finishSlide();
+  schedule();
+});
 carousel.addEventListener('focusout', () => queueMicrotask(schedule));
-carousel.addEventListener('pointerenter', event => {
-  if (event.pointerType !== 'mouse') return;
-  hovered = true;
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    activePointer = null;
+    finishSlide();
+  }
   schedule();
 });
-carousel.addEventListener('pointerleave', event => {
-  if (event.pointerType !== 'mouse') return;
-  hovered = false;
+
+function updateMotionPreference() {
+  if (reducedMotion.matches) finishSlide();
   schedule();
-});
-document.addEventListener('visibilitychange', schedule);
-reducedMotion.addEventListener('change', schedule);
+}
+
+if (reducedMotion.addEventListener) {
+  reducedMotion.addEventListener('change', updateMotionPreference);
+} else {
+  reducedMotion.addListener(updateMotionPreference);
+}
 
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(([entry]) => {
-    visible = entry.intersectionRatio >= .35;
+    visible = entry.intersectionRatio >= .2;
     schedule();
-  }, { threshold: .35 });
-  observer.observe(carousel);
+  }, { threshold: .2 });
+  observer.observe(track);
 }
 
 indicators.hidden = false;
