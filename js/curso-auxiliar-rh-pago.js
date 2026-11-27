@@ -1,6 +1,7 @@
-const courseApi = 'https://icadem-webhook-production.up.railway.app/api/cursos-individuales/auxiliar-de-recursos-humanos';
+const { courseSlug = 'auxiliar-de-recursos-humanos', coursePrice = '650' } = document.documentElement.dataset;
+const courseApi = 'https://icadem-webhook-production.up.railway.app/api/cursos-individuales/' + encodeURIComponent(courseSlug);
 const stripeKey = 'pk_live_51TMAcSA7If2CqXs9NuKsM1cVT9n5agProkMR8HFiT6QTXzS0g9PtiokZ4cpT1Qo3rk9bbsrZHx9sOUbE9UEOjgGs00n1OM3Y9b';
-const price = 650;
+const price = Number(coursePrice);
 
 const search = new URLSearchParams(location.search);
 const checkoutId = search.get('checkout');
@@ -193,5 +194,5 @@ function startCountdown({ lanzamientoHasta, ahora }) {
   tick();
 }
 
-request('', { cache: 'no-store' }).then(startCountdown).catch(() => {});
+if (countdowns.length) request('', { cache: 'no-store' }).then(startCountdown).catch(() => {});
 if (checkoutId) checkPayment();
