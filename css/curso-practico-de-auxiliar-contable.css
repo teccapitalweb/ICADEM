@@ -1,0 +1,64 @@
+.curso-contable {
+  --ink: #14293d;
+  --quiet: #475b6e;
+  --blue: #235170;
+  --navy: #152d42;
+  --pale: #f3f6fa;
+  --line: #d7e1ea;
+}
+
+.curso-contable .hero {
+  padding-block: clamp(2.5rem, 6vw, 5.25rem) 0;
+  background: #f7f9fc;
+}
+.curso-contable .hero-grid { gap: .85rem clamp(2rem, 5.7vw, 5.4rem); }
+.curso-contable .hero .eyebrow {
+  padding: .36rem .68rem;
+  border-radius: .35rem;
+  color: #204a69;
+  background: #eaf1f7;
+  border-color: #d3e0ea;
+  font-size: .79rem;
+}
+.curso-contable .hero h1 {
+  max-width: 13ch;
+  font-size: clamp(2.85rem, 5.6vw, 5.15rem);
+  letter-spacing: -.055em;
+}
+.curso-contable .hero h1 span { color: #235170; }
+.curso-contable .hero-intro { max-width: 44ch; }
+.hero-byline { margin-top: .75rem; color: #234a68; font-size: .93rem; font-weight: 800; }
+.curso-contable .hero-format { margin-top: 1rem; }
+.curso-contable .rh-hero-price {
+  margin-top: 1.15rem;
+  padding-top: .92rem;
+  border-top: 1px solid #d2dde7;
+}
+.curso-contable .promo {
+  border: 1px solid #cad8e4;
+  border-radius: 1rem;
+  box-shadow: 0 15px 38px #152d4219;
+}
+.curso-contable .promo-caption { background: #142b43f5; }
+.curso-contable .course-metrics {
+  width: min(calc(100% - 3rem), 76rem);
+  margin-top: clamp(2rem, 5vw, 4.4rem);
+  border-width: 1px 0 0;
+  border-radius: 0;
+  background: none;
+}
+.curso-contable .course-metrics strong { font-size: clamp(1.15rem, 3.9vw, 2.55rem); }
+.curso-contable .course-details { background: white; }
+.curso-contable .instructor-photo { object-position: 50% 38%; }
+.curso-contable .rh-reviews { background: #152d42; }
+.curso-contable .contact-inner { border-radius: 1rem; }
+.curso-contable .rh-offer-card .button { width: 100%; }
+
+@media (max-width: 45rem) {
+  .curso-contable .hero { padding-top: 1rem; }
+  .curso-contable .hero-visual { max-width: none; }
+  .curso-contable .hero h1 { max-width: unset; font-size: clamp(2.32rem, 9.2vw, 3.85rem); }
+  .curso-contable .hero-grid { gap: .9rem; }
+  .curso-contable .course-metrics { width: calc(100% - 1.55rem); }
+  .curso-contable .course-metrics strong { font-size: clamp(1.15rem, 5.35vw, 2rem); }
+}
