@@ -193,20 +193,21 @@ dialog::backdrop { background: #0b1c40a6; backdrop-filter: blur(4px); }
   .course-countdown__time > span { min-width: 41px; padding-inline: 5px; }
   .course-countdown__time b { font-size: 1.12rem; }
   .hero-grid { gap: 21px; }
+  .hero-content { text-align: center; }
   .hero .tag { padding: 5px 9px; font-size: .7rem; }
   .hero h1 { max-width: none; margin-top: 11px; font-size: clamp(1.65rem, 7.55vw, 2.35rem); line-height: 1.07; letter-spacing: -.05em; }
-  .hero .lead { max-width: 40ch; margin-top: 10px; font-size: .9375rem; line-height: 1.5; }
-  .hero .price { margin-top: 15px; padding: 10px 15px; }
+  .hero .lead { max-width: 38ch; margin: 10px auto 0; font-size: .9375rem; line-height: 1.5; text-wrap: balance; }
+  .hero .price { min-width: min(192px, 100%); margin: 15px auto 0; padding: 10px 15px; }
   .hero .price-before { font-size: .8125rem; }
-  .hero .price-today { gap: 5px; margin-block: 2px 5px; font-size: .8rem; }
+  .hero .price-today { justify-content: center; gap: 5px; margin-block: 2px 5px; font-size: .8rem; }
   .hero .price-today strong { font-size: clamp(2.25rem, 10vw, 3rem); }
   .hero .saving { padding: 4px 8px; font-size: .75rem; }
-  .hero .perks { margin-block: 13px; gap: 5px; font-size: .875rem; line-height: 1.35; }
+  .hero .perks { width: fit-content; max-width: 100%; margin: 13px auto; gap: 5px; font-size: .875rem; line-height: 1.35; text-align: left; }
   .hero .perks li { display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: start; gap: 7px; }
   .hero .perks li::before { width: 18px; height: 18px; margin: 0; font-size: .78rem; }
   .hero .button-primary { width: 100%; min-height: 48px; padding-block: 9px; font-size: .9375rem; }
   .hero .below-cta { margin-top: 7px; font-size: .8rem; }
-  .hero-links { column-gap: 15px; row-gap: 0; margin-top: 3px; font-size: .8rem; }
+  .hero-links { justify-content: center; column-gap: 15px; row-gap: 0; margin-top: 3px; font-size: .8rem; }
   .hero-links a { display: inline-flex; align-items: center; min-height: 44px; }
   .media-frame { border-radius: 16px; }
   .facts-row { padding: 12px 10px; }
