@@ -1,12 +1,22 @@
 const details = document.querySelector('#conoce-el-curso');
 const tabList = details.querySelector('[data-course-tabs]');
 const tabs = [...tabList.querySelectorAll('[role="tab"]')];
+const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 const panels = new Map(tabs.map(tab => {
   const id = tab.getAttribute('aria-controls');
   return [tab, document.getElementById(id)];
 }));
 
+function animateEntry(element) {
+  if (reducedMotion.matches) return;
+  element.animate?.([
+    { opacity: 0.34, transform: 'translateY(12px)' },
+    { opacity: 1, transform: 'translateY(0)' }
+  ], { duration: 410, easing: 'cubic-bezier(.2,.7,.3,1)' });
+}
+
 function selectTab(tab, focus = false) {
+  const switched = tab.getAttribute('aria-selected') !== 'true';
   for (const [button, panel] of panels) {
     const active = button === tab;
     button.setAttribute('aria-selected', String(active));
@@ -18,6 +28,7 @@ function selectTab(tab, focus = false) {
   const end = start + tab.offsetWidth;
   if (start < tabList.scrollLeft) tabList.scrollLeft = start;
   else if (end > tabList.scrollLeft + tabList.clientWidth) tabList.scrollLeft = end - tabList.clientWidth;
+  if (switched) animateEntry(panels.get(tab));
 }
 
 function tabFromHash(hash) {
@@ -64,9 +75,17 @@ window.addEventListener('hashchange', () => {
 });
 
 const metrics = document.querySelector('.course-metrics');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
 
 if (!reducedMotion.matches && 'IntersectionObserver' in window) {
+  const entranceObserver = new IntersectionObserver(entries => {
+    for (const { target, isIntersecting } of entries) {
+      if (!isIntersecting) continue;
+      entranceObserver.unobserve(target);
+      animateEntry(target);
+    }
+  }, { threshold: 0.14 });
+  document.querySelectorAll('[data-reveal], .rh-pasos li').forEach(element => entranceObserver.observe(element));
+
   const values = [...metrics.querySelectorAll('[data-count]')].map(element => {
     const decimals = Number(element.dataset.decimals || 0);
     const units = 10 ** decimals;

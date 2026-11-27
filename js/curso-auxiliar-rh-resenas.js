@@ -1,19 +1,27 @@
 const carousel = document.querySelector('[data-rh-reviews]');
 const track = carousel.querySelector('.rh-review-track');
 const cards = [...track.querySelectorAll('.rh-review-card')];
-const controls = carousel.querySelector('.rh-review-controls');
-const rotation = controls.querySelector('[data-review-rotation]');
+const indicators = carousel.querySelector('[data-review-indicators]');
+const marks = [...indicators.querySelectorAll('[data-review-indicator]')];
 const status = carousel.querySelector('[data-review-status]');
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-let playing = !reducedMotion.matches;
+const reviewDelay = 6000;
 let visible = !('IntersectionObserver' in window);
 let hovered = false;
-let timeout;
+let activePointer = null;
+let timer;
+let scrollFrame;
+
+function currentIndex() {
+  const position = track.scrollLeft + cards[0].offsetLeft;
+  return cards.reduce((closest, card, index) => {
+    const distance = Math.abs(position - card.offsetLeft);
+    return distance < Math.abs(position - cards[closest].offsetLeft) ? index : closest;
+  }, 0);
+}
 
 function move(direction, announce = false) {
-  const step = cards[1].offsetLeft - cards[0].offsetLeft;
-  const current = Math.round(track.scrollLeft / step);
-  const target = (current + direction + cards.length) % cards.length;
+  const target = (currentIndex() + direction + cards.length) % cards.length;
   track.scrollTo({
     left: cards[target].offsetLeft - cards[0].offsetLeft,
     behavior: reducedMotion.matches ? 'instant' : 'smooth'
@@ -22,43 +30,46 @@ function move(direction, announce = false) {
 }
 
 function schedule() {
-  clearTimeout(timeout);
-  if (!playing || !visible || hovered || document.hidden) return;
-  timeout = setTimeout(() => {
+  clearTimeout(timer);
+  if (!visible || hovered || activePointer !== null || document.hidden || reducedMotion.matches || carousel.matches(':focus-within')) return;
+  timer = setTimeout(() => {
     move(1);
     schedule();
-  }, 5500);
+  }, reviewDelay);
 }
 
-function setPlaying(value) {
-  playing = value && !reducedMotion.matches;
-  rotation.textContent = playing ? 'Pausar' : 'Reproducir';
-  rotation.setAttribute('aria-label', playing ? 'Pausar carrusel' : 'Reproducir carrusel');
+track.addEventListener('scroll', () => {
+  if (scrollFrame) return;
+  scrollFrame = requestAnimationFrame(() => {
+    scrollFrame = undefined;
+    const current = currentIndex();
+    marks.forEach((mark, index) => mark.toggleAttribute('data-current', current === index));
+    schedule();
+  });
+}, { passive: true });
+
+track.addEventListener('keydown', event => {
+  if (event.target !== track || event.altKey || event.ctrlKey || event.metaKey) return;
+  const direction = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
+  if (!direction) return;
+  event.preventDefault();
+  move(direction, true);
+});
+track.addEventListener('pointerdown', event => {
+  activePointer = event.pointerId;
+  schedule();
+}, { passive: true });
+
+function finishGesture(event) {
+  if (event.pointerId !== activePointer) return;
+  activePointer = null;
   schedule();
 }
 
-function navigate(direction) {
-  setPlaying(false);
-  move(direction, true);
-}
-
-rotation.addEventListener('click', () => setPlaying(!playing));
-controls.querySelectorAll('[data-review-direction]').forEach(button => {
-  button.addEventListener('click', () => navigate(Number(button.dataset.reviewDirection)));
-});
-track.addEventListener('keydown', event => {
-  if (event.target !== track || event.altKey || event.ctrlKey || event.metaKey) return;
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-  event.preventDefault();
-  navigate(event.key === 'ArrowLeft' ? -1 : 1);
-});
-track.addEventListener('pointerdown', () => setPlaying(false), { passive: true });
-track.addEventListener('wheel', event => {
-  if (event.deltaX || event.shiftKey) setPlaying(false);
-}, { passive: true });
-carousel.addEventListener('focusin', event => {
-  if (event.target !== rotation || event.target.matches(':focus-visible')) setPlaying(false);
-});
+window.addEventListener('pointerup', finishGesture, { passive: true });
+window.addEventListener('pointercancel', finishGesture, { passive: true });
+carousel.addEventListener('focusin', schedule);
+carousel.addEventListener('focusout', () => queueMicrotask(schedule));
 carousel.addEventListener('pointerenter', event => {
   if (event.pointerType !== 'mouse') return;
   hovered = true;
@@ -70,17 +81,15 @@ carousel.addEventListener('pointerleave', event => {
   schedule();
 });
 document.addEventListener('visibilitychange', schedule);
-reducedMotion.addEventListener('change', () => {
-  rotation.hidden = reducedMotion.matches;
-  if (reducedMotion.matches) setPlaying(false);
-});
+reducedMotion.addEventListener('change', schedule);
+
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(([entry]) => {
-    visible = entry.isIntersecting && entry.intersectionRatio >= .25;
+    visible = entry.intersectionRatio >= .35;
     schedule();
-  }, { threshold: .25 });
+  }, { threshold: .35 });
   observer.observe(carousel);
 }
-rotation.hidden = reducedMotion.matches;
-controls.hidden = false;
+
+indicators.hidden = false;
 schedule();
