@@ -4,143 +4,177 @@ const cards = [...track.querySelectorAll('.rh-review-card')];
 const indicators = carousel.querySelector('[data-review-indicators]');
 const marks = [...indicators.querySelectorAll('[data-review-indicator]')];
 const status = carousel.querySelector('[data-review-status]');
-const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)');
-const supportsFocusVisible = window.CSS && CSS.supports('selector(:focus-visible)');
-const reviewDelay = 5000;
+const motion = matchMedia('(prefers-reduced-motion: reduce)');
+const pointers = new Set();
+const touches = new Set();
+const pixelsPerSecond = 36;
+
 let visible = !('IntersectionObserver' in window);
-let activePointer = null;
-let timer;
-let scrollFrame;
-let slideFrame;
+let first = 0;
+let cycle = 0;
+let starts = [];
+let position = 0;
+let current = -1;
+let frame;
+let lastTime;
+let scrollTimer;
 
-function currentIndex() {
-  const position = track.scrollLeft + cards[0].offsetLeft;
-  return cards.reduce((closest, card, index) => {
-    const distance = Math.abs(position - card.offsetLeft);
-    return distance < Math.abs(position - cards[closest].offsetLeft) ? index : closest;
-  }, 0);
+function copyCards() {
+  return cards.map(card => {
+    const copy = card.cloneNode(true);
+    copy.dataset.reviewCopy = '';
+    copy.setAttribute('aria-hidden', 'true');
+    for (const link of copy.querySelectorAll('a')) {
+      link.tabIndex = -1;
+      link.addEventListener('mousedown', event => event.preventDefault());
+    }
+    return copy;
+  });
 }
 
-function finishSlide() {
-  if (slideFrame === undefined) return;
-  cancelAnimationFrame(slideFrame);
-  slideFrame = undefined;
-  track.style.removeProperty('scroll-snap-type');
+const after = copyCards();
+track.prepend(...copyCards());
+track.append(...after);
+track.classList.add('is-looping');
+
+function wrap(left) {
+  const offset = left - first;
+  return first + ((offset % cycle + cycle) % cycle);
 }
 
-function move(direction, announce = false) {
-  finishSlide();
-  const target = (currentIndex() + direction + cards.length) % cards.length;
-  const start = track.scrollLeft;
-  const end = cards[target].offsetLeft - cards[0].offsetLeft;
-  if (announce) status.textContent = `Reseña ${target + 1} de ${cards.length}`;
+function activeReview(left) {
+  if (!cycle) return 0;
+  const distance = wrap(left);
+  let nearest = Math.min(distance - first, first + cycle - distance);
+  let selected = 0;
+  for (let index = 1; index < starts.length; index++) {
+    const gap = Math.abs(distance - starts[index]);
+    if (gap < nearest) {
+      nearest = gap;
+      selected = index;
+    }
+  }
+  return selected;
+}
 
-  if (reducedMotion.matches) {
-    track.scrollLeft = end;
+function updateIndicator(left) {
+  const index = activeReview(left);
+  if (index === current) return;
+  current = index;
+  marks.forEach((mark, i) => mark.toggleAttribute('data-current', i === current));
+}
+
+function animate(time) {
+  const elapsed = lastTime === undefined ? 0 : Math.min(time - lastTime, 48);
+  lastTime = time;
+  position = wrap(position + elapsed * pixelsPerSecond / 1000);
+  track.scrollLeft = position;
+  updateIndicator(position);
+  frame = requestAnimationFrame(animate);
+}
+
+function updatePlayback() {
+  const canPlay = visible && cycle > 0 && !document.hidden && !motion.matches &&
+    !pointers.size && !touches.size && scrollTimer === undefined && !carousel.querySelector(':focus-visible');
+  if (!canPlay) {
+    cancelAnimationFrame(frame);
+    frame = undefined;
     return;
   }
-
-  // WebKit puede cancelar el desplazamiento programado si el ajuste por tarjeta sigue activo.
-  track.style.scrollSnapType = 'none';
-  const startTime = performance.now();
-  const animate = now => {
-    const progress = Math.min(1, (now - startTime) / 410);
-    track.scrollLeft = start + (end - start) * (1 - (1 - progress) ** 3);
-    if (progress < 1) {
-      slideFrame = requestAnimationFrame(animate);
-      return;
-    }
-    finishSlide();
-    schedule();
-  };
-  slideFrame = requestAnimationFrame(animate);
+  if (frame === undefined) {
+    position = track.scrollLeft;
+    lastTime = undefined;
+    frame = requestAnimationFrame(animate);
+  }
 }
 
-function hasKeyboardFocus(element) {
-  return element && carousel.contains(element) &&
-    (!supportsFocusVisible || element.matches(':focus-visible'));
+function measure() {
+  const progress = cycle ? (wrap(track.scrollLeft) - first) / cycle : 0;
+  const inset = track.firstElementChild.offsetLeft;
+  starts = cards.map(card => card.offsetLeft - inset);
+  first = starts[0];
+  cycle = after[0].offsetLeft - cards[0].offsetLeft;
+  position = first + cycle * progress;
+  track.scrollLeft = position;
+  updateIndicator(position);
+  updatePlayback();
 }
 
-function canRotate() {
-  return visible && activePointer === null && !document.hidden && !reducedMotion.matches &&
-    !hasKeyboardFocus(document.activeElement);
+function waitForScroll() {
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(() => {
+    scrollTimer = undefined;
+    updatePlayback();
+  }, 180);
+  updatePlayback();
 }
-
-function schedule() {
-  clearTimeout(timer);
-  if (!canRotate()) return;
-  timer = setTimeout(() => {
-    if (canRotate()) move(1);
-  }, reviewDelay);
-}
-
-track.addEventListener('scroll', () => {
-  if (scrollFrame) return;
-  scrollFrame = requestAnimationFrame(() => {
-    scrollFrame = undefined;
-    const current = currentIndex();
-    marks.forEach((mark, index) => mark.toggleAttribute('data-current', current === index));
-    if (slideFrame === undefined) schedule();
-  });
-}, { passive: true });
 
 track.addEventListener('keydown', event => {
-  if (event.target !== track || event.altKey || event.ctrlKey || event.metaKey) return;
-  const direction = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
-  if (!direction) return;
+  if (event.target !== track || !cycle || event.altKey || event.ctrlKey || event.metaKey) return;
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
   event.preventDefault();
-  move(direction, true);
+  updatePlayback();
+  const direction = event.key === 'ArrowRight' ? 1 : -1;
+  const index = (activeReview(track.scrollLeft) + direction + cards.length) % cards.length;
+  track.scrollLeft = starts[index];
+  updateIndicator(starts[index]);
+  status.textContent = 'Reseña ' + (index + 1) + ' de ' + cards.length;
 });
-track.addEventListener('pointerdown', event => {
-  activePointer = event.pointerId;
-  finishSlide();
-  schedule();
-}, { passive: true });
-track.addEventListener('wheel', event => {
-  if (!event.deltaX && !event.shiftKey) return;
-  finishSlide();
-  schedule();
-}, { passive: true });
 
-function finishGesture(event) {
-  if (event.pointerId !== activePointer) return;
-  activePointer = null;
-  schedule();
+track.addEventListener('pointerdown', event => {
+  if (event.pointerType === 'touch') return;
+  pointers.add(event.pointerId);
+  updatePlayback();
+}, { passive: true });
+for (const name of ['pointerup', 'pointercancel']) {
+  window.addEventListener(name, event => {
+    if (pointers.delete(event.pointerId)) waitForScroll();
+  }, { passive: true });
 }
 
-window.addEventListener('pointerup', finishGesture, { passive: true });
-window.addEventListener('pointercancel', finishGesture, { passive: true });
-carousel.addEventListener('focusin', event => {
-  if (hasKeyboardFocus(event.target)) finishSlide();
-  schedule();
-});
-carousel.addEventListener('focusout', () => queueMicrotask(schedule));
+// Touch events keep the loop paused while native scrolling takes over the gesture.
+track.addEventListener('touchstart', event => {
+  for (const touch of event.changedTouches) touches.add(touch.identifier);
+  updatePlayback();
+}, { passive: true });
+for (const name of ['touchend', 'touchcancel']) {
+  track.addEventListener(name, event => {
+    for (const touch of event.changedTouches) touches.delete(touch.identifier);
+    waitForScroll();
+  }, { passive: true });
+}
+track.addEventListener('wheel', event => {
+  if (event.deltaX || event.shiftKey) waitForScroll();
+}, { passive: true });
+track.addEventListener('scroll', () => {
+  if (frame === undefined) updateIndicator(track.scrollLeft);
+  if (scrollTimer !== undefined) waitForScroll();
+}, { passive: true });
+
+carousel.addEventListener('focusin', updatePlayback);
+carousel.addEventListener('focusout', () => queueMicrotask(updatePlayback));
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) {
-    activePointer = null;
-    finishSlide();
+    pointers.clear();
+    touches.clear();
   }
-  schedule();
+  updatePlayback();
 });
-
-function updateMotionPreference() {
-  if (reducedMotion.matches) finishSlide();
-  schedule();
-}
-
-if (reducedMotion.addEventListener) {
-  reducedMotion.addEventListener('change', updateMotionPreference);
-} else {
-  reducedMotion.addListener(updateMotionPreference);
-}
-
-if ('IntersectionObserver' in window) {
-  const observer = new IntersectionObserver(([entry]) => {
-    visible = entry.intersectionRatio >= .2;
-    schedule();
-  }, { threshold: .2 });
-  observer.observe(track);
-}
+window.addEventListener('blur', () => {
+  pointers.clear();
+  touches.clear();
+  updatePlayback();
+});
+if (motion.addEventListener) motion.addEventListener('change', updatePlayback);
+else motion.addListener(updatePlayback);
 
 indicators.hidden = false;
-schedule();
+measure();
+if ('ResizeObserver' in window) new ResizeObserver(measure).observe(track);
+else window.addEventListener('resize', measure);
+if ('IntersectionObserver' in window) {
+  new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    updatePlayback();
+  }).observe(track);
+}
