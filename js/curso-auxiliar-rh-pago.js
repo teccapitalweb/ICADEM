@@ -15,6 +15,7 @@ const mount = payment.querySelector('[data-rh-checkout-mount]');
 const checkoutStatus = payment.querySelector('[data-rh-checkout-status]');
 const retry = payment.querySelector('[data-rh-retry]');
 const result = document.querySelector('[data-rh-payment-status]');
+const aula = document.querySelector('[data-rh-aula]');
 const countdowns = [...document.querySelectorAll('[data-rh-countdown]')];
 
 let stripeRequest;
@@ -152,7 +153,16 @@ async function checkPayment() {
     const { estado } = await request('/inscripcion?' + params, { cache: 'no-store' });
     canStartPayment = estado === 'expirado' || estado === 'reembolsado';
     result.toggleAttribute('data-confirmed', estado === 'pagado');
-    result.textContent = states[estado] || 'El estado del pago aún no está disponible.';
+    const message = document.createElement('p');
+    message.textContent = states[estado] || 'El estado del pago aún no está disponible.';
+    result.replaceChildren(message);
+    if (estado === 'pagado' && aula) {
+      const link = document.createElement('a');
+      link.href = aula.href;
+      link.className = 'button rh-buy-button';
+      link.textContent = 'Entrar a mi aula';
+      result.append(link);
+    }
   } catch (error) {
     canStartPayment = error.status === 404;
     result.textContent = canStartPayment

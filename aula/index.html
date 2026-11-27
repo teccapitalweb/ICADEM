@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#142b43">
+  <meta name="robots" content="noindex,follow">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Aula de cursos | ICADEM</title>
+  <link rel="icon" href="/assets/logo/icadem-professional-mark-2026.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/aula/aula.css?v=1">
+  <script type="module" src="/aula/aula.js?v=1"></script>
+</head>
+<body>
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="symbols">
+    <symbol id="icon-inicio" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7M5 9v11h14V9M10 20v-6h4v6"/></symbol>
+    <symbol id="icon-clases" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3V9Z"/></symbol>
+    <symbol id="icon-materiales" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8Zm0 0v5h5M9 13h6M9 17h6"/></symbol>
+    <symbol id="icon-certificado" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="m8.5 13-1.5 8 5-3 5 3-1.5-8"/></symbol>
+    <symbol id="icon-salir" viewBox="0 0 24 24"><path d="M10 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h5M8 12h12m-4-4 4 4-4 4"/></symbol>
+    <symbol id="icon-programa" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></symbol>
+    <symbol id="icon-confirmado" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-5"/></symbol>
+  </svg>
+
+  <main class="access" id="access">
+    <div class="access-cover" id="access-cover" hidden>
+      <img id="access-image" alt="" width="1280" height="720">
+      <div class="access-cover-copy"><span>Aula virtual</span><p data-course-title></p></div>
+    </div>
+    <section class="access-content" aria-labelledby="access-title">
+      <div class="access-card">
+        <a class="brand" href="/" aria-label="Inicio de ICADEM">
+          <img src="/assets/logo/icadem-professional-mark-2026.png" width="46" height="46" alt="">
+          <span>ICADEM<small>Aula virtual</small></span>
+        </a>
+        <div class="access-course" data-course-title hidden></div>
+        <h1 id="access-title">Abriendo el aula</h1>
+        <p class="access-description" id="access-description" role="status">Verificamos si ya iniciaste sesión.</p>
+        <div class="access-actions" id="access-actions" hidden>
+          <button type="button" class="button button-google" id="google" hidden>Continuar con Google</button>
+          <a class="button button-outline" id="email-login" hidden>Entrar con mi cuenta ICADEM</a>
+          <button type="button" class="button" id="retry" hidden>Comprobar acceso</button>
+          <button type="button" class="button button-outline" id="verify" hidden>Enviar correo de verificación</button>
+          <button type="button" class="button button-link" data-sign-out hidden>Cambiar de cuenta</button>
+        </div>
+        <p id="access-feedback" class="access-feedback" role="status" hidden></p>
+        <a class="back-link" data-landing href="/">Volver a ICADEM</a>
+        <div class="access-options" id="course-options" hidden>
+          <a href="?curso=auxiliar-de-recursos-humanos">Auxiliar de Recursos Humanos</a>
+          <a href="?curso=practico-de-auxiliar-contable">Práctico de Auxiliar Contable</a>
+        </div>
+        <noscript><p>Activa JavaScript para iniciar sesión y acceder a tu curso.</p></noscript>
+      </div>
+    </section>
+  </main>
+
+  <div class="classroom" id="classroom" hidden>
+    <aside class="sidebar">
+      <a class="brand brand-inverted" href="#inicio" aria-label="Inicio del aula">
+        <img src="/assets/logo/icadem-professional-mark-2026.png" width="40" height="40" alt="">
+        <span>ICADEM<small>Aula virtual</small></span>
+      </a>
+      <p class="sidebar-course" data-course-title></p>
+      <nav class="sidebar-nav" aria-label="Secciones del curso">
+        <a href="#inicio" data-view="inicio"><svg class="icon" aria-hidden="true"><use href="#icon-inicio"/></svg>Inicio</a>
+        <a href="#clases" data-view="clases"><svg class="icon" aria-hidden="true"><use href="#icon-clases"/></svg>Clases</a>
+        <a href="#materiales" data-view="materiales"><svg class="icon" aria-hidden="true"><use href="#icon-materiales"/></svg>Materiales</a>
+        <a href="#certificado" data-view="certificado"><svg class="icon" aria-hidden="true"><use href="#icon-certificado"/></svg>Certificado</a>
+      </nav>
+      <div class="sidebar-footer">
+        <a data-landing>Ver página del curso</a>
+        <button type="button" data-sign-out><svg class="icon" aria-hidden="true"><use href="#icon-salir"/></svg>Cerrar sesión</button>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <a class="brand topbar-brand" href="#inicio" aria-label="Inicio del aula">
+          <img src="/assets/logo/icadem-professional-mark-2026.png" width="34" height="34" alt="">
+          <span>ICADEM</span>
+        </a>
+        <p id="topbar-title">Inicio</p>
+        <span class="account-email" id="account-email"></span>
+        <button type="button" class="account" id="account" aria-label="Mi cuenta" aria-expanded="false" aria-controls="account-menu"></button>
+        <div class="account-menu" id="account-menu" hidden>
+          <p id="account-menu-email"></p>
+          <a data-landing>Ver página del curso</a>
+          <button type="button" data-sign-out>Cerrar sesión</button>
+        </div>
+      </header>
+      <p class="classroom-feedback" id="classroom-feedback" role="status" hidden></p>
+
+      <main class="view" id="view">
+        <section id="inicio" class="course-view" aria-labelledby="course-title">
+          <div class="course-hero">
+            <img id="course-image" alt="" width="1280" height="720">
+            <div class="course-hero-copy">
+              <span class="course-tag"><svg class="icon" aria-hidden="true"><use href="#icon-confirmado"/></svg>Inscripción confirmada</span>
+              <h1 id="course-title" data-course-title tabindex="-1"></h1>
+              <p id="course-instructor"></p>
+            </div>
+          </div>
+          <section class="start" aria-labelledby="start-title">
+            <div class="start-copy">
+              <h2 id="start-title">Contenido en preparación</h2>
+              <p>Tu lugar está reservado. Las clases y materiales aparecerán en este espacio cuando se publiquen.</p>
+            </div>
+            <a class="button" href="#clases">Ver clases</a>
+          </section>
+          <div class="quick-links">
+            <a class="quick-card" href="#clases"><svg class="icon" aria-hidden="true"><use href="#icon-clases"/></svg><div><strong>Clases</strong><span>Consulta los cinco módulos</span></div></a>
+            <a class="quick-card" href="#materiales"><svg class="icon" aria-hidden="true"><use href="#icon-materiales"/></svg><div><strong>Materiales</strong><span>Guías y recursos del curso</span></div></a>
+            <a class="quick-card" href="#certificado"><svg class="icon" aria-hidden="true"><use href="#icon-certificado"/></svg><div><strong>Certificado</strong><span>Información del certificado</span></div></a>
+          </div>
+        </section>
+
+        <section id="clases" class="course-view" aria-labelledby="classes-title" hidden>
+          <h1 class="view-title" id="classes-title" tabindex="-1">Clases</h1>
+          <p class="view-description">Grabaciones y temario de tu curso.</p>
+          <div class="class-layout">
+            <div class="player-placeholder">
+              <svg class="icon" aria-hidden="true"><use href="#icon-clases"/></svg>
+              <strong>Clases en preparación</strong>
+              <p>Las grabaciones aparecerán aquí cuando estén disponibles.</p>
+            </div>
+            <section class="program" aria-labelledby="program-title">
+              <div class="program-head"><h2 id="program-title">Temario</h2><span>5 módulos</span></div>
+              <ol id="module-list"></ol>
+            </section>
+          </div>
+        </section>
+
+        <section id="materiales" class="course-view" aria-labelledby="materials-title" hidden>
+          <h1 class="view-title" id="materials-title" tabindex="-1">Materiales</h1>
+          <p class="view-description">Guías y archivos complementarios del curso.</p>
+          <article class="empty-card">
+            <svg class="icon" aria-hidden="true"><use href="#icon-materiales"/></svg>
+            <div><h2>Aún no hay archivos publicados</h2><p>Podrás consultar los materiales desde aquí cuando se agreguen al aula.</p></div>
+          </article>
+        </section>
+
+        <section id="certificado" class="course-view" aria-labelledby="cert-title" hidden>
+          <h1 class="view-title" id="cert-title" tabindex="-1">Certificado</h1>
+          <p class="view-description">Consulta la información del certificado de tu curso.</p>
+          <article class="empty-card">
+            <svg class="icon" aria-hidden="true"><use href="#icon-certificado"/></svg>
+            <div><h2>Información pendiente</h2><p>Publicaremos aquí las indicaciones del certificado cuando estén disponibles.</p></div>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <nav class="mobile-nav" aria-label="Secciones del curso">
+      <a href="#inicio" data-view="inicio"><svg class="icon" aria-hidden="true"><use href="#icon-inicio"/></svg><span>Inicio</span></a>
+      <a href="#clases" data-view="clases"><svg class="icon" aria-hidden="true"><use href="#icon-clases"/></svg><span>Clases</span></a>
+      <a href="#materiales" data-view="materiales"><svg class="icon" aria-hidden="true"><use href="#icon-materiales"/></svg><span>Materiales</span></a>
+      <a href="#certificado" data-view="certificado"><svg class="icon" aria-hidden="true"><use href="#icon-certificado"/></svg><span>Certificado</span></a>
+    </nav>
+  </div>
+</body>
+</html>

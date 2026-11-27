@@ -16,11 +16,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/curso-auxiliar-de-recursos-humanos.css?v=6">
-  <link rel="stylesheet" href="/css/curso-practico-de-auxiliar-contable.css?v=1">
+  <link rel="stylesheet" href="/css/curso-auxiliar-de-recursos-humanos.css?v=7">
+  <link rel="stylesheet" href="/css/curso-practico-de-auxiliar-contable.css?v=2">
+  <link rel="stylesheet" href="/css/curso-oferta-icadem.css?v=1">
   <script type="module" src="/js/curso-auxiliar-rh-presentacion.js?v=2"></script>
   <script type="module" src="/js/curso-auxiliar-rh-resenas.js?v=4"></script>
-  <script type="module" src="/js/curso-auxiliar-rh-pago.js?v=2"></script>
+  <script type="module" src="/js/curso-auxiliar-rh-pago.js?v=3"></script>
 </head>
 <body class="curso-contable">
   <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -35,7 +36,10 @@
         <a href="#ponente">Ponente</a>
         <a href="#temario">Temario</a>
       </nav>
-      <a class="button rh-buy-button" href="#informes" data-rh-buy>Inscribirme</a>
+      <div class="course-header-actions">
+        <a class="course-aula-link" href="/aula/?curso=practico-de-auxiliar-contable" data-rh-aula>Mi aula</a>
+        <a class="button rh-buy-button" href="#informes" data-rh-buy>Inscribirme</a>
+      </div>
     </div>
   </header>
 
@@ -43,6 +47,10 @@
     <section class="hero" aria-labelledby="titulo-curso">
       <div class="shell hero-grid">
         <div class="hero-offer">
+          <div class="rh-launch" data-rh-countdown hidden>
+            <span class="rh-launch-label">Lanzamiento del curso</span>
+            <span class="rh-clock" data-rh-time role="timer" aria-live="off"></span>
+          </div>
           <p class="eyebrow hero-kicker">Inscripciones abiertas</p>
         </div>
         <div class="hero-visual">
@@ -274,8 +282,8 @@
               <span>3</span>
             </div>
             <div class="rh-step-content">
-              <h3>Consulta tu confirmación</h3>
-              <p>Cuando se confirme el pago, tu inscripción quedará registrada con el correo que ingresaste.</p>
+              <h3>Entra a tu aula</h3>
+              <p>Una vez confirmado el pago, selecciona «Mi aula» e inicia sesión con el mismo correo que usaste en Stripe.</p>
             </div>
           </li>
         </ol>
@@ -317,18 +325,27 @@
       </div>
     </section>
 
-    <section id="informes" class="contact section" aria-labelledby="titulo-informes">
-      <div class="shell contact-inner">
-        <div>
-          <p class="eyebrow hero-kicker">Inscripciones abiertas</p>
-          <h2 id="titulo-informes">Inscríbete al Práctico de Auxiliar Contable</h2>
-          <p>Desarrolla la práctica contable con cinco módulos impartidos por la C.P. Daniela Patricia Correa Vázquez.</p>
-        </div>
-        <div class="rh-offer-card">
-          <p class="rh-offer-price"><strong>$599 <span>MXN</span></strong><span>Pago único</span></p>
-          <a class="button rh-buy-button" href="#informes" data-rh-buy>Inscribirme</a>
-          <p class="rh-secure-payment"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-15 5h4"/></svg>Tarjeta de crédito o débito · Stripe</p>
-          <p class="rh-offer-note">Inscripción anticipada. ICADEM aún no ha publicado la fecha de inicio del curso.</p>
+    <section id="informes" class="course-enrollment section" aria-labelledby="titulo-informes">
+      <div class="shell">
+        <div class="course-enrollment-card">
+          <p class="course-enrollment-state">Inscripciones abiertas</p>
+          <h2 id="titulo-informes">Práctico de Auxiliar Contable</h2>
+          <div class="course-enrollment-price">
+            <p><strong>$599 <span>MXN</span></strong></p>
+            <p class="course-enrollment-once">Pago único</p>
+          </div>
+          <ul class="course-enrollment-benefits" role="list">
+            <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg><span>5 módulos con casos prácticos</span></li>
+            <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg><span>Registros, conciliación, nómina y estados financieros</span></li>
+            <li><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg><span>Con la C.P. Daniela Patricia Correa Vázquez</span></li>
+          </ul>
+          <div class="rh-launch course-enrollment-timer" data-rh-countdown hidden>
+            <span class="rh-launch-label">Lanzamiento del curso</span>
+            <span class="rh-clock" data-rh-time role="timer" aria-live="off"></span>
+          </div>
+          <a class="button rh-buy-button course-enrollment-button" href="#informes" data-rh-buy>Quiero mi lugar</a>
+          <p class="course-enrollment-payment"><svg class="icon" aria-hidden="true" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18m-15 5h4"/></svg>Pago con tarjeta mediante Stripe</p>
+          <p class="course-enrollment-note">Inscripción anticipada. La fecha de inicio está por anunciarse.</p>
         </div>
       </div>
     </section>

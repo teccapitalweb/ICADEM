@@ -1,0 +1,149 @@
+.course-enrollment {
+  background: radial-gradient(ellipse at 50% 0%, var(--blue-hover), var(--navy) 71%);
+  color: var(--ink);
+  padding-block: clamp(2.5rem, 6vw, 5.5rem);
+}
+
+.course-enrollment-card {
+  width: min(100%, 36rem);
+  margin-inline: auto;
+  padding: clamp(1.3rem, 5vw, 2.8rem);
+  border: 1px solid var(--accent);
+  border-top: 4px solid #81a7cf;
+  border-radius: 1.3rem;
+  background: var(--white);
+  box-shadow: 0 17px 46px #0714224a;
+  text-align: center;
+}
+
+.course-enrollment-state {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .34rem .82rem;
+  border-radius: 999px;
+  background: var(--pale);
+  color: var(--blue-hover);
+  font-size: .9rem;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.course-enrollment-state::before {
+  content: "";
+  width: .43rem;
+  height: .43rem;
+  border-radius: 100%;
+  background: currentColor;
+}
+
+.course-enrollment-card h2 {
+  margin-top: 1rem;
+  color: var(--ink);
+  font-size: clamp(1.42rem, 4.6vw, 2.18rem);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.course-enrollment-price {
+  margin-block: 1.22rem 1.28rem;
+}
+
+.course-enrollment-price strong {
+  display: block;
+  color: var(--ink);
+  font-size: clamp(3.1rem, 12vw, 5.45rem);
+  font-weight: 800;
+  letter-spacing: -.065em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.course-enrollment-price strong span {
+  font-size: .34em;
+  letter-spacing: 0;
+}
+
+.course-enrollment-once {
+  margin-top: .45rem;
+  color: var(--quiet);
+  font-size: .95rem;
+}
+
+.course-enrollment-benefits {
+  display: grid;
+  gap: .7rem;
+  margin: 0 0 1.14rem;
+  padding: 1rem clamp(.75rem, 4vw, 1.24rem);
+  border: 1px solid var(--line);
+  border-radius: .9rem;
+  background: var(--pale);
+  list-style: none;
+  text-align: left;
+}
+
+.course-enrollment-benefits li {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  font-size: .94rem;
+  line-height: 1.45;
+}
+
+.course-enrollment-benefits .icon {
+  width: 1.12rem;
+  height: 1.12rem;
+  margin-top: .12rem;
+  color: var(--blue);
+  stroke-width: 2.4;
+}
+
+.course-enrollment-timer {
+  width: 100%;
+  margin-bottom: .85rem;
+}
+
+.course-enrollment-button {
+  width: 100%;
+  min-height: 3.45rem;
+  font-size: 1rem;
+}
+
+.course-enrollment-payment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  margin-top: .95rem;
+  color: var(--ink);
+  font-size: .9rem;
+  line-height: 1.4;
+}
+
+.course-enrollment-payment .icon {
+  width: 1.05rem;
+  height: 1.05rem;
+  color: var(--blue);
+}
+
+.course-enrollment-note {
+  margin-top: .52rem;
+  color: var(--quiet);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 380px) {
+  .course-enrollment-card {
+    padding-inline: 1.05rem;
+  }
+
+  .course-enrollment-timer {
+    gap: .45rem;
+    padding-inline: .65rem;
+  }
+
+  .course-enrollment-timer .rh-launch-label {
+    min-width: 0;
+  }
+}
