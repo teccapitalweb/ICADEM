@@ -34,7 +34,7 @@ for (const [index, tab] of tabs.entries()) {
 document.querySelector('[data-open-content="ponente"]').addEventListener('click', () => showTab(instructorTab, { instant: true }));
 
 function showInstructorFromHash() {
-  if (location.hash === '#temario' || location.hash === '#ponente') showTab(instructorTab, { instant: true });
+  if (location.hash === '#ponente') showTab(instructorTab, { instant: true });
 }
 window.addEventListener('hashchange', showInstructorFromHash);
 showInstructorFromHash();

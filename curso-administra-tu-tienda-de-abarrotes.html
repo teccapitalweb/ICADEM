@@ -22,8 +22,14 @@
   <link rel="stylesheet" href="css/curso-abarrotes-pago.css">
   <link rel="stylesheet" href="css/curso-abarrotes-resenas.css?v=2">
   <link rel="stylesheet" href="css/curso-abarrotes-regalo.css?v=3">
+  <script>
+    // Los enlaces publicados con #temario ahora abren la presentación del curso.
+    if (location.hash === '#temario') {
+      history.replaceState(history.state, '', location.pathname + location.search);
+    }
+  </script>
   <script src="js/curso-abarrotes.js?v=5" type="module"></script>
-  <script src="js/curso-abarrotes-presentacion.js?v=6" type="module"></script>
+  <script src="js/curso-abarrotes-presentacion.js?v=7" type="module"></script>
 </head>
 <body>
   <header class="top">
@@ -100,7 +106,7 @@
         <div class="fact"><strong><span class="sr-only">Más de 45</span><span aria-hidden="true" data-count="45" data-prefix="+">+45</span></strong><span>Cursos impartidos</span></div>
       </div>
     </div>
-    <section class="section wrap course-details" id="temario" aria-labelledby="course-info">
+    <section class="section wrap course-details" id="conoce-el-curso" aria-labelledby="course-info">
       <h2 class="section-heading" id="course-info">Conoce el <em>curso</em></h2>
       <div class="content-tabs" role="tablist" aria-label="Información del curso">
         <button type="button" role="tab" id="tab-ponente" aria-controls="ponente" aria-selected="true"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>Instructora</button>
