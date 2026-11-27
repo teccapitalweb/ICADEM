@@ -131,7 +131,7 @@ h2 { font-size: clamp(2rem, 4.1vw, 3.4rem); font-weight: 800; letter-spacing: -.
 }
 
 @media (max-width: 45rem) {
-  .shell { width: calc(100% - 2.1rem); }
+  .shell { width: calc(100% - 2 * var(--course-mobile-gutter)); }
   .header-inner { min-height: 4.45rem; gap: 0.6rem; }
   .nav { display: none; }
   .header .brand { font-size: 1.11rem; }
@@ -144,12 +144,12 @@ h2 { font-size: clamp(2rem, 4.1vw, 3.4rem); font-weight: 800; letter-spacing: -.
   .hero h1 { max-width: 13ch; font-size: clamp(2.55rem, 10vw, 4rem); }
   .hero-intro { margin-top: 1rem; }
   .hero-actions { margin-top: 1.3rem; }
-  .hero-actions .button { flex: 1 1 10rem; padding-inline: 0.65rem; }
-  .hero-visual { width: 100%; max-width: 36rem; }
+  .hero-actions .button { flex: 1 1 8rem; padding-inline: 0.65rem; }
+  .hero-visual { width: 100%; max-width: 36rem; margin-inline: auto; }
   .promo { aspect-ratio: 16 / 9; border-radius: 1rem; }
   .promo-caption { bottom: .55rem; left: .55rem; padding: .39rem .54rem; font-size: 0.86rem; }
   .promo-icon-box { width: 2.1rem; height: 2.1rem; }
-  .course-metrics { width: calc(100% - 1.25rem); margin-top: 1.7rem; }
+  .course-metrics { margin-top: 1.7rem; }
   .course-metrics li { padding-inline: 0.18rem; }
   .course-metrics strong { font-size: clamp(1.13rem, 5.45vw, 2rem); }
   .course-metrics strong small { font-size: max(0.72rem, 0.53em); }
@@ -157,15 +157,17 @@ h2 { font-size: clamp(2rem, 4.1vw, 3.4rem); font-weight: 800; letter-spacing: -.
   .course-tabs { gap: .16rem; padding: .3rem; }
   .course-tabs button { flex: 1 0 3.8rem; flex-direction: column; gap: .34rem; min-width: min-content; min-height: 3.85rem; padding: .36rem .25rem; font-size: clamp(.7rem, 2.6vw, .9rem); line-height: 1.16; white-space: normal; }
   .course-tabs .tab-icon { width: 1.12rem; height: 1.12rem; }
+  .course-details { background: var(--white); }
   h2 { text-wrap: initial; }
   .instructor-grid { grid-template-areas: "identity" "photo" "bio"; grid-template-rows: auto; }
   .instructor-photo { max-width: 24rem; }
 }
 
 @media (max-width: 22.5rem) {
+  .hero .hero-kicker { padding-inline: .58rem; font-size: .84rem; letter-spacing: .065em; }
   .course-metrics { grid-template-columns: minmax(0, 1fr) minmax(0, .94fr) minmax(0, 1.1fr) minmax(0, .96fr); }
   .course-metrics li > span { font-size: .71rem; overflow-wrap: normal; }
-  .course-tabs { margin-inline: -.25rem; gap: .1rem; padding: .24rem; }
+  .course-tabs { gap: .1rem; padding: .18rem; }
   .course-tabs button { flex-basis: 0; padding-inline: .06rem; }
 }
 
@@ -234,9 +236,13 @@ h2 { font-size: clamp(2rem, 4.1vw, 3.4rem); font-weight: 800; letter-spacing: -.
 .rh-review-indicators [data-current] { width: 1.6rem; background: var(--accent); }
 
 @media (max-width: 45rem) {
+  .rh-reviews { color: var(--ink); background: var(--white); }
   .rh-reviews-layout { grid-template-columns: minmax(0, 1fr); }
   .rh-reviews-copy h2 span { display: inline; }
+  .rh-reviews-copy p { color: var(--quiet); }
   .rh-review-card { min-height: 13rem; }
+  .rh-review-indicators span { background: var(--accent); }
+  .rh-review-indicators [data-current] { background: var(--blue); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -307,7 +313,7 @@ body:has(.rh-payment[open]) { overflow: hidden; }
     align-items: center;
     justify-content: space-between;
     gap: .65rem;
-    padding: .55rem max(1rem, env(safe-area-inset-right, 0px)) calc(.55rem + env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-left, 0px));
+    padding: .55rem var(--course-mobile-gutter) calc(.55rem + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--line);
     background: var(--white);
     box-shadow: 0 -4px 18px #0d193015;
@@ -321,8 +327,12 @@ body:has(.rh-payment[open]) { overflow: hidden; }
 }
 
 @media (max-width: 22.5rem) {
-  .course-header-actions .button { padding-inline: .62rem; }
-  .course-aula-link { padding-inline: .15rem; }
+  .header-inner { gap: .25rem; }
+  .header .brand { gap: .32rem; }
+  .header .brand img { width: 26px; height: 26px; }
+  .course-header-actions { gap: .25rem; }
+  .course-header-actions .button { padding-inline: .4rem; }
+  .course-aula-link { padding-inline: 0; }
 }
 
 .rh-inscripcion { background: var(--pale); color: var(--ink); }
@@ -490,6 +500,10 @@ body:has(.rh-payment[open]) { overflow: hidden; }
   .rh-step-marker { border-radius: .78rem; }
   .rh-faq-grid { grid-template-columns: minmax(0, 1fr); }
   .rh-faq-intro h2 { max-width: 17ch; }
+}
+
+@media (max-width: 45rem) {
+  .rh-inscripcion { background: var(--white); }
 }
 
 @media (prefers-reduced-motion: reduce) {
