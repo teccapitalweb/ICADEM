@@ -16,7 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/css/curso-auxiliar-de-recursos-humanos.css">
+  <link rel="stylesheet" href="/css/curso-auxiliar-de-recursos-humanos.css?v=2">
+  <script type="module" src="/js/curso-auxiliar-rh-presentacion.js?v=1"></script>
+  <script type="module" src="/js/curso-auxiliar-rh-resenas.js?v=1"></script>
 </head>
 <body>
   <a class="skip-link" href="#contenido">Ir al contenido</a>
@@ -55,111 +57,224 @@
           </figcaption>
         </figure>
       </div>
-      <ul class="shell course-facts" aria-label="Características del curso">
-        <li>5 módulos</li>
-        <li>Ejercicios prácticos</li>
-        <li>Enfoque en México</li>
+      <ul class="shell course-metrics" aria-label="Trayectoria de ICADEM">
+        <li><strong><span class="sr-only">Más de 3,240</span><span aria-hidden="true" data-count="3240" data-prefix="+">+3,240</span></strong><span>Personas capacitadas</span></li>
+        <li><strong><span class="sr-only">Más de 22</span><span aria-hidden="true" data-count="22" data-prefix="+">+22</span></strong><span>Estados de la República</span></li>
+        <li><strong><span class="sr-only">4.9 de 5</span><span aria-hidden="true" data-count="4.9" data-decimals="1"><span data-count-value>4.9</span><small>/5</small></span></strong><span>Satisfacción promedio</span></li>
+        <li><strong><span class="sr-only">Más de 45</span><span aria-hidden="true" data-count="45" data-prefix="+">+45</span></strong><span>Cursos impartidos</span></li>
       </ul>
     </section>
 
-    <section id="objetivo" class="objective section" aria-labelledby="titulo-objetivo">
-      <div class="shell copy-columns">
-        <div>
-          <p class="eyebrow">Objetivo del curso</p>
-          <h2 id="titulo-objetivo">Desarrolla las bases para trabajar en RH</h2>
+    <section id="conoce-el-curso" class="course-details section" aria-labelledby="titulo-detalles">
+      <div class="shell">
+        <h2 id="titulo-detalles">Conoce el curso</h2>
+        <div class="course-tabs" data-course-tabs role="tablist" aria-label="Información del curso" hidden>
+          <button type="button" role="tab" id="tab-ponente" aria-selected="true" aria-controls="ponente">Ponente</button>
+          <button type="button" role="tab" id="tab-objetivo" aria-selected="false" aria-controls="objetivo" tabindex="-1">Qué aprenderás</button>
+          <button type="button" role="tab" id="tab-incluye" aria-selected="false" aria-controls="incluye" tabindex="-1">Qué incluye</button>
+          <button type="button" role="tab" id="tab-temario" aria-selected="false" aria-controls="temario" tabindex="-1">Temario</button>
+          <button type="button" role="tab" id="tab-dirigido" aria-selected="false" aria-controls="dirigido" tabindex="-1">Dirigido a</button>
         </div>
-        <div class="body-copy">
-          <p>Adquiere conocimientos teóricos y prácticos sobre las funciones del área de Recursos Humanos, salud y seguridad laboral, prestaciones, finiquitos, aguinaldo y componentes de nómina.</p>
-          <p>El objetivo es que desarrolles las habilidades para desempeñarte como auxiliar de Recursos Humanos en cualquier tipo de organización.</p>
-        </div>
-      </div>
-    </section>
 
-    <section id="ponente" class="instructor section" aria-labelledby="titulo-ponente">
-      <div class="shell instructor-grid">
-        <img class="instructor-photo" src="/assets/curso-auxiliar-rh/marilyn-cabrera.webp" width="840" height="840" alt="Retrato de Marilyn de los Ángeles Cabrera Rodríguez" loading="lazy" decoding="async">
-        <div class="instructor-copy">
-          <p class="eyebrow">Ponente</p>
-          <h2 id="titulo-ponente">Marilyn de los Ángeles Cabrera Rodríguez</h2>
-          <p class="credentials">Licenciada en Derecho y Maestra en Administración de Recursos Humanos</p>
-          <div class="body-copy">
-            <p>Actualmente es docente frente a grupo en el Instituto Tecnológico Superior de la Sierra Negra de Ajalpan. Ha trabajado como abogada especialista en distintas ramas del derecho, responsable de Recursos Humanos en el Centro de Salud Urbano de Tehuacán y abogada litigante en el Juzgado Primero de lo Penal.</p>
-            <p>Su formación complementaria abarca docencia, justicia y equidad con perspectiva de género, recursos educativos en ambientes virtuales, aprendizaje activo y Moodle. Su trayectoria combina Derecho, Recursos Humanos y docencia con el desarrollo de competencias profesionales.</p>
+        <article id="ponente" class="course-panel instructor" role="tabpanel" aria-labelledby="tab-ponente" tabindex="0">
+          <div class="instructor-grid">
+            <div class="instructor-identity">
+              <h3 id="titulo-ponente">Marilyn de los Ángeles Cabrera Rodríguez</h3>
+              <p class="credentials">Licenciada en Derecho y Maestra en Administración de Recursos Humanos</p>
+            </div>
+            <img class="instructor-photo" src="/assets/curso-auxiliar-rh/marilyn-cabrera.webp" width="840" height="840" alt="Retrato de Marilyn de los Ángeles Cabrera Rodríguez" fetchpriority="low" decoding="async">
+            <div class="instructor-bio body-copy">
+              <p>Actualmente es docente frente a grupo en el Instituto Tecnológico Superior de la Sierra Negra de Ajalpan. Ha trabajado como abogada especialista en distintas ramas del derecho, responsable de Recursos Humanos en el Centro de Salud Urbano de Tehuacán y abogada litigante en el Juzgado Primero de lo Penal.</p>
+              <p>Su formación complementaria abarca docencia, justicia y equidad con perspectiva de género, recursos educativos en ambientes virtuales, aprendizaje activo y Moodle. Su trayectoria combina Derecho, Recursos Humanos y docencia con el desarrollo de competencias profesionales.</p>
+            </div>
           </div>
+        </article>
+
+        <article id="objetivo" class="course-panel course-text" role="tabpanel" aria-labelledby="tab-objetivo" tabindex="0">
+          <h3>Desarrolla las bases para trabajar en RH</h3>
+          <div class="body-copy">
+            <p>Adquiere conocimientos teóricos y prácticos sobre las funciones del área de Recursos Humanos, salud y seguridad laboral, prestaciones, finiquitos, aguinaldo y componentes de nómina.</p>
+            <p>El objetivo es que desarrolles las habilidades para desempeñarte como auxiliar de Recursos Humanos en cualquier tipo de organización.</p>
+          </div>
+        </article>
+
+        <article id="incluye" class="course-panel course-text" role="tabpanel" aria-labelledby="tab-incluye" tabindex="0">
+          <h3>Formación con ejercicios en cada módulo</h3>
+          <ul class="body-copy course-list">
+            <li>Cinco módulos, desde las funciones del área hasta los componentes de una nómina.</li>
+            <li>Casos y ejercicios sobre seguridad laboral, finiquito, aguinaldo y recibos de nómina.</li>
+            <li>Formación impartida por la Mtra. Marilyn de los Ángeles Cabrera Rodríguez.</li>
+          </ul>
+        </article>
+
+        <article id="temario" class="course-panel syllabus-grid" role="tabpanel" aria-labelledby="tab-temario" tabindex="0">
+          <div class="syllabus-intro">
+            <h3>Temario</h3>
+            <p class="body-copy">Consulta los temas y la actividad práctica de cada módulo.</p>
+          </div>
+          <div class="modules">
+            <details name="modulos-rh" open>
+              <summary><span><small>Módulo 1</small><strong>Funciones y Objetivos de Recursos Humanos</strong></span></summary>
+              <div class="module-body">
+                <ul>
+                  <li>Concepto y evolución del área de Recursos Humanos.</li>
+                  <li>Objetivos estratégicos y operativos del departamento.</li>
+                  <li>Funciones principales de un auxiliar de RH.</li>
+                  <li>Importancia del área en la productividad y el clima laboral.</li>
+                </ul>
+                <p class="exercise"><strong>Ejercicio práctico</strong> Identificación de funciones de RH en una empresa.</p>
+              </div>
+            </details>
+            <details name="modulos-rh">
+              <summary><span><small>Módulo 2</small><strong>Salud Ocupacional y Seguridad Laboral</strong></span></summary>
+              <div class="module-body">
+                <ul>
+                  <li>Concepto de salud ocupacional y seguridad en el trabajo.</li>
+                  <li>Normas básicas de seguridad e higiene (NOM aplicables en México).</li>
+                  <li>Riesgos laborales y medidas preventivas.</li>
+                  <li>Rol del auxiliar de RH en la prevención de accidentes.</li>
+                </ul>
+                <p class="exercise"><strong>Actividad</strong> Caso práctico de medidas de seguridad laboral.</p>
+              </div>
+            </details>
+            <details name="modulos-rh">
+              <summary><span><small>Módulo 3</small><strong>Finiquito</strong></span></summary>
+              <div class="module-body">
+                <ul>
+                  <li>Concepto de finiquito y diferencia con liquidación.</li>
+                  <li>Causas de terminación de la relación laboral.</li>
+                  <li>Componentes del finiquito (salarios pendientes, vacaciones, prima y otros conceptos).</li>
+                  <li>Procedimiento para el cálculo del finiquito.</li>
+                </ul>
+                <p class="exercise"><strong>Ejercicio práctico</strong> Simulación de cálculo de un finiquito.</p>
+              </div>
+            </details>
+            <details name="modulos-rh">
+              <summary><span><small>Módulo 4</small><strong>Aguinaldo</strong></span></summary>
+              <div class="module-body">
+                <ul>
+                  <li>Fundamento legal (Ley Federal del Trabajo).</li>
+                  <li>Quiénes tienen derecho y cómo se calcula.</li>
+                  <li>Aguinaldo proporcional.</li>
+                  <li>Retenciones y consideraciones fiscales.</li>
+                </ul>
+                <p class="exercise"><strong>Caso práctico</strong> Cálculo de aguinaldo proporcional.</p>
+              </div>
+            </details>
+            <details name="modulos-rh">
+              <summary><span><small>Módulo 5</small><strong>Prestaciones de Ley y Componentes de Nómina</strong></span></summary>
+              <div class="module-body">
+                <ul>
+                  <li>Prestaciones de ley: vacaciones, prima vacacional, aguinaldo, IMSS e Infonavit.</li>
+                  <li>Ejemplos de prestaciones superiores.</li>
+                  <li>Componentes de la nómina: percepciones, deducciones y neto a pagar.</li>
+                  <li>El papel del auxiliar de RH en el control de nómina.</li>
+                </ul>
+                <p class="exercise"><strong>Ejercicio</strong> Elaboración básica de un recibo de nómina.</p>
+              </div>
+            </details>
+          </div>
+        </article>
+
+        <article id="dirigido" class="course-panel course-text" role="tabpanel" aria-labelledby="tab-dirigido" tabindex="0">
+          <h3>¿A quién va dirigido?</h3>
+          <ul class="body-copy course-list">
+            <li>Personas interesadas en comenzar como auxiliares de Recursos Humanos.</li>
+            <li>Personal administrativo que apoya tareas de RH y nómina.</li>
+            <li>Estudiantes y profesionales que buscan fortalecer sus conocimientos sobre los procesos laborales en México.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section id="resenas" class="rh-reviews section" aria-labelledby="titulo-resenas">
+      <div class="shell rh-reviews-layout">
+        <div>
+          <h2 id="titulo-resenas">Reseñas de ICADEM</h2>
+          <p class="body-copy">Experiencias de participantes en las capacitaciones de ICADEM, compartidas en Facebook.</p>
+        </div>
+        <div class="rh-review-carousel" data-rh-reviews role="group" aria-roledescription="carrusel" aria-label="Opiniones sobre ICADEM">
+          <div class="rh-review-controls" hidden>
+            <button type="button" data-review-rotation aria-label="Pausar carrusel" aria-controls="resenas-pista">Pausar</button>
+            <button type="button" data-review-direction="-1" aria-label="Reseña anterior" aria-controls="resenas-pista">Anterior</button>
+            <button type="button" data-review-direction="1" aria-label="Siguiente reseña" aria-controls="resenas-pista">Siguiente</button>
+          </div>
+          <div id="resenas-pista" class="rh-review-track" tabindex="0" role="group" aria-label="Reseñas">
+            <figure class="rh-review-card" role="group" aria-roledescription="reseña" aria-label="1 de 2">
+              <blockquote>El curso superó mis expectativas. El contenido estuvo muy bien estructurado, los temas se explicaron de manera clara y práctica.</blockquote>
+              <figcaption>
+                <div><strong>Jazmin Rivera Sánchez</strong><span><time datetime="2025-10-15">15 oct 2025</time> · Facebook</span></div>
+                <a href="/assets/testimonios/testimonio-2.png" target="_blank" rel="noopener noreferrer" aria-label="Ver captura de la reseña de Jazmin Rivera Sánchez">Ver captura</a>
+              </figcaption>
+            </figure>
+            <figure class="rh-review-card" role="group" aria-roledescription="reseña" aria-label="2 de 2">
+              <blockquote>Muy buenos los cursos que imparten, los maestros y/o licenciados que dan estos mismos están muy bien capacitados y super informados.</blockquote>
+              <figcaption>
+                <div><strong>Antonio Antonio</strong><span><time datetime="2025-10-04">4 oct 2025</time> · Facebook</span></div>
+                <a href="/assets/testimonios/testimonio-3.png" target="_blank" rel="noopener noreferrer" aria-label="Ver captura de la reseña de Antonio Antonio">Ver captura</a>
+              </figcaption>
+            </figure>
+          </div>
+          <p class="rh-review-status" data-review-status role="status"></p>
         </div>
       </div>
     </section>
 
-    <section id="temario" class="syllabus section" aria-labelledby="titulo-temario">
-      <div class="shell syllabus-grid">
-        <div class="syllabus-intro">
-          <h2 id="titulo-temario">Temario</h2>
-          <p class="body-copy">Consulta los temas y la actividad práctica de cada módulo.</p>
+    <section id="inscripcion" class="rh-inscripcion section" aria-labelledby="titulo-inscripcion">
+      <div class="shell">
+        <h2 id="titulo-inscripcion">Cómo inscribirte</h2>
+        <ol class="rh-pasos">
+          <li>
+            <span class="rh-paso-numero" aria-hidden="true">1</span>
+            <h3>Solicita informes</h3>
+            <p>Escríbenos por WhatsApp para conocer la fecha, la modalidad y el costo.</p>
+          </li>
+          <li>
+            <span class="rh-paso-numero" aria-hidden="true">2</span>
+            <h3>Confirma tu inscripción</h3>
+            <p>El equipo de ICADEM te orienta para completar tu registro.</p>
+          </li>
+          <li>
+            <span class="rh-paso-numero" aria-hidden="true">3</span>
+            <h3>Recibe las indicaciones</h3>
+            <p>El equipo te indica cómo acceder a tus clases según la modalidad del curso.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section id="preguntas-frecuentes" class="rh-faq section" aria-labelledby="titulo-faq">
+      <div class="shell rh-faq-grid">
+        <div class="rh-faq-intro">
+          <h2 id="titulo-faq">Preguntas frecuentes</h2>
+          <p>¿Tienes otra duda? El equipo de ICADEM puede orientarte.</p>
+          <a class="button button-outline" href="#informes">Pedir informes</a>
         </div>
-        <div class="modules">
-          <details name="modulos-rh" open>
-            <summary><span><small>Módulo 1</small><strong>Funciones y Objetivos de Recursos Humanos</strong></span></summary>
-            <div class="module-body">
-              <ul>
-                <li>Concepto y evolución del área de Recursos Humanos.</li>
-                <li>Objetivos estratégicos y operativos del departamento.</li>
-                <li>Funciones principales de un auxiliar de RH.</li>
-                <li>Importancia del área en la productividad y el clima laboral.</li>
-              </ul>
-              <p class="exercise"><strong>Ejercicio práctico</strong> Identificación de funciones de RH en una empresa.</p>
-            </div>
+        <div class="rh-faq-list">
+          <details name="preguntas-rh" open>
+            <summary>¿Necesito experiencia previa en RH?<span class="rh-faq-mark" aria-hidden="true"></span></summary>
+            <p>El curso comienza con los fundamentos del área. Está pensado para quienes quieren prepararse como auxiliares de Recursos Humanos o reforzar las tareas básicas que ya realizan.</p>
           </details>
-          <details name="modulos-rh">
-            <summary><span><small>Módulo 2</small><strong>Salud Ocupacional y Seguridad Laboral</strong></span></summary>
-            <div class="module-body">
-              <ul>
-                <li>Concepto de salud ocupacional y seguridad en el trabajo.</li>
-                <li>Normas básicas de seguridad e higiene (NOM aplicables en México).</li>
-                <li>Riesgos laborales y medidas preventivas.</li>
-                <li>Rol del auxiliar de RH en la prevención de accidentes.</li>
-              </ul>
-              <p class="exercise"><strong>Actividad</strong> Caso práctico de medidas de seguridad laboral.</p>
-            </div>
+          <details name="preguntas-rh">
+            <summary>¿Qué ejercicios incluye?<span class="rh-faq-mark" aria-hidden="true"></span></summary>
+            <p>Identificarás las funciones de RH en una empresa, analizarás un caso de seguridad laboral, practicarás el cálculo de un finiquito y de un aguinaldo proporcional, y elaborarás un recibo de nómina básico.</p>
           </details>
-          <details name="modulos-rh">
-            <summary><span><small>Módulo 3</small><strong>Finiquito</strong></span></summary>
-            <div class="module-body">
-              <ul>
-                <li>Concepto de finiquito y diferencia con liquidación.</li>
-                <li>Causas de terminación de la relación laboral.</li>
-                <li>Componentes del finiquito (salarios pendientes, vacaciones, prima y otros conceptos).</li>
-                <li>Procedimiento para el cálculo del finiquito.</li>
-              </ul>
-              <p class="exercise"><strong>Ejercicio práctico</strong> Simulación de cálculo de un finiquito.</p>
-            </div>
+          <details name="preguntas-rh">
+            <summary>¿El curso se enfoca en México?<span class="rh-faq-mark" aria-hidden="true"></span></summary>
+            <p>Sí. El temario aborda las normas mexicanas de seguridad e higiene, la Ley Federal del Trabajo y prestaciones como vacaciones, prima vacacional, IMSS e Infonavit.</p>
           </details>
-          <details name="modulos-rh">
-            <summary><span><small>Módulo 4</small><strong>Aguinaldo</strong></span></summary>
-            <div class="module-body">
-              <ul>
-                <li>Fundamento legal (Ley Federal del Trabajo).</li>
-                <li>Quiénes tienen derecho y cómo se calcula.</li>
-                <li>Aguinaldo proporcional.</li>
-                <li>Retenciones y consideraciones fiscales.</li>
-              </ul>
-              <p class="exercise"><strong>Caso práctico</strong> Cálculo de aguinaldo proporcional.</p>
-            </div>
+          <details name="preguntas-rh">
+            <summary>¿Cuándo inicia y cómo se imparte?<span class="rh-faq-mark" aria-hidden="true"></span></summary>
+            <p>Consulta por WhatsApp la fecha, los horarios y la modalidad de la próxima edición.</p>
           </details>
-          <details name="modulos-rh">
-            <summary><span><small>Módulo 5</small><strong>Prestaciones de Ley y Componentes de Nómina</strong></span></summary>
-            <div class="module-body">
-              <ul>
-                <li>Prestaciones de ley: vacaciones, prima vacacional, aguinaldo, IMSS e Infonavit.</li>
-                <li>Ejemplos de prestaciones superiores.</li>
-                <li>Componentes de la nómina: percepciones, deducciones y neto a pagar.</li>
-                <li>El papel del auxiliar de RH en el control de nómina.</li>
-              </ul>
-              <p class="exercise"><strong>Ejercicio</strong> Elaboración básica de un recibo de nómina.</p>
-            </div>
+          <details name="preguntas-rh">
+            <summary>¿Cuánto cuesta y cómo me inscribo?<span class="rh-faq-mark" aria-hidden="true"></span></summary>
+            <p>Solicita el costo vigente por WhatsApp. El equipo de ICADEM te indicará los pasos para inscribirte y cómo acceder a las clases.</p>
           </details>
         </div>
       </div>
     </section>
+
 
     <section id="informes" class="contact section" aria-labelledby="titulo-informes">
       <div class="shell contact-inner">
