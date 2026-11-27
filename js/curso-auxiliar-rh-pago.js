@@ -21,14 +21,16 @@ let visitId;
 let attempt;
 let opening;
 let checkout;
-let confirmed = false;
+let canStartPayment = !checkoutId;
 
 async function request(path, options) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {
     const response = await fetch(courseApi + path, { ...options, signal: controller.signal });
-    if (!response.ok) throw new Error('Course request failed');
+    if (!response.ok) {
+      throw Object.assign(new Error('Course request failed'), { status: response.status });
+    }
     return await response.json();
   } finally {
     clearTimeout(timeout);
@@ -114,7 +116,7 @@ async function showCheckout() {
 
 for (const button of document.querySelectorAll('[data-rh-buy]')) {
   button.addEventListener('click', event => {
-    if (confirmed) {
+    if (!canStartPayment) {
       event.preventDefault();
       result.scrollIntoView({ block: 'center' });
       return;
@@ -147,11 +149,14 @@ async function checkPayment() {
   try {
     const params = new URLSearchParams({ checkout: checkoutId });
     const { estado } = await request('/inscripcion?' + params, { cache: 'no-store' });
-    confirmed = estado === 'pagado';
-    result.toggleAttribute('data-confirmed', confirmed);
+    canStartPayment = estado === 'expirado' || estado === 'reembolsado';
+    result.toggleAttribute('data-confirmed', estado === 'pagado');
     result.textContent = states[estado] || 'El estado del pago aún no está disponible.';
-  } catch {
-    result.textContent = 'No pudimos verificar el pago. Recarga esta página para consultar su estado.';
+  } catch (error) {
+    canStartPayment = error.status === 404;
+    result.textContent = canStartPayment
+      ? 'La sesión de pago no está disponible. Selecciona «Inscribirme» para abrir el formulario.'
+      : 'No pudimos verificar el pago. Recarga esta página para consultar su estado.';
   }
 }
 
