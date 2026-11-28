@@ -68,8 +68,15 @@ em { color: var(--blue); font-style: normal; }
 .course-countdown__time b, .course-countdown__time small { display: block; }
 .course-countdown__time b { color: var(--course-clock-accent); font-size: 1.28rem; font-variant-numeric: tabular-nums; line-height: 1.05; }
 .course-countdown__time small { color: #d8e3fa; font-size: .59rem; font-weight: 720; letter-spacing: .06em; text-transform: uppercase; }
-.hero-grid { display: grid; grid-template-columns: 1.04fr 1fr; gap: clamp(24px, 4.2vw, 60px); align-items: center; }
-.hero-content { min-width: 0; }
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.04fr 1fr;
+  grid-template-areas: "offer media" "copy media";
+  column-gap: clamp(24px, 4.2vw, 60px);
+}
+.hero-offer { grid-area: offer; align-self: end; }
+.hero-content { grid-area: copy; align-self: start; min-width: 0; }
+.course-media { grid-area: media; align-self: center; min-width: 0; }
 .tag { display: inline-flex; align-items: center; gap: 7px; background: #e5edff; color: var(--blue-dark); padding: 7px 11px; border-radius: 999px; font-weight: 800; text-transform: uppercase; font-size: .75rem; letter-spacing: .055em; }
 .hero .tag { background: var(--course-promo-bg); color: var(--course-promo-ink); }
 .hero h1 { max-width: 12ch; font-size: clamp(2.75rem, 5.4vw, 4.55rem); line-height: .99; font-weight: 900; letter-spacing: -.065em; margin-top: 19px; }
@@ -206,8 +213,12 @@ dialog::backdrop { background: #0b1c40a6; backdrop-filter: blur(4px); }
 .aula-links { justify-content: space-between; align-items: center; font-size: .92rem; }
 .aula-links button { padding: 6px 10px; color: var(--blue-dark); background: white; border: 1px solid var(--line); border-radius: 7px; }
 @media (max-width: 820px) {
-  .hero-grid { grid-template-columns: 1fr; }
-  .hero h1 { max-width: 14ch; }
+  .hero-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "offer" "media" "copy";
+    row-gap: 16px;
+  }
+  .hero h1 { max-width: 14ch; margin-top: 0; }
   .course-media { width: min(100%,460px); margin-inline: auto; }
 }
 @media (max-width: 600px) {
@@ -226,10 +237,9 @@ dialog::backdrop { background: #0b1c40a6; backdrop-filter: blur(4px); }
   .course-countdown p span, .course-countdown__time { flex: 0 0 auto; }
   .course-countdown__time > span { min-width: 41px; padding-inline: 5px; }
   .course-countdown__time b { font-size: 1.12rem; }
-  .hero-grid { gap: 21px; }
-  .hero-content { text-align: center; }
+  .hero-offer, .hero-content { text-align: center; }
   .hero .tag { padding: 5px 9px; font-size: .7rem; }
-  .hero h1 { max-width: none; margin-top: 11px; font-size: clamp(1.65rem, 7.55vw, 2.35rem); line-height: 1.07; letter-spacing: -.05em; }
+  .hero h1 { max-width: none; font-size: clamp(1.65rem, 7.55vw, 2.35rem); line-height: 1.07; letter-spacing: -.05em; }
   .hero .lead { max-width: 38ch; margin: 10px auto 0; font-size: .9375rem; line-height: 1.5; text-wrap: balance; }
   .hero .price { width: min(100%, 310px); margin: 16px auto 0; padding: 13px 15px; }
   .hero .price-before { font-size: .8125rem; }

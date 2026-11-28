@@ -142,6 +142,13 @@ h2 { font-size: clamp(2rem, 4.1vw, 3.4rem); font-weight: 800; letter-spacing: -.
   .hero-grid, .instructor-grid, .syllabus-grid { grid-template-columns: minmax(0, 1fr); }
   .hero-grid { grid-template-areas: "offer" "visual" "copy"; gap: 1rem; }
   .hero h1 { max-width: 13ch; font-size: clamp(2.55rem, 10vw, 4rem); }
+  .hero .rh-hero-title {
+    max-width: none;
+    font-size: clamp(1.72rem, 8.3vw, 3.6rem);
+    line-height: 1.05;
+    text-align: center;
+    text-wrap: balance;
+  }
   .hero-intro { margin-top: 1rem; }
   .hero-actions { margin-top: 1.3rem; }
   .hero-actions .button { flex: 1 1 8rem; padding-inline: 0.65rem; }
