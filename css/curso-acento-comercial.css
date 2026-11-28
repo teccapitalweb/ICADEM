@@ -1,0 +1,75 @@
+:root {
+  --course-cta: #c34209;
+  --course-cta-hover: #a3370a;
+  --course-cta-halo: rgba(195, 66, 9, .21);
+  --course-warm-edge: #efba96;
+  --course-warm-bg: #fff6ec;
+  --course-warm-ink: #823110;
+  --course-promo-bg: #ffda94;
+  --course-promo-ink: #582606;
+  --course-clock-accent: #ffd388;
+}
+
+.button[data-rh-buy]:where(.header *, .hero *, .rh-steps-head *, .course-enrollment *, .rh-mobile-buy *) {
+  color: #fff;
+  background: var(--course-cta);
+}
+
+.button[data-rh-buy]:where(.header *, .hero *, .rh-steps-head *, .course-enrollment *, .rh-mobile-buy *):hover {
+  background: var(--course-cta-hover);
+}
+
+.hero-actions .button[data-rh-buy],
+.course-enrollment-button[data-rh-buy],
+.rh-mobile-buy .button[data-rh-buy] {
+  box-shadow: 0 5px 15px var(--course-cta-halo);
+}
+
+.hero .hero-kicker.eyebrow,
+.course-enrollment-state {
+  color: var(--course-promo-ink);
+  background: var(--course-promo-bg);
+  border-color: var(--course-warm-edge);
+}
+
+.hero .promo-icon-box {
+  color: var(--course-warm-ink);
+  background: var(--course-promo-bg);
+}
+
+.rh-launch-label::before {
+  background: var(--course-clock-accent);
+  box-shadow: 0 0 0 3px rgba(255, 211, 136, .15);
+}
+
+.rh-clock span {
+  color: var(--course-clock-accent);
+}
+
+.hero .rh-hero-price {
+  width: fit-content;
+  max-width: 100%;
+  padding: .48rem .8rem;
+  border: 1px solid var(--course-warm-edge);
+  border-inline-start: 3px solid var(--course-cta);
+  border-radius: .74rem;
+  background: var(--course-warm-bg);
+}
+
+.rh-hero-price strong,
+.course-enrollment-price strong {
+  color: var(--course-warm-ink);
+}
+
+.course-enrollment-card {
+  border-color: var(--course-warm-edge);
+  border-top-color: var(--course-cta);
+}
+
+.course-enrollment-benefits .icon {
+  color: var(--course-cta);
+}
+
+.rh-mobile-buy {
+  border-top-color: var(--course-warm-edge);
+}
